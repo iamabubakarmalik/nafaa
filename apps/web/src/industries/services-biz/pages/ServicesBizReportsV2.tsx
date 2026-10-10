@@ -155,12 +155,12 @@ export default function ServicesBizReportsV2() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="text-center px-3 py-3 font-bold text-[10px] uppercase w-12">#</th>
-                  <th className="text-left px-3 py-3 font-bold text-[10px] uppercase">Service</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Sold</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Orders</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Revenue</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Profit</th>
+                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase w-12">#</th>
+                  <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase">Service</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Sold</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Orders</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Revenue</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Profit</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -268,7 +268,7 @@ export default function ServicesBizReportsV2() {
                       </div>
                     </td>
                     <td className="px-6 py-3 text-center">
-                      <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-extrabold uppercase">{t.level}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.6875rem] font-extrabold uppercase">{t.level}</span>
                     </td>
                     <td className="px-6 py-3 text-right font-bold">{t.totalJobs || 0}</td>
                     <td className="px-6 py-3 text-right font-extrabold text-emerald-700 tabular-nums">{formatPKR(t.totalRevenue || 0)}</td>

@@ -118,7 +118,7 @@ export function DesktopStartOnBoot() {
             </button>
           ))}
         </div>
-        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+        <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
           System = OS ke saath sync (recommended)
         </p>
       </div>
@@ -129,8 +129,8 @@ export function DesktopStartOnBoot() {
           <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
           <div className="text-xs text-blue-900 dark:text-blue-200 space-y-1 font-semibold">
             <div className="font-extrabold mb-1">Global Shortcuts (kaam karte hain jab app background me ho):</div>
-            <div><kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-800 rounded font-mono text-[10px]">Ctrl+Shift+B</kbd> — Focus barcode input</div>
-            <div><kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-800 rounded font-mono text-[10px]">Ctrl+Shift+S</kbd> — Open POS quickly</div>
+            <div><kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-800 rounded font-mono text-[0.6875rem]">Ctrl+Shift+B</kbd> — Focus barcode input</div>
+            <div><kbd className="px-1.5 py-0.5 bg-white dark:bg-slate-800 rounded font-mono text-[0.6875rem]">Ctrl+Shift+S</kbd> — Open POS quickly</div>
           </div>
         </div>
       </div>

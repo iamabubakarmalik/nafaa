@@ -108,19 +108,19 @@ export default function SaltsPage() {
                   <div className="min-w-0 flex-1">
                     <h3 className="font-extrabold text-slate-900 dark:text-white truncate">{salt.name}</h3>
                     {salt.genericName && <div className="text-xs text-slate-500 font-bold truncate">{salt.genericName}</div>}
-                    {salt.category && <div className="text-[10px] uppercase font-extrabold text-cyan-600 mt-0.5">{salt.category}</div>}
+                    {salt.category && <div className="text-[0.6875rem] uppercase font-extrabold text-cyan-600 mt-0.5">{salt.category}</div>}
                   </div>
-                  <span className={'px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ' + sCfg.bg + ' ' + sCfg.color}>
+                  <span className={'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ' + sCfg.bg + ' ' + sCfg.color}>
                     {sCfg.label}
                   </span>
                 </div>
 
                 <div className="flex flex-wrap gap-1">
-                  {salt.requiresPrescription && <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[9px] font-extrabold uppercase">Rx</span>}
-                  {salt.isNarcotic && <span className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/40 text-red-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><ShieldAlert className="h-2 w-2" />Narcotic</span>}
-                  {salt.isBanned && <span className="px-1.5 py-0.5 rounded bg-black text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><Ban className="h-2 w-2" />Banned</span>}
-                  {!salt.isPregnancySafe && <span className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><Heart className="h-2 w-2" />Not preg</span>}
-                  {!salt.isPediatricSafe && <span className="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><Baby className="h-2 w-2" />Not ped</span>}
+                  {salt.requiresPrescription && <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase">Rx</span>}
+                  {salt.isNarcotic && <span className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/40 text-red-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><ShieldAlert className="h-2 w-2" />Narcotic</span>}
+                  {salt.isBanned && <span className="px-1.5 py-0.5 rounded bg-black text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Ban className="h-2 w-2" />Banned</span>}
+                  {!salt.isPregnancySafe && <span className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Heart className="h-2 w-2" />Not preg</span>}
+                  {!salt.isPediatricSafe && <span className="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Baby className="h-2 w-2" />Not ped</span>}
                 </div>
 
                 {salt.standardDose && (

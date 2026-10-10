@@ -371,7 +371,7 @@ export default function CarpetCutPiecesPage() {
             }`}
           >
             <Sparkles className="h-3 w-3" /> All
-            <span className={`px-1.5 py-0.5 rounded text-[10px] ${!params.status ? 'bg-white/20' : 'bg-slate-200'}`}>{stats.totalPieces}</span>
+            <span className={`px-1.5 py-0.5 rounded text-[0.6875rem] ${!params.status ? 'bg-white/20' : 'bg-slate-200'}`}>{stats.totalPieces}</span>
           </button>
           {(Object.entries(statusConfig) as [CarpetCutPieceStatus, any][]).map(([key, cfg]) => {
             const Icon = cfg.icon;
@@ -389,7 +389,7 @@ export default function CarpetCutPiecesPage() {
                 }`}
               >
                 <Icon className="h-3 w-3" /> {cfg.label}
-                <span className={`px-1.5 py-0.5 rounded text-[10px] ${active ? 'bg-white/30' : 'bg-slate-200'}`}>{counts[key]}</span>
+                <span className={`px-1.5 py-0.5 rounded text-[0.6875rem] ${active ? 'bg-white/30' : 'bg-slate-200'}`}>{counts[key]}</span>
               </button>
             );
           })}
@@ -542,7 +542,7 @@ export default function CarpetCutPiecesPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="font-extrabold text-violet-700 tabular-nums text-base">{Number(piece.totalSqft).toFixed(2)}</div>
-                        {showPrice && <div className="text-[10px] text-slate-500 font-bold">@ {formatPKR(pricePerSqft)}/sqft</div>}
+                        {showPrice && <div className="text-[0.6875rem] text-slate-500 font-bold">@ {formatPKR(pricePerSqft)}/sqft</div>}
                       </td>
                       {showPrice && (
                         <td className="px-4 py-3 text-right text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(piece.salePrice)}</td>
@@ -556,7 +556,7 @@ export default function CarpetCutPiecesPage() {
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-600 font-bold">{piece.rackNumber || <span className="text-slate-300">—</span>}</td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${cfg.color}`}>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[0.6875rem] font-extrabold ${cfg.color}`}>
                           <Icon className="h-2.5 w-2.5" />
                           {cfg.label}
                         </span>
@@ -589,7 +589,7 @@ export default function CarpetCutPiecesPage() {
 }
 
 function Th({ children, className = '' }: { children: any; className?: string }) {
-  return <th className={`px-4 py-3 text-left text-[11px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
+  return <th className={`px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
 }
 
 function KpiTile({ label, value, sub, icon: Icon, tone, big }: any) {
@@ -604,10 +604,10 @@ function KpiTile({ label, value, sub, icon: Icon, tone, big }: any) {
     <div className={`rounded-2xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3 sm:p-3.5`}>
       <div className="flex items-center gap-1.5 mb-1.5 sm:mb-2">
         <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white/90" />
-        <div className="text-[9px] sm:text-[10px] uppercase tracking-wider font-extrabold text-white/90">{label}</div>
+        <div className="text-[0.625rem] sm:text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/90">{label}</div>
       </div>
       <div className={`font-extrabold leading-none text-white tabular-nums ${big ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'}`}>{value}</div>
-      {sub && <div className="text-[10px] sm:text-[11px] font-bold text-white/75 mt-1 truncate">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-white/75 mt-1 truncate">{sub}</div>}
     </div>
   );
 }
@@ -619,7 +619,7 @@ function PieceRowCompact({ piece, showPrice, onEdit, onDelete }: any) {
     <div className="rounded-xl bg-white border-2 border-slate-200 hover:border-violet-300 hover:shadow-sm transition p-2.5 sm:p-3 flex items-center gap-2">
       <div className="shrink-0">
         <div className="font-mono font-extrabold text-violet-700 text-sm leading-tight">{piece.pieceCode}</div>
-        <span className={`inline-flex items-center gap-0.5 mt-0.5 px-1.5 py-0.5 rounded-full border text-[9px] font-extrabold ${cfg.color}`}>
+        <span className={`inline-flex items-center gap-0.5 mt-0.5 px-1.5 py-0.5 rounded-full border text-[0.625rem] font-extrabold ${cfg.color}`}>
           <Icon className="h-2.5 w-2.5" />
           {cfg.label}
         </span>
@@ -658,7 +658,7 @@ function CutPieceCard({ piece, showPrice, onEdit, onDelete }: any) {
     <div className="group rounded-2xl bg-white border-2 border-slate-200 overflow-hidden hover:border-violet-400 hover:shadow-xl hover:shadow-violet-500/10 hover:-translate-y-0.5 transition-all">
       <div className="px-3 py-2 bg-gradient-to-r from-slate-900 to-slate-800 flex items-center justify-between">
         <div className="font-mono text-white font-extrabold text-xs sm:text-sm truncate">{piece.pieceCode}</div>
-        <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full border text-[9px] font-extrabold shrink-0 ${cfg.color}`}>
+        <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full border text-[0.625rem] font-extrabold shrink-0 ${cfg.color}`}>
           <Icon className="h-2.5 w-2.5" />
           {cfg.label}
         </span>
@@ -668,7 +668,7 @@ function CutPieceCard({ piece, showPrice, onEdit, onDelete }: any) {
         <div>
           <div className="font-extrabold text-slate-900 text-xs sm:text-sm line-clamp-1 leading-tight">{piece.product?.name}</div>
           {piece.variant && (
-            <div className="text-[10px] sm:text-xs font-extrabold text-violet-700 flex items-center gap-1 mt-0.5">
+            <div className="text-[0.6875rem] sm:text-xs font-extrabold text-violet-700 flex items-center gap-1 mt-0.5">
               {piece.variant.colorHex && (
                 <span className="h-2 w-2 rounded-full border border-white shadow-sm" style={{ backgroundColor: piece.variant.colorHex }} />
               )}
@@ -678,7 +678,7 @@ function CutPieceCard({ piece, showPrice, onEdit, onDelete }: any) {
         </div>
 
         <div className="rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 p-2 sm:p-2.5">
-          <div className="flex items-center justify-between text-[10px] mb-1">
+          <div className="flex items-center justify-between text-[0.6875rem] mb-1">
             <div className="font-extrabold text-violet-700 flex items-center gap-1">
               <Ruler className="h-2.5 w-2.5" /> Size
             </div>
@@ -688,22 +688,22 @@ function CutPieceCard({ piece, showPrice, onEdit, onDelete }: any) {
             <div className="text-xl sm:text-2xl font-extrabold text-violet-700 tabular-nums leading-none">
               {Number(piece.totalSqft).toFixed(2)}
             </div>
-            <div className="text-[10px] sm:text-xs font-extrabold text-violet-700">sqft</div>
+            <div className="text-[0.6875rem] sm:text-xs font-extrabold text-violet-700">sqft</div>
           </div>
         </div>
 
         {showPrice && (
           <div className="flex items-baseline justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-[9px] uppercase font-extrabold text-emerald-700">Price</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Price</div>
               <div className="text-sm sm:text-base font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKRFull(piece.salePrice)}</div>
-              <div className="text-[9px] font-bold text-slate-500 mt-0.5">{formatPKR(pricePerSqft)}/sqft</div>
+              <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">{formatPKR(pricePerSqft)}/sqft</div>
             </div>
             {piece.sourceRoll && (
               <div className="text-right shrink-0">
-                <div className="text-[9px] uppercase font-extrabold text-slate-500">From</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">From</div>
                 <Link to={`/carpet-rolls/${piece.sourceRoll.id}`}
-                  className="font-mono text-[10px] font-extrabold text-emerald-700 hover:underline">
+                  className="font-mono text-[0.6875rem] font-extrabold text-emerald-700 hover:underline">
                   {piece.sourceRoll.rollNumber}
                 </Link>
               </div>
@@ -712,7 +712,7 @@ function CutPieceCard({ piece, showPrice, onEdit, onDelete }: any) {
         )}
 
         {piece.rackNumber && (
-          <div className="flex items-center gap-1 text-[10px] text-slate-600 font-bold bg-slate-50 rounded-md px-2 py-1">
+          <div className="flex items-center gap-1 text-[0.6875rem] text-slate-600 font-bold bg-slate-50 rounded-md px-2 py-1">
             <MapPin className="h-2.5 w-2.5 shrink-0" />
             <span className="truncate">{piece.rackNumber}</span>
           </div>

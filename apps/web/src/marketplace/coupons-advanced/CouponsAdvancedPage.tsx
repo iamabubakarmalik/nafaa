@@ -100,7 +100,7 @@ export default function CouponsAdvancedPage() {
             <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-4">
               <div className="text-xs font-black text-emerald-700 uppercase mb-1">Avg Order Value (with coupon)</div>
               <div className="text-3xl font-black text-emerald-900 tabular-nums">Rs {formatPKR(analytics.avgOrderValueWithCoupon)}</div>
-              <div className="text-[10px] text-emerald-700 font-bold mt-1">
+              <div className="text-[0.6875rem] text-emerald-700 font-bold mt-1">
                 {analytics.avgOrderValueWithCoupon > analytics.avgOrderValueWithoutCoupon ? (
                   <>↑ {(((analytics.avgOrderValueWithCoupon - analytics.avgOrderValueWithoutCoupon) / analytics.avgOrderValueWithoutCoupon) * 100).toFixed(1)}% higher than non-coupon</>
                 ) : (
@@ -111,7 +111,7 @@ export default function CouponsAdvancedPage() {
             <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-4">
               <div className="text-xs font-black text-slate-700 uppercase mb-1">Avg Order Value (without coupon)</div>
               <div className="text-3xl font-black text-slate-900 tabular-nums">Rs {formatPKR(analytics.avgOrderValueWithoutCoupon)}</div>
-              <div className="text-[10px] text-slate-600 font-bold mt-1">Baseline for comparison</div>
+              <div className="text-[0.6875rem] text-slate-600 font-bold mt-1">Baseline for comparison</div>
             </div>
           </div>
 
@@ -127,13 +127,13 @@ export default function CouponsAdvancedPage() {
                       <span className="font-mono font-black text-purple-700 text-sm">{c.code}</span>
                       <span className="text-xs font-bold text-slate-700 truncate">{c.title}</span>
                     </div>
-                    <div className="text-[10px] text-slate-500 font-bold mt-0.5">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">
                       {c.redemptions} redemptions · Rs {formatPKR(c.discountGiven)} discount given
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-black text-emerald-700 tabular-nums">Rs {formatPKR(c.revenue)}</div>
-                    <div className="text-[9px] text-slate-500 font-bold uppercase">revenue</div>
+                    <div className="text-[0.625rem] text-slate-500 font-bold uppercase">revenue</div>
                   </div>
                 </div>
               ))}
@@ -158,7 +158,7 @@ export default function CouponsAdvancedPage() {
                         style={{ width: `${pct}%` }}
                       />
                       <div className="absolute inset-0 flex items-center px-2">
-                        <span className="text-[10px] font-black text-slate-700">{day.count} redemptions</span>
+                        <span className="text-[0.6875rem] font-black text-slate-700">{day.count} redemptions</span>
                       </div>
                     </div>
                     <span className="w-20 text-right text-emerald-700 font-black tabular-nums shrink-0">
@@ -228,7 +228,7 @@ function HeroKpi({ label, value, icon: Icon, highlight, isText }: any) {
     }`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
       </div>
       <div className={`font-black leading-none tabular-nums ${isText ? 'text-sm' : 'text-xl'}`}>{value}</div>
     </div>
@@ -246,13 +246,13 @@ function CouponMiniCard({ coupon, onCopy }: any) {
       'bg-white border-slate-200'
     }`}>
       <div className="flex items-center justify-between mb-2">
-        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+        <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${
           isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
         }`}>
           {coupon.status}
         </span>
         {coupon.isFlashSale && (
-          <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 inline-flex items-center gap-0.5">
+          <span className="text-[0.6875rem] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 inline-flex items-center gap-0.5">
             <Zap className="h-2.5 w-2.5" />
             FLASH
           </span>
@@ -269,7 +269,7 @@ function CouponMiniCard({ coupon, onCopy }: any) {
 
       <div className="text-sm font-black text-slate-900 line-clamp-1">{coupon.title}</div>
 
-      <div className="mt-2 grid grid-cols-2 gap-1 text-[10px] font-bold">
+      <div className="mt-2 grid grid-cols-2 gap-1 text-[0.6875rem] font-bold">
         <div className="text-slate-600">
           Discount:{' '}
           <span className="text-slate-900">
@@ -348,7 +348,7 @@ function BulkGenerateModal({ onClose, onSuccess }: any) {
                 onChange={(e) => setForm({ ...form, count: Number(e.target.value) })}
                 className="w-full h-11 px-3 rounded-xl border-2 border-slate-200 text-lg font-black outline-none focus:border-purple-500"
               />
-              <p className="text-[10px] text-slate-500 font-bold mt-1">Max 5000 at once</p>
+              <p className="text-[0.6875rem] text-slate-500 font-bold mt-1">Max 5000 at once</p>
             </div>
             <div>
               <label className="text-sm font-black text-slate-700 mb-1.5 block">Prefix</label>
@@ -359,7 +359,7 @@ function BulkGenerateModal({ onClose, onSuccess }: any) {
                 maxLength={10}
                 className="w-full h-11 px-3 rounded-xl border-2 border-slate-200 text-sm font-mono font-black uppercase outline-none focus:border-purple-500"
               />
-              <p className="text-[10px] text-slate-500 font-bold mt-1">e.g. NAFAA-ABC123</p>
+              <p className="text-[0.6875rem] text-slate-500 font-bold mt-1">e.g. NAFAA-ABC123</p>
             </div>
           </div>
 
@@ -425,7 +425,7 @@ function BulkGenerateModal({ onClose, onSuccess }: any) {
                 onChange={(e) => setForm({ ...form, usageLimit: Number(e.target.value) })}
                 className="w-full h-11 px-3 rounded-xl border-2 border-slate-200 text-sm font-black outline-none focus:border-purple-500"
               />
-              <p className="text-[10px] text-slate-500 font-bold mt-1">Usually 1 (single-use)</p>
+              <p className="text-[0.6875rem] text-slate-500 font-bold mt-1">Usually 1 (single-use)</p>
             </div>
             <div>
               <label className="text-sm font-black text-slate-700 mb-1.5 block">Per Customer</label>

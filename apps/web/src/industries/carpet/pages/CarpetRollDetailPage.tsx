@@ -292,10 +292,10 @@ export default function CarpetRollDetailPage() {
             <span className={`px-3 py-1.5 rounded-full border text-xs sm:text-sm font-extrabold ${statusColors[roll.status]} bg-white shadow-md`}>
               {roll.status}
             </span>
-            <div className="text-[10px] sm:text-xs text-white/70 font-bold uppercase tracking-wider">
+            <div className="text-[0.6875rem] sm:text-xs text-white/70 font-bold uppercase tracking-wider">
               {roll.sourceType.replace('_', ' ')}
             </div>
-            <div className="text-[10px] sm:text-xs text-white/60 font-bold">
+            <div className="text-[0.6875rem] sm:text-xs text-white/60 font-bold">
               Added {new Date(roll.receivedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
             </div>
           </div>
@@ -388,23 +388,23 @@ export default function CarpetRollDetailPage() {
 
           <div className="grid grid-cols-3 gap-2 mt-4">
             <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-2.5 sm:p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500">Original</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Original</div>
               <div className="text-sm sm:text-base font-extrabold text-slate-900 tabular-nums mt-1">
                 {Number(roll.originalLengthFt)}ft{Number((roll as any).originalLengthInch || 0) > 0 ? ` ${(roll as any).originalLengthInch}in` : ''}
               </div>
-              <div className="text-[10px] text-slate-500 font-bold">{analytics.originalSqft.toFixed(1)} sqft</div>
+              <div className="text-[0.6875rem] text-slate-500 font-bold">{analytics.originalSqft.toFixed(1)} sqft</div>
             </div>
             <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-2.5 sm:p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-blue-700">Bik Chuka</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Bik Chuka</div>
               <div className="text-sm sm:text-base font-extrabold text-blue-700 tabular-nums mt-1">{analytics.soldLength.toFixed(1)}ft</div>
-              <div className="text-[10px] text-blue-600 font-bold">{analytics.soldSqft.toFixed(1)} sqft</div>
+              <div className="text-[0.6875rem] text-blue-600 font-bold">{analytics.soldSqft.toFixed(1)} sqft</div>
             </div>
             <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-2.5 sm:p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-emerald-700">Available</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Available</div>
               <div className="text-sm sm:text-base font-extrabold text-emerald-700 tabular-nums mt-1">
                 {Number(roll.remainingLengthFt)}ft{Number((roll as any).remainingLengthInch || 0) > 0 ? ` ${(roll as any).remainingLengthInch}in` : ''}
               </div>
-              <div className="text-[10px] text-emerald-600 font-bold">{analytics.remainingSqft.toFixed(1)} sqft</div>
+              <div className="text-[0.6875rem] text-emerald-600 font-bold">{analytics.remainingSqft.toFixed(1)} sqft</div>
             </div>
           </div>
 
@@ -415,7 +415,7 @@ export default function CarpetRollDetailPage() {
                 <Activity className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[10px] uppercase font-extrabold text-blue-700">Turnover Rate</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Turnover Rate</div>
                 <div className="text-sm font-extrabold text-blue-900">
                   {analytics.sqftPerDay.toFixed(1)} sqft/day
                   {analytics.estimatedDaysToFinish && (
@@ -442,16 +442,16 @@ export default function CarpetRollDetailPage() {
             </div>
             <div className="space-y-3">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-amber-700">Cost Value</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Cost Value</div>
                 <div className="text-2xl sm:text-3xl font-extrabold text-amber-900 tabular-nums">{formatPKRFull(analytics.lockedCapital)}</div>
               </div>
               <div className="grid grid-cols-2 gap-2 pt-3 border-t-2 border-amber-200">
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-amber-700">Sale Value</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Sale Value</div>
                   <div className="text-sm sm:text-base font-extrabold text-amber-900 tabular-nums">{formatPKRFull(analytics.potentialRevenue)}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-emerald-700">Aane Wala Faida</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Aane Wala Faida</div>
                   <div className="text-sm sm:text-base font-extrabold text-emerald-700 tabular-nums">{formatPKRFull(analytics.potentialProfit)}</div>
                 </div>
               </div>
@@ -483,7 +483,7 @@ export default function CarpetRollDetailPage() {
                   <Icon className="h-4 w-4" />
                   {t.label}
                   {t.count !== undefined && t.count > 0 && (
-                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                    <span className={`px-1.5 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
                       {t.count}
                     </span>
                   )}
@@ -578,7 +578,7 @@ export default function CarpetRollDetailPage() {
                       className="rounded-xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50 p-3 hover:border-violet-400 hover:shadow-md hover:-translate-y-0.5 transition active:scale-95">
                       <div className="flex items-center justify-between mb-2">
                         <div className="font-mono font-extrabold text-sm text-violet-900">{piece.pieceCode}</div>
-                        <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-extrabold ${
+                        <span className={`px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold ${
                           piece.status === 'AVAILABLE' ? 'bg-emerald-100 text-emerald-700'
                           : piece.status === 'SOLD' ? 'bg-violet-100 text-violet-700'
                           : 'bg-rose-100 text-rose-700'
@@ -590,7 +590,7 @@ export default function CarpetRollDetailPage() {
                         <div className="text-base font-extrabold text-emerald-700 mt-2 tabular-nums">{formatPKRFull(piece.salePrice)}</div>
                       )}
                       {piece.condition && piece.condition !== 'Good' && (
-                        <div className="mt-1 inline-flex items-center px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[10px] font-extrabold">{piece.condition}</div>
+                        <div className="mt-1 inline-flex items-center px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold">{piece.condition}</div>
                       )}
                     </Link>
                   ))}
@@ -700,12 +700,12 @@ function AnalyticsCard({ label, value, unit, subValue, tone, icon: Icon, percent
         </div>
         {trend === 'up' && <ArrowUpRight className="h-4 w-4 opacity-60" />}
       </div>
-      <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-75">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-75">{label}</div>
       <div className="mt-1 flex items-baseline gap-1">
         <div className="text-xl sm:text-3xl font-extrabold tabular-nums leading-none">{value}</div>
         {unit && <div className="text-xs sm:text-sm font-extrabold opacity-70">{unit}</div>}
       </div>
-      {subValue && <div className="text-[10px] sm:text-xs font-bold opacity-70 mt-1.5 truncate">{subValue}</div>}
+      {subValue && <div className="text-[0.6875rem] sm:text-xs font-bold opacity-70 mt-1.5 truncate">{subValue}</div>}
       {percent !== undefined && (
         <div className="mt-2 h-1.5 rounded-full bg-white/50 overflow-hidden">
           <div className="h-full bg-current opacity-60" style={{ width: `${Math.max(percent, 3)}%` }} />
@@ -725,7 +725,7 @@ function DetailRow({ label, value, mono, icon: Icon, tone }: any) {
   };
   return (
     <div className={`rounded-xl border-2 p-2.5 sm:p-3 ${tone ? toneClass[tone] : 'bg-white border-slate-200'}`}>
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 flex items-center gap-1.5">
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 flex items-center gap-1.5">
         {Icon && <Icon className="h-3 w-3" />}
         {label}
       </div>
@@ -767,7 +767,7 @@ function MovementTimelineItem({ movement, isFirst }: { movement: any; isFirst: b
           <span className="text-slate-900">{Number(movement.balanceSqftAfter).toFixed(2)} sqft</span>
         </div>
         {movement.note && <div className="text-xs text-slate-500 mt-1 italic font-semibold">"{movement.note}"</div>}
-        <div className="text-[10px] text-slate-400 mt-1 font-bold inline-flex items-center gap-1">
+        <div className="text-[0.6875rem] text-slate-400 mt-1 font-bold inline-flex items-center gap-1">
           <Clock className="h-3 w-3" />
           {new Date(movement.createdAt).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}
         </div>
@@ -863,14 +863,14 @@ function CutFromRollModal({ rollId, rollWidthFt, remainingLengthFt, salePricePer
             <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-3 sm:p-4">
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-emerald-700">Cut Area</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Cut Area</div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-emerald-900 tabular-nums">{cutSqft.toFixed(2)} <span className="text-sm sm:text-base">sqft</span></div>
-                  <div className="text-[10px] sm:text-xs text-emerald-700 font-bold">{customerWidthFt}ft × {lengthFt}ft{lengthInch > 0 ? ` ${lengthInch}in` : ''}</div>
+                  <div className="text-[0.6875rem] sm:text-xs text-emerald-700 font-bold">{customerWidthFt}ft × {lengthFt}ft{lengthInch > 0 ? ` ${lengthInch}in` : ''}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-emerald-700">Sale Price</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Sale Price</div>
                   <div className="text-2xl sm:text-3xl font-extrabold text-emerald-900 tabular-nums">{formatPKRFull(cutPrice)}</div>
-                  <div className="text-[10px] sm:text-xs text-emerald-700 font-bold">@ {formatPKRFull(salePricePerSqft)}/sqft</div>
+                  <div className="text-[0.6875rem] sm:text-xs text-emerald-700 font-bold">@ {formatPKRFull(salePricePerSqft)}/sqft</div>
                 </div>
               </div>
 
@@ -878,7 +878,7 @@ function CutFromRollModal({ rollId, rollWidthFt, remainingLengthFt, salePricePer
                 <div className="mt-3 pt-3 border-t-2 border-emerald-200">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
-                      <div className="text-[10px] uppercase font-extrabold text-amber-700">Leftover</div>
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Leftover</div>
                       <div className="text-sm sm:text-base font-extrabold text-amber-900">{widthDiff.toFixed(2)}ft × {lengthFt}ft = {leftoverSqft.toFixed(2)} sqft</div>
                     </div>
                     <label className="inline-flex items-center gap-2 text-sm font-extrabold text-amber-900 cursor-pointer">

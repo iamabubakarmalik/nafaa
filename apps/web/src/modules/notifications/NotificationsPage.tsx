@@ -293,7 +293,7 @@ export default function NotificationsPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
             <div className="text-xs font-bold text-slate-900">{new Date().toLocaleString('en-PK')}</div>
           </div>
         </div>
@@ -385,7 +385,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Shortcuts hint */}
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>1</Kbd>–<Kbd>5</Kbd><span className="text-white/60">Filters</span>
@@ -419,7 +419,7 @@ export default function NotificationsPage() {
                   <Icon className="h-3.5 w-3.5" />
                   {tab.label}
                   {count > 0 && (
-                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-extrabold tabular-nums ${
+                    <span className={`px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold tabular-nums ${
                       isActive
                         ? 'bg-brand-100 dark:bg-brand-500/30 text-brand-700 dark:text-brand-300'
                         : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
@@ -551,7 +551,7 @@ export default function NotificationsPage() {
                         {dateLabel}
                       </h4>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-extrabold text-slate-600 dark:text-slate-300">
+                    <span className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">
                       {items.length}
                     </span>
                   </div>
@@ -614,19 +614,19 @@ export default function NotificationsPage() {
                                   </div>
                                   <div className="flex items-center gap-2 mt-2 flex-wrap">
                                     <span
-                                      className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${color.bg} ${color.darkBg} ${color.text} ${color.darkText}`}
+                                      className={`text-[0.6875rem] font-extrabold px-2 py-0.5 rounded-md ${color.bg} ${color.darkBg} ${color.text} ${color.darkText}`}
                                     >
                                       {n.type.replace(/_/g, ' ')}
                                     </span>
                                     <span
-                                      className="text-[10px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1"
+                                      className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1"
                                       title={formatFullTime(n.createdAt)}
                                     >
                                       <Clock className="h-2.5 w-2.5" />
                                       {formatRelative(n.createdAt)}
                                     </span>
                                     {n.link && (
-                                      <span className="text-[10px] text-brand-700 dark:text-brand-300 font-extrabold inline-flex items-center gap-0.5 group-hover:gap-1 transition-all">
+                                      <span className="text-[0.6875rem] text-brand-700 dark:text-brand-300 font-extrabold inline-flex items-center gap-0.5 group-hover:gap-1 transition-all">
                                         View <ArrowRight className="h-2.5 w-2.5" />
                                       </span>
                                     )}
@@ -697,7 +697,7 @@ export default function NotificationsPage() {
    ═════════════════════════════════════════════════════════════ */
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="ml-1 px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[9px]">
+    <kbd className="ml-1 px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[0.625rem]">
       {children}
     </kbd>
   );
@@ -730,7 +730,7 @@ function NotificationsTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Categories */}
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-2">
               📊 5 Categories
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -744,7 +744,7 @@ function NotificationsTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Bulk mode */}
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-2">
               ⚡ Bulk Actions
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -756,10 +756,10 @@ function NotificationsTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Priority colors */}
           <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-2">
               🎨 Color Priority
             </div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200">
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-slate-200">
               <div>🟢 Green — good news (sales, payments)</div>
               <div>🟡 Yellow — dhyaan do (low stock)</div>
               <div>🔴 Red — urgent (errors, credit alert)</div>
@@ -771,16 +771,16 @@ function NotificationsTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Shortcuts */}
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-2">
               ⌨️ Shortcuts
             </div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200">
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[9px]">/</kbd> — Search focus</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[9px]">1-5</kbd> — Category tabs</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[9px]">R</kbd> — Mark all read</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[9px]">M</kbd> — Mute/unmute</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[9px]">G</kbd> — Guide</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[9px]">Esc</kbd> — Close</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-slate-200">
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">/</kbd> — Search focus</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">1-5</kbd> — Category tabs</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">R</kbd> — Mark all read</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">M</kbd> — Mute/unmute</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">G</kbd> — Guide</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">Esc</kbd> — Close</div>
             </div>
           </div>
 

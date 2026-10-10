@@ -118,13 +118,13 @@ export default function AuthorsPage() {
                 <h3 className="font-extrabold text-slate-900 dark:text-white">{a.name}</h3>
                 {a.penName && <div className="text-xs italic text-slate-500 font-bold">"{a.penName}"</div>}
                 {a.nationality && (
-                  <div className="flex items-center gap-1 text-[10px] text-slate-500 font-bold">
+                  <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 font-bold">
                     <Globe className="h-2.5 w-2.5" />
                     {a.nationality}
                   </div>
                 )}
                 {(a.bornYear || a.diedYear) && (
-                  <div className="text-[10px] font-bold text-slate-500">
+                  <div className="text-[0.6875rem] font-bold text-slate-500">
                     {a.bornYear || '?'} — {a.diedYear || 'Present'}
                   </div>
                 )}
@@ -133,7 +133,7 @@ export default function AuthorsPage() {
               {a.genres?.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {a.genres.slice(0, 3).map((g, i) => (
-                    <span key={i} className="px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-950/40 text-teal-700 text-[9px] font-extrabold uppercase">{g}</span>
+                    <span key={i} className="px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-950/40 text-teal-700 text-[0.625rem] font-extrabold uppercase">{g}</span>
                   ))}
                 </div>
               )}
@@ -210,7 +210,7 @@ function AuthorForm({ editing, onClose, onSaved }: any) {
         <textarea rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Bio..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-teal-500 resize-none" />
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
           {form.photoUrl ? (
             <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-slate-200">
               <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />

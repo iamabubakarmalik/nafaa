@@ -124,38 +124,38 @@ export default function PartsPage() {
                   )}
                   <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
                     {part.isFastMoving && (
-                      <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+                      <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
                         <TrendingUp className="h-2 w-2" />
                         FAST
                       </span>
                     )}
                     {part.isCritical && (
-                      <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+                      <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
                         <AlertCircle className="h-2 w-2" />
                         CRITICAL
                       </span>
                     )}
                     {part.condition === 'GENUINE' && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold uppercase shadow">GENUINE</span>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase shadow">GENUINE</span>
                     )}
                   </div>
                 </div>
                 <div className="p-4 space-y-2">
                   <div>
                     <h3 className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{part.product?.name}</h3>
-                    <div className="text-[10px] font-extrabold uppercase text-amber-600">{cat?.label}</div>
+                    <div className="text-[0.6875rem] font-extrabold uppercase text-amber-600">{cat?.label}</div>
                   </div>
                   {(part.partNumber || part.oemNumber) && (
                     <div className="space-y-0.5">
-                      {part.partNumber && <div className="text-[10px] font-mono font-bold text-slate-600">Part: {part.partNumber}</div>}
-                      {part.oemNumber && <div className="text-[10px] font-mono font-bold text-slate-500">OEM: {part.oemNumber}</div>}
+                      {part.partNumber && <div className="text-[0.6875rem] font-mono font-bold text-slate-600">Part: {part.partNumber}</div>}
+                      {part.oemNumber && <div className="text-[0.6875rem] font-mono font-bold text-slate-500">OEM: {part.oemNumber}</div>}
                     </div>
                   )}
                   <div className="flex flex-wrap gap-1">
-                    <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[9px] font-extrabold uppercase">{part.condition}</span>
-                    {part.brand && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase">{part.brand}</span>}
+                    <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">{part.condition}</span>
+                    {part.brand && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">{part.brand}</span>}
                     {part.warrantyMonths > 0 && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                         <ShieldCheck className="h-2 w-2" />
                         {part.warrantyMonths}m
                       </span>
@@ -164,9 +164,9 @@ export default function PartsPage() {
                   <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
                     <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(part.product?.price ?? 0)}</div>
                     <div className="text-right">
-                      <div className="text-[10px] font-extrabold text-slate-500">Stock: {part.product?.stock ?? 0}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-slate-500">Stock: {part.product?.stock ?? 0}</div>
                       {part.totalInstalled > 0 && (
-                        <div className="text-[10px] font-bold text-slate-500">Installed: {part.totalInstalled}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500">Installed: {part.totalInstalled}</div>
                       )}
                     </div>
                   </div>

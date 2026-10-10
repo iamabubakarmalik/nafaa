@@ -383,7 +383,7 @@ export default function StaffFormPage() {
                       <div className={`font-bold text-sm ${form.salaryType === opt.v ? 'text-violet-700' : 'text-slate-900'}`}>
                         {opt.l}
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-0.5">{opt.d}</div>
+                      <div className="text-[0.6875rem] text-slate-500 mt-0.5">{opt.d}</div>
                     </button>
                   ))}
                 </div>
@@ -525,7 +525,7 @@ export default function StaffFormPage() {
         <aside className="flex flex-col gap-4">
           <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-4 py-2.5 bg-gradient-to-r from-slate-900 to-violet-700 flex items-center justify-between">
-              <div className="text-[10px] uppercase tracking-widest font-bold text-white/90">Live Preview</div>
+              <div className="text-[0.6875rem] uppercase tracking-widest font-bold text-white/90">Live Preview</div>
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
             </div>
 
@@ -567,7 +567,7 @@ export default function StaffFormPage() {
               </div>
 
               <div className="mt-4 pt-4 border-t border-slate-100">
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">
                   {form.salaryType.replace('_', ' ')}
                 </div>
                 <div className="text-2xl font-extrabold text-emerald-700 mt-1">

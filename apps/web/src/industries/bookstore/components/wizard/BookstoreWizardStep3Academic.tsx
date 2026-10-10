@@ -164,7 +164,7 @@ export function BookstoreWizardStep3Academic({
                 <TrendingUp className={['h-5 w-5', book.isBestSeller ? 'text-emerald-600' : 'text-slate-400'].join(' ')} />
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 text-sm">Best Seller</div>
-                  <div className="text-[10px] text-slate-500 font-semibold">Popular book</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-semibold">Popular book</div>
                 </div>
               </label>
 
@@ -177,7 +177,7 @@ export function BookstoreWizardStep3Academic({
                 <Sparkles className={['h-5 w-5', book.isNewArrival ? 'text-blue-600' : 'text-slate-400'].join(' ')} />
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 text-sm">New Arrival</div>
-                  <div className="text-[10px] text-slate-500 font-semibold">Recently added</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-semibold">Recently added</div>
                 </div>
               </label>
 
@@ -190,7 +190,7 @@ export function BookstoreWizardStep3Academic({
                 <Award className={['h-5 w-5', book.isAwardWinner ? 'text-amber-600' : 'text-slate-400'].join(' ')} />
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 text-sm">Award Winner</div>
-                  <div className="text-[10px] text-slate-500 font-semibold">Won prize/award</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-semibold">Won prize/award</div>
                 </div>
               </label>
             </div>
@@ -285,7 +285,7 @@ export function BookstoreWizardStep3Academic({
               <School className={['h-6 w-6', stationery.isSchoolItem ? 'text-blue-600' : 'text-slate-400'].join(' ')} />
               <div className="flex-1 min-w-0">
                 <div className="font-extrabold text-slate-900 text-sm">School Item</div>
-                <div className="text-[10px] text-slate-500 font-semibold">Students ke liye</div>
+                <div className="text-[0.6875rem] text-slate-500 font-semibold">Students ke liye</div>
               </div>
             </label>
 
@@ -304,7 +304,7 @@ export function BookstoreWizardStep3Academic({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-extrabold text-slate-900 text-sm">Office Item</div>
-                <div className="text-[10px] text-slate-500 font-semibold">Business/professional</div>
+                <div className="text-[0.6875rem] text-slate-500 font-semibold">Business/professional</div>
               </div>
             </label>
 
@@ -321,7 +321,7 @@ export function BookstoreWizardStep3Academic({
               <Zap className={['h-6 w-6', stationery.isFastMoving ? 'text-amber-600' : 'text-slate-400'].join(' ')} />
               <div className="flex-1 min-w-0">
                 <div className="font-extrabold text-slate-900 text-sm">Fast Moving</div>
-                <div className="text-[10px] text-slate-500 font-semibold">Bahut jaldi bikta hai</div>
+                <div className="text-[0.6875rem] text-slate-500 font-semibold">Bahut jaldi bikta hai</div>
               </div>
             </label>
           </div>
@@ -365,7 +365,7 @@ export function BookstoreWizardStep3Academic({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 text-sm">Beginner Friendly</div>
-                  <div className="text-[10px] text-slate-500 font-semibold">Students, learners</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-semibold">Students, learners</div>
                 </div>
               </label>
 
@@ -384,7 +384,7 @@ export function BookstoreWizardStep3Academic({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 text-sm">Professional Grade</div>
-                  <div className="text-[10px] text-slate-500 font-semibold">Fine artists, masters</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-semibold">Fine artists, masters</div>
                 </div>
               </label>
             </div>

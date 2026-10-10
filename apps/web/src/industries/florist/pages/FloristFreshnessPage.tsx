@@ -134,9 +134,9 @@ function FreshnessCard({ label, value, icon: Icon, tone, desc }: any) {
     <div className={`rounded-2xl border-2 ${parts[2]} ${parts[3]} p-4 shadow-sm`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-600">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">{label}</div>
           <div className="text-3xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
-          <div className="text-[10px] font-bold text-slate-500 mt-0.5">{desc}</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">{desc}</div>
         </div>
         <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${parts[0]} ${parts[1]} text-white flex items-center justify-center shadow-md`}>
           <Icon className="h-5 w-5" />
@@ -192,7 +192,7 @@ function FreshnessSection({ title, desc, tone, products, action }: any) {
                       {p.color && (
                         <span className="h-3 w-3 rounded-full border border-slate-300" style={{ backgroundColor: p.colorHex || '#ec4899' }} />
                       )}
-                      <span className="text-[10px] font-bold text-slate-500">{p.color || ''}</span>
+                      <span className="text-[0.6875rem] font-bold text-slate-500">{p.color || ''}</span>
                     </div>
                   </div>
                 </div>

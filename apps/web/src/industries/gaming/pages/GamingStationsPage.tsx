@@ -190,10 +190,10 @@ function StationManageCard({ station, onEdit, onDelete, onToggleMaintenance }: a
         )}
         <div className="flex-1 min-w-0">
           <div className="font-extrabold text-slate-900 truncate">{station.name}</div>
-          <div className="text-[10px] font-mono text-slate-500">#{station.stationNumber}</div>
+          <div className="text-[0.6875rem] font-mono text-slate-500">#{station.stationNumber}</div>
           <div className="text-xs font-bold text-blue-700 mt-0.5">{type?.l}</div>
           {station.location && (
-            <div className="flex items-center gap-1 text-[10px] text-slate-500 font-bold mt-0.5">
+            <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 font-bold mt-0.5">
               <MapPin className="h-2.5 w-2.5" /> {station.location}
             </div>
           )}
@@ -202,24 +202,24 @@ function StationManageCard({ station, onEdit, onDelete, onToggleMaintenance }: a
 
       <div className="mt-3 grid grid-cols-2 gap-2 pt-3 border-t border-slate-100">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Rate/hr</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Rate/hr</div>
           <div className="text-base font-extrabold text-emerald-700 tabular-nums">{formatPKR(station.pricePerHour)}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Revenue</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
           <div className="text-base font-extrabold text-slate-900 tabular-nums">{formatPKR(station.totalRevenue || 0)}</div>
         </div>
       </div>
 
       {station.installedGames?.length > 0 && (
         <div className="mt-2">
-          <div className="text-[9px] uppercase font-extrabold text-slate-500 mb-1">Installed Games</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">Installed Games</div>
           <div className="flex flex-wrap gap-1">
             {station.installedGames.slice(0, 3).map((g: string, i: number) => (
-              <span key={i} className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-extrabold">{g}</span>
+              <span key={i} className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[0.6875rem] font-extrabold">{g}</span>
             ))}
             {station.installedGames.length > 3 && (
-              <span className="text-[10px] font-extrabold text-slate-500">+{station.installedGames.length - 3}</span>
+              <span className="text-[0.6875rem] font-extrabold text-slate-500">+{station.installedGames.length - 3}</span>
             )}
           </div>
         </div>
@@ -228,7 +228,7 @@ function StationManageCard({ station, onEdit, onDelete, onToggleMaintenance }: a
       {station.isUnderMaintenance && (
         <div className="mt-3 rounded-xl bg-rose-50 border-2 border-rose-200 p-2 text-xs text-rose-800 font-bold">
           🔧 Under maintenance
-          {station.maintenanceNotes && <div className="text-[10px] mt-0.5 opacity-80">{station.maintenanceNotes}</div>}
+          {station.maintenanceNotes && <div className="text-[0.6875rem] mt-0.5 opacity-80">{station.maintenanceNotes}</div>}
         </div>
       )}
 
@@ -316,7 +316,7 @@ function StationFormModal({ editing, onClose, onSaved }: any) {
                   className={`p-2.5 rounded-xl border-2 transition flex flex-col items-center gap-1 ${
                     form.stationType === t.v ? 'border-blue-600 bg-blue-600 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-400'}`}>
                   <span className="text-xl">{t.e}</span>
-                  <span className="text-[10px] font-extrabold text-center">{t.l}</span>
+                  <span className="text-[0.6875rem] font-extrabold text-center">{t.l}</span>
                 </button>
               ))}
             </div>
@@ -446,9 +446,9 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
-          <div className="text-[10px] text-slate-500 font-bold mt-0.5 truncate">{sub}</div>
+          <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5 truncate">{sub}</div>
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

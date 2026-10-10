@@ -39,7 +39,7 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                 <h4 className="font-extrabold text-emerald-900 text-sm">
                   {rolls.length} Active Roll{rolls.length !== 1 ? 's' : ''}
                 </h4>
-                <p className="text-[10px] text-emerald-700 font-bold">
+                <p className="text-[0.6875rem] text-emerald-700 font-bold">
                   Total: {totalRollSqft.toFixed(2)} sqft • Value: {formatPKR(totalRollValue)}
                 </p>
               </div>
@@ -70,7 +70,7 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                       : 0;
                   return (
                     <tr key={r.id} className="hover:bg-emerald-50/30 transition">
-                      <td className="px-3 py-2.5 text-emerald-500 font-mono text-[10px]">
+                      <td className="px-3 py-2.5 text-emerald-500 font-mono text-[0.6875rem]">
                         {idx + 1}
                       </td>
                       <td className="px-3 py-2.5">
@@ -78,14 +78,14 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                           {r.rollNumber}
                         </div>
                         {r.designCode && (
-                          <div className="text-[10px] font-mono text-slate-500 mt-0.5">
+                          <div className="text-[0.6875rem] font-mono text-slate-500 mt-0.5">
                             {r.designCode}
                           </div>
                         )}
                       </td>
                       <td className="px-3 py-2.5">
                         {r.variantName ? (
-                          <div className="inline-flex items-center gap-1 text-[10px] font-bold text-violet-700">
+                          <div className="inline-flex items-center gap-1 text-[0.6875rem] font-bold text-violet-700">
                             {r.variantColorHex && (
                               <span
                                 className="h-2 w-2 rounded-full border border-slate-300"
@@ -95,11 +95,11 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                             {r.variantName}
                           </div>
                         ) : (
-                          <span className="text-slate-400 text-[10px]">—</span>
+                          <span className="text-slate-400 text-[0.6875rem]">—</span>
                         )}
                       </td>
                       <td className="px-3 py-2.5 text-center">
-                        <div className="text-[11px] font-bold text-slate-900">
+                        <div className="text-[0.6875rem] font-bold text-slate-900">
                           {r.widthFt}ft{Number((r as any).widthInch || 0) > 0 ? ` ${(r as any).widthInch}in` : ''} × {r.remainingLengthFt}ft{Number((r as any).remainingLengthInch || 0) > 0 ? ` ${(r as any).remainingLengthInch}in` : ''}
                         </div>
                       </td>
@@ -107,7 +107,7 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                         <div className="font-extrabold text-emerald-700 tabular-nums">
                           {r.remainingSqft.toFixed(2)}
                         </div>
-                        <div className="text-[9px] text-emerald-600 font-bold">sqft</div>
+                        <div className="text-[0.625rem] text-emerald-600 font-bold">sqft</div>
                         <div className="mt-1 h-1 rounded-full bg-slate-100 overflow-hidden w-16 ml-auto">
                           <div
                             className={`h-full ${
@@ -121,19 +121,19 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                           />
                         </div>
                       </td>
-                      <td className="px-3 py-2.5 text-right text-[10px] text-slate-600 font-bold tabular-nums">
+                      <td className="px-3 py-2.5 text-right text-[0.6875rem] text-slate-600 font-bold tabular-nums">
                         {r.originalLengthFt.toFixed(1)}ft
-                        <div className="text-[9px] text-slate-500">
+                        <div className="text-[0.625rem] text-slate-500">
                           {percentRemaining.toFixed(0)}%
                         </div>
                       </td>
-                      <td className="px-3 py-2.5 text-right text-[11px] font-bold text-slate-700 tabular-nums">
+                      <td className="px-3 py-2.5 text-right text-[0.6875rem] font-bold text-slate-700 tabular-nums">
                         {formatPKR(r.costPerSqft)}
                       </td>
-                      <td className="px-3 py-2.5 text-right text-[11px] font-bold text-emerald-700 tabular-nums">
+                      <td className="px-3 py-2.5 text-right text-[0.6875rem] font-bold text-emerald-700 tabular-nums">
                         {formatPKR(r.salePricePerSqft)}
                       </td>
-                      <td className="px-3 py-2.5 text-[10px]">
+                      <td className="px-3 py-2.5 text-[0.6875rem]">
                         {r.shopName && (
                           <div className="font-bold text-slate-700 inline-flex items-center gap-1">
                             <MapPin className="h-2.5 w-2.5" />
@@ -141,7 +141,7 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                           </div>
                         )}
                         {r.rackNumber && (
-                          <div className="text-[9px] text-slate-500 font-bold mt-0.5">
+                          <div className="text-[0.625rem] text-slate-500 font-bold mt-0.5">
                             Rack: {r.rackNumber}
                           </div>
                         )}
@@ -167,7 +167,7 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                 <h4 className="font-extrabold text-violet-900 text-sm">
                   {cutPieces.length} Cut Piece{cutPieces.length !== 1 ? 's' : ''}
                 </h4>
-                <p className="text-[10px] text-violet-700 font-bold">
+                <p className="text-[0.6875rem] text-violet-700 font-bold">
                   Total: {totalCutSqft.toFixed(2)} sqft • Listed: {formatPKR(totalCutValue)}
                 </p>
               </div>
@@ -191,7 +191,7 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
               <tbody className="divide-y divide-violet-100">
                 {cutPieces.map((cp, idx) => (
                   <tr key={cp.id} className="hover:bg-violet-50/30 transition">
-                    <td className="px-3 py-2.5 text-violet-500 font-mono text-[10px]">
+                    <td className="px-3 py-2.5 text-violet-500 font-mono text-[0.6875rem]">
                       {idx + 1}
                     </td>
                     <td className="px-3 py-2.5">
@@ -199,7 +199,7 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                         {cp.pieceCode}
                       </div>
                       {cp.rackNumber && (
-                        <div className="text-[9px] text-slate-500 mt-0.5 inline-flex items-center gap-0.5">
+                        <div className="text-[0.625rem] text-slate-500 mt-0.5 inline-flex items-center gap-0.5">
                           <MapPin className="h-2 w-2" />
                           {cp.rackNumber}
                         </div>
@@ -207,7 +207,7 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                     </td>
                     <td className="px-3 py-2.5">
                       {cp.variantName ? (
-                        <div className="inline-flex items-center gap-1 text-[10px] font-bold text-violet-700">
+                        <div className="inline-flex items-center gap-1 text-[0.6875rem] font-bold text-violet-700">
                           {cp.variantColorHex && (
                             <span
                               className="h-2 w-2 rounded-full border border-slate-300"
@@ -217,22 +217,22 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                           {cp.variantName}
                         </div>
                       ) : (
-                        <span className="text-slate-400 text-[10px]">—</span>
+                        <span className="text-slate-400 text-[0.6875rem]">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-center text-[11px] font-bold text-slate-900">
+                    <td className="px-3 py-2.5 text-center text-[0.6875rem] font-bold text-slate-900">
                       {cp.widthFt}ft{Number((cp as any).widthInch || 0) > 0 ? ` ${(cp as any).widthInch}in` : ''} × {cp.lengthFt}ft{Number((cp as any).lengthInch || 0) > 0 ? ` ${(cp as any).lengthInch}in` : ''}
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       <div className="font-extrabold text-violet-700 tabular-nums">
                         {cp.totalSqft.toFixed(2)}
                       </div>
-                      <div className="text-[9px] text-violet-600 font-bold">sqft</div>
+                      <div className="text-[0.625rem] text-violet-600 font-bold">sqft</div>
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[11px] font-extrabold text-emerald-700 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.6875rem] font-extrabold text-emerald-700 tabular-nums">
                       {formatPKR(cp.salePrice)}
                     </td>
-                    <td className="px-3 py-2.5 text-[10px]">
+                    <td className="px-3 py-2.5 text-[0.6875rem]">
                       {cp.condition ? (
                         <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">
                           {cp.condition}
@@ -243,11 +243,11 @@ export function CarpetDetailTable({ rolls, cutPieces }: Props) {
                     </td>
                     <td className="px-3 py-2.5">
                       {cp.sourceRollNumber ? (
-                        <span className="font-mono text-[10px] font-bold text-emerald-700">
+                        <span className="font-mono text-[0.6875rem] font-bold text-emerald-700">
                           {cp.sourceRollNumber}
                         </span>
                       ) : (
-                        <span className="text-slate-400 text-[10px]">—</span>
+                        <span className="text-slate-400 text-[0.6875rem]">—</span>
                       )}
                     </td>
                   </tr>

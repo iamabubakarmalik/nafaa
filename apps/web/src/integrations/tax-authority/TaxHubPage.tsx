@@ -40,7 +40,7 @@ export default function TaxHubPage() {
         <div className="flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800">
           {TABS.map((t) => (
             <NavLink key={t.to} to={t.to} end={t.end}
-              className={({ isActive }) => cn('inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-[13.5px] font-medium transition',
+              className={({ isActive }) => cn('inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-[0.84375rem] font-medium transition',
                 isActive ? 'border-emerald-600 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200')}>
               <t.icon className="h-4 w-4" /> {t.label}
             </NavLink>
@@ -80,7 +80,7 @@ function Overview() {
       {data.migrationPending && (
         <Banner tone="warning" title="Database update baqi hai">Server par tax ki migration abhi nahi chali — chalte hi bill authority ko jane lagenge.</Banner>
       )}
-      <div className="flex flex-wrap items-center gap-2 text-[13px] text-slate-600 dark:text-slate-300">
+      <div className="flex flex-wrap items-center gap-2 text-[0.8125rem] text-slate-600 dark:text-slate-300">
         <Badge tone="success" dot>{AUTH_NAME[data.authority ?? ''] ?? data.authority}</Badge>
         <Badge tone={data.env === 'live' ? 'info' : 'warning'}>{data.env === 'live' ? 'Live' : 'Sandbox (test)'}</Badge>
         {data.startAt && <span>{whenText(data.startAt)} se chalu</span>}
@@ -118,15 +118,15 @@ function Overview() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card title={`Pichla mahina (${l.month})`}>
-          <dl className="grid grid-cols-2 gap-2 text-[13px]">
+          <dl className="grid grid-cols-2 gap-2 text-[0.8125rem]">
             <dt className="text-slate-500">Bill</dt><dd className="text-right font-semibold tabular-nums">{l.bills}</dd>
             <dt className="text-slate-500">Sale (tax ke baghair)</dt><dd className="text-right font-semibold tabular-nums">{formatPKR(l.saleValue)}</dd>
             <dt className="text-slate-500">Tax</dt><dd className="text-right font-semibold tabular-nums">{formatPKR(l.tax)}</dd>
           </dl>
-          <Link to={`/tax/reports?month=${l.month}`} className="mt-3 inline-block text-[13px] font-semibold text-emerald-700 hover:underline">Poori report →</Link>
+          <Link to={`/tax/reports?month=${l.month}`} className="mt-3 inline-block text-[0.8125rem] font-semibold text-emerald-700 hover:underline">Poori report →</Link>
         </Card>
         <Card title="Kya karna hai">
-          <ul className="space-y-1.5 text-[13px] text-slate-700 dark:text-slate-200">
+          <ul className="space-y-1.5 text-[0.8125rem] text-slate-700 dark:text-slate-200">
             <li>• Har mahine <b>Reports</b> se Excel nikal kar accountant ko dein (return filing)</li>
             <li>• <b>Invoices</b> me koi bill fail ho to wajah dekhein — aksar POS ID / token / PCT code</li>
             <li>• {data.env === 'live' ? 'Live chal raha hai ✓' : <>Abhi <b>Sandbox</b> hai — test ho jaye to Settings me <b>Live</b> karein</>}</li>
@@ -164,14 +164,14 @@ function Invoices() {
         <div className="flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
           {STATUS_TABS.map((s) => (
             <button key={s.v} type="button" onClick={() => { setStatus(s.v); setPage(1); }}
-              className={cn('rounded-md px-3 py-1 text-[13px] font-medium', status === s.v ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300')}>{s.label}</button>
+              className={cn('rounded-md px-3 py-1 text-[0.8125rem] font-medium', status === s.v ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300')}>{s.label}</button>
           ))}
         </div>
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Bill ya fiscal number…" className={cn(inputCls, 'w-64 pl-8')} />
         </div>
-        {isFetching && <span className="text-[12px] text-slate-400">Taaza ho raha…</span>}
+        {isFetching && <span className="text-[0.75rem] text-slate-400">Taaza ho raha…</span>}
       </div>
 
       {isLoading ? <div className="h-64 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
@@ -181,8 +181,8 @@ function Invoices() {
         : (
           <Card flush>
             <div className="overflow-x-auto">
-              <table className="w-full text-[13px]">
-                <thead className="bg-slate-50 text-left text-[11.5px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+              <table className="w-full text-[0.8125rem]">
+                <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
                   <tr><th className="px-4 py-2">Waqt</th><th className="px-2 py-2">Bill</th><th className="px-2 py-2 text-right">Kul</th><th className="px-2 py-2 text-right">Tax</th><th className="px-4 py-2">Authority number</th><th /></tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -191,11 +191,11 @@ function Invoices() {
                       <td className="whitespace-nowrap px-4 py-2 text-slate-500">{whenText(r.createdAt)}</td>
                       <td className="px-2 py-2 font-mono">{r.kind === 'RETURN' && <Badge tone="warning">Return</Badge>} {r.usin}</td>
                       <td className="px-2 py-2 text-right tabular-nums">{formatPKR(r.kind === 'RETURN' ? -r.totalAmount : r.totalAmount)}</td>
-                      <td className="px-2 py-2 text-right tabular-nums">{formatPKR(r.taxAmount)} <span className="text-[11px] text-slate-400">{r.taxRate}%</span></td>
+                      <td className="px-2 py-2 text-right tabular-nums">{formatPKR(r.taxAmount)} <span className="text-[0.6875rem] text-slate-400">{r.taxRate}%</span></td>
                       <td className="px-4 py-2">
-                        {r.status === 'SUCCESS' ? <button type="button" onClick={() => setOpen(r)} className="inline-flex items-center gap-1 font-mono text-[12px] text-emerald-700 hover:underline"><CheckCircle2 className="h-3.5 w-3.5" /> {r.fiscalNumber}</button>
-                          : r.status === 'FAILED' ? <span title={r.error ?? ''} className="text-[12px] text-rose-600">Fail ({r.attempts}) — {(r.error ?? '').slice(0, 50)}</span>
-                          : <span className="text-[12px] text-amber-600">Bheja ja raha{r.nextAttemptAt ? ` · agli koshish ${whenText(r.nextAttemptAt)}` : ''}</span>}
+                        {r.status === 'SUCCESS' ? <button type="button" onClick={() => setOpen(r)} className="inline-flex items-center gap-1 font-mono text-[0.75rem] text-emerald-700 hover:underline"><CheckCircle2 className="h-3.5 w-3.5" /> {r.fiscalNumber}</button>
+                          : r.status === 'FAILED' ? <span title={r.error ?? ''} className="text-[0.75rem] text-rose-600">Fail ({r.attempts}) — {(r.error ?? '').slice(0, 50)}</span>
+                          : <span className="text-[0.75rem] text-amber-600">Bheja ja raha{r.nextAttemptAt ? ` · agli koshish ${whenText(r.nextAttemptAt)}` : ''}</span>}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 text-right">
                         {r.status !== 'SUCCESS' && <Btn size="sm" loading={retry.isPending && retry.variables === r.id} icon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => retry.mutate(r.id)}>Dobara</Btn>}
@@ -206,7 +206,7 @@ function Invoices() {
               </table>
             </div>
             {data.pages > 1 && (
-              <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2 text-[13px] dark:border-slate-800">
+              <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2 text-[0.8125rem] dark:border-slate-800">
                 <span className="text-slate-500">{data.total} bill · safha {data.page}/{data.pages}</span>
                 <div className="flex gap-1">
                   <Btn size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Pichla</Btn>
@@ -220,11 +220,11 @@ function Invoices() {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" onClick={() => setOpen(null)}>
           <div className="w-full max-w-sm rounded-2xl bg-white p-5 text-center shadow-2xl dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
-            <div className="text-[12px] font-semibold uppercase tracking-wide text-slate-500">{AUTH_NAME[open.authority]} · {open.usin}</div>
+            <div className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{AUTH_NAME[open.authority]} · {open.usin}</div>
             <div className="mt-1 break-all font-mono text-lg font-bold text-slate-900 dark:text-white">{open.fiscalNumber}</div>
             {open.qrText && <div className="mx-auto mt-3 inline-block rounded-lg bg-white p-2" dangerouslySetInnerHTML={{ __html: qrSvg(open.qrText, 180) }} />}
-            <div className="mt-2 text-[13px] text-slate-600 dark:text-slate-300">Kul {formatPKR(open.totalAmount)} · Tax {formatPKR(open.taxAmount)} ({open.taxRate}%)</div>
-            {/^https?:\/\//.test(open.qrText ?? '') && <a href={open.qrText!} target="_blank" rel="noreferrer" className="mt-2 inline-block text-[13px] font-semibold text-emerald-700 hover:underline">Authority ki site par check karein</a>}
+            <div className="mt-2 text-[0.8125rem] text-slate-600 dark:text-slate-300">Kul {formatPKR(open.totalAmount)} · Tax {formatPKR(open.taxAmount)} ({open.taxRate}%)</div>
+            {/^https?:\/\//.test(open.qrText ?? '') && <a href={open.qrText!} target="_blank" rel="noreferrer" className="mt-2 inline-block text-[0.8125rem] font-semibold text-emerald-700 hover:underline">Authority ki site par check karein</a>}
             <div className="mt-4"><Btn onClick={() => setOpen(null)}>Band karein</Btn></div>
           </div>
         </div>
@@ -284,8 +284,8 @@ function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
   if (!rows.length) return <EmptyState title="Kuch nahi" />;
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[13px]">
-        <thead className="bg-slate-50 text-left text-[11.5px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+      <table className="w-full text-[0.8125rem]">
+        <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
           <tr>{head.map((h, i) => <th key={h} className={cn('px-4 py-2', i > 0 && 'text-right')}>{h}</th>)}</tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

@@ -175,7 +175,7 @@ export default function RestaurantLowStockPage() {
         <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-amber-400/25 blur-3xl pointer-events-none" />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <ChefHat className="h-3.5 w-3.5 text-amber-300" /> Kitchen
             </div>
             <h1 className="mt-2.5 text-2xl sm:text-3xl font-black">🍲 Kya khatam ho raha hai</h1>
@@ -216,14 +216,14 @@ export default function RestaurantLowStockPage() {
               <h3 className="font-black text-rose-900 dark:text-rose-200 text-sm">
                 ⚠️ {stats.liveButDead.length} dish menu par chaalu hai magar ban nahi sakti
               </h3>
-              <p className="mt-0.5 text-[12px] font-bold text-rose-800 dark:text-rose-300">
+              <p className="mt-0.5 text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">
                 Grahak ye order kar dega aur kitchen mana kar degi. Menu se abhi hata dein —
                 order lene ke baad mana karna bura lagta hai.
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {stats.liveButDead.slice(0, 8).map((r) => (
                   <Link key={r.menuItemId} to="/restaurant/menu"
-                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[11px] font-black text-rose-900 dark:text-rose-200 transition">
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[0.6875rem] font-black text-rose-900 dark:text-rose-200 transition">
                     {r.name}
                     {r.blocker && <span className="text-rose-600 dark:text-rose-400"> · {r.blocker.name} khatam</span>}
                   </Link>
@@ -270,9 +270,9 @@ export default function RestaurantLowStockPage() {
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className="text-base sm:text-lg font-black truncate">{t.l}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${on ? 'bg-black/25' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black ${on ? 'bg-black/25' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
                   </span>
-                  <span className={`block text-[11px] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.h}</span>
+                  <span className={`block text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.h}</span>
                 </span>
               </div>
             </button>
@@ -346,7 +346,7 @@ export default function RestaurantLowStockPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-black text-slate-900 dark:text-white">{ing.name}</span>
-                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${
+                      <span className={`px-2 py-0.5 rounded-lg text-[0.6875rem] font-black ${
                         ing.have <= 0
                           ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                           : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
@@ -356,20 +356,20 @@ export default function RestaurantLowStockPage() {
                     </div>
 
                     {ing.blocks.length > 0 && (
-                      <p className="mt-1.5 text-[12px] font-bold text-rose-800 dark:text-rose-300">
+                      <p className="mt-1.5 text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">
                         <strong>{ing.blocks.length} dish ruk gayi:</strong>{' '}
                         {ing.blocks.slice(0, 5).join(', ')}
                         {ing.blocks.length > 5 && ` +${ing.blocks.length - 5} aur`}
                       </p>
                     )}
                     {ing.tight.length > 0 && (
-                      <p className="mt-1 text-[12px] font-bold text-amber-800 dark:text-amber-300">
+                      <p className="mt-1 text-[0.75rem] font-bold text-amber-800 dark:text-amber-300">
                         {ing.tight.length} dish me thora bacha: {ing.tight.slice(0, 4).join(', ')}
                       </p>
                     )}
                   </div>
                   <Link to="/purchases/new"
-                    className="h-10 px-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 shrink-0 transition">
+                    className="h-10 px-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 shrink-0 transition">
                     <ShoppingBag className="h-3.5 w-3.5" /> Mangwayein
                   </Link>
                 </div>
@@ -390,7 +390,7 @@ export default function RestaurantLowStockPage() {
             </span>
             <div className="min-w-0">
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Counter ka maal kam ho gaya</h2>
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                 Bottle, drinks, chips — jo banta nahi, seedha bikta hai
               </p>
             </div>
@@ -398,7 +398,7 @@ export default function RestaurantLowStockPage() {
           <div className="p-3 flex flex-wrap gap-1.5">
             {counterLow.slice(0, 20).map((p: any) => (
               <Link key={p.id} to={`/products/${p.id}`}
-                className={`px-2.5 py-1.5 rounded-lg border-2 text-[11px] font-black transition ${
+                className={`px-2.5 py-1.5 rounded-lg border-2 text-[0.6875rem] font-black transition ${
                   Number(p.stock) <= 0
                     ? 'border-rose-200 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 text-rose-800 dark:text-rose-300'
                     : 'border-amber-200 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300'
@@ -414,13 +414,13 @@ export default function RestaurantLowStockPage() {
       {withoutRecipe.length > 0 && (
         <section className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-start gap-2.5 flex-wrap print:hidden">
           <Soup className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
-          <p className="flex-1 min-w-[220px] text-[12px] font-bold text-slate-700 dark:text-slate-300">
+          <p className="flex-1 min-w-[220px] text-[0.75rem] font-bold text-slate-700 dark:text-slate-300">
             <strong>{withoutRecipe.length} dish</strong> par recipe nahi bani. In ka food cost pata nahi
             chalta aur ye is safhe par nazar bhi nahi aatin — yani saamaan khatam hone ka pata order
             ke waqt chalega.
           </p>
           <Link to="/restaurant/recipes"
-            className="h-9 px-3 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 shrink-0 transition">
+            className="h-9 px-3 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 shrink-0 transition">
             Recipe banayein <ArrowRight className="h-3 w-3" />
           </Link>
         </section>
@@ -445,10 +445,10 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
       </div>
       <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none">{value}</p>
-      {sub && <p className="mt-0.5 text-[10px] font-bold text-slate-400 truncate">{sub}</p>}
+      {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
     </W>
   );
 }
@@ -469,14 +469,14 @@ function DishCard({ r, money, hideCost }: { r: Cookability; money: (v: number) =
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="text-sm font-black text-slate-900 dark:text-white truncate">{r.name}</div>
-          <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
             {r.ingredientCount} saamaan
             {r.prepTimeMinutes ? ` · ${r.prepTimeMinutes} min` : ''}
             {r.totalOrdered > 0 ? ` · ${r.totalOrdered} dafa bika` : ''}
           </div>
         </div>
         {!r.isAvailable && (
-          <span className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-[9px] font-black text-slate-600 dark:text-slate-300 shrink-0">
+          <span className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-[0.625rem] font-black text-slate-600 dark:text-slate-300 shrink-0">
             Menu par nahi
           </span>
         )}
@@ -485,7 +485,7 @@ function DishCard({ r, money, hideCost }: { r: Cookability; money: (v: number) =
       {/* Kitni aur ban sakti hai — safhe ka asal jawab */}
       <div className="mt-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 p-2.5 text-center">
         {r.canMake === null ? (
-          <p className="text-[12px] font-bold text-slate-500">Recipe khali hai</p>
+          <p className="text-[0.75rem] font-bold text-slate-500">Recipe khali hai</p>
         ) : (
           <>
             <p className={`text-2xl font-black tabular-nums leading-none ${
@@ -495,7 +495,7 @@ function DishCard({ r, money, hideCost }: { r: Cookability; money: (v: number) =
             }`}>
               {dead ? '0' : r.canMake}
             </p>
-            <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 mt-0.5">
               {dead ? 'ab nahi ban sakti' : 'plate aur ban sakti hain'}
             </p>
           </>
@@ -503,7 +503,7 @@ function DishCard({ r, money, hideCost }: { r: Cookability; money: (v: number) =
       </div>
 
       {r.blocker && r.canMake !== null && (
-        <p className={`mt-2 text-[11px] font-bold ${dead ? 'text-rose-800 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300'}`}>
+        <p className={`mt-2 text-[0.6875rem] font-bold ${dead ? 'text-rose-800 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300'}`}>
           {dead ? '🚫' : '⏳'} <strong>{r.blocker.name}</strong> rok raha hai —{' '}
           {Number(r.blocker.have.toFixed(2))} {r.blocker.unit} bacha, ek plate par{' '}
           {Number(r.blocker.need.toFixed(2))} {r.blocker.unit} lagta hai
@@ -512,10 +512,10 @@ function DishCard({ r, money, hideCost }: { r: Cookability; money: (v: number) =
 
       {!hideCost && r.price > 0 && (
         <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2 flex-wrap">
-          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+          <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
             Rate {money(r.price)} · lagat {money(r.cost)}
           </span>
-          <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${
+          <span className={`px-1.5 py-0.5 rounded-md text-[0.6875rem] font-black ${
             costHigh
               ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
               : 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
@@ -525,7 +525,7 @@ function DishCard({ r, money, hideCost }: { r: Cookability; money: (v: number) =
         </div>
       )}
       {costHigh && !hideCost && (
-        <p className="mt-1 text-[10px] font-bold text-rose-700 dark:text-rose-400">
+        <p className="mt-1 text-[0.6875rem] font-bold text-rose-700 dark:text-rose-400">
           Food cost zyada hai — aam tor par 30–35% rakha jata hai
         </p>
       )}
@@ -581,15 +581,15 @@ function Teacher({ onClose }: any) {
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-black text-slate-900 dark:text-white">{x.t}</p>
-                <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
               </div>
             </div>
           ))}
           <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
+            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['G', 'Ye safha'], ['R', 'Taaza'], ['P', 'Print'], ['Esc', 'Band']].map(([k, l]) => (
-                <span key={k} className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/80">
+                <span key={k} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/80">
                   <kbd className="px-1.5 py-0.5 rounded bg-white/15 font-black">{k}</kbd> {l}
                 </span>
               ))}

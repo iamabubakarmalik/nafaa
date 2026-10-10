@@ -228,14 +228,14 @@ function AnimalCard({ animal, onEdit, onAddFeed, onDelete }: any) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-extrabold text-slate-900 dark:text-white">{animal.tagNumber}</span>
             {animal.isSlaughtered ? (
-              <span className="px-1.5 py-0.5 rounded bg-slate-600 text-white text-[9px] font-extrabold uppercase">SLAUGHTERED</span>
+              <span className="px-1.5 py-0.5 rounded bg-slate-600 text-white text-[0.625rem] font-extrabold uppercase">SLAUGHTERED</span>
             ) : animal.isSold ? (
-              <span className="px-1.5 py-0.5 rounded bg-blue-600 text-white text-[9px] font-extrabold uppercase">SOLD</span>
+              <span className="px-1.5 py-0.5 rounded bg-blue-600 text-white text-[0.625rem] font-extrabold uppercase">SOLD</span>
             ) : (
-              <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-extrabold uppercase">ALIVE</span>
+              <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase">ALIVE</span>
             )}
             {!animal.isHealthy && (
-              <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+              <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <AlertCircle className="h-2 w-2" />
                 SICK
               </span>
@@ -245,7 +245,7 @@ function AnimalCard({ animal, onEdit, onAddFeed, onDelete }: any) {
             {animalCfg?.label} {animal.breed && '• ' + animal.breed}
           </div>
           {animal.sex && (
-            <div className="text-[10px] font-bold text-slate-500">
+            <div className="text-[0.6875rem] font-bold text-slate-500">
               {animal.sex} {animal.ageMonths && '• ' + animal.ageMonths + ' months'}
             </div>
           )}
@@ -254,26 +254,26 @@ function AnimalCard({ animal, onEdit, onAddFeed, onDelete }: any) {
 
       <div className="grid grid-cols-2 gap-2 text-xs">
         <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2">
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Weight</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Weight</div>
           <div className="text-lg font-extrabold tabular-nums">{animal.weightKg}kg</div>
         </div>
         <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2">
-          <div className="text-[9px] uppercase font-extrabold text-blue-700">Days Held</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Days Held</div>
           <div className="text-lg font-extrabold text-blue-800 tabular-nums">{daysHeld || animal.daysHeld}d</div>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-1.5 text-xs">
         <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2 text-center">
-          <div className="text-[9px] uppercase font-extrabold text-amber-700">Purchase</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Purchase</div>
           <div className="text-xs font-extrabold text-amber-800 tabular-nums">{formatPKR(animal.purchasePrice).replace('Rs', '').trim()}</div>
         </div>
         <div className="rounded-lg bg-orange-50 dark:bg-orange-950/30 p-2 text-center">
-          <div className="text-[9px] uppercase font-extrabold text-orange-700">Feed</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-orange-700">Feed</div>
           <div className="text-xs font-extrabold text-orange-800 tabular-nums">{formatPKR(animal.totalFeedCost).replace('Rs', '').trim()}</div>
         </div>
         <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2 text-center">
-          <div className="text-[9px] uppercase font-extrabold text-emerald-700">Total</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Total</div>
           <div className="text-xs font-extrabold text-emerald-800 tabular-nums">{formatPKR(totalCost).replace('Rs', '').trim()}</div>
         </div>
       </div>
@@ -286,7 +286,7 @@ function AnimalCard({ animal, onEdit, onAddFeed, onDelete }: any) {
       )}
 
       {animal.vendorName && (
-        <div className="text-[10px] text-slate-500 font-bold truncate">
+        <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
           <User className="h-2.5 w-2.5 inline mr-0.5" />
           From: {animal.vendorName}
         </div>
@@ -374,15 +374,15 @@ function AnimalForm({ editing, onClose, onSaved }: any) {
 
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Weight (kg) *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Weight (kg) *</label>
             <input type="number" step="0.1" value={form.weightKg} onChange={(e) => setForm({ ...form, weightKg: e.target.value })} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Purchase Price *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Purchase Price *</label>
             <input type="number" step="0.01" value={form.purchasePrice} onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Purchase Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Purchase Date</label>
             <input type="date" value={form.purchaseDate} onChange={(e) => setForm({ ...form, purchaseDate: e.target.value })} className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
           </div>
         </div>
@@ -417,7 +417,7 @@ function AnimalForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
             <Camera className="h-3 w-3" />
             Photos
           </label>
@@ -477,15 +477,15 @@ function FeedCostModal({ animal, onClose, onSaved }: any) {
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-orange-700 mb-1 block">Days</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-orange-700 mb-1 block">Days</label>
             <input type="number" min="1" value={days} onChange={(e) => setDays(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-orange-300 bg-orange-50 dark:bg-orange-950/30 px-4 text-2xl font-extrabold tabular-nums text-center focus:outline-none focus:border-orange-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-orange-700 mb-1 block">Cost per Day (Rs)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-orange-700 mb-1 block">Cost per Day (Rs)</label>
             <input type="number" step="0.01" value={costPerDay} onChange={(e) => setCostPerDay(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-orange-300 bg-orange-50 dark:bg-orange-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
           </div>
           <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border-2 border-emerald-200 p-3 text-center">
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Total to add</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Total to add</div>
             <div className="text-2xl font-extrabold text-emerald-800 tabular-nums">{formatPKR(days * costPerDay)}</div>
           </div>
           <div className="flex gap-2">

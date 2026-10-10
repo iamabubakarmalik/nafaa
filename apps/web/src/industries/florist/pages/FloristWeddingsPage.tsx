@@ -194,7 +194,7 @@ function WeddingCard({ contract: c, onEdit, onPayment, onStatus, onDelete }: any
       <div className="relative bg-gradient-to-br from-pink-500 via-rose-600 to-red-600 p-4 text-white">
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono font-extrabold text-xs">{c.contractNumber}</span>
-          <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${meta.cls}`}>{meta.l}</span>
+          <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold ${meta.cls}`}>{meta.l}</span>
         </div>
         <div className="text-xl font-extrabold leading-tight">
           {c.brideName} <span className="text-white/70 font-bold text-base">&</span> {c.groomName}
@@ -224,7 +224,7 @@ function WeddingCard({ contract: c, onEdit, onPayment, onStatus, onDelete }: any
           <div className="flex items-center gap-1.5 flex-wrap">
             <Palette className="h-3 w-3 text-slate-400" />
             {c.colorTheme.slice(0, 3).map((c: string, i: number) => (
-              <span key={i} className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-800 text-[10px] font-extrabold">{c}</span>
+              <span key={i} className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-800 text-[0.6875rem] font-extrabold">{c}</span>
             ))}
           </div>
         )}
@@ -290,7 +290,7 @@ function WeddingCard({ contract: c, onEdit, onPayment, onStatus, onDelete }: any
 
 function PackageChip({ label }: { label: string }) {
   return (
-    <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-[9px] font-extrabold">
+    <span className="px-1.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-[0.625rem] font-extrabold">
       ✓ {label}
     </span>
   );
@@ -671,11 +671,11 @@ function RecordPaymentModal({ contract, onClose, onDone }: any) {
         <div className="p-5 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500">Total Quoted</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total Quoted</div>
               <div className="text-lg font-extrabold text-slate-900 tabular-nums">{formatPKR(contract.quotedAmount)}</div>
             </div>
             <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-amber-700">Balance Due</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Balance Due</div>
               <div className="text-lg font-extrabold text-amber-900 tabular-nums">{formatPKR(balance)}</div>
             </div>
           </div>
@@ -727,7 +727,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
       className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-pink-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1 truncate">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md shrink-0`}>

@@ -269,7 +269,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                 <Wrench className="h-5 w-5 text-white" />
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-widest text-orange-700 dark:text-orange-300 font-extrabold">
+                <div className="text-[0.6875rem] uppercase tracking-widest text-orange-700 dark:text-orange-300 font-extrabold">
                   Repair Service
                 </div>
                 <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">
@@ -341,7 +341,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
               <div className="space-y-4">
                 {/* Brand — quick chips */}
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     Brand * <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">— chuno ya likho</span>
                   </label>
                   <div className="flex gap-1.5 flex-wrap mb-2">
@@ -375,7 +375,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
 
                 {/* Model */}
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                     Model *
                   </label>
                   <input
@@ -401,7 +401,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                     </div>
                     <div>
                       <div className="font-extrabold text-slate-900 dark:text-white text-sm">IMEI Number</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                         Phone dial pad me *#06# dabaao — ya scanner use karo
                       </div>
                     </div>
@@ -409,7 +409,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
 
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         IMEI 1 <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(15 digits)</span>
                       </label>
                       <div className="relative">
@@ -434,13 +434,13 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                         </button>
                       </div>
                       {imei1.length > 0 && imei1.length !== 15 && (
-                        <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1 flex items-center gap-1">
+                        <div className="text-[0.6875rem] text-amber-600 dark:text-amber-400 font-bold mt-1 flex items-center gap-1">
                           <AlertCircle className="h-3 w-3" />
                           {imei1.length}/15 digits
                         </div>
                       )}
                       {imei1.length === 15 && (
-                        <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-1 flex items-center gap-1">
+                        <div className="text-[0.6875rem] text-emerald-600 dark:text-emerald-400 font-bold mt-1 flex items-center gap-1">
                           <CheckCircle2 className="h-3 w-3" />
                           Valid IMEI
                         </div>
@@ -448,7 +448,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         IMEI 2 <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(Dual SIM)</span>
                       </label>
                       <div className="relative">
@@ -480,7 +480,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                     </div>
                     <div>
                       <div className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">Device Access</div>
-                      <div className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold">
+                      <div className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-semibold">
                         Customer ki ijazat ke sath — testing ke liye zaroori
                       </div>
                     </div>
@@ -491,7 +491,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                     placeholder="Passcode / pattern / face ID note"
                     className="h-11 w-full rounded-xl border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition"
                   />
-                  <p className="text-[10px] text-amber-700 dark:text-amber-400 font-bold mt-1.5 flex items-start gap-1">
+                  <p className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-bold mt-1.5 flex items-start gap-1">
                     <Info className="h-3 w-3 shrink-0 mt-0.5" />
                     Securely stored — delivery ke baad delete ho jayega
                   </p>
@@ -540,7 +540,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
               <div className="space-y-4">
                 {/* Issue */}
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                     Reported Issue * <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(kya kharab hai)</span>
                   </label>
                   <textarea
@@ -550,7 +550,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                     placeholder="Screen crack hai upar side pe, touch bhi kaam nahi kar raha..."
                     className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition"
                   />
-                  <div className={`text-[10px] font-bold mt-1 flex items-center gap-1 ${
+                  <div className={`text-[0.6875rem] font-bold mt-1 flex items-center gap-1 ${
                     reportedIssue.length >= 5
                       ? 'text-emerald-600 dark:text-emerald-400'
                       : 'text-amber-600 dark:text-amber-400'
@@ -562,7 +562,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
 
                 {/* Quick-pick issues */}
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     Common Issues — quick add
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -576,7 +576,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                           const newVal = current ? `${current}\n• ${line}` : `• ${line}`;
                           setReportedIssue(newVal);
                         }}
-                        className="px-2.5 py-1.5 rounded-lg text-[10px] font-extrabold bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:bg-orange-50 dark:hover:bg-orange-500/15 text-slate-700 dark:text-slate-200 hover:text-orange-800 dark:hover:text-orange-300 hover:border-orange-300 dark:hover:border-orange-500/40 transition inline-flex items-center gap-1"
+                        className="px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:bg-orange-50 dark:hover:bg-orange-500/15 text-slate-700 dark:text-slate-200 hover:text-orange-800 dark:hover:text-orange-300 hover:border-orange-300 dark:hover:border-orange-500/40 transition inline-flex items-center gap-1"
                       >
                         <span>{issue.emoji}</span> {issue.text}
                       </button>
@@ -586,7 +586,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
 
                 {/* Priority */}
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     Priority
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -606,7 +606,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                         >
                           <div className="text-xl mb-1">{p.emoji}</div>
                           <div className="text-xs font-extrabold">{p.label}</div>
-                          <div className={`text-[9px] font-bold mt-0.5 ${active ? 'opacity-90' : 'opacity-60'}`}>
+                          <div className={`text-[0.625rem] font-bold mt-0.5 ${active ? 'opacity-90' : 'opacity-60'}`}>
                             {p.desc}
                           </div>
                         </button>
@@ -618,7 +618,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                 {/* Ready date + Technician + Warranty */}
                 <div className="grid sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                       Est. Ready Date
                     </label>
                     <input
@@ -627,7 +627,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                       onChange={(e) => setEstimatedReadyAt(e.target.value)}
                       className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition"
                     />
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1">
+                    <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-1">
                       Auto-set by priority
                     </p>
                   </div>
@@ -669,7 +669,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                       <div className="font-extrabold text-emerald-900 dark:text-emerald-200 text-sm">
                         Initial Estimate <span className="text-slate-400 dark:text-slate-500 font-semibold">(optional)</span>
                       </div>
-                      <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">
+                      <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-semibold">
                         Advance ~20-30% recommended — customer serious hai
                       </div>
                     </div>
@@ -716,7 +716,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
 
                 {/* Notes */}
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                     Internal Notes <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(private, customer nahi dekhega)</span>
                   </label>
                   <textarea
@@ -734,7 +734,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
           {/* ═══ FOOTER ═══ */}
           <div className="px-4 sm:px-5 py-3 border-t-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-3 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                 <span className="hidden md:inline-flex items-center gap-1">
                   <Kbd>Ctrl</Kbd>+<Kbd>↵</Kbd> next
                 </span>
@@ -851,7 +851,7 @@ function RepairFormTeacher({ step, onClose }: { step: 1 | 2 | 3; onClose: () => 
           <div className="flex items-center gap-2">
             <div className="text-2xl">{c.emoji}</div>
             <div>
-              <div className="text-[10px] uppercase tracking-widest font-extrabold opacity-80">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold opacity-80">Guide</div>
               <h3 className="font-extrabold">{c.title}</h3>
             </div>
           </div>
@@ -870,7 +870,7 @@ function RepairFormTeacher({ step, onClose }: { step: 1 | 2 | 3; onClose: () => 
               <div
                 className="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-relaxed"
                 dangerouslySetInnerHTML={{
-                  __html: tip.text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-slate-900 dark:text-white">$1</strong>').replace(/`(.+?)`/g, '<code class="px-1 rounded bg-slate-200 dark:bg-slate-700 font-mono text-[10px]">$1</code>'),
+                  __html: tip.text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-slate-900 dark:text-white">$1</strong>').replace(/`(.+?)`/g, '<code class="px-1 rounded bg-slate-200 dark:bg-slate-700 font-mono text-[0.6875rem]">$1</code>'),
                 }}
               />
             </div>
@@ -904,7 +904,7 @@ function InputCompact({
 }) {
   return (
     <div>
-      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
         {label}
       </label>
       <input
@@ -937,7 +937,7 @@ function PricingInput({
   };
   return (
     <div>
-      <label className={`block text-[10px] font-extrabold uppercase tracking-wider mb-1 ${labelTones[tone]}`}>
+      <label className={`block text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1 ${labelTones[tone]}`}>
         {label}
       </label>
       <div className="relative">
@@ -971,7 +971,7 @@ function ProfitStat({
   };
   return (
     <div>
-      <div className="text-[9px] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
       <div className={`font-extrabold tabular-nums ${tones[tone]} ${big ? 'text-base' : 'text-sm'} mt-0.5`}>
         {value}
       </div>
@@ -981,7 +981,7 @@ function ProfitStat({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-mono font-bold text-[9px]">
+    <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-mono font-bold text-[0.625rem]">
       {children}
     </kbd>
   );

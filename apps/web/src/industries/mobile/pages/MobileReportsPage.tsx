@@ -496,10 +496,10 @@ export default function MobileReportsPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50">
                     <tr className="text-left">
-                      <th className="px-6 py-2.5 text-[10px] uppercase font-extrabold text-slate-500">Item</th>
-                      <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 text-right">Stock</th>
-                      <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 text-right">Lagat</th>
-                      <th className="px-6 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 text-right">Bechne par</th>
+                      <th className="px-6 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500">Item</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 text-right">Stock</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 text-right">Lagat</th>
+                      <th className="px-6 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 text-right">Bechne par</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -507,7 +507,7 @@ export default function MobileReportsPage() {
                       <tr key={a.id} className="hover:bg-slate-50 transition">
                         <td className="px-6 py-2.5">
                           <div className="font-bold text-slate-900">{a.name}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold">
+                          <div className="text-[0.6875rem] text-slate-500 font-semibold">
                             {[a.brand, a.category, a.sku].filter(Boolean).join(' · ')}
                           </div>
                         </td>
@@ -780,7 +780,7 @@ function SourceCard({ meta, row, share, detailed }: any) {
           </div>
           <div className="min-w-0">
             <div className="font-bold text-slate-900 truncate">{meta.label}</div>
-            <div className="text-[11px] font-semibold text-slate-500 tabular-nums">
+            <div className="text-[0.6875rem] font-semibold text-slate-500 tabular-nums">
               {row?.units ?? 0} units · {row?.sales ?? 0} sales
             </div>
           </div>
@@ -809,7 +809,7 @@ function SourceCard({ meta, row, share, detailed }: any) {
       </div>
 
       <div className="mt-3">
-        <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+        <div className="flex justify-between text-[0.6875rem] font-bold text-slate-500 mb-1">
           <span>Kul munafe ka hissa</span>
           <span className="tabular-nums">{share.toFixed(0)}%</span>
         </div>
@@ -840,31 +840,31 @@ function TopModelsTable({ rows }: { rows: any[] }) {
           <table className="w-full text-sm">
             <thead className="bg-slate-50">
               <tr className="text-left">
-                <th className="px-6 py-2.5 text-[10px] uppercase font-extrabold text-slate-500">#</th>
-                <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500">Model</th>
-                <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 text-right">Units</th>
-                <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 text-right">Bikri</th>
-                <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 text-right">Munafa</th>
-                <th className="px-6 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 text-right">Margin</th>
+                <th className="px-6 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500">#</th>
+                <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500">Model</th>
+                <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 text-right">Units</th>
+                <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 text-right">Bikri</th>
+                <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 text-right">Munafa</th>
+                <th className="px-6 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 text-right">Margin</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.slice(0, 15).map((p, i) => (
                 <tr key={p.productId} className="hover:bg-slate-50 transition">
                   <td className="px-6 py-2.5">
-                    <span className={`inline-flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-extrabold tabular-nums ${
+                    <span className={`inline-flex h-6 w-6 items-center justify-center rounded-lg text-[0.6875rem] font-extrabold tabular-nums ${
                       i === 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'
                     }`}>{i + 1}</span>
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="font-bold text-slate-900">{p.name}</div>
-                    {p.brand && <div className="text-[11px] text-slate-500 font-semibold">{p.brand}</div>}
+                    {p.brand && <div className="text-[0.6875rem] text-slate-500 font-semibold">{p.brand}</div>}
                   </td>
                   <td className="px-4 py-2.5 text-right font-bold text-slate-700 tabular-nums">{p.units}</td>
                   <td className="px-4 py-2.5 text-right font-bold text-slate-900 tabular-nums">{formatPKR(p.revenue)}</td>
                   <td className="px-4 py-2.5 text-right font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.profit)}</td>
                   <td className="px-6 py-2.5 text-right">
-                    <span className={`px-1.5 py-0.5 rounded text-[11px] font-extrabold tabular-nums ${
+                    <span className={`px-1.5 py-0.5 rounded text-[0.6875rem] font-extrabold tabular-nums ${
                       p.margin >= 15 ? 'bg-emerald-100 text-emerald-700'
                       : p.margin >= 5 ? 'bg-amber-100 text-amber-700'
                       : 'bg-rose-100 text-rose-700'
@@ -899,7 +899,7 @@ function ReportsTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Reports Kaise Parhein?</h3>
             </div>
           </div>

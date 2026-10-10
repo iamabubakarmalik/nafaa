@@ -271,10 +271,10 @@ export default function AppliancesReportsPage() {
 
       {/* Range */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Arsa</span>
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Arsa</span>
         {[7, 30, 90, 365].map((d) => (
           <button key={d} onClick={() => setDays(d)}
-            className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border-2 transition ${
+            className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
               days === d ? 'bg-cyan-600 border-cyan-600 text-white shadow'
                 : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
             }`}>
@@ -325,7 +325,7 @@ export default function AppliancesReportsPage() {
                   className={`flex items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 hover:shadow-md transition group ${tones[al.tone]}`}>
                   <al.icon className="h-4 w-4 shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-extrabold truncate">{al.label}</div>
+                    <div className="text-[0.6875rem] font-extrabold truncate">{al.label}</div>
                     <div className="text-sm font-extrabold tabular-nums">{al.value}</div>
                   </div>
                   <ChevronRight className="h-4 w-4 shrink-0 opacity-50 group-hover:translate-x-0.5 transition" />
@@ -372,7 +372,7 @@ export default function AppliancesReportsPage() {
                   <h4 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
                     {r.emoji} {r.title}
                   </h4>
-                  <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{r.hint}</p>
+                  <p className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{r.hint}</p>
                 </div>
                 <ChevronRight className="h-5 w-5 text-slate-300 dark:text-slate-600 shrink-0 self-center group-hover:translate-x-1 group-hover:text-cyan-500 transition" />
               </div>
@@ -393,7 +393,7 @@ export default function AppliancesReportsPage() {
             <Link key={l.to} to={l.to}
               className="flex flex-col items-center gap-1.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 hover:border-cyan-400 hover:shadow transition">
               <l.icon className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-              <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 text-center">{l.label}</span>
+              <span className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 text-center">{l.label}</span>
             </Link>
           ))}
         </div>

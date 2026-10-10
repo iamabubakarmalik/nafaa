@@ -354,7 +354,7 @@ export default function CakeOrdersPage() {
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Cake className="h-3.5 w-3.5 text-pink-300" /> Bakery · Booking
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">🎂 Cake Orders</h1>
@@ -424,7 +424,7 @@ export default function CakeOrdersPage() {
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-pink-400'
             }`}>
             <Icon className="h-4 w-4" /> {label}
-            {v === 'list' && <span className={`text-[10px] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'}`}>{shown.length}</span>}
+            {v === 'list' && <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'}`}>{shown.length}</span>}
           </button>
         ))}
       </div>
@@ -452,7 +452,7 @@ export default function CakeOrdersPage() {
                       className={`h-12 px-3 rounded-2xl border-2 text-xs font-black inline-flex items-center gap-1.5 transition ${
                         filter === v ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/15 text-pink-700 dark:text-pink-300'
                           : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-pink-400'
-                      }`}>{l} <span className="text-[10px] opacity-60 tabular-nums">{n}</span></button>
+                      }`}>{l} <span className="text-[0.6875rem] opacity-60 tabular-nums">{n}</span></button>
                   ))}
               </div>
             </div>
@@ -603,21 +603,21 @@ function OrderCard({ o, onNext, onBack, onPay, onCancel, onSlip, onBill, waHref,
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
             <Link to={ROUTES.detail(o.id)} className="font-extrabold text-sm text-slate-900 dark:text-white hover:text-pink-600 truncate">{o.customerName}</Link>
-            <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md ${s.chip}`}>{s.label}</span>
-            <span className="text-[10px] font-black text-slate-400">{o.orderNumber}</span>
-            {o.billId && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-emerald-600 text-white">Bill bana</span>}
+            <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md ${s.chip}`}>{s.label}</span>
+            <span className="text-[0.6875rem] font-black text-slate-400">{o.orderNumber}</span>
+            {o.billId && <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-emerald-600 text-white">Bill bana</span>}
           </div>
-          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5 truncate">
             {[o.occasion, o.size ? nice(o.size) : '', o.flavor ? nice(o.flavor) : '', o.weightPounds ? `${o.weightPounds} pound` : ''].filter(Boolean).join(' · ')}
           </div>
-          {o.messageOnCake && <div className="text-[11px] font-black text-fuchsia-600 dark:text-fuchsia-400 mt-0.5 truncate">✍️ "{o.messageOnCake}"</div>}
+          {o.messageOnCake && <div className="text-[0.6875rem] font-black text-fuchsia-600 dark:text-fuchsia-400 mt-0.5 truncate">✍️ "{o.messageOnCake}"</div>}
           <div className="mt-1 flex items-center gap-2 flex-wrap">
-            <span className={`text-[11px] font-black inline-flex items-center gap-1 ${late ? 'text-rose-600' : soon ? 'text-amber-600' : 'text-slate-500'}`}>
+            <span className={`text-[0.6875rem] font-black inline-flex items-center gap-1 ${late ? 'text-rose-600' : soon ? 'text-amber-600' : 'text-slate-500'}`}>
               <Clock className="h-3 w-3" />
               {o.isDone ? s.label : o.left !== null ? phrase(o.left) : 'Tareekh nahi'}
               {o.deliveryDate && ` · ${new Date(o.deliveryDate).toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}`}
             </span>
-            <span className="text-[11px] font-bold text-slate-400 inline-flex items-center gap-1">
+            <span className="text-[0.6875rem] font-bold text-slate-400 inline-flex items-center gap-1">
               {o.deliveryType === 'DELIVERY' ? <><Truck className="h-3 w-3" /> Ghar bhejna</> : <><Store className="h-3 w-3" /> Dukaan se lena</>}
             </span>
           </div>
@@ -625,15 +625,15 @@ function OrderCard({ o, onNext, onBack, onPay, onCancel, onSlip, onBill, waHref,
 
         <div className="text-right shrink-0">
           <div className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{formatPKR(o.total)}</div>
-          {o.due > 0 ? <div className="text-[11px] font-black text-amber-600 tabular-nums">{formatPKR(o.due)} baqi</div>
-            : <div className="text-[11px] font-black text-emerald-600">Poora mil gaya</div>}
+          {o.due > 0 ? <div className="text-[0.6875rem] font-black text-amber-600 tabular-nums">{formatPKR(o.due)} baqi</div>
+            : <div className="text-[0.6875rem] font-black text-emerald-600">Poora mil gaya</div>}
         </div>
       </div>
 
       {o.advanceShort > 0 && !o.isDone && o.status !== 'ENQUIRY' && (
         <div className="mt-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 flex gap-2">
           <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-          <p className="text-[11px] font-bold text-amber-900 dark:text-amber-200">
+          <p className="text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
             Advance me <strong>{formatPKR(o.advanceShort)}</strong> kam hai. Bina poora advance liye bara cake banane se bakery
             ka paisa phans jata hai.
           </p>
@@ -643,7 +643,7 @@ function OrderCard({ o, onNext, onBack, onPay, onCancel, onSlip, onBill, waHref,
       <div className="mt-2.5 flex gap-1.5 flex-wrap print:hidden">
         {next && !o.isDone && (
           <button onClick={onNext} disabled={busy}
-            className={`h-9 px-3 rounded-xl text-white text-[11px] font-black inline-flex items-center gap-1.5 disabled:opacity-60 transition ${
+            className={`h-9 px-3 rounded-xl text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 disabled:opacity-60 transition ${
               next.to === 'DELIVER' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-pink-600 hover:bg-pink-700'
             }`}>
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : next.to === 'DELIVER' ? <Receipt className="h-3.5 w-3.5" /> : <ChefHat className="h-3.5 w-3.5" />}
@@ -658,23 +658,23 @@ function OrderCard({ o, onNext, onBack, onPay, onCancel, onSlip, onBill, waHref,
         )}
         {o.due > 0 && !o.isDone && (
           <button onClick={onPay}
-            className="h-9 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 border-2 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+            className="h-9 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 border-2 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
             <Wallet className="h-3.5 w-3.5" /> Paisa mila
           </button>
         )}
         {onBill && (
           <button onClick={onBill}
-            className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 transition">
+            className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
             <Receipt className="h-3.5 w-3.5" /> Bill dekhein
           </button>
         )}
         <button onClick={onSlip} title="Advance ki raseed / parchi"
-          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
           <Printer className="h-3.5 w-3.5" /> Parchi
         </button>
         {waHref && (
           <a href={waHref} target="_blank" rel="noreferrer"
-            className="h-9 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+            className="h-9 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
             <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
           </a>
         )}
@@ -687,12 +687,12 @@ function OrderCard({ o, onNext, onBack, onPay, onCancel, onSlip, onBill, waHref,
         <div className="ml-auto flex gap-1.5">
           {!o.isDone && (
             <button onClick={onCancel} title="Cancel"
-              className="h-9 px-3 rounded-xl border-2 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 text-[11px] font-black inline-flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition">
+              className="h-9 px-3 rounded-xl border-2 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition">
               <Ban className="h-3.5 w-3.5" /> Cancel
             </button>
           )}
           <Link to={ROUTES.detail(o.id)}
-            className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+            className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
             Tafseel <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -727,7 +727,7 @@ function PayModal({ order, onClose, onDone }: any) {
           <span className="h-10 w-10 rounded-2xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center"><Wallet className="h-5 w-5 text-emerald-600" /></span>
           <div className="min-w-0">
             <h3 className="font-black text-slate-900 dark:text-white">Paisa mila</h3>
-            <p className="text-[11px] font-bold text-slate-500 truncate">{order.customerName} · {formatPKR(due)} baqi</p>
+            <p className="text-[0.6875rem] font-bold text-slate-500 truncate">{order.customerName} · {formatPKR(due)} baqi</p>
           </div>
         </div>
         <input type="number" min={0} max={due} step="any" autoFocus value={amount}
@@ -737,12 +737,12 @@ function PayModal({ order, onClose, onDone }: any) {
         <div className="mt-2 grid grid-cols-3 gap-1.5">
           {chips.map((c) => (
             <button key={c.l} onClick={() => setAmount(c.v)}
-              className="h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-[11px] font-black text-slate-700 dark:text-slate-200 tabular-nums transition">
+              className="h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-[0.6875rem] font-black text-slate-700 dark:text-slate-200 tabular-nums transition">
               {c.l} <span className="opacity-60">{formatPKR(c.v)}</span>
             </button>
           ))}
         </div>
-        <p className="mt-2 text-[10px] font-bold text-slate-400">
+        <p className="mt-2 text-[0.6875rem] font-bold text-slate-400">
           Ye paisa order par darj hota hai. Cake dete waqt jo bill banta hai us me ye "pehle mila" gina jayega.
         </p>
         <div className="mt-4 flex gap-2">
@@ -768,7 +768,7 @@ function CancelModal({ order, pending, onClose, onConfirm }: any) {
         {paid > 0 && (
           <div className="mt-3 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-[11px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
               Customer <strong>{formatPKR(paid)}</strong> de chuka hai. Wapas karna hai ya agle order me ginna hai — ye
               customer se tay kar lein. Cancel se ye paisa khud wapas nahi hota.
             </p>
@@ -799,9 +799,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
       } ${onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : ''}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}><Icon className="h-5 w-5" /></div>
       </div>
@@ -849,8 +849,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Advance liya hua ho to cancel karte waqt yaad-dehani aati hai — paisa khud wapas nahi hota.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> naya order</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
@@ -869,8 +869,8 @@ function Tip({ icon: Icon, title, children }: any) {
     <div className="flex gap-2.5">
       <div className="h-8 w-8 rounded-xl bg-pink-100 dark:bg-pink-500/20 flex items-center justify-center shrink-0"><Icon className="h-4 w-4 text-pink-600 dark:text-pink-400" /></div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

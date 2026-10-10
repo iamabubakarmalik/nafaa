@@ -132,7 +132,7 @@ export default function PrescriptionDetailPage() {
 
         {rx.notes && (
           <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-4">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1">Notes</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Notes</div>
             <div className="text-sm font-semibold text-slate-700 whitespace-pre-wrap">{rx.notes}</div>
           </div>
         )}
@@ -171,7 +171,7 @@ export default function PrescriptionDetailPage() {
                 </div>
                 <div className="text-right">
                   <div className="font-extrabold text-emerald-700 text-sm tabular-nums">{formatPKR(o.totalPrice)}</div>
-                  <div className="text-[10px] font-bold text-slate-500">{o.status}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500">{o.status}</div>
                 </div>
               </Link>
             ))}
@@ -218,7 +218,7 @@ function EyeCard({ side, tone, sph, cyl, axis, add, pd, va }: any) {
 function RxCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl bg-white border-2 border-slate-200 p-3 text-center">
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-lg font-extrabold text-slate-900 tabular-nums font-mono mt-1">{value}</div>
     </div>
   );
@@ -237,7 +237,7 @@ function InfoBox({ icon: Icon, label, value, tone }: any) {
   };
   return (
     <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold opacity-75">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold opacity-75">
         <Icon className="h-3 w-3" /> {label}
       </div>
       <div className="text-sm font-extrabold mt-1">{value}</div>

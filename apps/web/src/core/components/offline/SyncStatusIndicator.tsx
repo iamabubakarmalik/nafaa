@@ -150,14 +150,14 @@ export function SyncStatusIndicator() {
 
         {/* Pending badge — top-right */}
         {hasPending && !status.isSyncing && (
-          <span className="absolute -top-1.5 -right-1.5 h-5 min-w-5 px-1 rounded-full bg-rose-600 text-white text-[10px] font-extrabold flex items-center justify-center ring-2 ring-white dark:ring-slate-900 shadow-md">
+          <span className="absolute -top-1.5 -right-1.5 h-5 min-w-5 px-1 rounded-full bg-rose-600 text-white text-[0.6875rem] font-extrabold flex items-center justify-center ring-2 ring-white dark:ring-slate-900 shadow-md">
             {totalPending > 9 ? '9+' : totalPending}
           </span>
         )}
 
         {/* Failed badge — alag, rose wala (jab pending badge bhi ho to dono dikhein) */}
         {hasFailed && hasPending && !status.isSyncing && (
-          <span className="absolute -bottom-1.5 -right-1.5 h-4 min-w-4 px-0.5 rounded-full bg-rose-700 text-white text-[9px] font-extrabold flex items-center justify-center ring-2 ring-white dark:ring-slate-900 shadow-md">
+          <span className="absolute -bottom-1.5 -right-1.5 h-4 min-w-4 px-0.5 rounded-full bg-rose-700 text-white text-[0.625rem] font-extrabold flex items-center justify-center ring-2 ring-white dark:ring-slate-900 shadow-md">
             !
           </span>
         )}
@@ -189,7 +189,7 @@ export function SyncStatusIndicator() {
                     <h3 className="font-extrabold text-sm leading-tight">
                       {isOnline ? 'Connected' : 'Offline Mode'}
                     </h3>
-                    <p className="text-[10px] text-white/80 font-bold">
+                    <p className="text-[0.6875rem] text-white/80 font-bold">
                       {isOnline ? 'Auto-sync active hai' : 'Data device pe safe hai'}
                     </p>
                   </div>
@@ -205,7 +205,7 @@ export function SyncStatusIndicator() {
               {/* Sync progress — header ke andar */}
               {status.isSyncing && status.progress && status.progress.total > 0 && (
                 <div className="relative mt-3">
-                  <div className="flex justify-between text-[10px] font-extrabold text-white/90 mb-1">
+                  <div className="flex justify-between text-[0.6875rem] font-extrabold text-white/90 mb-1">
                     <span className="inline-flex items-center gap-1">
                       <Zap className="h-3 w-3" /> Uploading…
                     </span>
@@ -239,7 +239,7 @@ export function SyncStatusIndicator() {
               <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3">
                 <div className="flex items-center gap-2 mb-2.5">
                   <Database className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                  <span className="text-[10px] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">
+                  <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">
                     Offline Data Cached
                   </span>
                   <ShieldCheck className="h-3 w-3 text-emerald-500 ml-auto" />
@@ -253,7 +253,7 @@ export function SyncStatusIndicator() {
                       <div className="font-extrabold text-slate-900 dark:text-white tabular-nums text-sm leading-none">
                         {stats.products.toLocaleString()}
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">Products</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">Products</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -264,7 +264,7 @@ export function SyncStatusIndicator() {
                       <div className="font-extrabold text-slate-900 dark:text-white tabular-nums text-sm leading-none">
                         {stats.customers.toLocaleString()}
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">Customers</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">Customers</div>
                     </div>
                   </div>
                 </div>
@@ -275,7 +275,7 @@ export function SyncStatusIndicator() {
                 <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <CloudUpload className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" />
-                    <span className="text-[10px] uppercase tracking-widest font-extrabold text-amber-800 dark:text-amber-300">
+                    <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-800 dark:text-amber-300">
                       Sync ke liye taiyar
                     </span>
                   </div>
@@ -298,7 +298,7 @@ export function SyncStatusIndicator() {
                     )}
                   </div>
                   {!isOnline && (
-                    <p className="text-[10px] text-amber-700 dark:text-amber-300 font-bold mt-2 flex items-center gap-1">
+                    <p className="text-[0.6875rem] text-amber-700 dark:text-amber-300 font-bold mt-2 flex items-center gap-1">
                       <Activity className="h-3 w-3" />
                       Internet aane par auto-sync ho jayega
                     </p>
@@ -315,12 +315,12 @@ export function SyncStatusIndicator() {
                 >
                   <div className="flex items-center gap-2">
                     <AlertCircle className="h-3.5 w-3.5 text-rose-700 dark:text-rose-400" />
-                    <span className="text-[10px] uppercase tracking-widest font-extrabold text-rose-800 dark:text-rose-300">
+                    <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-rose-800 dark:text-rose-300">
                       {status.failedTotal} items failed
                     </span>
                     <ArrowRight className="h-3 w-3 text-rose-500 ml-auto group-hover:translate-x-0.5 transition-transform" />
                   </div>
-                  <p className="text-[10px] text-rose-600 dark:text-rose-400 font-bold mt-1">
+                  <p className="text-[0.6875rem] text-rose-600 dark:text-rose-400 font-bold mt-1">
                     Sync Center me review karein
                   </p>
                 </Link>
@@ -331,11 +331,11 @@ export function SyncStatusIndicator() {
                 <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3">
                   <div className="flex items-center gap-2 mb-1">
                     <AlertCircle className="h-3.5 w-3.5 text-rose-700 dark:text-rose-400" />
-                    <span className="text-[10px] uppercase tracking-widest font-extrabold text-rose-800 dark:text-rose-300">
+                    <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-rose-800 dark:text-rose-300">
                       Last error
                     </span>
                   </div>
-                  <p className="text-[11px] text-rose-700 dark:text-rose-300 font-semibold leading-snug">
+                  <p className="text-[0.6875rem] text-rose-700 dark:text-rose-300 font-semibold leading-snug">
                     {status.lastError}
                   </p>
                 </div>
@@ -364,7 +364,7 @@ export function SyncStatusIndicator() {
               <Link
                 to="/sync"
                 onClick={() => setOpen(false)}
-                className="flex items-center justify-center gap-1.5 text-[11px] font-extrabold text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition group"
+                className="flex items-center justify-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition group"
               >
                 <TrendingUp className="h-3 w-3" />
                 Full history — Sync Center kholein

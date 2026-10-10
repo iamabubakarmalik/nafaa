@@ -363,7 +363,7 @@ export default function BundleFormPage() {
             {originalTotal > 0 && (
               <>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">Foran discount lagayein</div>
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">Foran discount lagayein</div>
                   <div className="flex flex-wrap gap-1.5">
                     {DISCOUNT_QUICK.map((d) => (
                       <button key={d} onClick={() => applyDiscount(d)}
@@ -378,7 +378,7 @@ export default function BundleFormPage() {
                   isLoss ? 'bg-rose-50 border-rose-300' : savingsPct >= 10 ? 'bg-emerald-50 border-emerald-300' : 'bg-amber-50 border-amber-300'].join(' ')}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                      <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                         isLoss ? 'text-rose-700' : savingsPct >= 10 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                         {isLoss ? '⚠️ Nuqsan ho raha hai!' : 'Customer Ki Bachat'}
                       </div>
@@ -477,7 +477,7 @@ export default function BundleFormPage() {
         <aside className="flex flex-col gap-3 xl:sticky xl:top-4 xl:self-start">
           <div className="rounded-3xl bg-white border-2 border-pink-300 shadow-lg overflow-hidden">
             <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-pink-50 to-rose-50">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-pink-700 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-pink-700 flex items-center gap-1">
                 <Sparkles className="h-3 w-3" /> Live Preview
               </div>
             </div>
@@ -520,7 +520,7 @@ export default function BundleFormPage() {
 
           {/* Checklist */}
           <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 space-y-1.5">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3" /> Checklist
             </div>
             <Chk done={!!form.name.trim()} label="Bundle ka naam" />
@@ -538,7 +538,7 @@ export default function BundleFormPage() {
           <Button variant="secondary" onClick={leave}>Cancel</Button>
           <div className="flex items-center gap-3">
             {!canSave && (
-              <span className="hidden sm:block text-[11px] font-bold text-amber-700">
+              <span className="hidden sm:block text-[0.6875rem] font-bold text-amber-700">
                 {!form.name.trim() ? 'Naam likhein'
                   : items.length < 2 ? `${2 - items.length} aur cheez daalein`
                   : 'Qeemat likhein'}
@@ -548,7 +548,7 @@ export default function BundleFormPage() {
               onClick={() => save.mutate()} loading={save.isPending} disabled={!canSave}>
               <Save className="h-4 w-4" />
               {isEdit ? 'Bundle Update Karein' : 'Bundle Banayein'}
-              <span className="hidden sm:inline text-[10px] opacity-70 ml-1">Ctrl+S</span>
+              <span className="hidden sm:inline text-[0.6875rem] opacity-70 ml-1">Ctrl+S</span>
             </Button>
           </div>
         </div>
@@ -629,7 +629,7 @@ function BundleFormTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Bundle Kaise Banayein?</h3>
             </div>
           </div>
@@ -648,7 +648,7 @@ function BundleFormTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

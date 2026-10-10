@@ -110,28 +110,28 @@ export default function AutoPartsDashboardPage() {
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Today</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Today</div>
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div>
-                <div className="text-[10px] font-bold text-white/60">Revenue</div>
+                <div className="text-[0.6875rem] font-bold text-white/60">Revenue</div>
                 <div className="text-2xl font-extrabold tabular-nums text-emerald-300">{formatPKR(today.revenue)}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-white/60">Collected</div>
+                <div className="text-[0.6875rem] font-bold text-white/60">Collected</div>
                 <div className="text-2xl font-extrabold tabular-nums text-cyan-300">{formatPKR(today.collected)}</div>
               </div>
             </div>
             <div className="text-xs text-white/60 font-semibold mt-2">{today.deliveredCount} jobs delivered today</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Last 30 Days</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Last 30 Days</div>
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div>
-                <div className="text-[10px] font-bold text-white/60">Revenue</div>
+                <div className="text-[0.6875rem] font-bold text-white/60">Revenue</div>
                 <div className="text-2xl font-extrabold tabular-nums text-emerald-300">{formatPKR(monthly.revenue)}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-white/60">Collected</div>
+                <div className="text-[0.6875rem] font-bold text-white/60">Collected</div>
                 <div className="text-2xl font-extrabold tabular-nums text-cyan-300">{formatPKR(monthly.collected)}</div>
               </div>
             </div>
@@ -186,7 +186,7 @@ export default function AutoPartsDashboardPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm text-slate-900 dark:text-white">{job.jobNumber}</span>
                         <span className={
-                          'px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' +
+                          'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +
                           (job.priority === 'EMERGENCY' || job.priority === 'URGENT' ? 'bg-red-600 animate-pulse' :
                            job.priority === 'HIGH' ? 'bg-amber-500' : 'bg-slate-500')
                         }>
@@ -206,7 +206,7 @@ export default function AutoPartsDashboardPage() {
                           {daysLeft <= 0 ? 'TODAY' : daysLeft + ' days'}
                         </div>
                       )}
-                      <div className="text-[10px] font-bold text-slate-500">{formatPKR(job.total)}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">{formatPKR(job.total)}</div>
                     </div>
                   </Link>
                 );
@@ -253,7 +253,7 @@ export default function AutoPartsDashboardPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-xs font-extrabold text-rose-700">{daysOverdue}d overdue</div>
-                      <div className="text-[10px] font-bold text-slate-500">Due: {format(new Date(job.promisedAt), 'dd MMM')}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">Due: {format(new Date(job.promisedAt), 'dd MMM')}</div>
                     </div>
                   </Link>
                 );
@@ -293,7 +293,7 @@ export default function AutoPartsDashboardPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm truncate">{m.name}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{m.jobs} jobs</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{m.jobs} jobs</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums text-sm">{formatPKR(m.revenue)}</div>

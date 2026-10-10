@@ -231,7 +231,7 @@ export default function ElectronicsLowStockPage() {
                       : 'text-slate-600 hover:bg-slate-100'
                   }`}>
                   <t.icon className="h-3.5 w-3.5" /> {t.label}
-                  <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-100'}`}>{t.n}</span>
+                  <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-100'}`}>{t.n}</span>
                 </button>
               ))}
             </div>
@@ -284,22 +284,22 @@ export default function ElectronicsLowStockPage() {
                           className="font-extrabold text-slate-900 text-sm truncate hover:text-blue-600 transition inline-flex items-center gap-1">
                           {r.name} <ChevronRight className="h-3 w-3 opacity-50" />
                         </Link>
-                        <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500">
+                        <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500">
                           {meta && <span>{meta.label}</span>}
                           {r.brand && <span>{r.brand}</span>}
                           {r.sku && <span className="font-mono">{r.sku}</span>}
                           {r.conditionType && r.conditionType !== 'BRAND_NEW' && (
-                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${CONDITION_META[r.conditionType as ConditionType]?.chip}`}>
+                            <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${CONDITION_META[r.conditionType as ConditionType]?.chip}`}>
                               {CONDITION_META[r.conditionType as ConditionType]?.label}
                             </span>
                           )}
                           {r.requiresSerial && (
-                            <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                            <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                               <Barcode className="h-2.5 w-2.5" /> Serial
                             </span>
                           )}
                           {r.notInShop && (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold">
+                            <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">
                               Shop me assign nahi
                             </span>
                           )}
@@ -309,15 +309,15 @@ export default function ElectronicsLowStockPage() {
                       <div className="text-right shrink-0">
                         <div className={`text-lg font-extrabold tabular-nums ${r.isOut ? 'text-rose-600' : 'text-amber-700'}`}>
                           {r.stock}
-                          <span className="text-[10px] font-bold text-slate-400 ml-0.5">{r.unit}</span>
+                          <span className="text-[0.6875rem] font-bold text-slate-400 ml-0.5">{r.unit}</span>
                         </div>
-                        <div className="text-[10px] font-bold text-slate-500">
+                        <div className="text-[0.6875rem] font-bold text-slate-500">
                           {r.isOut ? 'khatam' : `alert: ${r.lowStockAlert}`}
                         </div>
                       </div>
 
                       <Link to={r.requiresSerial ? `/electronics-products/${r.productId}` : '/purchases'}
-                        className="h-9 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold inline-flex items-center gap-1 shrink-0 transition print:hidden"
+                        className="h-9 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 shrink-0 transition print:hidden"
                         title={r.requiresSerial ? 'Serial add karo' : 'Purchase entry karo'}>
                         {r.requiresSerial ? <><Barcode className="h-3 w-3" /> Serial</> : <><ShoppingCart className="h-3 w-3" /> Mangwao</>}
                       </Link>
@@ -351,9 +351,9 @@ function Kpi({ label, value, icon: Icon, tone, hint }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider truncate">{label}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider truncate">{label}</div>
         <div className="font-extrabold text-slate-900 text-xl tabular-nums truncate">{value}</div>
-        {hint && <div className="text-[10px] font-bold text-slate-400 truncate">{hint}</div>}
+        {hint && <div className="text-[0.6875rem] font-bold text-slate-400 truncate">{hint}</div>}
       </div>
     </div>
   );
@@ -393,7 +393,7 @@ function LowStockTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Low Stock Kaise Parhein?</h3>
             </div>
           </div>
@@ -413,7 +413,7 @@ function LowStockTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((t, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {t}
                     </li>
                   ))}

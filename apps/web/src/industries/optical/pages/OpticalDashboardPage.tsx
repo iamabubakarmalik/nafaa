@@ -164,7 +164,7 @@ export default function OpticalDashboardPage() {
               <h3 className="font-extrabold text-slate-900 inline-flex items-center gap-2">
                 Today's Schedule
                 {todaySchedule.length > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-extrabold uppercase">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase">
                     {todaySchedule.length}
                   </span>
                 )}
@@ -200,18 +200,18 @@ export default function OpticalDashboardPage() {
               return (
                 <Link key={a.id} to={`/optical/eye-tests/${a.id}`} className="px-5 py-3 flex items-center gap-3 hover:bg-emerald-50/40 transition">
                   <div className="w-16 shrink-0 text-center">
-                    <div className="text-[10px] uppercase font-extrabold text-slate-500">Slot</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Slot</div>
                     <div className="text-lg font-extrabold text-slate-900 tabular-nums">
                       {a.scheduledSlot || new Date(a.appointmentDate).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-slate-900 text-sm truncate">{a.customerName}</div>
-                    <div className="text-[10px] text-slate-500 font-bold">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">
                       {a.customerPhone} {a.optometristName && `• ${a.optometristName}`}
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${statusColors[a.status] || 'bg-slate-100'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${statusColors[a.status] || 'bg-slate-100'}`}>
                     {a.status}
                   </span>
                 </Link>
@@ -318,14 +318,14 @@ export default function OpticalDashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm text-slate-900 truncate">{o.customerName}</div>
-                  <div className="text-[10px] text-slate-500 font-bold truncate">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
                     {o.frameName} • {o.customerPhone}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-emerald-700 text-sm tabular-nums">{formatPKR(o.totalPrice)}</div>
                   {o.remainingAmount > 0 && (
-                    <div className="text-[9px] font-bold text-rose-700">Due {formatPKR(o.remainingAmount)}</div>
+                    <div className="text-[0.625rem] font-bold text-rose-700">Due {formatPKR(o.remainingAmount)}</div>
                   )}
                 </div>
               </Link>
@@ -355,12 +355,12 @@ export default function OpticalDashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm text-slate-900 truncate">{o.orderNumber}</div>
-                    <div className="text-[10px] text-slate-500 font-bold truncate">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
                       {o.customerName} • {o.labName || 'No lab'}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold uppercase">
+                    <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase">
                       {daysLate} days late
                     </span>
                   </div>
@@ -396,7 +396,7 @@ export default function OpticalDashboardPage() {
                   <div className="font-extrabold text-sm truncate text-slate-900">
                     {p.brand} {p.modelNumber}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold">{p.totalSold ?? 0} sold</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">{p.totalSold ?? 0} sold</div>
                 </div>
                 <div className="font-extrabold text-emerald-700 text-sm tabular-nums shrink-0">
                   {formatPKR(p.totalRevenue || 0)}
@@ -436,7 +436,7 @@ export default function OpticalDashboardPage() {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm truncate text-slate-900">{o.name}</div>
-                  <div className="text-[10px] text-slate-500 font-bold">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                     {o.totalTests} tests • {o.qualification || 'Optometrist'}
                   </div>
                 </div>
@@ -476,11 +476,11 @@ export default function OpticalDashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-mono font-extrabold text-sm text-slate-900 truncate">{rx.prescriptionNumber}</div>
-                    <div className="text-[10px] text-slate-500 font-bold truncate">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
                       {rx.customerName} • {rx.customerPhone}
                     </div>
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${
+                  <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${
                     daysLeft <= 7 ? 'bg-rose-500 text-white' :
                     daysLeft <= 30 ? 'bg-amber-500 text-white' :
                     'bg-slate-200 text-slate-700'}`}>
@@ -507,10 +507,10 @@ function HeroTile({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3 sm:p-4`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-lg sm:text-xl font-extrabold text-white tabular-nums leading-none truncate">{value}</div>
-      <div className="text-[10px] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
     </div>
   );
 }

@@ -330,13 +330,13 @@ export default function PharmacyPosPage() {
                         )}
                         <div className="absolute top-1 left-1 flex flex-wrap gap-0.5">
                           {med?.requiresPrescription && (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold">Rx</span>
+                            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold">Rx</span>
                           )}
                           {med?.isNarcotic && (
-                            <span className="px-1.5 py-0.5 rounded bg-red-600 text-white text-[9px] font-extrabold">NAR</span>
+                            <span className="px-1.5 py-0.5 rounded bg-red-600 text-white text-[0.625rem] font-extrabold">NAR</span>
                           )}
                           {med?.requiresColdChain && (
-                            <span className="px-1.5 py-0.5 rounded bg-blue-600 text-white text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                            <span className="px-1.5 py-0.5 rounded bg-blue-600 text-white text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                               <Snowflake className="h-2 w-2" />
                             </span>
                           )}
@@ -345,11 +345,11 @@ export default function PharmacyPosPage() {
                       <div className="p-2">
                         <div className="font-extrabold text-slate-900 text-xs line-clamp-2 leading-tight min-h-[2rem]">{p.name}</div>
                         {med?.dosageForm && (
-                          <div className="text-[10px] text-slate-500 font-bold mt-0.5">{med.dosageForm}</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{med.dosageForm}</div>
                         )}
                         <div className="mt-1 flex items-baseline justify-between">
                           <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.price)}</div>
-                          <div className="text-[9px] font-bold text-slate-500">{p.stock} {p.unit}</div>
+                          <div className="text-[0.625rem] font-bold text-slate-500">{p.stock} {p.unit}</div>
                         </div>
                       </div>
                     </button>
@@ -365,7 +365,7 @@ export default function PharmacyPosPage() {
           <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-teal-900 to-cyan-700 text-white px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                   <Pill className="h-2.5 w-2.5" />
                   Prescription Cart
                 </div>
@@ -463,7 +463,7 @@ export default function PharmacyPosPage() {
                             <div className="font-extrabold text-sm text-slate-900 truncate">{item.name}</div>
                           </div>
                           {item.note && (
-                            <div className="mt-1 text-[10px] text-teal-700 font-semibold">{item.note}</div>
+                            <div className="mt-1 text-[0.6875rem] text-teal-700 font-semibold">{item.note}</div>
                           )}
                         </div>
                         <button onClick={() => setCart((prev) => prev.filter((c) => c.cartLineId !== item.cartLineId))}
@@ -509,7 +509,7 @@ export default function PharmacyPosPage() {
                 {(['FULL_PAYMENT', 'PARTIAL_CREDIT', 'FULL_CREDIT'] as const).map((m) => (
                   <button key={m} onClick={() => setSaleMode(m)}
                     className={[
-                      'py-2 rounded-lg text-[10px] font-extrabold transition',
+                      'py-2 rounded-lg text-[0.6875rem] font-extrabold transition',
                       saleMode === m ? 'bg-teal-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-700',
                     ].join(' ')}>
                     {m === 'FULL_PAYMENT' ? 'Full Pay' : m === 'PARTIAL_CREDIT' ? 'Partial' : 'Udhaar'}

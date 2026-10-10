@@ -120,7 +120,7 @@ export function ProductDeleteButton({
                   <Trash2 className="h-6 w-6" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/80">
+                  <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/80">
                     Permanent Delete — Step {step}/2
                   </div>
                   <h3 className="font-extrabold text-lg truncate">{name}</h3>

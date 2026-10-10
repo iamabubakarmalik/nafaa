@@ -146,7 +146,7 @@ export default function CarpetProductWizardPage() {
           >
             <Plus className="h-6 w-6" />
             <div className="font-extrabold text-sm sm:text-base">Add Another</div>
-            <div className="text-[10px] sm:text-xs opacity-90 font-semibold">Wizard reset</div>
+            <div className="text-[0.6875rem] sm:text-xs opacity-90 font-semibold">Wizard reset</div>
           </button>
           <button
             onClick={() => navigate(`/carpet-products/${savedResult.productId}`)}
@@ -154,7 +154,7 @@ export default function CarpetProductWizardPage() {
           >
             <Eye className="h-6 w-6 text-emerald-600" />
             <div className="font-extrabold text-slate-900 text-sm sm:text-base">View Product</div>
-            <div className="text-[10px] sm:text-xs text-slate-500 font-semibold">Full detail page</div>
+            <div className="text-[0.6875rem] sm:text-xs text-slate-500 font-semibold">Full detail page</div>
           </button>
           <button
             onClick={() => navigate('/carpet-rolls')}
@@ -162,7 +162,7 @@ export default function CarpetProductWizardPage() {
           >
             <Layers className="h-6 w-6 text-emerald-600" />
             <div className="font-extrabold text-slate-900 text-sm sm:text-base">View Rolls</div>
-            <div className="text-[10px] sm:text-xs text-slate-500 font-semibold">Rolls inventory</div>
+            <div className="text-[0.6875rem] sm:text-xs text-slate-500 font-semibold">Rolls inventory</div>
           </button>
         </div>
       </div>
@@ -282,7 +282,7 @@ export default function CarpetProductWizardPage() {
             <ArrowLeft className="h-4 w-4" /> Back
           </button>
 
-          <div className="text-[10px] sm:text-xs font-extrabold text-slate-500 hidden sm:block">
+          <div className="text-[0.6875rem] sm:text-xs font-extrabold text-slate-500 hidden sm:block">
             Step {draft.step} of 3
             {!currentValidation.valid && (
               <span className="ml-2 inline-flex items-center gap-1 text-rose-700">
@@ -323,7 +323,7 @@ export default function CarpetProductWizardPage() {
 function SuccessStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-xl bg-white border-2 border-emerald-200 p-2 sm:p-3">
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700">{label}</div>
       <div className="text-xl sm:text-2xl font-extrabold text-emerald-900 tabular-nums mt-0.5">{value}</div>
     </div>
   );

@@ -138,12 +138,12 @@ export default function DairyProductDetailPage() {
               </div>
             )}
             {dairyProfile?.isBestSeller && (
-              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" /> BEST SELLER
               </div>
             )}
             {product.isFeatured && (
-              <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <Star className="h-3 w-3 fill-white" /> FEATURED
               </div>
             )}
@@ -197,7 +197,7 @@ export default function DairyProductDetailPage() {
 
             <div className="mt-5 flex items-center gap-4 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Sale Price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Sale Price</div>
                 <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
                   {formatPKRFull(product.price)}
                   <span className="text-sm font-bold text-white/70 ml-1">/ {product.unit}</span>
@@ -205,7 +205,7 @@ export default function DairyProductDetailPage() {
               </div>
               {product.costPrice > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
                     {formatPKRFull(product.costPrice)}
                   </div>
@@ -213,7 +213,7 @@ export default function DairyProductDetailPage() {
               )}
               {dairyProfile?.homeDeliveryPrice && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Home Delivery</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Home Delivery</div>
                   <div className="text-xl font-extrabold tabular-nums text-fuchsia-300 leading-none mt-1">
                     {formatPKRFull(dairyProfile.homeDeliveryPrice)}
                   </div>
@@ -266,25 +266,25 @@ export default function DairyProductDetailPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {dairyProfile.fatContent && (
               <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-4 text-center">
-                <div className="text-[10px] uppercase font-extrabold text-amber-700">Fat</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Fat</div>
                 <div className="text-3xl font-extrabold text-amber-900 tabular-nums">{dairyProfile.fatContent}%</div>
               </div>
             )}
             {dairyProfile.snfContent && (
               <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-4 text-center">
-                <div className="text-[10px] uppercase font-extrabold text-blue-700">SNF</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">SNF</div>
                 <div className="text-3xl font-extrabold text-blue-900 tabular-nums">{dairyProfile.snfContent}%</div>
               </div>
             )}
             {dairyProfile.proteinContent && (
               <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-4 text-center">
-                <div className="text-[10px] uppercase font-extrabold text-emerald-700">Protein</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Protein</div>
                 <div className="text-3xl font-extrabold text-emerald-900 tabular-nums">{dairyProfile.proteinContent}%</div>
               </div>
             )}
             {dairyProfile.waterAdded && (
               <div className="rounded-xl bg-red-50 border-2 border-red-200 p-4 text-center">
-                <div className="text-[10px] uppercase font-extrabold text-red-700">⚠️ Water Added</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-red-700">⚠️ Water Added</div>
                 <div className="text-sm font-extrabold text-red-900 mt-2">Yes</div>
               </div>
             )}
@@ -306,26 +306,26 @@ export default function DairyProductDetailPage() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="rounded-xl bg-cyan-50 border-2 border-cyan-200 p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-cyan-700">Temp Range</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-cyan-700">Temp Range</div>
               <div className="text-lg font-extrabold text-cyan-900 tabular-nums mt-1">
                 {dairyProfile.storageTempMin || 2}°C – {dairyProfile.storageTempMax || 8}°C
               </div>
             </div>
             {dairyProfile.bestBeforeHours && (
               <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-3 text-center">
-                <div className="text-[10px] uppercase font-extrabold text-emerald-700">Best Before</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Best Before</div>
                 <div className="text-lg font-extrabold text-emerald-900 tabular-nums mt-1">{dairyProfile.bestBeforeHours}h</div>
               </div>
             )}
             {dairyProfile.shelfLifeHours && (
               <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3 text-center">
-                <div className="text-[10px] uppercase font-extrabold text-amber-700">Shelf Life</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Shelf Life</div>
                 <div className="text-lg font-extrabold text-amber-900 tabular-nums mt-1">{dairyProfile.shelfLifeHours}h</div>
               </div>
             )}
             {dairyProfile.productionDate && (
               <div className="rounded-xl bg-violet-50 border-2 border-violet-200 p-3 text-center">
-                <div className="text-[10px] uppercase font-extrabold text-violet-700">Produced</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700">Produced</div>
                 <div className="text-sm font-extrabold text-violet-900 mt-1">
                   {new Date(dairyProfile.productionDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}
                 </div>
@@ -431,7 +431,7 @@ export default function DairyProductDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <div className="font-mono font-extrabold text-sm text-slate-900">{s.saleNumber}</div>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
@@ -464,10 +464,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }

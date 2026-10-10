@@ -270,7 +270,7 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
               <option value="">Pani se bachao nahi</option>
               {WATER_RATINGS.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
-            <p className="mt-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            <p className="mt-1.5 text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">
               IPX4 = chheenta chalega · IP67/68 = pani me doob kar bhi theek
             </p>
           </div>
@@ -318,11 +318,11 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
           <div className="min-w-0 flex-1">
             <div className="font-extrabold text-blue-950 dark:text-blue-100 flex items-center gap-2 flex-wrap">
               Tech Specs
-              <span className="px-2 py-0.5 rounded-full bg-white/70 dark:bg-slate-800 text-[10px] font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-full bg-white/70 dark:bg-slate-800 text-[0.6875rem] font-extrabold text-blue-700 dark:text-blue-300 uppercase tracking-wider">
                 Sab optional
               </span>
               {filled > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-extrabold">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[0.6875rem] font-extrabold">
                   {filled} bhare
                 </span>
               )}
@@ -351,7 +351,7 @@ export function ElectronicsWizardStep2Specs({ specs, onChange, categoryType }: P
               <div className="font-extrabold text-slate-800 dark:text-slate-100 text-sm">
                 {showAll ? 'Baqi cheezein chhupa dein' : `Aur ${hidden.length} sections — agar zaroorat ho`}
               </div>
-              <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+              <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">
                 {meta ? `${meta.label} me aam tor par inki zaroorat nahi hoti` : 'Zaroorat ho to yahan se bhar lein'}
               </div>
             </div>
@@ -414,7 +414,7 @@ function Chips({ items, onPick, active }: { items: string[]; onPick: (v: string)
     <div className="mt-1.5 flex flex-wrap gap-1">
       {items.map((v) => (
         <button key={v} type="button" onClick={() => onPick(v)}
-          className={['px-2.5 py-1 rounded-lg border-2 text-[10px] font-extrabold transition active:scale-95',
+          className={['px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold transition active:scale-95',
             active === v ? 'border-emerald-500 bg-emerald-500 text-white'
               : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300'].join(' ')}>
           {v}

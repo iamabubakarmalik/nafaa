@@ -234,13 +234,13 @@ export default function SportsDashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm truncate text-slate-900">{o.teamName}</div>
-                  <div className="text-[10px] text-slate-500 font-bold">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                     {o.orderNumber} • {o.totalQuantity} items • {o.status.replace(/_/g, ' ')}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-blue-700 text-sm tabular-nums">{formatPKR(o.totalAmount)}</div>
-                  <div className="text-[10px] font-bold text-slate-500">
+                  <div className="text-[0.6875rem] font-bold text-slate-500">
                     {new Date(o.expectedDeliveryDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                   </div>
                 </div>
@@ -277,7 +277,7 @@ export default function SportsDashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm truncate text-slate-900">{r.customerName}</div>
-                  <div className="text-[10px] text-slate-500 font-bold truncate">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
                     {r.serviceNumber} • {r.itemType} • {r.status}
                   </div>
                 </div>
@@ -315,7 +315,7 @@ export default function SportsDashboardPage() {
                   <div className="font-extrabold text-sm truncate text-slate-900 group-hover:text-emerald-700">
                     {p.product?.name || p.categoryType || 'Product'}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold">{p.totalSold ?? 0} sold</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">{p.totalSold ?? 0} sold</div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-emerald-700 text-sm tabular-nums">{formatPKR(p.totalRevenue || 0)}</div>
@@ -357,9 +357,9 @@ export default function SportsDashboardPage() {
                   <div className="font-extrabold text-sm truncate text-slate-900">{b.name}</div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     {b.authorizedDealer && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">AUTHORIZED</span>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">AUTHORIZED</span>
                     )}
-                    <span className="text-[10px] text-slate-500 font-bold">{b.brandTier}</span>
+                    <span className="text-[0.6875rem] text-slate-500 font-bold">{b.brandTier}</span>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
@@ -386,10 +386,10 @@ function HeroTile({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3 sm:p-4`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-lg sm:text-xl font-extrabold text-white tabular-nums leading-none truncate">{value}</div>
-      <div className="text-[10px] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
     </div>
   );
 }

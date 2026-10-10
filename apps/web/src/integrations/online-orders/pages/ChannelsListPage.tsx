@@ -40,12 +40,12 @@ export default function ChannelsListPage() {
                     <ChannelAvatar emoji={m.emoji} color={m.color} size={36} />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="truncate text-[14px] font-semibold text-slate-900 dark:text-white">{c.displayName}</span>
+                        <span className="truncate text-[0.875rem] font-semibold text-slate-900 dark:text-white">{c.displayName}</span>
                         <Badge tone={c.live ? 'success' : 'neutral'} dot>{c.live ? 'Live' : 'Band'}</Badge>
                         {c.oneClick && <Badge tone="info">Automatic</Badge>}
                         {c.pendingOrders > 0 && <Badge tone="warning">{c.pendingOrders} naye</Badge>}
                       </div>
-                      <div className="truncate text-[12.5px] text-slate-500">
+                      <div className="truncate text-[0.78125rem] text-slate-500">
                         {m.label}{c.siteUrl ? ` · ${c.siteUrl.replace(/^https?:\/\//, '')}` : ''} · {c.lastOrderAt ? `aakhri order ${timeAgo(c.lastOrderAt)}` : 'abhi koi order nahi'}
                       </div>
                     </div>
@@ -66,8 +66,8 @@ export default function ChannelsListPage() {
               <Link key={a.key} to={a.to} className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 transition hover:border-slate-400 dark:border-slate-700">
                 <span className="text-xl">{a.key === 'custom' ? '💻' : m.emoji}</span>
                 <span className="min-w-0">
-                  <span className="block text-[13.5px] font-semibold text-slate-900 dark:text-white">{a.name}</span>
-                  <span className="block text-[12px] text-slate-500">{a.desc}</span>
+                  <span className="block text-[0.84375rem] font-semibold text-slate-900 dark:text-white">{a.name}</span>
+                  <span className="block text-[0.75rem] text-slate-500">{a.desc}</span>
                 </span>
               </Link>
             );

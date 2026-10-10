@@ -475,7 +475,7 @@ export default function CustomersListPage() {
 
         <div className="relative flex items-start justify-between flex-wrap gap-4">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Users className="h-3.5 w-3.5 text-amber-300" /> Customer Management
               <span className="opacity-40">•</span>
               <span className="text-cyan-200">🏪 {tenantName}</span>
@@ -523,7 +523,7 @@ export default function CustomersListPage() {
           </div>
         </div>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>N</Kbd><span className="text-white/60">Quick add</span>
@@ -593,7 +593,7 @@ export default function CustomersListPage() {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-pink-900 dark:text-pink-200 text-sm">🎂 Is Mahine Ki Birthdays</h3>
-                  <p className="text-[10px] text-pink-700 dark:text-pink-300 font-bold">Wish bhejo — customer khush hoke wapas aata hai!</p>
+                  <p className="text-[0.6875rem] text-pink-700 dark:text-pink-300 font-bold">Wish bhejo — customer khush hoke wapas aata hai!</p>
                 </div>
               </div>
               <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'thin' }}>
@@ -612,7 +612,7 @@ export default function CustomersListPage() {
                         <div className={`text-xs font-extrabold truncate ${isToday ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                           {c.name} {isToday && '🎉'}
                         </div>
-                        <div className={`text-[10px] font-bold ${isToday ? 'text-white/80' : 'text-pink-600 dark:text-pink-400'}`}>
+                        <div className={`text-[0.6875rem] font-bold ${isToday ? 'text-white/80' : 'text-pink-600 dark:text-pink-400'}`}>
                           {isToday ? 'Aaj hai!' : `${c.day} ${new Date().toLocaleDateString('en-PK', { month: 'short' })}`}
                         </div>
                       </div>
@@ -651,7 +651,7 @@ export default function CustomersListPage() {
                             {s.name.charAt(0).toUpperCase()}
                           </div>
                         )}
-                        <div className={`absolute -top-1 -right-1 h-5 w-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center shadow ${
+                        <div className={`absolute -top-1 -right-1 h-5 w-5 rounded-full text-white text-[0.6875rem] font-bold flex items-center justify-center shadow ${
                           idx === 0 ? 'bg-amber-500' : idx === 1 ? 'bg-slate-400' : idx === 2 ? 'bg-orange-500' : 'bg-slate-600'
                         }`}>
                           #{idx + 1}
@@ -712,7 +712,7 @@ export default function CustomersListPage() {
               ].join(' ')}
             >
               <SlidersHorizontal className="h-4 w-4" /> <span className="hidden sm:inline">Filters</span>
-              {hasFilters && <span className="h-5 w-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">!</span>}
+              {hasFilters && <span className="h-5 w-5 rounded-full bg-blue-600 text-white text-[0.6875rem] font-bold flex items-center justify-center">!</span>}
             </button>
             <div className="hidden lg:flex items-center text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">
               {data?.meta?.total ?? items.length} customers
@@ -724,7 +724,7 @@ export default function CustomersListPage() {
             <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-4 sm:p-5 space-y-3">
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-[10px] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Type</label>
+                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Type</label>
                   <select
                     className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
                     value={params.isVip === true ? 'vip' : params.hasCredit === true ? 'credit' : 'all'}
@@ -739,7 +739,7 @@ export default function CustomersListPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Sort</label>
+                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Sort</label>
                   <select
                     className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
                     value={params.sortBy ?? 'createdAt'}
@@ -752,7 +752,7 @@ export default function CustomersListPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">City</label>
+                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">City</label>
                   <input
                     className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition"
                     placeholder="Lahore, Karachi..."
@@ -761,7 +761,7 @@ export default function CustomersListPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Ek page pe</label>
+                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Ek page pe</label>
                   <select
                     className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
                     value={String(params.limit ?? 24)}
@@ -795,32 +795,32 @@ export default function CustomersListPage() {
                 </div>
               </div>
               <button onClick={toggleAll}
-                className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition">
+                className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition">
                 {allOnPageSelected ? <Square className="h-3.5 w-3.5" /> : <CheckSquare className="h-3.5 w-3.5" />}
                 {allOnPageSelected ? 'Sab hatao' : 'Poora page'}
               </button>
               <button onClick={() => bulkVipMutation.mutate({ ids: [...selected], vip: true })} disabled={bulkVipMutation.isPending}
-                className="h-10 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition disabled:opacity-50">
+                className="h-10 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition disabled:opacity-50">
                 <Crown className="h-3.5 w-3.5" /> VIP banao
               </button>
               <button onClick={() => bulkVipMutation.mutate({ ids: [...selected], vip: false })} disabled={bulkVipMutation.isPending}
-                className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition disabled:opacity-50">
+                className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition disabled:opacity-50">
                 <Ban className="h-3.5 w-3.5" /> VIP hatao
               </button>
               <button onClick={copyNumbers}
-                className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition">
+                className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition">
                 <Copy className="h-3.5 w-3.5" /> Numbers copy
               </button>
               <button onClick={exportCSV}
-                className="h-10 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-[11px] font-extrabold inline-flex items-center gap-1.5 transition">
+                className="h-10 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition">
                 <FileDown className="h-3.5 w-3.5" /> CSV
               </button>
               <button onClick={() => setShowPrintOptions(true)}
-                className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition">
+                className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition">
                 <Printer className="h-3.5 w-3.5" /> Print
               </button>
               <button onClick={() => setBulkDelete(true)}
-                className="h-10 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-extrabold inline-flex items-center gap-1.5 transition">
+                className="h-10 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition">
                 <Trash2 className="h-3.5 w-3.5" /> Delete ({selected.size})
               </button>
               <button onClick={() => setSelected(new Set())}
@@ -976,7 +976,7 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
               </div>
             )}
             {c.isActive === false && (
-              <div className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-slate-600 text-white text-[8px] font-black shadow">OFF</div>
+              <div className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-slate-600 text-white text-[0.625rem] font-black shadow">OFF</div>
             )}
           </div>
           <div className="flex-1 min-w-0 pr-7">
@@ -992,7 +992,7 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
               </div>
             )}
             {c.cnic && (
-              <div className="flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 font-bold font-mono mt-0.5">
+              <div className="flex items-center gap-1 text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold font-mono mt-0.5">
                 <CreditCard className="h-2.5 w-2.5" /> {c.cnic}
               </div>
             )}
@@ -1001,13 +1001,13 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
 
         <div className="mt-4 grid grid-cols-2 gap-2">
           <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-2">
-            <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-extrabold uppercase tracking-wider">Spent</div>
+            <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-extrabold uppercase tracking-wider">Spent</div>
             <div className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400 truncate tabular-nums">{formatPKR(c.totalSpent)}</div>
           </div>
           <div className={`rounded-xl px-2.5 py-2 border ${
             c.balance > 0 ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
           }`}>
-            <div className={`text-[10px] font-extrabold uppercase tracking-wider ${c.balance > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>Khata</div>
+            <div className={`text-[0.6875rem] font-extrabold uppercase tracking-wider ${c.balance > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>Khata</div>
             <div className={`text-sm font-extrabold truncate tabular-nums ${c.balance > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300'}`}>
               {c.balance > 0 ? formatPKR(c.balance) : 'Clear ✓'}
             </div>
@@ -1016,17 +1016,17 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
 
         <div className="mt-2 flex items-center gap-1.5 flex-wrap">
           {c.loyaltyPoints > 0 && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-extrabold">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.6875rem] font-extrabold">
               <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
               {Number(c.loyaltyPoints).toLocaleString()} pts
             </span>
           )}
           {c.creditLimit > 0 && c.balance > c.creditLimit && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-extrabold">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-600 text-white text-[0.6875rem] font-extrabold">
               <AlertTriangle className="h-3 w-3" /> Limit paar
             </span>
           )}
-          <span className="inline-flex items-center gap-1 text-[10px] text-slate-400 dark:text-slate-500 font-bold">
+          <span className="inline-flex items-center gap-1 text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold">
             <CalendarDays className="h-2.5 w-2.5" />
             {new Date(c.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: '2-digit' })}
           </span>
@@ -1132,11 +1132,11 @@ function CustomerTable({ rows, selected, allSelected, onToggle, onToggleAll, onW
                         </div>
                       )}
                       <div className="min-w-0">
-                        <div className="font-extrabold text-slate-900 dark:text-white text-[13px] truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition flex items-center gap-1">
+                        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem] truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition flex items-center gap-1">
                           {c.isVip && <Crown className="h-3 w-3 text-amber-500 shrink-0" />}
                           {c.name}
                         </div>
-                        <div className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">
+                        <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold">
                           {new Date(c.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: '2-digit' })}
                           {c.cnic ? ` • ${c.cnic}` : ''}
                         </div>
@@ -1145,7 +1145,7 @@ function CustomerTable({ rows, selected, allSelected, onToggle, onToggleAll, onW
                   </td>
                   <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
                     {c.phone || <span className="text-slate-400">—</span>}
-                    {c.email && <div className="text-[10px] text-slate-400 truncate max-w-[160px]">{c.email}</div>}
+                    {c.email && <div className="text-[0.6875rem] text-slate-400 truncate max-w-[160px]">{c.email}</div>}
                   </td>
                   <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
                     {[c.city, c.area].filter(Boolean).join(', ') || <span className="text-slate-400">—</span>}
@@ -1191,7 +1191,7 @@ function CustomerTable({ rows, selected, allSelected, onToggle, onToggleAll, onW
           </tbody>
           <tfoot>
             <tr className="bg-slate-900 dark:bg-slate-950 text-white">
-              <td colSpan={5} className="px-3 py-3 text-right text-[11px] font-extrabold uppercase tracking-widest">Is page ka total</td>
+              <td colSpan={5} className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-widest">Is page ka total</td>
               <td className="px-3 py-3 text-right text-xs font-extrabold text-emerald-300 tabular-nums whitespace-nowrap">
                 {formatPKR(rows.reduce((s: number, c: any) => s + Number(c.totalSpent || 0), 0))}
               </td>
@@ -1209,7 +1209,7 @@ function CustomerTable({ rows, selected, allSelected, onToggle, onToggleAll, onW
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -1421,7 +1421,7 @@ function ChartCard({ icon: Icon, title, hint, children }: any) {
         </div>
         <div className="min-w-0">
           <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">{title}</h3>
-          <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{hint}</p>
+          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{hint}</p>
         </div>
       </div>
       {children}
@@ -1443,14 +1443,14 @@ function LeaderCard({ title, rows, valueOf, tone, empty }: any) {
           {rows.map((c: any, i: number) => (
             <Link key={c.id} to={`/customers/${c.id}`}
               className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition group">
-              <span className={`h-6 w-6 rounded-lg text-[10px] font-extrabold flex items-center justify-center shrink-0 ${
+              <span className={`h-6 w-6 rounded-lg text-[0.6875rem] font-extrabold flex items-center justify-center shrink-0 ${
                 i === 0 ? 'bg-amber-500 text-white' : i === 1 ? 'bg-slate-400 text-white' : i === 2 ? 'bg-orange-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
               }`}>{i + 1}</span>
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition">
                   {c.isVip ? '👑 ' : ''}{c.name}
                 </div>
-                {c.phone && <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{c.phone}</div>}
+                {c.phone && <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">{c.phone}</div>}
               </div>
               <div className={`text-xs font-extrabold tabular-nums whitespace-nowrap ${toneCls}`}>{valueOf(c)}</div>
             </Link>
@@ -1473,9 +1473,9 @@ function AnaBox({ icon: Icon, tone, label, value, sub }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-10 w-10 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-4 w-4" />
@@ -1527,7 +1527,7 @@ function QuickAddCustomerModal({ onClose, onCreated }: { onClose: () => void; on
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-400/25 blur-2xl" />
           <div className="relative flex items-start justify-between">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
                 <Zap className="h-3 w-3" /> Quick Add
               </div>
               <h3 className="text-xl font-black mt-2">Naya Customer — 5 Sec</h3>
@@ -1555,7 +1555,7 @@ function QuickAddCustomerModal({ onClose, onCreated }: { onClose: () => void; on
                 phone && !phoneOk ? 'border-rose-400 focus:border-rose-500' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500'
               }`} />
             {phone && !phoneOk && (
-              <div className="mt-1 text-[11px] font-black text-rose-600 flex items-center gap-1">
+              <div className="mt-1 text-[0.6875rem] font-black text-rose-600 flex items-center gap-1">
                 <AlertTriangle className="h-3 w-3" /> Sahi mobile likho (03XX-XXXXXXX)
               </div>
             )}
@@ -1569,14 +1569,14 @@ function QuickAddCustomerModal({ onClose, onCreated }: { onClose: () => void; on
               <Crown className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <div className="text-left">
                 <div className="text-sm font-extrabold text-slate-900 dark:text-white">VIP Customer</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Premium tier — khaas treatment</div>
+                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">Premium tier — khaas treatment</div>
               </div>
             </div>
             <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${isVip ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
               <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isVip ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
             </div>
           </button>
-          <div className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500">
+          <div className="text-center text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
             Baqi details (CNIC, address, photo) baad me full form se — <Link to="/customers/new" className="text-blue-600 dark:text-blue-400 hover:underline">Full Form</Link>
           </div>
         </div>
@@ -1606,7 +1606,7 @@ function PrintOptionsModal({ count, onlySelected, onA4, onThermal, onCSV, onClos
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-blue-400/25 blur-2xl" />
           <div className="relative flex items-start justify-between gap-3">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
                 <Printer className="h-3 w-3" /> Print & Export
               </div>
               <h3 className="text-xl font-black mt-2">👥 Customers Nikalo</h3>
@@ -1646,7 +1646,7 @@ function PrintOptionsModal({ count, onlySelected, onA4, onThermal, onCSV, onClos
             onClick={onCSV}
           />
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400 mb-1">💡 Tips</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400 mb-1">💡 Tips</div>
             <TipRow><strong>PDF:</strong> A4 → print dialog me "Save as PDF"</TipRow>
             <TipRow><strong>Colored:</strong> "Background graphics" ON karo</TipRow>
             <TipRow><strong>Chuno phir print karo</strong> — jin customers ko ☑️ select karo ge, sirf unka report banega</TipRow>
@@ -1672,7 +1672,7 @@ function PrintOption({ icon, grad, border, bg, title, badge, badgeCls, desc, onC
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h4 className="text-base font-black text-slate-900 dark:text-white">{title}</h4>
-            <span className={`px-2 py-0.5 rounded-full ${badgeCls} text-white text-[9px] font-black uppercase`}>{badge}</span>
+            <span className={`px-2 py-0.5 rounded-full ${badgeCls} text-white text-[0.625rem] font-black uppercase`}>{badge}</span>
           </div>
           <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">{desc}</p>
         </div>
@@ -1787,13 +1787,13 @@ function CustomersTeacher({ onClose }: { onClose: () => void }) {
           </p>
 
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-black text-emerald-800 dark:text-emerald-200 mb-1">⚡ Customer Banao</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-emerald-800 dark:text-emerald-200 mb-1">⚡ Customer Banao</div>
             <TipRow>Hero me <strong>"Quick"</strong> (ya <Kbd dark>N</Kbd>) — sirf naam likho, customer ready. Details baad me</TipRow>
             <TipRow><strong>Full Form</strong> — photo, CNIC, address, credit limit sab ke liye</TipRow>
           </div>
 
           <div className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/30 bg-violet-50/60 dark:bg-violet-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-black text-violet-800 dark:text-violet-200 mb-1">🔲 Do View • ☑️ Bulk Kaam</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-violet-800 dark:text-violet-200 mb-1">🔲 Do View • ☑️ Bulk Kaam</div>
             <TipRow><strong>Cards / List</strong> — upar toggle se (ya <Kbd dark>G</Kbd>). List view me table bante hai — kharch, khata, points ek nazar me</TipRow>
             <TipRow><strong>☑️ Select</strong> — card ke kone ka checkbox ya list ka box. Phir upar wali bar se: VIP banao, numbers copy, CSV, print, bulk delete</TipRow>
             <TipRow><strong>Numbers copy</strong> — select kiye gahak ke sab numbers clipboard me — WhatsApp broadcast me seedha paste</TipRow>
@@ -1801,7 +1801,7 @@ function CustomersTeacher({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-black text-blue-800 dark:text-blue-200 mb-1">📊 Analytics & Rabta</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-blue-800 dark:text-blue-200 mb-1">📊 Analytics & Rabta</div>
             <TipRow><strong>Analytics tab</strong> (<Kbd dark>A</Kbd>) — naye customers ka mahina-war graph, kharch ke bracket, sheher, khata ki soorat, top 10 spenders aur top 10 udhaar walay</TipRow>
             <TipRow><strong>💬 Smart WhatsApp</strong> — Faiza ko "baji", Ali ko "bhai" khud lagta hai. Udhaar wale ko reminder, clear wale ko thank-you</TipRow>
             <TipRow><strong>🎂 Birthdays</strong> — is mahine ki salgirah upar dikhti hai, 1-click wish bhejo</TipRow>
@@ -1810,8 +1810,8 @@ function CustomersTeacher({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="rounded-xl bg-slate-900 dark:bg-slate-950 border border-slate-700 p-3 text-xs font-semibold text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-black text-blue-300 mb-2">⌨️ Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-blue-300 mb-2">⌨️ Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem]">
               <div><Kbd dark>/</Kbd> Search</div>
               <div><Kbd dark>N</Kbd> Quick add</div>
               <div><Kbd dark>G</Kbd> Grid / List</div>
@@ -1854,7 +1854,7 @@ function TipRow({ children }: { children: React.ReactNode }) {
  */
 function Kbd({ children, dark }: { children: React.ReactNode; dark?: boolean }) {
   return (
-    <span className={`inline-block px-1.5 py-0.5 rounded font-mono font-bold shadow-sm text-[10px] ${
+    <span className={`inline-block px-1.5 py-0.5 rounded font-mono font-bold shadow-sm text-[0.6875rem] ${
       dark ? 'bg-slate-700 text-slate-100 border border-slate-600' : 'bg-white/15 border border-white/25 text-white'
     }`}>
       {children}
@@ -1892,9 +1892,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0 group-hover:scale-110 transition`}>
           <Icon className="h-5 w-5" />

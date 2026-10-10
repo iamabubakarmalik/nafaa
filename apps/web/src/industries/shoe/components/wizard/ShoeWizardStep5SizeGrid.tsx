@@ -141,7 +141,7 @@ export function ShoeWizardStep5SizeGrid({
         </div>
 
         <div>
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">
             Pick sizes ({presets.length} available)
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -160,14 +160,14 @@ export function ShoeWizardStep5SizeGrid({
 
         <div className="grid sm:grid-cols-[1fr_auto_auto] gap-2 items-end">
           <div>
-            <label className="block text-[10px] font-extrabold uppercase text-slate-600 mb-1">Custom size</label>
+            <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 mb-1">Custom size</label>
             <input value={customSize} onChange={(e) => setCustomSize(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addOne(customSize) && setCustomSize('')}
               placeholder={sizing.sizeSystem === 'UK' ? '9.5' : sizing.sizeSystem === 'EU' ? '43' : '27'}
               className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
           </div>
           <div>
-            <label className="block text-[10px] font-extrabold uppercase text-slate-600 mb-1">Default stock</label>
+            <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 mb-1">Default stock</label>
             <input type="number" value={defaultStock} onChange={(e) => setDefaultStock(Math.max(0, Number(e.target.value)))}
               className="h-11 w-20 rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold text-center tabular-nums focus:outline-none focus:border-orange-500" />
           </div>
@@ -179,7 +179,7 @@ export function ShoeWizardStep5SizeGrid({
         </div>
 
         <div>
-          <label className="block text-[10px] font-extrabold uppercase text-slate-600 mb-1">Default box prefix (optional)</label>
+          <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 mb-1">Default box prefix (optional)</label>
           <input value={defaultBox} onChange={(e) => setDefaultBox(e.target.value)}
             placeholder="Applied to new sizes: SHELF-A"
             className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
@@ -189,7 +189,7 @@ export function ShoeWizardStep5SizeGrid({
       {/* BULK ACTIONS */}
       {variants.length > 0 && (
         <section className="rounded-2xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-white p-4 space-y-2">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 flex items-center gap-1">
             <Wand2 className="h-3 w-3" /> Bulk Actions ({variants.length} sizes)
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -263,7 +263,7 @@ export function ShoeWizardStep5SizeGrid({
                         <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500 to-amber-700 text-white flex items-center justify-center font-extrabold text-sm shadow">
                           {v.size}
                         </div>
-                        <span className="text-[10px] font-extrabold text-slate-500">{sizing.sizeSystem}</span>
+                        <span className="text-[0.6875rem] font-extrabold text-slate-500">{sizing.sizeSystem}</span>
                       </div>
                     </td>
                     <td className="px-3 py-2 text-center">
@@ -324,19 +324,19 @@ export function ShoeWizardStep5SizeGrid({
         <section className="rounded-2xl bg-gradient-to-br from-slate-950 to-orange-900 text-white p-5 shadow-xl">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-            <span className="text-[10px] uppercase font-extrabold tracking-wider text-emerald-300">Stock preview</span>
+            <span className="text-[0.6875rem] uppercase font-extrabold tracking-wider text-emerald-300">Stock preview</span>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Sizes</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Sizes</div>
               <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">{variants.length}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Total Pairs</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Total Pairs</div>
               <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">{totalStock}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Retail Value</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Retail Value</div>
               <div className="text-3xl font-extrabold tabular-nums text-emerald-300 leading-none mt-1">
                 {formatPKRFull(totalValue)}
               </div>
@@ -349,5 +349,5 @@ export function ShoeWizardStep5SizeGrid({
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
 }

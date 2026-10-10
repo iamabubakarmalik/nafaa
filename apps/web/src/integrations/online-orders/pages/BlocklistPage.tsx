@@ -65,8 +65,8 @@ export default function BlocklistPage() {
                 {rows.map((b) => (
                   <li key={b.key} className="flex items-center gap-3 px-4 py-2.5 sm:px-5">
                     <div className="min-w-0 flex-1">
-                      <div className="font-mono text-[13px] font-semibold text-slate-900 dark:text-white">{b.phone}{b.name ? <span className="ml-2 font-sans font-normal text-slate-500">{b.name}</span> : null}</div>
-                      <div className="text-[12px] text-slate-500">{b.reason ?? 'Wajah nahi likhi'} · {whenText(b.at)}</div>
+                      <div className="font-mono text-[0.8125rem] font-semibold text-slate-900 dark:text-white">{b.phone}{b.name ? <span className="ml-2 font-sans font-normal text-slate-500">{b.name}</span> : null}</div>
+                      <div className="text-[0.75rem] text-slate-500">{b.reason ?? 'Wajah nahi likhi'} · {whenText(b.at)}</div>
                     </div>
                     <Btn size="sm" variant="plain" loading={remove.isPending && remove.variables === b.phone} onClick={() => remove.mutate(b.phone)} icon={<Trash2 className="h-3.5 w-3.5" />}>Unblock</Btn>
                   </li>

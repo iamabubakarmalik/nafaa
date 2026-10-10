@@ -167,7 +167,7 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
                   <Package className="h-4 w-4 text-blue-600 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="font-bold text-slate-900 dark:text-white truncate">{p.name}</div>
-                    <div className="text-[10px] text-slate-500">
+                    <div className="text-[0.6875rem] text-slate-500">
                       SKU: {p.sku} · Rs {Number(p.price).toFixed(0)} · Stock: {p.stock ?? 0}
                     </div>
                   </div>
@@ -204,7 +204,7 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
           <div className="text-center py-8 rounded-xl bg-slate-50 dark:bg-neutral-800/50">
             <Package className="h-10 w-10 text-slate-300 mx-auto mb-2" />
             <div className="font-bold text-sm text-slate-500">Koi mapped product nahi</div>
-            <div className="text-[11px] text-slate-400 mt-1">
+            <div className="text-[0.6875rem] text-slate-400 mt-1">
               {isCustomWebsite ? 'Website se products bhejo ya Import button dabao' : 'Import All Products dabao'}
             </div>
           </div>
@@ -227,7 +227,7 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
                   <div className="text-xs font-black text-slate-900 dark:text-white truncate">
                     {m.product?.name ?? 'Unknown Product'}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-mono">
+                  <div className="text-[0.6875rem] text-slate-500 font-mono">
                     Ext: {m.externalSku ?? m.externalProductId ?? '—'}
                   </div>
                 </div>

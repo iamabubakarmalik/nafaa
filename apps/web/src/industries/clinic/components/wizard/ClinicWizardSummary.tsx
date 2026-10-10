@@ -27,7 +27,7 @@ export function ClinicWizardSummary({ draft, stats, allValid }: Props) {
       <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-blue-700 text-white p-5 shadow-xl overflow-hidden relative">
         <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-cyan-400/20 blur-2xl" />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-extrabold border border-white/20">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold border border-white/20">
             {allValid ? (
               <><CheckCircle2 className="h-3 w-3 text-emerald-300" /> Ready to Save</>
             ) : (
@@ -56,17 +56,17 @@ export function ClinicWizardSummary({ draft, stats, allValid }: Props) {
             </div>
           )}
           {draft.basic.isFeatured && (
-            <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-amber-500 text-white text-[10px] font-extrabold uppercase inline-flex items-center gap-1">
+            <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-amber-500 text-white text-[0.6875rem] font-extrabold uppercase inline-flex items-center gap-1">
               <Star className="h-2.5 w-2.5 fill-current" /> Featured
             </div>
           )}
           {draft.basic.isPopular && (
-            <div className="absolute top-2 right-2 px-2 py-0.5 rounded bg-red-500 text-white text-[10px] font-extrabold uppercase">
+            <div className="absolute top-2 right-2 px-2 py-0.5 rounded bg-red-500 text-white text-[0.6875rem] font-extrabold uppercase">
               🔥 Popular
             </div>
           )}
           {draft.basic.durationMin && (
-            <div className="absolute bottom-2 left-2 px-2 py-1 rounded-lg bg-slate-900/70 backdrop-blur text-white text-[10px] font-extrabold flex items-center gap-1">
+            <div className="absolute bottom-2 left-2 px-2 py-1 rounded-lg bg-slate-900/70 backdrop-blur text-white text-[0.6875rem] font-extrabold flex items-center gap-1">
               <Clock className="h-3 w-3" />
               {draft.basic.durationMin} min
             </div>
@@ -85,7 +85,7 @@ export function ClinicWizardSummary({ draft, stats, allValid }: Props) {
         </div>
         {Number(draft.basic.basePrice || 0) > 0 && (
           <div className="border-t-2 border-slate-100 dark:border-neutral-800 p-4 bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-950/30 dark:to-neutral-900">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-cyan-700">Base Price</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-cyan-700">Base Price</div>
             <div className="text-2xl font-extrabold text-cyan-900 dark:text-cyan-100 tabular-nums">
               {formatPKRFull(Number(draft.basic.basePrice))}
             </div>
@@ -95,7 +95,7 @@ export function ClinicWizardSummary({ draft, stats, allValid }: Props) {
 
       {(stats.requirementsScore > 0 || stats.packageItems > 0) && (
         <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-3 space-y-2">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600">Highlights</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600">Highlights</div>
           <div className="flex flex-wrap gap-1">
             {draft.requirements.requiresDoctor && <Badge label="👨‍⚕️ Doctor" tone="blue" />}
             {draft.requirements.requiresAppointment && <Badge label="📅 Appointment" tone="cyan" />}
@@ -110,7 +110,7 @@ export function ClinicWizardSummary({ draft, stats, allValid }: Props) {
         </div>
       )}
 
-      <div className="rounded-xl bg-slate-50 dark:bg-neutral-800/50 border border-slate-200 dark:border-neutral-700 p-2.5 text-[10px] text-slate-500 font-semibold text-center">
+      <div className="rounded-xl bg-slate-50 dark:bg-neutral-800/50 border border-slate-200 dark:border-neutral-700 p-2.5 text-[0.6875rem] text-slate-500 font-semibold text-center">
         💾 Draft auto-saves as you type
       </div>
     </aside>
@@ -128,10 +128,10 @@ function StatCell({ icon: Icon, label, value, tone, hint }: any) {
     <div className="p-4">
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={'h-3 w-3 ' + tones[tone]} />
-        <div className={'text-[10px] uppercase tracking-wider font-extrabold ' + tones[tone]}>{label}</div>
+        <div className={'text-[0.6875rem] uppercase tracking-wider font-extrabold ' + tones[tone]}>{label}</div>
       </div>
       <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-      {hint && <div className="text-[10px] text-slate-500 font-bold mt-0.5">{hint}</div>}
+      {hint && <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{hint}</div>}
     </div>
   );
 }
@@ -147,7 +147,7 @@ function Badge({ label, tone }: { label: string; tone: string }) {
     slate: 'bg-slate-100 text-slate-800 border-slate-200',
   };
   return (
-    <span className={'inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-extrabold ' + tones[tone]}>
+    <span className={'inline-flex items-center px-1.5 py-0.5 rounded border text-[0.6875rem] font-extrabold ' + tones[tone]}>
       {label}
     </span>
   );

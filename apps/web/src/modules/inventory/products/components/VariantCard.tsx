@@ -73,22 +73,22 @@ export function VariantCard({
               {draft.name || 'Unnamed variant'}
             </div>
             {!draft.isActive && (
-              <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[9px] font-extrabold uppercase">
+              <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[0.625rem] font-extrabold uppercase">
                 INACTIVE
               </span>
             )}
             {isLoss && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-extrabold uppercase">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.625rem] font-extrabold uppercase">
                 <AlertTriangle className="h-2.5 w-2.5" /> LOSS
               </span>
             )}
             {isOutOfStock && (
-              <span className="px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-extrabold uppercase">
+              <span className="px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.625rem] font-extrabold uppercase">
                 OUT
               </span>
             )}
             {isLowStock && !isOutOfStock && (
-              <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase">
+              <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">
                 LOW
               </span>
             )}
@@ -105,7 +105,7 @@ export function VariantCard({
           <div className="text-lg font-extrabold text-emerald-700 tabular-nums">
             {formatPKRFull(draft.price ?? 0)}
           </div>
-          <div className="text-[11px] text-slate-500 font-bold">
+          <div className="text-[0.6875rem] text-slate-500 font-bold">
             Stock: <strong className={isOutOfStock ? 'text-rose-700' : isLowStock ? 'text-amber-700' : 'text-slate-900'}>{draft.stock ?? 0}</strong>
           </div>
         </div>
@@ -124,7 +124,7 @@ export function VariantCard({
           <div className="grid gap-5 lg:grid-cols-[180px_1fr]">
             {/* Image area */}
             <div className="space-y-3">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 flex items-center gap-1">
                 <ImageIcon className="h-3 w-3" />
                 Variant Image
               </div>
@@ -134,7 +134,7 @@ export function VariantCard({
                 ) : draft.colorHex ? (
                   <div className="w-full h-full relative" style={{ backgroundColor: draft.colorHex }}>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-black/30 backdrop-blur rounded-lg px-2 py-1 text-white text-[10px] font-extrabold">
+                      <div className="bg-black/30 backdrop-blur rounded-lg px-2 py-1 text-white text-[0.6875rem] font-extrabold">
                         {draft.colorHex}
                       </div>
                     </div>
@@ -192,7 +192,7 @@ export function VariantCard({
                     placeholder="Red"
                   />
                   <div>
-                    <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Color Hex</label>
+                    <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Color Hex</label>
                     <div className="flex gap-1.5">
                       <input
                         type="color"
@@ -272,7 +272,7 @@ export function VariantCard({
                 </div>
                 {/* Ft + Inch helper for carpet/area units */}
                 {(['sqft', 'sqm', 'sqyd', 'ft', 'meter', 'yard'].includes(draft.unit || parentUnit || '')) && (draft.stock ?? 0) > 0 && (
-                  <div className="mt-2 rounded-lg bg-blue-100 border border-blue-300 p-2 text-[11px] text-blue-900 font-bold flex items-center gap-2">
+                  <div className="mt-2 rounded-lg bg-blue-100 border border-blue-300 p-2 text-[0.6875rem] text-blue-900 font-bold flex items-center gap-2">
                     <Package className="h-3 w-3" />
                     <span>
                       Stock breakdown:{' '}
@@ -292,7 +292,7 @@ export function VariantCard({
                 }`}>
                   <div className="flex items-center gap-1.5 mb-1">
                     <TrendingUp className={`h-3.5 w-3.5 ${isLoss ? 'text-rose-700' : 'text-emerald-700'}`} />
-                    <div className={`text-[10px] uppercase tracking-wider font-extrabold ${
+                    <div className={`text-[0.6875rem] uppercase tracking-wider font-extrabold ${
                       isLoss ? 'text-rose-700' : 'text-emerald-700'
                     }`}>
                       Profit per Unit
@@ -303,7 +303,7 @@ export function VariantCard({
                   }`}>
                     {formatPKRFull(profit)}
                   </div>
-                  <div className={`text-[10px] font-bold mt-0.5 ${
+                  <div className={`text-[0.6875rem] font-bold mt-0.5 ${
                     isLoss ? 'text-rose-700' : 'text-emerald-700'
                   }`}>
                     Margin: {margin.toFixed(1)}%
@@ -313,12 +313,12 @@ export function VariantCard({
                 <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Package className="h-3.5 w-3.5 text-blue-700" />
-                    <div className="text-[10px] uppercase tracking-wider font-extrabold text-blue-700">Stock Value</div>
+                    <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700">Stock Value</div>
                   </div>
                   <div className="text-lg font-extrabold text-blue-900 tabular-nums">
                     {formatPKRFull(stockValue)}
                   </div>
-                  <div className="text-[10px] text-blue-700 font-bold mt-0.5">
+                  <div className="text-[0.6875rem] text-blue-700 font-bold mt-0.5">
                     {draft.stock ?? 0} × {formatPKRFull(draft.price ?? 0)}
                   </div>
                 </div>
@@ -334,7 +334,7 @@ export function VariantCard({
                     <Eye className="h-4 w-4 text-slate-600" />
                     <div>
                       <div className="text-xs font-extrabold text-slate-900">Active</div>
-                      <div className="text-[9px] text-slate-500 font-bold">Visible in POS</div>
+                      <div className="text-[0.625rem] text-slate-500 font-bold">Visible in POS</div>
                     </div>
                   </label>
                 </div>
@@ -386,7 +386,7 @@ function FieldGroup({
   };
   return (
     <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
-      <div className={`text-[10px] uppercase tracking-wider font-extrabold mb-2 flex items-center gap-1 ${titleTones[tone]}`}>
+      <div className={`text-[0.6875rem] uppercase tracking-wider font-extrabold mb-2 flex items-center gap-1 ${titleTones[tone]}`}>
         <Icon className="h-3 w-3" />
         {title}
       </div>
@@ -410,7 +410,7 @@ function FieldInput({
 }) {
   return (
     <div>
-      <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">{label}</label>
+      <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">{label}</label>
       <input
         type={type}
         step={step}

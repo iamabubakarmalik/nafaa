@@ -314,7 +314,7 @@ export default function RestaurantProductsListPage() {
           style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <UtensilsCrossed className="h-3.5 w-3.5 text-amber-300" /> Hotel
               {shopName && <><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>}
             </div>
@@ -371,7 +371,7 @@ export default function RestaurantProductsListPage() {
               <h3 className="font-black text-rose-900 dark:text-rose-200 text-sm">
                 ⚠️ {stats.liveButDead.length} dish menu par chaalu hai magar saamaan khatam
               </h3>
-              <p className="mt-0.5 text-[11px] font-bold text-rose-700 dark:text-rose-300/80">
+              <p className="mt-0.5 text-[0.6875rem] font-bold text-rose-700 dark:text-rose-300/80">
                 Order aa jayega aur kitchen mana kar degi. Switch band kar dein.
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -379,7 +379,7 @@ export default function RestaurantProductsListPage() {
                   <button key={r.id}
                     onClick={() => r._menu && toggleMenu.mutate(r._menu.id)}
                     disabled={toggleMenu.isPending}
-                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[11px] font-black text-rose-900 dark:text-rose-200 inline-flex items-center gap-1 disabled:opacity-50 transition">
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[0.6875rem] font-black text-rose-900 dark:text-rose-200 inline-flex items-center gap-1 disabled:opacity-50 transition">
                     <EyeOff className="h-3 w-3" /> {r.name}
                   </button>
                 ))}
@@ -448,7 +448,7 @@ export default function RestaurantProductsListPage() {
               ['norecipe', `Recipe nahi (${stats.noRecipe})`, Soup],
             ] as const).map(([v, label, Icon]) => (
               <button key={v} onClick={() => setKind(v as Kind)}
-                className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black inline-flex items-center gap-1.5 transition active:scale-[0.97] ${
+                className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition active:scale-[0.97] ${
                   kind === v
                     ? v === 'dead'
                       ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
@@ -541,38 +541,38 @@ export default function RestaurantProductsListPage() {
                       <Link to={`/restaurant-menu/${r.id}`} className="flex items-center gap-2 min-w-0 group">
                         <Thumb p={r} />
                         <span className="min-w-0">
-                          <span className="block text-[13px] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-orange-600 transition">
+                          <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-orange-600 transition">
                             {r.name} {r._spice}
                           </span>
-                          <span className="block text-[10px] font-bold text-slate-400 truncate">
+                          <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">
                             {r._prep ? `${r._prep} min` : r.sku || '—'}
                           </span>
                         </span>
                       </Link>
                     </td>
-                    <td className="px-3 py-2.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 truncate">
+                    <td className="px-3 py-2.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 truncate">
                       {r.category?.name ?? '—'}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[13px] font-black text-slate-900 dark:text-white tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.8125rem] font-black text-slate-900 dark:text-white tabular-nums">
                       {formatPKR(r.price)}
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       {hideCost || !r._foodCostPct ? <span className="text-slate-300">—</span> : (
-                        <span className={`text-[12px] font-black tabular-nums ${
+                        <span className={`text-[0.75rem] font-black tabular-nums ${
                           r._foodCostPct > 45 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
                         }`}>{r._foodCostPct.toFixed(0)}%</span>
                       )}
                     </td>
                     <td className="px-3 py-2.5 text-right">
                       {r._canMake === null
-                        ? <span className="text-[10px] font-bold text-slate-300">recipe nahi</span>
-                        : <span className={`text-[12px] font-black tabular-nums ${
+                        ? <span className="text-[0.6875rem] font-bold text-slate-300">recipe nahi</span>
+                        : <span className={`text-[0.75rem] font-black tabular-nums ${
                             r._canMake === 0 ? 'text-rose-600 dark:text-rose-400'
                               : r._canMake <= 5 ? 'text-amber-600 dark:text-amber-400'
                                 : 'text-slate-600 dark:text-slate-300'
                           }`}>{r._canMake}</span>}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[12px] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
                       {r._sold || '—'}
                     </td>
                     <td className="px-3 py-2.5 text-right print:hidden">
@@ -598,7 +598,7 @@ export default function RestaurantProductsListPage() {
       {stats.noProfile > 0 && (
         <section className="rounded-2xl bg-sky-50 dark:bg-sky-500/10 border-2 border-sky-200 dark:border-sky-500/30 p-3 flex items-center gap-2.5 flex-wrap print:hidden">
           <ChefHat className="h-4 w-4 text-sky-600 shrink-0" />
-          <p className="flex-1 min-w-[220px] text-[12px] font-bold text-sky-900 dark:text-sky-200">
+          <p className="flex-1 min-w-[220px] text-[0.75rem] font-bold text-sky-900 dark:text-sky-200">
             <strong>{stats.noProfile} cheezon</strong> ki menu tafseel nahi bhari — na banane ka waqt,
             na masale ka darja, na veg/non-veg. Grahak yehi poochta hai.
           </p>
@@ -615,7 +615,7 @@ const sel = 'h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-2.5 text-left text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -662,28 +662,28 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
 
           <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
             {r._menu?.chefSpecial && (
-              <span className="px-1.5 py-0.5 rounded-md bg-violet-600 text-white text-[9px] font-black inline-flex items-center gap-0.5">
+              <span className="px-1.5 py-0.5 rounded-md bg-violet-600 text-white text-[0.625rem] font-black inline-flex items-center gap-0.5">
                 <ChefHat className="h-2.5 w-2.5" /> Khaas
               </span>
             )}
             {r._menu?.bestSeller && (
-              <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-black inline-flex items-center gap-0.5">
+              <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-black inline-flex items-center gap-0.5">
                 <Star className="h-2.5 w-2.5 fill-white" /> Hit
               </span>
             )}
             {r._spice && (
-              <span className="px-1.5 py-0.5 rounded-md bg-rose-600 text-white text-[9px] font-black">{r._spice}</span>
+              <span className="px-1.5 py-0.5 rounded-md bg-rose-600 text-white text-[0.625rem] font-black">{r._spice}</span>
             )}
           </div>
 
           <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
             {r._prep && (
-              <span className="px-1.5 py-0.5 rounded-md bg-slate-900/80 text-white text-[9px] font-black inline-flex items-center gap-0.5">
+              <span className="px-1.5 py-0.5 rounded-md bg-slate-900/80 text-white text-[0.625rem] font-black inline-flex items-center gap-0.5">
                 <Timer className="h-2.5 w-2.5" /> {r._prep}m
               </span>
             )}
             {costHigh && !hideCost && (
-              <span className="px-1.5 py-0.5 rounded-md bg-rose-600 text-white text-[9px] font-black">
+              <span className="px-1.5 py-0.5 rounded-md bg-rose-600 text-white text-[0.625rem] font-black">
                 {r._foodCostPct.toFixed(0)}%
               </span>
             )}
@@ -691,15 +691,15 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
 
           {/* Neeche patti — kitchen ka sab se ahem paigham */}
           {dead ? (
-            <div className="absolute inset-x-0 bottom-0 py-1 text-center text-[10px] font-extrabold text-white bg-rose-600">
+            <div className="absolute inset-x-0 bottom-0 py-1 text-center text-[0.6875rem] font-extrabold text-white bg-rose-600">
               {r._blocker ? `${r._blocker.name.toUpperCase()} KHATAM` : 'BAN NAHI SAKTI'}
             </div>
           ) : tight ? (
-            <div className="absolute inset-x-0 bottom-0 py-1 text-center text-[10px] font-extrabold text-white bg-amber-500">
+            <div className="absolute inset-x-0 bottom-0 py-1 text-center text-[0.6875rem] font-extrabold text-white bg-amber-500">
               SIRF {r._canMake} AUR BAN SAKTI
             </div>
           ) : !r._onMenu ? (
-            <div className="absolute inset-x-0 bottom-0 py-1 text-center text-[10px] font-extrabold text-white bg-slate-700">
+            <div className="absolute inset-x-0 bottom-0 py-1 text-center text-[0.6875rem] font-extrabold text-white bg-slate-700">
               MENU PAR NAHI
             </div>
           ) : null}
@@ -712,18 +712,18 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
 
           <div className="mt-1 flex items-center gap-1 flex-wrap">
             {r._diet.map((d: string) => (
-              <span key={d} className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${DIET_CHIP[d].c}`}>
+              <span key={d} className={`text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md ${DIET_CHIP[d].c}`}>
                 {DIET_CHIP[d].l}
               </span>
             ))}
             {r.category && (
-              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md text-white truncate max-w-[7rem]"
+              <span className="text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md text-white truncate max-w-[7rem]"
                 style={{ backgroundColor: r.category.color || '#64748b' }}>
                 {r.category.name}
               </span>
             )}
             {!r._hasRecipe && (
-              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">
+              <span className="text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">
                 recipe nahi
               </span>
             )}
@@ -734,7 +734,7 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
               <div className="text-base font-extrabold text-orange-700 dark:text-orange-400 tabular-nums leading-none">
                 {formatPKR(r.price || 0)}
               </div>
-              <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                 {hideCost || !r._cost ? `per ${r.unit}` : `lagat ${formatPKR(r._cost)}`}
               </div>
             </div>
@@ -742,7 +742,7 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
               <div className="text-sm font-extrabold tabular-nums leading-none text-slate-700 dark:text-slate-300">
                 {r._sold || 0}
               </div>
-              <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400">biki</div>
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">biki</div>
             </div>
           </div>
         </div>
@@ -751,7 +751,7 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
       <div className="px-2.5 pb-2.5 flex items-center gap-1 print:hidden">
         {/* Sab se bara button — din me dus dafa dabta hai */}
         <button onClick={onToggleMenu} disabled={!r._menu || busy}
-          className={`flex-1 h-9 rounded-lg text-[10px] font-extrabold inline-flex items-center justify-center gap-1 disabled:opacity-40 transition active:scale-[0.97] ${
+          className={`flex-1 h-9 rounded-lg text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 disabled:opacity-40 transition active:scale-[0.97] ${
             r._onMenu
               ? 'bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 text-emerald-800 dark:text-emerald-300'
               : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300'
@@ -804,15 +804,15 @@ function Teacher({ onClose }: any) {
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-black text-slate-900 dark:text-white">{x.t}</p>
-                <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
               </div>
             </div>
           ))}
           <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
+            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['/', 'Dhoondein'], ['B', 'Scan'], ['G', 'Ye safha'], ['R', 'Taaza'], ['Esc', 'Band']].map(([k, l]) => (
-                <span key={k} className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/80">
+                <span key={k} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/80">
                   <kbd className="px-1.5 py-0.5 rounded bg-white/15 font-black">{k}</kbd> {l}
                 </span>
               ))}

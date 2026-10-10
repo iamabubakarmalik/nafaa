@@ -390,12 +390,12 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
                 ({selectedUnit.short})
               </span>
               {selectedUnit.isCustom && (
-                <span className="px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[9px] font-extrabold">
+                <span className="px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold">
                   CUSTOM
                 </span>
               )}
             </div>
-            <div className="text-[11px] text-slate-500 truncate font-semibold">
+            <div className="text-[0.6875rem] text-slate-500 truncate font-semibold">
               {selectedUnit.desc}
             </div>
           </div>
@@ -445,7 +445,7 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
 
             {!search && quickUnits.length > 0 && (
               <div className="mt-3">
-                <div className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1">
                   <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
                   Quick Access
                 </div>
@@ -473,7 +473,7 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
             )}
 
             {search && (
-              <div className="mt-2 text-[11px] text-slate-500 font-bold">
+              <div className="mt-2 text-[0.6875rem] text-slate-500 font-bold">
                 {totalResults === 0
                   ? 'No matches'
                   : `${totalResults} unit${totalResults > 1 ? 's' : ''} found`}
@@ -486,11 +486,11 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
             {filteredCustom.length > 0 && (
               <div>
                 <div className="sticky top-0 z-10 bg-gradient-to-r from-violet-50 to-white px-3 py-2 border-b border-slate-100">
-                  <div className="text-[11px] font-extrabold text-violet-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="text-[0.6875rem] font-extrabold text-violet-700 uppercase tracking-wider flex items-center gap-1.5">
                     <Sparkles className="h-3 w-3" />
                     Your Custom Units
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5 font-semibold">
+                  <div className="text-[0.6875rem] text-slate-500 mt-0.5 font-semibold">
                     Click edit/delete on hover
                   </div>
                 </div>
@@ -522,7 +522,7 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
                             }`}>
                               <HighlightText text={unit.label} query={search} />
                             </div>
-                            <div className="text-[11px] text-slate-500 truncate font-semibold">
+                            <div className="text-[0.6875rem] text-slate-500 truncate font-semibold">
                               <HighlightText text={unit.desc} query={search} />
                             </div>
                           </div>
@@ -579,12 +579,12 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
               filteredCategories.map((cat) => (
                 <div key={cat.label}>
                   <div className="sticky top-0 z-10 bg-gradient-to-r from-slate-50 to-white px-3 py-2 border-b border-slate-100">
-                    <div className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <div className="text-[0.6875rem] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                       <span className="text-base leading-none">{cat.icon}</span>
                       {cat.label}
                     </div>
                     {cat.desc && (
-                      <div className="text-[10px] text-slate-500 mt-0.5 font-semibold">{cat.desc}</div>
+                      <div className="text-[0.6875rem] text-slate-500 mt-0.5 font-semibold">{cat.desc}</div>
                     )}
                   </div>
                   <div>
@@ -613,7 +613,7 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
                               }`}>
                                 <HighlightText text={unit.label} query={search} />
                               </div>
-                              <div className="text-[11px] text-slate-500 truncate font-semibold">
+                              <div className="text-[0.6875rem] text-slate-500 truncate font-semibold">
                                 <HighlightText text={unit.desc} query={search} />
                               </div>
                             </div>
@@ -645,7 +645,7 @@ export function UnitSelect({ value, onChange, label = 'Unit', hint }: Props) {
               </button>
             ) : (
               <div className="space-y-2">
-                <div className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                <div className="text-[0.6875rem] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1">
                   <Sparkles className="h-3 w-3 text-emerald-600" />
                   {editingValue ? 'Edit Custom Unit' : 'New Custom Unit'}
                 </div>

@@ -195,7 +195,7 @@ export default function EmiPlanDetailPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="flex-1 min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <CreditCard className="h-3.5 w-3.5 text-amber-300" /> EMI Plan
             </div>
             <div className="mt-3 flex items-center gap-2 flex-wrap">
@@ -228,7 +228,7 @@ export default function EmiPlanDetailPage() {
             </span>
             {plan.overdueCount > 0 && (
               <div className="mt-2 text-right">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold animate-pulse">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold animate-pulse">
                   <AlertTriangle className="h-3 w-3" /> {plan.overdueCount} OVERDUE
                 </span>
               </div>
@@ -342,20 +342,20 @@ export default function EmiPlanDetailPage() {
                             )}
                           </div>
                           {inst.notes && (
-                            <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 italic">{inst.notes}</div>
+                            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 italic">{inst.notes}</div>
                           )}
                         </div>
                       </div>
 
                       <div className="text-right shrink-0">
-                        <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400">Amount</div>
+                        <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">Amount</div>
                         <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(inst.amount)}</div>
                         {Number(inst.paidAmount) > 0 && !isPaid && (
-                          <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold tabular-nums">
+                          <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-bold tabular-nums">
                             Paid: {formatPKR(inst.paidAmount)} · Bal: {formatPKR(balance)}
                           </div>
                         )}
-                        <span className={`mt-1 inline-block px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${colors.bg} ${colors.text} ${colors.border}`}>
+                        <span className={`mt-1 inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold border ${colors.bg} ${colors.text} ${colors.border}`}>
                           {INSTALLMENT_STATUS_LABELS[status]}
                         </span>
                       </div>
@@ -485,7 +485,7 @@ export default function EmiPlanDetailPage() {
           {/* Next Due */}
           {plan.nextDueDate && plan.status === 'ACTIVE' && (
             <div className="rounded-2xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-blue-700 dark:text-blue-300 tracking-wider">Next Due</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700 dark:text-blue-300 tracking-wider">Next Due</div>
               <div className="text-2xl font-extrabold text-blue-900 dark:text-blue-200 mt-1 tabular-nums">
                 {formatPKR(plan.nextDueAmount)}
               </div>

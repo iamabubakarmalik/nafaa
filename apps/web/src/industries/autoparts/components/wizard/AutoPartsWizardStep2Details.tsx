@@ -105,7 +105,7 @@ export function AutoPartsWizardStep2Details({
         <div>
           <label className="block text-sm font-bold text-slate-700 mb-2">
             Alternate/Cross-Reference Numbers
-            <span className="ml-2 text-[10px] text-slate-500 font-semibold">({details.alternateNumbers.length})</span>
+            <span className="ml-2 text-[0.6875rem] text-slate-500 font-semibold">({details.alternateNumbers.length})</span>
           </label>
           <div className="flex gap-2 mb-2">
             <input
@@ -180,7 +180,7 @@ export function AutoPartsWizardStep2Details({
               >
                 <div className="text-2xl mb-1">{c.emoji}</div>
                 <div className="text-xs font-extrabold">{c.label}</div>
-                <div className="text-[9px] font-semibold opacity-70 mt-0.5">{c.desc}</div>
+                <div className="text-[0.625rem] font-semibold opacity-70 mt-0.5">{c.desc}</div>
               </button>
             );
           })}

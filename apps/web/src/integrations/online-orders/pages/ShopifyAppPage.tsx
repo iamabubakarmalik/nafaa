@@ -44,7 +44,7 @@ export default function ShopifyAppPage() {
     <Page title="Shopify" narrow>
       <Card>
         {isLoading || data ? (
-          <div className="flex items-center justify-center gap-2 py-10 text-[13px] text-slate-500">
+          <div className="flex items-center justify-center gap-2 py-10 text-[0.8125rem] text-slate-500">
             <Loader2 className="h-4 w-4 animate-spin" /> {shop} ka Nafaa channel dhoond rahe hain…
           </div>
         ) : (

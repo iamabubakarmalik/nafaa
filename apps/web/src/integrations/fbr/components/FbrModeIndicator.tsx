@@ -14,7 +14,7 @@ export function FbrModeIndicator({ className }: { saleTotal?: number; className?
   if (!data?.enabled || !data.authority) return null;
   const test = data.env !== 'live';
   return (
-    <div className={cn('inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-bold',
+    <div className={cn('inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[0.6875rem] font-bold',
       test ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400', className)}>
       <Landmark className="h-3 w-3" />
       {NAME[data.authority] ?? data.authority}: har bill authority ko{test ? ' (test)' : ''}

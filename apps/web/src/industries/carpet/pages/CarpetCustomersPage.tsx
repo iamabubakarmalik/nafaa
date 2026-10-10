@@ -207,7 +207,7 @@ export default function CarpetCustomersPage() {
                 }`}>
                 <Icon className="h-3 w-3" />
                 {opt.label}
-                <span className={`px-1.5 rounded text-[10px] ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>{opt.count}</span>
+                <span className={`px-1.5 rounded text-[0.6875rem] ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>{opt.count}</span>
               </button>
             );
           })}
@@ -245,19 +245,19 @@ export default function CarpetCustomersPage() {
               extraBadges={
                 <>
                   {c.totalSqft > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-bold">
                       <Ruler className="h-3 w-3" />
                       {c.totalSqft.toFixed(0)} sqft
                     </div>
                   )}
                   {c.rollCount > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-[0.6875rem] font-bold">
                       <Layers className="h-3 w-3" />
                       {c.rollCount} rolls
                     </div>
                   )}
                   {c.cutPieceCount > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.6875rem] font-bold">
                       <Scissors className="h-3 w-3" />
                       {c.cutPieceCount} pieces
                     </div>
@@ -286,7 +286,7 @@ export default function CarpetCustomersPage() {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <h3 className="font-extrabold text-slate-900 text-sm sm:text-base truncate">{c.name}</h3>
                       {c.isVip && (
-                        <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                        <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                           <Crown className="h-2.5 w-2.5" /> VIP
                         </span>
                       )}

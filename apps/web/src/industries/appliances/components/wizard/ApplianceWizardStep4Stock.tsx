@@ -109,7 +109,7 @@ export function ApplianceWizardStep4Stock({
             </div>
             <div className="flex-1">
               <div className="font-extrabold text-slate-900 text-sm">Variants (capacity/color)</div>
-              <div className="text-[11px] text-slate-600 font-semibold">1.5T / 2T, White / Black</div>
+              <div className="text-[0.6875rem] text-slate-600 font-semibold">1.5T / 2T, White / Black</div>
             </div>
             {hasVariants ? <ToggleRight className="h-6 w-6 text-violet-600" /> : <ToggleLeft className="h-6 w-6 text-slate-400" />}
           </div>
@@ -123,7 +123,7 @@ export function ApplianceWizardStep4Stock({
             </div>
             <div className="flex-1">
               <div className="font-extrabold text-slate-900 text-sm">Serial Tracking</div>
-              <div className="text-[11px] text-slate-600 font-semibold">Fridge, AC, TV — recommended</div>
+              <div className="text-[0.6875rem] text-slate-600 font-semibold">Fridge, AC, TV — recommended</div>
             </div>
             {hasSerials ? <ToggleRight className="h-6 w-6 text-amber-600" /> : <ToggleLeft className="h-6 w-6 text-slate-400" />}
           </div>
@@ -197,23 +197,23 @@ export function ApplianceWizardStep4Stock({
               <h3 className="font-extrabold text-violet-900 text-base">Variants</h3>
               <p className="text-xs text-violet-700 font-semibold">Capacity / Color / Type combos</p>
             </div>
-            <span className="px-2.5 py-1 rounded-lg bg-violet-100 text-violet-800 text-[10px] font-extrabold">
+            <span className="px-2.5 py-1 rounded-lg bg-violet-100 text-violet-800 text-[0.6875rem] font-extrabold">
               {variants.length} variants • total {totalVariantStock} pcs
             </span>
           </div>
 
           <div className="rounded-xl bg-white border-2 border-violet-200 p-3 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Common variants — click to add
             </div>
             {VARIANT_PRESETS.map((grp) => (
               <div key={grp.group} className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-extrabold uppercase text-slate-500 min-w-[65px]">{grp.group}:</span>
+                <span className="text-[0.6875rem] font-extrabold uppercase text-slate-500 min-w-[65px]">{grp.group}:</span>
                 {grp.items.map((it) => {
                   const ex = variants.some((v) => v.name.toLowerCase() === it.toLowerCase());
                   return (
                     <button key={it} type="button" disabled={ex} onClick={() => addVariant(it)}
-                      className={['px-2.5 py-1 rounded-lg border-2 text-[11px] font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed',
+                      className={['px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed',
                         ex ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-700 hover:border-violet-400'].join(' ')}>
                       {ex ? '✓ ' : '+ '}{it}
                     </button>
@@ -252,26 +252,26 @@ export function ApplianceWizardStep4Stock({
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Stock (pcs)</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Stock (pcs)</label>
                       <input type="number" step="1" value={v.stock}
                         onChange={(e) => onUpdateVariant(v.tempId, { stock: Number(e.target.value || 0) })}
                         className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-cyan-500" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-emerald-700 uppercase mb-1">Price override</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-emerald-700 uppercase mb-1">Price override</label>
                       <input type="number" step="0.01" value={v.priceOverride ?? ''}
                         onChange={(e) => onUpdateVariant(v.tempId, { priceOverride: e.target.value === '' ? undefined : Number(e.target.value) })}
                         placeholder={String(sale)}
                         className="h-10 w-full rounded-lg border-2 border-emerald-200 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-emerald-500" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">SKU</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">SKU</label>
                       <input value={v.sku ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { sku: e.target.value })}
                         placeholder="Optional"
                         className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-mono font-bold focus:outline-none focus:border-cyan-500" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Barcode</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Barcode</label>
                       <input value={v.barcode ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { barcode: e.target.value })}
                         placeholder="Optional"
                         className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-mono font-bold focus:outline-none focus:border-cyan-500" />
@@ -334,26 +334,26 @@ export function ApplianceWizardStep4Stock({
                 <div key={s.tempId} className="rounded-xl border-2 border-slate-200 bg-white p-3">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-end">
                     <div className="sm:col-span-1">
-                      <div className="text-[9px] uppercase font-extrabold text-slate-500 mb-1">#{i + 1}</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">#{i + 1}</div>
                       <input value={s.serialNumber} onChange={(e) => onUpdateSerial(s.tempId, { serialNumber: e.target.value })}
                         placeholder="Serial Number"
                         className="h-10 w-full rounded-lg border-2 border-amber-300 px-2 text-sm font-mono font-bold focus:outline-none focus:border-amber-600" />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-extrabold text-slate-600 uppercase mb-1">Model #</label>
+                      <label className="block text-[0.625rem] font-extrabold text-slate-600 uppercase mb-1">Model #</label>
                       <input value={s.modelNumber ?? ''} onChange={(e) => onUpdateSerial(s.tempId, { modelNumber: e.target.value })}
                         placeholder="Optional"
                         className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-mono focus:outline-none focus:border-amber-500" />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-extrabold text-slate-600 uppercase mb-1">Batch</label>
+                      <label className="block text-[0.625rem] font-extrabold text-slate-600 uppercase mb-1">Batch</label>
                       <input value={s.batchNumber ?? ''} onChange={(e) => onUpdateSerial(s.tempId, { batchNumber: e.target.value })}
                         placeholder="Batch #"
                         className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-mono focus:outline-none focus:border-amber-500" />
                     </div>
                     <div className="flex items-end gap-1">
                       <div className="flex-1">
-                        <label className="block text-[9px] font-extrabold text-slate-600 uppercase mb-1">Mfg Date</label>
+                        <label className="block text-[0.625rem] font-extrabold text-slate-600 uppercase mb-1">Mfg Date</label>
                         <input type="date" value={s.manufactureDate ?? ''} onChange={(e) => onUpdateSerial(s.tempId, { manufactureDate: e.target.value })}
                           className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-xs focus:outline-none focus:border-amber-500" />
                       </div>
@@ -381,17 +381,17 @@ export function ApplianceWizardStep4Stock({
         <section className="rounded-2xl bg-gradient-to-br from-slate-950 to-cyan-900 text-white p-5 shadow-xl">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-            <span className="text-[10px] uppercase font-extrabold tracking-wider text-emerald-300">Stock preview</span>
+            <span className="text-[0.6875rem] uppercase font-extrabold tracking-wider text-emerald-300">Stock preview</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Total stock</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Total stock</div>
               <div className="text-3xl font-extrabold tabular-nums text-white leading-none mt-1">
                 {displayStock} <span className="text-sm text-white/60">pcs</span>
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Stock value</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Stock value</div>
               <div className="text-3xl font-extrabold tabular-nums text-emerald-300 leading-none mt-1">
                 {formatPKRFull(stockValue)}
               </div>

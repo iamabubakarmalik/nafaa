@@ -29,7 +29,7 @@ export function SalonWizardSummary({ draft, stats, allValid }: Props) {
       <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 text-white p-5 shadow-xl overflow-hidden relative">
         <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-pink-400/20 blur-2xl" />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-extrabold border border-white/20">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold border border-white/20">
             {allValid ? (
               <><CheckCircle2 className="h-3 w-3 text-emerald-300" /> Ready to Save</>
             ) : (
@@ -44,17 +44,17 @@ export function SalonWizardSummary({ draft, stats, allValid }: Props) {
           )}
           <div className="mt-2 flex flex-wrap gap-1.5">
             {draft.basic.isFeatured && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 text-[9px] font-extrabold uppercase border border-amber-300/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 text-[0.625rem] font-extrabold uppercase border border-amber-300/40">
                 <Star className="h-2 w-2 fill-current" /> Featured
               </span>
             )}
             {draft.basic.isPopular && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/30 text-red-200 text-[9px] font-extrabold uppercase border border-red-300/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/30 text-red-200 text-[0.625rem] font-extrabold uppercase border border-red-300/40">
                 <TrendingUp className="h-2 w-2" /> Popular
               </span>
             )}
             {stats.hasDiscount && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/30 text-emerald-200 text-[9px] font-extrabold uppercase border border-emerald-300/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/30 text-emerald-200 text-[0.625rem] font-extrabold uppercase border border-emerald-300/40">
                 <Zap className="h-2 w-2" /> {stats.discountPct.toFixed(0)}% OFF
               </span>
             )}
@@ -73,7 +73,7 @@ export function SalonWizardSummary({ draft, stats, allValid }: Props) {
         <div className="border-t-2 border-slate-100 p-4 bg-gradient-to-br from-pink-50 to-white">
           <div className="flex items-center gap-1.5 mb-1">
             <Timer className="h-3 w-3 text-pink-700" />
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-pink-700">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-pink-700">
               Total Chair Time
             </div>
           </div>
@@ -86,7 +86,7 @@ export function SalonWizardSummary({ draft, stats, allValid }: Props) {
       {/* PRICING */}
       {stats.price > 0 && (
         <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-2.5">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
             <DollarSign className="h-3 w-3" /> Pricing
           </div>
           {stats.hasDiscount && (
@@ -110,7 +110,7 @@ export function SalonWizardSummary({ draft, stats, allValid }: Props) {
                 {formatPKRFull(stats.profit)}
               </div>
             </div>
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
+            <div className="flex items-center justify-between text-[0.6875rem] font-bold text-slate-500">
               <span>Margin</span>
               <span className={stats.margin >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
                 {stats.margin.toFixed(1)}%
@@ -123,7 +123,7 @@ export function SalonWizardSummary({ draft, stats, allValid }: Props) {
       {/* COMMISSION */}
       {stats.commission > 0 && (
         <div className="rounded-2xl bg-white border-2 border-amber-200 shadow-sm p-4 space-y-2">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-amber-700 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-700 flex items-center gap-1">
             <Award className="h-3 w-3" /> Staff Commission
           </div>
           <div className="flex items-center justify-between">
@@ -133,19 +133,19 @@ export function SalonWizardSummary({ draft, stats, allValid }: Props) {
             </span>
           </div>
           {Number(draft.basic.commissionPct || 0) > 0 && (
-            <div className="text-[10px] text-slate-500 font-bold">
+            <div className="text-[0.6875rem] text-slate-500 font-bold">
               {draft.basic.commissionPct}% of {formatPKRFull(stats.effectivePrice)}
             </div>
           )}
           {Number(draft.basic.commissionFixed || 0) > 0 && (
-            <div className="text-[10px] text-slate-500 font-bold">
+            <div className="text-[0.6875rem] text-slate-500 font-bold">
               + {formatPKRFull(Number(draft.basic.commissionFixed || 0))} fixed
             </div>
           )}
         </div>
       )}
 
-      <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-[10px] text-slate-500 font-semibold text-center">
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-[0.6875rem] text-slate-500 font-semibold text-center">
         💾 Draft auto-saves — safai se close karo, wapas mile ga
       </div>
     </aside>
@@ -163,10 +163,10 @@ function StatCell({ icon: Icon, label, value, tone, hint }: any) {
     <div className="p-4">
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={['h-3 w-3', tones[tone]].join(' ')} />
-        <div className={['text-[10px] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
+        <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
       </div>
       <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{value}</div>
-      {hint && <div className="text-[10px] text-slate-500 font-bold mt-0.5">{hint}</div>}
+      {hint && <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{hint}</div>}
     </div>
   );
 }

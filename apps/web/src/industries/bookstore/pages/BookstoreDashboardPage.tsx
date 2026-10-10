@@ -101,17 +101,17 @@ export default function BookstoreDashboardPage() {
 
         <div className="grid sm:grid-cols-3 gap-4">
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Best Sellers</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Best Sellers</div>
             <div className="mt-1 text-3xl font-extrabold tabular-nums text-amber-300">{catalog.bestSellers}</div>
             <div className="text-xs text-white/60 font-semibold mt-1">Top selling books</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">New Arrivals</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">New Arrivals</div>
             <div className="mt-1 text-3xl font-extrabold tabular-nums text-emerald-300">{catalog.newArrivals}</div>
             <div className="text-xs text-white/60 font-semibold mt-1">Fresh stock</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Featured</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Featured</div>
             <div className="mt-1 text-3xl font-extrabold tabular-nums text-cyan-300">{catalog.featuredBooks}</div>
             <div className="text-xs text-white/60 font-semibold mt-1">Editor picks</div>
           </div>
@@ -168,7 +168,7 @@ export default function BookstoreDashboardPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-xs font-extrabold text-rose-700">{daysOverdue}d overdue</div>
-                      <div className="text-[10px] font-bold text-slate-500">Due: {format(new Date(r.dueDate), 'dd MMM')}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">Due: {format(new Date(r.dueDate), 'dd MMM')}</div>
                     </div>
                   </div>
                 );
@@ -207,11 +207,11 @@ export default function BookstoreDashboardPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm truncate">{p.publisher?.name}</div>
-                    {p.publisher?.country && <div className="text-[10px] font-bold text-slate-500">{p.publisher.country}</div>}
+                    {p.publisher?.country && <div className="text-[0.6875rem] font-bold text-slate-500">{p.publisher.country}</div>}
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums text-lg">{p.count}</div>
-                    <div className="text-[10px] font-bold text-slate-500">books</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">books</div>
                   </div>
                 </div>
               ))
@@ -277,7 +277,7 @@ function KpiCard({ label, value, icon: Icon, color }: any) {
     <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 shadow-sm hover:shadow-md transition">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">{label}</div>
           <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
         </div>
         <div className={'h-10 w-10 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>

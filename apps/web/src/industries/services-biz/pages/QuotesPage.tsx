@@ -118,11 +118,11 @@ export default function QuotesPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold">{q.quoteNumber}</span>
-                      <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + STATUS_COLORS[q.status]}>
+                      <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[q.status]}>
                         {q.status}
                       </span>
                       {q.siteVisitRequired && (
-                        <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase">
+                        <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">
                           Site Visit {q.siteVisitCompleted ? '✅' : 'Required'}
                         </span>
                       )}
@@ -240,34 +240,34 @@ function QuoteForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-4 gap-2">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Labour</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Labour</label>
             <input type="number" value={form.labourCharge} onChange={(e) => setForm({ ...form, labourCharge: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Parts</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Parts</label>
             <input type="number" value={form.partsCharge} onChange={(e) => setForm({ ...form, partsCharge: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Visit</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Visit</label>
             <input type="number" value={form.visitCharge} onChange={(e) => setForm({ ...form, visitCharge: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Other</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Other</label>
             <input type="number" value={form.otherCharges} onChange={(e) => setForm({ ...form, otherCharges: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-3 gap-2">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Tax</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Tax</label>
             <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Discount</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Discount</label>
             <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 dark:bg-rose-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Valid Until</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Valid Until</label>
             <input type="date" value={form.validUntil} onChange={(e) => setForm({ ...form, validUntil: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
           </div>
         </div>

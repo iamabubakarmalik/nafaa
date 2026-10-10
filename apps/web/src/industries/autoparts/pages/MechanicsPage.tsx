@@ -101,10 +101,10 @@ export default function MechanicsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-slate-900 dark:text-white truncate">{nm}</div>
-                    {m.yearsOfExperience && <div className="text-[10px] font-bold text-slate-500">{m.yearsOfExperience} yrs exp</div>}
+                    {m.yearsOfExperience && <div className="text-[0.6875rem] font-bold text-slate-500">{m.yearsOfExperience} yrs exp</div>}
                     <div className="mt-1 flex items-center gap-2 flex-wrap">
                       <span className={
-                        'px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase ' +
+                        'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ' +
                         (m.isAvailable ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500')
                       }>
                         {m.isAvailable ? 'Available' : 'Busy'}
@@ -116,33 +116,33 @@ export default function MechanicsPage() {
                 {m.specialization?.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {m.specialization.slice(0, 3).map((s: string, i: number) => (
-                      <span key={i} className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[9px] font-extrabold uppercase">{s}</span>
+                      <span key={i} className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[0.625rem] font-extrabold uppercase">{s}</span>
                     ))}
                   </div>
                 )}
 
                 <div className="grid grid-cols-2 gap-1.5">
                   <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-emerald-700">Rate</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Rate</div>
                     <div className="text-sm font-extrabold text-emerald-800 tabular-nums">Rs {m.hourlyRate}/hr</div>
                   </div>
                   <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-amber-700">Commission</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Commission</div>
                     <div className="text-sm font-extrabold text-amber-800 tabular-nums">{m.commissionPct}%</div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
                   <div className="text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-slate-500">Jobs</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Jobs</div>
                     <div className="text-sm font-extrabold tabular-nums">{m.totalJobs}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-emerald-700">Revenue</div>
-                    <div className="text-[10px] font-extrabold text-emerald-700 tabular-nums">Rs {(m.totalRevenue / 1000).toFixed(0)}k</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Revenue</div>
+                    <div className="text-[0.6875rem] font-extrabold text-emerald-700 tabular-nums">Rs {(m.totalRevenue / 1000).toFixed(0)}k</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
+                    <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
                       <Star className="h-2 w-2 fill-current" />
                       Rating
                     </div>
@@ -219,11 +219,11 @@ function MechanicForm({ editing, onClose, onSaved }: any) {
           <div className="text-sm font-extrabold text-emerald-900">💰 Compensation</div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Hourly Rate (Rs)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Hourly Rate (Rs)</label>
               <input type="number" value={form.hourlyRate} onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Commission %</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Commission %</label>
               <input type="number" step="0.1" value={form.commissionPct} onChange={(e) => setForm({ ...form, commissionPct: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
           </div>
@@ -231,11 +231,11 @@ function MechanicForm({ editing, onClose, onSaved }: any) {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Work Start</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Work Start</label>
             <input type="time" value={form.workStartTime} onChange={(e) => setForm({ ...form, workStartTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Work End</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Work End</label>
             <input type="time" value={form.workEndTime} onChange={(e) => setForm({ ...form, workEndTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
           </div>
         </div>

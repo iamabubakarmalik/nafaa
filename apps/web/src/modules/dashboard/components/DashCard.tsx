@@ -39,7 +39,7 @@ export function DashCardHeader({ icon: Icon, title, subtitle, tone, right }: any
         </div>
         <div className="min-w-0">
           <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h3>
-          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold">{subtitle}</p>
+          <p className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">{subtitle}</p>
         </div>
       </div>
       {right}
@@ -51,7 +51,7 @@ export function DashChartLegend({ items }: { items: { color: string; label: stri
   return (
     <div className="mt-2 flex items-center justify-center gap-4 flex-wrap">
       {items.map((it) => (
-        <div key={it.label} className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-slate-600 dark:text-slate-300">
+        <div key={it.label} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">
           <span className="h-2.5 w-2.5 rounded-full shadow-sm" style={{ backgroundColor: it.color }} />
           {it.label}
         </div>

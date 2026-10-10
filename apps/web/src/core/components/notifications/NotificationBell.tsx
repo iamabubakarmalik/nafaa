@@ -184,7 +184,7 @@ export default function NotificationBell() {
         <Bell className={`h-5 w-5 ${hasUnread ? 'animate-pulse' : ''}`} />
         {hasUnread && (
           <>
-            <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-rose-600 text-white text-[10px] font-extrabold flex items-center justify-center ring-2 ring-white shadow-md">
+            <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-rose-600 text-white text-[0.6875rem] font-extrabold flex items-center justify-center ring-2 ring-white shadow-md">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
             {/* Ping ring */}
@@ -210,12 +210,12 @@ export default function NotificationBell() {
                   <div className="flex items-center gap-1.5">
                     <h3 className="font-extrabold text-white text-base">Notifications</h3>
                     {hasUnread && (
-                      <span className="px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[9px] font-extrabold">
+                      <span className="px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[0.625rem] font-extrabold">
                         {unreadCount} NEW
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-white/70 mt-0.5">
+                  <p className="text-[0.6875rem] text-white/70 mt-0.5">
                     {hasUnread ? 'Keep your business running smoothly' : 'You are all caught up'}
                   </p>
                 </div>
@@ -224,7 +224,7 @@ export default function NotificationBell() {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => play()}
-                  className="h-8 px-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur flex items-center gap-1 text-white transition text-[10px] font-black"
+                  className="h-8 px-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur flex items-center gap-1 text-white transition text-[0.6875rem] font-black"
                   title="Test notification sound"
                 >
                   🔊 TEST
@@ -252,7 +252,7 @@ export default function NotificationBell() {
                 <button
                   onClick={() => markAllMutation.mutate()}
                   disabled={markAllMutation.isPending}
-                  className="text-[11px] text-white/90 hover:text-white font-bold inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition disabled:opacity-50"
+                  className="text-[0.6875rem] text-white/90 hover:text-white font-bold inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition disabled:opacity-50"
                 >
                   <CheckCheck className="h-3 w-3" />
                   Mark all read
@@ -260,7 +260,7 @@ export default function NotificationBell() {
                 <Link
                   to="/settings"
                   onClick={() => setOpen(false)}
-                  className="text-[11px] text-white/70 hover:text-white inline-flex items-center gap-1"
+                  className="text-[0.6875rem] text-white/70 hover:text-white inline-flex items-center gap-1"
                 >
                   <SettingsIcon className="h-3 w-3" />
                   Preferences
@@ -330,16 +330,16 @@ export default function NotificationBell() {
                           </p>
 
                           <div className="flex items-center gap-3 mt-2">
-                            <span className="text-[10px] text-slate-500 font-semibold">
+                            <span className="text-[0.6875rem] text-slate-500 font-semibold">
                               {formatTime(n.createdAt)}
                             </span>
                             {n.link && (
-                              <span className="text-[10px] text-brand-700 font-extrabold inline-flex items-center gap-0.5 group-hover:gap-1 transition-all">
+                              <span className="text-[0.6875rem] text-brand-700 font-extrabold inline-flex items-center gap-0.5 group-hover:gap-1 transition-all">
                                 View <ArrowRight className="h-2.5 w-2.5" />
                               </span>
                             )}
                             {isUrgent && !n.isRead && (
-                              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-rose-100 text-rose-700">
+                              <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-rose-100 text-rose-700">
                                 URGENT
                               </span>
                             )}

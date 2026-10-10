@@ -371,7 +371,7 @@ export default function BakeryLowStockPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <ChefHat className="h-3.5 w-3.5 text-amber-300" /> Bakery · Roz subah
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">🧁 Aaj Kya Banana Hai</h1>
@@ -433,10 +433,10 @@ export default function BakeryLowStockPage() {
             }`}>
             <Icon className="h-4 w-4" />
             <span className="truncate">{label}</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-lg ${
+            <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${
               tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
             }`}>{count}</span>
-            <kbd className="hidden sm:inline text-[9px] opacity-60">{key}</kbd>
+            <kbd className="hidden sm:inline text-[0.625rem] opacity-60">{key}</kbd>
           </button>
         ))}
       </div>
@@ -525,7 +525,7 @@ function BakeTab({ rows, chart, onStock }: {
           <h3 className="font-black text-slate-900 dark:text-white mb-1 flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-amber-600" /> Sab se ziyada kya banana hai
           </h3>
-          <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-3">
+          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mb-3">
             Neeche wali patti = abhi counter par kitna hai
           </p>
           <div className="h-64">
@@ -571,16 +571,16 @@ function BakeTab({ rows, chart, onStock }: {
                   </Link>
                   <div className="flex items-center gap-2 flex-wrap mt-0.5">
                     {r.category && (
-                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">{r.category}</span>
+                      <span className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">{r.category}</span>
                     )}
-                    <span className={`text-[11px] font-black ${out ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <span className={`text-[0.6875rem] font-black ${out ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
                       {out ? 'Bilkul khatam' : `Abhi ${fmtQty(r.have)} ${r.unit}`}
                     </span>
                   </div>
                 </div>
 
                 <div className="text-right shrink-0">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Banana hai</div>
+                  <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">Banana hai</div>
                   <div className="text-lg font-black text-amber-600 dark:text-amber-400 tabular-nums">
                     {fmtQty(r.toBake)} <span className="text-xs">{r.unit}</span>
                   </div>
@@ -666,27 +666,27 @@ function IngredientsTab({ rows, chart, totalCost }: {
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="truncate font-extrabold text-sm text-slate-900 dark:text-white">{i.name}</span>
                     {i.isCritical && (
-                      <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300">
+                      <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300">
                         Zaroori
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                    <span className={`text-[11px] font-black ${out ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <span className={`text-[0.6875rem] font-black ${out ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
                       {out ? 'Bilkul khatam' : `Abhi ${fmtQty(i.have)} ${i.unit}`}
                     </span>
                     {i.supplierName && (
-                      <span className="text-[11px] font-bold text-slate-400 truncate">· {i.supplierName}</span>
+                      <span className="text-[0.6875rem] font-bold text-slate-400 truncate">· {i.supplierName}</span>
                     )}
                   </div>
                 </div>
 
                 <div className="text-right shrink-0">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Mangwana</div>
+                  <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">Mangwana</div>
                   <div className="text-lg font-black text-violet-600 dark:text-violet-400 tabular-nums">
                     {fmtQty(i.short)} <span className="text-xs">{i.unit}</span>
                   </div>
-                  <div className="text-[10px] font-bold text-slate-400 tabular-nums">
+                  <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                     ≈ {formatPKR(i.short * Number(i.costPerUnit || 0))}
                   </div>
                 </div>
@@ -766,9 +766,9 @@ function FreshnessTab({ rows, pie }: { rows: any[]; pie: any[] }) {
                   <div className="truncate font-extrabold text-sm text-slate-900 dark:text-white">{f.productName}</div>
                   <div className="flex items-center gap-2 flex-wrap mt-0.5">
                     {f.batchNumber && (
-                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Batch {f.batchNumber}</span>
+                      <span className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">Batch {f.batchNumber}</span>
                     )}
-                    <span className={`text-[11px] font-black ${
+                    <span className={`text-[0.6875rem] font-black ${
                       gone ? 'text-rose-600 dark:text-rose-400'
                         : soon ? 'text-orange-600 dark:text-orange-400'
                         : 'text-slate-500 dark:text-slate-400'
@@ -779,7 +779,7 @@ function FreshnessTab({ rows, pie }: { rows: any[]; pie: any[] }) {
                 </div>
 
                 <div className="text-right shrink-0">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">Bachi hui</div>
+                  <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">Bachi hui</div>
                   <div className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{fmtQty(Number(f.currentQty))}</div>
                 </div>
               </div>
@@ -813,12 +813,12 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
       ].join(' ')}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-tight break-words">
             {value}
           </div>
           {sub && (
-            <div className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-1.5 leading-snug line-clamp-2">{sub}</div>
+            <div className="text-[0.6875rem] sm:text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-1.5 leading-snug line-clamp-2">{sub}</div>
           )}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
@@ -879,8 +879,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             bawarchi ya supplier ko chali jayegi.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1 2 3</kbd> tab badlo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
@@ -901,8 +901,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

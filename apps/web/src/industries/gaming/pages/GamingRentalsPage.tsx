@@ -184,11 +184,11 @@ function RentalCard({ rental, onReturn }: any) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono font-extrabold text-slate-900 text-sm">{rental.rentalNumber}</span>
-            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
+            <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
               <StatusIcon className="h-2.5 w-2.5" /> {meta.label}
             </span>
             {daysLate > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold">
+              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold">
                 {daysLate} days late
               </span>
             )}
@@ -202,7 +202,7 @@ function RentalCard({ rental, onReturn }: any) {
             {rental.serialNumber && (<span className="font-mono">S/N: {rental.serialNumber}</span>)}
           </div>
 
-          <div className="flex items-center gap-3 mt-1 text-[10px] text-slate-500 font-bold">
+          <div className="flex items-center gap-3 mt-1 text-[0.6875rem] text-slate-500 font-bold">
             <span className="inline-flex items-center gap-0.5">
               <Calendar className="h-2.5 w-2.5" />
               {new Date(rental.rentalStartDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
@@ -215,15 +215,15 @@ function RentalCard({ rental, onReturn }: any) {
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">Total</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total</div>
           <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(rental.totalPrice)}</div>
           {rental.depositAmount > 0 && (
-            <div className="text-[10px] font-bold text-amber-700">
+            <div className="text-[0.6875rem] font-bold text-amber-700">
               Deposit {formatPKR(rental.depositAmount)}
             </div>
           )}
           {rental.remainingAmount > 0 && (
-            <div className="text-[10px] font-bold text-rose-700 mt-0.5">
+            <div className="text-[0.6875rem] font-bold text-rose-700 mt-0.5">
               Balance {formatPKR(rental.remainingAmount)}
             </div>
           )}
@@ -310,7 +310,7 @@ function ReturnRentalModal({ rental, onClose, onReturned }: any) {
               <input type="number" value={depositRefunded}
                 onChange={(e) => setDepositRefunded(Math.max(0, Number(e.target.value)))}
                 className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-              <p className="mt-1 text-[10px] text-slate-500 font-bold">
+              <p className="mt-1 text-[0.6875rem] text-slate-500 font-bold">
                 Auto-suggested: {formatPKR(Math.max(0, rental.depositAmount - damageFee - lateFee))}
               </p>
             </div>
@@ -340,7 +340,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
       className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-violet-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

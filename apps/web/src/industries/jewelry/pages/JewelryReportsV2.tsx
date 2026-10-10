@@ -236,19 +236,19 @@ export default function JewelryReportsV2() {
               <div key={m.metal} className="rounded-2xl border-2 p-4 bg-white" style={{ borderColor: m.color + '60' }}>
                 <div className="flex items-center gap-2 mb-2">
                   <div className="text-2xl">{METAL_ICONS[m.metal]}</div>
-                  <div className="text-[10px] uppercase font-extrabold" style={{ color: m.color }}>{m.metal.replace('_', ' ')}</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold" style={{ color: m.color }}>{m.metal.replace('_', ' ')}</div>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <div className="text-[9px] uppercase text-slate-500">Sales</div>
+                    <div className="text-[0.625rem] uppercase text-slate-500">Sales</div>
                     <div className="text-lg font-extrabold text-slate-900 tabular-nums">{m.count}</div>
                   </div>
                   <div>
-                    <div className="text-[9px] uppercase text-slate-500">Weight</div>
+                    <div className="text-[0.625rem] uppercase text-slate-500">Weight</div>
                     <div className="text-lg font-extrabold text-slate-900 tabular-nums">{m.weight.toFixed(0)}g</div>
                   </div>
                   <div>
-                    <div className="text-[9px] uppercase text-slate-500">Revenue</div>
+                    <div className="text-[0.625rem] uppercase text-slate-500">Revenue</div>
                     <div className="text-xs font-extrabold text-emerald-700 tabular-nums">{formatPKR(m.revenue)}</div>
                   </div>
                 </div>
@@ -267,7 +267,7 @@ export default function JewelryReportsV2() {
                 {(rates as any[]).map((r: any) => (
                   <div key={r.id} className="rounded-xl bg-white border border-amber-200 p-2">
                     <div className="text-lg">{METAL_ICONS[r.metalType]}</div>
-                    <div className="text-[9px] font-extrabold uppercase text-slate-600">
+                    <div className="text-[0.625rem] font-extrabold uppercase text-slate-600">
                       {r.metalType.replace('_', ' ')} {r.purity.replace('KARAT_', '').replace('SILVER_', 'S')}K
                     </div>
                     <div className="text-sm font-extrabold text-amber-700 tabular-nums">Rs {r.ratePerGram.toLocaleString()}/g</div>
@@ -336,7 +336,7 @@ export default function JewelryReportsV2() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-violet-700 tabular-nums">{formatPKR(sale.exchangeValue)}</div>
-                      <div className="text-[10px] text-slate-500">exchange value</div>
+                      <div className="text-[0.6875rem] text-slate-500">exchange value</div>
                     </div>
                   </div>
                 ))}
@@ -356,13 +356,13 @@ export default function JewelryReportsV2() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-slate-600">
                 <tr>
-                  <th className="text-center px-3 py-3 font-bold text-[10px] uppercase w-12">#</th>
-                  <th className="text-left px-3 py-3 font-bold text-[10px] uppercase">Design</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Sold</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Orders</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Revenue</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Profit</th>
-                  <th className="text-center px-3 py-3 font-bold text-[10px] uppercase">Margin</th>
+                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase w-12">#</th>
+                  <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase">Design</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Sold</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Orders</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Revenue</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Profit</th>
+                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase">Margin</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

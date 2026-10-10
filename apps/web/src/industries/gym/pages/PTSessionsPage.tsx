@@ -97,11 +97,11 @@ export default function PTSessionsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-slate-900">{s.sessionNumber}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + STATUS_COLORS[s.status]}>
+                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[s.status]}>
                           {s.status.replace('_', ' ')}
                         </span>
                         {s.memberRating && (
-                          <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                          <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                             <Star className="h-2 w-2 fill-current" />
                             {s.memberRating}
                           </span>
@@ -121,12 +121,12 @@ export default function PTSessionsPage() {
                   <div className="text-right shrink-0">
                     <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(s.price)}</div>
                     {s.commissionAmount > 0 && (
-                      <div className="text-[10px] font-extrabold text-amber-700 inline-flex items-center gap-0.5">
+                      <div className="text-[0.6875rem] font-extrabold text-amber-700 inline-flex items-center gap-0.5">
                         <Award className="h-2.5 w-2.5" />
                         Comm: {formatPKR(s.commissionAmount)}
                       </div>
                     )}
-                    {remaining > 0 && <div className="text-[10px] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>}
+                    {remaining > 0 && <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>}
                   </div>
                 </div>
 
@@ -225,7 +225,7 @@ function PTForm({ onClose, onSaved }: any) {
           </div>
         ) : (
           <div>
-            <label className="text-[10px] uppercase font-extrabold mb-1 block">Select Member *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold mb-1 block">Select Member *</label>
             <input value={memberSearch} onChange={(e) => { setMemberSearch(e.target.value); setShowMemberPicker(true); }} placeholder="Search member..." className="h-11 w-full rounded-xl border-2 border-rose-200 bg-rose-50 dark:bg-rose-950/30 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
             {showMemberPicker && (
               <div className="mt-2 max-h-52 overflow-y-auto space-y-1 rounded-xl border border-slate-200 p-1">
@@ -241,7 +241,7 @@ function PTForm({ onClose, onSaved }: any) {
         )}
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Trainer *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Trainer *</label>
           <select value={form.trainerId} onChange={(e) => {
             const t = trainers.find((x: any) => x.id === e.target.value);
             setForm({ ...form, trainerId: e.target.value, price: t?.perSessionRate || 0 });
@@ -256,15 +256,15 @@ function PTForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Date *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Date *</label>
             <input type="date" value={form.scheduledDate} onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Time *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Time *</label>
             <input type="time" value={form.scheduledTime} onChange={(e) => setForm({ ...form, scheduledTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Duration (min)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Duration (min)</label>
             <input type="number" value={form.durationMinutes} onChange={(e) => setForm({ ...form, durationMinutes: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
           </div>
         </div>
@@ -272,7 +272,7 @@ function PTForm({ onClose, onSaved }: any) {
         <input value={form.focusArea} onChange={(e) => setForm({ ...form, focusArea: e.target.value })} placeholder="Focus area (chest & triceps, legs, cardio...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Price</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Price</label>
           <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
         </div>
 

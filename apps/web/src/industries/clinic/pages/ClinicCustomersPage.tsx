@@ -126,13 +126,13 @@ export default function ClinicCustomersPage() {
               extraBadges={
                 <>
                   {c.totalConsults > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 text-[0.6875rem] font-bold">
                       <Activity className="h-3 w-3" />
                       {c.totalConsults} visit{c.totalConsults > 1 ? 's' : ''}
                     </div>
                   )}
                   {c.lastVisit && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.6875rem] font-bold">
                       <Calendar className="h-3 w-3" />
                       Last: {new Date(c.lastVisit.scheduledStart).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                     </div>

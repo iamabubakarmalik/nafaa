@@ -160,23 +160,23 @@ export function GamingWizardStep4Stock({
               <h3 className="font-extrabold text-fuchsia-900 text-base">Editions</h3>
               <p className="text-xs text-fuchsia-700 font-semibold">Each edition keeps its own stock and price</p>
             </div>
-            <span className="px-2.5 py-1 rounded-lg bg-fuchsia-100 text-fuchsia-800 text-[10px] font-extrabold">
+            <span className="px-2.5 py-1 rounded-lg bg-fuchsia-100 text-fuchsia-800 text-[0.6875rem] font-extrabold">
               {variants.length} editions • {totalVariantStock} units
             </span>
           </div>
 
           <div className="rounded-xl bg-white border-2 border-fuchsia-200 p-3 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-fuchsia-700 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-fuchsia-700 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Presets — click to add
             </div>
             {VARIANT_PRESETS.map((grp) => (
               <div key={grp.group} className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-extrabold uppercase text-slate-500 min-w-[62px]">{grp.group}:</span>
+                <span className="text-[0.6875rem] font-extrabold uppercase text-slate-500 min-w-[62px]">{grp.group}:</span>
                 {grp.items.map((it) => {
                   const ex = variants.some((v) => v.name.toLowerCase() === it.toLowerCase());
                   return (
                     <button key={it} type="button" disabled={ex} onClick={() => addVariant(it)}
-                      className={['px-2.5 py-1 rounded-lg border-2 text-[11px] font-extrabold transition disabled:cursor-not-allowed',
+                      className={['px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold transition disabled:cursor-not-allowed',
                         ex ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-700 hover:border-fuchsia-400'].join(' ')}>
                       {ex ? '✓ ' : '+ '}{it}
                     </button>
@@ -214,26 +214,26 @@ export function GamingWizardStep4Stock({
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Stock</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Stock</label>
                       <input type="number" step="1" value={v.stock}
                         onChange={(e) => onUpdateVariant(v.tempId, { stock: Number(e.target.value || 0) })}
                         className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-emerald-700 uppercase mb-1">Price override</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-emerald-700 uppercase mb-1">Price override</label>
                       <input type="number" step="0.01" value={v.priceOverride ?? ''}
                         onChange={(e) => onUpdateVariant(v.tempId, { priceOverride: e.target.value === '' ? undefined : Number(e.target.value) })}
                         placeholder={String(sale)}
                         className="h-10 w-full rounded-lg border-2 border-emerald-200 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-emerald-500" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">SKU</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">SKU</label>
                       <input value={v.sku ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { sku: e.target.value })}
                         placeholder="Optional"
                         className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-mono font-bold focus:outline-none focus:border-violet-500" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Barcode</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Barcode</label>
                       <input value={v.barcode ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { barcode: e.target.value })}
                         placeholder="Optional"
                         className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-xs font-mono font-bold focus:outline-none focus:border-violet-500" />
@@ -256,17 +256,17 @@ export function GamingWizardStep4Stock({
         <section className="rounded-2xl bg-gradient-to-br from-slate-950 to-violet-900 text-white p-5 shadow-xl">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-            <span className="text-[10px] uppercase font-extrabold tracking-wider text-emerald-300">Stock preview</span>
+            <span className="text-[0.6875rem] uppercase font-extrabold tracking-wider text-emerald-300">Stock preview</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Total stock</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Total stock</div>
               <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
                 {displayStock} <span className="text-sm text-white/60">units</span>
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Retail value</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Retail value</div>
               <div className="text-3xl font-extrabold tabular-nums text-emerald-300 leading-none mt-1">
                 {formatPKRFull(stockValue)}
               </div>

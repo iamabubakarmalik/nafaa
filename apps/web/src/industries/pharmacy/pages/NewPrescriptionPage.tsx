@@ -145,7 +145,7 @@ export default function NewPrescriptionPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 New Prescription
               </div>
@@ -168,7 +168,7 @@ export default function NewPrescriptionPage() {
         <div className="space-y-6">
           {/* TYPE */}
           <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Prescription Type</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Prescription Type</label>
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
               {TYPES.map((t) => (
                 <button
@@ -182,7 +182,7 @@ export default function NewPrescriptionPage() {
                   }
                 >
                   <div className="text-xl mb-1">{t.emoji}</div>
-                  <div className="text-[10px] font-extrabold">{t.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold">{t.label}</div>
                 </button>
               ))}
             </div>
@@ -294,7 +294,7 @@ export default function NewPrescriptionPage() {
             </h3>
 
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Existing Customer (optional)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Existing Customer (optional)</label>
               <select
                 value={form.customerId}
                 onChange={(e) => {
@@ -380,7 +380,7 @@ export default function NewPrescriptionPage() {
               {items.map((item, i) => (
                 <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/30 p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-extrabold text-slate-600">Medicine #{i + 1}</span>
+                    <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Medicine #{i + 1}</span>
                     {items.length > 1 && (
                       <button onClick={() => removeItem(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
                         <Trash2 className="h-3 w-3" />
@@ -447,7 +447,7 @@ export default function NewPrescriptionPage() {
                           >
                             <Pill className="h-3.5 w-3.5 text-slate-400" />
                             <span className="text-xs font-extrabold truncate flex-1">{p.name}</span>
-                            <span className="text-[10px] font-bold text-slate-500">Stock: {p.stock}</span>
+                            <span className="text-[0.6875rem] font-bold text-slate-500">Stock: {p.stock}</span>
                           </button>
                         ))}
                       </div>

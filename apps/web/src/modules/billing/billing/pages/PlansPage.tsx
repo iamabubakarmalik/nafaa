@@ -97,7 +97,7 @@ function ConfirmUpgradeModal({ plan, interval, price, existingPending, currentSu
         <div className={`relative overflow-hidden bg-gradient-to-br ${planGradients[plan.slug] || 'from-slate-700 to-slate-900'} text-white p-6`}>
           <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
           <div className="relative">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest border border-white/20 mb-3">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md px-2 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-widest border border-white/20 mb-3">
               {isSamePlan ? (<><RefreshCw className="h-2.5 w-2.5 text-amber-300" />Same Invoice</>) :
                hasPending ? (<><RefreshCw className="h-2.5 w-2.5 text-amber-300" />Invoice Update</>) :
                isRenewal ? (<><Clock className="h-2.5 w-2.5 text-amber-300" />Renew Plan</>) :
@@ -440,13 +440,13 @@ export default function PlansPage() {
                   {i === 'QUARTERLY' && (
                     <>
                       Quarterly
-                      <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-amber-400 text-amber-900 text-[8px] font-extrabold shadow-sm">-5%</span>
+                      <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-amber-400 text-amber-900 text-[0.625rem] font-extrabold shadow-sm">-5%</span>
                     </>
                   )}
                   {i === 'YEARLY' && (
                     <>
                       Yearly
-                      <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-emerald-400 text-emerald-900 text-[8px] font-extrabold shadow-sm">-15%</span>
+                      <span className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-emerald-400 text-emerald-900 text-[0.625rem] font-extrabold shadow-sm">-15%</span>
                     </>
                   )}
                 </button>
@@ -455,7 +455,7 @@ export default function PlansPage() {
           </div>
 
           {/* Keyboard hints */}
-          <div className="mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center justify-center">
+          <div className="mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center justify-center">
             <Kbd>M</Kbd><span className="text-white/60">Monthly</span>
             <span className="text-white/30 mx-1">•</span>
             <Kbd>Q</Kbd><span className="text-white/60">Quarterly</span>
@@ -483,7 +483,7 @@ export default function PlansPage() {
               <Award className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-400">Current Plan</div>
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-400">Current Plan</div>
               <div className="font-extrabold text-emerald-900 dark:text-emerald-200">
                 {current.plan?.name}
                 {current.status !== 'TRIAL' && (
@@ -524,7 +524,7 @@ export default function PlansPage() {
               <Clock className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-400">
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-400">
                 {current.status === 'ACTIVE' ? 'Renewal Due' : 'Service Rok Di Gayi'}
               </div>
               <div className="font-extrabold text-rose-900 dark:text-rose-200">
@@ -561,7 +561,7 @@ export default function PlansPage() {
                 <AlertTriangle className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-400">
+                <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-400">
                   Open Invoice — {pendingUpgrade.invoice.invoiceNumber}
                 </div>
                 <div className="font-extrabold text-amber-900 dark:text-amber-200">
@@ -629,7 +629,7 @@ export default function PlansPage() {
               }`}
             >
               {isPro && (
-                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-brand-600 via-emerald-600 to-brand-700 text-white text-center py-1.5 text-[10px] font-extrabold uppercase tracking-widest z-10 shadow-lg overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-brand-600 via-emerald-600 to-brand-700 text-white text-center py-1.5 text-[0.6875rem] font-extrabold uppercase tracking-widest z-10 shadow-lg overflow-hidden">
                   <div className="absolute inset-0 bg-white/20 animate-pulse" />
                   <div className="relative flex items-center justify-center gap-1">
                     <Star className="h-3 w-3 fill-white inline" />
@@ -640,7 +640,7 @@ export default function PlansPage() {
               )}
 
               {isPendingThis && (
-                <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold uppercase tracking-widest shadow-lg animate-pulse">
+                <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase tracking-widest shadow-lg animate-pulse">
                   ⏳ Pending {pendingUpgrade?.subscription?.interval
                     ? intervalWord[pendingUpgrade.subscription.interval as BillingInterval]
                     : ''}
@@ -648,7 +648,7 @@ export default function PlansPage() {
               )}
 
               {isCurrent && !isPendingThis && (
-                <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold uppercase tracking-widest shadow-lg">
+                <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase tracking-widest shadow-lg">
                   ✓ {current?.status === 'TRIAL'
                     ? 'Trial'
                     : `Active · ${intervalWord[current!.interval]}`}
@@ -671,7 +671,7 @@ export default function PlansPage() {
                     </div>
                     {isFree && <div className="text-sm text-white/80 font-semibold mt-1">⏱️ {plan.trialDays} days trial</div>}
                     {savings && (
-                      <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-300/30 backdrop-blur-md border border-amber-200/40 text-[10px] font-extrabold text-amber-100">
+                      <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-300/30 backdrop-blur-md border border-amber-200/40 text-[0.6875rem] font-extrabold text-amber-100">
                         💰 Save {formatPKR(savings.amount)} ({savings.percent.toFixed(0)}%)
                       </div>
                     )}
@@ -681,7 +681,7 @@ export default function PlansPage() {
 
               <div className="p-5 sm:p-6 space-y-4">
                 <div>
-                  <div className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
                     <BarChart3 className="h-3 w-3" /> Limits
                   </div>
                   <div className="space-y-2">
@@ -693,7 +693,7 @@ export default function PlansPage() {
                 </div>
 
                 <div className="pt-4 border-t-2 border-slate-100 dark:border-slate-800">
-                  <div className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
                     <Sparkles className="h-3 w-3" /> Features
                   </div>
                   <div className="space-y-2">
@@ -741,7 +741,7 @@ export default function PlansPage() {
                   )}
 
                   {isCurrent && current?.status !== 'TRIAL' && current?.interval !== interval && (
-                    <p className="mt-2 text-center text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    <p className="mt-2 text-center text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">
                       Abhi {intervalWord[current!.interval]} par hain — baqi din naye period mein add ho jayenge.
                     </p>
                   )}
@@ -823,7 +823,7 @@ function PlansTeacher({ onClose, maxSavings }: { onClose: () => void; maxSavings
 
           {/* Plan comparison */}
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
               <Star className="h-3 w-3" /> Kis Ke Liye Kaunsa Plan?
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -844,7 +844,7 @@ function PlansTeacher({ onClose, maxSavings }: { onClose: () => void; maxSavings
 
           {/* Interval savings */}
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <Wallet className="h-3 w-3" /> Billing Interval — Kitna Save?
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -870,7 +870,7 @@ function PlansTeacher({ onClose, maxSavings }: { onClose: () => void; maxSavings
 
           {/* Upgrade/downgrade rules */}
           <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
               <RefreshCw className="h-3 w-3" /> Upgrade/Downgrade Rules
             </div>
             <TipRow><strong>⬆️ Upgrade:</strong> Anytime. Naya invoice ban jayega, pay karte hi features unlock. Pichla pending automatic cancel.</TipRow>
@@ -882,7 +882,7 @@ function PlansTeacher({ onClose, maxSavings }: { onClose: () => void; maxSavings
 
           {/* Pro tips */}
           <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
               <Sparkles className="h-3 w-3" /> Pro Tips
             </div>
             <TipRow><strong>🎯 Trial complete karo:</strong> 7 din me sab features test karo — usage pattern samajh me aayega.</TipRow>

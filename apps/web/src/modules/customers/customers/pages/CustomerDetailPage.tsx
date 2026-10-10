@@ -272,15 +272,15 @@ export default function CustomerDetailPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl sm:text-3xl font-extrabold">{customer.name}</h1>
               {customer.isVip && (
-                <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-lg">
+                <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[0.6875rem] font-extrabold uppercase tracking-wider shadow-lg">
                   👑 VIP
                 </span>
               )}
               {!customer.isActive && (
-                <span className="px-2 py-0.5 rounded-full bg-slate-700 text-white text-[10px] font-extrabold">INACTIVE</span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-700 text-white text-[0.6875rem] font-extrabold">INACTIVE</span>
               )}
               {insights?.isBirthday && (
-                <span className="px-2.5 py-0.5 rounded-full bg-pink-500 text-white text-[10px] font-extrabold animate-pulse">
+                <span className="px-2.5 py-0.5 rounded-full bg-pink-500 text-white text-[0.6875rem] font-extrabold animate-pulse">
                   🎂 Aaj Birthday!
                 </span>
               )}
@@ -318,7 +318,7 @@ export default function CustomerDetailPage() {
             {/* Credit limit bar */}
             {insights?.creditPct !== null && insights?.creditPct !== undefined && (
               <div className="mt-3 max-w-sm">
-                <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider text-white/70 mb-1">
+                <div className="flex items-center justify-between text-[0.6875rem] font-extrabold uppercase tracking-wider text-white/70 mb-1">
                   <span>Credit Limit Used</span>
                   <span className={insights.creditPct > 90 ? 'text-rose-300' : insights.creditPct > 60 ? 'text-amber-300' : 'text-emerald-300'}>
                     {formatPKR(customer.balance)} / {formatPKR(customer.creditLimit)}
@@ -507,7 +507,7 @@ export default function CustomerDetailPage() {
                           <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold truncate">
                             {l.note || l.reference || '—'}
                           </div>
-                          <div className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-0.5">
+                          <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold mt-0.5">
                             {formatRelative(l.createdAt)}
                           </div>
                         </div>
@@ -515,7 +515,7 @@ export default function CustomerDetailPage() {
                           <div className={`font-extrabold text-sm tabular-nums ${isCredit ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
                             {isCredit ? '+' : ''}{formatPKR(l.amount)}
                           </div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold tabular-nums">
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold tabular-nums">
                             Bal: {formatPKR(l.balanceAfter)}
                           </div>
                         </div>
@@ -572,18 +572,18 @@ export default function CustomerDetailPage() {
               <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                 {customer.cnic && (
                   <div>
-                    <dt className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">CNIC</dt>
+                    <dt className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">CNIC</dt>
                     <dd className="font-mono font-extrabold text-slate-900 dark:text-white mt-0.5">{customer.cnic}</dd>
                   </div>
                 )}
                 {customer.gender && (
                   <div>
-                    <dt className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">Gender</dt>
+                    <dt className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">Gender</dt>
                     <dd className="font-extrabold text-slate-900 dark:text-white mt-0.5 capitalize">{customer.gender.toLowerCase()}</dd>
                   </div>
                 )}
                 <div>
-                  <dt className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">Customer Since</dt>
+                  <dt className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">Customer Since</dt>
                   <dd className="font-extrabold text-slate-900 dark:text-white mt-0.5">{formatDate(customer.createdAt)}</dd>
                 </div>
               </dl>
@@ -659,7 +659,7 @@ function DeleteConfirmModal({ customer, loading, onClose, onConfirm }: any) {
               : 'Ye action undo nahi ho sakta. Sales history mehfooz rahegi.'}
           </p>
           {customer.stats?.totalSales > 0 && (
-            <div className="mt-2 text-[11px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-lg px-2.5 py-1.5 inline-block">
+            <div className="mt-2 text-[0.6875rem] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-lg px-2.5 py-1.5 inline-block">
               {customer.stats.totalSales} sales ka record hai — delete ki jagah "Inactive" karna behtar hai
             </div>
           )}
@@ -743,7 +743,7 @@ function TipRow({ children }: { children: React.ReactNode }) {
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[9px]">
+    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[0.625rem]">
       {children}
     </kbd>
   );
@@ -764,9 +764,9 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold truncate">{sub}</div>}
         </div>
       </div>
     </div>

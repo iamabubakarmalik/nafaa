@@ -178,7 +178,7 @@ export default function RestaurantDashboardPage() {
               <div key={status} className="rounded-2xl bg-slate-50 dark:bg-neutral-800/50 p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <div className={'h-3 w-3 rounded-full ' + cfg.bg} />
-                  <span className={'text-[10px] uppercase font-extrabold ' + cfg.color}>{cfg.label}</span>
+                  <span className={'text-[0.6875rem] uppercase font-extrabold ' + cfg.color}>{cfg.label}</span>
                 </div>
                 <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{count}</div>
                 <div className="mt-1 h-1.5 rounded-full bg-slate-200 dark:bg-neutral-700 overflow-hidden">
@@ -301,7 +301,7 @@ export default function RestaurantDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm text-slate-900 dark:text-white">{order.orderNumber}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + statusCfg.color}>
+                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + statusCfg.color}>
                           {statusCfg.label}
                         </span>
                       </div>
@@ -382,7 +382,7 @@ export default function RestaurantDashboardPage() {
 
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Avg Prep Time</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Avg Prep Time</div>
               <div className="mt-1 text-3xl font-extrabold tabular-nums">
                 {kitchenPerf.avgPrepMinutes?.toFixed(1) || '0'}
                 <span className="text-sm font-bold ml-1 text-white/70">min</span>
@@ -390,7 +390,7 @@ export default function RestaurantDashboardPage() {
               <div className="text-xs text-white/60 font-semibold mt-1">Cooking se ready tak</div>
             </div>
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Avg Serve Time</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Avg Serve Time</div>
               <div className="mt-1 text-3xl font-extrabold tabular-nums">
                 {kitchenPerf.avgServeMinutes?.toFixed(1) || '0'}
                 <span className="text-sm font-bold ml-1 text-white/70">min</span>
@@ -398,7 +398,7 @@ export default function RestaurantDashboardPage() {
               <div className="text-xs text-white/60 font-semibold mt-1">Ready se serve tak</div>
             </div>
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Completed Today</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Completed Today</div>
               <div className="mt-1 text-3xl font-extrabold tabular-nums">
                 {kitchenPerf.totalCompleted || 0}
               </div>

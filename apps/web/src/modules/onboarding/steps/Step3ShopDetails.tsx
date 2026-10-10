@@ -70,7 +70,7 @@ export function Step3ShopDetails({ data, onChange, options }: Props) {
             { key: 'closeTime', label: 'Close' },
           ].map((f) => (
             <div key={f.key}>
-              <div className="text-[10px] font-black text-slate-500 uppercase mb-1 tracking-wider">
+              <div className="text-[0.6875rem] font-black text-slate-500 uppercase mb-1 tracking-wider">
                 {f.label}
               </div>
               <div className="flex items-center gap-2 rounded-2xl border-2 border-slate-200 px-4 h-12 focus-within:border-violet-500 transition">
@@ -105,7 +105,7 @@ export function Step3ShopDetails({ data, onChange, options }: Props) {
                 }`}
               >
                 <span>{d.short}</span>
-                <span className={`text-[9px] opacity-70 mt-0.5 ${active ? 'text-white' : ''}`}>
+                <span className={`text-[0.625rem] opacity-70 mt-0.5 ${active ? 'text-white' : ''}`}>
                   {d.urdu}
                 </span>
               </button>

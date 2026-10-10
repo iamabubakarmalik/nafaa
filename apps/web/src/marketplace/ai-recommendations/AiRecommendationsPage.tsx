@@ -177,7 +177,7 @@ export default function AiRecommendationsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-slate-900 truncate">{rec.fullName}</div>
-                    <div className="text-[10px] text-slate-500 font-bold">Recommended for them</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">Recommended for them</div>
                   </div>
                 </div>
 
@@ -195,11 +195,11 @@ export default function AiRecommendationsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-black text-slate-900 truncate">{s.productName}</div>
-                        <div className="text-[10px] text-slate-500 font-bold">{s.reason}</div>
+                        <div className="text-[0.6875rem] text-slate-500 font-bold">{s.reason}</div>
                       </div>
                       <div className="text-right">
                         <div className="text-xs font-black text-emerald-700 tabular-nums">Rs {formatPKR(s.price)}</div>
-                        <div className="text-[9px] text-purple-600 font-black">Match: {(s.score * 100).toFixed(0)}%</div>
+                        <div className="text-[0.625rem] text-purple-600 font-black">Match: {(s.score * 100).toFixed(0)}%</div>
                       </div>
                     </div>
                   ))}
@@ -234,10 +234,10 @@ function InsightCard({ insight }: any) {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap mb-1">
-              <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${meta.bgColor} ${meta.textColor}`}>
+              <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${meta.bgColor} ${meta.textColor}`}>
                 {insight.type}
               </span>
-              <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+              <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${
                 insight.impact === 'HIGH' ? 'bg-red-100 text-red-700' :
                 insight.impact === 'MEDIUM' ? 'bg-amber-100 text-amber-700' :
                 'bg-slate-100 text-slate-700'
@@ -303,9 +303,9 @@ function DemandForecastRow({ forecast: f }: { forecast: DemandForecast }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-black text-slate-900 truncate">{f.productName}</span>
-          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${meta.bg} ${meta.color}`}>{meta.label}</span>
+          <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${meta.bg} ${meta.color}`}>{meta.label}</span>
         </div>
-        <div className="text-[10px] text-slate-500 font-bold mt-0.5">
+        <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">
           Current stock: <span className="text-slate-900">{f.currentStock}</span> · Avg daily: {f.avgDailySales.toFixed(1)}
           {f.daysUntilStockout !== undefined && f.daysUntilStockout > 0 && (
             <> · Days until stockout: <span className="text-rose-700 font-black">{f.daysUntilStockout}</span></>
@@ -314,13 +314,13 @@ function DemandForecastRow({ forecast: f }: { forecast: DemandForecast }) {
       </div>
 
       <div className="text-right shrink-0">
-        <div className="text-[9px] font-black text-slate-500 uppercase">7d / 30d</div>
+        <div className="text-[0.625rem] font-black text-slate-500 uppercase">7d / 30d</div>
         <div className="text-sm font-black text-slate-900 tabular-nums">{f.forecastNext7Days} / {f.forecastNext30Days}</div>
       </div>
 
       {f.recommendedReorderQty > 0 && (
         <div className="text-right shrink-0 pl-3 border-l border-slate-200">
-          <div className="text-[9px] font-black text-emerald-700 uppercase">Reorder</div>
+          <div className="text-[0.625rem] font-black text-emerald-700 uppercase">Reorder</div>
           <div className="text-lg font-black text-emerald-700 tabular-nums">{f.recommendedReorderQty}</div>
         </div>
       )}
@@ -355,22 +355,22 @@ function PriceOptimizationRow({ optimization: p, onApply }: { optimization: Pric
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-black text-slate-900 truncate">{p.productName}</span>
-          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${cm.bg} ${cm.color}`}>
+          <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${cm.bg} ${cm.color}`}>
             {p.confidence} confidence
           </span>
         </div>
-        <div className="text-[10px] text-slate-500 font-bold mt-0.5 line-clamp-1">{p.reasoning}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5 line-clamp-1">{p.reasoning}</div>
         {p.expectedRevenueLift !== 0 && (
-          <div className={`text-[10px] font-black mt-0.5 ${p.expectedRevenueLift > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+          <div className={`text-[0.6875rem] font-black mt-0.5 ${p.expectedRevenueLift > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
             Expected impact: {p.expectedRevenueLift > 0 ? '+' : ''}{p.expectedRevenueLift.toFixed(1)}% revenue
           </div>
         )}
       </div>
 
       <div className="text-right shrink-0">
-        <div className="text-[10px] font-black text-slate-500 line-through">Rs {formatPKR(p.currentPrice)}</div>
+        <div className="text-[0.6875rem] font-black text-slate-500 line-through">Rs {formatPKR(p.currentPrice)}</div>
         <div className="text-lg font-black text-amber-700 tabular-nums">Rs {formatPKR(p.suggestedPrice)}</div>
-        <div className={`text-[10px] font-black inline-flex items-center gap-0.5 ${isIncrease ? 'text-emerald-700' : 'text-rose-700'}`}>
+        <div className={`text-[0.6875rem] font-black inline-flex items-center gap-0.5 ${isIncrease ? 'text-emerald-700' : 'text-rose-700'}`}>
           {isIncrease ? <ArrowUp className="h-2.5 w-2.5" /> : <ArrowDown className="h-2.5 w-2.5" />}
           {Math.abs(priceChange).toFixed(1)}%
         </div>

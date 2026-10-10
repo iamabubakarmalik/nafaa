@@ -195,7 +195,7 @@ function TournamentCard({ tournament: t, onEdit, onDelete, onRegister, onComplet
           </div>
         )}
         <div className="absolute top-2 left-2 flex gap-1.5">
-          <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${statusColors[t.status]}`}>
+          <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${statusColors[t.status]}`}>
             {t.status}
           </span>
         </div>
@@ -212,25 +212,25 @@ function TournamentCard({ tournament: t, onEdit, onDelete, onRegister, onComplet
 
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 text-center">
-            <div className="text-[9px] uppercase font-extrabold text-amber-700">Entry</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Entry</div>
             <div className="text-sm font-extrabold text-amber-900 tabular-nums">{formatPKR(t.entryFee)}</div>
           </div>
           <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-center">
-            <div className="text-[9px] uppercase font-extrabold text-emerald-700">Prize</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Prize</div>
             <div className="text-sm font-extrabold text-emerald-900 tabular-nums">{formatPKR(t.prizePool)}</div>
           </div>
         </div>
 
-        <div className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+        <div className="text-[0.6875rem] font-bold text-slate-500 flex items-center gap-1">
           <Calendar className="h-3 w-3" />
           {new Date(t.scheduledDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
         </div>
 
         {t.status === 'COMPLETED' && t.winnerName && (
           <div className="rounded-lg bg-amber-100 border-2 border-amber-300 p-2">
-            <div className="text-[9px] uppercase font-extrabold text-amber-700">🏆 Winner</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">🏆 Winner</div>
             <div className="text-sm font-extrabold text-amber-900">{t.winnerName}</div>
-            {t.runnerUpName && <div className="text-[10px] font-bold text-amber-700">🥈 {t.runnerUpName}</div>}
+            {t.runnerUpName && <div className="text-[0.6875rem] font-bold text-amber-700">🥈 {t.runnerUpName}</div>}
           </div>
         )}
 
@@ -469,7 +469,7 @@ function CompleteTournamentModal({ tournament, onClose, onCompleted }: any) {
             <input autoFocus value={winnerName} onChange={(e) => setWinnerName(e.target.value)}
               placeholder="Winner's name / team"
               className="h-12 w-full rounded-xl border-2 border-amber-300 bg-amber-50 px-3 text-base font-extrabold focus:outline-none focus:border-amber-500" />
-            <div className="text-[10px] text-amber-700 font-bold mt-1">
+            <div className="text-[0.6875rem] text-amber-700 font-bold mt-1">
               Prize: {formatPKR(tournament.firstPrize)}
             </div>
           </div>
@@ -504,7 +504,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
       className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-rose-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

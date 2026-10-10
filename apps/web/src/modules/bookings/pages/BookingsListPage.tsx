@@ -162,7 +162,7 @@ export default function BookingsListPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
             <div className="text-xs font-bold text-slate-900">{printDate}</div>
           </div>
         </div>
@@ -175,7 +175,7 @@ export default function BookingsListPage() {
 
         <div className="relative flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Sparkles className="h-3.5 w-3.5 text-amber-300" /> Advance & Booking
               {shopName && (
                 <>
@@ -235,7 +235,7 @@ export default function BookingsListPage() {
         </div>
 
         {/* Keyboard hints */}
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>N</Kbd><span className="text-white/60">Nayi booking</span>
@@ -262,7 +262,7 @@ export default function BookingsListPage() {
                     <Link
                       key={b.id}
                       to={`/bookings/${b.id}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[11px] font-extrabold text-amber-900 dark:text-amber-200 transition"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200 transition"
                     >
                       {b.bookingNumber}
                       <span className="text-amber-600 dark:text-amber-400">· {days === 0 ? 'Aaj' : `${days}d`}</span>
@@ -414,11 +414,11 @@ export default function BookingsListPage() {
                       <span className="font-extrabold text-slate-900 dark:text-white font-mono text-sm">
                         {booking.bookingNumber}
                       </span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${cfg.bg} ${cfg.darkBg}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold border ${cfg.bg} ${cfg.darkBg}`}>
                         {cfg.label}
                       </span>
                       {daysUntilPickup !== null && daysUntilPickup <= 3 && daysUntilPickup >= 0 && booking.status !== 'CONVERTED' && booking.status !== 'CANCELLED' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40">
                           <Clock className="h-2.5 w-2.5" />
                           {daysUntilPickup === 0 ? 'Aaj' : `${daysUntilPickup}d baaki`}
                         </span>
@@ -454,7 +454,7 @@ export default function BookingsListPage() {
                     </div>
 
                     {booking.notes && (
-                      <div className="mt-1.5 text-[10px] text-slate-500 dark:text-slate-400 italic line-clamp-1">
+                      <div className="mt-1.5 text-[0.6875rem] text-slate-500 dark:text-slate-400 italic line-clamp-1">
                         📝 {booking.notes}
                       </div>
                     )}
@@ -465,20 +465,20 @@ export default function BookingsListPage() {
                     <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">
                       {formatPKR(booking.total)}
                     </div>
-                    <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-extrabold mt-0.5">
+                    <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-extrabold mt-0.5">
                       Paid: {formatPKR(booking.totalPaid)}
                     </div>
                     {booking.balanceDue > 0 && (
-                      <div className="text-[10px] text-amber-700 dark:text-amber-400 font-extrabold">
+                      <div className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold">
                         Due: {formatPKR(booking.balanceDue)}
                       </div>
                     )}
                     {booking.totalRefunded > 0 && (
-                      <div className="text-[10px] text-rose-700 dark:text-rose-400 font-extrabold">
+                      <div className="text-[0.6875rem] text-rose-700 dark:text-rose-400 font-extrabold">
                         Refunded: {formatPKR(booking.totalRefunded)}
                       </div>
                     )}
-                    <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300">
+                    <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300">
                       Details <ChevronRight className="h-3 w-3" />
                     </div>
                   </div>
@@ -539,7 +539,7 @@ function BookingsTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Live misal */}
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
               💍 Misal: Sonar ki dukan
             </div>
             <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -554,10 +554,10 @@ function BookingsTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Statuses explained */}
           <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 p-4 space-y-1.5">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-2">
               📊 6 Statuses ka matlab
             </div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200">
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-slate-200">
               <div>⏳ <strong>Pending</strong> — abhi paisa nahi diya</div>
               <div>💰 <strong>Advance Paid</strong> — token mila, kaam chal raha</div>
               <div>⚡ <strong>Ready</strong> — item tayyar, pickup ka intezaar</div>
@@ -603,7 +603,7 @@ function TipRow({ children }: { children: React.ReactNode }) {
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[9px]">
+    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[0.625rem]">
       {children}
     </kbd>
   );
@@ -630,9 +630,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, isHighlight, onClick }: any)
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -666,7 +666,7 @@ function FilterChip({ active, onClick, label, count, color }: {
       }`}
     >
       {label}
-      <span className={`px-1.5 py-0 rounded text-[10px] tabular-nums ${active ? 'bg-white/60 dark:bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>
+      <span className={`px-1.5 py-0 rounded text-[0.6875rem] tabular-nums ${active ? 'bg-white/60 dark:bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>
         {count}
       </span>
     </button>

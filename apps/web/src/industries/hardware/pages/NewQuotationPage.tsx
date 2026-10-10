@@ -146,7 +146,7 @@ export default function NewQuotationPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 New Quotation
               </div>
@@ -189,7 +189,7 @@ export default function NewQuotationPage() {
                         <button key={c.id} onClick={() => { setForm({ ...form, customerId: c.id, customerName: c.name, customerPhone: c.phone || '', customerEmail: (c as any).email || '' }); setShowCustomerPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
                           <User className="h-3.5 w-3.5 text-slate-400" />
                           <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                          <span className="text-[10px] text-slate-500 font-bold">{c.phone}</span>
+                          <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
                         </button>
                       ))}
                     </div>
@@ -206,7 +206,7 @@ export default function NewQuotationPage() {
 
             {projects.length > 0 && (
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Link to Project</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Link to Project</label>
                 <select value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
                   <option value="">-- No project --</option>
                   {projects.map((p) => <option key={p.id} value={p.id}>{p.projectNumber} • {p.name}</option>)}
@@ -215,7 +215,7 @@ export default function NewQuotationPage() {
             )}
 
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Validity (days)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Validity (days)</label>
               <input type="number" value={form.validityDays} onChange={(e) => setForm({ ...form, validityDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
             </div>
           </section>
@@ -233,9 +233,9 @@ export default function NewQuotationPage() {
               {items.map((item, i) => (
                 <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/30 p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-extrabold text-slate-600">Item #{i + 1}</span>
+                    <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Item #{i + 1}</span>
                     <div className="flex gap-1">
-                      <button onClick={() => setShowProductPicker(i)} className="h-7 px-2 rounded bg-violet-100 text-violet-700 text-[10px] font-extrabold hover:bg-violet-200 inline-flex items-center gap-1">
+                      <button onClick={() => setShowProductPicker(i)} className="h-7 px-2 rounded bg-violet-100 text-violet-700 text-[0.6875rem] font-extrabold hover:bg-violet-200 inline-flex items-center gap-1">
                         <Package className="h-3 w-3" />Pick Product
                       </button>
                       {items.length > 1 && (
@@ -255,21 +255,21 @@ export default function NewQuotationPage() {
 
                   <div className="grid grid-cols-4 gap-2">
                     <div>
-                      <label className="text-[9px] uppercase font-extrabold text-slate-500">Qty</label>
+                      <label className="text-[0.625rem] uppercase font-extrabold text-slate-500">Qty</label>
                       <input type="number" step="0.01" value={item.quantity} onChange={(e) => updateItem(i, { quantity: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-violet-500" />
                     </div>
                     <div>
-                      <label className="text-[9px] uppercase font-extrabold text-slate-500">Unit</label>
+                      <label className="text-[0.625rem] uppercase font-extrabold text-slate-500">Unit</label>
                       <select value={item.unit} onChange={(e) => updateItem(i, { unit: e.target.value })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-1 text-xs font-bold focus:outline-none focus:border-violet-500">
                         {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="text-[9px] uppercase font-extrabold text-emerald-700">Unit Price</label>
+                      <label className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Unit Price</label>
                       <input type="number" step="0.01" value={item.unitPrice} onChange={(e) => updateItem(i, { unitPrice: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                     </div>
                     <div>
-                      <label className="text-[9px] uppercase font-extrabold text-rose-700">Disc %</label>
+                      <label className="text-[0.625rem] uppercase font-extrabold text-rose-700">Disc %</label>
                       <input type="number" step="0.1" value={item.discountPct} onChange={(e) => updateItem(i, { discountPct: Number(e.target.value), discount: 0 })} className="h-10 w-full rounded-lg border-2 border-rose-200 bg-rose-50 dark:bg-rose-950/30 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
                     </div>
                   </div>
@@ -297,7 +297,7 @@ export default function NewQuotationPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-violet-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 mb-3">💰 Summary</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-3">💰 Summary</div>
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Items</span><span className="font-bold tabular-nums">{items.length}</span></div>
                 <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-bold tabular-nums">{formatPKR(subtotal)}</span></div>
@@ -346,7 +346,7 @@ export default function NewQuotationPage() {
                   <Package className="h-4 w-4 text-slate-400" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-extrabold truncate">{p.name}</div>
-                    <div className="text-[10px] text-slate-500 font-bold">Stock: {p.stock}</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">Stock: {p.stock}</div>
                   </div>
                   <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.price)}</div>
                 </button>

@@ -101,7 +101,7 @@ function QrSlot({ slot, draft, onChange }: { slot: (typeof SLOTS)[number]; draft
         <div className="space-y-3">
           <input ref={file} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void fromImage(f); e.target.value = ''; }} />
           <Btn variant="primary" loading={busy} icon={<ImageUp className="h-4 w-4" />} onClick={() => file.current?.click()}>QR ki tasveer lagayein</Btn>
-          <details className="text-[13px]">
+          <details className="text-[0.8125rem]">
             <summary className="cursor-pointer text-slate-500">Ya QR ka text paste karein</summary>
             <div className="mt-2 flex gap-2">
               <input value={paste} onChange={(e) => setPaste(e.target.value)} placeholder="000201010211…" className={cn(inputCls, 'font-mono')} />
@@ -114,14 +114,14 @@ function QrSlot({ slot, draft, onChange }: { slot: (typeof SLOTS)[number]; draft
           {testSvg && (
             <div className="shrink-0 text-center">
               <div className="inline-block rounded-xl border border-slate-200 bg-white p-1.5" dangerouslySetInnerHTML={{ __html: testSvg }} />
-              <div className="mt-1 text-[11.5px] text-slate-500">Test: Rs 10 {draft.amountInQr ? '(raqam ke saath)' : ''}</div>
+              <div className="mt-1 text-[0.71875rem] text-slate-500">Test: Rs 10 {draft.amountInQr ? '(raqam ke saath)' : ''}</div>
             </div>
           )}
           <div className="min-w-0 flex-1 space-y-2">
-            {info && !info.valid && <p className="text-[13px] font-semibold text-rose-600">{info.problems.join(' · ')}</p>}
+            {info && !info.valid && <p className="text-[0.8125rem] font-semibold text-rose-600">{info.problems.join(' · ')}</p>}
             {info?.valid && (
-              <div className="text-[13px] text-slate-700 dark:text-slate-200">
-                <b>{info.merchantName || '—'}</b>{info.city ? `, ${info.city}` : ''} <span className="font-mono text-[11.5px] text-slate-500">{info.scheme}</span>
+              <div className="text-[0.8125rem] text-slate-700 dark:text-slate-200">
+                <b>{info.merchantName || '—'}</b>{info.city ? `, ${info.city}` : ''} <span className="font-mono text-[0.71875rem] text-slate-500">{info.scheme}</span>
               </div>
             )}
             <Field label="POS par naam">
@@ -131,7 +131,7 @@ function QrSlot({ slot, draft, onChange }: { slot: (typeof SLOTS)[number]; draft
               control={<Toggle checked={draft.amountInQr} onChange={(v) => onChange({ ...draft, amountInQr: v })} />} />
             <SettingRow title="Udhaar wale bill par chhapein" help="Baqi raqam ka QR bill par — customer ghar se bhej de"
               control={<Toggle checked={draft.printOnBill} onChange={(v) => onChange({ ...draft, printOnBill: v })} />} />
-            <p className="text-[12.5px] text-slate-500">
+            <p className="text-[0.78125rem] text-slate-500">
               Pehli dafa: apne doosre phone / ghar walon ke app se test QR scan karke Rs 10 bhej kar dekhein ke aap ke khate me aaye.
             </p>
             <Btn size="sm" variant="plain" className="text-rose-600" icon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => onChange(null)}>Hatayein</Btn>

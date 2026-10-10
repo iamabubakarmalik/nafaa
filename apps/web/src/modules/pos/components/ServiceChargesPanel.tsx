@@ -77,7 +77,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
             <div className="text-sm font-extrabold text-amber-900 flex items-center gap-1">
               Service Charges
               {charges.length > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-amber-600 text-white text-[10px] font-extrabold">
+                <span className="px-1.5 py-0.5 rounded-full bg-amber-600 text-white text-[0.6875rem] font-extrabold">
                   {charges.length}
                 </span>
               )}
@@ -93,7 +93,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
       {expanded && (
         <div className="border-t-2 border-amber-200 p-3 space-y-3 bg-white/60">
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
               <Sparkles className="h-2.5 w-2.5 text-amber-500" />
               Quick Add
             </div>
@@ -112,11 +112,11 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                     }`}
                   >
                     <Icon className={`h-3.5 w-3.5 mb-0.5 ${active ? c.icon : 'text-slate-400'}`} />
-                    <div className={`text-[10px] font-extrabold leading-tight ${active ? c.text : 'text-slate-600'}`}>
+                    <div className={`text-[0.6875rem] font-extrabold leading-tight ${active ? c.text : 'text-slate-600'}`}>
                       {p.label}
                     </div>
                     {p.suggested && !active && (
-                      <div className="text-[9px] text-slate-500 font-bold mt-0.5">
+                      <div className="text-[0.625rem] text-slate-500 font-bold mt-0.5">
                         ~{formatPKR(p.suggested)}
                       </div>
                     )}
@@ -128,7 +128,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
 
           {charges.length > 0 && (
             <div className="space-y-1.5">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600">
                 Applied Charges
               </div>
               {charges.map((charge, idx) => {
@@ -145,7 +145,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                       className={`flex-1 h-8 rounded-md bg-white border border-slate-200 px-2 text-xs font-bold ${c.text} focus:outline-none focus:border-amber-500`}
                     />
                     <div className="relative">
-                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-extrabold text-slate-500">Rs</span>
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[0.6875rem] font-extrabold text-slate-500">Rs</span>
                       <input
                         type="number"
                         step="0.01"
@@ -166,14 +166,14 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
               })}
 
               <div className="rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 text-white p-2 flex items-center justify-between shadow-md">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider">Service Total</span>
+                <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider">Service Total</span>
                 <span className="text-base font-extrabold tabular-nums">{formatPKR(total)}</span>
               </div>
             </div>
           )}
 
           <div className="pt-2 border-t border-amber-200">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">
               Custom Charge
             </div>
             <div className="flex gap-1.5">

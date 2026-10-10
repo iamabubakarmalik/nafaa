@@ -248,7 +248,7 @@ export default function BrandsPage() {
 
         <div className="relative flex items-start justify-between flex-wrap gap-4">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Building2 className="h-3.5 w-3.5 text-amber-300" /> Brand Management
               {industryPresets.industryId && (
                 <>
@@ -310,7 +310,7 @@ export default function BrandsPage() {
         </div>
 
         {/* Keyboard hints */}
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>N</Kbd><span className="text-white/60">Naya brand</span>
@@ -339,7 +339,7 @@ export default function BrandsPage() {
                 <h3 className="font-extrabold text-violet-900 dark:text-violet-200 text-sm">
                   {industryPresets.industryEmoji} {industryPresets.industryName} — Ready-Made Brands
                 </h3>
-                <p className="text-[11px] text-violet-700 dark:text-violet-300/80 font-bold">
+                <p className="text-[0.6875rem] text-violet-700 dark:text-violet-300/80 font-bold">
                   Click karo, form khul jayega — bas save karna hai
                 </p>
               </div>
@@ -364,7 +364,7 @@ export default function BrandsPage() {
                 <div className="text-left min-w-0 flex-1">
                   <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{s.name}</div>
                   {s.description && (
-                    <div className="text-[9px] text-slate-500 dark:text-slate-400 font-semibold truncate">{s.description}</div>
+                    <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-semibold truncate">{s.description}</div>
                   )}
                 </div>
                 <Plus className="h-3 w-3 text-violet-500 dark:text-violet-400 shrink-0" />
@@ -390,7 +390,7 @@ export default function BrandsPage() {
               <Star className="h-5 w-5 text-amber-500" />
               <div>
                 <h3 className="font-extrabold text-violet-900 dark:text-violet-200">Top Brands</h3>
-                <p className="text-[11px] text-violet-700 dark:text-violet-300/80 font-bold">Sab se zyada products kis ke hain</p>
+                <p className="text-[0.6875rem] text-violet-700 dark:text-violet-300/80 font-bold">Sab se zyada products kis ke hain</p>
               </div>
             </div>
           </div>
@@ -414,7 +414,7 @@ export default function BrandsPage() {
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold text-slate-900 dark:text-white truncate">{b.name}</div>
                     {b.website && (
-                      <a href={b.website} target="_blank" rel="noreferrer" className="text-[11px] text-violet-700 dark:text-violet-400 font-semibold hover:underline inline-flex items-center gap-1">
+                      <a href={b.website} target="_blank" rel="noreferrer" className="text-[0.6875rem] text-violet-700 dark:text-violet-400 font-semibold hover:underline inline-flex items-center gap-1">
                         <Globe className="h-2.5 w-2.5" />
                         {b.website.replace(/^https?:\/\//, '').slice(0, 30)}
                       </a>
@@ -422,7 +422,7 @@ export default function BrandsPage() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-violet-700 dark:text-violet-400 text-lg tabular-nums">{b._count?.products ?? 0}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">products</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">products</div>
                   </div>
                 </div>
               );
@@ -567,16 +567,16 @@ export default function BrandsPage() {
                   <div className="flex items-center gap-1.5">
                     <h3 className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{b.name}</h3>
                     {!b.isActive && (
-                      <span className="px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-[9px] font-extrabold shrink-0">OFF</span>
+                      <span className="px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-[0.625rem] font-extrabold shrink-0">OFF</span>
                     )}
                   </div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono truncate">/{b.slug}</div>
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 font-mono truncate">/{b.slug}</div>
                   {b.website && (
                     <a
                       href={b.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 mt-1 text-[11px] text-violet-700 dark:text-violet-400 hover:underline font-semibold"
+                      className="inline-flex items-center gap-1 mt-1 text-[0.6875rem] text-violet-700 dark:text-violet-400 hover:underline font-semibold"
                     >
                       <Globe className="h-3 w-3" /> Website <ExternalLink className="h-2.5 w-2.5" />
                     </a>
@@ -585,11 +585,11 @@ export default function BrandsPage() {
               </div>
 
               {b.description && (
-                <p className="mt-2.5 text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">{b.description}</p>
+                <p className="mt-2.5 text-[0.6875rem] text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">{b.description}</p>
               )}
 
               <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 text-[11px] font-extrabold">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 text-[0.6875rem] font-extrabold">
                   <Package className="h-2.5 w-2.5" />
                   {b._count?.products ?? 0} products
                 </span>
@@ -629,13 +629,13 @@ export default function BrandsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-extrabold text-slate-900 dark:text-white truncate">{b.name}</span>
-                    {!b.isActive && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold shrink-0">OFF</span>}
+                    {!b.isActive && <span className="text-[0.625rem] px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-extrabold shrink-0">OFF</span>}
                   </div>
                   <div className="text-xs text-slate-500 dark:text-slate-400 font-mono truncate">/{b.slug}</div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-blue-700 dark:text-blue-400 tabular-nums">{b._count?.products ?? 0}</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">products</div>
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">products</div>
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <button onClick={() => openEdit(b)} className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-violet-100 dark:hover:bg-violet-500/20 hover:text-violet-700 dark:hover:text-violet-300 flex items-center justify-center transition">
@@ -692,7 +692,7 @@ export default function BrandsPage() {
                 <span className="text-slate-300 dark:text-slate-600">•</span>
                 <button onClick={() => setSelectedPresets(new Set())} className="text-xs font-extrabold text-slate-600 dark:text-slate-400 hover:underline">Kuch nahi</button>
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Jo pehle se hain, woh chhupe hain</div>
+              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Jo pehle se hain, woh chhupe hain</div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-5">
@@ -715,10 +715,10 @@ export default function BrandsPage() {
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">{p.name}</div>
                         {p.description && (
-                          <div className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold line-clamp-2">{p.description}</div>
+                          <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold line-clamp-2">{p.description}</div>
                         )}
                         {p.website && (
-                          <div className="text-[9px] text-violet-700 dark:text-violet-400 font-mono truncate mt-0.5">
+                          <div className="text-[0.625rem] text-violet-700 dark:text-violet-400 font-mono truncate mt-0.5">
                             <Globe className="h-2 w-2 inline mr-0.5" />
                             {p.website.replace(/^https?:\/\//, '').slice(0, 30)}
                           </div>
@@ -818,7 +818,7 @@ export default function BrandsPage() {
                   </div>
                   <div>
                     <div className="text-sm font-extrabold text-slate-900 dark:text-white">{form.isActive ? 'Active' : 'Inactive'}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Product forms me dikhega</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Product forms me dikhega</div>
                   </div>
                 </div>
                 <input
@@ -948,9 +948,9 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm transition-all">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

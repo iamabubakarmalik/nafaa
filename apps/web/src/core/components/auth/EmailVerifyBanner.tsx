@@ -55,7 +55,7 @@ export function EmailVerifyBanner() {
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
               <AlertTriangle className="h-3.5 w-3.5 text-amber-700" />
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800">
+              <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-amber-800">
                 Action Required
               </span>
             </div>

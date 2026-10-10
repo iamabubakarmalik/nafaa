@@ -205,7 +205,7 @@ export default function StaffListPage() {
                     <div className="text-xs font-bold text-violet-700 mt-0.5 truncate">
                       {s.designation}
                     </div>
-                    <div className="text-[10px] text-slate-500 font-mono mt-1">
+                    <div className="text-[0.6875rem] text-slate-500 font-mono mt-1">
                       {s.staffNumber}
                     </div>
                   </div>
@@ -236,21 +236,21 @@ export default function StaffListPage() {
 
                 <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
                   <div>
-                    <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                    <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">
                       {salaryTypeLabels[s.salaryType]}
                     </div>
                     <div className="text-lg font-extrabold text-emerald-700 mt-0.5">
                       {formatPKR(s.baseSalary)}
                     </div>
                   </div>
-                  <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${statusConfig[s.status].bg}`}>
+                  <span className={`px-2 py-1 rounded-lg text-[0.6875rem] font-bold border ${statusConfig[s.status].bg}`}>
                     {statusConfig[s.status].label}
                   </span>
                 </div>
               </div>
 
               <div className="px-5 py-2.5 bg-gradient-to-r from-violet-50 to-pink-50 border-t border-slate-100 flex items-center justify-between">
-                <div className="text-[10px] font-bold text-slate-500">
+                <div className="text-[0.6875rem] font-bold text-slate-500">
                   {s._count?.attendances || 0} attendance · {s._count?.salaryPayments || 0} payslips
                 </div>
                 <ArrowUpRight className="h-4 w-4 text-violet-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -271,7 +271,7 @@ function StatCard({ label, value, icon: Icon, color, bg }: { label: string; valu
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900" style={{ color }}>{value}</div>
         </div>
       </div>

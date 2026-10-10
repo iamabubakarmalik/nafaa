@@ -485,7 +485,7 @@ export default function GamingPosPage() {
                 </div>
                 {lastSale.codesRevealed.map((c, i) => (
                   <div key={i} className="rounded-xl bg-white border-2 border-violet-300 p-3">
-                    <div className="text-[10px] uppercase font-extrabold text-violet-600 mb-1">{c.label}</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-violet-600 mb-1">{c.label}</div>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 font-mono text-lg font-extrabold text-slate-900 tracking-wider">{c.code}</div>
                       <button onClick={() => { navigator.clipboard.writeText(c.code); toast.success('Copied'); }}
@@ -495,7 +495,7 @@ export default function GamingPosPage() {
                     </div>
                     {c.pin && (
                       <div className="mt-2 pt-2 border-t border-violet-200 flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-extrabold text-violet-600">PIN</span>
+                        <span className="text-[0.6875rem] uppercase font-extrabold text-violet-600">PIN</span>
                         <span className="font-mono font-extrabold text-slate-900">{c.pin}</span>
                         <button onClick={() => { navigator.clipboard.writeText(c.pin!); toast.success('PIN copied'); }}
                           className="ml-auto h-7 w-7 rounded-lg bg-violet-100 hover:bg-violet-200 text-violet-700 flex items-center justify-center">
@@ -618,7 +618,7 @@ export default function GamingPosPage() {
                       </div>
                     )}
                   </div>
-                  <p className="text-[11px] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                  <p className="text-[0.6875rem] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
                     <Store className="h-3 w-3 shrink-0" />
                     <span className="truncate">{tenant?.name || 'Gaming Shop'}</span>
                   </p>
@@ -639,7 +639,7 @@ export default function GamingPosPage() {
                   className="lg:hidden relative h-10 w-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center transition">
                   <ShoppingCart className="h-5 w-5" />
                   {itemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">
                       {itemCount}
                     </span>
                   )}
@@ -676,7 +676,7 @@ export default function GamingPosPage() {
               <button onClick={() => setScannerOpen(true)}
                 className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
                 <Camera className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="text-[9px] sm:text-[10px] font-extrabold uppercase">Scan</span>
+                <span className="text-[0.625rem] sm:text-[0.6875rem] font-extrabold uppercase">Scan</span>
               </button>
             </div>
 
@@ -798,12 +798,12 @@ export default function GamingPosPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[11px] font-extrabold flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[0.6875rem] font-extrabold flex items-center justify-center">
                   {itemCount}
                 </span>
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
                 <div className="text-lg font-extrabold tabular-nums leading-none">{hidePrices ? '••••' : formatPKR(total)}</div>
               </div>
             </div>
@@ -828,9 +828,9 @@ function ViewTab({ active, onClick, icon: Icon, label, count, color, shortcut, h
       <Icon className="h-4 w-4" />
       <span>{label}</span>
       {count > 0 && (
-        <span className={`px-1.5 rounded-md text-[10px] ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>{count}</span>
+        <span className={`px-1.5 rounded-md text-[0.6875rem] ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>{count}</span>
       )}
-      <span className={`hidden lg:inline text-[9px] font-mono px-1 rounded ${active ? 'bg-white/20' : 'bg-slate-200 text-slate-500'}`}>
+      <span className={`hidden lg:inline text-[0.625rem] font-mono px-1 rounded ${active ? 'bg-white/20' : 'bg-slate-200 text-slate-500'}`}>
         {shortcut}
       </span>
     </button>
@@ -874,11 +874,11 @@ function ProductTile({ product: p, profile, cart, hidePrices, onClick }: any) {
           </div>
         )}
         {out && <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center"><span className="px-3 py-1 rounded-xl bg-rose-600 text-white text-xs sm:text-sm font-extrabold shadow-lg">OUT</span></div>}
-        {low && !out && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-extrabold shadow-lg animate-pulse">LOW</div>}
-        {profile?.isPreOrder && <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow-lg inline-flex items-center gap-0.5"><Rocket className="h-2 w-2" /> PRE-ORDER</div>}
+        {low && !out && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg animate-pulse">LOW</div>}
+        {profile?.isPreOrder && <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold shadow-lg inline-flex items-center gap-0.5"><Rocket className="h-2 w-2" /> PRE-ORDER</div>}
         {p.isFeatured && !profile?.isPreOrder && !out && <div className="absolute top-1.5 left-1.5 h-7 w-7 rounded-full bg-amber-500 flex items-center justify-center shadow-lg"><Star className="h-3.5 w-3.5 fill-white text-white" /></div>}
         {profile?.isRentable && !out && (
-          <div className="absolute bottom-1.5 left-1.5 h-6 px-1.5 rounded-md bg-violet-600 flex items-center gap-1 text-white text-[9px] font-extrabold shadow-lg">
+          <div className="absolute bottom-1.5 left-1.5 h-6 px-1.5 rounded-md bg-violet-600 flex items-center gap-1 text-white text-[0.625rem] font-extrabold shadow-lg">
             <Timer className="h-2.5 w-2.5" /> RENT
           </div>
         )}
@@ -886,7 +886,7 @@ function ProductTile({ product: p, profile, cart, hidePrices, onClick }: any) {
       <div className="p-2 sm:p-3">
         <div className="font-extrabold text-slate-900 text-sm sm:text-base line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem]">{p.name}</div>
         {profile?.platform && (
-          <div className="text-[9px] font-extrabold uppercase text-violet-700 mt-0.5">{profile.platform.replace(/_/g, ' ')}</div>
+          <div className="text-[0.625rem] font-extrabold uppercase text-violet-700 mt-0.5">{profile.platform.replace(/_/g, ' ')}</div>
         )}
         <div className="mt-1.5 sm:mt-2 flex items-end justify-between gap-1">
           <div className="text-lg sm:text-2xl font-extrabold text-emerald-700 leading-none tabular-nums">{hidePrices ? '•••' : formatPKR(p.price)}</div>
@@ -913,7 +913,7 @@ function TopupTile({ row, hidePrices, onClick }: any) {
       className="group relative text-left rounded-2xl border-4 border-amber-200 bg-gradient-to-br from-white via-amber-50 to-white overflow-hidden transition-all active:scale-95 hover:border-amber-400 hover:shadow-xl hover:-translate-y-1">
       <div className="aspect-square bg-gradient-to-br from-amber-100 to-orange-100 overflow-hidden relative flex items-center justify-center">
         <div className="text-5xl sm:text-6xl">{icon}</div>
-        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-amber-600 text-white text-[9px] font-extrabold uppercase tracking-wider shadow-lg">
+        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-amber-600 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shadow-lg">
           Digital
         </div>
         <div className="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded-md bg-slate-900 text-white text-xs font-extrabold shadow-lg">
@@ -924,13 +924,13 @@ function TopupTile({ row, hidePrices, onClick }: any) {
         <div className="font-extrabold text-slate-900 text-sm sm:text-base line-clamp-1 leading-tight">
           {row.provider.replace(/_/g, ' ')}
         </div>
-        <div className="text-[10px] font-bold text-slate-500 truncate">{row.topupType}</div>
+        <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{row.topupType}</div>
         <div className="mt-1.5 flex items-end justify-between gap-1">
           <div>
             <div className="text-lg sm:text-2xl font-extrabold text-emerald-700 leading-none tabular-nums">
               {hidePrices ? '•••' : formatPKR(row.sellingPrice)}
             </div>
-            <div className="text-[10px] text-slate-500 font-bold mt-0.5">
+            <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">
               ${row.denomination}
             </div>
           </div>
@@ -972,7 +972,7 @@ function CartPanel({
       <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[10px] sm:text-[11px] uppercase font-extrabold text-white/70 tracking-wider">
+            <div className="text-[0.6875rem] sm:text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
               Cart • {itemCount} lines • {totalQty} qty
             </div>
             <div className="text-3xl sm:text-4xl font-extrabold tabular-nums leading-none mt-1">
@@ -1047,15 +1047,15 @@ function CartPanel({
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <div className="font-extrabold text-sm sm:text-base text-slate-900 leading-tight line-clamp-2">{l.name}</div>
                     {l.type === 'topup' && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-600 text-white text-[9px] font-extrabold uppercase tracking-wider shrink-0">Digital</span>
+                      <span className="px-1.5 py-0.5 rounded bg-amber-600 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Digital</span>
                     )}
                     {l.isPreOrder && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase tracking-wider shrink-0">Pre-order</span>
+                      <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Pre-order</span>
                     )}
                   </div>
-                  {l.platform && <div className="text-[10px] font-bold text-slate-500 mt-0.5">{l.platform.replace(/_/g, ' ')}</div>}
+                  {l.platform && <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">{l.platform.replace(/_/g, ' ')}</div>}
                   <div className="text-xs sm:text-sm font-bold text-violet-700 mt-0.5">{formatPKR(l.unitPrice)}</div>
-                  {l.note && <div className="text-[10px] sm:text-[11px] font-semibold text-amber-700 mt-1 bg-amber-50 px-2 py-1 rounded-lg">{l.note}</div>}
+                  {l.note && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-semibold text-amber-700 mt-1 bg-amber-50 px-2 py-1 rounded-lg">{l.note}</div>}
                 </div>
                 <button onClick={() => onRemove(l.id)}
                   className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 transition">
@@ -1091,14 +1091,14 @@ function CartPanel({
       {cart.length > 0 && (
         <div className="shrink-0 p-2.5 sm:p-3 border-t-4 border-slate-100 bg-white space-y-2">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-[11px] sm:text-xs font-extrabold text-slate-600 shrink-0">
+            <div className="flex items-center gap-1 text-[0.6875rem] sm:text-xs font-extrabold text-slate-600 shrink-0">
               <Percent className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600" />
               <span className="hidden sm:inline">Discount:</span>
             </div>
             <div className="flex gap-1 flex-1">
               {[0, 5, 10, 15, 20].map((d) => (
                 <button key={d} onClick={() => setDiscountPct(d)}
-                  className={`flex-1 h-9 sm:h-10 rounded-xl text-[11px] sm:text-xs font-extrabold transition ${
+                  className={`flex-1 h-9 sm:h-10 rounded-xl text-[0.6875rem] sm:text-xs font-extrabold transition ${
                     discountPct === d ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
                   {d === 0 ? 'None' : `${d}%`}
                 </button>
@@ -1109,7 +1109,7 @@ function CartPanel({
           <button onClick={onCheckout} disabled={!canCheckout}
             className="w-full h-[76px] sm:h-[88px] rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98] bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-5 sm:px-6">
             <div className="text-left">
-              <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
+              <div className="text-[0.6875rem] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
                 Checkout <span className="hidden sm:inline">(F9)</span>
               </div>
               <div className="text-2xl sm:text-3xl tabular-nums leading-none mt-0.5">{formatPKR(total)}</div>

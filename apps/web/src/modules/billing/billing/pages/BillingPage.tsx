@@ -370,7 +370,7 @@ export default function BillingPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <CreditCard className="h-3.5 w-3.5 text-amber-300" />
               Billing & Subscription
             </div>
@@ -424,7 +424,7 @@ export default function BillingPage() {
           </div>
         </div>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>R</Kbd><span className="text-white/60">Refresh</span>
@@ -457,7 +457,7 @@ export default function BillingPage() {
               <Icon className="h-4 w-4" />
               {t.label}
               {t.count !== undefined && (
-                <span className={`px-1.5 rounded-full text-[10px] font-extrabold ${
+                <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold ${
                   active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                 }`}>
                   {t.count}
@@ -484,7 +484,7 @@ export default function BillingPage() {
               <Wrench className="h-6 w-6" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-orange-700 dark:text-orange-300 mb-1">
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-orange-700 dark:text-orange-300 mb-1">
                 Action Required
               </div>
               <h3 className="font-extrabold text-orange-900 dark:text-orange-200 text-lg">
@@ -531,7 +531,7 @@ export default function BillingPage() {
                       <Award className="h-8 w-8 text-white" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
+                      <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
                         Current Subscription
                       </div>
                       <h3 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
@@ -672,7 +672,7 @@ export default function BillingPage() {
                   <Clock className="h-6 w-6" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-1">
+                  <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-1">
                     Upgrade Pending Payment
                   </div>
                   <h3 className="text-xl font-extrabold text-amber-900 dark:text-amber-200">
@@ -808,7 +808,7 @@ export default function BillingPage() {
                   }`}
                 >
                   {opt.l}
-                  <span className={`px-1.5 rounded-full text-[10px] font-extrabold ${
+                  <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold ${
                     invoiceFilter === opt.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'
                   }`}>
                     {opt.count}
@@ -871,7 +871,7 @@ export default function BillingPage() {
                   }`}
                 >
                   {opt.l}
-                  <span className={`px-1.5 rounded-full text-[10px] font-extrabold ${
+                  <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold ${
                     paymentFilter === opt.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'
                   }`}>
                     {opt.count}
@@ -929,7 +929,7 @@ function InvoiceDetailModal({ invoice, onClose, onPrint }: any) {
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/20 blur-2xl pointer-events-none" />
           <div className="relative flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-extrabold border border-white/30 mb-2">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-2.5 py-0.5 text-[0.6875rem] font-extrabold border border-white/30 mb-2">
                 <Icon className="h-3 w-3" />
                 {cfg.label}
               </div>
@@ -952,7 +952,7 @@ function InvoiceDetailModal({ invoice, onClose, onPrint }: any) {
                 ? 'bg-gradient-to-br from-rose-50 to-red-50 dark:from-rose-500/10 dark:to-red-500/10 border-rose-200 dark:border-rose-500/40'
                 : 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-amber-200 dark:border-amber-500/40'
           }`}>
-            <div className={`text-[10px] uppercase tracking-widest font-extrabold ${
+            <div className={`text-[0.6875rem] uppercase tracking-widest font-extrabold ${
               invoice.status === 'PAID' ? 'text-emerald-700 dark:text-emerald-300' :
               invoice.status === 'OVERDUE' ? 'text-rose-700 dark:text-rose-300' : 'text-amber-700 dark:text-amber-300'
             }`}>
@@ -997,7 +997,7 @@ function InvoiceDetailModal({ invoice, onClose, onPrint }: any) {
 
           {invoice.description && (
             <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3">
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-1">📝 Description</div>
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-1">📝 Description</div>
               <p className="text-sm text-slate-700 dark:text-slate-200 font-semibold">{invoice.description}</p>
             </div>
           )}
@@ -1046,7 +1046,7 @@ function PaymentDetailModal({ payment, onClose }: any) {
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/20 blur-2xl pointer-events-none" />
           <div className="relative flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-extrabold border border-white/30 mb-2">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-2.5 py-0.5 text-[0.6875rem] font-extrabold border border-white/30 mb-2">
                 <Icon className="h-3 w-3" />
                 {cfg.label}
               </div>
@@ -1064,7 +1064,7 @@ function PaymentDetailModal({ payment, onClose }: any) {
 
         <div className="p-5 space-y-4">
           <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10 border-2 border-violet-200 dark:border-violet-500/40 p-4 text-center">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300">Amount</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300">Amount</div>
             <div className="text-4xl font-extrabold text-violet-700 dark:text-violet-400 tabular-nums mt-1">
               {formatPKR(payment.amount)}
             </div>
@@ -1081,7 +1081,7 @@ function PaymentDetailModal({ payment, onClose }: any) {
 
           {payment.rejectionReason && (
             <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/40 p-3">
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300 mb-1 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300 mb-1 flex items-center gap-1">
                 <XCircle className="h-3 w-3" /> Rejection Reason
               </div>
               <p className="text-sm text-rose-900 dark:text-rose-200 font-semibold">{payment.rejectionReason}</p>
@@ -1090,7 +1090,7 @@ function PaymentDetailModal({ payment, onClose }: any) {
 
           {payment.notes && (
             <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3">
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-1">📝 Notes</div>
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-1">📝 Notes</div>
               <p className="text-sm text-slate-700 dark:text-slate-200 font-semibold whitespace-pre-wrap">{payment.notes}</p>
             </div>
           )}
@@ -1158,7 +1158,7 @@ function BillingTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Invoice lifecycle */}
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
               <Receipt className="h-3 w-3" /> Invoice Lifecycle
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -1179,7 +1179,7 @@ function BillingTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Payment lifecycle */}
           <div className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/30 bg-violet-50/60 dark:bg-violet-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
               <FileText className="h-3 w-3" /> Payment Lifecycle
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -1256,11 +1256,11 @@ function StatCard({ label, value, sub, icon: Icon, color, isAlert, isText }: any
     }`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className={`mt-1.5 font-extrabold text-slate-900 dark:text-white tabular-nums truncate ${isText ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`}>
             {value}
           </div>
-          {sub && <div className="text-[10px] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1284,10 +1284,10 @@ function InfoBox({ icon: Icon, label, value, color, sub }: any) {
         <div className={`h-7 w-7 rounded-lg ${colors[color]} flex items-center justify-center`}>
           <Icon className="h-3.5 w-3.5" />
         </div>
-        <span className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400">{label}</span>
+        <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400">{label}</span>
       </div>
       <div className="font-extrabold text-slate-900 dark:text-white text-sm">{value}</div>
-      {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -1310,20 +1310,20 @@ function InvoiceRow({ invoice, onView }: { invoice: any; onView: () => void }) {
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-extrabold text-slate-900 dark:text-white font-mono text-sm">{invoice.invoiceNumber}</span>
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${cfg.tone}`}>
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${cfg.tone}`}>
               {cfg.label}
             </span>
             {invoice.status === 'PENDING' && daysUntilDue > 0 && (
-              <span className="text-[10px] text-amber-700 dark:text-amber-400 font-extrabold">⏱️ Due in {daysUntilDue}d</span>
+              <span className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold">⏱️ Due in {daysUntilDue}d</span>
             )}
             {invoice.status === 'OVERDUE' && (
-              <span className="text-[10px] text-rose-700 dark:text-rose-400 font-extrabold">⚠️ {Math.abs(daysUntilDue)}d overdue</span>
+              <span className="text-[0.6875rem] text-rose-700 dark:text-rose-400 font-extrabold">⚠️ {Math.abs(daysUntilDue)}d overdue</span>
             )}
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate font-semibold">
             {invoice.subscription?.plan?.name || invoice.description || 'Subscription'}
           </div>
-          <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-bold">
+          <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-0.5 font-bold">
             {formatDate(invoice.createdAt)}
           </div>
         </div>
@@ -1332,7 +1332,7 @@ function InvoiceRow({ invoice, onView }: { invoice: any; onView: () => void }) {
         <div>
           <div className="font-extrabold text-slate-900 dark:text-white text-lg tabular-nums">{formatPKR(invoice.total)}</div>
           {isPayable && (
-            <div className="text-[10px] text-amber-700 dark:text-amber-400 font-extrabold mt-0.5">
+            <div className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold mt-0.5">
               Due: {formatPKR(invoice.amountDue)}
             </div>
           )}
@@ -1379,7 +1379,7 @@ function PaymentRow({ payment, onView }: { payment: any; onView: () => void }) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(payment.amount)}</span>
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${cfg.tone}`}>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold border ${cfg.tone}`}>
                 <Icon className="h-2.5 w-2.5" />
                 {cfg.label}
               </span>
@@ -1388,17 +1388,17 @@ function PaymentRow({ payment, onView }: { payment: any; onView: () => void }) {
               {providerCfg?.label || payment.provider} • {formatDateTime(payment.createdAt)}
             </div>
             {payment.invoice?.invoiceNumber && (
-              <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-mono font-bold">
+              <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-0.5 font-mono font-bold">
                 Invoice: {payment.invoice.invoiceNumber}
               </div>
             )}
             {payment.transactionId && (
-              <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-mono">
+              <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-0.5 font-mono">
                 TXN: {payment.transactionId}
               </div>
             )}
             {payment.rejectionReason && (
-              <div className="mt-2 rounded-lg bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 px-2 py-1 text-[10px] text-rose-800 dark:text-rose-300 font-bold inline-flex items-center gap-1">
+              <div className="mt-2 rounded-lg bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 px-2 py-1 text-[0.6875rem] text-rose-800 dark:text-rose-300 font-bold inline-flex items-center gap-1">
                 <XCircle className="h-3 w-3" />
                 {payment.rejectionReason}
               </div>

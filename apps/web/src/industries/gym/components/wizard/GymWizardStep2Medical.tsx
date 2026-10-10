@@ -31,7 +31,7 @@ export function GymWizardStep2Medical({ medical, onChange, onToggleAllergy, onTo
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Emergency Contact *</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">In case of emergency during workout</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">In case of emergency during workout</p>
           </div>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -53,7 +53,7 @@ export function GymWizardStep2Medical({ medical, onChange, onToggleAllergy, onTo
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Medical Info</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">For trainer safety planning</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">For trainer safety planning</p>
           </div>
         </div>
         <div>
@@ -91,7 +91,7 @@ export function GymWizardStep2Medical({ medical, onChange, onToggleAllergy, onTo
           <ShieldCheck className="h-5 w-5 text-emerald-600" />
           <div className="flex-1">
             <div className="text-sm font-extrabold text-emerald-900">Doctor's Clearance Obtained</div>
-            <div className="text-[10px] text-emerald-700 font-semibold">Recommended for members over 40 or with medical conditions</div>
+            <div className="text-[0.6875rem] text-emerald-700 font-semibold">Recommended for members over 40 or with medical conditions</div>
           </div>
         </label>
       </section>
@@ -103,7 +103,7 @@ export function GymWizardStep2Medical({ medical, onChange, onToggleAllergy, onTo
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Workout Preferences</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Schedule and diet</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Schedule and diet</p>
           </div>
         </div>
         <div>
@@ -122,7 +122,7 @@ export function GymWizardStep2Medical({ medical, onChange, onToggleAllergy, onTo
                 ].join(' ')}>
                   <div className="text-2xl">{t.emoji}</div>
                   <div className={'text-xs font-extrabold ' + (active ? 'text-violet-800' : 'text-slate-800')}>{t.label}</div>
-                  <div className="text-[9px] text-slate-500 font-semibold">{t.time}</div>
+                  <div className="text-[0.625rem] text-slate-500 font-semibold">{t.time}</div>
                 </button>
               );
             })}

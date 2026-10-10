@@ -999,7 +999,7 @@ export default function ExpensesPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Receipt className="h-3.5 w-3.5 text-amber-300" /> Business Expenses
               {shopName && (<><span className="opacity-40">•</span><span className="text-rose-200">🏪 {shopName}</span></>)}
             </div>
@@ -1044,7 +1044,7 @@ export default function ExpensesPage() {
               <Flame className="h-4 w-4" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">💡 Smart Insight</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">💡 Smart Insight</div>
               <div className="font-extrabold text-sm truncate">
                 Sab se bara kharcha: <span className="text-amber-300">{topCategory.name}</span>
                 <span className="text-white/70 font-bold"> — {formatPKR(topCategory.value)} ({topCategoryPct}%)</span>
@@ -1070,12 +1070,12 @@ export default function ExpensesPage() {
               }`}
             >
               <t.icon className="h-3.5 w-3.5" /> {t.label}
-              <span className={`hidden sm:inline text-[9px] px-1 rounded ${tab === t.key ? 'bg-rose-100' : 'bg-white/15'}`}>{t.kbd}</span>
+              <span className={`hidden sm:inline text-[0.625rem] px-1 rounded ${tab === t.key ? 'bg-rose-100' : 'bg-white/15'}`}>{t.kbd}</span>
             </button>
           ))}
         </div>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>N</Kbd><span className="text-white/60">Naya</span>
@@ -1101,7 +1101,7 @@ export default function ExpensesPage() {
               </div>
               <div>
                 <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Quick Add — 1 Click</h3>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Click karo → sirf amount likho → save</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Click karo → sirf amount likho → save</p>
               </div>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'thin' }}>
@@ -1115,7 +1115,7 @@ export default function ExpensesPage() {
                     <span className="text-lg">{p.icon}</span>
                     <div className="text-left">
                       <div className="text-xs font-extrabold text-slate-800 dark:text-slate-100 whitespace-nowrap group-hover:text-rose-700 dark:group-hover:text-rose-300 transition">{p.title}</div>
-                      <div className="text-[9px] text-slate-400 dark:text-slate-500 font-bold whitespace-nowrap">{p.hint}</div>
+                      <div className="text-[0.625rem] text-slate-400 dark:text-slate-500 font-bold whitespace-nowrap">{p.hint}</div>
                     </div>
                   </div>
                 </button>
@@ -1134,7 +1134,7 @@ export default function ExpensesPage() {
           {/* PERIOD + CUSTOM RANGE */}
           <section className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 space-y-3">
             <div className="flex gap-1.5 flex-wrap items-center">
-              <div className="text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider mr-1">Period:</div>
+              <div className="text-[0.6875rem] font-extrabold uppercase text-slate-500 dark:text-slate-400 tracking-wider mr-1">Period:</div>
               {(['today', 'week', 'month', 'year', 'all'] as PeriodFilter[]).map((p) => (
                 <button
                   key={p}
@@ -1173,32 +1173,32 @@ export default function ExpensesPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-extrabold text-violet-900 dark:text-violet-100">Custom Date Range</h4>
-                    <p className="text-[10px] text-violet-700 dark:text-violet-300 font-bold">Apni marzi ke dates select karo</p>
+                    <p className="text-[0.6875rem] text-violet-700 dark:text-violet-300 font-bold">Apni marzi ke dates select karo</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] uppercase font-extrabold text-violet-700 dark:text-violet-300 tracking-wider mb-1">📅 From</label>
+                    <label className="block text-[0.6875rem] uppercase font-extrabold text-violet-700 dark:text-violet-300 tracking-wider mb-1">📅 From</label>
                     <input type="date" value={customFrom} max={customTo} onChange={(e) => setCustomFrom(e.target.value)}
                       className="h-11 w-full rounded-xl border-2 border-violet-300 dark:border-violet-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition" />
                   </div>
                   <div>
-                    <label className="block text-[10px] uppercase font-extrabold text-violet-700 dark:text-violet-300 tracking-wider mb-1">📅 To</label>
+                    <label className="block text-[0.6875rem] uppercase font-extrabold text-violet-700 dark:text-violet-300 tracking-wider mb-1">📅 To</label>
                     <input type="date" value={customTo} min={customFrom} max={toDateInput(new Date())} onChange={(e) => setCustomTo(e.target.value)}
                       className="h-11 w-full rounded-xl border-2 border-violet-300 dark:border-violet-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition" />
                   </div>
                 </div>
                 <div className="flex gap-1.5 flex-wrap">
                   <button onClick={() => { const s = new Date(); s.setDate(s.getDate() - 15); setCustomFrom(toDateInput(s)); setCustomTo(toDateInput(new Date())); }}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-violet-200 dark:border-violet-500/40 text-[10px] font-extrabold text-violet-700 dark:text-violet-300 hover:border-violet-400 transition">Last 15 Din</button>
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-violet-200 dark:border-violet-500/40 text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-300 hover:border-violet-400 transition">Last 15 Din</button>
                   <button onClick={() => { const now = new Date(); setCustomFrom(toDateInput(new Date(now.getFullYear(), now.getMonth(), 1))); setCustomTo(toDateInput(now)); }}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-violet-200 dark:border-violet-500/40 text-[10px] font-extrabold text-violet-700 dark:text-violet-300 hover:border-violet-400 transition">Ye Mahina (1st se)</button>
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-violet-200 dark:border-violet-500/40 text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-300 hover:border-violet-400 transition">Ye Mahina (1st se)</button>
                   <button onClick={() => { const now = new Date(); const last = new Date(now.getFullYear(), now.getMonth() - 1, 1); const lastEnd = new Date(now.getFullYear(), now.getMonth(), 0); setCustomFrom(toDateInput(last)); setCustomTo(toDateInput(lastEnd)); }}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-violet-200 dark:border-violet-500/40 text-[10px] font-extrabold text-violet-700 dark:text-violet-300 hover:border-violet-400 transition">Pichla Mahina</button>
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-violet-200 dark:border-violet-500/40 text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-300 hover:border-violet-400 transition">Pichla Mahina</button>
                   <button onClick={() => { const now = new Date(); setCustomFrom(toDateInput(new Date(now.getFullYear(), 0, 1))); setCustomTo(toDateInput(now)); }}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-violet-200 dark:border-violet-500/40 text-[10px] font-extrabold text-violet-700 dark:text-violet-300 hover:border-violet-400 transition">Is Saal</button>
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-violet-200 dark:border-violet-500/40 text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-300 hover:border-violet-400 transition">Is Saal</button>
                 </div>
-                <div className="text-[11px] font-bold text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-500/20 rounded-lg px-3 py-2 inline-flex items-center gap-2">
+                <div className="text-[0.6875rem] font-bold text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-500/20 rounded-lg px-3 py-2 inline-flex items-center gap-2">
                   <Calendar className="h-3.5 w-3.5" />
                   Showing: <strong>{formatDate(customFrom)}</strong> se <strong>{formatDate(customTo)}</strong>
                   <span className="opacity-70">•</span><strong>{filteredByPeriod.length}</strong> entries
@@ -1214,7 +1214,7 @@ export default function ExpensesPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Category Breakdown</h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Kis pe zyada kharcha</p>
+                    <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Kis pe zyada kharcha</p>
                   </div>
                   <PieIcon className="h-5 w-5 text-rose-500" />
                 </div>
@@ -1251,7 +1251,7 @@ export default function ExpensesPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-base font-extrabold text-slate-900 dark:text-white">6-Month Trend</h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Monthly expense pattern</p>
+                    <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Monthly expense pattern</p>
                   </div>
                   <BarChart3 className="h-5 w-5 text-rose-500" />
                 </div>
@@ -1298,7 +1298,7 @@ export default function ExpensesPage() {
               <div className="flex gap-1.5 flex-wrap items-center">
                 <button
                   onClick={() => setCategoryFilter('all')}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                  className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition ${
                     categoryFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
@@ -1312,21 +1312,21 @@ export default function ExpensesPage() {
                     <button
                       key={c.id}
                       onClick={() => setCategoryFilter(active ? 'all' : c.id)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition inline-flex items-center gap-1 ${
+                      className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1 ${
                         active ? 'text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                       }`}
                       style={active ? { backgroundColor: c.color } : {}}
                     >
                       {c.icon && <span>{c.icon}</span>}
                       {c.name}
-                      <span className={`px-1 rounded-full text-[9px] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700'}`}>{count}</span>
+                      <span className={`px-1 rounded-full text-[0.625rem] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700'}`}>{count}</span>
                     </button>
                   );
                 })}
                 {filteredByPeriod.some((e) => !catOf(e)) && (
                   <button
                     onClick={() => setCategoryFilter(categoryFilter === 'none' ? 'all' : 'none')}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                    className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition ${
                       categoryFilter === 'none' ? 'bg-slate-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}
                   >
@@ -1372,10 +1372,10 @@ export default function ExpensesPage() {
                   {grouped.map((group) => (
                     <div key={group.label}>
                       <div className="sticky top-0 z-10 px-5 py-2 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5">
+                        <span className="text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5">
                           <Calendar className="h-3 w-3" /> {group.label}
                         </span>
-                        <span className="text-[11px] font-extrabold text-rose-600 dark:text-rose-400 tabular-nums">−{formatPKR(group.total)}</span>
+                        <span className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 tabular-nums">−{formatPKR(group.total)}</span>
                       </div>
 
                       <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1407,17 +1407,17 @@ export default function ExpensesPage() {
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="font-extrabold text-slate-900 dark:text-white text-sm line-clamp-1">{e.title}</span>
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white" style={{ backgroundColor: color }}>
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold text-white" style={{ backgroundColor: color }}>
                                       {name}
                                     </span>
                                     {e.status === 'PENDING' && (
-                                      <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">PENDING</span>
+                                      <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">PENDING</span>
                                     )}
                                   </div>
                                   <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1 flex items-center gap-2 flex-wrap">
                                     <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{formatDate(e.expenseDate)}</span>
                                     <span className="opacity-50">•</span>
-                                    <span className="font-mono text-[10px]">{e.expenseNumber}</span>
+                                    <span className="font-mono text-[0.6875rem]">{e.expenseNumber}</span>
                                     <span className="opacity-50">•</span>
                                     <span>{paymentLabel(e.paymentMethod)}</span>
                                     <span className="opacity-50">•</span>
@@ -1425,7 +1425,7 @@ export default function ExpensesPage() {
                                     {e.shop?.name && (
                                       <>
                                         <span className="opacity-50">•</span>
-                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-[10px] font-extrabold">
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-[0.6875rem] font-extrabold">
                                           <Store className="h-2.5 w-2.5" /> {e.shop.name}
                                         </span>
                                       </>
@@ -1467,7 +1467,7 @@ export default function ExpensesPage() {
 
                 <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-slate-800 bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-500/10 dark:to-red-500/10 flex items-center justify-between flex-wrap gap-3">
                   <div>
-                    <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400">Grand Total ({periodLabel})</div>
+                    <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400">Grand Total ({periodLabel})</div>
                     <div className="text-2xl sm:text-3xl font-extrabold text-rose-700 dark:text-rose-400 tabular-nums">−{formatPKR(stats.total)}</div>
                   </div>
                   <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold text-right">
@@ -1494,7 +1494,7 @@ export default function ExpensesPage() {
               </div>
               <div>
                 <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Saalaana Analytics</h3>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Har category ka mahina-war kharcha</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Har category ka mahina-war kharcha</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -1536,11 +1536,11 @@ export default function ExpensesPage() {
             <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">📊 Category × Month Matrix</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                   Bijli July me kitni, Aug me kitni — sab ek nazar me. Row pe click = us category ki complete details.
                 </p>
               </div>
-              <span className="text-[10px] font-extrabold px-2 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">
+              <span className="text-[0.6875rem] font-extrabold px-2 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">
                 Year {analyticsYear}
               </span>
             </div>
@@ -1558,11 +1558,11 @@ export default function ExpensesPage() {
                 <table className="w-full text-xs min-w-[900px]">
                   <thead>
                     <tr className="bg-slate-50 dark:bg-slate-800/60">
-                      <th className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Category</th>
+                      <th className="sticky left-0 z-10 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Category</th>
                       {MONTHS_URDU.map((m) => (
-                        <th key={m} className="px-2 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">{m}</th>
+                        <th key={m} className="px-2 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">{m}</th>
                       ))}
-                      <th className="px-3 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400">Total</th>
+                      <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400">Total</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1579,7 +1579,7 @@ export default function ExpensesPage() {
                             </span>
                             <div className="min-w-0">
                               <div className="font-extrabold text-slate-900 dark:text-white truncate max-w-[140px]">{row.name}</div>
-                              <div className="text-[9px] text-slate-400 dark:text-slate-500 font-bold">{row.count} entries</div>
+                              <div className="text-[0.625rem] text-slate-400 dark:text-slate-500 font-bold">{row.count} entries</div>
                             </div>
                           </div>
                         </td>
@@ -1603,7 +1603,7 @@ export default function ExpensesPage() {
                     ))}
                     {/* Month totals row */}
                     <tr className="bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-500/10 dark:to-red-500/10 border-t-2 border-rose-200 dark:border-rose-500/30">
-                      <td className="sticky left-0 z-10 bg-rose-50 dark:bg-slate-900 px-4 py-3 font-extrabold text-rose-800 dark:text-rose-300 text-[11px] uppercase tracking-wider">
+                      <td className="sticky left-0 z-10 bg-rose-50 dark:bg-slate-900 px-4 py-3 font-extrabold text-rose-800 dark:text-rose-300 text-[0.6875rem] uppercase tracking-wider">
                         Month Total
                       </td>
                       {monthTotals.map((v, i) => (
@@ -1623,7 +1623,7 @@ export default function ExpensesPage() {
           <section className="grid lg:grid-cols-2 gap-4">
             <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">💳 Payment Method Breakdown</h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-4">Filtered period me kis method se kitna gaya</p>
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold mb-4">Filtered period me kis method se kitna gaya</p>
               <div className="space-y-3">
                 {paymentBreakdown.length === 0 && <div className="text-sm font-bold text-slate-400">Koi data nahi</div>}
                 {paymentBreakdown.map((p) => (
@@ -1642,7 +1642,7 @@ export default function ExpensesPage() {
 
             <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-1">🔥 Top 5 Barray Kharchay</h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-4">Filtered period ke sab se mehengay</p>
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold mb-4">Filtered period ke sab se mehengay</p>
               <div className="space-y-2">
                 {[...filtered].sort((a, b) => Number(b.amount) - Number(a.amount)).slice(0, 5).map((e, i) => (
                   <button
@@ -1655,7 +1655,7 @@ export default function ExpensesPage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{e.title}</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{catIcon(e)} {catName(e)} • {formatDate(e.expenseDate)}</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{catIcon(e)} {catName(e)} • {formatDate(e.expenseDate)}</div>
                     </div>
                     <div className="text-sm font-extrabold text-rose-700 dark:text-rose-400 tabular-nums shrink-0">{formatPKR(e.amount)}</div>
                   </button>
@@ -1675,7 +1675,7 @@ export default function ExpensesPage() {
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">🏷️ Categories ({categories.length})</h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Card pe click = us category ki complete details + mahina-war breakdown</p>
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Card pe click = us category ki complete details + mahina-war breakdown</p>
             </div>
             <button onClick={() => setShowCatManager(true)} className="h-10 px-4 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-600 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition">
               <Plus className="h-4 w-4" /> Nayi Category
@@ -1698,7 +1698,7 @@ export default function ExpensesPage() {
                       </span>
                       <div className="min-w-0">
                         <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{row.name}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{row.count} entries • {analyticsYear}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{row.count} entries • {analyticsYear}</div>
                       </div>
                     </div>
                     <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600 group-hover:translate-x-0.5 transition shrink-0" />
@@ -1707,7 +1707,7 @@ export default function ExpensesPage() {
                   <div className="mt-2 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                     <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: row.color }} />
                   </div>
-                  <div className="mt-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">{pct.toFixed(1)}% of {analyticsYear} total</div>
+                  <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{pct.toFixed(1)}% of {analyticsYear} total</div>
                 </button>
               );
             })}
@@ -1720,7 +1720,7 @@ export default function ExpensesPage() {
                   </span>
                   <div>
                     <div className="font-extrabold text-slate-900 dark:text-white text-sm">{c.name}</div>
-                    <div className="text-[10px] text-slate-400 font-bold">{analyticsYear} me koi kharcha nahi</div>
+                    <div className="text-[0.6875rem] text-slate-400 font-bold">{analyticsYear} me koi kharcha nahi</div>
                   </div>
                 </div>
               </div>
@@ -1754,7 +1754,7 @@ function PrintOptionsModal({ filtered, periodLabel, onA4, onThermalList, onCSV, 
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-amber-400/25 blur-2xl" />
           <div className="relative flex items-start justify-between gap-3">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[10px] font-extrabold border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-extrabold border border-white/30">
                 <Printer className="h-3 w-3" /> Print & Export
               </div>
               <h3 className="text-xl font-extrabold mt-2">📊 Report Nikalo</h3>
@@ -1776,7 +1776,7 @@ function PrintOptionsModal({ filtered, periodLabel, onA4, onThermalList, onCSV, 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h4 className="text-base font-extrabold text-slate-900 dark:text-white">A4 Full Report</h4>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-extrabold uppercase">Best for PDF</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase">Best for PDF</span>
                 </div>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
                   Poori colored report — KPIs, category breakdown, complete table, signatures. Print ya "Save as PDF".
@@ -1798,7 +1798,7 @@ function PrintOptionsModal({ filtered, periodLabel, onA4, onThermalList, onCSV, 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h4 className="text-base font-extrabold text-slate-900 dark:text-white">Thermal List (80mm)</h4>
-                  <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold uppercase">Sab Ek Print Me</span>
+                  <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase">Sab Ek Print Me</span>
                 </div>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
                   Poori filtered list + category summary + grand total — ek hi lambi thermal print pe. Ab aik aik expense nahi nikalna parega!
@@ -1820,7 +1820,7 @@ function PrintOptionsModal({ filtered, periodLabel, onA4, onThermalList, onCSV, 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h4 className="text-base font-extrabold text-slate-900 dark:text-white">CSV Export</h4>
-                  <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white text-[9px] font-extrabold uppercase">Excel</span>
+                  <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white text-[0.625rem] font-extrabold uppercase">Excel</span>
                 </div>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
                   Excel / Google Sheets me kholo — raw data + category summary + Category×Month matrix bhi included.
@@ -1834,7 +1834,7 @@ function PrintOptionsModal({ filtered, periodLabel, onA4, onThermalList, onCSV, 
           </button>
 
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-1">💡 Print Tips</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-1">💡 Print Tips</div>
             <TipRow><strong>PDF:</strong> A4 Report → print dialog me "<strong>Save as PDF</strong>" choose karo</TipRow>
             <TipRow><strong>Colored print:</strong> Browser print settings me "<strong>Background graphics</strong>" ON karo</TipRow>
             <TipRow><strong>Single receipt:</strong> List me expense pe click → 🖨️ button → 80mm voucher</TipRow>
@@ -1852,7 +1852,7 @@ function PrintOptionsModal({ filtered, periodLabel, onA4, onThermalList, onCSV, 
 
 function Badge({ children }: any) {
   return (
-    <span className="inline-block px-2 py-0.5 rounded-md bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-[10px] font-extrabold text-slate-700 dark:text-slate-200">
+    <span className="inline-block px-2 py-0.5 rounded-md bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200">
       {children}
     </span>
   );
@@ -1936,7 +1936,7 @@ function ExpenseFormModal({ form, setForm, categories, titleRef, isEdit, onClose
               maxLength={120}
               className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-rose-500 transition"
             />
-            <div className={`text-[10px] font-bold mt-1 text-right tabular-nums ${titleLen > 110 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500'}`}>{titleLen}/120</div>
+            <div className={`text-[0.6875rem] font-bold mt-1 text-right tabular-nums ${titleLen > 110 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500'}`}>{titleLen}/120</div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -1960,14 +1960,14 @@ function ExpenseFormModal({ form, setForm, categories, titleRef, isEdit, onClose
                 onChange={(e) => setForm({ ...form, expenseDate: e.target.value })}
                 className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 transition [color-scheme:light] dark:[color-scheme:dark]"
               />
-              <div className="text-[9px] font-bold text-slate-400 mt-1">Khali = aaj ki date</div>
+              <div className="text-[0.625rem] font-bold text-slate-400 mt-1">Khali = aaj ki date</div>
             </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300">Category</label>
-              <button type="button" onClick={onManageCategories} className="text-[11px] font-extrabold text-rose-700 dark:text-rose-400 hover:underline inline-flex items-center gap-1">
+              <button type="button" onClick={onManageCategories} className="text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-400 hover:underline inline-flex items-center gap-1">
                 <Settings2 className="h-3 w-3" /> Manage / Nayi banao
               </button>
             </div>
@@ -2037,7 +2037,7 @@ function ExpenseFormModal({ form, setForm, categories, titleRef, isEdit, onClose
                 <img src={form.image} alt="Receipt" className="w-full max-h-48 object-cover" />
                 <div className="absolute top-2 right-2 flex gap-1.5">
                   <button type="button" onClick={() => fileRef.current?.click()}
-                    className="h-8 px-2.5 rounded-lg bg-white/95 dark:bg-slate-800/95 text-[10px] font-extrabold text-slate-700 dark:text-slate-200 shadow-md hover:scale-105 transition">
+                    className="h-8 px-2.5 rounded-lg bg-white/95 dark:bg-slate-800/95 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 shadow-md hover:scale-105 transition">
                     Badlo
                   </button>
                   <button type="button" onClick={() => setForm({ ...form, image: '' })}
@@ -2045,14 +2045,14 @@ function ExpenseFormModal({ form, setForm, categories, titleRef, isEdit, onClose
                     <X className="h-4 w-4" />
                   </button>
                 </div>
-                <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[9px] font-extrabold">✓ Receipt attached</div>
+                <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[0.625rem] font-extrabold">✓ Receipt attached</div>
               </div>
             ) : (
               <button type="button" onClick={() => fileRef.current?.click()}
                 className="w-full h-20 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-emerald-400 dark:hover:border-emerald-500/50 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/5 transition flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-slate-400">
                 <ImagePlus className="h-5 w-5" />
-                <span className="text-[11px] font-extrabold">Bill / receipt ki photo lagao (optional)</span>
-                <span className="text-[9px] font-bold opacity-70">Auto-compress ho jayegi</span>
+                <span className="text-[0.6875rem] font-extrabold">Bill / receipt ki photo lagao (optional)</span>
+                <span className="text-[0.625rem] font-bold opacity-70">Auto-compress ho jayegi</span>
               </button>
             )}
           </div>
@@ -2077,7 +2077,7 @@ function ExpenseFormModal({ form, setForm, categories, titleRef, isEdit, onClose
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{form.title}</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                   {selectedCat?.name || 'General'} • {paymentLabel(form.paymentMethod)}
                   {form.expenseDate ? ` • ${formatDate(form.expenseDate)}` : ''}
                   {form.image ? ' • 🖼️' : ''}
@@ -2097,7 +2097,7 @@ function ExpenseFormModal({ form, setForm, categories, titleRef, isEdit, onClose
               <CheckCircle2 className="h-4 w-4" /> {isEdit ? 'Update Karo' : 'Save Expense'}
             </Button>
           </div>
-          <div className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500">Ctrl+Enter = Save</div>
+          <div className="text-center text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">Ctrl+Enter = Save</div>
         </div>
       </div>
     </div>
@@ -2182,7 +2182,7 @@ function CategoryManagerModal({ categories, onClose }: { categories: ExpenseCate
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-extrabold text-violet-900 dark:text-violet-100">🪄 Auto-Setup</div>
-                  <div className="text-[11px] text-violet-700 dark:text-violet-300 font-semibold">{missingCount} standard categories 1 click me</div>
+                  <div className="text-[0.6875rem] text-violet-700 dark:text-violet-300 font-semibold">{missingCount} standard categories 1 click me</div>
                 </div>
                 <button onClick={autoSetup} disabled={seeding}
                   className="h-10 px-4 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-600 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition disabled:opacity-60 shrink-0">
@@ -2194,7 +2194,7 @@ function CategoryManagerModal({ categories, onClose }: { categories: ExpenseCate
           )}
 
           <div className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/30 bg-violet-50/60 dark:bg-violet-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300">Custom Category</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300">Custom Category</div>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -2204,7 +2204,7 @@ function CategoryManagerModal({ categories, onClose }: { categories: ExpenseCate
               className="h-11 w-full rounded-xl border-2 border-violet-200 dark:border-violet-500/40 bg-white dark:bg-slate-800 px-4 text-sm font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 transition"
             />
             <div>
-              <div className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Icon</div>
+              <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Icon</div>
               <div className="flex flex-wrap gap-1.5">
                 {CAT_EMOJIS.map((em) => (
                   <button key={em} type="button" onClick={() => setIcon(em)}
@@ -2215,7 +2215,7 @@ function CategoryManagerModal({ categories, onClose }: { categories: ExpenseCate
               </div>
             </div>
             <div>
-              <div className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Color</div>
+              <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Color</div>
               <div className="flex flex-wrap gap-1.5">
                 {CAT_COLORS.map((c) => (
                   <button key={c} type="button" onClick={() => setColor(c)}
@@ -2236,7 +2236,7 @@ function CategoryManagerModal({ categories, onClose }: { categories: ExpenseCate
           </div>
 
           <div className="space-y-1.5">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">Mojooda ({categories.length})</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">Mojooda ({categories.length})</div>
             {categories.length === 0 ? (
               <div className="text-center py-6 text-sm font-bold text-slate-400 dark:text-slate-500">Abhi koi nahi</div>
             ) : (
@@ -2247,7 +2247,7 @@ function CategoryManagerModal({ categories, onClose }: { categories: ExpenseCate
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">{c.name}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{c._count?.expenses ?? 0} expenses</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{c._count?.expenses ?? 0} expenses</div>
                   </div>
                   <button
                     onClick={() => {
@@ -2294,7 +2294,7 @@ function CategoryDetailModal({ row, year, expenses, onClose, onPrintThermal, onO
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button onClick={onPrintThermal} className="h-9 px-3 rounded-xl bg-white/20 hover:bg-white/30 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition" title="Is category ka thermal report">
+              <button onClick={onPrintThermal} className="h-9 px-3 rounded-xl bg-white/20 hover:bg-white/30 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition" title="Is category ka thermal report">
                 <Printer className="h-3.5 w-3.5" /> Thermal
               </button>
               <button onClick={onClose} className="h-9 w-9 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
@@ -2303,7 +2303,7 @@ function CategoryDetailModal({ row, year, expenses, onClose, onPrintThermal, onO
             </div>
           </div>
           <div className="relative mt-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/70">Total {year}</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/70">Total {year}</div>
             <div className="text-3xl font-extrabold tabular-nums">{formatPKR(row.total)}</div>
           </div>
         </div>
@@ -2311,7 +2311,7 @@ function CategoryDetailModal({ row, year, expenses, onClose, onPrintThermal, onO
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Monthly bars */}
           <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-3">📅 Mahina-war Kharcha ({year})</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-3">📅 Mahina-war Kharcha ({year})</div>
             <div className="grid grid-cols-6 sm:grid-cols-12 gap-1.5">
               {row.months.map((v: number, i: number) => {
                 const pct = maxMonth > 0 ? (v / maxMonth) * 100 : 0;
@@ -2320,8 +2320,8 @@ function CategoryDetailModal({ row, year, expenses, onClose, onPrintThermal, onO
                     <div className="h-16 w-full rounded-md bg-slate-100 dark:bg-slate-800 flex items-end overflow-hidden">
                       <div className="w-full rounded-t-md transition-all" style={{ height: `${Math.max(pct, v > 0 ? 6 : 0)}%`, backgroundColor: row.color }} />
                     </div>
-                    <div className="text-[8px] font-extrabold text-slate-500 dark:text-slate-400">{MONTHS_SHORT[i]}</div>
-                    <div className={`text-[8px] font-extrabold tabular-nums ${v > 0 ? 'text-slate-700 dark:text-slate-300' : 'text-slate-300 dark:text-slate-700'}`}>
+                    <div className="text-[0.625rem] font-extrabold text-slate-500 dark:text-slate-400">{MONTHS_SHORT[i]}</div>
+                    <div className={`text-[0.625rem] font-extrabold tabular-nums ${v > 0 ? 'text-slate-700 dark:text-slate-300' : 'text-slate-300 dark:text-slate-700'}`}>
                       {v > 0 ? (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v.toFixed(0)) : '—'}
                     </div>
                   </div>
@@ -2347,7 +2347,7 @@ function CategoryDetailModal({ row, year, expenses, onClose, onPrintThermal, onO
                       <button key={e.id} onClick={() => onOpenExpense(e)} className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition text-left">
                         <div className="min-w-0 flex-1">
                           <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{e.title}</div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{formatDate(e.expenseDate)} • {paymentLabel(e.paymentMethod)}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{formatDate(e.expenseDate)} • {paymentLabel(e.paymentMethod)}</div>
                         </div>
                         <div className="text-sm font-extrabold tabular-nums shrink-0" style={{ color: row.color }}>{formatPKR(e.amount)}</div>
                       </button>
@@ -2375,7 +2375,7 @@ function ExpenseDetailModal({ expense, catName, catColor, catIcon, image, onClos
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/15 blur-2xl pointer-events-none" />
           <div className="relative flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-extrabold border border-white/30 mb-2">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-2.5 py-0.5 text-[0.6875rem] font-extrabold border border-white/30 mb-2">
                 {catIcon} {catName}
               </div>
               <h3 className="text-lg font-extrabold leading-tight line-clamp-2">{expense.title}</h3>
@@ -2393,9 +2393,9 @@ function ExpenseDetailModal({ expense, catName, catColor, catIcon, image, onClos
 
         <div className="p-5 space-y-4">
           <div className="rounded-2xl bg-gradient-to-br from-rose-50 to-red-50 dark:from-rose-500/10 dark:to-red-500/10 border-2 border-rose-200 dark:border-rose-500/40 p-4 text-center">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300">Total Amount</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300">Total Amount</div>
             <div className="text-4xl font-extrabold text-rose-700 dark:text-rose-400 tabular-nums mt-1">−{formatPKR(expense.amount)}</div>
-            <div className={`mt-2 inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+            <div className={`mt-2 inline-flex px-2.5 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
               expense.status === 'PAID'
                 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                 : expense.status === 'PENDING'
@@ -2428,26 +2428,26 @@ function ExpenseDetailModal({ expense, catName, catColor, catIcon, image, onClos
 
           {expense.description && (
             <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3">
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-1">📝 Tafseel</div>
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-1">📝 Tafseel</div>
               <p className="text-sm text-slate-700 dark:text-slate-200 font-semibold whitespace-pre-wrap break-words">{expense.description}</p>
             </div>
           )}
 
           <div className="grid grid-cols-4 gap-2">
-            <button onClick={onEdit} className="h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-600 text-white text-[11px] font-extrabold inline-flex items-center justify-center gap-1 shadow-lg shadow-amber-500/30 transition">
+            <button onClick={onEdit} className="h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-600 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 shadow-lg shadow-amber-500/30 transition">
               <Pencil className="h-4 w-4" /> Edit
             </button>
-            <button onClick={onPrint} className="h-12 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-700 text-white text-[11px] font-extrabold inline-flex items-center justify-center gap-1 shadow-lg shadow-emerald-500/30 transition">
+            <button onClick={onPrint} className="h-12 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 shadow-lg shadow-emerald-500/30 transition">
               <Printer className="h-4 w-4" /> Thermal
             </button>
-            <button onClick={onDuplicate} className="h-12 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-700 text-white text-[11px] font-extrabold inline-flex items-center justify-center gap-1 shadow-lg shadow-blue-500/30 transition">
+            <button onClick={onDuplicate} className="h-12 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 shadow-lg shadow-blue-500/30 transition">
               <Copy className="h-4 w-4" /> Copy
             </button>
-            <button onClick={onDelete} className="h-12 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-600 text-white text-[11px] font-extrabold inline-flex items-center justify-center gap-1 shadow-lg shadow-rose-500/30 transition">
+            <button onClick={onDelete} className="h-12 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-600 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 shadow-lg shadow-rose-500/30 transition">
               <Trash2 className="h-4 w-4" /> Delete
             </button>
           </div>
-          <div className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500">
+          <div className="text-center text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
             🧾 Thermal = single voucher • Poori list ke liye upar "Print & PDF" → Thermal List
           </div>
         </div>
@@ -2461,7 +2461,7 @@ function DetailRow({ icon: Icon, label, value, mono }: any) {
     <div className="flex items-center justify-between gap-3 px-3 py-2.5">
       <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 shrink-0">
         <Icon className="h-3.5 w-3.5" />
-        <span className="text-[10px] font-extrabold uppercase tracking-wider">{label}</span>
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider">{label}</span>
       </div>
       <div className={`text-sm font-extrabold text-slate-900 dark:text-white text-right break-words min-w-0 ${mono ? 'font-mono text-xs' : ''}`}>{value}</div>
     </div>
@@ -2490,7 +2490,7 @@ function ExpensesTeacher({ onClose }: { onClose: () => void }) {
           </p>
 
           <div className="rounded-2xl border-2 border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/60 dark:bg-indigo-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-indigo-700 dark:text-indigo-300 mb-1 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-indigo-700 dark:text-indigo-300 mb-1 flex items-center gap-1">
               <LayoutGrid className="h-3 w-3" /> 📑 3 Tabs
             </div>
             <TipRow><strong>Expenses</strong> — list, filters, search, quick add, sab yahan</TipRow>
@@ -2499,7 +2499,7 @@ function ExpensesTeacher({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-1 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-1 flex items-center gap-1">
               <Printer className="h-3 w-3" /> 🖨️ Print & PDF
             </div>
             <TipRow>📄 <strong>A4 Full Report</strong> — colored, KPIs, table, signatures. "Save as PDF" bhi</TipRow>
@@ -2517,8 +2517,8 @@ function ExpensesTeacher({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="rounded-xl bg-slate-900 dark:bg-slate-950 border border-slate-700 p-3 text-xs font-semibold text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-300 mb-2">⌨️ Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-300 mb-2">⌨️ Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem]">
               <div><kbd className="px-1.5 py-0.5 bg-slate-700 rounded font-mono">N</kbd> Naya expense</div>
               <div><kbd className="px-1.5 py-0.5 bg-slate-700 rounded font-mono">P</kbd> Print / PDF</div>
               <div><kbd className="px-1.5 py-0.5 bg-slate-700 rounded font-mono">/</kbd> Search focus</div>
@@ -2561,7 +2561,7 @@ function Kbd({ children }: { children: React.ReactNode }) {
   // Jaan bujh kar <span> — <kbd> hota to index.css ka global
   // `html.dark kbd { ... }` (specificity 0,1,1) in classes ko dabaa deta.
   return (
-    <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-current/10 border border-current/30 text-current font-mono font-bold text-[9px] leading-none">
+    <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-current/10 border border-current/30 text-current font-mono font-bold text-[0.625rem] leading-none">
       {children}
     </span>
   );
@@ -2580,9 +2580,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight }: any) {
     }`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className={`text-[10px] uppercase tracking-widest font-extrabold ${highlight ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>{label}</div>
+          <div className={`text-[0.6875rem] uppercase tracking-widest font-extrabold ${highlight ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>{label}</div>
           <div className={`mt-1.5 text-lg sm:text-xl lg:text-2xl font-extrabold tabular-nums truncate ${highlight ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{value}</div>
-          {sub && <div className={`text-[10px] font-bold mt-0.5 truncate ${highlight ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>{sub}</div>}
+          {sub && <div className={`text-[0.6875rem] font-bold mt-0.5 truncate ${highlight ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${highlight ? 'bg-white/20 backdrop-blur text-white' : `bg-gradient-to-br ${tones[tone]} text-white shadow-lg`}`}>
           <Icon className="h-5 w-5" />

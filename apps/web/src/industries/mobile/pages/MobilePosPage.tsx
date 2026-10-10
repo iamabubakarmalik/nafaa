@@ -839,7 +839,7 @@ export default function MobilePosPage() {
               <h3 className="text-2xl font-extrabold">Sale Ho Gayi! 📱</h3>
               <p className="text-xs font-bold text-white/90 mt-0.5 font-mono">{lastSale.number}</p>
               {autoPrint && (
-                <p className="text-[10px] font-bold text-emerald-100 mt-1 inline-flex items-center gap-1">
+                <p className="text-[0.6875rem] font-bold text-emerald-100 mt-1 inline-flex items-center gap-1">
                   <Printer className="h-3 w-3" /> Receipt auto-print ho rahi hai
                 </p>
               )}
@@ -872,7 +872,7 @@ export default function MobilePosPage() {
               </button>
             </div>
             {autoClose && (
-              <div className="px-4 pb-2.5 text-center text-[10px] font-bold text-slate-400 dark:text-slate-500">
+              <div className="px-4 pb-2.5 text-center text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
                 ⏱️ 3 sec me khud band — click karo foran band karne ke liye
               </div>
             )}
@@ -899,22 +899,22 @@ export default function MobilePosPage() {
                     {isOnline ? (
                       <div className="h-6 px-2 rounded-full bg-emerald-500/30 flex items-center gap-1">
                         <Wifi className="h-3 w-3 text-emerald-200" />
-                        <span className="text-[9px] font-extrabold text-emerald-200">LIVE</span>
+                        <span className="text-[0.625rem] font-extrabold text-emerald-200">LIVE</span>
                       </div>
                     ) : (
                       <div className="h-6 px-2 rounded-full bg-amber-500/30 flex items-center gap-1 animate-pulse">
                         <WifiOff className="h-3 w-3 text-amber-200" />
-                        <span className="text-[9px] font-extrabold text-amber-200">OFFLINE</span>
+                        <span className="text-[0.625rem] font-extrabold text-amber-200">OFFLINE</span>
                       </div>
                     )}
                     {autoPrint && (
                       <div className="h-6 px-2 rounded-full bg-blue-500/30 flex items-center gap-1" title={`Auto-print ON (${printerWidth}mm)`}>
                         <Printer className="h-3 w-3 text-blue-200" />
-                        <span className="text-[9px] font-extrabold text-blue-200">{printerWidth}mm</span>
+                        <span className="text-[0.625rem] font-extrabold text-blue-200">{printerWidth}mm</span>
                       </div>
                     )}
                   </div>
-                  <p className="text-[11px] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                  <p className="text-[0.6875rem] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
                     <Store className="h-3 w-3 shrink-0" />
                     <span className="truncate">{tenant?.name || 'My Shop'}</span>
                   </p>
@@ -943,7 +943,7 @@ export default function MobilePosPage() {
                   className="lg:hidden relative h-10 w-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 flex items-center justify-center transition">
                   <ShoppingCart className="h-5 w-5" />
                   {itemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">
                       {itemCount}
                     </span>
                   )}
@@ -997,7 +997,7 @@ export default function MobilePosPage() {
                 <button onClick={() => setScannerOpen(true)}
                   className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-800 hover:from-slate-800 hover:to-slate-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
                   <Camera className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span className="text-[9px] sm:text-[10px] font-extrabold uppercase">Scan</span>
+                  <span className="text-[0.625rem] sm:text-[0.6875rem] font-extrabold uppercase">Scan</span>
                 </button>
               </div>
             ) : (
@@ -1060,13 +1060,13 @@ export default function MobilePosPage() {
                           {imei.variant?.name && <div className="text-xs font-semibold text-violet-700 dark:text-violet-400">{imei.variant.name}</div>}
                           <div className="text-xs font-mono text-slate-600 dark:text-slate-400 mt-0.5">IMEI: <strong>{imei.imei1}</strong></div>
                           <div className="mt-1.5 flex flex-wrap gap-1">
-                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-extrabold uppercase ${ptaCfg.bg} ${ptaCfg.text} ${ptaCfg.border}`}>
+                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[0.625rem] font-extrabold uppercase ${ptaCfg.bg} ${ptaCfg.text} ${ptaCfg.border}`}>
                               <ShieldCheck className="h-2.5 w-2.5" />{PTA_STATUS_LABELS[imei.ptaStatus]}
                             </span>
                             {(imei.warrantyMonths ?? 0) > 0 && (
-                              <span className="px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 text-[9px] font-extrabold inline-flex items-center gap-0.5"><Award className="h-2.5 w-2.5" />{imei.warrantyMonths}m</span>
+                              <span className="px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5"><Award className="h-2.5 w-2.5" />{imei.warrantyMonths}m</span>
                             )}
-                            {imei.color && <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[9px] font-extrabold">{imei.color}</span>}
+                            {imei.color && <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.625rem] font-extrabold">{imei.color}</span>}
                           </div>
                         </div>
                         <div className="text-right shrink-0">
@@ -1112,14 +1112,14 @@ export default function MobilePosPage() {
                           <RefreshCw className="h-7 w-7 text-violet-600 dark:text-violet-300" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-mono font-extrabold text-[10px] text-violet-700 dark:text-violet-300">{phone.usedPhoneCode}</div>
+                          <div className="font-mono font-extrabold text-[0.6875rem] text-violet-700 dark:text-violet-300">{phone.usedPhoneCode}</div>
                           <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white truncate">{phone.brand} {phone.model}{phone.storage ? ` ${phone.storage}` : ''}</div>
                           <div className="text-xs font-mono text-slate-600 dark:text-slate-400 mt-0.5">IMEI: <strong>{phone.imei1}</strong></div>
                           <div className="mt-1.5 flex flex-wrap gap-1">
-                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${condColors.bg} ${condColors.text} ${condColors.border}`}>
+                            <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold border ${condColors.bg} ${condColors.text} ${condColors.border}`}>
                               <Star className="h-2.5 w-2.5 inline mr-0.5 fill-current" />{CONDITION_LABELS[phone.condition]}
                             </span>
-                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-extrabold uppercase ${ptaCfg.bg} ${ptaCfg.text} ${ptaCfg.border}`}>
+                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[0.625rem] font-extrabold uppercase ${ptaCfg.bg} ${ptaCfg.text} ${ptaCfg.border}`}>
                               <ShieldCheck className="h-2.5 w-2.5" />{PTA_STATUS_LABELS[phone.ptaStatus]}
                             </span>
                           </div>
@@ -1162,10 +1162,10 @@ export default function MobilePosPage() {
                           </div>
                         )}
                         {p.notInShop && (
-                          <span className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[8px] font-extrabold uppercase shadow">Shop me nahi</span>
+                          <span className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase shadow">Shop me nahi</span>
                         )}
                         {p.stock <= 0 && !p.notInShop && (
-                          <span className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md bg-rose-600 text-white text-[8px] font-extrabold uppercase shadow">Khatam</span>
+                          <span className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 rounded-md bg-rose-600 text-white text-[0.625rem] font-extrabold uppercase shadow">Khatam</span>
                         )}
                         <div className="aspect-square bg-slate-100 dark:bg-slate-800 overflow-hidden">
                           {p.imageUrl ? (
@@ -1209,12 +1209,12 @@ export default function MobilePosPage() {
                         <Wrench className="h-7 w-7 text-amber-600 dark:text-amber-300" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-mono font-extrabold text-[10px] text-amber-700 dark:text-amber-300">{t.ticketNumber}</div>
+                        <div className="font-mono font-extrabold text-[0.6875rem] text-amber-700 dark:text-amber-300">{t.ticketNumber}</div>
                         <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white truncate">{t.deviceBrand} {t.deviceModel}</div>
                         <div className="text-xs font-bold text-slate-600 dark:text-slate-400 mt-0.5 truncate">
                           {t.customerName}{t.customerPhone ? ` • ${t.customerPhone}` : ''}
                         </div>
-                        <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] font-extrabold uppercase">
+                        <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.625rem] font-extrabold uppercase">
                           <CheckCircle2 className="h-2.5 w-2.5" /> Ready for delivery
                         </div>
                       </div>
@@ -1269,12 +1269,12 @@ export default function MobilePosPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[11px] font-extrabold flex items-center justify-center tabular-nums">
+                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[0.6875rem] font-extrabold flex items-center justify-center tabular-nums">
                   {itemCount}
                 </span>
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
                 <div className="text-lg font-extrabold tabular-nums leading-none">{hidePrices ? '••••' : formatPKR(total)}</div>
               </div>
             </div>
@@ -1312,7 +1312,7 @@ function PosSettingsModal({ autoPrint, setAutoPrint, autoClose, setAutoClose, pr
                 </div>
                 <div className="min-w-0">
                   <div className="font-extrabold text-slate-900 dark:text-white text-sm">🖨️ Auto-Print Receipt</div>
-                  <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold">Sale hote hi print dialog — receipt page nahi khulega</div>
+                  <div className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold">Sale hote hi print dialog — receipt page nahi khulega</div>
                 </div>
               </div>
               <button
@@ -1325,7 +1325,7 @@ function PosSettingsModal({ autoPrint, setAutoPrint, autoClose, setAutoClose, pr
             </div>
             {autoPrint && (
               <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-500/30">
-                <div className="text-[10px] uppercase font-extrabold text-blue-700 dark:text-blue-300 tracking-wider mb-1.5">Printer width</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700 dark:text-blue-300 tracking-wider mb-1.5">Printer width</div>
                 <div className="grid grid-cols-2 gap-1.5">
                   {(['80', '58'] as const).map((w) => (
                     <button key={w} onClick={() => setPrinterWidth(w)}
@@ -1350,7 +1350,7 @@ function PosSettingsModal({ autoPrint, setAutoPrint, autoClose, setAutoClose, pr
                 </div>
                 <div className="min-w-0">
                   <div className="font-extrabold text-slate-900 dark:text-white text-sm">✅ Success Auto-Close</div>
-                  <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold">Sale ke baad modal 3 sec me khud band</div>
+                  <div className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold">Sale ke baad modal 3 sec me khud band</div>
                 </div>
               </div>
               <button
@@ -1363,7 +1363,7 @@ function PosSettingsModal({ autoPrint, setAutoPrint, autoClose, setAutoClose, pr
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300">
             💡 <strong>Popup blocked?</strong> Browser ke address bar me 🔒 icon pe click → "Pop-ups and redirects" → Allow. Tabhi auto-print chalega.
           </div>
         </div>
@@ -1442,7 +1442,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-400/20 blur-2xl" />
           <div className="relative flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[11px] uppercase font-extrabold text-blue-200 tracking-wider">Payment • {itemCount} items</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-blue-200 tracking-wider">Payment • {itemCount} items</div>
               <div className="text-4xl sm:text-5xl font-extrabold tabular-nums leading-none mt-1">{formatPKR(total)}</div>
               {hasCustomer && customerName && (
                 <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 backdrop-blur border border-white/20 text-xs font-extrabold">
@@ -1472,28 +1472,28 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
                   mode === 'full' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 shadow-lg ring-2 ring-emerald-200 dark:ring-emerald-500/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-300'].join(' ')}>
                 <Wallet className={`h-6 w-6 mx-auto ${mode === 'full' ? 'text-emerald-600' : 'text-slate-500'}`} />
                 <div className={`text-sm font-extrabold mt-1 ${mode === 'full' ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200'}`}>Pura Paisa</div>
-                <div className="text-[10px] font-bold text-slate-500 mt-0.5">100% payment</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">100% payment</div>
               </button>
               <button onClick={() => { setMode('partial'); setPaidStr(''); }}
                 className={['p-3 rounded-2xl border-4 text-center transition active:scale-95',
                   mode === 'partial' ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 shadow-lg ring-2 ring-amber-200 dark:ring-amber-500/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-300'].join(' ')}>
                 <Calculator className={`h-6 w-6 mx-auto ${mode === 'partial' ? 'text-amber-600' : 'text-slate-500'}`} />
                 <div className={`text-sm font-extrabold mt-1 ${mode === 'partial' ? 'text-amber-800 dark:text-amber-300' : 'text-slate-700 dark:text-slate-200'}`}>Kuch Cash</div>
-                <div className="text-[10px] font-bold text-slate-500 mt-0.5">Baqi udhaar / EMI</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Baqi udhaar / EMI</div>
               </button>
               <button onClick={() => setMode('credit')} disabled={!hasCustomer}
                 className={['p-3 rounded-2xl border-4 text-center transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed',
                   mode === 'credit' ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 shadow-lg ring-2 ring-rose-200 dark:ring-rose-500/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-rose-300'].join(' ')}>
                 <BookOpen className={`h-6 w-6 mx-auto ${mode === 'credit' ? 'text-rose-600' : 'text-slate-500'}`} />
                 <div className={`text-sm font-extrabold mt-1 ${mode === 'credit' ? 'text-rose-800 dark:text-rose-300' : 'text-slate-700 dark:text-slate-200'}`}>Pura Udhaar</div>
-                <div className="text-[10px] font-bold text-slate-500 mt-0.5">{hasCustomer ? 'Khaate / EMI mein' : 'Customer chunein'}</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">{hasCustomer ? 'Khaate / EMI mein' : 'Customer chunein'}</div>
               </button>
             </div>
           </div>
 
           {mode !== 'credit' && (
             <div className="px-4 sm:px-5 pt-4">
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-2">Payment Method</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-2">Payment Method</div>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {PAYMENT_METHODS.map((m) => {
                   const active = paymentMethod === m.id;
@@ -1503,7 +1503,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
                       className={['p-2.5 rounded-2xl border-4 transition active:scale-95 flex flex-col items-center gap-1',
                         active ? `border-transparent shadow-lg text-white bg-gradient-to-br ${m.bg}` : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-200'].join(' ')}>
                       <Icon className="h-5 w-5" />
-                      <span className="text-[11px] font-extrabold">{m.label}</span>
+                      <span className="text-[0.6875rem] font-extrabold">{m.label}</span>
                     </button>
                   );
                 })}
@@ -1575,7 +1575,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-5 w-5" />
                     <div>
-                      <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Customer ko wapis</div>
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Customer ko wapis</div>
                       <div className="text-2xl font-extrabold tabular-nums leading-none">{formatPKR(change)}</div>
                     </div>
                   </div>
@@ -1594,7 +1594,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-5 w-5" />
                     <div>
-                      <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">
                         {hasCustomer ? 'Khaate mein udhaar — EMI ka option milega' : '⚠️ Customer chahiye'}
                       </div>
                       <div className="text-2xl font-extrabold tabular-nums leading-none">{formatPKR(creditAmount)}</div>
@@ -1620,7 +1620,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'flex items-center justify-between px-5 sm:px-6'].join(' ')}>
             <div className="text-left">
-              <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
+              <div className="text-[0.6875rem] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
                 {loading ? 'Save ho raha...' : isCredit ? '📔 Khaate mein daalo' : '💰 Sale complete karo'}
               </div>
               <div className="text-xl sm:text-2xl tabular-nums leading-none mt-0.5">
@@ -1633,7 +1633,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
               <ArrowRight className="h-6 w-6 sm:h-8 sm:w-8" />
             </div>
           </button>
-          <div className="mt-2 text-center text-[10px] font-bold text-slate-400 dark:text-slate-500">
+          <div className="mt-2 text-center text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
             Enter = confirm • Esc = cancel • F1/F3/F4/F5 = payment • F6 = udhaar
           </div>
         </div>
@@ -1686,7 +1686,7 @@ function DiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onA
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="relative flex items-start justify-between">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[10px] font-extrabold border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-extrabold border border-white/30">
                 <Tag className="h-3 w-3" /> Discount
               </div>
               <div className="mt-2 text-xs font-bold text-white/85">Subtotal</div>
@@ -1717,7 +1717,7 @@ function DiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onA
           <div className={['rounded-2xl border-2 p-4 text-center',
             mode === 'pct' ? 'border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10'
             : 'border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10'].join(' ')}>
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1">
               {mode === 'pct' ? 'Kitne % Discount' : 'Kitne Rs Discount'}
             </div>
             <div className="flex items-baseline justify-center gap-1">
@@ -1762,7 +1762,7 @@ function DiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onA
           </div>
 
           <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-slate-800 text-white p-4 shadow-lg">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-300 mb-2 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-300 mb-2 flex items-center gap-1">
               <Calculator className="h-3 w-3" /> Live Hisaab
             </div>
             <div className="space-y-1.5 text-sm font-bold">
@@ -1820,10 +1820,10 @@ function ViewTab({ active, onClick, icon: Icon, label, count, color, shortcut, h
       <Icon className="h-4 w-4" />
       <span>{label}</span>
       {count > 0 && (
-        <span className={['px-1.5 rounded-md text-[10px] tabular-nums', active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>{count}</span>
+        <span className={['px-1.5 rounded-md text-[0.6875rem] tabular-nums', active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>{count}</span>
       )}
       {shortcut && (
-        <span className={['hidden lg:inline text-[9px] font-mono px-1 rounded', active ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'].join(' ')}>{shortcut}</span>
+        <span className={['hidden lg:inline text-[0.625rem] font-mono px-1 rounded', active ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'].join(' ')}>{shortcut}</span>
       )}
     </button>
   );
@@ -1868,7 +1868,7 @@ function CartPanel({
       <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-900 text-white px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[10px] sm:text-[11px] uppercase font-extrabold text-white/70 tracking-wider">
+            <div className="text-[0.6875rem] sm:text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
               Cart • {itemCount} lines • {totalQty} qty
             </div>
             <div className="text-3xl sm:text-4xl font-extrabold tabular-nums leading-none mt-1">
@@ -1945,7 +1945,7 @@ function CartPanel({
             </div>
             <p className="mt-4 font-extrabold text-slate-700 dark:text-slate-200 text-lg sm:text-xl">Cart khaali hai</p>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-semibold mt-1">IMEI scan karo ya list se device chuno</p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-bold mt-2 inline-flex items-center gap-1">
+            <p className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold mt-2 inline-flex items-center gap-1">
               <Zap className="h-3 w-3 text-amber-500" /> F12 = instant cash + print!
             </p>
           </div>
@@ -2011,7 +2011,7 @@ function CartPanel({
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'flex items-center justify-between px-5 sm:px-6'].join(' ')}>
             <div className="text-left">
-              <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
+              <div className="text-[0.6875rem] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
                 Paisay lein <span className="hidden sm:inline">(F9)</span> — cash / udhaar / EMI / card
               </div>
               <FbrModeIndicator saleTotal={total} className="mb-2" />
@@ -2030,7 +2030,7 @@ function CartPanel({
 
 function KbdInline({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-white/20 border border-white/30 text-[10px] font-mono font-extrabold">{children}</kbd>
+    <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-white/20 border border-white/30 text-[0.6875rem] font-mono font-extrabold">{children}</kbd>
   );
 }
 
@@ -2072,16 +2072,16 @@ function CartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, o
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white leading-tight line-clamp-2">{l.name}</div>
-            {l.type === 'usedphone' && <span className="px-1.5 py-0.5 rounded bg-violet-600 text-white text-[9px] font-extrabold uppercase tracking-wider shrink-0">Used</span>}
+            {l.type === 'usedphone' && <span className="px-1.5 py-0.5 rounded bg-violet-600 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Used</span>}
             {l.ptaStatus && (
-              <span className={['px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider shrink-0',
+              <span className={['px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0',
                 l.ptaStatus === 'APPROVED' ? 'bg-emerald-600 text-white'
                 : l.ptaStatus === 'ACTIVE' ? 'bg-teal-600 text-white'
                 : 'bg-amber-500 text-white'].join(' ')}>
                 {PTA_STATUS_LABELS[l.ptaStatus as PtaStatus]}
               </span>
             )}
-            {customPriced && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase tracking-wider shrink-0">Custom Rs</span>}
+            {customPriced && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Custom Rs</span>}
           </div>
 
           {editing ? (
@@ -2094,7 +2094,7 @@ function CartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, o
                 className="h-9 w-28 rounded-lg border-2 border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10 px-2 text-base font-extrabold tabular-nums text-amber-900 dark:text-amber-200 focus:outline-none" />
               <button onClick={commit} className="h-9 w-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center"><Check className="h-4 w-4" /></button>
               <button onClick={() => onSetPrice(l.basePrice)} title="Wapas original rate"
-                className="h-9 px-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold">Reset</button>
+                className="h-9 px-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold">Reset</button>
             </div>
           ) : (
             <button onClick={onStartPriceEdit} title="Rate badlo"
@@ -2105,9 +2105,9 @@ function CartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, o
             </button>
           )}
 
-          {l.note && <div className="text-[10px] sm:text-[11px] font-mono font-semibold text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">{l.note}</div>}
+          {l.note && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-mono font-semibold text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">{l.note}</div>}
           {customPriced && !editing && (
-            <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tabular-nums">(original {formatPKR(l.basePrice)})</div>
+            <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 tabular-nums">(original {formatPKR(l.basePrice)})</div>
           )}
         </div>
         <button onClick={onRemove}
@@ -2131,7 +2131,7 @@ function CartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, o
             </button>
           </div>
         ) : (
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
             <ShieldCheck className="h-3 w-3" /> 1 device
           </div>
         )}
@@ -2159,7 +2159,7 @@ function PosTeacher({ onClose }: { onClose: () => void }) {
         <div className="p-5 space-y-4">
           {/* 🖨️ PRINT FLOW */}
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
               <Printer className="h-3 w-3" /> 🖨️ 2-Second Billing Flow
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -2172,7 +2172,7 @@ function PosTeacher({ onClose }: { onClose: () => void }) {
           </div>
           {/* 📱 SELLING */}
           <div className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/30 bg-violet-50/60 dark:bg-violet-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
               <Smartphone className="h-3 w-3" /> 📱 Phone Bechna
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -2185,7 +2185,7 @@ function PosTeacher({ onClose }: { onClose: () => void }) {
           </div>
           {/* ⚡ SHORTCUTS */}
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <Zap className="h-3 w-3" /> ⚡ Speed Shortcuts
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -2198,7 +2198,7 @@ function PosTeacher({ onClose }: { onClose: () => void }) {
           </div>
           {/* 💳 EMI + Udhaar */}
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
               <Banknote className="h-3 w-3" /> 💳 EMI / Udhaar / Repair
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">

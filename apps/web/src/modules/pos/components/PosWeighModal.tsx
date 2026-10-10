@@ -66,7 +66,7 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
       <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <Scale className="h-3 w-3" /> Weigh Machine Sale
             </div>
             <h3 className="font-extrabold text-lg mt-1.5 truncate">{product.name}</h3>
@@ -86,14 +86,14 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
                 mode === 'money' ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 shadow-md'
                 : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'].join(' ')}>
               💰 Paise Se
-              <div className="text-[10px] font-bold opacity-70">"100 ka aata de do"</div>
+              <div className="text-[0.6875rem] font-bold opacity-70">"100 ka aata de do"</div>
             </button>
             <button onClick={() => setMode('weight')}
               className={['py-3.5 rounded-2xl border-2 font-extrabold text-sm transition',
                 mode === 'weight' ? 'border-amber-600 bg-amber-50 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 shadow-md'
                 : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'].join(' ')}>
               ⚖️ Wazan Se
-              <div className="text-[10px] font-bold opacity-70">"250 gram daal"</div>
+              <div className="text-[0.6875rem] font-bold opacity-70">"250 gram daal"</div>
             </button>
           </div>
 
@@ -153,12 +153,12 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
           )}
 
           <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-amber-900 text-white p-4 shadow-lg">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-300 mb-2 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-300 mb-2 flex items-center gap-1">
               <Scale className="h-3 w-3" /> Live Hisaab
             </div>
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/60">Wazan</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Wazan</div>
                 <div className="text-2xl font-extrabold tabular-nums leading-none">
                   {(mode === 'weight' ? baseQty : moneyBaseQty).toFixed(3).replace(/\.?0+$/, '')}
                   <span className="text-sm font-bold text-white/60"> {unit.unitName}</span>
@@ -166,7 +166,7 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
               </div>
               <div className="text-2xl text-amber-300">=</div>
               <div className="text-right">
-                <div className="text-[10px] uppercase font-extrabold text-white/60">Paise</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Paise</div>
                 <div className="text-3xl font-extrabold tabular-nums text-emerald-300 leading-none">{formatPKR(finalPrice)}</div>
               </div>
             </div>

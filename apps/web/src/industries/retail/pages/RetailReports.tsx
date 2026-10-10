@@ -264,26 +264,26 @@ export default function RetailReportsV2() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
             <div className="text-xs font-bold text-slate-900">{printDate}</div>
           </div>
         </div>
 
         <div className="grid grid-cols-4 gap-2 mb-4">
           <div className="border-2 border-sky-500 p-2 rounded">
-            <div className="text-[9px] uppercase font-bold text-slate-600">Revenue</div>
+            <div className="text-[0.625rem] uppercase font-bold text-slate-600">Revenue</div>
             <div className="text-sm font-black text-sky-700">{formatPKR(totalRevenue)}</div>
           </div>
           <div className="border-2 border-emerald-500 p-2 rounded">
-            <div className="text-[9px] uppercase font-bold text-slate-600">Profit</div>
+            <div className="text-[0.625rem] uppercase font-bold text-slate-600">Profit</div>
             <div className="text-sm font-black text-emerald-700">{showCost(totalProfit)}</div>
           </div>
           <div className="border-2 border-violet-500 p-2 rounded">
-            <div className="text-[9px] uppercase font-bold text-slate-600">Orders</div>
+            <div className="text-[0.625rem] uppercase font-bold text-slate-600">Orders</div>
             <div className="text-sm font-black text-violet-700">{totalOrders}</div>
           </div>
           <div className="border-2 border-amber-500 p-2 rounded">
-            <div className="text-[9px] uppercase font-bold text-slate-600">AOV</div>
+            <div className="text-[0.625rem] uppercase font-bold text-slate-600">AOV</div>
             <div className="text-sm font-black text-amber-700">{formatPKR(aov)}</div>
           </div>
         </div>
@@ -320,7 +320,7 @@ export default function RetailReportsV2() {
             {customRange && (
               <button
                 onClick={clearCustomRange}
-                className="inline-flex items-center gap-1 h-6 px-2 rounded-md bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold hover:bg-rose-200 dark:hover:bg-rose-500/30 transition"
+                className="inline-flex items-center gap-1 h-6 px-2 rounded-md bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold hover:bg-rose-200 dark:hover:bg-rose-500/30 transition"
               >
                 <X className="h-3 w-3" /> Clear
               </button>
@@ -337,7 +337,7 @@ export default function RetailReportsV2() {
                 className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-extrabold transition active:scale-95 shadow-md shadow-emerald-500/30"
               >
                 <FileSpreadsheet className="h-3.5 w-3.5" /> Export CSV
-                <span className="text-[10px] opacity-80">▼</span>
+                <span className="text-[0.6875rem] opacity-80">▼</span>
               </button>
               {csvMenuOpen && (
                 <div className="absolute right-0 top-full mt-1 w-60 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl z-20 overflow-hidden">
@@ -662,16 +662,16 @@ export default function RetailReportsV2() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm print:text-[10px]">
+                <table className="w-full text-sm print:text-[0.6875rem]">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-b-2 border-slate-200 dark:border-slate-700">
                     <tr>
-                      <th className="text-center px-3 py-3 font-extrabold text-[10px] uppercase w-12">#</th>
-                      <th className="text-left px-3 py-3 font-extrabold text-[10px] uppercase">Product</th>
-                      <th className="text-right px-3 py-3 font-extrabold text-[10px] uppercase">Qty</th>
-                      <th className="text-right px-3 py-3 font-extrabold text-[10px] uppercase">Orders</th>
-                      <th className="text-right px-3 py-3 font-extrabold text-[10px] uppercase">Revenue</th>
-                      {!hideCost && <th className="text-right px-3 py-3 font-extrabold text-[10px] uppercase">Profit</th>}
-                      {!hideCost && <th className="text-center px-3 py-3 font-extrabold text-[10px] uppercase">Margin</th>}
+                      <th className="text-center px-3 py-3 font-extrabold text-[0.6875rem] uppercase w-12">#</th>
+                      <th className="text-left px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Product</th>
+                      <th className="text-right px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Qty</th>
+                      <th className="text-right px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Orders</th>
+                      <th className="text-right px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Revenue</th>
+                      {!hideCost && <th className="text-right px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Profit</th>}
+                      {!hideCost && <th className="text-center px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Margin</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -709,7 +709,7 @@ export default function RetailReportsV2() {
                         {!hideCost && (
                           <td className="px-3 py-2.5 text-center">
                             <span className={[
-                              'inline-flex px-2 py-0.5 rounded-full text-[10px] font-extrabold',
+                              'inline-flex px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold',
                               p.margin > 30 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
                               p.margin > 10 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300' :
                               'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
@@ -774,7 +774,7 @@ export default function RetailReportsV2() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-violet-700 dark:text-violet-400 text-lg tabular-nums">{formatPKR(tc.totalSpent)}</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">AOV {formatPKR(tc.avgOrderValue)}</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">AOV {formatPKR(tc.avgOrderValue)}</div>
                     </div>
                   </div>
                 );
@@ -852,12 +852,12 @@ export default function RetailReportsV2() {
                       )}
                       <div className="flex items-center justify-between mb-2">
                         <div className="text-2xl">{meta.emoji}</div>
-                        <div className="text-[10px] uppercase font-extrabold tracking-widest text-slate-500 dark:text-slate-400">{w.day}</div>
+                        <div className="text-[0.6875rem] uppercase font-extrabold tracking-widest text-slate-500 dark:text-slate-400">{w.day}</div>
                       </div>
                       <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tabular-nums leading-tight truncate">
                         {formatPKR(w.sales)}
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
                         Avg {formatPKR(w.avg)}
                       </div>
                       {/* progress bar */}
@@ -1175,7 +1175,7 @@ function QuickPreset({ label, onClick }: { label: string; onClick: () => void })
   return (
     <button
       onClick={onClick}
-      className="h-7 px-2.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-500/20 text-slate-700 dark:text-slate-300 hover:text-sky-700 dark:hover:text-sky-300 text-[10px] font-extrabold transition"
+      className="h-7 px-2.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-500/20 text-slate-700 dark:text-slate-300 hover:text-sky-700 dark:hover:text-sky-300 text-[0.6875rem] font-extrabold transition"
     >
       {label}
     </button>
@@ -1194,10 +1194,10 @@ function InsightCard({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-2xl bg-gradient-to-br ${tones[tone]} backdrop-blur-md border p-4 shadow-lg`}>
       <div className="flex items-center gap-2 text-white/90">
         <Icon className="h-4 w-4" />
-        <span className="text-[10px] uppercase tracking-widest font-extrabold">{label}</span>
+        <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold">{label}</span>
       </div>
       <div className="mt-1.5 text-xl sm:text-2xl font-extrabold tabular-nums leading-tight truncate drop-shadow-sm">{value}</div>
-      {sub && <div className="text-[11px] font-bold text-white/80 mt-0.5 truncate">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/80 mt-0.5 truncate">{sub}</div>}
     </div>
   );
 }

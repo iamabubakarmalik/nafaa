@@ -54,7 +54,7 @@ export function OrderExtras({ order: o, onChanged }: { order: OnlineOrderDetail;
   return (
     <section className="rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
       <div className="mb-2 flex items-center gap-2">
-        <span className="flex-1 text-[11px] font-black uppercase tracking-wider text-slate-400">Staff (customer ko nahi dikhta)</span>
+        <span className="flex-1 text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">Staff (customer ko nahi dikhta)</span>
         {canEdit && <Button size="xs" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEditOpen(true)}>Details badlein</Button>}
         {o.customerPhone && (blocked
           ? <Button size="xs" variant="ghost" loading={unblock.isPending} onClick={() => unblock.mutate()}>Unblock</Button>
@@ -65,35 +65,35 @@ export function OrderExtras({ order: o, onChanged }: { order: OnlineOrderDetail;
       <div className="flex flex-wrap items-center gap-1.5">
         <Tag className="h-3.5 w-3.5 text-slate-400" />
         {tags.map((t) => (
-          <span key={t} className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700 dark:bg-neutral-800 dark:text-slate-200">
+          <span key={t} className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-bold text-slate-700 dark:bg-neutral-800 dark:text-slate-200">
             {t}
             <button onClick={() => saveTags.mutate(tags.filter((x) => x !== t))} aria-label={`${t} hatao`}><X className="h-3 w-3" /></button>
           </span>
         ))}
         {QUICK_TAGS.filter((t) => !tags.includes(t)).slice(0, 4).map((t) => (
-          <button key={t} onClick={() => addTag(t)} className="rounded-md border border-dashed border-slate-300 px-2 py-0.5 text-[11px] font-semibold text-slate-500 hover:border-slate-500 dark:border-neutral-700">+ {t}</button>
+          <button key={t} onClick={() => addTag(t)} className="rounded-md border border-dashed border-slate-300 px-2 py-0.5 text-[0.6875rem] font-semibold text-slate-500 hover:border-slate-500 dark:border-neutral-700">+ {t}</button>
         ))}
         <input value={tagDraft} onChange={(e) => setTagDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addTag(tagDraft); }}
-          placeholder="Naya tag…" maxLength={30} className="h-6 w-24 rounded-md border border-slate-200 bg-transparent px-2 text-[11px] outline-none dark:border-neutral-700" />
+          placeholder="Naya tag…" maxLength={30} className="h-6 w-24 rounded-md border border-slate-200 bg-transparent px-2 text-[0.6875rem] outline-none dark:border-neutral-700" />
       </div>
 
       {/* Notes */}
       <div className="mt-3 space-y-1.5">
         {notes.map((n) => (
-          <div key={n.id} className="rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
+          <div key={n.id} className="rounded-lg bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
             <div className="whitespace-pre-wrap">{n.text}</div>
-            <div className="mt-0.5 text-[10.5px] font-semibold opacity-70">{n.byName ?? 'Staff'} · {whenText(n.at)}</div>
+            <div className="mt-0.5 text-[0.65625rem] font-semibold opacity-70">{n.byName ?? 'Staff'} · {whenText(n.at)}</div>
           </div>
         ))}
         <div className="flex gap-2">
           <input value={note} onChange={(e) => setNote(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && note.trim()) addNote.mutate(); }}
-            placeholder="Andar ka note — jaise: customer ne 5 baje ke baad bola" maxLength={500} className={cn(inputCls, 'h-8 text-[12.5px]')} />
+            placeholder="Andar ka note — jaise: customer ne 5 baje ke baad bola" maxLength={500} className={cn(inputCls, 'h-8 text-[0.78125rem]')} />
           <Button size="xs" variant="outline" disabled={!note.trim()} loading={addNote.isPending} onClick={() => addNote.mutate()} leftIcon={<StickyNote className="h-3.5 w-3.5" />}>Note</Button>
         </div>
       </div>
 
       {edits.length > 0 && (
-        <details className="mt-3 text-[12px] text-slate-500">
+        <details className="mt-3 text-[0.75rem] text-slate-500">
           <summary className="cursor-pointer font-bold">Badli hui details ({edits.length})</summary>
           <ul className="mt-1.5 space-y-1">
             {[...edits].reverse().map((e, i) => (

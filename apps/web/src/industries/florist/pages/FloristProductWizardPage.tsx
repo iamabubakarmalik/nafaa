@@ -301,7 +301,7 @@ export default function FloristProductWizardPage() {
 function SuccessStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-xl bg-white border-2 border-pink-200 p-3">
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-pink-700">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-pink-700">{label}</div>
       <div className="text-2xl font-extrabold text-pink-900 tabular-nums mt-0.5">{value}</div>
     </div>
   );

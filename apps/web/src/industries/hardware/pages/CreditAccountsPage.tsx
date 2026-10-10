@@ -69,24 +69,24 @@ export default function CreditAccountsPage() {
           <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2">📊 Aging Analysis</h3>
           <div className="grid sm:grid-cols-5 gap-3">
             <div className="rounded-xl bg-slate-100 dark:bg-neutral-800 p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500">Total Outstanding</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total Outstanding</div>
               <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(aging.totalOutstanding)}</div>
-              <div className="text-[10px] font-bold text-slate-500">{aging.accountsCount} accounts</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">{aging.accountsCount} accounts</div>
             </div>
             <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-emerald-700">0-30 Days</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">0-30 Days</div>
               <div className="text-lg font-extrabold text-emerald-900 tabular-nums">{formatPKR(aging.age0To30)}</div>
             </div>
             <div className="rounded-xl bg-blue-50 dark:bg-blue-950/30 p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-blue-700">31-60 Days</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">31-60 Days</div>
               <div className="text-lg font-extrabold text-blue-900 tabular-nums">{formatPKR(aging.age31To60)}</div>
             </div>
             <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-amber-700">61-90 Days</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">61-90 Days</div>
               <div className="text-lg font-extrabold text-amber-900 tabular-nums">{formatPKR(aging.age61To90)}</div>
             </div>
             <div className="rounded-xl bg-rose-50 dark:bg-rose-950/30 p-3 text-center border-2 border-rose-300">
-              <div className="text-[10px] uppercase font-extrabold text-rose-700">90+ Days</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700">90+ Days</div>
               <div className="text-lg font-extrabold text-rose-900 tabular-nums">{formatPKR(aging.ageOver90)}</div>
             </div>
           </div>
@@ -156,9 +156,9 @@ function AccountCard({ a }: any) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold">{a.accountNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
               {a.ageOver90Days > 0 && (
-                <span className="px-2 py-0.5 rounded bg-red-600 text-white text-[9px] font-extrabold uppercase animate-pulse inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded bg-red-600 text-white text-[0.625rem] font-extrabold uppercase animate-pulse inline-flex items-center gap-0.5">
                   <AlertCircle className="h-2 w-2" />
                   90+ Days
                 </span>
@@ -178,13 +178,13 @@ function AccountCard({ a }: any) {
             'text-2xl font-extrabold tabular-nums ' +
             (a.currentBalance > a.creditLimit ? 'text-rose-700' : 'text-slate-900 dark:text-white')
           }>{formatPKR(a.currentBalance)}</div>
-          <div className="text-[10px] font-bold text-slate-500">Limit: {formatPKR(a.creditLimit)}</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500">Limit: {formatPKR(a.creditLimit)}</div>
         </div>
       </div>
 
       {a.creditLimit > 0 && (
         <div className="mt-3">
-          <div className="flex items-center justify-between text-[10px] font-extrabold mb-1">
+          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold mb-1">
             <span className="text-slate-500">Credit Utilization</span>
             <span className={utilizationPct > 100 ? 'text-rose-700' : utilizationPct > 80 ? 'text-amber-700' : 'text-emerald-700'}>
               {utilizationPct.toFixed(1)}%
@@ -259,15 +259,15 @@ function AccountForm({ editing, onClose, onSaved }: any) {
           <div className="text-sm font-extrabold text-amber-900 flex items-center gap-2"><DollarSign className="h-4 w-4" />Credit Terms</div>
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Credit Limit *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Credit Limit *</label>
               <input type="number" value={form.creditLimit} onChange={(e) => setForm({ ...form, creditLimit: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Credit Days</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Credit Days</label>
               <input type="number" value={form.creditDays} onChange={(e) => setForm({ ...form, creditDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Interest %/month</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Interest %/month</label>
               <input type="number" step="0.1" value={form.interestRateMonthly} onChange={(e) => setForm({ ...form, interestRateMonthly: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
           </div>

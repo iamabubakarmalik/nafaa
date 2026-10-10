@@ -26,7 +26,7 @@ export default function ShopPreviewCard({ s, theme }: Props) {
           </div>
         )}
         {s.verificationLevel && s.verificationLevel !== 'UNVERIFIED' && (
-          <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-black ${verify.bg} ${verify.color} border ${verify.border} flex items-center gap-1`}>
+          <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-black ${verify.bg} ${verify.color} border ${verify.border} flex items-center gap-1`}>
             {verify.emoji} {verify.label}
           </div>
         )}
@@ -74,14 +74,14 @@ export default function ShopPreviewCard({ s, theme }: Props) {
         {/* Industry chip + delivery */}
         <div className="flex items-center gap-2 flex-wrap">
           <div
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-black"
             style={{ backgroundColor: theme.accentHex + '20', color: theme.accentHex }}
           >
             <span>{theme.emoji}</span>
             {theme.label}
           </div>
           {s.offersDelivery && (
-            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700">
+            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-black bg-emerald-100 text-emerald-700">
               <Truck className="h-2.5 w-2.5" />
               {s.estimatedDeliveryMinutes || 30} min
             </div>
@@ -90,7 +90,7 @@ export default function ShopPreviewCard({ s, theme }: Props) {
 
         {/* Price info */}
         {s.deliveryFee !== undefined && (
-          <div className="pt-2 border-t border-slate-100 text-[11px] font-bold text-slate-600 space-y-0.5">
+          <div className="pt-2 border-t border-slate-100 text-[0.6875rem] font-bold text-slate-600 space-y-0.5">
             {s.deliveryFee > 0 ? (
               <div>Delivery: Rs {s.deliveryFee}</div>
             ) : (
@@ -108,16 +108,16 @@ export default function ShopPreviewCard({ s, theme }: Props) {
         {/* Feature badges */}
         <div className="flex gap-1 flex-wrap pt-1">
           {s.bargainEnabled && (
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">💰 BARGAIN</span>
+            <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">💰 BARGAIN</span>
           )}
           {s.groupBuyEnabled && (
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">👥 GROUP</span>
+            <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">👥 GROUP</span>
           )}
           {s.liveShopEnabled && (
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">📺 LIVE</span>
+            <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">📺 LIVE</span>
           )}
           {s.auctionEnabled && (
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-100 text-red-700">🔨 AUCTION</span>
+            <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-red-100 text-red-700">🔨 AUCTION</span>
           )}
         </div>
 
@@ -139,7 +139,7 @@ export default function ShopPreviewCard({ s, theme }: Props) {
         </div>
 
         {isMissing && (
-          <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-2 text-[10px] font-bold text-amber-800">
+          <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-2 text-[0.6875rem] font-bold text-amber-800">
             ⚠️ Basic info missing — customers ko complete profile chahiye
           </div>
         )}

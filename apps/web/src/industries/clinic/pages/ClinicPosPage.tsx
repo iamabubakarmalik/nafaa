@@ -212,18 +212,18 @@ export default function ClinicPosPage() {
                           <div className="w-full h-full flex items-center justify-center text-5xl">{category?.emoji || '🩺'}</div>
                         )}
                         <div className="absolute top-1 left-1 flex flex-col gap-1">
-                          {service.isFeatured && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5"><Star className="h-2 w-2 fill-current" /> FT</span>}
-                          {service.isPopular && <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold shadow">🔥 POP</span>}
+                          {service.isFeatured && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5"><Star className="h-2 w-2 fill-current" /> FT</span>}
+                          {service.isPopular && <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold shadow">🔥 POP</span>}
                         </div>
                         {service.durationMin && (
-                          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-900/70 backdrop-blur text-white text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-900/70 backdrop-blur text-white text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                             <Clock className="h-2 w-2" /> {service.durationMin}m
                           </div>
                         )}
                       </div>
                       <div className="p-2">
                         <div className="font-extrabold text-slate-900 text-xs line-clamp-2 leading-tight min-h-[2rem]">{p.name}</div>
-                        {category && <div className="text-[9px] font-extrabold text-cyan-600 mt-0.5">{category.emoji} {category.label}</div>}
+                        {category && <div className="text-[0.625rem] font-extrabold text-cyan-600 mt-0.5">{category.emoji} {category.label}</div>}
                         <div className="mt-1 text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(price)}</div>
                       </div>
                     </button>
@@ -238,7 +238,7 @@ export default function ClinicPosPage() {
           <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20"><Stethoscope className="h-2.5 w-2.5" /> Bill</div>
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20"><Stethoscope className="h-2.5 w-2.5" /> Bill</div>
                 <div className="text-2xl font-extrabold tabular-nums mt-1">{totalItems.toFixed(0)} items</div>
                 <div className="text-xs text-white/80 font-semibold">{formatPKRFull(total)}</div>
               </div>
@@ -300,7 +300,7 @@ export default function ClinicPosPage() {
 
               <div className="grid grid-cols-3 gap-1">
                 {(['FULL_PAYMENT', 'PARTIAL_CREDIT', 'FULL_CREDIT'] as const).map((m) => (
-                  <button key={m} onClick={() => setSaleMode(m)} className={'py-2 rounded-lg text-[10px] font-extrabold transition ' + (saleMode === m ? 'bg-cyan-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-700')}>
+                  <button key={m} onClick={() => setSaleMode(m)} className={'py-2 rounded-lg text-[0.6875rem] font-extrabold transition ' + (saleMode === m ? 'bg-cyan-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-700')}>
                     {m === 'FULL_PAYMENT' ? 'Full Pay' : m === 'PARTIAL_CREDIT' ? 'Partial' : 'Udhaar'}
                   </button>
                 ))}

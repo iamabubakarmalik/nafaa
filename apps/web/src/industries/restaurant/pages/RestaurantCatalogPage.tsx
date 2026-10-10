@@ -138,7 +138,7 @@ export default function RestaurantCatalogPage() {
               <ShoppingBag className="h-4 w-4" />
               Cart
               {cart.totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
+                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
                   {cart.totalItems.toFixed(0)}
                 </span>
               )}
@@ -162,7 +162,7 @@ export default function RestaurantCatalogPage() {
                 ].join(' ')}
               >
                 <Icon className="h-5 w-5 mx-auto mb-1" />
-                <div className="text-[10px] font-extrabold uppercase">{m.label}</div>
+                <div className="text-[0.6875rem] font-extrabold uppercase">{m.label}</div>
               </button>
             );
           })}
@@ -239,7 +239,7 @@ export default function RestaurantCatalogPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-amber-900 text-lg">Chef Specials</h3>
-              <p className="text-[11px] text-amber-700 font-bold">Signature dishes must-try</p>
+              <p className="text-[0.6875rem] text-amber-700 font-bold">Signature dishes must-try</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -266,7 +266,7 @@ export default function RestaurantCatalogPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-emerald-900 text-lg">Best Sellers</h3>
-              <p className="text-[11px] text-emerald-700 font-bold">Customer favorites</p>
+              <p className="text-[0.6875rem] text-emerald-700 font-bold">Customer favorites</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -388,12 +388,12 @@ function MenuCard({ item, compact = false, onAdd, onDetail, wishlist }: any) {
         {/* Badges */}
         <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
           {item.chefSpecial && (
-            <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
               <Star className="h-2 w-2 fill-white" /> Chef
             </span>
           )}
           {item.bestSeller && (
-            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
               <TrendingUp className="h-2 w-2" /> Best
             </span>
           )}
@@ -413,12 +413,12 @@ function MenuCard({ item, compact = false, onAdd, onDetail, wishlist }: any) {
         {/* Spice/prep info */}
         <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1">
           {item.isSpicy && (
-            <span className="px-1.5 py-0.5 rounded bg-red-600 text-white text-[8px] font-extrabold inline-flex items-center gap-0.5 shadow">
+            <span className="px-1.5 py-0.5 rounded bg-red-600 text-white text-[0.625rem] font-extrabold inline-flex items-center gap-0.5 shadow">
               <Flame className="h-2 w-2" />
             </span>
           )}
           {item.prepTimeMinutes && (
-            <span className="px-1.5 py-0.5 rounded bg-slate-900/80 backdrop-blur text-white text-[8px] font-extrabold inline-flex items-center gap-0.5 shadow">
+            <span className="px-1.5 py-0.5 rounded bg-slate-900/80 backdrop-blur text-white text-[0.625rem] font-extrabold inline-flex items-center gap-0.5 shadow">
               <Clock className="h-2 w-2" />
               {item.prepTimeMinutes}m
             </span>
@@ -428,7 +428,7 @@ function MenuCard({ item, compact = false, onAdd, onDetail, wishlist }: any) {
 
       <div className="p-2.5">
         {p?.category && (
-          <div className="text-[9px] uppercase font-extrabold truncate" style={{ color: p.category.color }}>
+          <div className="text-[0.625rem] uppercase font-extrabold truncate" style={{ color: p.category.color }}>
             {p.category.name}
           </div>
         )}
@@ -500,7 +500,7 @@ function ModifierPickerModal({ item, modifierGroups, onConfirm, onClose }: any) 
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         <div className="px-5 py-4 bg-gradient-to-br from-orange-600 to-red-700 text-white flex items-center justify-between">
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Customize</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Customize</div>
             <h3 className="font-extrabold text-lg">{item.product?.name}</h3>
           </div>
           <button onClick={onClose} className="h-9 w-9 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
@@ -517,7 +517,7 @@ function ModifierPickerModal({ item, modifierGroups, onConfirm, onClose }: any) 
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <div className="font-extrabold text-slate-900 text-sm">{g.name}</div>
-                    <div className="text-[10px] text-slate-500 font-bold">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">
                       {g.isRequired ? 'Required' : 'Optional'} • Choose {g.minSelections}-{g.maxSelections}
                     </div>
                   </div>
@@ -610,17 +610,17 @@ function MenuDetailModal({ item, onClose, onAdd, wishlist }: any) {
               <h2 className="text-2xl font-extrabold text-slate-900 mt-1">{p?.name}</h2>
               <div className="mt-2 flex flex-wrap gap-1">
                 {item.chefSpecial && (
-                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                     <Star className="h-2.5 w-2.5 fill-current" /> Chef Special
                   </span>
                 )}
                 {item.bestSeller && (
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                     <TrendingUp className="h-2.5 w-2.5" /> Best Seller
                   </span>
                 )}
                 {item.isSpicy && (
-                  <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                  <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                     <Flame className="h-2.5 w-2.5" /> {item.spiceLevel}
                   </span>
                 )}
@@ -628,7 +628,7 @@ function MenuDetailModal({ item, onClose, onAdd, wishlist }: any) {
             </div>
             <div className="text-right">
               <div className="text-2xl font-extrabold text-emerald-700 tabular-nums">{formatPKRFull(p?.price ?? 0)}</div>
-              <div className="text-[10px] font-bold text-slate-500">/ {p?.unit}</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">/ {p?.unit}</div>
             </div>
           </div>
 
@@ -643,30 +643,30 @@ function MenuDetailModal({ item, onClose, onAdd, wishlist }: any) {
               <div className="rounded-lg bg-blue-50 border border-blue-200 p-2 text-center">
                 <Clock className="h-4 w-4 text-blue-700 mx-auto mb-0.5" />
                 <div className="font-extrabold text-blue-900">{item.prepTimeMinutes}m</div>
-                <div className="text-[9px] text-blue-700 font-bold uppercase">Prep</div>
+                <div className="text-[0.625rem] text-blue-700 font-bold uppercase">Prep</div>
               </div>
             )}
             {item.servesPeople && (
               <div className="rounded-lg bg-violet-50 border border-violet-200 p-2 text-center">
                 <Users className="h-4 w-4 text-violet-700 mx-auto mb-0.5" />
                 <div className="font-extrabold text-violet-900">{item.servesPeople}</div>
-                <div className="text-[9px] text-violet-700 font-bold uppercase">Serves</div>
+                <div className="text-[0.625rem] text-violet-700 font-bold uppercase">Serves</div>
               </div>
             )}
             {item.calories && (
               <div className="rounded-lg bg-orange-50 border border-orange-200 p-2 text-center">
                 <div className="font-extrabold text-orange-900 mt-0.5">{item.calories}</div>
-                <div className="text-[9px] text-orange-700 font-bold uppercase">Cal</div>
+                <div className="text-[0.625rem] text-orange-700 font-bold uppercase">Cal</div>
               </div>
             )}
           </div>
 
           {item.dietaryTags?.length > 0 && (
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">Dietary Info</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2">Dietary Info</div>
               <div className="flex flex-wrap gap-1">
                 {item.dietaryTags.map((tag: string) => (
-                  <span key={tag} className="px-2 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                  <span key={tag} className="px-2 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                     <Leaf className="h-2.5 w-2.5" />
                     {tag.replace(/_/g, ' ')}
                   </span>

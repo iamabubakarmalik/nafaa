@@ -150,7 +150,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
               <Package className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-emerald-700 dark:text-emerald-300 font-bold">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-emerald-700 dark:text-emerald-300 font-bold">
                 Add Part / Spare
               </div>
               <h3 className="font-bold text-slate-900 dark:text-white">{ticketNumber}</h3>
@@ -217,7 +217,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
                   >
                     <Icon className="h-4 w-4 mx-auto mb-1" />
                     <div>{s.label}</div>
-                    <div className="text-[9px] font-normal opacity-70 mt-0.5">{s.hint}</div>
+                    <div className="text-[0.625rem] font-normal opacity-70 mt-0.5">{s.hint}</div>
                   </button>
                 );
               })}
@@ -264,12 +264,12 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
                         <div className="font-bold text-slate-900 dark:text-white text-xs flex items-center justify-between">
                           {p.name}
                           {low && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-bold">
+                            <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-bold">
                               LOW
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400">
                           Stock: <strong>{p.stock} {p.unit}</strong> · Cost:{' '}
                           {formatPKR(p.costPrice || 0)} · Price: {formatPKR(p.price || 0)}
                         </div>
@@ -280,7 +280,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
               )}
               {selectedProduct && (
                 <div className="mt-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-3 py-2 flex items-center justify-between">
-                  <div className="text-[11px] text-emerald-800 dark:text-emerald-200 font-bold">
+                  <div className="text-[0.6875rem] text-emerald-800 dark:text-emerald-200 font-bold">
                     ✓ {selectedProduct.name} — Stock: {selectedProduct.stock} {selectedProduct.unit}
                   </div>
                   <button
@@ -288,7 +288,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
                       setSelectedProductId('');
                       setProductSearch('');
                     }}
-                    className="text-[10px] text-rose-600 hover:underline font-bold"
+                    className="text-[0.6875rem] text-rose-600 hover:underline font-bold"
                   >
                     Clear
                   </button>
@@ -347,7 +347,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
           {/* Quick margin buttons */}
           {costN > 0 && (
             <div>
-              <div className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1.5 flex items-center gap-1">
+              <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1.5 flex items-center gap-1">
                 <Percent className="h-3 w-3" /> Quick Margin
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -369,19 +369,19 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
           {total > 0 && (
             <div className="grid grid-cols-3 gap-2">
               <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-200 dark:border-emerald-800 p-3 text-center">
-                <div className="text-[9px] uppercase font-bold text-emerald-700 dark:text-emerald-300">Total</div>
+                <div className="text-[0.625rem] uppercase font-bold text-emerald-700 dark:text-emerald-300">Total</div>
                 <div className="text-lg font-extrabold text-emerald-900 dark:text-emerald-100">
                   {formatPKR(total)}
                 </div>
               </div>
               <div className="rounded-xl bg-blue-50 dark:bg-blue-950/40 border-2 border-blue-200 dark:border-blue-800 p-3 text-center">
-                <div className="text-[9px] uppercase font-bold text-blue-700 dark:text-blue-300">Profit</div>
+                <div className="text-[0.625rem] uppercase font-bold text-blue-700 dark:text-blue-300">Profit</div>
                 <div className={`text-lg font-extrabold ${profit >= 0 ? 'text-blue-900 dark:text-blue-100' : 'text-rose-700'}`}>
                   {formatPKR(profit)}
                 </div>
               </div>
               <div className="rounded-xl bg-violet-50 dark:bg-violet-950/40 border-2 border-violet-200 dark:border-violet-800 p-3 text-center">
-                <div className="text-[9px] uppercase font-bold text-violet-700 dark:text-violet-300 flex items-center justify-center gap-0.5">
+                <div className="text-[0.625rem] uppercase font-bold text-violet-700 dark:text-violet-300 flex items-center justify-center gap-0.5">
                   <TrendingUp className="h-2.5 w-2.5" /> Margin
                 </div>
                 <div className="text-lg font-extrabold text-violet-900 dark:text-violet-100">
@@ -398,7 +398,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
             placeholder="Optional"
           />
 
-          <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-2.5 text-[10px] text-slate-600 dark:text-slate-400 flex items-start gap-2">
+          <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-2.5 text-[0.6875rem] text-slate-600 dark:text-slate-400 flex items-start gap-2">
             <Info className="h-3 w-3 flex-shrink-0 mt-0.5 text-blue-600" />
             <span>
               <strong>Tip:</strong> "Own Stock" par inventory automatically ghatega. "Customer Provided"

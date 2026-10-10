@@ -362,13 +362,13 @@ export default function SalonPosPage() {
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   {customerProfile.hairType && (
                     <div className="rounded-lg bg-white border border-pink-200 p-2">
-                      <div className="text-[9px] uppercase font-extrabold text-pink-700">Hair</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-pink-700">Hair</div>
                       <div className="font-extrabold text-slate-900">{customerProfile.hairType} • {customerProfile.hairLength}</div>
                     </div>
                   )}
                   {customerProfile.skinType && (
                     <div className="rounded-lg bg-white border border-amber-200 p-2">
-                      <div className="text-[9px] uppercase font-extrabold text-amber-700">Skin</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Skin</div>
                       <div className="font-extrabold text-slate-900">{customerProfile.skinType} • {customerProfile.skinTone}</div>
                     </div>
                   )}
@@ -383,13 +383,13 @@ export default function SalonPosPage() {
             <h3 className="font-extrabold text-slate-900 text-lg mb-4">Walk-in Customer</h3>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Name</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Name</label>
                 <input value={walkInName} onChange={(e) => { setWalkInName(e.target.value); setCustomerId(''); }}
                   placeholder="Guest name"
                   className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Phone</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Phone</label>
                 <input value={walkInPhone} onChange={(e) => setWalkInPhone(e.target.value)}
                   placeholder="03XX-XXXXXXX"
                   className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
@@ -421,7 +421,7 @@ export default function SalonPosPage() {
                   <ArrowLeft className="h-4 w-4" />
                 </button>
                 <div>
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                     <Scissors className="h-2.5 w-2.5 text-amber-300" />
                     {selectedCustomer?.name || walkInName || 'Walk-in'}
                   </div>
@@ -494,11 +494,11 @@ export default function SalonPosPage() {
                         </div>
                       )}
                       {hasDiscount && (
-                        <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[8px] font-extrabold">
+                        <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold">
                           {(((svc.price - svc.discountPrice!) / svc.price) * 100).toFixed(0)}% OFF
                         </div>
                       )}
-                      <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-900/80 text-white text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                      <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-900/80 text-white text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                         <Clock className="h-2 w-2" />{svc.durationMinutes}m
                       </div>
                     </div>
@@ -509,7 +509,7 @@ export default function SalonPosPage() {
                           {formatPKR(hasDiscount ? svc.discountPrice! : svc.price)}
                         </div>
                         {hasDiscount && (
-                          <div className="text-[9px] text-slate-400 line-through">{formatPKR(svc.price)}</div>
+                          <div className="text-[0.625rem] text-slate-400 line-through">{formatPKR(svc.price)}</div>
                         )}
                       </div>
                     </div>
@@ -524,7 +524,7 @@ export default function SalonPosPage() {
           <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 text-white px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                   <ReceiptText className="h-2.5 w-2.5 text-amber-300" /> Service Cart
                 </div>
                 <div className="text-2xl font-extrabold tabular-nums mt-1">{cart.length} services</div>
@@ -557,7 +557,7 @@ export default function SalonPosPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-sm text-slate-900 truncate">{item.serviceName}</div>
-                        <div className="text-[10px] text-slate-500 font-bold inline-flex items-center gap-2 mt-0.5">
+                        <div className="text-[0.6875rem] text-slate-500 font-bold inline-flex items-center gap-2 mt-0.5">
                           <span className="inline-flex items-center gap-0.5"><Clock className="h-2.5 w-2.5" />{item.durationMinutes}m</span>
                           <span className="font-extrabold text-emerald-700">{formatPKR(effPrice - item.lineDiscount)}</span>
                         </div>
@@ -620,20 +620,20 @@ export default function SalonPosPage() {
           <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-6 space-y-4">
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Date *</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block">Date *</label>
                 <input type="date" value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
                   className="h-14 w-full rounded-xl border-2 border-pink-300 bg-pink-50 px-4 text-lg font-extrabold focus:outline-none focus:border-pink-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Time *</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block">Time *</label>
                 <input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)}
                   className="h-14 w-full rounded-xl border-2 border-pink-300 bg-pink-50 px-4 text-lg font-extrabold focus:outline-none focus:border-pink-500" />
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Number of Guests</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block">Number of Guests</label>
               <div className="inline-flex items-center bg-slate-100 rounded-xl overflow-hidden">
                 <button onClick={() => setNumberOfGuests(Math.max(1, numberOfGuests - 1))} className="h-12 w-12 hover:bg-slate-200 font-extrabold text-xl">−</button>
                 <span className="h-12 w-16 flex items-center justify-center font-extrabold text-2xl tabular-nums">{numberOfGuests}</span>
@@ -642,7 +642,7 @@ export default function SalonPosPage() {
             </div>
 
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Special Requests</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block">Special Requests</label>
               <textarea rows={3} value={specialRequests} onChange={(e) => setSpecialRequests(e.target.value)}
                 placeholder="Any specific preferences, allergies to note, etc..."
                 className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-pink-500 resize-none" />
@@ -650,7 +650,7 @@ export default function SalonPosPage() {
           </section>
 
           <section className="rounded-3xl bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-200 p-5">
-            <div className="text-[10px] uppercase font-extrabold text-pink-700 mb-2">Appointment Summary</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-pink-700 mb-2">Appointment Summary</div>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between"><span className="text-slate-600">Services</span><span className="font-extrabold">{cart.length}</span></div>
               <div className="flex justify-between"><span className="text-slate-600">Total Duration</span><span className="font-extrabold">{totalDuration} min</span></div>
@@ -710,7 +710,7 @@ export default function SalonPosPage() {
               <button key={m.v} onClick={() => setSaleMode(m.v)}
                 className={`p-3 rounded-xl border-2 transition ${saleMode === m.v ? 'border-pink-600 bg-pink-50 shadow-md' : 'border-slate-200 hover:border-pink-300'}`}>
                 <div className="text-sm font-extrabold">{m.label}</div>
-                <div className="text-[10px] font-bold text-slate-500">{m.desc}</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500">{m.desc}</div>
               </button>
             ))}
           </div>
@@ -729,7 +729,7 @@ export default function SalonPosPage() {
             </div>
             {saleMode === 'PARTIAL' && (
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Advance Amount *</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Advance Amount *</label>
                 <input type="number" value={paidAmount} onChange={(e) => setPaidAmount(e.target.value)}
                   placeholder="0"
                   className="h-12 w-full rounded-xl border-2 border-amber-300 bg-amber-50 px-4 text-lg font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
@@ -753,7 +753,7 @@ export default function SalonPosPage() {
         </section>
 
         <section className="rounded-3xl bg-gradient-to-br from-slate-950 to-pink-900 text-white p-5 space-y-2 shadow-xl">
-          <div className="text-[10px] uppercase font-extrabold text-white/70">Final Bill</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Final Bill</div>
           <div className="space-y-1 text-sm">
             <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-bold tabular-nums">{formatPKR(subtotal)}</span></div>
             {svcCharge > 0 && <div className="flex justify-between"><span className="text-white/70">Service ({serviceChargePct}%)</span><span className="font-bold tabular-nums">+{formatPKR(svcCharge)}</span></div>}

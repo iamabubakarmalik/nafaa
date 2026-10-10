@@ -281,7 +281,7 @@ export default function CarpetPurchasesV2() {
 
             <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50/30 p-3 sm:p-4 space-y-3">
               <div>
-                <label className="block text-[10px] sm:text-xs font-extrabold text-slate-700 mb-1.5 uppercase tracking-wider">Add Carpet or Accessory</label>
+                <label className="block text-[0.6875rem] sm:text-xs font-extrabold text-slate-700 mb-1.5 uppercase tracking-wider">Add Carpet or Accessory</label>
                 <div className="relative">
                   <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input type="text" value={productSearch} onChange={(e) => { setProductSearch(e.target.value); setSelectedProductId(''); }}
@@ -305,12 +305,12 @@ export default function CarpetPurchasesV2() {
                           <div className="flex items-center gap-2">
                             <div className="font-bold text-sm text-slate-900 truncate flex-1">{p.name}</div>
                             {isCarpet && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700 shrink-0">
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700 shrink-0">
                                 <Layers className="h-2.5 w-2.5" /> CARPET
                               </span>
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-mono">
+                          <div className="text-[0.6875rem] text-slate-500 font-mono">
                             Stock: <span className="font-bold text-emerald-700">{formatQty(p.stock)} {p.unit}</span>
                             {p.costPrice > 0 && <> • Cost: <span className="font-bold">{formatPKR(p.costPrice)}</span></>}
                           </div>
@@ -327,7 +327,7 @@ export default function CarpetPurchasesV2() {
                     <div className="flex items-center gap-2">
                       <div className="font-extrabold text-sm text-slate-900 flex-1">{selectedProduct.name}</div>
                       {isSelectedCarpet && (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700 shrink-0">
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700 shrink-0">
                           <Layers className="h-2.5 w-2.5" /> CARPET
                         </span>
                       )}
@@ -336,7 +336,7 @@ export default function CarpetPurchasesV2() {
                       Current stock: <span className="text-emerald-700">{formatQty(selectedProduct.stock)} {selectedProduct.unit}</span>
                     </div>
                     {isSelectedCarpet && (
-                      <div className="mt-2 text-[10px] text-emerald-800 font-bold bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1 flex items-start gap-1">
+                      <div className="mt-2 text-[0.6875rem] text-emerald-800 font-bold bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1 flex items-start gap-1">
                         <Sparkles className="h-3 w-3 shrink-0 mt-0.5 text-amber-500" />
                         <span>Carpet add karne ke baad neeche roll-by-roll dimensions enter karein</span>
                       </div>
@@ -345,12 +345,12 @@ export default function CarpetPurchasesV2() {
                   {isSelectedCarpet ? (
                     <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
                       <div>
-                        <label className="block text-[10px] font-extrabold text-slate-600 mb-1 uppercase">Default Cost / sqft (PKR) *</label>
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 mb-1 uppercase">Default Cost / sqft (PKR) *</label>
                         <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)}
                           onFocus={(e) => e.target.select()}
                           placeholder="72"
                           className="h-11 w-full rounded-lg border-2 border-emerald-300 bg-emerald-50/50 px-3 text-base font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-                        <div className="text-[9px] text-emerald-700 font-bold mt-0.5">Rolls mein override kar saktay hain</div>
+                        <div className="text-[0.625rem] text-emerald-700 font-bold mt-0.5">Rolls mein override kar saktay hain</div>
                       </div>
                       <div className="flex items-end">
                         <Button onClick={addToCart} className="w-full h-11 bg-gradient-to-r from-emerald-600 to-teal-700 whitespace-nowrap">
@@ -361,13 +361,13 @@ export default function CarpetPurchasesV2() {
                   ) : (
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="block text-[10px] font-extrabold text-slate-600 mb-1 uppercase">Qty *</label>
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 mb-1 uppercase">Qty *</label>
                         <input type="number" step="0.01" value={qty} onChange={(e) => setQty(e.target.value)}
                           onFocus={(e) => e.target.select()}
                           className="h-11 w-full rounded-lg border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-extrabold text-slate-600 mb-1 uppercase">Cost *</label>
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 mb-1 uppercase">Cost *</label>
                         <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)}
                           onFocus={(e) => e.target.select()}
                           className="h-11 w-full rounded-lg border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
@@ -413,7 +413,7 @@ export default function CarpetPurchasesV2() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <div className="font-extrabold text-slate-900 truncate text-sm">{line.name}</div>
                             {line.isCarpet && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700">
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700">
                                 <Layers className="h-2.5 w-2.5" /> CARPET
                               </span>
                             )}
@@ -422,7 +422,7 @@ export default function CarpetPurchasesV2() {
                             {formatPKR(line.costPrice)} × {formatQty(line.quantity)} {line.unit}
                           </div>
                           {line.isCarpet && line.rolls.length > 0 && (
-                            <div className="text-[10px] text-emerald-700 font-extrabold mt-0.5">
+                            <div className="text-[0.6875rem] text-emerald-700 font-extrabold mt-0.5">
                               {line.rolls.length} roll{line.rolls.length !== 1 ? 's' : ''} • {calculateRollsTotal(line.rolls).toFixed(2)} sqft
                             </div>
                           )}
@@ -436,7 +436,7 @@ export default function CarpetPurchasesV2() {
                         {line.isCarpet ? (
                           <div className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-2 py-1">
                             <Layers className="h-3 w-3 text-emerald-700" />
-                            <span className="text-[10px] font-extrabold text-emerald-800">
+                            <span className="text-[0.6875rem] font-extrabold text-emerald-800">
                               Auto: {formatQty(line.quantity)} {line.unit} from rolls
                             </span>
                           </div>
@@ -457,7 +457,7 @@ export default function CarpetPurchasesV2() {
                         <div className="flex items-center gap-1.5">
                           {line.isCarpet && (
                             <button onClick={() => updateLine(line.productId, { expanded: !line.expanded })}
-                              className="inline-flex items-center gap-1 h-8 px-2 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[11px] font-extrabold active:scale-95 transition">
+                              className="inline-flex items-center gap-1 h-8 px-2 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-[0.6875rem] font-extrabold active:scale-95 transition">
                               <Layers className="h-3 w-3" />
                               {line.rolls.length > 0 ? `${line.rolls.length} rolls` : 'Add rolls'}
                               {line.expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -534,7 +534,7 @@ export default function CarpetPurchasesV2() {
               <div className="px-4 sm:px-5 py-3 sm:py-4 border-b-2 border-slate-100 flex items-center justify-between">
                 <div>
                   <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">Recent Purchases</h3>
-                  <p className="text-[10px] sm:text-xs text-slate-500 font-bold">Latest 5</p>
+                  <p className="text-[0.6875rem] sm:text-xs text-slate-500 font-bold">Latest 5</p>
                 </div>
                 <button onClick={() => setTab('history')} className="text-xs font-extrabold text-emerald-600 hover:underline inline-flex items-center gap-1">
                   All <ArrowRight className="h-3 w-3" />
@@ -547,11 +547,11 @@ export default function CarpetPurchasesV2() {
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <div className="font-extrabold text-slate-900 font-mono text-xs">{p.purchaseNumber}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold truncate">{p.supplierName}</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">{p.supplierName}</div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="font-extrabold text-emerald-700 text-sm tabular-nums">{formatPKR(p.total)}</div>
-                          <div className="text-[10px] text-slate-500 font-bold">{formatDate(p.purchasedAt)}</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-bold">{formatDate(p.purchasedAt)}</div>
                         </div>
                       </div>
                     </Link>
@@ -568,7 +568,7 @@ export default function CarpetPurchasesV2() {
                   <Layers className="h-6 w-6" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/80">Roll Manager</div>
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/80">Roll Manager</div>
                   <h3 className="text-base sm:text-lg font-extrabold">View All Rolls</h3>
                 </div>
               </div>
@@ -661,7 +661,7 @@ export default function CarpetPurchasesV2() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-extrabold text-slate-900 text-sm truncate">{ts.supplier?.name}</div>
-                          <div className="text-[11px] text-slate-500 font-bold">{ts.orderCount} orders</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-bold">{ts.orderCount} orders</div>
                         </div>
                         <div className="font-extrabold text-emerald-700 text-sm tabular-nums">{formatPKR(ts.totalSpent)}</div>
                       </Link>
@@ -689,7 +689,7 @@ export default function CarpetPurchasesV2() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-extrabold text-slate-900 text-sm truncate">{tp.product?.name}</div>
-                          <div className="text-[11px] text-slate-500 font-bold">
+                          <div className="text-[0.6875rem] text-slate-500 font-bold">
                             {formatQty(tp.quantityPurchased)} {tp.product?.unit} • {tp.orderCount} orders
                           </div>
                         </div>
@@ -768,12 +768,12 @@ export default function CarpetPurchasesV2() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-slate-900 font-mono text-xs sm:text-sm">{p.purchaseNumber}</span>
                             {rollCount > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-extrabold inline-flex items-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold inline-flex items-center gap-1">
                                 <Layers className="h-2.5 w-2.5" /> {rollCount} ROLLS
                               </span>
                             )}
                             {balance > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-extrabold">
+                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.625rem] font-extrabold">
                                 Due {formatPKR(balance)}
                               </span>
                             )}
@@ -782,7 +782,7 @@ export default function CarpetPurchasesV2() {
                             <Building2 className="h-3 w-3 text-slate-400" />
                             <span className="font-bold text-slate-700 truncate">{p.supplier?.name || '—'}</span>
                           </div>
-                          <div className="flex items-center gap-3 mt-1.5 text-[11px] text-slate-500 font-bold flex-wrap">
+                          <div className="flex items-center gap-3 mt-1.5 text-[0.6875rem] text-slate-500 font-bold flex-wrap">
                             <span className="inline-flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               {formatDate(p.purchasedAt)}
@@ -796,7 +796,7 @@ export default function CarpetPurchasesV2() {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-lg sm:text-2xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.total)}</div>
-                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 group-hover:text-emerald-700">
+                        <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-emerald-600 group-hover:text-emerald-700">
                           <Eye className="h-3 w-3" /> View <ArrowRight className="h-3 w-3" />
                         </div>
                       </div>

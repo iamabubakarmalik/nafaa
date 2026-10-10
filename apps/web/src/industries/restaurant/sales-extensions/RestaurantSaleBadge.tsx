@@ -25,7 +25,7 @@ export function RestaurantSaleBadge({ sale }: { sale: any }) {
     : order.mode.replace(/_/g, ' ');
 
   return (
-    <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+    <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
       <Icon className="h-2.5 w-2.5" />
       {label}
     </span>

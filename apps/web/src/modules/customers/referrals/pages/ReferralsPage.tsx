@@ -310,7 +310,7 @@ export default function ReferralsPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Gift className="h-3.5 w-3.5 text-amber-300" /> Referral Program
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">🎁 Earn While You Share!</h1>
@@ -324,7 +324,7 @@ export default function ReferralsPage() {
                 {achievement.emoji}
               </div>
               <div>
-                <div className="text-[9px] uppercase tracking-widest font-extrabold opacity-80">Current Rank</div>
+                <div className="text-[0.625rem] uppercase tracking-widest font-extrabold opacity-80">Current Rank</div>
                 <div className="font-extrabold leading-none text-sm">{achievement.label}</div>
               </div>
               {nextMilestone && (
@@ -371,7 +371,7 @@ export default function ReferralsPage() {
           </div>
         </div>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>C</Kbd><span className="text-white/60">Copy code</span>
@@ -404,7 +404,7 @@ export default function ReferralsPage() {
               <Icon className="h-4 w-4" />
               {t.label}
               {t.badge !== undefined && t.badge > 0 && (
-                <span className={`px-1.5 rounded-full text-[10px] font-extrabold ${
+                <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold ${
                   active ? 'bg-white/20' : 'bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300'
                 }`}>
                   {t.badge}
@@ -463,7 +463,7 @@ export default function ReferralsPage() {
               <div className="relative">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border border-white/30 mb-2">
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-2.5 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-wider border border-white/30 mb-2">
                       <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                       Your Referral Code
                     </div>
@@ -476,7 +476,7 @@ export default function ReferralsPage() {
 
                 {/* Code display */}
                 <div className="rounded-2xl bg-white/15 backdrop-blur-md border border-white/30 p-5 mb-3 shadow-lg">
-                  <div className="text-[10px] uppercase tracking-widest font-extrabold opacity-80 mb-2">Your Code</div>
+                  <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold opacity-80 mb-2">Your Code</div>
                   <div className="flex items-center gap-3 flex-wrap">
                     <div className="font-mono text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-widest break-all">
                       {code || '—'}
@@ -493,9 +493,9 @@ export default function ReferralsPage() {
 
                 {/* Share link */}
                 <div className="rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-3 mb-4">
-                  <div className="text-[10px] uppercase tracking-widest font-extrabold opacity-80 mb-1.5">Share Link</div>
+                  <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold opacity-80 mb-1.5">Share Link</div>
                   <div className="flex items-center gap-2">
-                    <div className="font-mono text-[11px] truncate flex-1 bg-white/10 rounded-lg px-2 py-1.5 border border-white/20">
+                    <div className="font-mono text-[0.6875rem] truncate flex-1 bg-white/10 rounded-lg px-2 py-1.5 border border-white/20">
                       {shareUrl}
                     </div>
                     <button
@@ -536,25 +536,25 @@ export default function ReferralsPage() {
                 {/* Reward info */}
                 <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-3 gap-2 text-center">
                   <div>
-                    <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-80">Reward</div>
+                    <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-80">Reward</div>
                     <div className="text-base sm:text-lg font-extrabold mt-0.5 tabular-nums">
                       Rs {safeData.stats.rewardAmount}
                     </div>
-                    <div className="text-[9px] font-bold opacity-80">minimum</div>
+                    <div className="text-[0.625rem] font-bold opacity-80">minimum</div>
                   </div>
                   <div>
-                    <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-80">Bonus</div>
+                    <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-80">Bonus</div>
                     <div className="text-base sm:text-lg font-extrabold mt-0.5 tabular-nums">
                       {safeData.stats.rewardPercentage}%
                     </div>
-                    <div className="text-[9px] font-bold opacity-80">of sale</div>
+                    <div className="text-[0.625rem] font-bold opacity-80">of sale</div>
                   </div>
                   <div>
-                    <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-80">Earned</div>
+                    <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-80">Earned</div>
                     <div className="text-base sm:text-lg font-extrabold mt-0.5 tabular-nums text-amber-300">
                       {formatPKR(safeData.stats.totalEarned)}
                     </div>
-                    <div className="text-[9px] font-bold opacity-80">lifetime</div>
+                    <div className="text-[0.625rem] font-bold opacity-80">lifetime</div>
                   </div>
                 </div>
               </div>
@@ -730,13 +730,13 @@ export default function ReferralsPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{item.title}</div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{formatRelative(item.date)}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{formatRelative(item.date)}</div>
                         </div>
                         <div className="text-right shrink-0">
                           {isReferral ? (
                             <>
                               {statusCfg && (
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-extrabold ${statusCfg.bg} ${statusCfg.text} ${statusCfg.darkBg} ${statusCfg.darkText}`}>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold ${statusCfg.bg} ${statusCfg.text} ${statusCfg.darkBg} ${statusCfg.darkText}`}>
                                   {statusCfg.label}
                                 </span>
                               )}
@@ -801,10 +801,10 @@ export default function ReferralsPage() {
             </div>
 
             <div className="flex gap-1 flex-wrap items-center">
-              <span className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mr-1">Status:</span>
+              <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mr-1">Status:</span>
               <button
                 onClick={() => setStatusFilter('all')}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition ${
                   statusFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
@@ -817,7 +817,7 @@ export default function ReferralsPage() {
                   <button
                     key={key}
                     onClick={() => setStatusFilter(key as StatusFilter)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition inline-flex items-center gap-1 ${
+                    className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1 ${
                       statusFilter === key
                         ? `${cfg.bg} ${cfg.text} ${cfg.darkBg} ${cfg.darkText} ring-2 ring-pink-200 dark:ring-pink-500/40`
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -825,7 +825,7 @@ export default function ReferralsPage() {
                   >
                     <cfg.icon className="h-2.5 w-2.5" />
                     {cfg.label}
-                    <span className="px-1 rounded-full text-[9px] bg-white/30 dark:bg-black/20">{count}</span>
+                    <span className="px-1 rounded-full text-[0.625rem] bg-white/30 dark:bg-black/20">{count}</span>
                   </button>
                 );
               })}
@@ -877,7 +877,7 @@ export default function ReferralsPage() {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold ${statusCfg?.bg} ${statusCfg?.text} ${statusCfg?.darkBg} ${statusCfg?.darkText}`}>
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[0.6875rem] font-extrabold ${statusCfg?.bg} ${statusCfg?.text} ${statusCfg?.darkBg} ${statusCfg?.darkText}`}>
                         <StatusIcon className="h-2.5 w-2.5" />
                         {statusCfg?.label}
                       </span>
@@ -935,14 +935,14 @@ export default function ReferralsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{c.note || c.type}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{formatDateTime(c.createdAt)}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{formatDateTime(c.createdAt)}</div>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className={`font-extrabold text-base tabular-nums ${isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                         {isPositive ? '+' : ''}{formatPKR(c.amount)}
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
                         Balance: <span className="font-extrabold">{formatPKR(c.balanceAfter)}</span>
                       </div>
                     </div>
@@ -999,7 +999,7 @@ function ReferralsTeacher({ onClose, rewardAmount, rewardPercentage }: { onClose
 
           {/* Achievement System */}
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <Trophy className="h-3 w-3" /> Achievement System
             </div>
             <div className="space-y-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -1016,7 +1016,7 @@ function ReferralsTeacher({ onClose, rewardAmount, rewardPercentage }: { onClose
                     <span className="text-lg">{t.emoji}</span>
                     <strong>{t.label}</strong>
                   </span>
-                  <span className="font-mono text-[11px] text-amber-700 dark:text-amber-400 font-extrabold">
+                  <span className="font-mono text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold">
                     {t.min}+ conversions
                   </span>
                 </div>
@@ -1026,7 +1026,7 @@ function ReferralsTeacher({ onClose, rewardAmount, rewardPercentage }: { onClose
 
           {/* Reward Structure */}
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
               <Banknote className="h-3 w-3" /> Reward — Kaise Milta Hai
             </div>
             <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -1096,11 +1096,11 @@ function StatCard({ label, value, sub, icon: Icon, color, isText, isHighlight }:
     }`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className={`mt-1.5 font-extrabold text-slate-900 dark:text-white tabular-nums truncate ${isText ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`}>
             {value}
           </div>
-          {sub && <div className="text-[10px] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

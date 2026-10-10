@@ -279,7 +279,7 @@ export default function BookstorePosPage() {
                         <div className="font-extrabold text-slate-900 text-xs line-clamp-2 leading-tight min-h-[2rem]">{p.name}</div>
                         <div className="mt-1 flex items-baseline justify-between">
                           <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.price)}</div>
-                          <div className="text-[9px] font-bold text-slate-500">{p.stock} {p.unit}</div>
+                          <div className="text-[0.625rem] font-bold text-slate-500">{p.stock} {p.unit}</div>
                         </div>
                       </div>
                     </button>
@@ -295,7 +295,7 @@ export default function BookstorePosPage() {
           <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                   <BookOpen className="h-2.5 w-2.5" />
                   Book Cart
                 </div>
@@ -387,7 +387,7 @@ export default function BookstorePosPage() {
               <div className="grid grid-cols-3 gap-1">
                 {(['FULL_PAYMENT', 'PARTIAL_CREDIT', 'FULL_CREDIT'] as const).map((m) => (
                   <button key={m} onClick={() => setSaleMode(m)}
-                    className={['py-2 rounded-lg text-[10px] font-extrabold transition',
+                    className={['py-2 rounded-lg text-[0.6875rem] font-extrabold transition',
                       saleMode === m ? 'bg-amber-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-700'].join(' ')}>
                     {m === 'FULL_PAYMENT' ? 'Full Pay' : m === 'PARTIAL_CREDIT' ? 'Partial' : 'Udhaar'}
                   </button>

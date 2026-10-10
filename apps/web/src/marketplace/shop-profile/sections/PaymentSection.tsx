@@ -52,7 +52,7 @@ export default function PaymentSection({ s, set }: Props) {
                 <div className="font-black text-sm text-slate-900 flex items-center gap-1.5">
                   {m.label}
                   {m.recommended && (
-                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[8px] font-black">
+                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[0.625rem] font-black">
                       RECOMMENDED
                     </span>
                   )}

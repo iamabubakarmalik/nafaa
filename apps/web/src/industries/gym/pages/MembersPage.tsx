@@ -109,13 +109,13 @@ export default function MembersPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b-2 border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-[10px] font-extrabold uppercase text-slate-700">Member</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-extrabold uppercase text-slate-700">Contact</th>
-                  <th className="px-4 py-3 text-center text-[10px] font-extrabold uppercase text-slate-700">Goal</th>
-                  <th className="px-4 py-3 text-right text-[10px] font-extrabold uppercase text-slate-700">Streak</th>
-                  <th className="px-4 py-3 text-right text-[10px] font-extrabold uppercase text-slate-700">Visits</th>
-                  <th className="px-4 py-3 text-center text-[10px] font-extrabold uppercase text-slate-700">Status</th>
-                  <th className="px-4 py-3 text-right text-[10px] font-extrabold uppercase text-slate-700">Actions</th>
+                  <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase text-slate-700">Member</th>
+                  <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase text-slate-700">Contact</th>
+                  <th className="px-4 py-3 text-center text-[0.6875rem] font-extrabold uppercase text-slate-700">Goal</th>
+                  <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase text-slate-700">Streak</th>
+                  <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase text-slate-700">Visits</th>
+                  <th className="px-4 py-3 text-center text-[0.6875rem] font-extrabold uppercase text-slate-700">Status</th>
+                  <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase text-slate-700">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -132,16 +132,16 @@ export default function MembersPage() {
                         )}
                         <div>
                           <div className="font-extrabold text-slate-900 text-sm">{m.customer?.name}</div>
-                          <div className="text-[10px] font-mono font-bold text-slate-500">{m.memberNumber}</div>
+                          <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{m.memberNumber}</div>
                         </div>
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-xs font-bold text-slate-700">{m.customer?.phone}</td>
-                    <td className="px-4 py-3 text-center text-[10px] font-extrabold text-fuchsia-700">{m.primaryGoal.replace('_', ' ')}</td>
+                    <td className="px-4 py-3 text-center text-[0.6875rem] font-extrabold text-fuchsia-700">{m.primaryGoal.replace('_', ' ')}</td>
                     <td className="px-4 py-3 text-right font-extrabold text-orange-700 tabular-nums">🔥 {m.currentStreak}d</td>
                     <td className="px-4 py-3 text-right font-extrabold tabular-nums">{m.totalVisits}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={'inline-block px-2 py-0.5 rounded-full text-white text-[9px] font-extrabold uppercase ' + STATUS_COLORS[m.status as MemberStatus]}>
+                      <span className={'inline-block px-2 py-0.5 rounded-full text-white text-[0.625rem] font-extrabold uppercase ' + STATUS_COLORS[m.status as MemberStatus]}>
                         {m.status}
                       </span>
                     </td>
@@ -174,11 +174,11 @@ function MemberCard({ member, onDelete }: any) {
             {member.customer?.name?.charAt(0).toUpperCase() ?? '?'}
           </div>
         )}
-        <span className={'absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-[9px] font-extrabold uppercase ' + STATUS_COLORS[member.status as MemberStatus]}>
+        <span className={'absolute top-2 left-2 px-2 py-0.5 rounded-full text-white text-[0.625rem] font-extrabold uppercase ' + STATUS_COLORS[member.status as MemberStatus]}>
           {member.status}
         </span>
         {member.currentStreak >= 7 && (
-          <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-orange-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow animate-pulse">
+          <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-orange-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow animate-pulse">
             🔥 {member.currentStreak}d
           </span>
         )}
@@ -188,20 +188,20 @@ function MemberCard({ member, onDelete }: any) {
           <Link to={'/gym-members/' + member.id}>
             <h3 className="font-extrabold text-slate-900 line-clamp-1 hover:text-red-600">{member.customer?.name}</h3>
           </Link>
-          <div className="text-[10px] font-mono font-bold text-slate-500">{member.memberNumber}</div>
-          <div className="text-[10px] font-extrabold text-fuchsia-600 mt-0.5">🎯 {member.primaryGoal.replace('_', ' ')}</div>
+          <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{member.memberNumber}</div>
+          <div className="text-[0.6875rem] font-extrabold text-fuchsia-600 mt-0.5">🎯 {member.primaryGoal.replace('_', ' ')}</div>
         </div>
         <div className="grid grid-cols-3 gap-1 text-center text-xs">
           <div>
-            <div className="text-[9px] uppercase font-extrabold text-orange-700">Streak</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-orange-700">Streak</div>
             <div className="font-extrabold text-orange-700 tabular-nums">{member.currentStreak}d</div>
           </div>
           <div>
-            <div className="text-[9px] uppercase font-extrabold text-blue-700">Visits</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Visits</div>
             <div className="font-extrabold text-blue-700 tabular-nums">{member.totalVisits}</div>
           </div>
           <div>
-            <div className="text-[9px] uppercase font-extrabold text-emerald-700">Spent</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Spent</div>
             <div className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(member.totalSpent)}</div>
           </div>
         </div>

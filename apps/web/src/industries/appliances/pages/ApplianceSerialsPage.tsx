@@ -215,7 +215,7 @@ export default function ApplianceSerialsPage() {
         <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 h-12">
           {([['active', '🛡️ Warranty chal rahi'], ['expiring', '⏳ Khatam ho rahi'], ['expired', '❌ Khatam']] as const).map(([v, label]) => (
             <button key={v} onClick={() => { setWarranty(warranty === v ? null : (v as any)); setPage(1); }}
-              className={`px-2.5 rounded-xl text-[11px] font-extrabold transition whitespace-nowrap ${
+              className={`px-2.5 rounded-xl text-[0.6875rem] font-extrabold transition whitespace-nowrap ${
                 warranty === v ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}>{label}</button>
           ))}
@@ -307,26 +307,26 @@ function SerialRow({ r, onOpen }: { r: ApplianceSerial; onOpen: () => void }) {
             <span className="font-mono text-xs font-extrabold text-cyan-700 dark:text-cyan-400">{r.serialNumber}</span>
             <StatusBadge meta={st} size="xs" />
             {r.status === 'SOLD' && inst.isOpen && (
-              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
+              <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
                 LAGANA BAQI
               </span>
             )}
           </div>
-          <div className="text-[13px] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+          <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
             {r.product?.name ?? 'Product'}
           </div>
-          <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 truncate">
+          <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 truncate">
             {r.product?.brand ? `${r.product.brand} • ` : ''}{catLabel(r.product?.categoryType)}
             {r.modelNumber ? ` • ${r.modelNumber}` : ''}
             {r.customerName ? ` • ${r.customerName}` : ''}
           </div>
         </div>
         <div className="hidden sm:block text-right shrink-0">
-          <div className={`text-[11px] font-extrabold ${wTone}`}>
+          <div className={`text-[0.6875rem] font-extrabold ${wTone}`}>
             {w?.isUnderWarranty ? `🛡️ ${daysPhrase(w.soonestDays)}` : '⌛ Warranty khatam'}
           </div>
           {w?.soonestKind && w.isUnderWarranty && (
-            <div className="text-[9px] font-bold text-slate-400">
+            <div className="text-[0.625rem] font-bold text-slate-400">
               {w.soonestKind === 'COMPRESSOR' ? 'Compressor' : w.soonestKind === 'MOTOR' ? 'Motor' : 'Main'}
             </div>
           )}
@@ -335,7 +335,7 @@ function SerialRow({ r, onOpen }: { r: ApplianceSerial; onOpen: () => void }) {
           <div className="text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100">
             {r.soldPrice ? formatPKR(r.soldPrice) : r.purchasePrice ? formatPKR(r.purchasePrice) : '—'}
           </div>
-          <div className="text-[9px] font-bold text-slate-400">
+          <div className="text-[0.625rem] font-bold text-slate-400">
             {r.soldAt ? fmtDate(r.soldAt) : r.purchaseDate ? fmtDate(r.purchaseDate) : ''}
           </div>
         </div>
@@ -428,7 +428,7 @@ function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () 
                 }`}>
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{p.name}</div>
-                  <div className="text-[10px] font-bold text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                     {p.sku ? `${p.sku} • ` : ''}Stock {p.stock} • Lagat {formatPKR(p.costPrice ?? 0)}
                   </div>
                 </div>
@@ -446,12 +446,12 @@ function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () 
             placeholder={'SN-001\nSN-002\nSN-003\n…'}
             value={serialText} onChange={(e) => setSerialText(e.target.value)} />
           <div className="mt-2 flex items-center justify-between">
-            <span className={`text-[11px] font-extrabold ${serials.length ? 'text-cyan-700 dark:text-cyan-400' : 'text-slate-400'}`}>
+            <span className={`text-[0.6875rem] font-extrabold ${serials.length ? 'text-cyan-700 dark:text-cyan-400' : 'text-slate-400'}`}>
               {serials.length} serial mile
             </span>
             {serials.length > 0 && (
               <button type="button" onClick={() => setSerialText('')}
-                className="text-[11px] font-extrabold text-rose-600 dark:text-rose-400 hover:underline">
+                className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 hover:underline">
                 Sab hatao
               </button>
             )}
@@ -459,10 +459,10 @@ function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () 
           {serials.length > 0 && (
             <div className="mt-2 flex gap-1 flex-wrap max-h-24 overflow-y-auto">
               {serials.slice(0, 30).map((s) => (
-                <span key={s} className="px-2 py-0.5 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 font-mono text-[10px] font-extrabold">{s}</span>
+                <span key={s} className="px-2 py-0.5 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 font-mono text-[0.6875rem] font-extrabold">{s}</span>
               ))}
               {serials.length > 30 && (
-                <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-extrabold">+{serials.length - 30}</span>
+                <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 text-[0.6875rem] font-extrabold">+{serials.length - 30}</span>
               )}
             </div>
           )}
@@ -498,7 +498,7 @@ function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () 
                   {formatPKR(serials.length * (Number(purchasePrice) || picked.costPrice || 0))}
                 </span>
               </div>
-              <div className="mt-0.5 text-[10px] font-bold text-white/60">
+              <div className="mt-0.5 text-[0.6875rem] font-bold text-white/60">
                 {serials.length} units × {formatPKR(Number(purchasePrice) || picked.costPrice || 0)}
               </div>
             </div>
@@ -660,7 +660,7 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
             <Box label="Service ka kharcha" value={formatPKR(s.serviceCost)} tone={s.serviceCost > 0 ? 'rose' : 'slate'} />
           </div>
           {s.serviceCost > 0 && s.soldPrice && s.purchasePrice && (
-            <div className="mt-2 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               Asal munafa is unit par: <strong className={s.soldPrice - s.purchasePrice - s.serviceCost >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
                 {formatPKR(s.soldPrice - s.purchasePrice - s.serviceCost)}
               </strong> (service ka kharcha nikal kar)
@@ -695,7 +695,7 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
                   <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">{t.label}</div>
-                  <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 shrink-0">{fmtDate(t.at)}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 shrink-0">{fmtDate(t.at)}</div>
                 </div>
               ))}
             </div>
@@ -711,13 +711,13 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
                   className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-2 transition">
                   <span className="text-base shrink-0">{svcTypeMeta(i.serviceType).emoji}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{i.installationNumber}</div>
-                    <div className="text-[10px] font-bold text-slate-400 truncate">
+                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{i.installationNumber}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                       {fmtDate(i.completedAt || i.scheduledDate)}{i.technicianName ? ` • ${i.technicianName}` : ''}
                     </div>
                   </div>
                   <StatusBadge meta={instStatusMeta(i.status)} size="xs" />
-                  <div className="text-[11px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0">{formatPKR(i.totalCharge)}</div>
+                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0">{formatPKR(i.totalCharge)}</div>
                 </Link>
               ))}
             </div>
@@ -734,18 +734,18 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
                   className="flex items-start gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-2 transition">
                   <span className="text-base shrink-0 mt-0.5">{svcTypeMeta(r.serviceType).emoji}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">
+                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">
                       {r.requestNumber} — {r.issueCategory || r.reportedIssue}
                     </div>
-                    <div className="text-[10px] font-bold text-slate-400 truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                       {fmtDate(r.requestedAt)}{r.technicianName ? ` • ${r.technicianName}` : ''}
                       {r.workDone ? ` • ${r.workDone}` : ''}
                     </div>
                   </div>
                   {r.coveredUnderWarranty && (
-                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shrink-0">FREE</span>
+                    <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shrink-0">FREE</span>
                   )}
-                  <div className="text-[11px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0">{formatPKR(r.totalCharge)}</div>
+                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0">{formatPKR(r.totalCharge)}</div>
                 </Link>
               ))}
             </div>
@@ -754,7 +754,7 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
 
         {s.notes && (
           <Panel icon={Zap} title="Notes" tone="slate">
-            <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{s.notes}</p>
+            <p className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{s.notes}</p>
           </Panel>
         )}
       </div>
@@ -772,9 +772,9 @@ function WBox({ label, end, days }: { label: string; end?: string | null; days?:
   };
   return (
     <div className={`rounded-xl border-2 px-2 py-2 text-center ${tones[tone]}`}>
-      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
-      <div className="text-[11px] font-extrabold">{end ? fmtDate(end) : '—'}</div>
-      <div className="text-[10px] font-bold opacity-80">{days != null ? daysPhrase(days) : ''}</div>
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold">{end ? fmtDate(end) : '—'}</div>
+      <div className="text-[0.6875rem] font-bold opacity-80">{days != null ? daysPhrase(days) : ''}</div>
     </div>
   );
 }
@@ -782,7 +782,7 @@ function WBox({ label, end, days }: { label: string; end?: string | null; days?:
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</div>
       <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 break-words">{value}</div>
     </div>
   );
@@ -797,7 +797,7 @@ function Box({ label, value, tone = 'slate' }: { label: string; value: string; t
   };
   return (
     <div className={`rounded-xl border px-2.5 py-2 ${tones[tone]}`}>
-      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
       <div className="text-sm font-extrabold tabular-nums truncate">{value}</div>
     </div>
   );

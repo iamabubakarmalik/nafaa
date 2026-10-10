@@ -45,7 +45,7 @@ export default function QuotationDetailPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 Rev {q.revisionNumber}
               </div>
@@ -107,7 +107,7 @@ export default function QuotationDetailPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-lg font-extrabold text-violet-700 tabular-nums">{item.quantity} {item.unit}</span>
                         <span className="font-extrabold">{item.itemName}</span>
-                        {item.brand && <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase">{item.brand}</span>}
+                        {item.brand && <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">{item.brand}</span>}
                       </div>
                       {item.specifications && <div className="text-xs text-slate-500 font-semibold mt-1">Specs: {item.specifications}</div>}
                       {item.itemDescription && <div className="text-xs text-slate-500 font-semibold italic mt-1">{item.itemDescription}</div>}
@@ -149,7 +149,7 @@ export default function QuotationDetailPage() {
         <aside className="space-y-4">
           <div className="sticky top-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-violet-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 mb-3">💰 Quote Summary</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-3">💰 Quote Summary</div>
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-bold tabular-nums">{formatPKR(q.subtotal)}</span></div>
                 {q.discount > 0 && <div className="flex justify-between text-rose-300"><span>Discount</span><span className="font-bold tabular-nums">-{formatPKR(q.discount)}</span></div>}

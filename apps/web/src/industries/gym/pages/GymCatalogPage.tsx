@@ -93,7 +93,7 @@ export default function GymCatalogPage() {
             (tab === t.v ? 'bg-gradient-to-br from-red-600 to-orange-700 text-white border-red-500 shadow-lg' : 'bg-white border-slate-200 text-slate-700 hover:border-red-300')
           }>
             <div className="text-xl mb-1">{t.label}</div>
-            <div className={'text-[10px] font-extrabold ' + (tab === t.v ? 'text-white/80' : 'text-slate-500')}>{t.desc}</div>
+            <div className={'text-[0.6875rem] font-extrabold ' + (tab === t.v ? 'text-white/80' : 'text-slate-500')}>{t.desc}</div>
           </button>
         ))}
       </div>
@@ -108,7 +108,7 @@ export default function GymCatalogPage() {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-amber-900 text-lg">Featured Plans</h3>
-                  <p className="text-[11px] text-amber-700 font-bold">Most popular choices</p>
+                  <p className="text-[0.6875rem] text-amber-700 font-bold">Most popular choices</p>
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -164,7 +164,7 @@ export default function GymCatalogPage() {
                   <div className="flex-1">
                     <div className="font-extrabold text-lg">{staffName}</div>
                     <div className="text-xs font-extrabold text-red-600">{t.role.replace('_', ' ')}</div>
-                    {t.experienceYears && <div className="text-[10px] font-bold text-slate-500">{t.experienceYears}+ years exp</div>}
+                    {t.experienceYears && <div className="text-[0.6875rem] font-bold text-slate-500">{t.experienceYears}+ years exp</div>}
                     {t.avgRating && (
                       <div className="mt-1 inline-flex items-center gap-0.5 text-xs font-extrabold text-amber-700">
                         <Star className="h-3 w-3 fill-current" /> {t.avgRating.toFixed(1)}
@@ -176,7 +176,7 @@ export default function GymCatalogPage() {
                 {t.specializations?.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {t.specializations.slice(0, 4).map((s: string, i: number) => (
-                      <span key={i} className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-extrabold uppercase">{s}</span>
+                      <span key={i} className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[0.625rem] font-extrabold uppercase">{s}</span>
                     ))}
                   </div>
                 )}
@@ -219,7 +219,7 @@ export default function GymCatalogPage() {
               </div>
               <div>
                 <h3 className="font-extrabold">{cls.name}</h3>
-                <div className="text-[10px] uppercase font-extrabold text-blue-600">{cls.classType.replace('_', ' ')}</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-blue-600">{cls.classType.replace('_', ' ')}</div>
               </div>
               <div className="text-xs text-slate-600 font-bold">
                 📅 {new Date(cls.scheduledStart).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}
@@ -330,7 +330,7 @@ function PlanInquireModal({ plan, onClose, shopWhatsapp, tenantName }: any) {
       <div className="w-full sm:max-w-md bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-4 bg-gradient-to-br from-red-600 to-orange-700 text-white flex items-center justify-between">
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-white/80">Enquire About</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">Enquire About</div>
             <h3 className="font-extrabold text-lg">{plan.name}</h3>
           </div>
           <button onClick={onClose} className="h-9 w-9 rounded-lg bg-white/15 flex items-center justify-center"><X className="h-4 w-4" /></button>

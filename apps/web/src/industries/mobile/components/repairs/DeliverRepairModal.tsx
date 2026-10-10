@@ -58,7 +58,7 @@ export function DeliverRepairModal({
                 <Truck className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/80">
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/80">
                   Repair Deliver
                 </div>
                 <h3 className="font-extrabold text-lg font-mono truncate">{ticket.ticketNumber}</h3>
@@ -115,12 +115,12 @@ export function DeliverRepairModal({
             <>
               <div>
                 <div className="flex items-baseline justify-between mb-1.5">
-                  <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
+                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
                     Abhi kitna liya
                   </label>
                   <button
                     onClick={() => setAmount(String(balance))}
-                    className="text-[10px] font-extrabold text-orange-600 dark:text-orange-400 hover:underline"
+                    className="text-[0.6875rem] font-extrabold text-orange-600 dark:text-orange-400 hover:underline"
                   >
                     Poora {formatPKR(balance)}
                   </button>
@@ -152,7 +152,7 @@ export function DeliverRepairModal({
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
+                <label className="block text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
                   Tarika
                 </label>
                 <div className="grid grid-cols-3 gap-2">

@@ -321,7 +321,7 @@ export default function DamageLogPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
             <div className="text-xs font-bold text-slate-900">{printDate}</div>
           </div>
         </div>
@@ -334,7 +334,7 @@ export default function DamageLogPage() {
 
         <div className="relative flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <ShieldAlert className="h-3.5 w-3.5 text-amber-300" /> Damage & Wastage
               {shopName && (
                 <>
@@ -553,7 +553,7 @@ export default function DamageLogPage() {
               <button
                 key={o.v}
                 onClick={() => setDatePreset(o.v)}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold transition whitespace-nowrap ${
+                className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold transition whitespace-nowrap ${
                   datePreset === o.v
                     ? 'bg-rose-600 text-white shadow-sm'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -815,7 +815,7 @@ function DamageTeacher({ hasDamages, hasPending, onClose, onStart }: {
 
           {/* Live misal */}
           <div className="rounded-2xl border-2 border-rose-200 dark:border-rose-500/30 bg-rose-50/60 dark:bg-rose-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300">
               🥛 Misal: Milk Expire Ho Gaya
             </div>
             <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -897,8 +897,8 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
   return (
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -909,7 +909,7 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
 function StepPill({ n, label, state }: { n: number; label: string; state: 'done' | 'active' | 'todo' }) {
   return (
     <div className={[
-      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-extrabold border backdrop-blur-md transition',
+      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.6875rem] font-extrabold border backdrop-blur-md transition',
       state === 'done'
         ? 'bg-emerald-400/25 border-emerald-300/50 text-emerald-200'
         : state === 'active'
@@ -920,7 +920,7 @@ function StepPill({ n, label, state }: { n: number; label: string; state: 'done'
         <CheckCircle2 className="h-3.5 w-3.5" />
       ) : (
         <span className={[
-          'h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-black',
+          'h-4 w-4 rounded-full flex items-center justify-center text-[0.625rem] font-black',
           state === 'active' ? 'bg-slate-900 text-amber-300' : 'bg-white/20 text-white/60',
         ].join(' ')}>
           {n}
@@ -991,19 +991,19 @@ function DamageRow({ damage, expanded, hideCost, selected, onToggleSelect, onTog
                 <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-white">
                   {damage.damageNumber}
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider inline-flex items-center gap-1 ${statusCfg.color}`}>
+                <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase tracking-wider inline-flex items-center gap-1 ${statusCfg.color}`}>
                   <StatusIcon className="h-2.5 w-2.5" /> {statusCfg.label}
                 </span>
-                <span className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold border ${reasonTone}`}>
+                <span className={`px-2 py-0.5 rounded-md text-[0.625rem] font-extrabold border ${reasonTone}`}>
                   {reasonMeta.emoji} {reasonMeta.label}
                 </span>
                 {isAging && (
-                  <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-rose-600 text-white uppercase tracking-wider inline-flex items-center gap-1 animate-pulse">
+                  <span className="px-2 py-0.5 rounded-md text-[0.625rem] font-extrabold bg-rose-600 text-white uppercase tracking-wider inline-flex items-center gap-1 animate-pulse">
                     <Clock className="h-2.5 w-2.5" /> {ageLabel} pending
                   </span>
                 )}
                 {damage.supplierClaim && (
-                  <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-500/40 uppercase tracking-wider">
+                  <span className="px-2 py-0.5 rounded-md text-[0.625rem] font-extrabold bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-500/40 uppercase tracking-wider">
                     Supplier Claim
                   </span>
                 )}
@@ -1051,7 +1051,7 @@ function DamageRow({ damage, expanded, hideCost, selected, onToggleSelect, onTog
                 <div className="text-xl sm:text-2xl font-extrabold text-rose-700 dark:text-rose-400 tabular-nums leading-none">
                   -{formatPKR(damage.netLoss)}
                 </div>
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mt-1">
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mt-1">
                   Net Loss
                 </div>
               </>
@@ -1067,7 +1067,7 @@ function DamageRow({ damage, expanded, hideCost, selected, onToggleSelect, onTog
                   className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center relative transition"
                 >
                   <ImageIcon className="h-3.5 w-3.5" />
-                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-extrabold flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[0.625rem] font-extrabold flex items-center justify-center">
                     {damage.photos.length}
                   </span>
                 </button>
@@ -1097,7 +1097,7 @@ function DamageRow({ damage, expanded, hideCost, selected, onToggleSelect, onTog
         {/* Expanded photos */}
         {expanded && damage.photos?.length > 0 && (
           <div className="mt-4 pt-4 border-t-2 border-slate-100 dark:border-slate-800">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-300 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-300 mb-2">
               Photos ({damage.photos.length})
             </div>
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
@@ -1115,7 +1115,7 @@ function DamageRow({ damage, expanded, hideCost, selected, onToggleSelect, onTog
             </div>
             {damage.notes && (
               <div className="mt-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3">
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1">
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1">
                   Notes
                 </div>
                 <div className="text-xs text-slate-700 dark:text-slate-200 font-semibold">{damage.notes}</div>
@@ -1209,14 +1209,14 @@ function Kpi({ label, value, sub, icon: Icon, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm dark:shadow-black/20 hover:shadow-md dark:hover:shadow-lg transition-all hover:-translate-y-0.5">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
             {label}
           </div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">
             {value}
           </div>
           {sub && (
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
+            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
               {sub}
             </div>
           )}

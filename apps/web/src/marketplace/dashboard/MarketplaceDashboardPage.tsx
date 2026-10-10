@@ -50,7 +50,7 @@ export default function MarketplaceDashboardPage() {
               <span>{theme.emoji}</span>
               Nafaa Bazaar
               {isListed && (
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px]">LIVE</span>
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[0.625rem]">LIVE</span>
               )}
             </div>
             <h1 className="mt-3 text-3xl md:text-4xl font-black leading-tight">Marketplace Dashboard</h1>
@@ -260,20 +260,20 @@ export default function MarketplaceDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-black text-sm text-slate-900">#{order.orderNumber}</span>
-                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${meta.bg} ${meta.color}`}>
+                        <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${meta.bg} ${meta.color}`}>
                           {meta.label}
                         </span>
                       </div>
                       <div className="text-xs text-slate-600 font-medium truncate">
                         {order.customer?.fullName || 'Customer'} · {order.itemCount || order.items?.length || 0} items
                       </div>
-                      <div className="text-[11px] text-slate-400 font-medium mt-0.5">
+                      <div className="text-[0.6875rem] text-slate-400 font-medium mt-0.5">
                         {relativeTime(order.createdAt)}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-black text-emerald-700">Rs {formatPKR(order.total)}</div>
-                      <div className="text-[10px] text-slate-500 font-bold">{order.paymentMethod}</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">{order.paymentMethod}</div>
                     </div>
                   </Link>
                 );
@@ -350,7 +350,7 @@ function HeroKpi({ label, value, sub, icon: Icon, highlight }: any) {
     }`}>
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-black opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90">{label}</div>
         {highlight && (
           <span className="ml-auto flex h-2 w-2">
             <span className="animate-ping absolute h-2 w-2 rounded-full bg-amber-300 opacity-75"></span>
@@ -359,7 +359,7 @@ function HeroKpi({ label, value, sub, icon: Icon, highlight }: any) {
         )}
       </div>
       <div className="text-xl font-black leading-none tabular-nums">{value}</div>
-      {sub && <div className="text-[10px] font-bold opacity-80 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold opacity-80 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -397,7 +397,7 @@ function QuickActionCard({ to, icon: Icon, label, value, sub, color, urgent }: a
       </div>
       <div className="mt-3 text-2xl font-black tabular-nums">{value}</div>
       <div className={`text-xs font-black ${c.text}`}>{label}</div>
-      {sub && <div className="text-[10px] text-slate-500 font-bold mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{sub}</div>}
     </Link>
   );
 }
@@ -414,7 +414,7 @@ function SuggestionRow({ to, icon: Icon, title, desc, color }: any) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-black text-slate-900 truncate">{title}</div>
-        <div className="text-[11px] text-slate-500 font-medium truncate">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-medium truncate">{desc}</div>
       </div>
       <ArrowRight className="h-4 w-4 text-slate-400 group-hover:translate-x-0.5 transition" />
     </Link>

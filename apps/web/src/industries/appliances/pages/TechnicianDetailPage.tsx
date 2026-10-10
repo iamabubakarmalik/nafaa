@@ -256,7 +256,7 @@ export default function TechnicianDetailPage() {
           <Box label="Kul Commission" value={formatPKR(t.totalCommission)} tone="violet" />
         </div>
         <div className="mt-3">
-          <div className="flex items-center justify-between text-[11px] font-extrabold mb-1">
+          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold mb-1">
             <span className="text-slate-600 dark:text-slate-300">Mukammal karne ki shirah</span>
             <span className={(t.completionRate ?? 0) >= 80 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
               {(t.completionRate ?? 0).toFixed(0)}%
@@ -280,14 +280,14 @@ export default function TechnicianDetailPage() {
               {(t.specializations ?? []).length > 0 && (
                 <div className="flex gap-1.5 flex-wrap mb-3">
                   {t.specializations.map((s) => (
-                    <span key={s} className="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[11px] font-extrabold">{s}</span>
+                    <span key={s} className="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[0.6875rem] font-extrabold">{s}</span>
                   ))}
                 </div>
               )}
               {(t.categoriesExpertise ?? []).length > 0 && (
                 <div className="flex gap-1.5 flex-wrap">
                   {t.categoriesExpertise.map((c: any) => (
-                    <span key={c} className="px-2.5 py-1 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 text-[11px] font-extrabold">
+                    <span key={c} className="px-2.5 py-1 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 text-[0.6875rem] font-extrabold">
                       {catLabel(c)}
                     </span>
                   ))}
@@ -297,10 +297,10 @@ export default function TechnicianDetailPage() {
           )}
           {(t.certifications ?? []).length > 0 && (
             <div className="mt-3">
-              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Certificates</div>
+              <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Certificates</div>
               <div className="flex gap-1.5 flex-wrap">
                 {t.certifications.map((c) => (
-                  <span key={c} className="px-2 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold">🏅 {c}</span>
+                  <span key={c} className="px-2 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold">🏅 {c}</span>
                 ))}
               </div>
             </div>
@@ -310,7 +310,7 @@ export default function TechnicianDetailPage() {
         <Panel icon={CalendarDays} title="Kaam Ka Waqt" tone="blue">
           <div className="flex gap-1.5 flex-wrap mb-3">
             {DAYS.map((d, i) => (
-              <span key={d} className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold ${
+              <span key={d} className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold ${
                 (t.workingDays ?? []).includes(i)
                   ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-400 line-through'
@@ -324,12 +324,12 @@ export default function TechnicianDetailPage() {
             <Box label="Ghanta Rate" value={formatPKR(t.hourlyRate)} />
           </div>
           {t.address && (
-            <div className="mt-3 flex items-start gap-1.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+            <div className="mt-3 flex items-start gap-1.5 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300">
               <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-slate-400" /> {t.address}
             </div>
           )}
           {t.notes && (
-            <div className="mt-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+            <div className="mt-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300">
               {t.notes}
             </div>
           )}
@@ -338,10 +338,10 @@ export default function TechnicianDetailPage() {
 
       {/* Range */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Kaam ka arsa</span>
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Kaam ka arsa</span>
         {[7, 30, 90].map((d) => (
           <button key={d} onClick={() => setDays(d)}
-            className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border-2 transition ${
+            className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
               days === d ? 'bg-cyan-600 border-cyan-600 text-white shadow'
                 : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
             }`}>{d === 7 ? '7 din' : d === 30 ? '1 mahina' : '3 mahine'}</button>
@@ -386,8 +386,8 @@ export default function TechnicianDetailPage() {
               <Link key={s.id} to="/appliances/service-requests"
                 className="flex items-center gap-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-2 transition">
                 <div className="min-w-0 flex-1">
-                  <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{s.customerName} — {s.productName}</div>
-                  <div className="text-[10px] font-bold text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{s.customerName} — {s.productName}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                     {s.requestNumber} • {s.reportedIssue}
                     {s.scheduledDate ? ` • ${fmtDate(s.scheduledDate)}` : ''}
                   </div>
@@ -410,11 +410,11 @@ export default function TechnicianDetailPage() {
                 <div key={s.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
                   <span className="text-base shrink-0">{svcTypeMeta(s.serviceType).emoji}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{s.customerName}</div>
-                    <div className="text-[10px] font-bold text-slate-400 truncate">{s.productName} • {fmtDate(s.requestedAt)}</div>
+                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{s.customerName}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-400 truncate">{s.productName} • {fmtDate(s.requestedAt)}</div>
                   </div>
                   <StatusBadge meta={svcStatusMeta(s.status)} size="xs" />
-                  <div className="text-[11px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0 w-16 text-right">
+                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0 w-16 text-right">
                     {formatPKR(s.totalCharge)}
                   </div>
                 </div>
@@ -432,14 +432,14 @@ export default function TechnicianDetailPage() {
                 <div key={j.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
                   <span className="text-base shrink-0">{svcTypeMeta(j.serviceType).emoji}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{j.customerName}</div>
-                    <div className="text-[10px] font-bold text-slate-400 truncate">
+                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{j.customerName}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                       {j.productName} • {fmtDate(j.scheduledDate || j.createdAt)}
                       {j.demoGiven ? ' • demo ✓' : ''}
                     </div>
                   </div>
                   <StatusBadge meta={instStatusMeta(j.status)} size="xs" />
-                  <div className="text-[11px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0 w-16 text-right">
+                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0 w-16 text-right">
                     {formatPKR(j.totalCharge)}
                   </div>
                 </div>
@@ -461,9 +461,9 @@ function Box({ label, value, sub, tone = 'slate' }: { label: string; value: stri
   };
   return (
     <div className={`rounded-xl border px-2.5 py-2 ${tones[tone]}`}>
-      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
       <div className="text-sm font-extrabold tabular-nums truncate">{value}</div>
-      {sub && <div className="text-[9px] font-bold opacity-70">{sub}</div>}
+      {sub && <div className="text-[0.625rem] font-bold opacity-70">{sub}</div>}
     </div>
   );
 }

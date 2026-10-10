@@ -70,7 +70,7 @@ export function DairyWizardStep2Composition({ composition, onChange, errors }: P
               placeholder="6.0"
               className="h-14 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500"
             />
-            <p className="text-[10px] text-slate-500 mt-1 font-semibold">Buffalo: 6-7%, Cow: 3-4%</p>
+            <p className="text-[0.6875rem] text-slate-500 mt-1 font-semibold">Buffalo: 6-7%, Cow: 3-4%</p>
           </div>
 
           <div>
@@ -84,7 +84,7 @@ export function DairyWizardStep2Composition({ composition, onChange, errors }: P
               placeholder="8.5"
               className="h-14 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500"
             />
-            <p className="text-[10px] text-slate-500 mt-1 font-semibold">Solids Not Fat (min 8.5%)</p>
+            <p className="text-[0.6875rem] text-slate-500 mt-1 font-semibold">Solids Not Fat (min 8.5%)</p>
           </div>
 
           <div>
@@ -98,7 +98,7 @@ export function DairyWizardStep2Composition({ composition, onChange, errors }: P
               placeholder="3.5"
               className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500"
             />
-            <p className="text-[10px] text-slate-500 mt-1 font-semibold">Protein per 100ml</p>
+            <p className="text-[0.6875rem] text-slate-500 mt-1 font-semibold">Protein per 100ml</p>
           </div>
         </div>
 
@@ -149,7 +149,7 @@ export function DairyWizardStep2Composition({ composition, onChange, errors }: P
               >
                 <Award className={['h-5 w-5 mx-auto mb-1', active ? 'text-white' : 'text-slate-500'].join(' ')} />
                 <div className="text-xs font-extrabold">{g.label}</div>
-                <div className={['text-[9px] font-semibold mt-0.5', active ? 'text-white/90' : 'text-slate-500'].join(' ')}>
+                <div className={['text-[0.625rem] font-semibold mt-0.5', active ? 'text-white/90' : 'text-slate-500'].join(' ')}>
                   {g.desc}
                 </div>
               </button>
@@ -187,7 +187,7 @@ export function DairyWizardStep2Composition({ composition, onChange, errors }: P
                   <div className={['font-extrabold text-sm', active ? 'text-' + attr.color + '-900' : 'text-slate-900'].join(' ')}>
                     {attr.label}
                   </div>
-                  <div className="text-[11px] text-slate-500 font-semibold leading-tight">{attr.desc}</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-semibold leading-tight">{attr.desc}</div>
                 </div>
               </label>
             );

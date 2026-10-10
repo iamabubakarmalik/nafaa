@@ -240,7 +240,7 @@ export default function BakeryReportsV2() {
         <div className="relative">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
                 <BarChart3 className="h-3.5 w-3.5 text-violet-300" /> Bakery · Reports
               </div>
               <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">📊 Poora Hisab</h1>
@@ -285,13 +285,13 @@ export default function BakeryReportsV2() {
       <div className="grid grid-cols-4 gap-2 print:hidden">
         {TABS.map(([v, label, Icon], i) => (
           <button key={v} onClick={() => setTab(v)}
-            className={`py-3 rounded-2xl border-2 font-black text-[11px] sm:text-sm inline-flex items-center justify-center gap-1.5 transition ${
+            className={`py-3 rounded-2xl border-2 font-black text-[0.6875rem] sm:text-sm inline-flex items-center justify-center gap-1.5 transition ${
               tab === v
                 ? 'bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white border-transparent shadow-lg'
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400'
             }`}>
             <Icon className="h-4 w-4 shrink-0" /> <span className="truncate">{label}</span>
-            <kbd className="hidden lg:inline text-[9px] opacity-60">{i + 1}</kbd>
+            <kbd className="hidden lg:inline text-[0.625rem] opacity-60">{i + 1}</kbd>
           </button>
         ))}
       </div>
@@ -552,7 +552,7 @@ function Advice({ tone, text, to, cta }: any) {
   return (
     <section className={`rounded-3xl border-2 p-4 flex items-center gap-3 flex-wrap ${tones[tone]}`}>
       <AlertTriangle className="h-5 w-5 shrink-0" />
-      <p className="text-[13px] font-extrabold min-w-0 flex-1 leading-snug">{text}</p>
+      <p className="text-[0.8125rem] font-extrabold min-w-0 flex-1 leading-snug">{text}</p>
       <Link to={to}
         className="h-10 px-3.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black inline-flex items-center gap-1.5 shrink-0 transition print:hidden">
         {cta}
@@ -573,9 +573,9 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -636,8 +636,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             kuch nahi badalta.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-4</kbd> tab badlo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">G</kbd> ye madad</div>
@@ -657,8 +657,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

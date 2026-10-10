@@ -194,7 +194,7 @@ export default function FloristOrdersPage() {
         </div>
 
         <div className="flex gap-1 bg-slate-100 rounded-xl p-1 overflow-x-auto">
-          <span className="shrink-0 self-center px-2 text-[10px] uppercase font-extrabold text-slate-500">Type:</span>
+          <span className="shrink-0 self-center px-2 text-[0.6875rem] uppercase font-extrabold text-slate-500">Type:</span>
           {['all', ...Object.keys(ORDER_TYPE_META)].map((v) => (
             <button key={v} onClick={() => setOrderTypeFilter(v)}
               className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
@@ -264,14 +264,14 @@ function OrderCard({ order, onView, onQuickStatus, onDelete }: any) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono font-extrabold text-slate-900 text-sm">{order.orderNumber}</span>
-            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 ${meta.cls}`}>
+            <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.cls}`}>
               <StatusIcon className="h-2.5 w-2.5" /> {meta.l}
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[9px] font-extrabold">
+            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold">
               {orderType.e} {orderType.l}
             </span>
             {slot && (
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${slot.cls}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${slot.cls}`}>
                 {slot.e} {slot.l}
               </span>
             )}
@@ -292,12 +292,12 @@ function OrderCard({ order, onView, onQuickStatus, onDelete }: any) {
           )}
 
           {order.messageCard && (
-            <div className="mt-1 text-[11px] text-violet-700 font-semibold italic line-clamp-1 flex items-center gap-1">
+            <div className="mt-1 text-[0.6875rem] text-violet-700 font-semibold italic line-clamp-1 flex items-center gap-1">
               <MessageCircle className="h-2.5 w-2.5" /> "{order.messageCard}"
             </div>
           )}
 
-          <div className="mt-1.5 flex items-center gap-3 text-[10px] text-slate-500 font-bold">
+          <div className="mt-1.5 flex items-center gap-3 text-[0.6875rem] text-slate-500 font-bold">
             {order.scheduledDeliveryDate && (
               <span className="inline-flex items-center gap-0.5">
                 <Calendar className="h-2.5 w-2.5" />
@@ -310,13 +310,13 @@ function OrderCard({ order, onView, onQuickStatus, onDelete }: any) {
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">Total</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total</div>
           <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(order.totalAmount)}</div>
           {order.advancePaid > 0 && (
-            <div className="text-[10px] font-bold text-slate-500">Paid {formatPKR(order.advancePaid)}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500">Paid {formatPKR(order.advancePaid)}</div>
           )}
           {order.totalAmount > order.advancePaid && (
-            <div className="text-[10px] font-bold text-amber-700 mt-0.5">
+            <div className="text-[0.6875rem] font-bold text-amber-700 mt-0.5">
               Balance {formatPKR(order.totalAmount - order.advancePaid)}
             </div>
           )}
@@ -363,7 +363,7 @@ function OrderDetailModal({ order, onClose, onUpdate }: any) {
       <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
         <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-between">
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Order Details</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Order Details</div>
             <h3 className="text-xl font-extrabold font-mono">{order.orderNumber}</h3>
           </div>
           <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center">
@@ -424,9 +424,9 @@ function OrderDetailModal({ order, onClose, onUpdate }: any) {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase text-slate-600">Product</th>
-                    <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase text-slate-600">Qty</th>
-                    <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase text-slate-600">Total</th>
+                    <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase text-slate-600">Product</th>
+                    <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase text-slate-600">Qty</th>
+                    <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase text-slate-600">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -434,7 +434,7 @@ function OrderDetailModal({ order, onClose, onUpdate }: any) {
                     <tr key={i}>
                       <td className="px-3 py-2">
                         <div className="font-bold text-slate-900">{it.productName}</div>
-                        {it.customization && <div className="text-[10px] font-semibold text-violet-700">✨ {it.customization}</div>}
+                        {it.customization && <div className="text-[0.6875rem] font-semibold text-violet-700">✨ {it.customization}</div>}
                       </td>
                       <td className="px-3 py-2 text-right font-bold">{it.quantity}</td>
                       <td className="px-3 py-2 text-right font-extrabold text-emerald-700">{formatPKR(it.total)}</td>
@@ -506,7 +506,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
       className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-pink-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
@@ -520,7 +520,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
 function InfoBox({ label, value }: any) {
   return (
     <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-sm font-extrabold text-slate-900 mt-0.5">{value}</div>
     </div>
   );

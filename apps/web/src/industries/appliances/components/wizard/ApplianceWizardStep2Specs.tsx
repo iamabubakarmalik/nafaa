@@ -268,7 +268,7 @@ export function ApplianceWizardStep2Specs({ specs, onChange, categoryType }: Pro
               const a = specs.features?.includes(f);
               return (
                 <button key={f} type="button" onClick={() => togFeature(specs.features, 'features', f)}
-                  className={['px-2.5 py-1 rounded-lg border-2 text-[11px] font-extrabold transition',
+                  className={['px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold transition',
                     a ? 'border-amber-500 bg-amber-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-amber-300'].join(' ')}>
                   {a ? '✓ ' : '+ '}{f}
                 </button>
@@ -300,7 +300,7 @@ export function ApplianceWizardStep2Specs({ specs, onChange, categoryType }: Pro
             const a = specs.smartFeatures?.includes(f);
             return (
               <button key={f} type="button" onClick={() => togFeature(specs.smartFeatures, 'smartFeatures', f)}
-                className={['px-2.5 py-1 rounded-lg border-2 text-[11px] font-extrabold transition',
+                className={['px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold transition',
                   a ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300'].join(' ')}>
                 {a ? '✓ ' : '+ '}{f}
               </button>
@@ -317,7 +317,7 @@ export function ApplianceWizardStep2Specs({ specs, onChange, categoryType }: Pro
             const a = specs.safetyFeatures?.includes(f);
             return (
               <button key={f} type="button" onClick={() => togFeature(specs.safetyFeatures, 'safetyFeatures', f)}
-                className={['px-2.5 py-1 rounded-lg border-2 text-[11px] font-extrabold transition',
+                className={['px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold transition',
                   a ? 'border-rose-500 bg-rose-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-rose-300'].join(' ')}>
                 {a ? '✓ ' : '+ '}{f}
               </button>

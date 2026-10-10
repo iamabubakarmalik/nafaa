@@ -330,7 +330,7 @@ export default function OnboardingPage() {
                 <div className="h-11 w-11" />
               )}
               <div>
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <div className="text-[0.6875rem] font-black text-slate-500 uppercase tracking-widest">
                   Step {step} of {TOTAL_STEPS}
                 </div>
                 <div className="text-xl font-black text-slate-900">{cfg.title}</div>

@@ -145,24 +145,24 @@ export default function MeatDashboardV2() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="rounded-2xl bg-white border-2 border-emerald-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Alive</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Alive</div>
             <div className="text-2xl font-extrabold text-emerald-900 tabular-nums mt-1">{liveAnimalsSummary?.aliveCount ?? 0}</div>
-            <div className="text-[10px] font-bold text-slate-500">In inventory</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500">In inventory</div>
           </div>
           <div className="rounded-2xl bg-white border-2 border-amber-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-amber-700">Feed Cost</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Feed Cost</div>
             <div className="text-lg font-extrabold text-amber-900 tabular-nums mt-1">{formatPKR(liveAnimalsSummary?.totalCost?._sum?.totalFeedCost ?? 0)}</div>
-            <div className="text-[10px] font-bold text-slate-500">Total spent</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500">Total spent</div>
           </div>
           <div className="rounded-2xl bg-white border-2 border-green-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-green-700">Halal Cert</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-green-700">Halal Cert</div>
             <div className="text-2xl font-extrabold text-green-900 tabular-nums mt-1">{halalCompliance?.withCert ?? 0}</div>
-            <div className="text-[10px] font-bold text-slate-500">With certificates</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500">With certificates</div>
           </div>
           <div className="rounded-2xl bg-white border-2 border-blue-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-blue-700">Vet Inspected</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Vet Inspected</div>
             <div className="text-2xl font-extrabold text-blue-900 tabular-nums mt-1">{halalCompliance?.withVet ?? 0}</div>
-            <div className="text-[10px] font-bold text-slate-500">Passed inspection</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500">Passed inspection</div>
           </div>
         </div>
       </section>
@@ -174,7 +174,7 @@ export default function MeatDashboardV2() {
               <Scissors className="h-6 w-6" />
             </div>
             <div>
-              <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-90">Cutting Jobs</div>
+              <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider opacity-90">Cutting Jobs</div>
               <h3 className="text-2xl font-bold mt-1">Cut Orders</h3>
             </div>
           </div>
@@ -190,7 +190,7 @@ export default function MeatDashboardV2() {
               <Building2 className="h-6 w-6" />
             </div>
             <div>
-              <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-90">Wholesale</div>
+              <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider opacity-90">Wholesale</div>
               <h3 className="text-2xl font-bold mt-1">B2B Accounts</h3>
             </div>
           </div>

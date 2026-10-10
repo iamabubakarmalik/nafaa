@@ -146,9 +146,9 @@ function OptCard({ o, onEdit, onDelete }: any) {
         <div className="flex-1 min-w-0">
           <h3 className="font-extrabold text-slate-900 truncate">{o.name}</h3>
           {o.qualification && <div className="text-xs font-bold text-pink-700 mt-0.5">{o.qualification}</div>}
-          <div className="text-[10px] font-mono text-slate-500 mt-0.5">#{o.employeeCode}</div>
+          <div className="text-[0.6875rem] font-mono text-slate-500 mt-0.5">#{o.employeeCode}</div>
           {o.registrationNumber && (
-            <div className="text-[10px] font-bold text-slate-500 mt-0.5">Reg: {o.registrationNumber}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Reg: {o.registrationNumber}</div>
           )}
         </div>
       </div>
@@ -171,23 +171,23 @@ function OptCard({ o, onEdit, onDelete }: any) {
 
       {o.specializations?.length > 0 && (
         <div className="mt-3 pt-3 border-t border-slate-100">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1">Specializations</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Specializations</div>
           <div className="flex flex-wrap gap-1">
             {o.specializations.slice(0, 3).map((s: string) => (
-              <span key={s} className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-800 text-[10px] font-extrabold">{s}</span>
+              <span key={s} className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-800 text-[0.6875rem] font-extrabold">{s}</span>
             ))}
-            {o.specializations.length > 3 && <span className="text-[10px] font-extrabold text-slate-500">+{o.specializations.length - 3}</span>}
+            {o.specializations.length > 3 && <span className="text-[0.6875rem] font-extrabold text-slate-500">+{o.specializations.length - 3}</span>}
           </div>
         </div>
       )}
 
       <div className="mt-3 pt-3 border-t border-slate-100">
-        <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1 inline-flex items-center gap-1">
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1 inline-flex items-center gap-1">
           <Clock className="h-3 w-3" /> Working Days ({o.workStartTime} - {o.workEndTime})
         </div>
         <div className="flex gap-1">
           {WEEK_DAYS.map((d, i) => (
-            <div key={i} className={`h-6 w-6 rounded text-[9px] font-extrabold flex items-center justify-center ${
+            <div key={i} className={`h-6 w-6 rounded text-[0.625rem] font-extrabold flex items-center justify-center ${
               o.workingDays?.includes(i) ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
               {d[0]}
             </div>
@@ -197,15 +197,15 @@ function OptCard({ o, onEdit, onDelete }: any) {
 
       <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Fee</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Fee</div>
           <div className="text-sm font-extrabold text-slate-900 tabular-nums">{formatPKR(o.consultationFee)}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Tests</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Tests</div>
           <div className="text-sm font-extrabold text-slate-900 tabular-nums">{o.totalTests}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Revenue</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
           <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(o.totalRevenue)}</div>
         </div>
       </div>

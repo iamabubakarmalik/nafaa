@@ -219,7 +219,7 @@ export function ElectronicsWizardStep4Stock({
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-extrabold text-slate-900 dark:text-white text-sm">Variants (storage/color)</div>
-              <div className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">128/256GB, Black/White</div>
+              <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold">128/256GB, Black/White</div>
             </div>
             {hasVariants ? <ToggleRight className="h-6 w-6 text-violet-600 dark:text-violet-400 shrink-0" /> : <ToggleLeft className="h-6 w-6 text-slate-400 shrink-0" />}
           </div>
@@ -237,7 +237,7 @@ export function ElectronicsWizardStep4Stock({
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-extrabold text-slate-900 dark:text-white text-sm">Serial / IMEI Tracking</div>
-              <div className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">Phones, laptops, high-value</div>
+              <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold">Phones, laptops, high-value</div>
             </div>
             {hasSerials ? <ToggleRight className="h-6 w-6 text-amber-600 dark:text-amber-400 shrink-0" /> : <ToggleLeft className="h-6 w-6 text-slate-400 shrink-0" />}
           </div>
@@ -311,23 +311,23 @@ export function ElectronicsWizardStep4Stock({
               <h3 className="font-extrabold text-violet-900 dark:text-violet-100 text-base">Variants</h3>
               <p className="text-xs text-violet-700 dark:text-violet-300 font-semibold">Storage / RAM / Color combos</p>
             </div>
-            <span className="px-2.5 py-1 rounded-lg bg-violet-100 dark:bg-violet-500/20 text-violet-800 dark:text-violet-200 text-[10px] font-extrabold">
+            <span className="px-2.5 py-1 rounded-lg bg-violet-100 dark:bg-violet-500/20 text-violet-800 dark:text-violet-200 text-[0.6875rem] font-extrabold">
               {variants.length} variants • total {totalVariantStock} pcs
             </span>
           </div>
 
           <div className="rounded-xl bg-white dark:bg-slate-800 border-2 border-violet-200 dark:border-violet-500/30 p-3 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Common variants — click to add
             </div>
             {VARIANT_PRESETS.map((grp) => (
               <div key={grp.group} className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 min-w-[55px]">{grp.group}:</span>
+                <span className="text-[0.6875rem] font-extrabold uppercase text-slate-500 dark:text-slate-400 min-w-[55px]">{grp.group}:</span>
                 {grp.items.map((it) => {
                   const ex = variants.some((v) => v.name.toLowerCase() === it.toLowerCase());
                   return (
                     <button key={it} type="button" disabled={ex} onClick={() => addVariant(it)}
-                      className={['px-2.5 py-1.5 rounded-lg border-2 text-[11px] font-extrabold transition active:scale-95 disabled:cursor-not-allowed',
+                      className={['px-2.5 py-1.5 rounded-lg border-2 text-[0.6875rem] font-extrabold transition active:scale-95 disabled:cursor-not-allowed',
                         ex ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 opacity-60'
                           : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-violet-400 dark:hover:border-violet-500/50'].join(' ')}>
                       {ex ? '✓ ' : '+ '}{it}
@@ -367,26 +367,26 @@ export function ElectronicsWizardStep4Stock({
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">Stock (pcs)</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">Stock (pcs)</label>
                       <input type="number" step="1" inputMode="numeric" value={v.stock}
                         onChange={(e) => onUpdateVariant(v.tempId, { stock: Number(e.target.value || 0) })}
                         className={`${IN} font-extrabold tabular-nums focus:border-blue-500`} />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase mb-1">Price override</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase mb-1">Price override</label>
                       <input type="number" step="0.01" value={v.priceOverride ?? ''}
                         onChange={(e) => onUpdateVariant(v.tempId, { priceOverride: e.target.value === '' ? undefined : Number(e.target.value) })}
                         placeholder={String(sale)}
                         className="h-12 sm:h-10 w-full rounded-xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-white dark:bg-slate-800 px-2 text-sm font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">SKU</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">SKU</label>
                       <input value={v.sku ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { sku: e.target.value })}
                         placeholder="Optional"
                         className={`${IN} font-mono text-xs focus:border-blue-500`} />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">Barcode</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">Barcode</label>
                       <input value={v.barcode ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { barcode: e.target.value })}
                         placeholder="Optional"
                         className={`${IN} font-mono text-xs focus:border-blue-500`} />
@@ -441,7 +441,7 @@ export function ElectronicsWizardStep4Stock({
             <div className="h-9 w-9 rounded-lg bg-amber-500 flex items-center justify-center shrink-0">
               <ScanLine className="h-4 w-4" />
             </div>
-            <div className="text-[11px] font-semibold text-white/85 leading-relaxed">
+            <div className="text-[0.6875rem] font-semibold text-white/85 leading-relaxed">
               <b className="text-amber-300">Scan mode me camera band nahi hoti</b> — box uthao, scan karo, agla uthao.
               15-digit number khud <b>IMEI</b> ban jata hai, baqi <b>Serial</b>. Duplicate pe warning beep.
             </div>
@@ -458,7 +458,7 @@ export function ElectronicsWizardStep4Stock({
 
               {bulkParsed.length > 0 && (
                 <div className="rounded-lg bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-2.5 space-y-1.5">
-                  <div className="flex items-center gap-2 flex-wrap text-[11px] font-extrabold">
+                  <div className="flex items-center gap-2 flex-wrap text-[0.6875rem] font-extrabold">
                     <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
                       {bulkFresh.length} naye
                     </span>
@@ -474,7 +474,7 @@ export function ElectronicsWizardStep4Stock({
                     )}
                   </div>
                   {bulkDupes.length > 0 && (
-                    <div className="text-[10px] font-semibold text-rose-700 dark:text-rose-300 font-mono truncate">
+                    <div className="text-[0.6875rem] font-semibold text-rose-700 dark:text-rose-300 font-mono truncate">
                       Chhode jayenge: {bulkDupes.slice(0, 5).join(', ')}
                       {bulkDupes.length > 5 && ` +${bulkDupes.length - 5}`}
                     </div>
@@ -520,26 +520,26 @@ export function ElectronicsWizardStep4Stock({
                 ].join(' ')}>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-end">
                     <div className="sm:col-span-1">
-                      <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1">#{i + 1}</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1">#{i + 1}</div>
                       <input value={s.serialNumber} onChange={(e) => onUpdateSerial(s.tempId, { serialNumber: e.target.value })}
                         placeholder="Serial Number" autoFocus={!s.serialNumber && i === serials.length - 1}
                         className="h-11 sm:h-10 w-full rounded-lg border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-800 px-2 text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-600 transition" />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">IMEI</label>
+                      <label className="block text-[0.625rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">IMEI</label>
                       <input value={s.imei ?? ''} onChange={(e) => onUpdateSerial(s.tempId, { imei: e.target.value })}
                         placeholder="15 digits"
                         className="h-11 sm:h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">IMEI 2</label>
+                      <label className="block text-[0.625rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">IMEI 2</label>
                       <input value={s.imei2 ?? ''} onChange={(e) => onUpdateSerial(s.tempId, { imei2: e.target.value })}
                         placeholder="Dual SIM"
                         className="h-11 sm:h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
                     </div>
                     <div className="flex items-end gap-1">
                       <div className="flex-1">
-                        <label className="block text-[9px] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">MAC</label>
+                        <label className="block text-[0.625rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">MAC</label>
                         <input value={s.macAddress ?? ''} onChange={(e) => onUpdateSerial(s.tempId, { macAddress: e.target.value })}
                           placeholder="AA:BB:CC"
                           className="h-11 sm:h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
@@ -569,35 +569,35 @@ export function ElectronicsWizardStep4Stock({
         <section className="rounded-2xl bg-gradient-to-br from-slate-950 to-blue-900 text-white p-4 sm:p-5 shadow-xl">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-            <span className="text-[10px] uppercase font-extrabold tracking-wider text-emerald-300">
+            <span className="text-[0.6875rem] uppercase font-extrabold tracking-wider text-emerald-300">
               Save karne par aisa hoga
             </span>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
                 <Boxes className="h-3 w-3" /> Stock
               </div>
               <div className="text-2xl font-extrabold tabular-nums text-white leading-none mt-1">
                 {displayStock} <span className="text-xs text-white/60">pcs</span>
               </div>
-              <div className="text-[10px] font-bold text-white/50 mt-0.5">
+              <div className="text-[0.6875rem] font-bold text-white/50 mt-0.5">
                 {hasSerials ? 'serials se' : hasVariants ? 'variants se' : 'seedhi ginti'}
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
                 <Wallet className="h-3 w-3" /> Lagat
               </div>
               <div className="text-2xl font-extrabold tabular-nums text-white leading-none mt-1">
                 {cost > 0 ? formatPKRFull(stockCost) : '—'}
               </div>
-              <div className="text-[10px] font-bold text-white/50 mt-0.5">
+              <div className="text-[0.6875rem] font-bold text-white/50 mt-0.5">
                 {cost > 0 ? 'itna paisa lagega' : 'khareed qeemat nahi di'}
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" /> Bechne Par
               </div>
               <div className="text-2xl font-extrabold tabular-nums text-cyan-300 leading-none mt-1">
@@ -605,14 +605,14 @@ export function ElectronicsWizardStep4Stock({
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60 inline-flex items-center gap-1">
                 <Sparkles className="h-3 w-3" /> Mumkin Munafa
               </div>
               <div className="text-2xl font-extrabold tabular-nums text-emerald-300 leading-none mt-1">
                 {cost > 0 && sale > 0 ? formatPKRFull(potentialProfit) : '—'}
               </div>
               {cost > 0 && sale > 0 && stockRetail > 0 && (
-                <div className="text-[10px] font-bold text-white/50 mt-0.5">
+                <div className="text-[0.6875rem] font-bold text-white/50 mt-0.5">
                   {((potentialProfit / stockRetail) * 100).toFixed(1)}% margin
                 </div>
               )}

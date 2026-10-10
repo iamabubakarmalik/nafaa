@@ -157,7 +157,7 @@ export function DairyWizardStep1Basic({ basic, onChange, errors }: Props) {
 
         {Object.entries(groupedTypes).map(([group, types]) => (
           <div key={group}>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-fuchsia-700 mb-2">{group}</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-fuchsia-700 mb-2">{group}</div>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {types.map((t) => {
                 const active = basic.productType === t.value;
@@ -172,7 +172,7 @@ export function DairyWizardStep1Basic({ basic, onChange, errors }: Props) {
                     ].join(' ')}
                   >
                     <span className="text-xl">{t.emoji}</span>
-                    <span className="text-[10px]">{t.label}</span>
+                    <span className="text-[0.6875rem]">{t.label}</span>
                   </button>
                 );
               })}
@@ -201,7 +201,7 @@ export function DairyWizardStep1Basic({ basic, onChange, errors }: Props) {
                   ].join(' ')}
                 >
                   <span className="text-lg">{u.emoji}</span>
-                  <span className="text-[9px]">{u.label}</span>
+                  <span className="text-[0.625rem]">{u.label}</span>
                 </button>
               );
             })}
@@ -256,7 +256,7 @@ export function DairyWizardStep1Basic({ basic, onChange, errors }: Props) {
             <div className="flex items-center gap-2">
               <TrendingUp className={['h-5 w-5', isLoss ? 'text-rose-700' : margin >= 25 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
               <div>
-                <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                   isLoss ? 'text-rose-700' : margin >= 25 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                   {isLoss ? '⚠️ Loss Alert' : 'Profit per unit'}
                 </div>
@@ -357,7 +357,7 @@ export function DairyWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt={`dairy-${idx}`} className="w-full h-full object-cover" />
                 {idx === 0 && (
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-fuchsia-600 text-white text-[9px] font-extrabold">PRIMARY</div>
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-fuchsia-600 text-white text-[0.625rem] font-extrabold">PRIMARY</div>
                 )}
                 <button
                   onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, i) => i !== idx) })}

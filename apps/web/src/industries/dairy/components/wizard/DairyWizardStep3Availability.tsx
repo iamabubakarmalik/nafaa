@@ -106,7 +106,7 @@ export function DairyWizardStep3Availability({ basic, availability, onChange, er
                   placeholder={`Default: ${basePrice}`}
                   className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500"
                 />
-                <p className="text-[10px] text-slate-500 mt-1 font-semibold">Slot-specific rate (optional)</p>
+                <p className="text-[0.6875rem] text-slate-500 mt-1 font-semibold">Slot-specific rate (optional)</p>
               </div>
             )}
             {availability.availableEvening && (
@@ -121,7 +121,7 @@ export function DairyWizardStep3Availability({ basic, availability, onChange, er
                   placeholder={`Default: ${basePrice}`}
                   className="h-11 w-full rounded-xl border-2 border-indigo-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-indigo-500"
                 />
-                <p className="text-[10px] text-slate-500 mt-1 font-semibold">Slot-specific rate (optional)</p>
+                <p className="text-[0.6875rem] text-slate-500 mt-1 font-semibold">Slot-specific rate (optional)</p>
               </div>
             )}
           </div>
@@ -166,7 +166,7 @@ export function DairyWizardStep3Availability({ basic, availability, onChange, er
               placeholder={`Default: ${basePrice} (or add delivery charge)`}
               className="h-11 w-full rounded-xl border-2 border-violet-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500"
             />
-            <p className="text-[10px] text-slate-500 mt-1 font-semibold">
+            <p className="text-[0.6875rem] text-slate-500 mt-1 font-semibold">
               Ye rate customer ke ghar wali delivery pe apply hoga (regular rate se different if needed)
             </p>
           </div>
@@ -189,7 +189,7 @@ export function DairyWizardStep3Availability({ basic, availability, onChange, er
               placeholder={`Below regular: ${basePrice}`}
               className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500"
             />
-            <p className="text-[10px] text-slate-500 mt-1 font-semibold">Discounted rate for bulk orders</p>
+            <p className="text-[0.6875rem] text-slate-500 mt-1 font-semibold">Discounted rate for bulk orders</p>
           </div>
           <div>
             <label className="text-xs uppercase font-extrabold text-emerald-700 mb-1 block flex items-center gap-1">
@@ -202,7 +202,7 @@ export function DairyWizardStep3Availability({ basic, availability, onChange, er
               placeholder="e.g. 20"
               className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500"
             />
-            <p className="text-[10px] text-slate-500 mt-1 font-semibold">Minimum quantity for bulk rate</p>
+            <p className="text-[0.6875rem] text-slate-500 mt-1 font-semibold">Minimum quantity for bulk rate</p>
           </div>
         </div>
 
@@ -242,20 +242,20 @@ export function DairyWizardStep3Availability({ basic, availability, onChange, er
               placeholder="5"
               className="h-14 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500"
             />
-            <p className="text-[10px] text-slate-500 mt-1 font-semibold">Warning when stock below this</p>
+            <p className="text-[0.6875rem] text-slate-500 mt-1 font-semibold">Warning when stock below this</p>
           </div>
         </div>
 
         {Number(availability.initialStock) > 0 && basePrice > 0 && (
           <div className="rounded-xl bg-cyan-50 border-2 border-cyan-200 p-3 flex items-center justify-between">
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-cyan-700">Stock Value</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-cyan-700">Stock Value</div>
               <div className="text-2xl font-extrabold text-cyan-900 tabular-nums">
                 {formatPKRFull(Number(availability.initialStock) * basePrice)}
               </div>
             </div>
             <div className="text-right">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">Total Units</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">Total Units</div>
               <div className="text-2xl font-extrabold text-cyan-700 tabular-nums">
                 {availability.initialStock} {basic.unit}
               </div>
@@ -272,7 +272,7 @@ export function DairyWizardStep3Availability({ basic, availability, onChange, er
             placeholder="0 (default)"
             className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-slate-500"
           />
-          <p className="text-[10px] text-slate-500 mt-1 font-semibold">Lower number = shown first in menu</p>
+          <p className="text-[0.6875rem] text-slate-500 mt-1 font-semibold">Lower number = shown first in menu</p>
         </div>
       </section>
 

@@ -130,7 +130,7 @@ export function ServicesBizWizardStep1Basic({ basic, onChange, onNext, validatio
               >
                 <span className="text-2xl group-hover:scale-110 transition-transform">{c.emoji}</span>
                 <span className={[
-                  'text-[10px] font-extrabold text-center leading-tight',
+                  'text-[0.6875rem] font-extrabold text-center leading-tight',
                   active ? 'text-cyan-800' : 'text-slate-700 dark:text-slate-300',
                 ].join(' ')}>
                   {c.label}
@@ -156,7 +156,7 @@ export function ServicesBizWizardStep1Basic({ basic, onChange, onNext, validatio
             ].join(' ')}
           >
             <span className="text-2xl">🌐</span>
-            <span className="text-[10px] font-extrabold">General</span>
+            <span className="text-[0.6875rem] font-extrabold">General</span>
           </button>
           {BUSINESS_TYPES.map((b) => {
             const active = basic.businessType === b.value;
@@ -174,7 +174,7 @@ export function ServicesBizWizardStep1Basic({ basic, onChange, onNext, validatio
               >
                 <span className="text-2xl group-hover:scale-110 transition-transform">{b.emoji}</span>
                 <span className={[
-                  'text-[10px] font-extrabold text-center leading-tight',
+                  'text-[0.6875rem] font-extrabold text-center leading-tight',
                   active ? 'text-blue-800' : 'text-slate-700 dark:text-slate-300',
                 ].join(' ')}>
                   {b.label}
@@ -207,7 +207,7 @@ export function ServicesBizWizardStep1Basic({ basic, onChange, onNext, validatio
             {basic.imageUrl && (
               <div className="group relative aspect-square rounded-xl overflow-hidden border-2 border-cyan-500 ring-2 ring-cyan-200">
                 <img src={basic.imageUrl} alt="Primary" className="w-full h-full object-cover" />
-                <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-cyan-600 text-white text-[9px] font-extrabold">
+                <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-cyan-600 text-white text-[0.625rem] font-extrabold">
                   PRIMARY
                 </div>
                 <button
@@ -227,7 +227,7 @@ export function ServicesBizWizardStep1Basic({ basic, onChange, onNext, validatio
                       imageUrl: url,
                       imageUrls: [basic.imageUrl, ...basic.imageUrls.filter((_, i) => i !== idx)].filter(Boolean),
                     })}
-                    className="text-white text-[10px] font-extrabold px-2 py-1 bg-cyan-600 hover:bg-cyan-700 rounded"
+                    className="text-white text-[0.6875rem] font-extrabold px-2 py-1 bg-cyan-600 hover:bg-cyan-700 rounded"
                   >
                     Set Primary
                   </button>
@@ -273,7 +273,7 @@ export function ServicesBizWizardStep1Basic({ basic, onChange, onNext, validatio
           <Info className="h-5 w-5 text-cyan-700 shrink-0" />
           <div className="text-sm text-cyan-900 dark:text-cyan-200">
             <div className="font-extrabold">Step 1 ready?</div>
-            <div className="text-[11px] text-cyan-700 font-semibold">Next: pricing & charges</div>
+            <div className="text-[0.6875rem] text-cyan-700 font-semibold">Next: pricing & charges</div>
           </div>
         </div>
         <Button
@@ -296,7 +296,7 @@ function SectionHeader({ icon: Icon, title, desc }: any) {
       </div>
       <div>
         <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">{title}</h3>
-        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">{desc}</p>
+        <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">{desc}</p>
       </div>
     </div>
   );
@@ -323,7 +323,7 @@ function FlagCard({ active, onToggle, icon: Icon, label, desc, tone }: any) {
         <Icon className={'h-4 w-4 ' + (active ? 'text-white' : 'text-slate-500')} />
         <div className={'font-extrabold text-sm ' + (active ? 'text-white' : 'text-slate-900 dark:text-white')}>{label}</div>
       </div>
-      <div className={'text-[10px] font-semibold mt-0.5 ' + (active ? 'text-white/80' : 'text-slate-500')}>{desc}</div>
+      <div className={'text-[0.6875rem] font-semibold mt-0.5 ' + (active ? 'text-white/80' : 'text-slate-500')}>{desc}</div>
     </button>
   );
 }

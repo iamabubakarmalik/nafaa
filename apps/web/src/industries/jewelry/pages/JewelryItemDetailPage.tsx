@@ -129,18 +129,18 @@ export default function JewelryItemDetailPage() {
             )}
             <div className="absolute top-3 right-3 flex flex-col gap-1">
               {profile?.isBridalCollection && (
-                <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white text-[10px] font-extrabold shadow">👰 BRIDAL</span>
+                <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white text-[0.6875rem] font-extrabold shadow">👰 BRIDAL</span>
               )}
               {profile?.isBestSeller && (
-                <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[10px] font-extrabold shadow">🏆 BEST</span>
+                <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[0.6875rem] font-extrabold shadow">🏆 BEST</span>
               )}
               {profile?.hallmarkNumber && (
-                <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-extrabold shadow inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[0.6875rem] font-extrabold shadow inline-flex items-center gap-0.5">
                   <ShieldCheck className="h-2.5 w-2.5" /> HALLMARK
                 </span>
               )}
               {profile?.isCertified && (
-                <span className="px-2 py-0.5 rounded-md bg-blue-500 text-white text-[10px] font-extrabold shadow inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded-md bg-blue-500 text-white text-[0.6875rem] font-extrabold shadow inline-flex items-center gap-0.5">
                   <Award className="h-2.5 w-2.5" /> CERTIFIED
                 </span>
               )}
@@ -189,12 +189,12 @@ export default function JewelryItemDetailPage() {
 
             <div className="mt-5 flex items-center gap-4 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70">Est. Price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Est. Price</div>
                 <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">{formatPKRFull(product.price)}</div>
               </div>
               {currentPrice?.total && currentPrice.total !== product.price && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-emerald-300">Live Price</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-300">Live Price</div>
                   <div className="text-2xl font-extrabold text-emerald-300 tabular-nums leading-none mt-1">
                     {formatPKRFull(currentPrice.total)}
                   </div>
@@ -202,7 +202,7 @@ export default function JewelryItemDetailPage() {
               )}
               {rateNow > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70">Metal Rate</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Metal Rate</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
                     Rs {rateNow.toLocaleString()}/g
                   </div>
@@ -220,7 +220,7 @@ export default function JewelryItemDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">New Sale</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Sell this item</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Sell this item</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -230,7 +230,7 @@ export default function JewelryItemDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Update Rates</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Metal live rates</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Metal live rates</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -240,7 +240,7 @@ export default function JewelryItemDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Custom Orders</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Bespoke workflow</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Bespoke workflow</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -250,7 +250,7 @@ export default function JewelryItemDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Exchanges</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Old gold exchange</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Old gold exchange</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -295,12 +295,12 @@ export default function JewelryItemDetailPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase text-slate-700">Type</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase text-slate-700">Count</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase text-slate-700">Carat</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase text-slate-700">Color</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase text-slate-700">Clarity</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase text-slate-700">Value</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase text-slate-700">Type</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase text-slate-700">Count</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase text-slate-700">Carat</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase text-slate-700">Color</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase text-slate-700">Clarity</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase text-slate-700">Value</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -333,14 +333,14 @@ export default function JewelryItemDetailPage() {
               <div className="rounded-xl bg-white border border-emerald-200 p-3">
                 <div className="text-xs font-extrabold text-emerald-700 uppercase">Buyback Guarantee</div>
                 <div className="text-2xl font-extrabold text-emerald-900 mt-1">{profile.buyBackPct}%</div>
-                <div className="text-[10px] text-slate-600 font-semibold">of sale price</div>
+                <div className="text-[0.6875rem] text-slate-600 font-semibold">of sale price</div>
               </div>
             )}
             {profile.isReturnable && (
               <div className="rounded-xl bg-white border border-emerald-200 p-3">
                 <div className="text-xs font-extrabold text-emerald-700 uppercase">Return Policy</div>
                 <div className="text-2xl font-extrabold text-emerald-900 mt-1">{profile.returnDays} Days</div>
-                <div className="text-[10px] text-slate-600 font-semibold">Full refund window</div>
+                <div className="text-[0.6875rem] text-slate-600 font-semibold">Full refund window</div>
               </div>
             )}
           </div>
@@ -374,7 +374,7 @@ export default function JewelryItemDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <div className="font-mono font-extrabold text-sm text-slate-900">{s.saleNumber}</div>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
@@ -407,10 +407,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -418,7 +418,7 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
 function BreakdownRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl bg-white border border-amber-200 p-3">
-      <div className="text-[10px] uppercase font-extrabold text-amber-700">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">{label}</div>
       <div className="text-lg font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
     </div>
   );

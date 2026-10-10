@@ -149,16 +149,16 @@ export default function MembershipsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-slate-900 dark:text-white">{m.membershipNumber}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + STATUS_COLORS[m.status]}>
+                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[m.status]}>
                           {m.status.replace('_', ' ')}
                         </span>
                         {isExpiringSoon && (
-                          <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">
+                          <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">
                             {daysLeft}d left
                           </span>
                         )}
                         {m.autoRenew && (
-                          <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase">Auto-renew</span>
+                          <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">Auto-renew</span>
                         )}
                       </div>
                       <div className="mt-1 text-sm font-bold text-slate-900">{m.plan?.name}</div>
@@ -175,28 +175,28 @@ export default function MembershipsPage() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(m.paidAmount)}</div>
-                    <div className="text-[10px] font-bold text-slate-500">of {formatPKR(m.totalPrice)}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">of {formatPKR(m.totalPrice)}</div>
                     {m.balanceDue > 0 && (
-                      <div className="text-[10px] font-extrabold text-amber-700">Due: {formatPKR(m.balanceDue)}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(m.balanceDue)}</div>
                     )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-4 gap-2 text-xs">
                   <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-blue-700">Visits Used</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Visits Used</div>
                     <div className="text-sm font-extrabold text-blue-800 tabular-nums">{m.visitsUsed}</div>
                   </div>
                   <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-emerald-700">Classes</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Classes</div>
                     <div className="text-sm font-extrabold text-emerald-800 tabular-nums">{m.classesUsed}</div>
                   </div>
                   <div className="rounded-lg bg-violet-50 dark:bg-violet-950/30 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-violet-700">PT</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-violet-700">PT</div>
                     <div className="text-sm font-extrabold text-violet-800 tabular-nums">{m.ptSessionsUsed}</div>
                   </div>
                   <div className="rounded-lg bg-cyan-50 dark:bg-cyan-950/30 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-cyan-700">Frozen Days</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-cyan-700">Frozen Days</div>
                     <div className="text-sm font-extrabold text-cyan-800 tabular-nums">{m.totalFrozenDays}</div>
                   </div>
                 </div>
@@ -309,7 +309,7 @@ function SubscribeForm({ onClose, onSaved }: any) {
           </div>
         ) : (
           <div>
-            <label className="text-[10px] uppercase font-extrabold mb-1 block">Select Member *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold mb-1 block">Select Member *</label>
             <input autoFocus value={memberSearch} onChange={(e) => { setMemberSearch(e.target.value); setShowMemberPicker(true); }} placeholder="Search member..." className="h-11 w-full rounded-xl border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/30 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
             {showMemberPicker && (
               <div className="mt-2 max-h-52 overflow-y-auto space-y-1 rounded-xl border border-slate-200 p-1">
@@ -317,7 +317,7 @@ function SubscribeForm({ onClose, onSaved }: any) {
                   <button key={m.id} onClick={() => { setSelectedMember(m); setForm({ ...form, memberId: m.id }); setShowMemberPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-amber-50 text-left">
                     <User className="h-3.5 w-3.5 text-slate-400" />
                     <span className="text-sm font-extrabold flex-1 truncate">{m.customer?.name}</span>
-                    <span className="text-[10px] text-slate-500 font-mono font-bold">{m.memberNumber}</span>
+                    <span className="text-[0.6875rem] text-slate-500 font-mono font-bold">{m.memberNumber}</span>
                   </button>
                 ))}
               </div>
@@ -327,7 +327,7 @@ function SubscribeForm({ onClose, onSaved }: any) {
 
         {/* Plan selector */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold mb-2 block">Select Plan *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold mb-2 block">Select Plan *</label>
           <div className="grid sm:grid-cols-2 gap-2">
             {plans.map((p: any) => (
               <button key={p.id} onClick={() => { setSelectedPlan(p); setForm({ ...form, planId: p.id, paidAmount: p.price + p.registrationFee + p.securityDeposit }); }} className={
@@ -335,9 +335,9 @@ function SubscribeForm({ onClose, onSaved }: any) {
                 (form.planId === p.id ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-amber-300')
               }>
                 <div className="font-extrabold text-sm">{p.name}</div>
-                <div className="text-[10px] font-bold text-slate-500 uppercase">{p.planType.replace('_', ' ')}</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{p.planType.replace('_', ' ')}</div>
                 <div className="mt-1 text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.price)}</div>
-                <div className="text-[10px] font-bold text-slate-500">{p.durationDays}d</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500">{p.durationDays}d</div>
               </button>
             ))}
           </div>
@@ -345,7 +345,7 @@ function SubscribeForm({ onClose, onSaved }: any) {
 
         {selectedPlan && (
           <div className="rounded-xl bg-gradient-to-br from-slate-950 to-amber-900 text-white p-4">
-            <div className="text-[10px] uppercase font-extrabold text-white/70 mb-2">Bill Preview</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-2">Bill Preview</div>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between"><span className="text-white/80">Plan price</span><span className="font-bold tabular-nums">{formatPKR(selectedPlan.price)}</span></div>
               {selectedPlan.registrationFee > 0 && <div className="flex justify-between"><span className="text-white/80">Registration fee</span><span className="font-bold tabular-nums">{formatPKR(selectedPlan.registrationFee)}</span></div>}
@@ -360,11 +360,11 @@ function SubscribeForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
             <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Paid Amount</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Paid Amount</label>
             <input type="number" value={form.paidAmount} onChange={(e) => setForm({ ...form, paidAmount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
@@ -409,7 +409,7 @@ function PaymentModal({ membership, onClose, onDone }: any) {
         <div className="p-5 space-y-3">
           <div className="text-xs font-bold text-slate-500">{membership.membershipNumber} • Balance: {formatPKR(membership.balanceDue)}</div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Amount *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Amount *</label>
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div className="flex gap-2">
@@ -449,7 +449,7 @@ function FreezeModal({ membership, onClose, onDone }: any) {
             {membership.membershipNumber} • Max: {membership.plan?.maxFreezeDays || 0} days • Used: {membership.totalFrozenDays}
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-cyan-700 mb-1 block">Days to freeze *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-1 block">Days to freeze *</label>
             <input type="number" min="1" autoFocus value={days} onChange={(e) => setDays(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-cyan-300 bg-cyan-50 dark:bg-cyan-950/30 px-4 text-2xl font-extrabold tabular-nums text-center focus:outline-none focus:border-cyan-500" />
           </div>
           <textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason (travel, medical...)" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />

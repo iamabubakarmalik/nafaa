@@ -102,12 +102,12 @@ export default function SubscriptionsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold">{sub.subscriptionNumber}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + STATUS_COLORS[sub.status]}>{sub.status}</span>
-                        <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[9px] font-extrabold uppercase">
+                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[sub.status]}>{sub.status}</span>
+                        <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase">
                           {freq?.emoji} {freq?.label}
                         </span>
                         {daysToNext === 0 && sub.status === 'ACTIVE' && (
-                          <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">TODAY</span>
+                          <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">TODAY</span>
                         )}
                       </div>
                       {sub.contactPerson && (
@@ -131,11 +131,11 @@ export default function SubscriptionsPage() {
                   <div className="text-right shrink-0">
                     {sub.nextDeliveryDate && (
                       <>
-                        <div className="text-[10px] uppercase font-extrabold text-slate-500">Next Delivery</div>
+                        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Next Delivery</div>
                         <div className="text-sm font-extrabold">{format(new Date(sub.nextDeliveryDate), 'dd MMM')}</div>
                       </>
                     )}
-                    <div className="text-[10px] font-extrabold text-emerald-700 mt-1">{sub.totalMonthlyKg}kg/mo</div>
+                    <div className="text-[0.6875rem] font-extrabold text-emerald-700 mt-1">{sub.totalMonthlyKg}kg/mo</div>
                     <div className="text-xs font-extrabold text-emerald-700 tabular-nums">{formatPKR(sub.monthlyEstimate)}</div>
                   </div>
                 </div>

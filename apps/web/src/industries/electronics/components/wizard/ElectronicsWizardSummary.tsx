@@ -39,7 +39,7 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
       <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-slate-950 dark:via-blue-950 dark:to-cyan-900 text-white p-5 shadow-xl overflow-hidden relative">
         <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-blue-400/20 blur-2xl" />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-extrabold border border-white/20">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold border border-white/20">
             {allValid ? (
               <><CheckCircle2 className="h-3 w-3 text-emerald-300" /> Ready to save</>
             ) : (
@@ -49,7 +49,7 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
           <h3 className="mt-2 font-extrabold text-xl leading-tight line-clamp-2">
             {draft.basic.name || 'Product name...'}
           </h3>
-          <div className="mt-2 flex items-center gap-2 flex-wrap text-[11px] font-bold text-white/80">
+          <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-white/80">
             {draft.basic.modelNumber && <span className="font-mono">Model: {draft.basic.modelNumber}</span>}
             {draft.basic.sku && <span className="font-mono">• {draft.basic.sku}</span>}
           </div>
@@ -62,13 +62,13 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
             </div>
           )}
           {categoryName && (
-            <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white/15 backdrop-blur px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider">
+            <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-white/15 backdrop-blur px-2 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wider">
               <Tag className="h-3 w-3" />
               {categoryName}
             </div>
           )}
           {draft.basic.conditionType && draft.basic.conditionType !== 'BRAND_NEW' && (
-            <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-500/30 backdrop-blur px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider border border-amber-300/40">
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-500/30 backdrop-blur px-2 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wider border border-amber-300/40">
               {draft.basic.conditionType.replace(/_/g, ' ')}
             </div>
           )}
@@ -85,18 +85,18 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
           <div className="border-t border-slate-100 dark:border-slate-800 p-4 bg-gradient-to-br from-blue-50 to-white dark:from-blue-500/10 dark:to-transparent">
             <div className="flex items-center gap-1.5 mb-1">
               <Shield className="h-3 w-3 text-blue-700 dark:text-blue-400" />
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-blue-700 dark:text-blue-400">Warranty</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700 dark:text-blue-400">Warranty</div>
             </div>
             <div className="text-2xl font-extrabold text-blue-900 dark:text-blue-200 tabular-nums">
               {draft.warranty.warrantyMonths} <span className="text-sm">months</span>
             </div>
-            <div className="text-[10px] text-blue-700 dark:text-blue-400 font-bold">{draft.warranty.warrantyType}</div>
+            <div className="text-[0.6875rem] text-blue-700 dark:text-blue-400 font-bold">{draft.warranty.warrantyType}</div>
           </div>
         ) : null}
         <div className="border-t-2 border-slate-100 dark:border-slate-800 p-4 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-transparent">
           <div className="flex items-center gap-1.5 mb-1">
             <Boxes className="h-3 w-3 text-emerald-700 dark:text-emerald-400" />
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-400">Total Stock</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-400">Total Stock</div>
           </div>
           <div className="text-3xl font-extrabold text-emerald-900 dark:text-emerald-200 tabular-nums">{stats.totalStock} <span className="text-sm">pcs</span></div>
         </div>
@@ -105,7 +105,7 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
       {/* Finance */}
       {stats.totalStock > 0 && hasPrice && (
         <div className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-4 space-y-2.5">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 flex items-center gap-1">
             <DollarSign className="h-3 w-3" /> Financial preview
           </div>
           <Row label="Cost value" value={formatPKRFull(stats.stockCost)} tone="slate" />
@@ -120,7 +120,7 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
                 {formatPKRFull(stats.potentialProfit)}
               </div>
             </div>
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1">
+            <div className="flex items-center justify-between text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1">
               <span>Margin</span>
               <span className={stats.profitMargin >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}>
                 {stats.profitMargin.toFixed(1)}%
@@ -133,7 +133,7 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
       {/* Marketing flags */}
       {(draft.basic.isFeatured || draft.basic.isBestSeller || draft.basic.isNewArrival || draft.basic.isTrending) && (
         <div className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-3">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-2 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-2 flex items-center gap-1">
             <Sparkles className="h-3 w-3" /> Marketing flags
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -147,7 +147,7 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
 
       {/* Checklist */}
       <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 space-y-1.5">
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 flex items-center gap-1">
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 flex items-center gap-1">
           <CheckCircle2 className="h-3 w-3" /> Checklist
         </div>
         <Chk done={hasName} label="Product name" />
@@ -156,7 +156,7 @@ export function ElectronicsWizardSummary({ draft, stats, allValid }: Props) {
         <Chk done={stats.totalStock > 0} label="Stock added" />
       </div>
 
-      <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-2.5 text-[10px] text-blue-800 dark:text-blue-300 font-extrabold text-center">
+      <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-2.5 text-[0.6875rem] text-blue-800 dark:text-blue-300 font-extrabold text-center">
         💾 Draft auto-saved — safai se close karo, wapas mile ga
       </div>
     </aside>
@@ -173,10 +173,10 @@ function Cell({ icon: Icon, label, value, tone, hint }: any) {
     <div className="p-4">
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={['h-3 w-3', tones[tone]].join(' ')} />
-        <div className={['text-[10px] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
+        <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
       </div>
       <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-      {hint && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{hint}</div>}
+      {hint && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{hint}</div>}
     </div>
   );
 }
@@ -214,7 +214,7 @@ function Flag({ icon, label, tone }: any) {
     rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-200 border-rose-300 dark:border-rose-500/40',
   };
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-extrabold ${tones[tone]}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[0.6875rem] font-extrabold ${tones[tone]}`}>
       {icon} {label}
     </span>
   );

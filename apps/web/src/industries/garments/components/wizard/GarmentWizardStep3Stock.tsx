@@ -77,13 +77,13 @@ export function GarmentWizardStep3Stock({
           {stock.currentStock > 0 && Number(basic.salePrice || 0) > 0 && (
             <div className="rounded-xl bg-white border-2 border-emerald-200 p-3 flex items-center justify-between">
               <div>
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700">Stock Value</div>
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700">Stock Value</div>
                 <div className="text-lg font-extrabold text-emerald-900 tabular-nums">
                   {formatPKRFull(stock.currentStock * Number(basic.salePrice || 0))}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">Units</div>
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">Units</div>
                 <div className="text-lg font-extrabold text-emerald-700 tabular-nums">
                   {stock.currentStock} {basic.unit}
                 </div>

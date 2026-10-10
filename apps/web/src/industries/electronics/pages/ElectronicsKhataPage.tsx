@@ -267,13 +267,13 @@ export default function ElectronicsKhataPage() {
 
           <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="rounded-2xl bg-white/25 backdrop-blur border border-white/40 p-4 shadow-lg sm:col-span-2">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider inline-flex items-center gap-1.5">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider inline-flex items-center gap-1.5">
                 <Wallet className="h-3.5 w-3.5" /> Kul Baqi
               </div>
               <div className="mt-1 text-3xl sm:text-4xl font-extrabold tabular-nums">
                 {formatPKR(summary?.totalOutstanding ?? 0)}
               </div>
-              <div className="mt-1 text-[11px] font-bold text-white/75">
+              <div className="mt-1 text-[0.6875rem] font-bold text-white/75">
                 {summary?.customersWithCredit ?? 0} customers ke zimme
                 {(summary?.advance.count ?? 0) > 0 && (
                   <> · <span className="text-emerald-300">
@@ -336,7 +336,7 @@ export default function ElectronicsKhataPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-slate-900">Sab Se Bara Udhaar</h3>
-              <p className="text-[11px] font-bold text-slate-500">Laal = credit limit se upar</p>
+              <p className="text-[0.6875rem] font-bold text-slate-500">Laal = credit limit se upar</p>
             </div>
           </div>
           <div className="h-56 w-full">
@@ -373,7 +373,7 @@ export default function ElectronicsKhataPage() {
                   : 'bg-white border-slate-200 text-slate-600 hover:border-rose-300'
               }`}>
               <k.icon className="h-3.5 w-3.5" /> {k.label}
-              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
             </button>
           ))}
         </div>
@@ -408,15 +408,15 @@ export default function ElectronicsKhataPage() {
                         className="font-extrabold text-slate-900 text-sm hover:underline truncate">
                         {a.customer?.name ?? 'Customer'}
                       </Link>
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${meta.chip}`}>
+                      <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${meta.chip}`}>
                         {meta.label}
                       </span>
                     </div>
-                    <div className="mt-0.5 text-[11px] font-bold text-slate-500 truncate">
+                    <div className="mt-0.5 text-[0.6875rem] font-bold text-slate-500 truncate">
                       {a.note}
                       {a.reference && <span className="font-mono"> · {a.reference}</span>}
                     </div>
-                    <div className="text-[10px] font-bold text-slate-400">
+                    <div className="text-[0.6875rem] font-bold text-slate-400">
                       {new Date(a.createdAt).toLocaleString('en-PK', {
                         day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit',
                       })}
@@ -427,7 +427,7 @@ export default function ElectronicsKhataPage() {
                     <div className={`text-base font-extrabold tabular-nums ${isIn ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {isIn ? '−' : '+'}{formatPKR(Math.abs(a.amount))}
                     </div>
-                    <div className="text-[10px] font-bold text-slate-400 tabular-nums">
+                    <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                       baqi {formatPKR(a.balanceAfter)}
                     </div>
                   </div>
@@ -462,27 +462,27 @@ export default function ElectronicsKhataPage() {
                       {d.name}
                     </Link>
                     {d.isVip && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                         <Crown className="h-2.5 w-2.5" /> VIP
                       </span>
                     )}
                     {over && (
-                      <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                      <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                         <AlertTriangle className="h-2.5 w-2.5" /> Limit se upar
                       </span>
                     )}
                     {d.daysSinceActivity != null && d.daysSinceActivity >= 30 && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                         <Clock className="h-2.5 w-2.5" /> {d.daysSinceActivity} din khamosh
                       </span>
                     )}
                     {serialUnits > 0 && (
-                      <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                      <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                         <Barcode className="h-2.5 w-2.5" /> {serialUnits} serial unit
                       </span>
                     )}
                   </div>
-                  <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500">
+                  <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500">
                     {d.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{d.phone}</span>}
                     {d.creditLimit > 0 && <span>Limit {formatPKR(d.creditLimit)}</span>}
                   </div>
@@ -498,7 +498,7 @@ export default function ElectronicsKhataPage() {
                   <div className={`text-base font-extrabold tabular-nums ${over ? 'text-rose-600' : 'text-slate-900'}`}>
                     {formatPKR(d.balance)}
                   </div>
-                  <div className="text-[10px] font-bold text-slate-400">baqi</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-400">baqi</div>
                 </div>
 
                 <div className="flex gap-1.5 shrink-0 print:hidden">
@@ -575,7 +575,7 @@ function AmountModal({ kind, customer, onClose, onDone }: {
               {isPay ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">
                 {isPay ? 'Wasooli — paisa mila' : 'Udhaar chadhayein'}
               </div>
               <h3 className="font-extrabold truncate">{customer.name}</h3>
@@ -728,7 +728,7 @@ function OpeningBalanceModal({ onClose, onDone }: { onClose: () => void; onDone:
               <BookOpen className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Purana Khata</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Purana Khata</div>
               <h3 className="font-extrabold">Copy Se Software Par</h3>
             </div>
           </div>
@@ -756,7 +756,7 @@ function OpeningBalanceModal({ onClose, onDone }: { onClose: () => void; onDone:
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 text-sm truncate">{chosen.name}</div>
-                  <div className="text-[11px] font-bold text-slate-600">
+                  <div className="text-[0.6875rem] font-bold text-slate-600">
                     {chosen.phone ?? 'phone nahi'} · abhi {formatPKR(chosen.balance)} baqi
                   </div>
                 </div>
@@ -794,7 +794,7 @@ function OpeningBalanceModal({ onClose, onDone }: { onClose: () => void; onDone:
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-slate-900 text-sm truncate">{c.name}</div>
-                        <div className="text-[11px] font-bold text-slate-500">{c.phone ?? '—'}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500">{c.phone ?? '—'}</div>
                       </div>
                       {c.balance > 0 && (
                         <span className="text-xs font-extrabold text-rose-600 tabular-nums shrink-0">
@@ -816,7 +816,7 @@ function OpeningBalanceModal({ onClose, onDone }: { onClose: () => void; onDone:
                   onChange={(e) => setBalance(e.target.value === '' ? '' : Number(e.target.value))}
                   placeholder="0"
                   className="h-16 w-full rounded-2xl border-2 border-violet-400 bg-white px-4 text-center text-3xl font-extrabold tabular-nums text-violet-900 focus:outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200 transition" />
-                <p className="mt-1.5 text-[11px] font-semibold text-slate-500">
+                <p className="mt-1.5 text-[0.6875rem] font-semibold text-slate-500">
                   Ye balance <b>set</b> hoga — jurta nahi. Copy me jo likha hai wohi likhein.
                 </p>
               </div>
@@ -859,11 +859,11 @@ function HeroStat({ label, value, sub, icon: Icon, highlight }: any) {
     <div className={`rounded-2xl backdrop-blur border p-4 ${
       highlight ? 'bg-white/25 border-white/40 shadow-lg' : 'bg-white/10 border-white/20'
     }`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> <span className="truncate">{label}</span>
       </div>
       <div className="mt-1 text-2xl font-extrabold tabular-nums truncate">{value}</div>
-      {sub && <div className="mt-0.5 text-[11px] font-bold text-white/70 truncate">{sub}</div>}
+      {sub && <div className="mt-0.5 text-[0.6875rem] font-bold text-white/70 truncate">{sub}</div>}
     </div>
   );
 }
@@ -912,7 +912,7 @@ function KhataTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Khata Kaise Chalayein?</h3>
             </div>
           </div>
@@ -931,7 +931,7 @@ function KhataTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

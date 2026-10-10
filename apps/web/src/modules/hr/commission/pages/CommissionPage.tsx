@@ -173,7 +173,7 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
         <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-white/15 blur-3xl pointer-events-none" />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <HandCoins className="h-3.5 w-3.5 text-amber-300" /> Staff · Commission
             </div>
             <h1 className="mt-2.5 text-2xl sm:text-3xl font-black">💰 Commission</h1>
@@ -233,7 +233,7 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
             </span>
             <div className="min-w-0">
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Is mahine kul kitna dena hai</h2>
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                 Pakki tankhwah Staff ke record se, commission bikri se — dono jor kar
               </p>
             </div>
@@ -243,7 +243,7 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
             <PayCell label="+ Commission" value={money(c.total)} sub="Is mahine ki bikri par" tone={t.text} />
             <PayCell label="= Kul" value={money(c.payTotal)} sub={`${c.enabledCount} bandon ka`} big />
           </div>
-          <p className="mt-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+          <p className="mt-2 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
             Tankhwah yahan se ada nahi hoti — wo Payroll se hoti hai. Yahan sirf poora
             naqsha hai, taake pata rahe ke mahine ka kul bojh kitna hai.
           </p>
@@ -256,7 +256,7 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
       {c.onlyMine && (
         <section className="rounded-2xl bg-sky-50 dark:bg-sky-500/10 border-2 border-sky-200 dark:border-sky-500/30 p-3 flex items-start gap-2.5 print:hidden">
           <Info className="h-4 w-4 text-sky-600 shrink-0 mt-0.5" />
-          <p className="text-[12px] font-bold text-sky-900 dark:text-sky-200">
+          <p className="text-[0.75rem] font-bold text-sky-900 dark:text-sky-200">
             Ye aap ka apna hisab hai. Rate ya adaigi par sawal ho to dukaan ke malik se baat karein.
           </p>
         </section>
@@ -305,11 +305,11 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="text-sm font-black text-slate-900 dark:text-white">Kis par commission chaalu hai</h2>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               Har bande ko alag se chaalu karna parta hai — jis ka switch band hai uski commission nahi banti
             </p>
           </div>
-          <span className={`px-2.5 py-1 rounded-xl text-[11px] font-black ${t.text} bg-slate-100 dark:bg-slate-800`}>
+          <span className={`px-2.5 py-1 rounded-xl text-[0.6875rem] font-black ${t.text} bg-slate-100 dark:bg-slate-800`}>
             {c.enabledCount}/{c.people.length} chaalu
           </span>
         </header>
@@ -335,18 +335,18 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-black text-slate-900 dark:text-white truncate">{p.name}</div>
-                    <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                       {p.staff?.designation ?? 'Employee'}
                       {p.staff?.staffNumber && ` · ${p.staff.staffNumber}`}
                     </div>
                   </div>
                 </div>
-                <p className="mt-2 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                <p className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
                   Is ka apna login nahi — bikri is ke naam darj hi nahi hoti. Team me is ka login
                   banayein (wohi email ya phone), to ye apne aap yahan aa jayega.
                 </p>
                 <a href="/team"
-                  className="mt-2 inline-flex h-9 px-3 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-[11px] font-black items-center gap-1.5 transition">
+                  className="mt-2 inline-flex h-9 px-3 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-[0.6875rem] font-black items-center gap-1.5 transition">
                   <Link2 className="h-3.5 w-3.5" /> Login banayein
                 </a>
               </div>
@@ -366,12 +366,12 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="text-sm font-black text-slate-900 dark:text-white">Rules</h2>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               Kisi bande ka apna rule ho to us par wohi chalta hai, "sab wala" nahi
             </p>
           </div>
           <Button size="sm" onClick={() => setRuleModal({})} className={`bg-gradient-to-r ${t.grad}`}>
-            <Plus className="h-3.5 w-3.5" /> Naya <kbd className="hidden sm:inline text-[9px] opacity-70 ml-1">N</kbd>
+            <Plus className="h-3.5 w-3.5" /> Naya <kbd className="hidden sm:inline text-[0.625rem] opacity-70 ml-1">N</kbd>
           </Button>
         </header>
 
@@ -399,10 +399,10 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
                       <div className={`text-sm font-black ${t.text}`}>
                         {m.emoji} {m.label} — {val}
                         {r.valueType === 'FIXED' && r.basis !== 'PER_BILL' && (
-                          <span className="text-[10px] font-bold text-slate-400"> / cheez</span>
+                          <span className="text-[0.6875rem] font-bold text-slate-400"> / cheez</span>
                         )}
                       </div>
-                      <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate inline-flex items-center gap-1">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate inline-flex items-center gap-1">
                         <Users className="h-2.5 w-2.5" /> {who}
                       </div>
                     </div>
@@ -418,10 +418,10 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
                     {r.targetAmount ? <Tag tone="amber">🎯 {formatPKR(r.targetAmount)} → {formatPKR(r.targetBonus ?? 0)}</Tag> : null}
                   </div>
 
-                  {r.note && <p className="mt-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">{r.note}</p>}
+                  {r.note && <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{r.note}</p>}
 
                   <button onClick={() => c.updateRule(r.id, { ...r, isActive: !r.isActive })} disabled={c.busy}
-                    className={`mt-2 w-full h-9 rounded-xl text-[11px] font-black disabled:opacity-50 transition ${
+                    className={`mt-2 w-full h-9 rounded-xl text-[0.6875rem] font-black disabled:opacity-50 transition ${
                       r.isActive
                         ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
@@ -445,7 +445,7 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
           </span>
           <div className="min-w-0">
             <h2 className="text-sm font-black text-slate-900 dark:text-white">{periodLabel(period)} ka hisab</h2>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               Kisi line par dabayein — poora khata khul jayega
             </p>
           </div>
@@ -528,7 +528,7 @@ function PeriodPicker({ period, open, tone, onToggle, onPick, onClose }: any) {
           <div className="fixed inset-0 z-[90]" onClick={onClose} />
           <div style={{ top: pos.top, right: pos.right }}
             className="fixed z-[91] w-56 max-h-80 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-2">
-            <div className="px-2 py-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <div className="px-2 py-1 text-[0.6875rem] font-black uppercase tracking-widest text-slate-400">
               Mahina chunein
             </div>
             {recentPeriods().map((p) => (
@@ -554,12 +554,12 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
       </div>
       <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none truncate">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
-      {sub && <p className="mt-0.5 text-[10px] font-bold text-slate-400 truncate">{sub}</p>}
+      {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
     </div>
   );
 }
@@ -571,18 +571,18 @@ function PayCell({ label, value, sub, tone, big }: any) {
         ? 'border-slate-900 dark:border-white bg-slate-50 dark:bg-slate-800'
         : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60'
     }`}>
-      <div className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</div>
+      <div className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</div>
       <div className={`font-black tabular-nums truncate ${big ? 'text-xl sm:text-2xl text-slate-900 dark:text-white' : `text-lg ${tone ?? 'text-slate-700 dark:text-slate-200'}`}`}>
         {value}
       </div>
-      <div className="text-[10px] font-bold text-slate-400 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</div>
     </div>
   );
 }
 
 function Warn({ icon: Icon, children }: any) {
   return (
-    <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200 flex items-start gap-2">
+    <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200 flex items-start gap-2">
       <Icon className="h-3.5 w-3.5 shrink-0 mt-0.5" />
       <span>{children}</span>
     </p>
@@ -591,7 +591,7 @@ function Warn({ icon: Icon, children }: any) {
 
 function Tag({ children, tone }: any) {
   return (
-    <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black ${
+    <span className={`px-1.5 py-0.5 rounded-md text-[0.625rem] font-black ${
       tone === 'amber'
         ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
         : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
@@ -604,7 +604,7 @@ function Empty({ icon: Icon, title, sub }: any) {
     <div className="p-8 text-center">
       <Icon className="h-10 w-10 text-slate-300 mx-auto mb-2" />
       <p className="text-sm font-black text-slate-700 dark:text-slate-200">{title}</p>
-      {sub && <p className="mt-1 text-[12px] font-bold text-slate-500 dark:text-slate-400 max-w-md mx-auto">{sub}</p>}
+      {sub && <p className="mt-1 text-[0.75rem] font-bold text-slate-500 dark:text-slate-400 max-w-md mx-auto">{sub}</p>}
     </div>
   );
 }
@@ -634,7 +634,7 @@ function PersonCard({ p, tone, money, row, busy, onToggle, onMakeStaff }: any) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-black text-slate-900 dark:text-white truncate">{p.name}</div>
-          <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
             {st?.designation ?? p.role ?? '—'}
             {st?.staffNumber && ` · ${st.staffNumber}`}
           </div>
@@ -651,36 +651,36 @@ function PersonCard({ p, tone, money, row, busy, onToggle, onMakeStaff }: any) {
       </div>
 
       {row && row.bills > 0 && (
-        <p className="mt-2 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+        <p className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
           Is mahine {row.bills} bill · {money(row.sale)}
           {on && row.earned > 0 && <span className={`ml-1 font-black ${tone.text}`}>→ {money(row.earned)}</span>}
         </p>
       )}
 
       {!on && hrSays && (
-        <p className="mt-1.5 text-[11px] font-bold text-amber-800 dark:text-amber-300">
+        <p className="mt-1.5 text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300">
           ⚠️ Staff record me is ki tankhwah <strong>{st?.salaryType === 'HYBRID' ? 'hybrid' : 'commission'}</strong> wali
           likhi hai, magar yahan band hai — shamil karna reh gaya?
         </p>
       )}
       {!on && !hrSays && row && row.bills > 0 && (
-        <p className="mt-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+        <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
           Band hai — is ki bikri par koi commission nahi ban rahi
         </p>
       )}
       {!st && (
         <div className="mt-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 p-2">
-          <p className="text-[11px] font-bold text-sky-900 dark:text-sky-200">
+          <p className="text-[0.6875rem] font-bold text-sky-900 dark:text-sky-200">
             Is ka sirf <strong>login</strong> hai, HR record nahi — is liye tankhwah nahi dikhti.
           </p>
           <button onClick={onMakeStaff} disabled={busy}
-            className="mt-1.5 h-9 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 disabled:opacity-50 transition">
+            className="mt-1.5 h-9 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 disabled:opacity-50 transition">
             <UserPlus className="h-3.5 w-3.5" /> HR record bana dein
           </button>
         </div>
       )}
       {st?.linkedByGuess && (
-        <p className="mt-1.5 text-[10px] font-bold text-sky-600 dark:text-sky-400">
+        <p className="mt-1.5 text-[0.6875rem] font-bold text-sky-600 dark:text-sky-400">
           HR record email/phone se mila — chaalu karte hi pakka jur jayega
         </p>
       )}
@@ -708,24 +708,24 @@ function RowCard({ r, i, tone, money, busy, canManage = true, onOpen, onPay, onE
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-sm font-black text-slate-900 dark:text-white truncate">{r.name}</span>
           {r.staff?.designation && (
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[9px] font-black text-slate-500 dark:text-slate-400">
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[0.625rem] font-black text-slate-500 dark:text-slate-400">
               {r.staff.designation}
             </span>
           )}
-          {r.paid && <span className="px-1.5 py-0.5 rounded-md bg-emerald-600 text-white text-[9px] font-black">Ada ho gayi</span>}
-          {r.bonus > 0 && <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-black">🎯 Target</span>}
+          {r.paid && <span className="px-1.5 py-0.5 rounded-md bg-emerald-600 text-white text-[0.625rem] font-black">Ada ho gayi</span>}
+          {r.bonus > 0 && <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-black">🎯 Target</span>}
           {!r.enrolled && (
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-[9px] font-black text-slate-600 dark:text-slate-300">
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-[0.625rem] font-black text-slate-600 dark:text-slate-300">
               Band
             </span>
           )}
         </div>
-        <div className="mt-0.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+        <div className="mt-0.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
           {r.bills} bill · bikri {money(r.sale)} · munafa {money(r.profit)}
           {r.blockedByMin && ` · hadd se ${money(r.blockedByMin.short)} kam`}
         </div>
         {r.enrolled && r.baseSalary > 0 && (
-          <div className="mt-0.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 truncate">
+          <div className="mt-0.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 truncate">
             Tankhwah {money(r.baseSalary)} + commission {money(r.earned)} ={' '}
             <strong className="text-slate-900 dark:text-white">{money(r.totalPay)}</strong>
           </div>
@@ -736,7 +736,7 @@ function RowCard({ r, i, tone, money, busy, canManage = true, onOpen, onPay, onE
               <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-600"
                 style={{ width: `${Math.min(r.targetPct, 100)}%` }} />
             </div>
-            <span className="text-[10px] font-black text-amber-600">{r.targetPct.toFixed(0)}% target</span>
+            <span className="text-[0.6875rem] font-black text-amber-600">{r.targetPct.toFixed(0)}% target</span>
           </div>
         )}
       </div>
@@ -748,25 +748,25 @@ function RowCard({ r, i, tone, money, busy, canManage = true, onOpen, onPay, onE
           {r.enrolled ? money(r.earned) : '—'}
         </div>
         {r.enrolled && r.earned > 0 && (
-          <div className="text-[10px] font-bold text-slate-400">bikri ka {rate.toFixed(1)}%</div>
+          <div className="text-[0.6875rem] font-bold text-slate-400">bikri ka {rate.toFixed(1)}%</div>
         )}
       </div>
 
       <div className="flex gap-1.5 shrink-0 print:hidden">
         {!canManage ? (
           <button onClick={onOpen} title="Poora khata"
-            className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+            className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
             <Eye className="h-3.5 w-3.5" /> Tafseel
           </button>
         ) : !r.enrolled ? (
           <button onClick={onEnable} disabled={busy}
-            className="h-10 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 disabled:opacity-50 transition">
+            className="h-10 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 disabled:opacity-50 transition">
             <UserCheck className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Chaalu</span>
           </button>
         ) : (
           <>
             <button onClick={onOpen} title="Poora khata"
-              className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+              className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
               <Eye className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Tafseel</span>
             </button>
             {r.paid ? (
@@ -776,7 +776,7 @@ function RowCard({ r, i, tone, money, busy, canManage = true, onOpen, onPay, onE
               </button>
             ) : (
               <button onClick={onPay} disabled={busy || r.earned <= 0} title="Ada kar di"
-                className="h-10 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 disabled:opacity-40 transition">
+                className="h-10 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 disabled:opacity-40 transition">
                 <CheckCircle2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Ada</span>
               </button>
             )}
@@ -805,13 +805,13 @@ function PayModal({ row, period, money, saving, onClose, onConfirm }: any) {
             <p className="mt-1 text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
               {money(row.earned)}
             </p>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
               {row.bills} bill · {money(row.sale)} ki bikri par
             </p>
           </div>
 
           <label className="block">
-            <span className="block mb-1 text-[11px] font-black uppercase tracking-wide text-slate-500">
+            <span className="block mb-1 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500">
               Note <span className="normal-case font-bold text-slate-400">(marzi)</span>
             </span>
             <input value={note} onChange={(e) => setNote(e.target.value)}
@@ -819,7 +819,7 @@ function PayModal({ row, period, money, saving, onClose, onConfirm }: any) {
               className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition" />
           </label>
 
-          <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
             Ye sirf nishani hai ke aap ne de di — paisa khud kahin se nahi katta. Kharcha alag se
             darj karna ho to Expenses me likhein.
           </p>
@@ -874,15 +874,15 @@ function Teacher({ tone, onClose }: any) {
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-black text-slate-900 dark:text-white">{x.t}</p>
-                <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
               </div>
             </div>
           ))}
           <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
+            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['N', 'Naya rule'], ['G', 'Ye safha'], ['P', 'Print'], ['Esc', 'Band']].map(([k, l]) => (
-                <span key={k} className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/80">
+                <span key={k} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/80">
                   <kbd className="px-1.5 py-0.5 rounded bg-white/15 font-black">{k}</kbd> {l}
                 </span>
               ))}

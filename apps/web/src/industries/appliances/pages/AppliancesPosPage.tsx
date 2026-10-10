@@ -715,12 +715,12 @@ export default function AppliancesPosPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[11px] font-extrabold flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[0.6875rem] font-extrabold flex items-center justify-center">
                   {itemCount}
                 </span>
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
                 <div className="text-lg font-extrabold tabular-nums leading-none">{hidePrices ? '••••' : formatPKR(total)}</div>
               </div>
             </div>
@@ -756,7 +756,7 @@ function PosHeader({ tenantName, isOnline, hidePrices, onTogglePrices, heldCount
                 </div>
               )}
             </div>
-            <p className="text-[11px] sm:text-xs text-white/80 font-semibold mt-0.5 truncate">
+            <p className="text-[0.6875rem] sm:text-xs text-white/80 font-semibold mt-0.5 truncate">
               {tenantName || 'Appliances Store'}
             </p>
           </div>
@@ -776,7 +776,7 @@ function PosHeader({ tenantName, isOnline, hidePrices, onTogglePrices, heldCount
             className="lg:hidden relative h-10 w-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center transition">
             <ShoppingCart className="h-5 w-5" />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">
                 {cartCount}
               </span>
             )}
@@ -807,7 +807,7 @@ function SearchBar({ value, onChange, onOpenScanner }: any) {
       <button onClick={onOpenScanner}
         className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
         <Camera className="h-5 w-5 sm:h-6 sm:w-6" />
-        <span className="text-[9px] sm:text-[10px] font-extrabold uppercase">Scan</span>
+        <span className="text-[0.625rem] sm:text-[0.6875rem] font-extrabold uppercase">Scan</span>
       </button>
     </div>
   );

@@ -182,12 +182,12 @@ function DoctorCard({ doctor, onEdit, onDelete }: any) {
               <span className="truncate">{primary?.label}</span>
             </div>
             {doctor.subSpecialty && (
-              <div className="text-[10px] font-bold text-white/70 truncate">{doctor.subSpecialty}</div>
+              <div className="text-[0.6875rem] font-bold text-white/70 truncate">{doctor.subSpecialty}</div>
             )}
           </div>
         </div>
         {doctor.isFeatured && (
-          <span className="absolute top-2 right-2 px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+          <span className="absolute top-2 right-2 px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
             <Star className="h-2 w-2 fill-current" /> Featured
           </span>
         )}
@@ -211,7 +211,7 @@ function DoctorCard({ doctor, onEdit, onDelete }: any) {
         )}
 
         {doctor.pmcNumber && (
-          <div className="text-[10px] font-mono font-bold text-emerald-700 inline-flex items-center gap-1">
+          <div className="text-[0.6875rem] font-mono font-bold text-emerald-700 inline-flex items-center gap-1">
             <CheckCircle2 className="h-2.5 w-2.5" />
             PMC: {doctor.pmcNumber}
           </div>
@@ -220,7 +220,7 @@ function DoctorCard({ doctor, onEdit, onDelete }: any) {
         {doctor.languages?.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {doctor.languages.slice(0, 3).map((l: string, i: number) => (
-              <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[9px] font-extrabold text-slate-700">
+              <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.625rem] font-extrabold text-slate-700">
                 {l}
               </span>
             ))}
@@ -229,17 +229,17 @@ function DoctorCard({ doctor, onEdit, onDelete }: any) {
 
         <div className="flex flex-wrap gap-1">
           {doctor.acceptsTelemedicine && (
-            <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
               <Video className="h-2 w-2" /> TELE
             </span>
           )}
           {doctor.acceptsHomeVisit && (
-            <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
               <Home className="h-2 w-2" /> HOME
             </span>
           )}
           {doctor.acceptsEmergency && (
-            <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
               <Zap className="h-2 w-2" /> EMERGENCY
             </span>
           )}
@@ -247,15 +247,15 @@ function DoctorCard({ doctor, onEdit, onDelete }: any) {
 
         <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
           <div className="text-center">
-            <div className="text-[9px] uppercase font-extrabold text-slate-500">Patients</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Patients</div>
             <div className="font-extrabold tabular-nums">{doctor.totalPatients}</div>
           </div>
           <div className="text-center">
-            <div className="text-[9px] uppercase font-extrabold text-emerald-700">Fee</div>
-            <div className="font-extrabold text-emerald-700 tabular-nums text-[10px]">{formatPKR(doctor.consultationFee).replace('Rs', '').trim()}</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Fee</div>
+            <div className="font-extrabold text-emerald-700 tabular-nums text-[0.6875rem]">{formatPKR(doctor.consultationFee).replace('Rs', '').trim()}</div>
           </div>
           <div className="text-center">
-            <div className="text-[9px] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
+            <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
               <Star className="h-2 w-2 fill-current" />
               Rating
             </div>
@@ -265,7 +265,7 @@ function DoctorCard({ doctor, onEdit, onDelete }: any) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-[10px] text-slate-600 font-bold">
+        <div className="flex items-center gap-2 text-[0.6875rem] text-slate-600 font-bold">
           <Clock className="h-3 w-3" />
           {doctor.workStartTime}–{doctor.workEndTime}
           <span className="ml-auto">
@@ -376,7 +376,7 @@ function DoctorForm({ editing, onClose, onSaved }: any) {
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         {!editing && (
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Select Staff *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Select Staff *</label>
             <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
               <option value="">-- Pick from HR/Staff --</option>
               {(staffList ?? []).map((s: any) => {
@@ -388,7 +388,7 @@ function DoctorForm({ editing, onClose, onSaved }: any) {
         )}
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
           {form.photoUrl ? (
             <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-slate-200">
               <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
@@ -417,7 +417,7 @@ function DoctorForm({ editing, onClose, onSaved }: any) {
 
         {/* Specialties */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Specialties * ({form.specialties.length} selected)</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Specialties * ({form.specialties.length} selected)</label>
           <div className="max-h-52 overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-2 grid grid-cols-2 sm:grid-cols-3 gap-1">
             {SPECIALTIES.map((s) => (
               <button key={s.value} onClick={() => toggleSpecialty(s.value)} className={
@@ -456,27 +456,27 @@ function DoctorForm({ editing, onClose, onSaved }: any) {
           </div>
           <div className="grid sm:grid-cols-3 gap-2">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-0.5 block">First Visit</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-0.5 block">First Visit</label>
               <input type="number" value={form.consultationFee} onChange={(e) => setForm({ ...form, consultationFee: e.target.value })} className="h-11 w-full rounded-lg border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-0.5 block">Follow-up</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-0.5 block">Follow-up</label>
               <input type="number" value={form.followUpFee} onChange={(e) => setForm({ ...form, followUpFee: e.target.value })} className="h-11 w-full rounded-lg border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-0.5 block">F-up Days</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-0.5 block">F-up Days</label>
               <input type="number" value={form.followUpDays} onChange={(e) => setForm({ ...form, followUpDays: e.target.value })} className="h-11 w-full rounded-lg border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-purple-700 mb-0.5 block">Telemedicine</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-purple-700 mb-0.5 block">Telemedicine</label>
               <input type="number" value={form.telemedicineFee} onChange={(e) => setForm({ ...form, telemedicineFee: e.target.value })} className="h-11 w-full rounded-lg border-2 border-purple-300 bg-white dark:bg-purple-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-purple-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-0.5 block">Home Visit</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-0.5 block">Home Visit</label>
               <input type="number" value={form.homeVisitFee} onChange={(e) => setForm({ ...form, homeVisitFee: e.target.value })} className="h-11 w-full rounded-lg border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-red-700 mb-0.5 block">Emergency</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-red-700 mb-0.5 block">Emergency</label>
               <input type="number" value={form.emergencyFee} onChange={(e) => setForm({ ...form, emergencyFee: e.target.value })} className="h-11 w-full rounded-lg border-2 border-red-300 bg-white dark:bg-red-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-red-500" />
             </div>
           </div>
@@ -489,7 +489,7 @@ function DoctorForm({ editing, onClose, onSaved }: any) {
             Schedule
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-cyan-700 mb-1 block">Working Days</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-1 block">Working Days</label>
             <div className="grid grid-cols-7 gap-1">
               {DAYS.map((d, i) => (
                 <button key={d} onClick={() => toggleDay(i)} className={

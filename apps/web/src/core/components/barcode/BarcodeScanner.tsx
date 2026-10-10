@@ -269,7 +269,7 @@ export default function BarcodeScanner({
               <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base truncate">
                 {title}
               </h3>
-              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-semibold truncate">
+              <p className="text-[0.6875rem] sm:text-xs text-slate-500 dark:text-slate-400 font-semibold truncate">
                 {permission === 'granted' ? hint : 'Permission ka intezar...'}
               </p>
             </div>
@@ -394,7 +394,7 @@ export default function BarcodeScanner({
               {/* Bottom hint bar */}
               <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-950/70 to-transparent p-3 sm:p-4">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur border border-white/20 px-3 py-1.5 text-[11px] font-bold text-white">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur border border-white/20 px-3 py-1.5 text-[0.6875rem] font-bold text-white">
                     <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                     Scanning... {scanCount > 0 && `(${scanCount} detected)`}
                   </div>
@@ -464,7 +464,7 @@ export default function BarcodeScanner({
                 OK
               </button>
             </div>
-            <p className="text-[10px] text-brand-700 dark:text-brand-400 font-bold mt-2 flex items-center gap-1">
+            <p className="text-[0.6875rem] text-brand-700 dark:text-brand-400 font-bold mt-2 flex items-center gap-1">
               <Info className="h-3 w-3" />
               Enter dabao ya OK click karein
             </p>
@@ -489,7 +489,7 @@ export default function BarcodeScanner({
         )}
 
         <div className="px-4 sm:px-6 py-3 border-t-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between gap-2 shrink-0">
-          <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 hidden sm:inline-flex items-center gap-1">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 hidden sm:inline-flex items-center gap-1">
             <Kbd>Esc</Kbd> band karein • <Kbd>Enter</Kbd> submit
           </div>
           <Button variant="secondary" onClick={onClose} className="ml-auto">
@@ -507,7 +507,7 @@ export default function BarcodeScanner({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-mono font-bold text-[9px]">
+    <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-mono font-bold text-[0.625rem]">
       {children}
     </kbd>
   );

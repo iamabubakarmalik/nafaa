@@ -240,7 +240,7 @@ export default function FreshnessPage() {
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Timer className="h-3.5 w-3.5 text-emerald-300" /> Bakery · Taazgi
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">⏱️ Kya Jaldi Bechna Hai</h1>
@@ -303,7 +303,7 @@ export default function FreshnessPage() {
             }`}>
             <Icon className="h-4 w-4" /> {label}
             {v === 'live' && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'}`}>
+              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'}`}>
                 {shown.length}
               </span>
             )}
@@ -382,19 +382,19 @@ export default function FreshnessPage() {
                           <Link to={`/bakery-products/${r.productId}`} className="font-extrabold text-sm text-slate-900 dark:text-white truncate hover:text-emerald-600">
                             {r.productName}
                           </Link>
-                          <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md ${st.chip}`}>{st.emoji} {st.label}</span>
-                          {r.batchNumber && <span className="text-[10px] font-black text-slate-400">#{r.batchNumber}</span>}
+                          <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md ${st.chip}`}>{st.emoji} {st.label}</span>
+                          {r.batchNumber && <span className="text-[0.6875rem] font-black text-slate-400">#{r.batchNumber}</span>}
                         </div>
-                        <div className={`text-[11px] font-black mt-0.5 ${gone ? 'text-rose-600' : soon ? 'text-amber-600' : 'text-slate-500'}`}>
+                        <div className={`text-[0.6875rem] font-black mt-0.5 ${gone ? 'text-rose-600' : soon ? 'text-amber-600' : 'text-slate-500'}`}>
                           {phrase(r.left)} · {new Date(r.expiryDate || r.bestBefore).toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}
                         </div>
                       </div>
 
                       <div className="text-right shrink-0">
                         <div className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{fmtQty(Number(r.currentQty))}</div>
-                        <div className="text-[10px] font-bold text-slate-400">{fmtQty(Number(r.initialQty))} me se</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-400">{fmtQty(Number(r.initialQty))} me se</div>
                         {r.atRiskValue > 0 && (
-                          <div className="text-[10px] font-black text-amber-600 tabular-nums">{formatPKR(r.atRiskValue)}</div>
+                          <div className="text-[0.6875rem] font-black text-amber-600 tabular-nums">{formatPKR(r.atRiskValue)}</div>
                         )}
                       </div>
                     </div>
@@ -402,20 +402,20 @@ export default function FreshnessPage() {
                     <div className="mt-2.5 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                       <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${Math.min(soldPct, 100)}%` }} />
                     </div>
-                    <div className="mt-1 text-[10px] font-bold text-slate-400">{soldPct.toFixed(0)}% bik chuka</div>
+                    <div className="mt-1 text-[0.6875rem] font-bold text-slate-400">{soldPct.toFixed(0)}% bik chuka</div>
 
                     {Number(r.currentQty) > 0 && r.status !== 'DISCARDED' && (
                       <div className="mt-2.5 flex gap-1.5 flex-wrap print:hidden">
                         <button onClick={() => setActionOn({ log: r, mode: 'sale' })}
-                          className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 transition">
+                          className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                           <CheckCircle2 className="h-3.5 w-3.5" /> Bik gaya
                         </button>
                         <button onClick={() => setActionOn({ log: r, mode: 'discount' })}
-                          className="h-9 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black inline-flex items-center gap-1.5 transition">
+                          className="h-9 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                           <Tag className="h-3.5 w-3.5" /> Discount par
                         </button>
                         <button onClick={() => setActionOn({ log: r, mode: 'discard' })}
-                          className="h-9 px-3 rounded-xl border-2 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 text-[11px] font-black inline-flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition">
+                          className="h-9 px-3 rounded-xl border-2 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition">
                           <Trash2 className="h-3.5 w-3.5" /> Phenk diya
                         </button>
                       </div>
@@ -433,7 +433,7 @@ export default function FreshnessPage() {
               <TrendingDown className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-black text-rose-900 dark:text-rose-200">Zaya zyada ho raha hai</h3>
-                <p className="text-[12px] font-bold text-rose-800 dark:text-rose-300 mt-0.5">
+                <p className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300 mt-0.5">
                   Har 100 me se <strong>{stats.wastePct.toFixed(0)}</strong> phink rahe hain — ab tak{' '}
                   <strong>{formatPKR(stats.wasteValue)}</strong> ka nuqsaan. Neeche dekhein kis cheez par
                   sab se zyada — shayad us ka batch chhota karna chahiye.
@@ -537,7 +537,7 @@ function QtyModal({ log, mode, onClose, onDone }: any) {
           </span>
           <div className="min-w-0">
             <h3 className="font-black text-slate-900 dark:text-white">{cfg.title}</h3>
-            <p className="text-[11px] font-bold text-slate-500 truncate">{log.productName} · {fmtQty(max)} para hua</p>
+            <p className="text-[0.6875rem] font-bold text-slate-500 truncate">{log.productName} · {fmtQty(max)} para hua</p>
           </div>
         </div>
 
@@ -627,7 +627,7 @@ function NewBatchModal({ onClose, onDone }: any) {
 
         <div className="p-5 space-y-3">
           <div>
-            <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Kaun si cheez</label>
+            <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Kaun si cheez</label>
             {chosen ? (
               <div className="flex items-center gap-2 rounded-xl border-2 border-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 p-2.5">
                 <Package className="h-4 w-4 text-emerald-600 shrink-0" />
@@ -654,12 +654,12 @@ function NewBatchModal({ onClose, onDone }: any) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Kitne banaye</label>
+              <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Kitne banaye</label>
               <input type="number" min={1} step="any" value={qty} onChange={(e) => setQty(e.target.value === '' ? '' : Number(e.target.value))}
                 className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Kitne ghante theek</label>
+              <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Kitne ghante theek</label>
               <input type="number" min={1} value={hours} onChange={(e) => setHours(e.target.value === '' ? '' : Number(e.target.value))}
                 className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
             </div>
@@ -668,14 +668,14 @@ function NewBatchModal({ onClose, onDone }: any) {
           <div className="flex gap-1.5">
             {[6, 12, 24, 48, 72].map((h) => (
               <button key={h} onClick={() => setHours(h)}
-                className={`flex-1 h-9 rounded-lg text-[11px] font-black transition ${
+                className={`flex-1 h-9 rounded-lg text-[0.6875rem] font-black transition ${
                   hours === h ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                 }`}>{h}h</button>
             ))}
           </div>
 
           <div>
-            <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Batch number (optional)</label>
+            <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Batch number (optional)</label>
             <input value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} placeholder="Subah wala"
               className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
           </div>
@@ -704,9 +704,9 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -769,8 +769,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             System khud waqt dekh kar halat badal deta hai. Jaldi chahiye to ye button dabayein.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
@@ -791,8 +791,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

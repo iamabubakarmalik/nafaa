@@ -165,7 +165,7 @@ function FarmerCard({ farmer, onEdit, onPay, onDelete }: any) {
         <div className="flex-1 min-w-0">
           <div className="font-extrabold text-slate-900 dark:text-white truncate">{farmer.name}</div>
           {farmer.fatherName && <div className="text-xs text-slate-500 font-bold">S/o {farmer.fatherName}</div>}
-          <div className="mt-1 text-[10px] font-mono font-bold text-slate-500">{farmer.farmerNumber}</div>
+          <div className="mt-1 text-[0.6875rem] font-mono font-bold text-slate-500">{farmer.farmerNumber}</div>
         </div>
       </div>
 
@@ -183,7 +183,7 @@ function FarmerCard({ farmer, onEdit, onPay, onDelete }: any) {
       </div>
 
       {/* Cattle count */}
-      <div className="flex gap-2 flex-wrap text-[10px] font-extrabold">
+      <div className="flex gap-2 flex-wrap text-[0.6875rem] font-extrabold">
         {farmer.buffaloCount ? <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800">🐃 {farmer.buffaloCount}</span> : null}
         {farmer.cowCount ? <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800">🐄 {farmer.cowCount}</span> : null}
         {farmer.goatCount ? <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">🐐 {farmer.goatCount}</span> : null}
@@ -192,11 +192,11 @@ function FarmerCard({ farmer, onEdit, onPay, onDelete }: any) {
 
       <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Rate/Liter</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Rate/Liter</div>
           <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(farmer.ratePerLiter)}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-rose-700">Balance (Payable)</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-rose-700">Balance (Payable)</div>
           <div className="text-sm font-extrabold text-rose-700 tabular-nums">{formatPKR(farmer.currentBalance)}</div>
         </div>
       </div>
@@ -205,20 +205,20 @@ function FarmerCard({ farmer, onEdit, onPay, onDelete }: any) {
         <div className="grid grid-cols-2 gap-2 text-xs">
           {farmer.avgFatContent && (
             <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2">
-              <div className="text-[9px] uppercase font-extrabold text-amber-700">Avg Fat</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Avg Fat</div>
               <div className="font-extrabold text-amber-900">{farmer.avgFatContent.toFixed(2)}%</div>
             </div>
           )}
           {farmer.avgSnfContent && (
             <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2">
-              <div className="text-[9px] uppercase font-extrabold text-blue-700">Avg SNF</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Avg SNF</div>
               <div className="font-extrabold text-blue-900">{farmer.avgSnfContent.toFixed(2)}%</div>
             </div>
           )}
         </div>
       )}
 
-      <div className="text-[10px] font-bold text-slate-500">
+      <div className="text-[0.6875rem] font-bold text-slate-500">
         Total supplied: <span className="text-slate-700">{farmer.totalSupplied.toFixed(0)}L</span> • Paid: <span className="text-emerald-700">{formatPKR(farmer.totalPaid)}</span>
       </div>
 
@@ -264,7 +264,7 @@ function PaymentModal({ farmer, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Amount *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Amount *</label>
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             <div className="mt-1 flex gap-1">
               {[0.25, 0.5, 0.75, 1].map((f) => (
@@ -275,7 +275,7 @@ function PaymentModal({ farmer, onClose, onDone }: any) {
             </div>
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
             <div className="grid grid-cols-3 gap-2">
               {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
                 <button key={m} onClick={() => setMethod(m)} className={
@@ -365,19 +365,19 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
           <div className="text-sm font-extrabold text-amber-900 dark:text-amber-300">🐄 Cattle Info</div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-0.5 block">🐃 Buffalo</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-0.5 block">🐃 Buffalo</label>
               <input type="number" value={form.buffaloCount} onChange={(e) => setForm({ ...form, buffaloCount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-0.5 block">🐄 Cows</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-0.5 block">🐄 Cows</label>
               <input type="number" value={form.cowCount} onChange={(e) => setForm({ ...form, cowCount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-0.5 block">🐐 Goats</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-0.5 block">🐐 Goats</label>
               <input type="number" value={form.goatCount} onChange={(e) => setForm({ ...form, goatCount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-cyan-700 mb-0.5 block">Capacity/day</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-0.5 block">Capacity/day</label>
               <input type="number" value={form.totalCapacityLiters} onChange={(e) => setForm({ ...form, totalCapacityLiters: e.target.value })} placeholder="Liters" className="h-11 w-full rounded-xl border-2 border-cyan-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-cyan-500" />
             </div>
           </div>
@@ -387,15 +387,15 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
           <div className="text-sm font-extrabold text-emerald-900 dark:text-emerald-300">💰 Payment Terms</div>
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-0.5 block">Rate/Liter *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-0.5 block">Rate/Liter *</label>
               <input type="number" step="0.01" value={form.ratePerLiter} onChange={(e) => setForm({ ...form, ratePerLiter: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-0.5 block">Fat Bonus/L/%</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-0.5 block">Fat Bonus/L/%</label>
               <input type="number" step="0.01" value={form.fatBonusRate} onChange={(e) => setForm({ ...form, fatBonusRate: e.target.value })} placeholder="Rs per L per %" className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-0.5 block">Cycle</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Cycle</label>
               <select value={form.paymentCycle} onChange={(e) => setForm({ ...form, paymentCycle: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
                 {PAYMENT_CYCLES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -404,7 +404,7 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
             <Camera className="h-3 w-3" />Photo
           </label>
           {form.photoUrl ? (

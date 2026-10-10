@@ -133,7 +133,7 @@ export function OpticalWizardStep2Specs({
                       a ? 'border-cyan-600 bg-cyan-600 text-white shadow-md scale-[1.03]'
                         : 'border-slate-200 bg-white text-slate-700 hover:border-cyan-400'].join(' ')}>
                     <span className="text-xl">{s.e}</span>
-                    <span className="text-[10px] font-extrabold text-center">{s.l}</span>
+                    <span className="text-[0.6875rem] font-extrabold text-center">{s.l}</span>
                   </button>
                 );
               })}
@@ -201,7 +201,7 @@ export function OpticalWizardStep2Specs({
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2">Quick presets</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2">Quick presets</div>
               <div className="flex flex-wrap gap-1.5">
                 {COLOR_PRESETS.map((c) => (
                   <button key={c.hex} type="button" onClick={() => onChangeFrame({ colorName: c.name, colorHex: c.hex })}
@@ -397,7 +397,7 @@ function Check2({ checked, onChange, icon: Icon, label, desc }: any) {
       <Icon className={['h-5 w-5', checked ? 'text-cyan-600' : 'text-slate-400'].join(' ')} />
       <div className="min-w-0">
         <div className="font-extrabold text-sm text-slate-900">{label}</div>
-        <div className="text-[11px] text-slate-500 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-semibold">{desc}</div>
       </div>
     </label>
   );

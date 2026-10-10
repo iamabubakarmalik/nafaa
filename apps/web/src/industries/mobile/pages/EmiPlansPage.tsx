@@ -204,7 +204,7 @@ export default function EmiPlansPage() {
             )}
           </div>
         </div>
-        <table className="w-full text-[10px]" style={{ borderCollapse: 'collapse' }}>
+        <table className="w-full text-[0.6875rem]" style={{ borderCollapse: 'collapse' }}>
           <thead>
             <tr>
               {['Plan #', 'Customer', 'Total', 'Per Month', 'Paid', 'Remaining', 'Overdue', 'Status'].map((h) => (
@@ -229,7 +229,7 @@ export default function EmiPlansPage() {
             ))}
           </tbody>
         </table>
-        <div className="mt-3 pt-2 text-center text-[9px] text-slate-500 font-semibold" style={{ borderTop: '2px solid #4f46e5' }}>
+        <div className="mt-3 pt-2 text-center text-[0.625rem] text-slate-500 font-semibold" style={{ borderTop: '2px solid #4f46e5' }}>
           ✦ Powered by <b>Nafaa POS</b> ✦
         </div>
       </div>
@@ -241,7 +241,7 @@ export default function EmiPlansPage() {
 
         <div className="relative flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <CreditCard className="h-3.5 w-3.5 text-amber-300" /> Mobile Industry
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
@@ -310,7 +310,7 @@ export default function EmiPlansPage() {
               <div className="font-extrabold text-sm text-rose-900 dark:text-rose-200">
                 ⚠️ {stats!.overdueCount} installments overdue — {formatPKR(stats!.overdueAmount)} atak gaya!
               </div>
-              <div className="text-[11px] font-semibold text-rose-700 dark:text-rose-300 mt-0.5">
+              <div className="text-[0.6875rem] font-semibold text-rose-700 dark:text-rose-300 mt-0.5">
                 Customers ko WhatsApp reminders bhejo — collection barhao
               </div>
             </div>
@@ -449,11 +449,11 @@ export default function EmiPlansPage() {
                         <span className="font-mono font-extrabold text-indigo-700 dark:text-indigo-300 text-sm">
                           {plan.planNumber}
                         </span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${statusColors.bg} ${statusColors.text} ${statusColors.border}`}>
+                        <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold border ${statusColors.bg} ${statusColors.text} ${statusColors.border}`}>
                           {EMI_STATUS_LABELS[plan.status]}
                         </span>
                         {plan.overdueCount > 0 && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-extrabold animate-pulse">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-[0.6875rem] font-extrabold animate-pulse">
                             <AlertTriangle className="h-2.5 w-2.5" /> {plan.overdueCount} OVERDUE
                           </span>
                         )}
@@ -487,7 +487,7 @@ export default function EmiPlansPage() {
                       </div>
 
                       <div className="mt-2 max-w-md">
-                        <div className="flex items-center justify-between text-[10px] font-extrabold mb-0.5">
+                        <div className="flex items-center justify-between text-[0.6875rem] font-extrabold mb-0.5">
                           <span className="text-emerald-700 dark:text-emerald-400 tabular-nums">
                             {plan.paidInstallmentCount}/{plan.installmentCount} paid
                           </span>
@@ -509,12 +509,12 @@ export default function EmiPlansPage() {
                     </div>
 
                     <div className="text-right shrink-0 space-y-1" onClick={(e) => e.stopPropagation()}>
-                      <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400">Remaining</div>
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">Remaining</div>
                       <div className="font-extrabold text-amber-700 dark:text-amber-400 text-lg tabular-nums">
                         {formatPKR(plan.remainingAmount)}
                       </div>
                       {plan.overdueAmount > 0 && (
-                        <div className="text-[11px] font-extrabold text-rose-700 dark:text-rose-400 tabular-nums">
+                        <div className="text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-400 tabular-nums">
                           Overdue: {formatPKR(plan.overdueAmount)}
                         </div>
                       )}
@@ -522,7 +522,7 @@ export default function EmiPlansPage() {
                         {plan.overdueAmount > 0 && plan.customerPhone && (
                           <button
                             onClick={(e) => { e.preventDefault(); sendOverdueReminder(plan); }}
-                            className="h-8 px-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold inline-flex items-center gap-1 transition"
+                            className="h-8 px-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
                             title="WhatsApp reminder bhejo"
                           >
                             <MessageCircle className="h-3 w-3" /> Remind
@@ -603,9 +603,9 @@ function Kpi({ label, value, sub, icon: Icon, tone, alert }: any) {
     }`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -636,7 +636,7 @@ function EmiTeacher({ hasPlans, onClose, onStart }: { hasPlans: boolean; onClose
           </p>
 
           <div className="rounded-2xl border-2 border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/60 dark:bg-indigo-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-indigo-700 dark:text-indigo-300">📱 Misal: Rs 60,000 ka Phone</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-indigo-700 dark:text-indigo-300">📱 Misal: Rs 60,000 ka Phone</div>
             <div className="flex items-center gap-2 flex-wrap">
               <FlowBox emoji="💵" label="Down 20%" value="Rs 12,000" sub="abhi cash" />
               <ArrowRight className="h-4 w-4 text-indigo-500 shrink-0" />
@@ -677,9 +677,9 @@ function FlowBox({ emoji, label, value, sub, highlight }: any) {
   return (
     <div className={`rounded-xl border-2 px-3 py-2 text-center min-w-[90px] ${highlight ? 'border-emerald-500 bg-white dark:bg-slate-800 shadow-md' : 'border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/60'}`}>
       <div className="text-xl">{emoji}</div>
-      <div className="text-[10px] font-extrabold text-slate-900 dark:text-white uppercase">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white uppercase">{label}</div>
       <div className={`text-xs font-extrabold tabular-nums ${highlight ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>{value}</div>
-      <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400">{sub}</div>
+      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">{sub}</div>
     </div>
   );
 }
@@ -688,8 +688,8 @@ function TeacherStep({ emoji, title, desc }: any) {
   return (
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }

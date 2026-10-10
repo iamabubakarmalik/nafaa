@@ -62,7 +62,7 @@ export function PeakHoursCard({
     subtitle={hourDays === 1 ? 'Aaj kis waqt zyada bika' : '7 din ka rozana ausat'}
     tone="violet"
     right={
-      <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[11px] font-extrabold">
+      <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[0.6875rem] font-extrabold">
         {([[1, 'Aaj'], [7, '7 Din']] as const).map(([d, l]) => (
           <button
             key={d}
@@ -88,7 +88,7 @@ export function PeakHoursCard({
         <Flame className="h-4 w-4" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300">
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300">
           Sab se masroof waqt
         </div>
         <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">

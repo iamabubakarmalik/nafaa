@@ -117,7 +117,7 @@ export function OrderStatusTimeline({
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className={cn(
-                  'text-[9px] font-black uppercase tracking-wider text-center',
+                  'text-[0.625rem] font-black uppercase tracking-wider text-center',
                   isDone ? 'text-slate-800 dark:text-white' : 'text-slate-400',
                 )}>
                   {s.label}

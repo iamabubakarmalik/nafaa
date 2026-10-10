@@ -215,7 +215,7 @@ export function PnLLine({ label, value, type, sub }: PnLLineProps) {
       <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-300">
         <div>
           <div className="font-extrabold text-emerald-900">{label}</div>
-          {sub && <div className="text-[10px] text-emerald-700 font-bold">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-emerald-700 font-bold">{sub}</div>}
         </div>
         <div className={`font-extrabold text-xl tabular-nums ${value >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
           {formatPKR(value)}
@@ -227,7 +227,7 @@ export function PnLLine({ label, value, type, sub }: PnLLineProps) {
     <div className={`flex items-center justify-between py-2 ${type === 'bold' ? 'border-t border-slate-200 pt-3 font-bold' : ''}`}>
       <div>
         <span className={`text-sm ${type === 'bold' ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{label}</span>
-        {sub && <span className="ml-2 text-[10px] text-slate-500 font-bold">({sub})</span>}
+        {sub && <span className="ml-2 text-[0.6875rem] text-slate-500 font-bold">({sub})</span>}
       </div>
       <span className={`font-bold tabular-nums ${
         type === 'positive' ? 'text-emerald-700' :
@@ -262,7 +262,7 @@ export function MiniStat({ label, value, color, icon: Icon }: MiniStatProps) {
     <div className={`rounded-xl border-2 ${colors[color]} p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-70" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-80">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-80">{label}</div>
       </div>
       <div className="text-lg font-extrabold tabular-nums">{value}</div>
     </div>

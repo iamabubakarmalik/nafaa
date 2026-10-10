@@ -166,7 +166,7 @@ export default function CakeCustomizerPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 Cake Customizer
               </div>
@@ -198,7 +198,7 @@ export default function CakeCustomizerPage() {
                   }>
                     {isCompleted ? <Check className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
                   </div>
-                  <span className="text-[9px] font-extrabold uppercase whitespace-nowrap">{s.label}</span>
+                  <span className="text-[0.625rem] font-extrabold uppercase whitespace-nowrap">{s.label}</span>
                 </button>
                 {i < STEPS.length - 1 && (
                   <div className={'h-0.5 w-4 mx-0.5 ' + (isCompleted ? 'bg-emerald-500' : 'bg-white/20')} />
@@ -251,7 +251,7 @@ export default function CakeCustomizerPage() {
                           >
                             <User className="h-3.5 w-3.5 text-slate-400" />
                             <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                            <span className="text-[10px] text-slate-500 font-bold">{c.phone}</span>
+                            <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
                           </button>
                         ))}
                       </div>
@@ -260,11 +260,11 @@ export default function CakeCustomizerPage() {
 
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Customer Name *</label>
+                      <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Customer Name *</label>
                       <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Full name" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Phone *</label>
+                      <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Phone *</label>
                       <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="03xx-xxxxxxx" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
                     </div>
                   </div>
@@ -272,7 +272,7 @@ export default function CakeCustomizerPage() {
               )}
 
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Email (optional)</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Email (optional)</label>
                 <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="email@example.com" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
               </div>
             </section>
@@ -297,7 +297,7 @@ export default function CakeCustomizerPage() {
                       }
                     >
                       <div className="text-2xl">{s.emoji}</div>
-                      <div className="text-[10px] font-extrabold mt-1">{s.label}</div>
+                      <div className="text-[0.6875rem] font-extrabold mt-1">{s.label}</div>
                     </button>
                   ))}
                 </div>
@@ -323,7 +323,7 @@ export default function CakeCustomizerPage() {
                       }
                     >
                       <div className="text-3xl">{s.emoji}</div>
-                      <div className="text-[10px] font-extrabold mt-1">{s.label}</div>
+                      <div className="text-[0.6875rem] font-extrabold mt-1">{s.label}</div>
                     </button>
                   ))}
                 </div>
@@ -367,7 +367,7 @@ export default function CakeCustomizerPage() {
                       <div className={'absolute inset-0 bg-gradient-to-br ' + f.color + ' opacity-30'} />
                       <div className="relative">
                         <div className="text-2xl">{f.emoji}</div>
-                        <div className="text-[10px] font-extrabold mt-1 text-slate-900 dark:text-white">{f.label}</div>
+                        <div className="text-[0.6875rem] font-extrabold mt-1 text-slate-900 dark:text-white">{f.label}</div>
                       </div>
                     </button>
                   ))}
@@ -394,7 +394,7 @@ export default function CakeCustomizerPage() {
                       }
                     >
                       <div className="text-2xl">{c.emoji}</div>
-                      <div className="text-[10px] font-extrabold mt-1">{c.label}</div>
+                      <div className="text-[0.6875rem] font-extrabold mt-1">{c.label}</div>
                     </button>
                   ))}
                 </div>
@@ -443,7 +443,7 @@ export default function CakeCustomizerPage() {
                   Message on Cake
                 </h3>
                 <input value={form.messageOnCake} onChange={(e) => setForm({ ...form, messageOnCake: e.target.value })} placeholder="Happy Birthday Ali!" maxLength={100} className="h-14 w-full rounded-xl border-2 border-pink-300 bg-pink-50 dark:bg-pink-950/30 px-4 text-xl font-extrabold focus:outline-none focus:border-pink-500" />
-                <div className="text-[10px] text-slate-500 text-right">{form.messageOnCake.length}/100 characters</div>
+                <div className="text-[0.6875rem] text-slate-500 text-right">{form.messageOnCake.length}/100 characters</div>
                 <input value={form.messageColor} onChange={(e) => setForm({ ...form, messageColor: e.target.value })} placeholder="Message color (White, Gold, Red...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
               </section>
 
@@ -494,7 +494,7 @@ export default function CakeCustomizerPage() {
                   Design & Theme
                 </h3>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Design Reference Photos</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Design Reference Photos</label>
                   {form.designReferenceUrls.length > 0 && (
                     <div className="grid grid-cols-4 gap-1 mb-2">
                       {form.designReferenceUrls.map((url: string, i: number) => (
@@ -529,11 +529,11 @@ export default function CakeCustomizerPage() {
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Candles Required</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Candles Required</label>
                     <input type="number" min="0" value={form.candlesRequired} onChange={(e) => setForm({ ...form, candlesRequired: e.target.value })} placeholder="0" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Candle Type</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Candle Type</label>
                     <input value={form.candleType} onChange={(e) => setForm({ ...form, candleType: e.target.value })} placeholder="Number candles, sparklers..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
                   </div>
                 </div>
@@ -575,26 +575,26 @@ export default function CakeCustomizerPage() {
                     }
                   >
                     <div className="text-2xl">{o.emoji}</div>
-                    <div className="text-[10px] font-extrabold mt-1">{o.label}</div>
+                    <div className="text-[0.6875rem] font-extrabold mt-1">{o.label}</div>
                   </button>
                 ))}
               </div>
 
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Celebrant Name</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Celebrant Name</label>
                   <input value={form.celebrantName} onChange={(e) => setForm({ ...form, celebrantName: e.target.value })} placeholder="Who is this for?" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Age (if birthday)</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Age (if birthday)</label>
                   <input type="number" value={form.celebrantAge} onChange={(e) => setForm({ ...form, celebrantAge: e.target.value })} placeholder="25" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Event Date</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Event Date</label>
                   <input type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Event Time</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Event Time</label>
                   <input type="time" value={form.eventTime} onChange={(e) => setForm({ ...form, eventTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
                 </div>
               </div>
@@ -612,7 +612,7 @@ export default function CakeCustomizerPage() {
               </h3>
 
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Delivery Type *</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Delivery Type *</label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {DELIVERY_TYPES.map((d) => (
                     <button
@@ -624,7 +624,7 @@ export default function CakeCustomizerPage() {
                       }
                     >
                       <div className="text-2xl mb-1">{d.emoji}</div>
-                      <div className="text-[10px] font-extrabold">{d.label}</div>
+                      <div className="text-[0.6875rem] font-extrabold">{d.label}</div>
                     </button>
                   ))}
                 </div>
@@ -632,11 +632,11 @@ export default function CakeCustomizerPage() {
 
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Needed By *</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Needed By *</label>
                   <input type="datetime-local" value={form.neededBy} onChange={(e) => setForm({ ...form, neededBy: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold focus:outline-none focus:border-blue-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Preferred Time</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Preferred Time</label>
                   <input type="time" value={form.deliveryTime} onChange={(e) => setForm({ ...form, deliveryTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
                 </div>
               </div>
@@ -644,7 +644,7 @@ export default function CakeCustomizerPage() {
               {form.deliveryType !== 'SELF_PICKUP' && (
                 <>
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Delivery Address *</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Delivery Address *</label>
                     <textarea rows={3} value={form.deliveryAddress} onChange={(e) => setForm({ ...form, deliveryAddress: e.target.value })} placeholder="Full delivery address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
                   </div>
                   <div className="grid sm:grid-cols-2 gap-3">
@@ -679,7 +679,7 @@ export default function CakeCustomizerPage() {
                 </div>
                 {form.messageOnCake && (
                   <div className="rounded-xl bg-white dark:bg-neutral-800 border-2 border-pink-300 p-3 text-center">
-                    <div className="text-[10px] uppercase font-extrabold text-pink-700">Message</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-pink-700">Message</div>
                     <div className="text-lg font-extrabold text-slate-900 dark:text-white">"{form.messageOnCake}"</div>
                   </div>
                 )}
@@ -700,29 +700,29 @@ export default function CakeCustomizerPage() {
                 </div>
                 <div className="grid sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Base Price *</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Base Price *</label>
                     <input type="number" value={form.basePrice} onChange={(e) => setForm({ ...form, basePrice: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Customization</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Customization</label>
                     <input type="number" value={form.customizationCharges} onChange={(e) => setForm({ ...form, customizationCharges: e.target.value })} className="h-14 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-fuchsia-700 mb-1 block">Photo Cake</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700 mb-1 block">Photo Cake</label>
                     <input type="number" value={form.photoCakeCharges} onChange={(e) => setForm({ ...form, photoCakeCharges: e.target.value })} className="h-14 w-full rounded-xl border-2 border-fuchsia-200 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Tax</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Tax</label>
                     <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Discount</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Discount</label>
                     <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-rose-200 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Advance Paid</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Advance Paid</label>
                     <input type="number" value={form.advancePaid} onChange={(e) => setForm({ ...form, advancePaid: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-200 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
                   </div>
                 </div>
@@ -768,14 +768,14 @@ export default function CakeCustomizerPage() {
         <aside>
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-pink-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">🎂 Live Preview</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">🎂 Live Preview</div>
 
               <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4 text-center space-y-2">
                 <div className="text-6xl">{selectedFlavor?.emoji || '🎂'}</div>
                 <div className="text-lg font-extrabold">{selectedOccasion?.emoji} {selectedOccasion?.label || 'Cake'}</div>
                 <div className="flex flex-wrap gap-1 justify-center">
-                  <span className="px-2 py-0.5 rounded bg-white/20 text-[10px] font-extrabold">{selectedSize?.label}</span>
-                  <span className="px-2 py-0.5 rounded bg-white/20 text-[10px] font-extrabold">{selectedShape?.label}</span>
+                  <span className="px-2 py-0.5 rounded bg-white/20 text-[0.6875rem] font-extrabold">{selectedSize?.label}</span>
+                  <span className="px-2 py-0.5 rounded bg-white/20 text-[0.6875rem] font-extrabold">{selectedShape?.label}</span>
                 </div>
                 {form.messageOnCake && (
                   <div className="text-xs italic mt-2">"{form.messageOnCake}"</div>

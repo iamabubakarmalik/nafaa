@@ -101,15 +101,15 @@ export default function MeatDashboardPage() {
 
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Total Revenue</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Total Revenue</div>
               <div className="mt-1 text-3xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(revenue.monthly)}</div>
             </div>
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Collected</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Collected</div>
               <div className="mt-1 text-3xl font-extrabold text-cyan-300 tabular-nums">{formatPKR(revenue.collected)}</div>
             </div>
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Outstanding</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Outstanding</div>
               <div className="mt-1 text-3xl font-extrabold text-amber-300 tabular-nums">{formatPKR(revenue.monthly - revenue.collected)}</div>
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function MeatDashboardPage() {
             {halal.halal} / {halal.total} slaughters certified
           </div>
           <div className="mt-4 rounded-xl bg-white/15 backdrop-blur border border-white/20 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Certification Status</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Certification Status</div>
             <div className="mt-1 font-extrabold flex items-center gap-1">
               {halal.pct >= 95 ? (
                 <><CheckCircle2 className="h-4 w-4" /> Excellent Compliance</>
@@ -190,11 +190,11 @@ export default function MeatDashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm truncate">{item.productName}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{item._count._all} orders</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{item._count._all} orders</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums text-sm">{formatPKR(item._sum.total ?? 0)}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{(item._sum.actualKg ?? 0).toFixed(1)}kg</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{(item._sum.actualKg ?? 0).toFixed(1)}kg</div>
                   </div>
                 </div>
               ))
@@ -234,7 +234,7 @@ export default function MeatDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm">{sub.subscriptionNumber}</span>
-                        {isToday && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">TODAY</span>}
+                        {isToday && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">TODAY</span>}
                       </div>
                       <div className="text-xs text-slate-500 font-semibold truncate">{sub.contactPerson || 'Customer'} • {sub.frequency}</div>
                     </div>
@@ -244,7 +244,7 @@ export default function MeatDashboardPage() {
                           {format(new Date(sub.nextDeliveryDate), 'dd MMM')}
                         </div>
                       )}
-                      <div className="text-[10px] font-bold text-slate-500">{sub.totalMonthlyKg || 0}kg/mo</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">{sub.totalMonthlyKg || 0}kg/mo</div>
                     </div>
                   </Link>
                 );
@@ -271,7 +271,7 @@ export default function MeatDashboardPage() {
                   {a.animalType.replace('_', ' ')}
                 </div>
                 <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{a._count._all}</div>
-                <div className="text-[10px] font-bold text-slate-500">products</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500">products</div>
                 {a._sum.totalRevenue > 0 && (
                   <div className="mt-1 text-xs font-extrabold text-emerald-700 tabular-nums">
                     {formatPKR(a._sum.totalRevenue)}
@@ -332,7 +332,7 @@ function MiniKpi({ label, value, icon: Icon, color, to }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-      <div className="text-[10px] font-extrabold uppercase text-slate-500 mt-0.5">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold uppercase text-slate-500 mt-0.5">{label}</div>
     </Link>
   );
 }

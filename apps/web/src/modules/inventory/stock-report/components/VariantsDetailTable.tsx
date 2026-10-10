@@ -34,7 +34,7 @@ export function VariantsDetailTable({ variants, parentUnit }: Props) {
             <h4 className="font-extrabold text-violet-900 text-sm">
               {variants.length} Variant{variants.length !== 1 ? 's' : ''}
             </h4>
-            <p className="text-[10px] text-violet-700 font-bold">
+            <p className="text-[0.6875rem] text-violet-700 font-bold">
               Total: {totalStock.toFixed(totalStock % 1 === 0 ? 0 : 2)} {parentUnit} •{' '}
               Value: {formatPKR(totalValue)}
             </p>
@@ -89,7 +89,7 @@ export function VariantsDetailTable({ variants, parentUnit }: Props) {
                     isOut ? 'bg-rose-50/30' : isLow ? 'bg-amber-50/30' : ''
                   }`}
                 >
-                  <td className="px-3 py-2.5 text-violet-500 font-mono text-[10px]">
+                  <td className="px-3 py-2.5 text-violet-500 font-mono text-[0.6875rem]">
                     {idx + 1}
                   </td>
                   <td className="px-3 py-2.5">
@@ -108,7 +108,7 @@ export function VariantsDetailTable({ variants, parentUnit }: Props) {
                           {v.name}
                         </div>
                         {v.sku && (
-                          <div className="text-[10px] font-mono text-slate-500 mt-0.5">
+                          <div className="text-[0.6875rem] font-mono text-slate-500 mt-0.5">
                             {v.sku}
                           </div>
                         )}
@@ -118,7 +118,7 @@ export function VariantsDetailTable({ variants, parentUnit }: Props) {
                   <td className="px-3 py-2.5">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {v.color && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-50 border border-violet-200 text-[10px] font-bold text-violet-700">
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-50 border border-violet-200 text-[0.6875rem] font-bold text-violet-700">
                           {v.colorHex && (
                             <span
                               className="h-2 w-2 rounded-full border border-slate-300"
@@ -129,12 +129,12 @@ export function VariantsDetailTable({ variants, parentUnit }: Props) {
                         </span>
                       )}
                       {v.size && (
-                        <span className="px-1.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-[10px] font-bold text-blue-700">
+                        <span className="px-1.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-[0.6875rem] font-bold text-blue-700">
                           {v.size}
                         </span>
                       )}
                       {v.barcode && (
-                        <span className="text-[9px] font-mono text-slate-500">
+                        <span className="text-[0.625rem] font-mono text-slate-500">
                           {v.barcode}
                         </span>
                       )}
@@ -144,22 +144,22 @@ export function VariantsDetailTable({ variants, parentUnit }: Props) {
                     <div className="font-extrabold text-slate-900 tabular-nums">
                       {v.stock.toFixed(v.stock % 1 === 0 ? 0 : 2)}
                     </div>
-                    <div className="text-[9px] text-slate-500 font-bold uppercase">
+                    <div className="text-[0.625rem] text-slate-500 font-bold uppercase">
                       {parentUnit}
                     </div>
                   </td>
-                  <td className="px-3 py-2.5 text-right text-[11px] font-bold text-slate-700 tabular-nums">
+                  <td className="px-3 py-2.5 text-right text-[0.6875rem] font-bold text-slate-700 tabular-nums">
                     {formatPKR(v.costPrice)}
                   </td>
-                  <td className="px-3 py-2.5 text-right text-[11px] font-bold text-emerald-700 tabular-nums">
+                  <td className="px-3 py-2.5 text-right text-[0.6875rem] font-bold text-emerald-700 tabular-nums">
                     {formatPKR(v.price)}
                   </td>
-                  <td className="px-3 py-2.5 text-right text-[11px] font-extrabold text-slate-900 tabular-nums">
+                  <td className="px-3 py-2.5 text-right text-[0.6875rem] font-extrabold text-slate-900 tabular-nums">
                     {formatPKR(stockValue)}
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     <span
-                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold ${statusColor}`}
+                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold ${statusColor}`}
                     >
                       <StatusIcon className="h-2.5 w-2.5" />
                       {isOut ? 'OUT' : isLow ? 'LOW' : 'OK'}
@@ -171,7 +171,7 @@ export function VariantsDetailTable({ variants, parentUnit }: Props) {
           </tbody>
           <tfoot className="bg-violet-50 border-t-2 border-violet-200 font-extrabold">
             <tr>
-              <td colSpan={3} className="px-3 py-2.5 text-right text-[10px] uppercase text-violet-900">
+              <td colSpan={3} className="px-3 py-2.5 text-right text-[0.6875rem] uppercase text-violet-900">
                 Total ({variants.length} variants):
               </td>
               <td className="px-3 py-2.5 text-right text-violet-900 tabular-nums">

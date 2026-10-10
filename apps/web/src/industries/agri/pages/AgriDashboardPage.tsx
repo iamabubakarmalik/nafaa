@@ -462,7 +462,7 @@ export default function AgriDashboardPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Wheat className="h-3.5 w-3.5 text-lime-300" /> Agri
               {nowSeason && (<><span className="opacity-40">•</span><span>{nowSeason.e} {nowSeason.l}</span></>)}
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
@@ -472,11 +472,11 @@ export default function AgriDashboardPage() {
             </h1>
             <div className="mt-3 flex items-end gap-5 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-black text-white/70 tracking-widest">Aaj ki bikri</div>
+                <div className="text-[0.6875rem] uppercase font-black text-white/70 tracking-widest">Aaj ki bikri</div>
                 <div className="text-3xl sm:text-4xl font-black tabular-nums leading-none mt-1">
                   {money(stats.todayAmount)}
                 </div>
-                <div className="text-[11px] font-bold text-white/70 mt-0.5">
+                <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">
                   {stats.todayBills} bill
                   {dayDelta !== null && (
                     <span className={dayDelta >= 0 ? 'text-emerald-300' : 'text-rose-300'}>
@@ -486,14 +486,14 @@ export default function AgriDashboardPage() {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase font-black text-white/70 tracking-widest">30 din</div>
+                <div className="text-[0.6875rem] uppercase font-black text-white/70 tracking-widest">30 din</div>
                 <div className="text-xl font-black tabular-nums text-white/90 leading-none mt-1">
                   {money(stats.monthAmount)}
                 </div>
               </div>
               {stats.owed > 0 && (
                 <div className="rounded-xl px-3 py-2 bg-amber-400/20 border border-amber-300/40 backdrop-blur">
-                  <div className="text-[10px] uppercase font-black text-white/80 tracking-widest">Bahar para paisa</div>
+                  <div className="text-[0.6875rem] uppercase font-black text-white/80 tracking-widest">Bahar para paisa</div>
                   <div className="text-lg font-black tabular-nums leading-none mt-0.5 text-amber-200">
                     {money(stats.owed)}
                   </div>
@@ -538,7 +538,7 @@ export default function AgriDashboardPage() {
           <CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0" />
           <div>
             <h3 className="font-black text-emerald-900 dark:text-emerald-200 text-sm">Sab theek chal raha hai</h3>
-            <p className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
+            <p className="text-[0.6875rem] font-bold text-emerald-800 dark:text-emerald-300">
               Koi registration khatam nahi, stock poora hai, aur kisi ka udhaar late nahi.
             </p>
           </div>
@@ -610,10 +610,10 @@ export default function AgriDashboardPage() {
                   : 'border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5'
               }`}>
                 <div className="font-black text-sm text-slate-900 dark:text-white">🌾 {s.cropName}</div>
-                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                   {s.sowingNow ? 'Bijai chal rahi hai' : `Bijai ${s.toSow} din me`}
                 </div>
-                <div className={`mt-1 text-[11px] font-extrabold ${s.risky ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                <div className={`mt-1 text-[0.6875rem] font-extrabold ${s.risky ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                   {s.items === 0 ? 'Koi maal juda nahi'
                     : s.out > 0 ? `${s.out} cheezein khatam`
                     : `${s.items} cheezein maujood`}
@@ -691,11 +691,11 @@ export default function AgriDashboardPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{f.fullName}</div>
-                  <div className="text-[11px] font-bold text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                     {[f.village, f.district].filter(Boolean).join(', ') || 'Gaon nahi likha'}
                   </div>
                 </div>
-                <span className="text-[11px] font-black text-rose-600 dark:text-rose-400 shrink-0">
+                <span className="text-[0.6875rem] font-black text-rose-600 dark:text-rose-400 shrink-0">
                   {f.overdueBy} din late
                 </span>
                 <span className="text-sm font-black tabular-nums text-amber-700 dark:text-amber-400 shrink-0">
@@ -756,7 +756,7 @@ function AlertCard({ icon: Icon, tone, title, body, to, cta }: any) {
       <Icon className="h-5 w-5 shrink-0 mt-0.5" />
       <div className="min-w-0 flex-1">
         <h4 className="font-black text-sm leading-tight">{title}</h4>
-        <p className="text-[12px] font-bold opacity-90 mt-0.5 leading-snug">{body}</p>
+        <p className="text-[0.75rem] font-bold opacity-90 mt-0.5 leading-snug">{body}</p>
       </div>
       <Link to={to}
         className={`h-9 px-3 rounded-xl ${btn[tone]} text-white text-xs font-black inline-flex items-center gap-1 shrink-0 transition`}>
@@ -778,9 +778,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, to }: any) {
       className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 hover:border-emerald-400 p-3 sm:p-4 shadow-sm hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 active:scale-[0.98]">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -831,7 +831,7 @@ function ListCard({ icon: Icon, title, rows, emptyText, to }: any) {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.title}</span>
-                  <span className="block text-[11px] font-bold text-slate-400 truncate">{r.sub}</span>
+                  <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">{r.sub}</span>
                 </span>
                 <span className="text-sm font-black tabular-nums text-slate-900 dark:text-white shrink-0">{r.value}</span>
               </>
@@ -862,9 +862,9 @@ function Quick({ to, icon: Icon, label, tone, badge }: any) {
       <div className={`h-10 w-10 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow`}>
         <Icon className="h-5 w-5" />
       </div>
-      <span className="text-[11px] font-black text-slate-700 dark:text-slate-200">{label}</span>
+      <span className="text-[0.6875rem] font-black text-slate-700 dark:text-slate-200">{label}</span>
       {badge > 0 && (
-        <span className="absolute top-1.5 right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center tabular-nums">
+        <span className="absolute top-1.5 right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-black flex items-center justify-center tabular-nums">
           {badge}
         </span>
       )}
@@ -891,7 +891,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-5 space-y-3 text-sm">
           <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3">
-            <p className="text-[12px] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
+            <p className="text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
               Dukaan kholte hi teen sawal hote hain: <strong>kal kitna bika, aaj kya karna hai,
               aur kitna paisa bahar hai.</strong> Ye safha wohi teen jawab deta hai — baqi sab neeche.
             </p>
@@ -919,8 +919,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Is liye yahan ka number wahan ja kar bhi wohi milega.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">R</kbd> taaza</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">G</kbd> guide</div>
@@ -941,8 +941,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
 
       {/* ═══ BANDON KA HISSA ═══ */}

@@ -244,7 +244,7 @@ function KotCard({ kot, onAdvance, onCancel }: {
           </div>
           <div className="min-w-0">
             <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{kot.kotNumber}</div>
-            <div className="text-[10px] text-slate-500 font-bold flex items-center gap-1">
+            <div className="text-[0.6875rem] text-slate-500 font-bold flex items-center gap-1">
               <ModeIcon className="h-2.5 w-2.5" />
               {order?.table ? 'Table ' + order.table.tableNumber : order?.mode || '—'}
             </div>
@@ -252,7 +252,7 @@ function KotCard({ kot, onAdvance, onCancel }: {
         </div>
 
         <div className={
-          'text-[10px] font-extrabold px-1.5 py-0.5 rounded ' +
+          'text-[0.6875rem] font-extrabold px-1.5 py-0.5 rounded ' +
           (elapsed > 20 ? 'bg-red-100 text-red-700' : elapsed > 10 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600')
         }>
           {elapsed}m
@@ -261,7 +261,7 @@ function KotCard({ kot, onAdvance, onCancel }: {
 
       {/* Station */}
       {kot.station && (
-        <div className="text-[10px] font-extrabold text-slate-600 uppercase inline-flex items-center gap-1">
+        <div className="text-[0.6875rem] font-extrabold text-slate-600 uppercase inline-flex items-center gap-1">
           <Flame className="h-2.5 w-2.5 text-orange-500" />
           {kot.station}
         </div>
@@ -270,7 +270,7 @@ function KotCard({ kot, onAdvance, onCancel }: {
       {/* Priority */}
       {kot.priority && kot.priority !== 'NORMAL' && (
         <span className={
-          'inline-block px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ' +
+          'inline-block px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ' +
           (kot.priority === 'HIGH' ? 'bg-red-500 text-white' : 'bg-slate-500 text-white')
         }>
           {kot.priority}
@@ -285,25 +285,25 @@ function KotCard({ kot, onAdvance, onCancel }: {
             <div className="flex-1 min-w-0">
               <div className="font-bold text-slate-900 dark:text-white leading-tight">{item.product?.name || 'Item'}</div>
               {item.specialInstructions && (
-                <div className="text-[10px] italic text-amber-700 mt-0.5">📝 {item.specialInstructions}</div>
+                <div className="text-[0.6875rem] italic text-amber-700 mt-0.5">📝 {item.specialInstructions}</div>
               )}
               {item.cookingNote && (
-                <div className="text-[10px] italic text-blue-700 mt-0.5">🍳 {item.cookingNote}</div>
+                <div className="text-[0.6875rem] italic text-blue-700 mt-0.5">🍳 {item.cookingNote}</div>
               )}
               {item.spiceLevel && item.spiceLevel !== 'NONE' && (
-                <div className="text-[10px] font-bold text-red-600 mt-0.5">🌶️ {item.spiceLevel}</div>
+                <div className="text-[0.6875rem] font-bold text-red-600 mt-0.5">🌶️ {item.spiceLevel}</div>
               )}
             </div>
           </div>
         ))}
         {items.length > 8 && (
-          <div className="text-[10px] font-extrabold text-slate-500">+{items.length - 8} more</div>
+          <div className="text-[0.6875rem] font-extrabold text-slate-500">+{items.length - 8} more</div>
         )}
       </div>
 
       {/* Notes */}
       {kot.notes && (
-        <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-2 text-[11px] font-bold text-amber-800 dark:text-amber-300 italic">
+        <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-2 text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 italic">
           📌 {kot.notes}
         </div>
       )}

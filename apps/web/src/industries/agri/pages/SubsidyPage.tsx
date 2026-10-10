@@ -396,7 +396,7 @@ export default function SubsidyPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Landmark className="h-3.5 w-3.5 text-amber-300" /> Sarkari Scheme
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
@@ -443,7 +443,7 @@ export default function SubsidyPage() {
             <h3 className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">
               ⏳ {stats.overdue} claims ek mahine se zyada atke hue — {formatPKR(stats.overdueAmount)}
             </h3>
-            <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
+            <p className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
               Ye aap ka apna paisa hai jo aap ne farmer ko chhoot ke tor par diya tha. Sab se
               purana claim <strong>{stats.oldestDays} din</strong> ka hai. Daftar me peecha
               karein — list copy karke le jayein ya WhatsApp kar dein.
@@ -496,7 +496,7 @@ export default function SubsidyPage() {
             }`}>
             <Icon className="h-4 w-4" /> {label}
             {count !== undefined && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-lg tabular-nums ${
+              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
                 tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
               }`}>{count}</span>
             )}
@@ -546,7 +546,7 @@ export default function SubsidyPage() {
                 ['REJECTED', `Rad (${stats.rejected})`],
               ] as const).map(([v, label]) => (
                 <button key={v} onClick={() => setStatusFilter(v as StatusFilter)}
-                  className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black transition ${
+                  className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     statusFilter === v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
                   }`}>{label}</button>
@@ -648,18 +648,18 @@ function ClaimCard({ claim, onApprove, onReject, onDisburse, busy }: {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono font-extrabold text-slate-900 dark:text-white">{claim.claimNumber}</span>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white inline-flex items-center gap-1 ${cfg.color}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white inline-flex items-center gap-1 ${cfg.color}`}>
                 <StatusIcon className="h-2.5 w-2.5" /> {cfg.label}
               </span>
               {claim.overdue && (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 inline-flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 inline-flex items-center gap-1">
                   <Clock className="h-2.5 w-2.5" /> {claim.age} din se atka
                 </span>
               )}
             </div>
             <div className="mt-1 text-sm font-extrabold text-emerald-700 dark:text-emerald-400">{claim.schemeName}</div>
             {claim.govtScheme && (
-              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{claim.govtScheme}</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{claim.govtScheme}</div>
             )}
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               <Tag icon={Wheat}>{claim.productType} × {claim.quantity}</Tag>
@@ -671,16 +671,16 @@ function ClaimCard({ claim, onApprove, onReject, onDisburse, busy }: {
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider">Sarkar se lena hai</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider">Sarkar se lena hai</div>
           <div className="text-xl font-black text-emerald-700 dark:text-emerald-400 tabular-nums leading-none mt-0.5">
             {formatPKR(subsidy)}
           </div>
           {pct > 0 && (
-            <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               {formatPKR(original)} me se {pct.toFixed(0)}%
             </div>
           )}
-          <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
             Farmer ne diya {formatPKR(Number(claim.finalPrice || 0))}
           </div>
         </div>
@@ -688,7 +688,7 @@ function ClaimCard({ claim, onApprove, onReject, onDisburse, busy }: {
 
       {/* Safar ki patti — claim kahan tak pahuncha */}
       {claim.status !== 'REJECTED' && (
-        <div className="flex items-center gap-1.5 text-[10px] font-black print:hidden">
+        <div className="flex items-center gap-1.5 text-[0.6875rem] font-black print:hidden">
           <Step on label="Claim daala" />
           <Line on={claim.status === 'APPROVED' || claim.status === 'DISBURSED'} />
           <Step on={claim.status === 'APPROVED' || claim.status === 'DISBURSED'} label="Manzoor" />
@@ -720,13 +720,13 @@ function ClaimCard({ claim, onApprove, onReject, onDisburse, busy }: {
       )}
 
       {claim.rejectionReason && (
-        <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 text-[12px] font-bold text-rose-800 dark:text-rose-300">
+        <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">
           ❌ Rad ki wajah: {claim.rejectionReason}
         </div>
       )}
 
       {(claim.approvalDate || claim.disbursementDate) && (
-        <div className="text-[10px] font-bold text-slate-400 flex gap-3 flex-wrap">
+        <div className="text-[0.6875rem] font-bold text-slate-400 flex gap-3 flex-wrap">
           {claim.approvalDate && (
             <span>Manzoor: {new Date(claim.approvalDate).toLocaleDateString('en-PK', { dateStyle: 'medium' })}</span>
           )}
@@ -756,7 +756,7 @@ function Line({ on }: { on?: boolean }) {
 
 function Tag({ icon: Icon, children }: any) {
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-extrabold text-slate-600 dark:text-slate-300">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">
       <Icon className="h-3 w-3" /> {children}
     </span>
   );
@@ -792,7 +792,7 @@ function RejectModal({ claim, onClose, onConfirm, saving }: {
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-rose-600 to-red-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <Ban className="h-3 w-3" /> Claim rad karein
             </div>
             <h3 className="font-extrabold text-lg mt-1.5 truncate font-mono">{claim.claimNumber}</h3>
@@ -805,7 +805,7 @@ function RejectModal({ claim, onClose, onConfirm, saving }: {
 
         <div className="p-5 space-y-3">
           <div>
-            <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+            <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">
               Sarkar ne kyun rad kiya? <span className="text-rose-500">*</span>
             </label>
             <textarea rows={3} autoFocus value={reason} onChange={(e) => setReason(e.target.value)}
@@ -814,18 +814,18 @@ function RejectModal({ claim, onClose, onConfirm, saving }: {
           </div>
 
           <div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Aam wajah — click karein</div>
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Aam wajah — click karein</div>
             <div className="flex flex-wrap gap-1.5">
               {COMMON_REASONS.map((r) => (
                 <button key={r} type="button" onClick={() => setReason(r)}
-                  className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-[11px] font-extrabold text-slate-600 dark:text-slate-300 transition">
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 transition">
                   {r}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 text-[11px] font-bold text-amber-900 dark:text-amber-200">
+          <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
             Ye chhoot aap pehle hi farmer ko de chuke hain — rad hone ka matlab hai ke
             {' '}<strong>{formatPKR(claim.subsidyAmount)}</strong> aap ki jeb se gaya.
           </div>
@@ -944,11 +944,11 @@ function Analytics({ stats, statusPie, schemeChart, monthChart, ageChart, rows }
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="font-mono font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.claimNumber}</div>
-                  <div className="text-[11px] font-bold text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                     {r.schemeName} · {STATUS[r.status]?.label}
                   </div>
                 </div>
-                <span className={`text-[11px] font-black tabular-nums shrink-0 ${
+                <span className={`text-[0.6875rem] font-black tabular-nums shrink-0 ${
                   (r.age ?? 0) > 30 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500'
                 }`}>{r.age} din</span>
                 <span className="text-sm font-black tabular-nums text-slate-900 dark:text-white shrink-0">
@@ -1079,7 +1079,7 @@ function SubsidyForm({ onClose, onSaved }: any) {
                       <User className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                       <span className="flex-1 min-w-0">
                         <span className="block text-sm font-extrabold text-slate-900 dark:text-white truncate">{f.fullName}</span>
-                        <span className="block text-[10px] font-bold text-slate-500">{f.cnic || 'CNIC nahi'}</span>
+                        <span className="block text-[0.6875rem] font-bold text-slate-500">{f.cnic || 'CNIC nahi'}</span>
                       </span>
                     </button>
                   ))}
@@ -1117,7 +1117,7 @@ function SubsidyForm({ onClose, onSaved }: any) {
         <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 space-y-3">
           <div className="flex items-center gap-2">
             <Calculator className="h-4 w-4 text-emerald-600" />
-            <span className="text-[11px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">
+            <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">
               Paisa ka hisab — koi bhi do bharein, teesra khud ban jayega
             </span>
           </div>
@@ -1139,7 +1139,7 @@ function SubsidyForm({ onClose, onSaved }: any) {
           </div>
 
           {subsidy > 0 && original > 0 && (
-            <div className="rounded-xl bg-white dark:bg-slate-900 border-2 border-emerald-200 dark:border-emerald-500/30 p-2.5 text-[12px] font-bold text-slate-700 dark:text-slate-200">
+            <div className="rounded-xl bg-white dark:bg-slate-900 border-2 border-emerald-200 dark:border-emerald-500/30 p-2.5 text-[0.75rem] font-bold text-slate-700 dark:text-slate-200">
               Farmer ne <strong>{formatPKR(final)}</strong> diya, aap ne{' '}
               <strong className="text-emerald-700 dark:text-emerald-400">{formatPKR(subsidy)}</strong>{' '}
               ({pct.toFixed(0)}%) apni jeb se laga diya — wohi sarkar se wapas lena hai.
@@ -1147,7 +1147,7 @@ function SubsidyForm({ onClose, onSaved }: any) {
           )}
 
           {mismatch && (
-            <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 text-[11px] font-bold text-amber-900 dark:text-amber-200 flex items-center gap-2">
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200 flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               Hisab nahi mil raha: {formatPKR(original)} − {formatPKR(subsidy)} ≠ {formatPKR(final)}
             </div>
@@ -1168,12 +1168,12 @@ function SubsidyForm({ onClose, onSaved }: any) {
 
         {!valid && (
           <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3">
-            <div className="text-[11px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300 mb-1">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300 mb-1">
               Ye reh gaya hai
             </div>
             <ul className="space-y-0.5">
               {errors.map((e) => (
-                <li key={e} className="text-[12px] font-bold text-rose-800 dark:text-rose-300">• {e}</li>
+                <li key={e} className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">• {e}</li>
               ))}
             </ul>
           </div>
@@ -1199,7 +1199,7 @@ const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-
 function Field({ label, req, opt, children }: any) {
   return (
     <div>
-      <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+      <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">
         {label}
         {req && <span className="text-rose-500"> *</span>}
         {opt && <span className="text-slate-400 normal-case font-bold"> — marzi</span>}
@@ -1226,9 +1226,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1247,10 +1247,10 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-4 w-4 ${tones[tone] ?? tones.emerald}`} />
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
       </div>
       <div className="mt-1.5 text-xl font-black text-slate-900 dark:text-white tabular-nums break-words">{value}</div>
-      {sub && <div className="text-[11px] font-bold text-slate-400 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -1319,7 +1319,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-5 space-y-3 text-sm">
           <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3">
-            <p className="text-[12px] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
+            <p className="text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
               Kaam teen qadam ka hai: farmer <strong>sasta maal</strong> le jata hai → aap baqi
               raqam <strong>sarkar se claim</strong> karte hain → sarkar manzoor karke{' '}
               <strong>paisa deti hai</strong>. Ye safha teeno qadam ka hisab rakhta hai.
@@ -1349,8 +1349,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             chal jata hai. Jis scheme me zyada rad hote hon, us me kaghazat zyada dhyan se lagayein.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> naya claim</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
@@ -1371,8 +1371,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

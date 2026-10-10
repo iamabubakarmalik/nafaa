@@ -45,13 +45,13 @@ export function PosTabBtn({ active, onClick, icon: Icon, label, count, color, sh
       <Icon className="h-4 w-4" />
       <span>{label}</span>
       {count !== undefined && count > 0 && (
-        <span className={['px-1.5 rounded-md text-[10px] tabular-nums',
+        <span className={['px-1.5 rounded-md text-[0.6875rem] tabular-nums',
           active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>
           {count}
         </span>
       )}
       {shortcut && (
-        <span className={['hidden lg:inline text-[9px] font-mono px-1 rounded',
+        <span className={['hidden lg:inline text-[0.625rem] font-mono px-1 rounded',
           active ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'].join(' ')}>
           {shortcut}
         </span>
@@ -115,18 +115,18 @@ export function SerialTab({ search, hidePrices, onPick }: {
               <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">
                 {s.product?.name ?? 'Product'}
               </div>
-              <div className="text-[10px] font-bold text-slate-400 truncate">
+              <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                 {s.product?.brand ? `${s.product.brand} • ` : ''}{catLabel(s.product?.categoryType)}
               </div>
             </div>
           </div>
 
           <div className="mt-2 rounded-lg bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 px-2 py-1.5">
-            <div className="font-mono text-[11px] font-extrabold text-violet-800 dark:text-violet-200 truncate">
+            <div className="font-mono text-[0.6875rem] font-extrabold text-violet-800 dark:text-violet-200 truncate">
               {s.serialNumber}
             </div>
             {s.product?.capacity && (
-              <div className="text-[9px] font-bold text-violet-600 dark:text-violet-400">{s.product.capacity}</div>
+              <div className="text-[0.625rem] font-bold text-violet-600 dark:text-violet-400">{s.product.capacity}</div>
             )}
           </div>
 
@@ -135,7 +135,7 @@ export function SerialTab({ search, hidePrices, onPick }: {
               {hidePrices ? '••••' : formatPKR(s.product?.price ?? 0)}
             </span>
             {s.product?.requiresInstallation && (
-              <span className="text-[9px] font-extrabold text-blue-600 dark:text-blue-400">🔧 lagani</span>
+              <span className="text-[0.625rem] font-extrabold text-blue-600 dark:text-blue-400">🔧 lagani</span>
             )}
           </div>
         </button>
@@ -208,7 +208,7 @@ export function RepairTab({ search, onPaid }: { search: string; onPaid: () => vo
         />
       )}
 
-      <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 mb-2 text-[11px] font-bold text-amber-900 dark:text-amber-200 flex items-start gap-2">
+      <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 mb-2 text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200 flex items-start gap-2">
         <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
         <span>
           Ye paisa <strong>cart me nahi jata</strong> — seedha usi repair ke record par darj hota hai.
@@ -228,20 +228,20 @@ export function RepairTab({ search, onPaid }: { search: string; onPaid: () => vo
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-mono text-[10px] font-extrabold text-amber-700 dark:text-amber-400">{r.requestNumber}</span>
+                    <span className="font-mono text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-400">{r.requestNumber}</span>
                     {r.serialNumber && (
-                      <span className="font-mono text-[9px] font-bold text-slate-400">🔖 {r.serialNumber}</span>
+                      <span className="font-mono text-[0.625rem] font-bold text-slate-400">🔖 {r.serialNumber}</span>
                     )}
                   </div>
-                  <div className="text-[13px] font-extrabold text-slate-900 dark:text-white truncate">{r.customerName}</div>
-                  <div className="text-[10px] font-bold text-slate-400 truncate">
+                  <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate">{r.customerName}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                     {r.productName}{r.technicianName ? ` • ${r.technicianName}` : ''}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-[9px] font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400">Baqi</div>
+                  <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-rose-600 dark:text-rose-400">Baqi</div>
                   <div className="text-lg font-extrabold tabular-nums text-rose-700 dark:text-rose-300">{formatPKR(due)}</div>
-                  <div className="text-[9px] font-bold text-slate-400 tabular-nums">bill {formatPKR(r.totalCharge)}</div>
+                  <div className="text-[0.625rem] font-bold text-slate-400 tabular-nums">bill {formatPKR(r.totalCharge)}</div>
                 </div>
               </div>
             </button>
@@ -307,7 +307,7 @@ export function AmcTab({ customer, onSold }: {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-2.5 text-[11px] font-bold text-violet-900 dark:text-violet-200 flex items-start gap-2">
+      <div className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-2.5 text-[0.6875rem] font-bold text-violet-900 dark:text-violet-200 flex items-start gap-2">
         <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
         <span>
           AMC <strong>sab se pakka paisa</strong> hai — ek bar bikta hai, saal bhar kaam aata hai.
@@ -331,11 +331,11 @@ export function AmcTab({ customer, onSold }: {
                 {on && <CheckCircle2 className="h-4 w-4 text-violet-600" />}
               </div>
               <div className="mt-1 text-sm font-extrabold text-slate-900 dark:text-white">{m.label}</div>
-              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{m.hint}</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{m.hint}</div>
               <div className="mt-2 text-lg font-extrabold tabular-nums text-violet-700 dark:text-violet-400">
                 {formatPKR(p.price)}
               </div>
-              <div className="text-[10px] font-bold text-slate-400">
+              <div className="text-[0.6875rem] font-bold text-slate-400">
                 {p.months} mahine • {p.visits} free visit
               </div>
             </button>
@@ -373,7 +373,7 @@ export function AmcTab({ customer, onSold }: {
             </Field>
           </div>
 
-          <div className="rounded-xl bg-slate-900 dark:bg-slate-950 text-white p-3 text-[11px] font-bold space-y-0.5">
+          <div className="rounded-xl bg-slate-900 dark:bg-slate-950 text-white p-3 text-[0.6875rem] font-bold space-y-0.5">
             <div className="flex justify-between"><span>Free visits</span><span>{plan.visits}</span></div>
             <div className="flex justify-between"><span>Labor free</span><span>{plan.labor ? 'Haan ✓' : 'Nahi'}</span></div>
             <div className="flex justify-between"><span>Parts free</span><span>{plan.parts ? 'Haan ✓' : 'Nahi'}</span></div>
@@ -397,7 +397,7 @@ const amcInput =
 function Field({ label, required, hint, children }: any) {
   return (
     <div>
-      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
         {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
         {hint && <span className="text-slate-400 normal-case font-bold ml-1">({hint})</span>}
       </label>
@@ -423,7 +423,7 @@ function CollectModal({ title, subtitle, due, pending, onClose, onConfirm }: {
         <div className="relative bg-gradient-to-br from-amber-600 via-orange-600 to-rose-600 text-white px-5 py-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
                 <Banknote className="h-3 w-3" /> Repair ka paisa
               </div>
               <h3 className="text-lg font-black mt-2 truncate">{title}</h3>
@@ -437,12 +437,12 @@ function CollectModal({ title, subtitle, due, pending, onClose, onConfirm }: {
 
         <div className="p-5 space-y-3">
           <div className="text-center">
-            <div className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400">Baqi raqam</div>
+            <div className="text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400">Baqi raqam</div>
             <div className="text-4xl font-extrabold tabular-nums text-rose-600 dark:text-rose-400">{formatPKR(due)}</div>
           </div>
 
           <div>
-            <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+            <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
               Kitna mila
             </label>
             <input type="number" min={1} max={due} autoFocus
@@ -451,7 +451,7 @@ function CollectModal({ title, subtitle, due, pending, onClose, onConfirm }: {
                 bad ? 'border-rose-400 bg-rose-50 dark:bg-rose-500/10 text-rose-700'
                     : 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-900 dark:text-emerald-200 focus:border-emerald-600'
               }`} />
-            {bad && <div className="mt-1 text-[11px] font-extrabold text-rose-600">1 se {formatPKR(due)} ke darmiyan honi chahiye</div>}
+            {bad && <div className="mt-1 text-[0.6875rem] font-extrabold text-rose-600">1 se {formatPKR(due)} ke darmiyan honi chahiye</div>}
           </div>
 
           <div className="grid grid-cols-4 gap-1.5">

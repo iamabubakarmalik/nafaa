@@ -89,7 +89,7 @@ export default function RiderTrackingPage() {
               <MapPin className="h-5 w-5 text-purple-600" />
               Live Map
             </h3>
-            <span className="text-[10px] font-bold text-slate-500">
+            <span className="text-[0.6875rem] font-bold text-slate-500">
               {activeRiders.length} riders on map · Updates every 10s
             </span>
           </div>
@@ -107,7 +107,7 @@ export default function RiderTrackingPage() {
                 <div className="h-8 w-8 rounded-full bg-purple-600 text-white shadow-2xl flex items-center justify-center border-4 border-white ring-2 ring-purple-300">
                   <MapPin className="h-4 w-4" />
                 </div>
-                <div className="mt-1 text-[10px] font-black text-purple-700 text-center bg-white/90 backdrop-blur px-1.5 py-0.5 rounded shadow">
+                <div className="mt-1 text-[0.6875rem] font-black text-purple-700 text-center bg-white/90 backdrop-blur px-1.5 py-0.5 rounded shadow">
                   Your Shop
                 </div>
               </div>
@@ -145,7 +145,7 @@ export default function RiderTrackingPage() {
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 text-[9px] font-black text-slate-800 text-center bg-white/90 backdrop-blur px-1.5 py-0.5 rounded shadow max-w-[80px] truncate">
+                  <div className="mt-1 text-[0.625rem] font-black text-slate-800 text-center bg-white/90 backdrop-blur px-1.5 py-0.5 rounded shadow max-w-[80px] truncate">
                     {rider.fullName.split(' ')[0]}
                   </div>
                 </button>
@@ -171,7 +171,7 @@ export default function RiderTrackingPage() {
             )}
 
             {/* Legend */}
-            <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur rounded-xl p-2 shadow-lg space-y-1 text-[10px] font-black">
+            <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur rounded-xl p-2 shadow-lg space-y-1 text-[0.6875rem] font-black">
               <div className="flex items-center gap-1.5">
                 <div className="h-3 w-3 rounded-full bg-emerald-500 border-2 border-white shadow" />
                 <span>Available</span>
@@ -212,7 +212,7 @@ export default function RiderTrackingPage() {
                       {rider.vehicleType} · {rider.vehicleNumber || 'No plate'}
                     </div>
                     {rider.activeOrderNumber && (
-                      <div className="text-[10px] text-orange-700 font-black mt-0.5">
+                      <div className="text-[0.6875rem] text-orange-700 font-black mt-0.5">
                         Delivering #{rider.activeOrderNumber} · {rider.distanceKm?.toFixed(1)} km · ETA {rider.estimatedMinutes} min
                       </div>
                     )}
@@ -233,7 +233,7 @@ export default function RiderTrackingPage() {
               <Package className="h-5 w-5 text-orange-600" />
               Active Deliveries
               {activeDeliveries && activeDeliveries.length > 0 && (
-                <span className="ml-auto text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                <span className="ml-auto text-[0.6875rem] font-black px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
                   {activeDeliveries.length}
                 </span>
               )}
@@ -250,15 +250,15 @@ export default function RiderTrackingPage() {
               activeDeliveries.map((d) => (
                 <div key={d.id} className="rounded-xl border-2 border-slate-200 hover:border-orange-300 hover:shadow transition p-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                    <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${
                       d.status === 'PICKED_UP' ? 'bg-orange-100 text-orange-700' :
                       d.status === 'ACCEPTED' ? 'bg-blue-100 text-blue-700' :
                       'bg-purple-100 text-purple-700'
                     }`}>
                       {d.status}
                     </span>
-                    <span className="text-[10px] font-bold text-slate-500">#{d.orderNumber}</span>
-                    <span className="ml-auto text-[10px] font-bold text-slate-500">{relativeTime(d.assignedAt)}</span>
+                    <span className="text-[0.6875rem] font-bold text-slate-500">#{d.orderNumber}</span>
+                    <span className="ml-auto text-[0.6875rem] font-bold text-slate-500">{relativeTime(d.assignedAt)}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -270,7 +270,7 @@ export default function RiderTrackingPage() {
                     </button>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-black text-slate-900 truncate">{d.rider.fullName}</div>
-                      <div className="text-[10px] text-slate-500 font-bold truncate">
+                      <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
                         {d.customerName} · Rs {formatPKR(d.total)}
                       </div>
                     </div>
@@ -280,7 +280,7 @@ export default function RiderTrackingPage() {
                   </div>
 
                   {d.distanceKm && (
-                    <div className="mt-2 flex items-center gap-1 text-[10px] font-bold text-slate-500">
+                    <div className="mt-2 flex items-center gap-1 text-[0.6875rem] font-bold text-slate-500">
                       <Navigation className="h-2.5 w-2.5" />
                       {d.distanceKm.toFixed(1)} km · ETA {(d as any).estimatedMinutes || '—'} min
                     </div>
@@ -302,7 +302,7 @@ function HeroKpi({ label, value, icon: Icon, highlight }: any) {
     }`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
       </div>
       <div className="text-xl font-black leading-none tabular-nums">{value}</div>
     </div>

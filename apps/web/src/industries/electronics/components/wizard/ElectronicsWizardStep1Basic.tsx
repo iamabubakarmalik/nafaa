@@ -295,8 +295,8 @@ export function ElectronicsWizardStep1Basic({ basic, onChange, errors }: Props) 
                   a ? 'border-blue-600 bg-blue-600 text-white shadow-md scale-[1.02]'
                     : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-blue-400 dark:hover:border-blue-500/60'].join(' ')}>
                 <span className="text-2xl">{meta.emoji}</span>
-                <span className="text-[11px] font-extrabold leading-tight">{meta.label}</span>
-                <span className={['text-[9px] font-semibold leading-tight', a ? 'text-white/80' : 'text-slate-400 dark:text-slate-500'].join(' ')}>
+                <span className="text-[0.6875rem] font-extrabold leading-tight">{meta.label}</span>
+                <span className={['text-[0.625rem] font-semibold leading-tight', a ? 'text-white/80' : 'text-slate-400 dark:text-slate-500'].join(' ')}>
                   {meta.hint}
                 </span>
               </button>
@@ -357,7 +357,7 @@ export function ElectronicsWizardStep1Basic({ basic, onChange, errors }: Props) 
           </div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-2">Quick presets</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-2">Quick presets</div>
           <div className="flex flex-wrap gap-1.5">
             {COLOR_PRESETS.map((c) => {
               const a = basic.colorHex?.toLowerCase() === c.hex;
@@ -396,7 +396,7 @@ export function ElectronicsWizardStep1Basic({ basic, onChange, errors }: Props) 
 
         {cost > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Quick markup
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -422,7 +422,7 @@ export function ElectronicsWizardStep1Basic({ basic, onChange, errors }: Props) 
                   : margin >= 15 ? 'text-emerald-700 dark:text-emerald-400'
                   : 'text-amber-700 dark:text-amber-400'].join(' ')} />
                 <div>
-                  <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                  <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                     loss ? 'text-rose-700 dark:text-rose-400'
                     : margin >= 15 ? 'text-emerald-700 dark:text-emerald-400'
                     : 'text-amber-700 dark:text-amber-400'].join(' ')}>
@@ -478,7 +478,7 @@ export function ElectronicsWizardStep1Basic({ basic, onChange, errors }: Props) 
             {basic.imageUrls.map((url, i) => (
               <div key={url + i} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
                 <img src={url} alt="" className="w-full h-full object-cover" />
-                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-blue-600 text-white text-[9px] font-extrabold">MAIN</div>}
+                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-blue-600 text-white text-[0.625rem] font-extrabold">MAIN</div>}
                 <button type="button" onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, x) => x !== i) })}
                   className="absolute top-1 right-1 h-7 w-7 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 flex items-center justify-center font-extrabold transition">
                   <X className="h-3.5 w-3.5" />
@@ -566,7 +566,7 @@ function Tog({ checked, onChange, icon: Icon, label }: any) {
           ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-800 dark:text-blue-200'
           : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-500/50'].join(' ')}>
       <Icon className={['h-5 w-5', checked ? 'text-blue-600 dark:text-blue-400 fill-blue-100 dark:fill-blue-500/20' : 'text-slate-500 dark:text-slate-400'].join(' ')} />
-      <span className="text-[11px] font-extrabold">{label}</span>
+      <span className="text-[0.6875rem] font-extrabold">{label}</span>
     </button>
   );
 }

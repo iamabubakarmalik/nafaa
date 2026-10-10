@@ -319,7 +319,7 @@ Ye irreversible hai. Continue?`);
                         </div>
                         <div className="min-w-0">
                           <div className="font-extrabold text-slate-900 text-sm truncate group-hover:text-emerald-700">{p.name}</div>
-                          <div className="text-[10px] font-mono text-slate-500 truncate">{p.sku || '—'}</div>
+                          <div className="text-[0.6875rem] font-mono text-slate-500 truncate">{p.sku || '—'}</div>
                         </div>
                       </Link>
                     </td>
@@ -331,7 +331,7 @@ Ye irreversible hai. Continue?`);
                     </td>
                     <td className="px-3 py-2.5 text-center">
                       {pr?.isTeamOrderable ? (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">✓ Yes</span>
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold">✓ Yes</span>
                       ) : '—'}
                     </td>
                     <td className="px-3 py-2.5">
@@ -372,31 +372,31 @@ function Card({ p, pr, sel, onToggle }: any) {
           {p.images?.[0]?.url
             ? <img src={p.images[0].url} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
             : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50"><Dumbbell className="h-10 w-10 text-emerald-300" /></div>}
-          {pr?.isProfessional && <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-blue-600 text-white text-[9px] font-extrabold">PRO</div>}
+          {pr?.isProfessional && <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-blue-600 text-white text-[0.625rem] font-extrabold">PRO</div>}
           {pr?.isFeatured && !pr?.isProfessional && (
             <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-amber-500 flex items-center justify-center shadow">
               <Star className="h-3 w-3 fill-white text-white" />
             </div>
           )}
           {pr?.isTeamOrderable && (
-            <div className="absolute bottom-1.5 left-1.5 h-6 px-1.5 rounded-md bg-emerald-600 flex items-center gap-1 text-white text-[9px] font-extrabold shadow">
+            <div className="absolute bottom-1.5 left-1.5 h-6 px-1.5 rounded-md bg-emerald-600 flex items-center gap-1 text-white text-[0.625rem] font-extrabold shadow">
               <Users className="h-2.5 w-2.5" /> TEAM
             </div>
           )}
           {(isOut || isLow) && (
-            <div className={`absolute inset-x-0 bottom-0 py-1 text-center text-[10px] font-extrabold text-white ${isOut ? 'bg-rose-600' : 'bg-amber-500'}`}>
+            <div className={`absolute inset-x-0 bottom-0 py-1 text-center text-[0.6875rem] font-extrabold text-white ${isOut ? 'bg-rose-600' : 'bg-amber-500'}`}>
               {isOut ? 'OUT OF STOCK' : `ONLY ${stock} LEFT`}
             </div>
           )}
         </div>
         <div className="p-2.5">
           <div className="font-extrabold text-slate-900 text-xs leading-tight line-clamp-2 min-h-[2rem]">{p.name}</div>
-          {pr?.sport && <div className="mt-1 text-[9px] font-extrabold uppercase text-emerald-700">{pr.sport}</div>}
+          {pr?.sport && <div className="mt-1 text-[0.625rem] font-extrabold uppercase text-emerald-700">{pr.sport}</div>}
           <div className="mt-1.5 flex items-end justify-between gap-1">
             <div className="text-base font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKR(p.price || 0)}</div>
             <div className="text-right">
               <div className={`text-sm font-extrabold tabular-nums leading-none ${isOut ? 'text-rose-700' : isLow ? 'text-amber-700' : 'text-slate-700'}`}>{stock}</div>
-              <div className="text-[9px] font-bold text-slate-500">pcs</div>
+              <div className="text-[0.625rem] font-bold text-slate-500">pcs</div>
             </div>
           </div>
         </div>
@@ -406,7 +406,7 @@ function Card({ p, pr, sel, onToggle }: any) {
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
 }
 
 function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
@@ -420,9 +420,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
     <C onClick={onClick} className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-emerald-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
-          <div className="text-[10px] text-slate-500 font-bold mt-0.5 truncate">{sub}</div>
+          <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5 truncate">{sub}</div>
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

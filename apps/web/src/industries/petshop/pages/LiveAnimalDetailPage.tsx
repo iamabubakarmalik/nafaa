@@ -120,11 +120,11 @@ export default function LiveAnimalDetailPage() {
                 <div className="w-full h-full flex items-center justify-center text-white/50"><Heart className="h-16 w-16" /></div>
               )}
               {animal.isFeatured && (
-                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Star className="h-3 w-3 fill-white" /> FEATURED
                 </div>
               )}
-              <div className={`absolute top-3 left-3 px-2 py-1 rounded-lg text-[10px] font-extrabold shadow-lg ${
+              <div className={`absolute top-3 left-3 px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold shadow-lg ${
                 animal.status === 'AVAILABLE' ? 'bg-emerald-500 text-white' :
                 animal.status === 'RESERVED' ? 'bg-amber-500 text-white' :
                 animal.status === 'SOLD' ? 'bg-blue-500 text-white' :
@@ -184,18 +184,18 @@ export default function LiveAnimalDetailPage() {
 
             <div className="mt-5 flex items-end gap-5 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Asking Price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Asking Price</div>
                 <div className="text-4xl font-extrabold tabular-nums leading-none mt-1">{formatPKRFull(animal.askingPrice)}</div>
               </div>
               {animal.soldPrice && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Sold For</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Sold For</div>
                   <div className="text-xl font-extrabold tabular-nums text-emerald-300 leading-none mt-1">{formatPKRFull(animal.soldPrice)}</div>
                 </div>
               )}
               {animal.computed?.profit != null && animal.status === 'SOLD' && (
                 <div className={`rounded-xl px-3 py-2 backdrop-blur border ${animal.computed.profit >= 0 ? 'bg-emerald-400/20 border-emerald-300/40' : 'bg-rose-400/20 border-rose-300/40'}`}>
-                  <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Profit</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Profit</div>
                   <div className="text-lg font-extrabold tabular-nums leading-none mt-0.5">{formatPKRFull(animal.computed.profit)}</div>
                 </div>
               )}
@@ -300,21 +300,21 @@ export default function LiveAnimalDetailPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-extrabold text-slate-900 text-sm">{rec.type}</span>
-                    <span className="text-[10px] text-slate-500 font-bold">
+                    <span className="text-[0.6875rem] text-slate-500 font-bold">
                       {new Date(rec.at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
                   </div>
                   <div className="text-xs text-slate-600 font-semibold mt-0.5">{rec.description}</div>
-                  {rec.vetName && <div className="text-[10px] text-slate-500 font-bold mt-1">Vet: {rec.vetName}</div>}
+                  {rec.vetName && <div className="text-[0.6875rem] text-slate-500 font-bold mt-1">Vet: {rec.vetName}</div>}
                   {rec.nextDueDate && (
-                    <div className="text-[10px] font-extrabold text-amber-700 mt-1">
+                    <div className="text-[0.6875rem] font-extrabold text-amber-700 mt-1">
                       ⏰ Next due: {new Date(rec.nextDueDate).toLocaleDateString('en-PK')}
                     </div>
                   )}
                 </div>
                 {rec.cost > 0 && (
                   <div className="text-right shrink-0">
-                    <div className="text-[9px] uppercase font-extrabold text-slate-500">Cost</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Cost</div>
                     <div className="font-extrabold text-slate-900 text-sm tabular-nums">{formatPKR(rec.cost)}</div>
                   </div>
                 )}
@@ -358,7 +358,7 @@ function SellModal({ animal, onClose, onSold }: any) {
             <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Sold Price *</label>
             <input type="number" value={soldPrice} onChange={(e) => setSoldPrice(Number(e.target.value))}
               className="h-14 w-full rounded-2xl border-2 border-emerald-400 bg-emerald-50 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-600" />
-            <p className="mt-1 text-[10px] text-slate-500 font-bold">Asking price: {formatPKR(animal.askingPrice)}</p>
+            <p className="mt-1 text-[0.6875rem] text-slate-500 font-bold">Asking price: {formatPKR(animal.askingPrice)}</p>
           </div>
           <div>
             <label className="block text-xs font-extrabold uppercase text-slate-600 mb-1.5">Customer Name</label>
@@ -480,10 +480,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none truncate">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5 truncate">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5 truncate">{sub}</div>}
     </div>
   );
 }
@@ -491,7 +491,7 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
 function InfoField({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-      <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">{label}</div>
       <div className="text-sm font-bold text-slate-900 whitespace-pre-line">{value}</div>
     </div>
   );
@@ -502,7 +502,7 @@ function FlagBox({ active, label, emoji }: any) {
     <div className={`rounded-xl border-2 p-3 text-center ${active ? 'bg-emerald-50 border-emerald-300' : 'bg-slate-50 border-slate-200 opacity-60'}`}>
       <div className="text-2xl">{emoji}</div>
       <div className={`text-xs font-extrabold mt-1 ${active ? 'text-emerald-900' : 'text-slate-500'}`}>{label}</div>
-      <div className={`text-[10px] font-bold mt-0.5 ${active ? 'text-emerald-700' : 'text-slate-400'}`}>
+      <div className={`text-[0.6875rem] font-bold mt-0.5 ${active ? 'text-emerald-700' : 'text-slate-400'}`}>
         {active ? '✓ YES' : '✗ NO'}
       </div>
     </div>

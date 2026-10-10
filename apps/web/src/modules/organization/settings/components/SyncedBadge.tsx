@@ -9,7 +9,7 @@ export function SyncedBadge({ label = 'From onboarding', tone = 'emerald' }: { l
   return (
     <span
       title="Ye field aap ke onboarding setup se aaya hai"
-      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[9px] font-black uppercase tracking-wider ${tones[tone]}`}
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[0.625rem] font-black uppercase tracking-wider ${tones[tone]}`}
     >
       <Sparkles className="h-2.5 w-2.5" />
       {label}

@@ -284,12 +284,12 @@ export default function AmcContractsPage() {
               <div className="flex gap-1.5 flex-wrap mt-2">
                 {stale.slice(0, 6).map((c) => (
                   <button key={c.id} onClick={() => setRenewFor(c)}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border-2 border-rose-200 dark:border-rose-500/30 text-[11px] font-extrabold text-rose-700 dark:text-rose-300 transition">
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border-2 border-rose-200 dark:border-rose-500/30 text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-300 transition">
                     {c.contractNumber} · {c.customerName}
                   </button>
                 ))}
                 {stale.length > 6 && (
-                  <span className="px-2.5 py-1 text-[11px] font-extrabold text-rose-700 dark:text-rose-300">
+                  <span className="px-2.5 py-1 text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-300">
                     +{stale.length - 6} aur
                   </span>
                 )}
@@ -338,7 +338,7 @@ export default function AmcContractsPage() {
             }`}>
             <t.icon className="h-4 w-4" /> {t.label}
             {t.n !== undefined && t.n > 0 && (
-              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
             )}
           </button>
         ))}
@@ -412,10 +412,10 @@ export default function AmcContractsPage() {
           hint="Sab se qareeb wala sab se upar — renew ka paisa yahin chhupa hai"
           right={
             <div className="flex gap-1.5">
-              <button onClick={doCsv} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+              <button onClick={doCsv} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
                 <FileSpreadsheet className="h-3.5 w-3.5" /> CSV
               </button>
-              <button onClick={doPrint} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+              <button onClick={doPrint} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
                 <Printer className="h-3.5 w-3.5" /> Print
               </button>
             </div>
@@ -440,18 +440,18 @@ export default function AmcContractsPage() {
                         over ? 'bg-rose-600' : c.daysLeft <= 15 ? 'bg-amber-500' : 'bg-cyan-600'
                       }`}>
                         <span className="text-base font-black leading-none tabular-nums">{Math.abs(c.daysLeft)}</span>
-                        <span className="text-[8px] font-extrabold uppercase">{over ? 'guzre' : 'din'}</span>
+                        <span className="text-[0.625rem] font-extrabold uppercase">{over ? 'guzre' : 'din'}</span>
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-extrabold text-slate-900 dark:text-white font-mono text-sm">{c.contractNumber}</span>
                           <StatusBadge meta={amcTypeMeta(c.amcType)} size="xs" />
-                          {over && <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black">TAREEKH GUZRI</span>}
+                          {over && <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-black">TAREEKH GUZRI</span>}
                         </div>
                         <div className="font-bold text-sm text-slate-800 dark:text-slate-100 mt-0.5 truncate">
                           {c.customerName} · {c.customerPhone}
                         </div>
-                        <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                           {c.productName ?? 'Cheez darj nahi'} · khatam {fmtDate(c.expiryDate)} ·{' '}
                           visits {c.freeVisitsUsed}/{c.freeVisitsAllowed}
                           {pending > 0 && <span className="text-rose-600 dark:text-rose-400"> · {money(pending)} baqi</span>}
@@ -462,7 +462,7 @@ export default function AmcContractsPage() {
                           <a href={`https://wa.me/${wa}?text=${encodeURIComponent(
                             `Assalam-o-Alaikum ${c.customerName}, aap ka AMC contract ${c.contractNumber} ${over ? 'khatam ho chuka hai' : `${c.daysLeft} din me khatam ho raha hai`}. Renew karwa lein taake service jaari rahe. — ${shopName}`,
                           )}`} target="_blank" rel="noreferrer"
-                            className="h-9 px-3 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+                            className="h-9 px-3 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
                             <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
                           </a>
                         )}
@@ -471,7 +471,7 @@ export default function AmcContractsPage() {
                           <Bell className="h-4 w-4" />
                         </button>
                         <button onClick={() => setRenewFor(c)}
-                          className="h-9 px-3 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-700 text-white text-[11px] font-extrabold inline-flex items-center gap-1 shadow transition">
+                          className="h-9 px-3 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 shadow transition">
                           <RotateCw className="h-3.5 w-3.5" /> Renew
                         </button>
                       </div>
@@ -541,18 +541,18 @@ export default function AmcContractsPage() {
                       e.daysLeft <= 7 ? 'bg-rose-600' : e.daysLeft <= 15 ? 'bg-amber-500' : 'bg-cyan-600'
                     }`}>
                       <span className="text-xs font-black leading-none tabular-nums">{e.daysLeft}</span>
-                      <span className="text-[7px] font-extrabold">DIN</span>
+                      <span className="text-[0.625rem] font-extrabold">DIN</span>
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{e.customerName}</div>
-                      <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 font-mono truncate">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 font-mono truncate">
                         {e.contractNumber} · {amcTypeMeta(e.amcType).label} · visits {e.freeVisitsUsed}/{e.freeVisitsAllowed}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-xs font-black text-slate-900 dark:text-white tabular-nums">{money(e.contractValue)}</div>
-                      {e.pending > 0 && <div className="text-[10px] font-extrabold text-rose-600 tabular-nums">{money(e.pending)} baqi</div>}
-                      {e.autoRenew && <div className="text-[10px] font-extrabold text-emerald-600">Auto renew</div>}
+                      {e.pending > 0 && <div className="text-[0.6875rem] font-extrabold text-rose-600 tabular-nums">{money(e.pending)} baqi</div>}
+                      {e.autoRenew && <div className="text-[0.6875rem] font-extrabold text-emerald-600">Auto renew</div>}
                     </div>
                   </div>
                 ))}
@@ -652,7 +652,7 @@ function ContractCard({ c, money, onRenew, onStatus, onRemind, reminding }: {
           <div className="min-w-0">
             <div className="font-mono text-xs font-extrabold text-slate-500 dark:text-slate-400">{c.contractNumber}</div>
             <div className="font-black text-slate-900 dark:text-white truncate">{c.customerName}</div>
-            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
               {c.customerPhone}{c.productName ? ` · ${c.productName}` : ''}
             </div>
           </div>
@@ -663,7 +663,7 @@ function ContractCard({ c, money, onRenew, onStatus, onRemind, reminding }: {
         </div>
 
         {stale && (
-          <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2 text-[11px] font-extrabold text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
+          <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2 text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             {Math.abs(daysLeft)} din pehle khatam ho chuka — halat theek karein
           </div>
@@ -671,26 +671,26 @@ function ContractCard({ c, money, onRenew, onStatus, onRemind, reminding }: {
 
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
-            <div className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500">Khatam</div>
+            <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500">Khatam</div>
             <div className="text-sm font-black text-slate-900 dark:text-white">{fmtDate(c.expiryDate)}</div>
-            <div className={`text-[10px] font-extrabold ${daysLeft < 0 ? 'text-rose-600' : daysLeft <= 30 ? 'text-amber-600' : 'text-slate-400'}`}>
+            <div className={`text-[0.6875rem] font-extrabold ${daysLeft < 0 ? 'text-rose-600' : daysLeft <= 30 ? 'text-amber-600' : 'text-slate-400'}`}>
               {daysLeft < 0 ? `${Math.abs(daysLeft)} din guzre` : `${daysLeft} din baqi`}
             </div>
           </div>
           <div className={`rounded-xl p-2.5 ${pending > 0 ? 'bg-rose-50 dark:bg-rose-500/10' : 'bg-emerald-50 dark:bg-emerald-500/10'}`}>
-            <div className={`text-[9px] font-extrabold uppercase tracking-wider ${pending > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+            <div className={`text-[0.625rem] font-extrabold uppercase tracking-wider ${pending > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
               {pending > 0 ? 'Baqi paisa' : 'Poora mila'}
             </div>
             <div className={`text-sm font-black tabular-nums ${pending > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
               {money(pending > 0 ? pending : Number(c.contractValue ?? 0))}
             </div>
-            <div className="text-[10px] font-bold text-slate-400">Kul {money(Number(c.contractValue ?? 0))}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-400">Kul {money(Number(c.contractValue ?? 0))}</div>
           </div>
         </div>
 
         {/* free visits */}
         <div>
-          <div className="flex items-center justify-between text-[10px] font-extrabold text-slate-500 dark:text-slate-400 mb-1">
+          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1">
             <span>Free visits</span>
             <span className="tabular-nums">{c.freeVisitsUsed} / {c.freeVisitsAllowed} · {visitsLeft} baqi</span>
           </div>
@@ -702,7 +702,7 @@ function ContractCard({ c, money, onRenew, onStatus, onRemind, reminding }: {
         </div>
 
         {/* cover */}
-        <div className="flex gap-1.5 flex-wrap text-[10px] font-extrabold">
+        <div className="flex gap-1.5 flex-wrap text-[0.6875rem] font-extrabold">
           {c.laborCovered && <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300">Labor free</span>}
           {c.freePartsAllowed && <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300">Parts free</span>}
           {c.gasRefillCovered && <span className="px-2 py-0.5 rounded-full bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300">Gas free</span>}
@@ -757,7 +757,7 @@ function RenewSheet({ c, pending, onClose, onSubmit }: {
   return (
     <Sheet title={`Renew — ${c.contractNumber}`} subtitle={`${c.customerName} · ab tak ${fmtDate(c.expiryDate)} tak tha`} onClose={onClose}>
       <div className="space-y-3">
-        <div className="rounded-2xl bg-cyan-50 dark:bg-cyan-500/10 border-2 border-cyan-200 dark:border-cyan-500/30 p-3 text-[12px] font-bold text-cyan-900 dark:text-cyan-200">
+        <div className="rounded-2xl bg-cyan-50 dark:bg-cyan-500/10 border-2 border-cyan-200 dark:border-cyan-500/30 p-3 text-[0.75rem] font-bold text-cyan-900 dark:text-cyan-200">
           Nayi muddat aaj ke baad se shuru hogi. Purana record waise ka waisa mehfooz rahega — sirf nayi tareekh, nayi qeemat aur nayi free visits set hongi.
         </div>
 
@@ -768,7 +768,7 @@ function RenewSheet({ c, pending, onClose, onSubmit }: {
             <div className="flex gap-1.5 flex-wrap mt-1.5">
               {[6, 12, 24].map((m) => (
                 <button key={m} type="button" onClick={() => setMonths(String(m))}
-                  className={`px-3 py-1 rounded-lg text-[11px] font-extrabold border-2 transition ${
+                  className={`px-3 py-1 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${
                     months === String(m) ? 'bg-cyan-600 border-cyan-600 text-white'
                       : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                   }`}>{m} mahine</button>
@@ -791,11 +791,11 @@ function RenewSheet({ c, pending, onClose, onSubmit }: {
               placeholder="0" className={inputCls('h-12 text-base tabular-nums')} />
             <div className="flex gap-1.5 mt-1.5">
               <button type="button" onClick={() => setPaid(String(v))}
-                className="px-3 py-1 rounded-lg text-[11px] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition">
+                className="px-3 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 transition">
                 Poora
               </button>
               <button type="button" onClick={() => setPaid(String(Math.round(v / 2)))}
-                className="px-3 py-1 rounded-lg text-[11px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition">
+                className="px-3 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition">
                 Aadha
               </button>
             </div>
@@ -807,7 +807,7 @@ function RenewSheet({ c, pending, onClose, onSubmit }: {
             v - p > 0 ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-300 dark:border-amber-500/40'
                       : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/40'
           }`}>
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500">
               {v - p > 0 ? 'Baqi rahega' : 'Poora mil gaya'}
             </div>
             <div className="text-xl font-black tabular-nums text-slate-900 dark:text-white">

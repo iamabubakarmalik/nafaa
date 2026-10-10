@@ -100,7 +100,7 @@ export function OpticalWizardStep3Prescription({ lens, onChange, categoryType, e
         </div>
 
         <div>
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
             <Sparkles className="h-3 w-3 text-amber-500" /> Quick range presets
           </div>
           <div className="grid sm:grid-cols-2 gap-1.5">
@@ -108,7 +108,7 @@ export function OpticalWizardStep3Prescription({ lens, onChange, categoryType, e
               <button key={p.label} type="button" onClick={() => applyPreset(p.min, p.max)}
                 className="px-3 py-2 rounded-xl bg-white border-2 border-cyan-200 hover:bg-cyan-50 hover:border-cyan-400 text-cyan-800 text-xs font-extrabold text-left">
                 {p.label}
-                <div className="text-[10px] font-bold text-slate-500 tabular-nums">
+                <div className="text-[0.6875rem] font-bold text-slate-500 tabular-nums">
                   {p.min >= 0 ? '+' : ''}{p.min.toFixed(2)} to {p.max >= 0 ? '+' : ''}{p.max.toFixed(2)}
                 </div>
               </button>
@@ -118,7 +118,7 @@ export function OpticalWizardStep3Prescription({ lens, onChange, categoryType, e
 
         {lens.supportsMinSph !== '' && lens.supportsMaxSph !== '' && (
           <div className="rounded-2xl bg-white border-2 border-emerald-300 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 mb-1">Supports SPH range</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700 mb-1">Supports SPH range</div>
             <div className="text-2xl font-extrabold text-slate-900 tabular-nums">
               {Number(lens.supportsMinSph) >= 0 ? '+' : ''}{Number(lens.supportsMinSph).toFixed(2)}
               {' '}to{' '}
@@ -150,7 +150,7 @@ export function OpticalWizardStep3Prescription({ lens, onChange, categoryType, e
         </div>
 
         <div>
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
             <Sparkles className="h-3 w-3 text-amber-500" /> CYL presets
           </div>
           <div className="grid sm:grid-cols-2 gap-1.5">
@@ -169,11 +169,11 @@ export function OpticalWizardStep3Prescription({ lens, onChange, categoryType, e
         <section className="rounded-2xl bg-gradient-to-br from-slate-950 to-cyan-900 text-white p-5 shadow-xl">
           <div className="flex items-center gap-2 mb-3">
             <Info className="h-4 w-4 text-cyan-300" />
-            <span className="text-[10px] uppercase font-extrabold tracking-wider text-cyan-300">Prescription Support Summary</span>
+            <span className="text-[0.6875rem] uppercase font-extrabold tracking-wider text-cyan-300">Prescription Support Summary</span>
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">SPH range</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">SPH range</div>
               <div className="text-lg font-extrabold tabular-nums mt-1">
                 {lens.supportsMinSph !== '' && lens.supportsMaxSph !== ''
                   ? `${Number(lens.supportsMinSph) >= 0 ? '+' : ''}${Number(lens.supportsMinSph)} to ${Number(lens.supportsMaxSph) >= 0 ? '+' : ''}${Number(lens.supportsMaxSph)}`
@@ -181,7 +181,7 @@ export function OpticalWizardStep3Prescription({ lens, onChange, categoryType, e
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">CYL range</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">CYL range</div>
               <div className="text-lg font-extrabold tabular-nums mt-1">
                 {lens.supportsMaxCyl !== '' && Math.abs(Number(lens.supportsMaxCyl)) > 0
                   ? `Up to ${Math.abs(Number(lens.supportsMaxCyl))}`
@@ -189,7 +189,7 @@ export function OpticalWizardStep3Prescription({ lens, onChange, categoryType, e
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Progressive</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Progressive</div>
               <div className="text-lg font-extrabold mt-1">
                 {lens.supportsProgressive ? '✓ Supported' : '✗ No'}
               </div>

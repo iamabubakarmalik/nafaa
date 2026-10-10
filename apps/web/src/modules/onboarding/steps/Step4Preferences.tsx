@@ -105,7 +105,7 @@ export function Step4Preferences({ data, onChange, options, businessType }: Prop
                 }`}
               >
                 <div className={`text-xl font-black ${active ? cfg.textColor : 'text-slate-900'}`}>{c.symbol}</div>
-                <div className="text-[10px] text-slate-500 font-bold uppercase mt-0.5">{c.value}</div>
+                <div className="text-[0.6875rem] text-slate-500 font-bold uppercase mt-0.5">{c.value}</div>
               </button>
             );
           })}

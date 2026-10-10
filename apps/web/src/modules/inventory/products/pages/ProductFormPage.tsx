@@ -373,7 +373,7 @@ export default function ProductFormPage() {
               </Link>
             )}
             {isDirty && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-50 border border-amber-300 text-amber-700 text-[10px] font-extrabold uppercase">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-50 border border-amber-300 text-amber-700 text-[0.6875rem] font-extrabold uppercase">
                 <AlertTriangle className="h-2.5 w-2.5" /> Unsaved changes
               </span>
             )}
@@ -391,7 +391,7 @@ export default function ProductFormPage() {
                 <Package className="h-3.5 w-3.5 text-amber-300" />
                 {isEdit ? 'Editing Product' : 'Create New Product'}
                 {isIndustrySpecific && (
-                  <span className="ml-1 px-1.5 py-0.5 rounded bg-emerald-400/30 text-[10px] font-extrabold uppercase">
+                  <span className="ml-1 px-1.5 py-0.5 rounded bg-emerald-400/30 text-[0.6875rem] font-extrabold uppercase">
                     {activePlugin.label}
                   </span>
                 )}
@@ -470,7 +470,7 @@ export default function ProductFormPage() {
                       {t.label}
                       {complete && !active && <CheckCircle2 className="h-3 w-3 text-emerald-600" />}
                     </div>
-                    <div className={`text-[9px] font-bold opacity-75 leading-tight ${active ? 'text-white/90' : 'text-slate-500'}`}>
+                    <div className={`text-[0.625rem] font-bold opacity-75 leading-tight ${active ? 'text-white/90' : 'text-slate-500'}`}>
                       {disabled ? 'Save first' : t.desc}
                     </div>
                   </div>
@@ -553,7 +553,7 @@ export default function ProductFormPage() {
                 </div>
 
                 <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3 space-y-2">
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
                     <Settings className="h-3 w-3" /> Product Settings
                   </div>
                   <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-white transition">
@@ -561,7 +561,7 @@ export default function ProductFormPage() {
                     <Eye className="h-4 w-4 text-slate-600" />
                     <div className="flex-1">
                       <div className="text-sm font-bold">Active</div>
-                      <div className="text-[10px] text-slate-500 font-semibold">Visible in catalog and POS</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-semibold">Visible in catalog and POS</div>
                     </div>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-white transition">
@@ -569,7 +569,7 @@ export default function ProductFormPage() {
                     <Star className="h-4 w-4 text-amber-500" />
                     <div className="flex-1">
                       <div className="text-sm font-bold">Featured</div>
-                      <div className="text-[10px] text-slate-500 font-semibold">Highlighted in catalog</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-semibold">Highlighted in catalog</div>
                     </div>
                   </label>
                   {businessFeatures.expiry && !isIndustrySpecific && (
@@ -578,7 +578,7 @@ export default function ProductFormPage() {
                       <AlertTriangle className="h-4 w-4 text-amber-600" />
                       <div className="flex-1">
                         <div className="text-sm font-bold">Track Expiry / Batches</div>
-                        <div className="text-[10px] text-slate-500 font-semibold">For perishable items</div>
+                        <div className="text-[0.6875rem] text-slate-500 font-semibold">For perishable items</div>
                       </div>
                     </label>
                   )}
@@ -606,7 +606,7 @@ export default function ProductFormPage() {
                         <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center shadow-md">
                           <TrendingUp className="h-4 w-4" />
                         </div>
-                        <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700">Profit Margin</div>
+                        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700">Profit Margin</div>
                       </div>
                       <div className="text-3xl font-extrabold text-emerald-900 tabular-nums">
                         {profitMargin.toFixed(1)}%
@@ -617,26 +617,26 @@ export default function ProductFormPage() {
                         <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center shadow-md">
                           <DollarSign className="h-4 w-4" />
                         </div>
-                        <div className="text-[10px] uppercase tracking-wider font-extrabold text-blue-700">Profit per Unit</div>
+                        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700">Profit per Unit</div>
                       </div>
                       <div className="text-xl font-extrabold text-blue-900 tabular-nums">
                         {formatPKRFull(profitPerUnit)}
                       </div>
-                      <div className="text-[10px] text-blue-700 font-bold mt-0.5">per {form.unit}</div>
+                      <div className="text-[0.6875rem] text-blue-700 font-bold mt-0.5">per {form.unit}</div>
                     </div>
                     <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center shadow-md">
                           <Sparkles className="h-4 w-4" />
                         </div>
-                        <div className="text-[10px] uppercase tracking-wider font-extrabold text-amber-700">Markup</div>
+                        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-700">Markup</div>
                       </div>
                       <div className="text-xl font-extrabold text-amber-900 tabular-nums">
                         {form.costPrice && form.costPrice > 0
                           ? `${(((form.price - form.costPrice) / form.costPrice) * 100).toFixed(1)}%`
                           : '—'}
                       </div>
-                      <div className="text-[10px] text-amber-700 font-bold mt-0.5">over cost</div>
+                      <div className="text-[0.6875rem] text-amber-700 font-bold mt-0.5">over cost</div>
                     </div>
                   </div>
                 )}
@@ -709,7 +709,7 @@ export default function ProductFormPage() {
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-lg font-extrabold text-slate-900">Existing Variants ({variants.length})</h3>
                     {variants.length > 0 && (
-                      <div className="text-[10px] text-slate-500 font-semibold">
+                      <div className="text-[0.6875rem] text-slate-500 font-semibold">
                         Image = auto save • Other fields = press <strong>Save</strong>
                       </div>
                     )}
@@ -808,9 +808,9 @@ export default function ProductFormPage() {
               <div className="px-4 py-2.5 bg-gradient-to-r from-slate-900 to-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/90">Customer Preview</div>
+                  <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/90">Customer Preview</div>
                 </div>
-                <div className="text-[10px] text-white/60 font-medium">Live</div>
+                <div className="text-[0.6875rem] text-white/60 font-medium">Live</div>
               </div>
 
               <div className="relative aspect-square bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden group">
@@ -821,24 +821,24 @@ export default function ProductFormPage() {
                     <div className="h-20 w-20 rounded-2xl bg-white shadow-inner flex items-center justify-center mb-2">
                       <Package className="h-10 w-10" />
                     </div>
-                    <div className="text-[11px] font-semibold text-slate-400">Add product image</div>
+                    <div className="text-[0.6875rem] font-semibold text-slate-400">Add product image</div>
                   </div>
                 )}
 
                 {isIndustrySpecific && (
-                  <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-wider shadow-lg">
+                  <div className="absolute top-3 left-3 px-2 py-1 rounded-md bg-emerald-600 text-white text-[0.6875rem] font-extrabold uppercase tracking-wider shadow-lg">
                     {activePlugin.label}
                   </div>
                 )}
 
                 {form.isFeatured && (
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white text-[10px] font-extrabold shadow-lg flex items-center gap-1">
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white text-[0.6875rem] font-extrabold shadow-lg flex items-center gap-1">
                     <Star className="h-3 w-3 fill-white" /> FEATURED
                   </div>
                 )}
 
                 {images && images.length > 1 && (
-                  <div className="absolute bottom-3 right-3 px-2 py-1 rounded-full bg-slate-900/70 backdrop-blur text-white text-[10px] font-bold">
+                  <div className="absolute bottom-3 right-3 px-2 py-1 rounded-full bg-slate-900/70 backdrop-blur text-white text-[0.6875rem] font-bold">
                     +{images.length - 1} more
                   </div>
                 )}
@@ -851,7 +851,7 @@ export default function ProductFormPage() {
                   return (
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-violet-50 border border-violet-200">
                       <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
-                      <span className="text-[10px] uppercase tracking-wider text-violet-700 font-extrabold">
+                      <span className="text-[0.6875rem] uppercase tracking-wider text-violet-700 font-extrabold">
                         {brand.name}
                       </span>
                     </div>
@@ -869,7 +869,7 @@ export default function ProductFormPage() {
                 </div>
 
                 {form.wholesalePrice && (
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-[11px] font-bold text-amber-700">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-[0.6875rem] font-bold text-amber-700">
                     Wholesale: {formatPKRFull(form.wholesalePrice)}
                   </div>
                 )}
@@ -879,10 +879,10 @@ export default function ProductFormPage() {
                 {variants.length > 0 && (
                   <div className="pt-3 border-t border-slate-100">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="text-[11px] uppercase tracking-wider text-slate-700 font-extrabold">
+                      <div className="text-[0.6875rem] uppercase tracking-wider text-slate-700 font-extrabold">
                         {isIndustrySpecific ? 'Colors / Options' : 'Variants'}
                       </div>
-                      <div className="text-[10px] text-slate-500 font-extrabold">{variants.length} options</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-extrabold">{variants.length} options</div>
                     </div>
                     <div className="grid grid-cols-4 gap-1.5">
                       {variants.slice(0, 8).map((v) => (
@@ -892,17 +892,17 @@ export default function ProductFormPage() {
                           ) : v.colorHex ? (
                             <div className="w-full h-full" style={{ backgroundColor: v.colorHex }} />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[9px] font-extrabold text-slate-600 bg-gradient-to-br from-slate-100 to-slate-200">
+                            <div className="w-full h-full flex items-center justify-center text-[0.625rem] font-extrabold text-slate-600 bg-gradient-to-br from-slate-100 to-slate-200">
                               {v.size || v.name.slice(0, 3).toUpperCase()}
                             </div>
                           )}
-                          <div className="absolute inset-x-0 bottom-0 px-1 py-0.5 bg-slate-900/85 backdrop-blur text-white text-[8px] font-extrabold text-center truncate opacity-0 group-hover/v:opacity-100 transition-opacity">
+                          <div className="absolute inset-x-0 bottom-0 px-1 py-0.5 bg-slate-900/85 backdrop-blur text-white text-[0.625rem] font-extrabold text-center truncate opacity-0 group-hover/v:opacity-100 transition-opacity">
                             {v.size || v.color || v.name.slice(0, 6)}
                           </div>
                         </div>
                       ))}
                       {variants.length > 8 && (
-                        <div className="aspect-square rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-[10px] font-extrabold text-slate-500">
+                        <div className="aspect-square rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-[0.6875rem] font-extrabold text-slate-500">
                           +{variants.length - 8}
                         </div>
                       )}
@@ -917,20 +917,20 @@ export default function ProductFormPage() {
                         const tag = allTags.find((t) => t.id === tagId);
                         if (!tag) return null;
                         return (
-                          <span key={tag.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold" style={{ backgroundColor: `${tag.color}15`, color: tag.color, border: `1px solid ${tag.color}40` }}>
+                          <span key={tag.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold" style={{ backgroundColor: `${tag.color}15`, color: tag.color, border: `1px solid ${tag.color}40` }}>
                             {tag.name}
                           </span>
                         );
                       })}
                       {form.tagIds.length > 4 && (
-                        <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-extrabold">+{form.tagIds.length - 4}</span>
+                        <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[0.6875rem] font-extrabold">+{form.tagIds.length - 4}</span>
                       )}
                     </div>
                   </div>
                 )}
 
                 {!form.isActive && (
-                  <div className="rounded-lg bg-rose-50 border-2 border-rose-200 px-3 py-2 text-[11px] font-extrabold text-rose-700 text-center inline-flex items-center justify-center gap-1 w-full">
+                  <div className="rounded-lg bg-rose-50 border-2 border-rose-200 px-3 py-2 text-[0.6875rem] font-extrabold text-rose-700 text-center inline-flex items-center justify-center gap-1 w-full">
                     <AlertTriangle className="h-3 w-3" />
                     Product is INACTIVE
                   </div>
@@ -940,7 +940,7 @@ export default function ProductFormPage() {
 
             {/* Admin info card */}
             <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white border-2 border-slate-200 p-3 shadow-sm">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-2 flex items-center gap-1.5">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 mb-2 flex items-center gap-1.5">
                 <Info className="h-3 w-3" />
                 Admin Info (you only)
               </div>
@@ -950,21 +950,21 @@ export default function ProductFormPage() {
               ) : (
                 <div className="grid grid-cols-2 gap-2 text-center">
                   <div className="rounded-lg bg-white border border-slate-200 p-2">
-                    <div className="text-[9px] text-slate-500 font-extrabold uppercase">Stock</div>
+                    <div className="text-[0.625rem] text-slate-500 font-extrabold uppercase">Stock</div>
                     <div className="text-sm font-extrabold text-slate-900 tabular-nums">
                       {form.stock ?? 0}
-                      <span className="text-[10px] text-slate-500 font-bold ml-1">{form.unit}</span>
+                      <span className="text-[0.6875rem] text-slate-500 font-bold ml-1">{form.unit}</span>
                     </div>
                   </div>
                   <div className="rounded-lg bg-white border border-slate-200 p-2">
-                    <div className="text-[9px] text-slate-500 font-extrabold uppercase">Variants</div>
+                    <div className="text-[0.625rem] text-slate-500 font-extrabold uppercase">Variants</div>
                     <div className="text-sm font-extrabold text-slate-900 tabular-nums">{variants.length}</div>
                   </div>
                 </div>
               )}
 
               {form.costPrice !== undefined && form.price > 0 && (
-                <div className="mt-2 pt-2 border-t border-slate-200 space-y-1 text-[11px]">
+                <div className="mt-2 pt-2 border-t border-slate-200 space-y-1 text-[0.6875rem]">
                   <div className="flex justify-between"><span className="text-slate-600 font-semibold">Cost:</span><span className="font-extrabold text-slate-900 tabular-nums">{formatPKRFull(form.costPrice ?? 0)}</span></div>
                   <div className="flex justify-between"><span className="text-slate-600 font-semibold">Profit:</span><span className="font-extrabold text-emerald-700 tabular-nums">{formatPKRFull(profitPerUnit)}</span></div>
                   <div className="flex justify-between"><span className="text-slate-600 font-semibold">Margin:</span><span className="font-extrabold text-emerald-700 tabular-nums">{profitMargin.toFixed(1)}%</span></div>
@@ -972,7 +972,7 @@ export default function ProductFormPage() {
               )}
 
               {isEdit && (
-                <Link to="/catalog" target="_blank" className="mt-3 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-extrabold transition-colors">
+                <Link to="/catalog" target="_blank" className="mt-3 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[0.6875rem] font-extrabold transition-colors">
                   Open in Catalog <ArrowRight className="h-3 w-3" />
                 </Link>
               )}
@@ -986,7 +986,7 @@ export default function ProductFormPage() {
             <AlertTriangle className="h-5 w-5 text-white shrink-0" />
             <div className="text-white">
               <div className="font-extrabold text-sm">Unsaved changes</div>
-              <div className="text-[10px] font-bold opacity-90">Save before leaving this page</div>
+              <div className="text-[0.6875rem] font-bold opacity-90">Save before leaving this page</div>
             </div>
             <Button
               onClick={handleSaveProduct}

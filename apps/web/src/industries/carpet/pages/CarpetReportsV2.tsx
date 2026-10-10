@@ -308,13 +308,13 @@ export default function CarpetReportsV2() {
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50 text-slate-600">
                     <tr>
-                      <th className="text-center px-3 py-3 font-extrabold text-[10px] uppercase w-12">#</th>
-                      <th className="text-left px-3 py-3 font-extrabold text-[10px] uppercase">Design</th>
-                      <th className="text-right px-3 py-3 font-extrabold text-[10px] uppercase">Sqft Sold</th>
-                      <th className="text-right px-3 py-3 font-extrabold text-[10px] uppercase">Orders</th>
-                      <th className="text-right px-3 py-3 font-extrabold text-[10px] uppercase">Revenue</th>
-                      {!hideCost && <th className="text-right px-3 py-3 font-extrabold text-[10px] uppercase">Profit</th>}
-                      {!hideCost && <th className="text-center px-3 py-3 font-extrabold text-[10px] uppercase">Margin</th>}
+                      <th className="text-center px-3 py-3 font-extrabold text-[0.6875rem] uppercase w-12">#</th>
+                      <th className="text-left px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Design</th>
+                      <th className="text-right px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Sqft Sold</th>
+                      <th className="text-right px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Orders</th>
+                      <th className="text-right px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Revenue</th>
+                      {!hideCost && <th className="text-right px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Profit</th>}
+                      {!hideCost && <th className="text-center px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Margin</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -348,7 +348,7 @@ export default function CarpetReportsV2() {
                         {!hideCost && <td className="px-3 py-2.5 text-right font-extrabold text-violet-700 tabular-nums">{formatPKR(p.profit)}</td>}
                         {!hideCost && (
                           <td className="px-3 py-2.5 text-center">
-                            <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            <span className={`inline-flex px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
                               p.margin > 30 ? 'bg-emerald-100 text-emerald-700' :
                               p.margin > 10 ? 'bg-amber-100 text-amber-700' :
                               'bg-rose-100 text-rose-700'
@@ -404,7 +404,7 @@ export default function CarpetReportsV2() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-violet-700 text-lg tabular-nums">{formatPKR(tc.totalSpent)}</div>
-                      <div className="text-[10px] text-slate-500 font-bold">AOV {formatPKR(tc.avgOrderValue)}</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">AOV {formatPKR(tc.avgOrderValue)}</div>
                     </div>
                   </div>
                 );
@@ -595,10 +595,10 @@ function InsightCard({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-2xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-4`}>
       <div className="flex items-center gap-2 text-white/80">
         <Icon className="h-4 w-4" />
-        <span className="text-[10px] uppercase tracking-wider font-extrabold">{label}</span>
+        <span className="text-[0.6875rem] uppercase tracking-wider font-extrabold">{label}</span>
       </div>
       <div className="mt-1.5 text-xl sm:text-2xl font-extrabold tabular-nums leading-tight truncate">{value}</div>
-      {sub && <div className="text-[11px] font-bold text-white/70 mt-0.5 truncate">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5 truncate">{sub}</div>}
     </div>
   );
 }

@@ -80,7 +80,7 @@ export function PosCheckoutPanel({
       )}
 
       <div>
-        <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1">
+        <label className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1">
           <Percent className="h-2.5 w-2.5 text-amber-600" />
           Global Discount
         </label>
@@ -94,7 +94,7 @@ export function PosCheckoutPanel({
       </div>
 
       <div>
-        <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1">
+        <label className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1">
           <BookOpen className="h-2.5 w-2.5 text-violet-600" />
           Sale Mode
         </label>
@@ -106,7 +106,7 @@ export function PosCheckoutPanel({
             }`}
           >
             <Banknote className={`h-4 w-4 ${saleMode === 'FULL_PAYMENT' ? 'text-emerald-600' : 'text-slate-400'}`} />
-            <span className={`text-[10px] font-extrabold ${saleMode === 'FULL_PAYMENT' ? 'text-emerald-700' : 'text-slate-500'}`}>
+            <span className={`text-[0.6875rem] font-extrabold ${saleMode === 'FULL_PAYMENT' ? 'text-emerald-700' : 'text-slate-500'}`}>
               Full Cash
             </span>
           </button>
@@ -124,7 +124,7 @@ export function PosCheckoutPanel({
             }`}
           >
             <HandCoins className={`h-4 w-4 ${saleMode === 'PARTIAL_CREDIT' ? 'text-amber-600' : 'text-slate-400'}`} />
-            <span className={`text-[10px] font-extrabold ${saleMode === 'PARTIAL_CREDIT' ? 'text-amber-700' : 'text-slate-500'}`}>
+            <span className={`text-[0.6875rem] font-extrabold ${saleMode === 'PARTIAL_CREDIT' ? 'text-amber-700' : 'text-slate-500'}`}>
               Partial
             </span>
           </button>
@@ -142,7 +142,7 @@ export function PosCheckoutPanel({
             }`}
           >
             <BookOpen className={`h-4 w-4 ${saleMode === 'FULL_CREDIT' ? 'text-rose-600' : 'text-slate-400'}`} />
-            <span className={`text-[10px] font-extrabold ${saleMode === 'FULL_CREDIT' ? 'text-rose-700' : 'text-slate-500'}`}>
+            <span className={`text-[0.6875rem] font-extrabold ${saleMode === 'FULL_CREDIT' ? 'text-rose-700' : 'text-slate-500'}`}>
               Full Udhaar
             </span>
           </button>
@@ -151,7 +151,7 @@ export function PosCheckoutPanel({
 
       {saleMode !== 'FULL_CREDIT' && (
         <div>
-          <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 mb-1 block">Payment Method</label>
+          <label className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 mb-1 block">Payment Method</label>
           <div className="grid grid-cols-5 gap-1">
             {(Object.keys(paymentMethodConfig) as PaymentMethod[]).map((m) => {
               const cfg = paymentMethodConfig[m];
@@ -166,7 +166,7 @@ export function PosCheckoutPanel({
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" style={{ color: active ? cfg.color : '#94a3b8' }} />
-                  <span className={`text-[10px] font-extrabold ${active ? 'text-slate-900' : 'text-slate-500'}`}>
+                  <span className={`text-[0.6875rem] font-extrabold ${active ? 'text-slate-900' : 'text-slate-500'}`}>
                     {cfg.label}
                   </span>
                 </button>
@@ -178,7 +178,7 @@ export function PosCheckoutPanel({
 
       {saleMode === 'PARTIAL_CREDIT' && (
         <div>
-          <label className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 mb-1 block">Paid Amount</label>
+          <label className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-amber-700 mb-1 block">Paid Amount</label>
           <div className="relative">
             <Wallet className="h-4 w-4 text-amber-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input

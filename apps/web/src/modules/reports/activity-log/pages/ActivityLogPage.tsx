@@ -203,7 +203,7 @@ export default function ActivityLogPage() {
         </div>
         <div className="space-y-2">
           <div className="flex gap-1 flex-wrap">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold self-center mr-1">Date:</span>
+            <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold self-center mr-1">Date:</span>
             {[
               { v: 'all' as DateFilter, l: 'All Time' },
               { v: 'today' as DateFilter, l: 'Today' },
@@ -222,7 +222,7 @@ export default function ActivityLogPage() {
             ))}
           </div>
           <div className="flex gap-1 flex-wrap">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold self-center mr-1">Action:</span>
+            <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold self-center mr-1">Action:</span>
             {[
               { v: 'all' as ActionFilter, l: 'All' },
               { v: 'login' as ActionFilter, l: '🔑 Login' },
@@ -246,7 +246,7 @@ export default function ActivityLogPage() {
           </div>
           {uniqueUsers.length > 0 && (
             <div className="flex gap-1 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold self-center mr-1">User:</span>
+              <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold self-center mr-1">User:</span>
               <button
                 onClick={() => setUserFilter('all')}
                 className={`px-2.5 py-1 rounded-md text-xs font-bold transition ${
@@ -317,16 +317,16 @@ export default function ActivityLogPage() {
                           {log.user?.fullName || 'System'}
                         </span>
                         {log.user?.role && (
-                          <span className="inline-flex px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-extrabold">
+                          <span className="inline-flex px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.6875rem] font-extrabold">
                             {log.user.role}
                           </span>
                         )}
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${cfg.color}`}>
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${cfg.color}`}>
                           {cfg.label}
                         </span>
                       </div>
                       <div className="text-sm text-slate-700 mt-1 font-semibold">{log.description}</div>
-                      <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400 flex-wrap font-bold">
+                      <div className="flex items-center gap-3 mt-1.5 text-[0.6875rem] text-slate-400 flex-wrap font-bold">
                         <span className="inline-flex items-center gap-1">
                           <Clock className="h-2.5 w-2.5" />
                           {formatDate(log.createdAt)}
@@ -351,8 +351,8 @@ export default function ActivityLogPage() {
                       </div>
                       {log.metadata && Object.keys(log.metadata).length > 0 && (
                         <details className="mt-2 opacity-0 group-hover:opacity-100 transition">
-                          <summary className="text-[10px] font-bold text-slate-500 cursor-pointer hover:text-slate-700">View metadata</summary>
-                          <pre className="mt-1 text-[10px] bg-slate-50 rounded-lg p-2 overflow-x-auto">{JSON.stringify(log.metadata, null, 2)}</pre>
+                          <summary className="text-[0.6875rem] font-bold text-slate-500 cursor-pointer hover:text-slate-700">View metadata</summary>
+                          <pre className="mt-1 text-[0.6875rem] bg-slate-50 rounded-lg p-2 overflow-x-auto">{JSON.stringify(log.metadata, null, 2)}</pre>
                         </details>
                       )}
                     </div>

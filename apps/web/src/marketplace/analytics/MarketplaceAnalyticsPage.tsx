@@ -146,7 +146,7 @@ export default function MarketplaceAnalyticsPage() {
                       style={{ width: `${pct}%` }}
                     />
                     <div className="absolute inset-0 flex items-center px-2">
-                      <span className="text-[10px] font-black text-slate-700">{day.count} orders</span>
+                      <span className="text-[0.6875rem] font-black text-slate-700">{day.count} orders</span>
                     </div>
                   </div>
                   <span className="w-20 text-right text-emerald-700 font-black tabular-nums shrink-0">
@@ -180,7 +180,7 @@ export default function MarketplaceAnalyticsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-black text-sm text-slate-900 truncate">{p.name}</div>
-                  <div className="text-[10px] text-slate-500 font-bold">{p.totalSold} sold</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">{p.totalSold} sold</div>
                 </div>
                 <div className="text-right">
                   <div className="font-black text-emerald-700 text-sm tabular-nums">Rs {formatPKR(p.revenue)}</div>
@@ -204,7 +204,7 @@ export default function MarketplaceAnalyticsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-black text-sm text-slate-900 truncate">{c.fullName}</div>
-                  <div className="text-[10px] text-slate-500 font-bold">{c.orderCount} orders</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">{c.orderCount} orders</div>
                 </div>
                 <div className="text-right">
                   <div className="font-black text-purple-700 text-sm tabular-nums">Rs {formatPKR(c.totalSpent)}</div>
@@ -227,13 +227,13 @@ export default function MarketplaceAnalyticsPage() {
               return (
                 <div key={status} className="flex items-center gap-2 text-xs">
                   <span className="w-32 truncate">
-                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${meta.bg} ${meta.color}`}>
+                    <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${meta.bg} ${meta.color}`}>
                       {meta.label}
                     </span>
                   </span>
                   <div className="flex-1 h-5 rounded bg-slate-100 overflow-hidden relative">
                     <div className={`h-full ${meta.color.replace('text-', 'bg-')} opacity-30 rounded`} style={{ width: `${pct}%` }} />
-                    <div className="absolute inset-0 flex items-center px-2 text-[10px] font-black">
+                    <div className="absolute inset-0 flex items-center px-2 text-[0.6875rem] font-black">
                       {count} ({pct.toFixed(0)}%)
                     </div>
                   </div>
@@ -250,7 +250,7 @@ export default function MarketplaceAnalyticsPage() {
               <div key={method} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
                 <div>
                   <div className="text-xs font-black text-slate-900">{method}</div>
-                  <div className="text-[10px] text-slate-500 font-bold">{stats.count} orders</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">{stats.count} orders</div>
                 </div>
                 <div className="text-sm font-black text-emerald-700 tabular-nums">Rs {formatPKR(stats.total)}</div>
               </div>
@@ -275,7 +275,7 @@ export default function MarketplaceAnalyticsPage() {
                 </span>
                 <div className="flex-1 h-5 rounded bg-slate-100 overflow-hidden relative">
                   <div className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded" style={{ width: `${pct}%` }} />
-                  <div className="absolute inset-0 flex items-center px-2 text-[10px] font-black text-slate-700">
+                  <div className="absolute inset-0 flex items-center px-2 text-[0.6875rem] font-black text-slate-700">
                     {r.count} reviews ({pct.toFixed(0)}%)
                   </div>
                 </div>
@@ -303,7 +303,7 @@ function BigKpi({ icon: Icon, label, value, sub, color }: any) {
       </div>
       <div className="text-2xl font-black text-slate-900 tabular-nums mt-3">{value}</div>
       <div className="text-xs font-black text-slate-600 uppercase tracking-wide">{label}</div>
-      {sub && <div className="text-[10px] text-slate-500 font-bold mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{sub}</div>}
     </div>
   );
 }

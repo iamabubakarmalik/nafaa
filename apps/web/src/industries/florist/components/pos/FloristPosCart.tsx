@@ -35,7 +35,7 @@ export function FloristPosCart(p: Props) {
       <div className="shrink-0 bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
               Cart • {p.itemCount} lines • {p.totalQty} qty
             </div>
             <div className="text-3xl sm:text-4xl font-extrabold tabular-nums leading-none mt-1">
@@ -112,11 +112,11 @@ export function FloristPosCart(p: Props) {
                   <div className="font-extrabold text-sm sm:text-base text-slate-900 leading-tight line-clamp-2">{l.name}</div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     {l.color && <span className="h-2.5 w-2.5 rounded-full border border-slate-300" style={{ backgroundColor: l.colorHex || '#ec4899' }} />}
-                    {l.flowerType && <span className="text-[10px] font-bold text-slate-500">{l.flowerType}</span>}
+                    {l.flowerType && <span className="text-[0.6875rem] font-bold text-slate-500">{l.flowerType}</span>}
                   </div>
                   <div className="text-xs sm:text-sm font-bold text-pink-700 mt-0.5">{formatPKR(l.unitPrice)}</div>
                   {l.customization && (
-                    <div className="text-[10px] font-semibold text-violet-700 mt-1 bg-violet-50 px-2 py-1 rounded-lg">
+                    <div className="text-[0.6875rem] font-semibold text-violet-700 mt-1 bg-violet-50 px-2 py-1 rounded-lg">
                       ✨ {l.customization}
                     </div>
                   )}
@@ -160,14 +160,14 @@ export function FloristPosCart(p: Props) {
       {p.cart.length > 0 && (
         <div className="shrink-0 p-2.5 sm:p-3 border-t-4 border-slate-100 bg-white space-y-2">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-[11px] sm:text-xs font-extrabold text-slate-600 shrink-0">
+            <div className="flex items-center gap-1 text-[0.6875rem] sm:text-xs font-extrabold text-slate-600 shrink-0">
               <Percent className="h-3.5 w-3.5 text-amber-600" />
               <span className="hidden sm:inline">Discount:</span>
             </div>
             <div className="flex gap-1 flex-1">
               {[0, 5, 10, 15, 20].map((d) => (
                 <button key={d} onClick={() => p.setDiscountPct(d)}
-                  className={`flex-1 h-9 sm:h-10 rounded-xl text-[11px] sm:text-xs font-extrabold transition ${
+                  className={`flex-1 h-9 sm:h-10 rounded-xl text-[0.6875rem] sm:text-xs font-extrabold transition ${
                     p.discountPct === d ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
                   {d === 0 ? 'None' : `${d}%`}
                 </button>
@@ -178,7 +178,7 @@ export function FloristPosCart(p: Props) {
           <button onClick={p.onProceed} disabled={!p.canProceed}
             className="w-full h-[76px] sm:h-[88px] rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98] bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-600 disabled:opacity-50 flex items-center justify-between px-5 sm:px-6">
             <div className="text-left">
-              <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider inline-flex items-center gap-1">
+              <div className="text-[0.6875rem] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider inline-flex items-center gap-1">
                 <Truck className="h-3 w-3" /> {p.hasDelivery ? 'Update delivery' : 'Delivery details'} <span className="hidden sm:inline">(F9)</span>
               </div>
               <div className="text-2xl sm:text-3xl tabular-nums leading-none mt-0.5">{formatPKR(p.total)}</div>

@@ -140,17 +140,17 @@ export default function FurnitureProductDetailPage() {
                 <div className="w-full h-full flex items-center justify-center text-white/50"><Sofa className="h-16 w-16" /></div>
               )}
               {profile?.isFeatured && (
-                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Star className="h-3 w-3 fill-white" /> FEATURED
                 </div>
               )}
               {profile?.isEcoFriendly && (
-                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-green-600 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-green-600 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Leaf className="h-3 w-3" /> ECO-FRIENDLY
                 </div>
               )}
               {profile?.isCustomizable && (
-                <div className="absolute bottom-3 left-3 px-2 py-1 rounded-lg bg-violet-600 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute bottom-3 left-3 px-2 py-1 rounded-lg bg-violet-600 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Hammer className="h-3 w-3" /> CUSTOMIZABLE
                 </div>
               )}
@@ -192,24 +192,24 @@ export default function FurnitureProductDetailPage() {
 
             <div className="mt-5 flex items-end gap-5 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Retail Price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Retail Price</div>
                 <div className="text-4xl font-extrabold tabular-nums leading-none mt-1">{formatPKRFull(product.price)}</div>
               </div>
               {!hideCost && Number(product.costPrice || 0) > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">{formatPKRFull(product.costPrice)}</div>
                 </div>
               )}
               {profile?.emiStartingFrom ? (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">EMI from</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">EMI from</div>
                   <div className="text-xl font-extrabold tabular-nums text-emerald-300 leading-none mt-1">{formatPKRFull(profile.emiStartingFrom)}<span className="text-xs opacity-80">/mo</span></div>
                 </div>
               ) : null}
               {!hideCost && stats.profitPerUnit !== 0 && (
                 <div className={`rounded-xl px-3 py-2 backdrop-blur border ${stats.profitPerUnit >= 0 ? 'bg-emerald-400/20 border-emerald-300/40' : 'bg-rose-400/20 border-rose-300/40'}`}>
-                  <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Profit / unit</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Profit / unit</div>
                   <div className="text-lg font-extrabold tabular-nums leading-none mt-0.5">
                     {formatPKRFull(stats.profitPerUnit)} <span className="text-xs opacity-80">({stats.margin.toFixed(0)}%)</span>
                   </div>
@@ -254,7 +254,7 @@ export default function FurnitureProductDetailPage() {
                 <Icon className="h-4 w-4" />
                 {t.label}
                 {t.count !== undefined && (
-                  <span className={`px-1.5 rounded-full text-[10px] font-extrabold ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>
+                  <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>
                     {t.count}
                   </span>
                 )}
@@ -312,7 +312,7 @@ export default function FurnitureProductDetailPage() {
                 <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 flex items-center gap-3">
                   {profile.colorHex && <div className="h-12 w-12 rounded-lg border-2 border-white shadow" style={{ backgroundColor: profile.colorHex }} />}
                   <div>
-                    <div className="text-[10px] uppercase font-extrabold text-slate-500">Color</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Color</div>
                     <div className="text-base font-extrabold text-slate-900">{profile.colorName || profile.colorHex}</div>
                   </div>
                 </div>
@@ -326,7 +326,7 @@ export default function FurnitureProductDetailPage() {
               )}
               {profile.secondaryMaterials?.length > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-2">Secondary Materials</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-2">Secondary Materials</div>
                   <div className="flex flex-wrap gap-1.5">
                     {profile.secondaryMaterials.map((m) => (
                       <span key={m} className="px-2.5 py-1 rounded-lg bg-violet-100 text-violet-800 text-xs font-extrabold">
@@ -359,7 +359,7 @@ export default function FurnitureProductDetailPage() {
                   <div className="flex items-center gap-2">
                     <Truck className="h-5 w-5 text-blue-700" />
                     <div>
-                      <div className="text-[10px] uppercase font-extrabold text-blue-700">Delivery Charge</div>
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Delivery Charge</div>
                       <div className="text-lg font-extrabold text-blue-900">{formatPKR(profile.deliveryChargeBase)}</div>
                       {profile.freeDeliveryRadius && (
                         <div className="text-xs font-bold text-blue-700">FREE within {profile.freeDeliveryRadius}km</div>
@@ -370,7 +370,7 @@ export default function FurnitureProductDetailPage() {
               )}
               {profile.careInstructions && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-2">Care Instructions</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-2">Care Instructions</div>
                   <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-sm font-semibold text-slate-700">
                     {profile.careInstructions}
                   </div>
@@ -392,11 +392,11 @@ export default function FurnitureProductDetailPage() {
               return (
                 <div key={v.id} className={`rounded-2xl border-2 p-3 ${vStock <= 0 ? 'border-rose-200 bg-rose-50/40' : 'border-slate-200 bg-white'}`}>
                   <div className="font-extrabold text-slate-900 text-sm truncate">{v.name}</div>
-                  <div className="text-[10px] font-mono text-slate-500 mt-0.5">{v.sku || v.barcode || '—'}</div>
+                  <div className="text-[0.6875rem] font-mono text-slate-500 mt-0.5">{v.sku || v.barcode || '—'}</div>
                   <div className="mt-2 flex items-end justify-between">
                     <div className="text-base font-extrabold text-emerald-700 tabular-nums">{formatPKRFull(v.price)}</div>
                     <div className={`text-sm font-extrabold tabular-nums ${vStock <= 0 ? 'text-rose-700' : 'text-slate-700'}`}>
-                      {vStock} <span className="text-[10px] font-bold text-slate-500">pcs</span>
+                      {vStock} <span className="text-[0.6875rem] font-bold text-slate-500">pcs</span>
                     </div>
                   </div>
                 </div>
@@ -421,7 +421,7 @@ export default function FurnitureProductDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-extrabold text-sm text-slate-900">{s.saleNumber}</span>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
@@ -467,10 +467,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -505,7 +505,7 @@ function Panel({ icon: Icon, title, tone, children, empty, emptyText, emptyActio
 function InfoCard({ label, value }: any) {
   return (
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4">
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-lg font-extrabold text-slate-900 mt-1">{value}</div>
     </div>
   );
@@ -524,7 +524,7 @@ function StatBox({ label, value, tone }: any) {
   };
   return (
     <div className={`rounded-xl border-2 p-3 text-center ${tones[tone]}`}>
-      <div className="text-[10px] uppercase font-extrabold opacity-75">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold opacity-75">{label}</div>
       <div className="text-xl font-extrabold tabular-nums mt-1">{value}</div>
     </div>
   );
@@ -541,7 +541,7 @@ function InfoBox({ label, value, tone = 'slate' }: any) {
   };
   return (
     <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
-      <div className="text-[10px] uppercase font-extrabold opacity-75">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold opacity-75">{label}</div>
       <div className="text-base font-extrabold mt-0.5">{value}</div>
     </div>
   );

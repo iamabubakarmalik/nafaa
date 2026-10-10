@@ -174,7 +174,7 @@ function BirthdayCard({ reminder: r, onDelete }: any) {
             <h3 className="font-extrabold text-slate-900 text-lg">{r.childName}</h3>
             <span className="text-xs font-extrabold text-pink-700">turning {r.computed?.turningAge}</span>
             {r.childGender && (
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[9px] font-extrabold uppercase">
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">
                 {r.childGender === 'BOYS' ? '👦' : r.childGender === 'GIRLS' ? '👧' : '⚧️'} {r.childGender}
               </span>
             )}
@@ -189,13 +189,13 @@ function BirthdayCard({ reminder: r, onDelete }: any) {
           {r.childInterests?.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {r.childInterests.slice(0, 4).map((i: string) => (
-                <span key={i} className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[10px] font-extrabold">{i}</span>
+                <span key={i} className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.6875rem] font-extrabold">{i}</span>
               ))}
             </div>
           )}
 
           {r.lastGiftGiven && (
-            <div className="mt-2 text-[11px] text-slate-500 font-semibold italic">
+            <div className="mt-2 text-[0.6875rem] text-slate-500 font-semibold italic">
               Last gift: "{r.lastGiftGiven}"
             </div>
           )}
@@ -207,13 +207,13 @@ function BirthdayCard({ reminder: r, onDelete }: any) {
               isToday ? 'text-rose-700' : isSoon ? 'text-amber-700' : 'text-pink-700'}`}>
               {isToday ? '🎉 Today!' : days === 1 ? 'Tomorrow' : `${days} days`}
             </div>
-            {r.budgetRange && <div className="text-[10px] font-bold text-slate-500 mt-0.5">Budget: {r.budgetRange}</div>}
+            {r.budgetRange && <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Budget: {r.budgetRange}</div>}
           </div>
           {r.totalPurchases > 0 && (
             <div className="text-right">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500">Lifetime</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Lifetime</div>
               <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(r.totalSpent)}</div>
-              <div className="text-[10px] font-bold text-slate-500">{r.totalPurchases} orders</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">{r.totalPurchases} orders</div>
             </div>
           )}
           <div className="flex gap-1.5">
@@ -393,7 +393,7 @@ function StatCard({ label, value, icon: Icon, tone }: any) {
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

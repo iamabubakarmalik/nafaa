@@ -138,7 +138,7 @@ export default function GymPosPage() {
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold truncate">{m.customer?.name}</div>
                   <div className="text-xs font-mono font-bold text-slate-500">{m.memberNumber}</div>
-                  {m.currentStreak > 0 && <div className="text-[10px] text-orange-700 font-extrabold">🔥 {m.currentStreak}d</div>}
+                  {m.currentStreak > 0 && <div className="text-[0.6875rem] text-orange-700 font-extrabold">🔥 {m.currentStreak}d</div>}
                 </div>
                 <LogIn className="h-5 w-5 text-emerald-600" />
               </button>
@@ -183,9 +183,9 @@ export default function GymPosPage() {
                 {plans.map((p: any) => (
                   <button key={p.id} onClick={() => { setSelectedPlan(p); setPaidAmount(p.price); }} className="p-4 rounded-2xl border-2 border-slate-200 hover:border-fuchsia-500 text-left transition">
                     <div className="font-extrabold text-lg">{p.name}</div>
-                    <div className="text-[10px] uppercase font-extrabold text-fuchsia-600">{p.planType.replace('_', ' ')}</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-600">{p.planType.replace('_', ' ')}</div>
                     <div className="mt-2 text-2xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.price)}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{p.durationDays} days</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{p.durationDays} days</div>
                   </button>
                 ))}
               </div>

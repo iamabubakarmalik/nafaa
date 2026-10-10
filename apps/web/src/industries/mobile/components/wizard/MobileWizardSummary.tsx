@@ -30,7 +30,7 @@ export function MobileWizardSummary({ draft, stats, allValid }: Props) {
       <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 text-white p-5 shadow-xl overflow-hidden relative">
         <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-blue-400/20 blur-2xl" />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-extrabold border border-white/20">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold border border-white/20">
             {allValid ? (
               <>
                 <CheckCircle2 className="h-3 w-3 text-emerald-300" />
@@ -49,7 +49,7 @@ export function MobileWizardSummary({ draft, stats, allValid }: Props) {
           {draft.basic.modelNumber && (
             <div className="text-xs text-white/70 font-mono mt-1">Model: {draft.basic.modelNumber}</div>
           )}
-          <div className="text-[10px] text-white/70 font-extrabold uppercase tracking-wider mt-1">
+          <div className="text-[0.6875rem] text-white/70 font-extrabold uppercase tracking-wider mt-1">
             Type: <span className="text-blue-300">{draft.basic.productType}</span>
           </div>
         </div>
@@ -77,7 +77,7 @@ export function MobileWizardSummary({ draft, stats, allValid }: Props) {
           <div className="border-t border-slate-100 p-4 bg-slate-50">
             <div className="flex items-center gap-1.5 mb-1">
               <Package className="h-3 w-3 text-emerald-700" />
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700">
                 Accessory Units
               </div>
             </div>
@@ -89,7 +89,7 @@ export function MobileWizardSummary({ draft, stats, allValid }: Props) {
         <div className="border-t-2 border-slate-100 p-4 bg-gradient-to-br from-blue-50 to-white">
           <div className="flex items-center gap-1.5 mb-1">
             <Package className="h-3 w-3 text-blue-700" />
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-blue-700">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700">
               Total Units
             </div>
           </div>
@@ -102,7 +102,7 @@ export function MobileWizardSummary({ draft, stats, allValid }: Props) {
       {/* PTA breakdown */}
       {Object.keys(stats.ptaBreakdown).length > 0 && (
         <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-2">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
             <ShieldCheck className="h-3 w-3" />
             PTA Breakdown
           </div>
@@ -112,7 +112,7 @@ export function MobileWizardSummary({ draft, stats, allValid }: Props) {
               return (
                 <span
                   key={status}
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${colors.bg} ${colors.text} border ${colors.border}`}
+                  className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${colors.bg} ${colors.text} border ${colors.border}`}
                 >
                   {count} {PTA_STATUS_LABELS[status as PtaStatus]}
                 </span>
@@ -125,7 +125,7 @@ export function MobileWizardSummary({ draft, stats, allValid }: Props) {
       {/* FINANCE */}
       {stats.totalUnits > 0 && (
         <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-2.5">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
             <DollarSign className="h-3 w-3" />
             Finance
           </div>
@@ -144,7 +144,7 @@ export function MobileWizardSummary({ draft, stats, allValid }: Props) {
                 {formatPKRFull(stats.potentialProfit)}
               </div>
             </div>
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
+            <div className="flex items-center justify-between text-[0.6875rem] font-bold text-slate-500">
               <span>Margin</span>
               <span className={stats.profitMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
                 {stats.profitMargin.toFixed(1)}%
@@ -154,7 +154,7 @@ export function MobileWizardSummary({ draft, stats, allValid }: Props) {
         </div>
       )}
 
-      <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-[10px] text-slate-500 font-semibold text-center">
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-[0.6875rem] text-slate-500 font-semibold text-center">
         💾 Draft auto-saves — safai se close karo, wapas mile ga
       </div>
     </aside>
@@ -173,12 +173,12 @@ function StatCell({
     <div className="p-4">
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={['h-3 w-3', tones[tone]].join(' ')} />
-        <div className={['text-[10px] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>
+        <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>
           {label}
         </div>
       </div>
       <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{value}</div>
-      {hint && <div className="text-[10px] text-slate-500 font-bold mt-0.5">{hint}</div>}
+      {hint && <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{hint}</div>}
     </div>
   );
 }

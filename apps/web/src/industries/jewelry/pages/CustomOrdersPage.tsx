@@ -117,7 +117,7 @@ export default function CustomOrdersPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold">{order.orderNumber}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + (STATUS_COLORS[order.status] ?? 'bg-slate-500')}>{order.status.replace('_', ' ')}</span>
+                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + (STATUS_COLORS[order.status] ?? 'bg-slate-500')}>{order.status.replace('_', ' ')}</span>
                       </div>
                       <div className="mt-1 text-sm font-bold text-slate-900">{order.customerName}</div>
                       <div className="text-xs text-slate-600 font-bold inline-flex items-center gap-1"><Phone className="h-3 w-3" />{order.customerPhone}</div>
@@ -130,7 +130,7 @@ export default function CustomOrdersPage() {
                       <div className="text-xs font-bold text-slate-500">Final: {formatPKR(order.finalPrice)}</div>
                     )}
                     {order.paidAmount > 0 && (
-                      <div className="text-[10px] font-extrabold text-emerald-600">Paid: {formatPKR(order.paidAmount)}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-emerald-600">Paid: {formatPKR(order.paidAmount)}</div>
                     )}
                   </div>
                 </div>
@@ -141,19 +141,19 @@ export default function CustomOrdersPage() {
 
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-blue-700 flex items-center justify-center gap-0.5"><Scale className="h-2.5 w-2.5" />Expected</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-blue-700 flex items-center justify-center gap-0.5"><Scale className="h-2.5 w-2.5" />Expected</div>
                     <div className="font-extrabold text-blue-800 tabular-nums">{order.expectedGrossWeight}g</div>
                   </div>
                   {order.assignedKarigarName && (
                     <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2 text-center">
-                      <div className="text-[9px] uppercase font-extrabold text-amber-700">Karigar</div>
-                      <div className="font-extrabold text-amber-800 truncate text-[10px]">{order.assignedKarigarName}</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Karigar</div>
+                      <div className="font-extrabold text-amber-800 truncate text-[0.6875rem]">{order.assignedKarigarName}</div>
                     </div>
                   )}
                   {order.promisedDate && (
                     <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2 text-center">
-                      <div className="text-[9px] uppercase font-extrabold text-emerald-700">Due</div>
-                      <div className="font-extrabold text-emerald-800 text-[10px]">{format(new Date(order.promisedDate), 'dd MMM')}</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Due</div>
+                      <div className="font-extrabold text-emerald-800 text-[0.6875rem]">{format(new Date(order.promisedDate), 'dd MMM')}</div>
                     </div>
                   )}
                 </div>
@@ -251,7 +251,7 @@ function CustomOrderForm({ onClose, onSaved }: any) {
         <textarea rows={3} value={form.designDescription} onChange={(e) => setForm({ ...form, designDescription: e.target.value })} placeholder="Design description (mandatory) — describe the design in detail..." className="w-full rounded-xl border-2 border-rose-200 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Reference Images</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Reference Images</label>
           {form.referenceImageUrls.length > 0 && (
             <div className="grid grid-cols-4 gap-1 mb-2">
               {form.referenceImageUrls.map((url: string, i: number) => (
@@ -272,21 +272,21 @@ function CustomOrderForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Expected Gross (g) *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Expected Gross (g) *</label>
             <input type="number" step="0.01" value={form.expectedGrossWeight} onChange={(e) => setForm({ ...form, expectedGrossWeight: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Advance (Rs)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Advance (Rs)</label>
             <input type="number" value={form.advancePayment} onChange={(e) => setForm({ ...form, advancePayment: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Estimated Price</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Estimated Price</label>
             <input type="number" value={form.estimatedPrice} onChange={(e) => setForm({ ...form, estimatedPrice: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Assign Karigar</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Assign Karigar</label>
           <select value={form.assignedKarigarId} onChange={(e) => {
             const k = karigars.find((x) => x.id === e.target.value);
             setForm({ ...form, assignedKarigarId: e.target.value, assignedKarigarName: k?.fullName || '' });

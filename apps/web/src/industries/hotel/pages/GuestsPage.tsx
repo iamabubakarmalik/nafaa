@@ -212,19 +212,19 @@ function GuestCard({ guest, onView, onEdit, onBlacklist, onUnblacklist, onDelete
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-extrabold text-slate-900 dark:text-white truncate">{guest.title ? guest.title + ' ' : ''}{guest.fullName}</span>
             {guest.isVIP && (
-              <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+              <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <Star className="h-2 w-2 fill-current" />
                 {guest.vipLevel || 'VIP'}
               </span>
             )}
             {guest.isBlacklisted && (
-              <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-extrabold uppercase animate-pulse">
+              <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">
                 <Ban className="h-2 w-2 inline" />
                 BLACKLIST
               </span>
             )}
           </div>
-          <div className="text-[10px] font-mono font-bold text-slate-500">{guest.guestNumber}</div>
+          <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{guest.guestNumber}</div>
           {guest.phone && (
             <div className="flex items-center gap-1 text-xs text-slate-600 font-bold mt-0.5">
               <Phone className="h-3 w-3" />{guest.phone}
@@ -243,7 +243,7 @@ function GuestCard({ guest, onView, onEdit, onBlacklist, onUnblacklist, onDelete
           <Globe className="h-3 w-3" />
           {guest.nationality}
           {guest.idType && guest.idNumber && (
-            <span className="text-[10px] text-slate-500 font-mono">• {guest.idType}: {guest.idNumber}</span>
+            <span className="text-[0.6875rem] text-slate-500 font-mono">• {guest.idType}: {guest.idNumber}</span>
           )}
         </div>
       )}
@@ -257,16 +257,16 @@ function GuestCard({ guest, onView, onEdit, onBlacklist, onUnblacklist, onDelete
 
       <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Stays</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Stays</div>
           <div className="font-extrabold tabular-nums">{guest.totalStays}</div>
         </div>
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-blue-700">Nights</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Nights</div>
           <div className="font-extrabold text-blue-700 tabular-nums">{guest.totalNights}</div>
         </div>
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-emerald-700">Spent</div>
-          <div className="font-extrabold text-emerald-700 tabular-nums text-[10px]">{formatPKR(guest.totalSpent).replace('Rs', '').trim()}</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Spent</div>
+          <div className="font-extrabold text-emerald-700 tabular-nums text-[0.6875rem]">{formatPKR(guest.totalSpent).replace('Rs', '').trim()}</div>
         </div>
       </div>
 
@@ -340,15 +340,15 @@ function GuestDetailModal({ guest, onClose, onEdit }: any) {
           </div>
           <div className="mt-4 grid grid-cols-3 gap-2">
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
-              <div className="text-[9px] uppercase font-extrabold text-white/70">Stays</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-white/70">Stays</div>
               <div className="text-xl font-extrabold tabular-nums">{guest.totalStays}</div>
             </div>
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
-              <div className="text-[9px] uppercase font-extrabold text-white/70">Total Spent</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-white/70">Total Spent</div>
               <div className="text-xl font-extrabold tabular-nums text-emerald-300">{formatPKR(guest.totalSpent)}</div>
             </div>
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
-              <div className="text-[9px] uppercase font-extrabold text-white/70">Nights</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-white/70">Nights</div>
               <div className="text-xl font-extrabold tabular-nums">{guest.totalNights}</div>
             </div>
           </div>
@@ -421,7 +421,7 @@ function GuestDetailModal({ guest, onClose, onEdit }: any) {
               </div>
               {guest.allergies?.length > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-amber-700 mb-1">Allergies</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1">Allergies</div>
                   <div className="flex flex-wrap gap-1">
                     {guest.allergies.map((a: string, i: number) => (
                       <span key={i} className="px-2 py-0.5 rounded bg-rose-100 text-rose-700 text-xs font-extrabold">⚠️ {a}</span>
@@ -431,7 +431,7 @@ function GuestDetailModal({ guest, onClose, onEdit }: any) {
               )}
               {guest.dietaryRestrictions?.length > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-amber-700 mb-1">Dietary</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1">Dietary</div>
                   <div className="flex flex-wrap gap-1">
                     {guest.dietaryRestrictions.map((d: string, i: number) => (
                       <span key={i} className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-xs font-extrabold">{d}</span>
@@ -460,7 +460,7 @@ function GuestDetailModal({ guest, onClose, onEdit }: any) {
 function Info({ label, value }: any) {
   return (
     <div>
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="font-bold">{value || '—'}</div>
     </div>
   );
@@ -527,7 +527,7 @@ function GuestForm({ editing, onClose, onSaved }: any) {
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         {/* Photo */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
           {form.photoUrl ? (
             <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-slate-200">
               <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
@@ -582,7 +582,7 @@ function GuestForm({ editing, onClose, onSaved }: any) {
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">ID Front</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">ID Front</label>
               {form.idFrontUrl ? (
                 <div className="relative aspect-video rounded-lg overflow-hidden border border-blue-200">
                   <img src={form.idFrontUrl} alt="" className="w-full h-full object-cover" />
@@ -599,7 +599,7 @@ function GuestForm({ editing, onClose, onSaved }: any) {
               )}
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">ID Back</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">ID Back</label>
               {form.idBackUrl ? (
                 <div className="relative aspect-video rounded-lg overflow-hidden border border-blue-200">
                   <img src={form.idBackUrl} alt="" className="w-full h-full object-cover" />

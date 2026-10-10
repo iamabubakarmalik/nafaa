@@ -139,7 +139,7 @@ export function SportsWizardStep3Team({ basic, onBasicChange, team, onChange, er
               <Lbl>Team Price / Unit</Lbl>
               {suggestedTeamPrice > 0 && (
                 <button type="button" onClick={() => onChange({ teamPrice: suggestedTeamPrice })}
-                  className="text-[10px] font-extrabold text-emerald-700 hover:underline">
+                  className="text-[0.6875rem] font-extrabold text-emerald-700 hover:underline">
                   Use suggested {formatPKRFull(suggestedTeamPrice)}
                 </button>
               )}

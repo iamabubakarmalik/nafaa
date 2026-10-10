@@ -250,7 +250,7 @@ export default function DiscountsPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Tag className="h-3.5 w-3.5 text-amber-300" /> Promo Codes
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">🎁 Discount Codes</h1>
@@ -294,7 +294,7 @@ export default function DiscountsPage() {
           </div>
         </div>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>N</Kbd><span className="text-white/60">Naya code</span>
@@ -324,7 +324,7 @@ export default function DiscountsPage() {
           </div>
           <div>
             <h3 className="font-extrabold text-pink-900 dark:text-pink-200 text-sm">⚡ Ready-Made Codes</h3>
-            <p className="text-[11px] text-pink-700 dark:text-pink-300/80 font-bold">Click karo → form bhar jayega → edit karke save karo</p>
+            <p className="text-[0.6875rem] text-pink-700 dark:text-pink-300/80 font-bold">Click karo → form bhar jayega → edit karke save karo</p>
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
@@ -336,7 +336,7 @@ export default function DiscountsPage() {
             >
               <div className="text-2xl mb-1">{p.emoji}</div>
               <div className="font-mono text-xs font-extrabold text-pink-900 dark:text-pink-200 truncate">{p.code}</div>
-              <div className="text-[9px] text-slate-500 dark:text-slate-400 font-semibold truncate">
+              <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-semibold truncate">
                 {p.type === 'PERCENTAGE' ? `${p.value}% off` : `Rs ${p.value} off`}
               </div>
             </button>
@@ -369,7 +369,7 @@ export default function DiscountsPage() {
                 placeholder="EID2026"
                 maxLength={20}
               />
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
                 Customer POS pe type karega — chhota + yaad rakhne wala rakho
               </div>
             </div>
@@ -462,7 +462,7 @@ export default function DiscountsPage() {
             {/* Live Preview */}
             {preview && (
               <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-800/30 border-2 border-emerald-200 dark:border-emerald-500/40 p-3">
-                <div className="text-[10px] uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-extrabold mb-2 flex items-center gap-1">
+                <div className="text-[0.6875rem] uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-extrabold mb-2 flex items-center gap-1">
                   <Sparkles className="h-3 w-3" /> Live Preview
                 </div>
                 <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 space-y-1">
@@ -580,7 +580,7 @@ export default function DiscountsPage() {
                             <Copy className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition" />
                           </button>
                           {c.description && <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-0.5 line-clamp-2">{c.description}</div>}
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold mt-2 ${status.tone}`}>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold mt-2 ${status.tone}`}>
                             <StatusIcon className="h-2.5 w-2.5" />
                             {status.label}
                           </span>
@@ -607,13 +607,13 @@ export default function DiscountsPage() {
 
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">Discount</div>
+                          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">Discount</div>
                           <div className="font-extrabold text-pink-700 dark:text-pink-400 text-lg tabular-nums">
                             {c.type === 'PERCENTAGE' ? `${c.value}%` : formatPKR(c.value)}
                           </div>
                         </div>
                         <div>
-                          <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">Min Order</div>
+                          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">Min Order</div>
                           <div className="font-extrabold text-slate-700 dark:text-slate-300 tabular-nums">
                             {c.minPurchase > 0 ? formatPKR(c.minPurchase) : 'No min'}
                           </div>
@@ -622,7 +622,7 @@ export default function DiscountsPage() {
 
                       {c.usageLimit ? (
                         <div className="mt-3">
-                          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mb-1">
+                          <div className="flex items-center justify-between text-[0.6875rem] text-slate-500 dark:text-slate-400 mb-1">
                             <span className="font-extrabold">Usage: {c.usageCount} / {c.usageLimit}</span>
                             <span className="font-extrabold tabular-nums">{usagePct.toFixed(0)}%</span>
                           </div>
@@ -636,13 +636,13 @@ export default function DiscountsPage() {
                           </div>
                         </div>
                       ) : (
-                        <div className="mt-3 text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
+                        <div className="mt-3 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                           <span className="font-extrabold">Used: {c.usageCount}</span> • Unlimited
                         </div>
                       )}
 
                       {c.validUntil && (
-                        <div className="mt-2 flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
+                        <div className="mt-2 flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                           <Calendar className="h-3 w-3" />
                           Expires: <span className="font-extrabold">{new Date(c.validUntil).toLocaleDateString('en-PK')}</span>
                         </div>
@@ -702,7 +702,7 @@ function DiscountsTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Percentage vs Fixed */}
           <div className="rounded-2xl border-2 border-pink-200 dark:border-pink-500/30 bg-pink-50/60 dark:bg-pink-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-pink-700 dark:text-pink-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-pink-700 dark:text-pink-300">
               🎯 Percentage vs Fixed — Kaunsa Behtar?
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -779,9 +779,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

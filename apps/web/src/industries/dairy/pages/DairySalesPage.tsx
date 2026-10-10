@@ -249,7 +249,7 @@ export default function DairySalesPage() {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" />Date Range</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" />Date Range</label>
             <div className="flex gap-1.5 overflow-x-auto pb-1">
               {([
                 { v: 'today', l: 'Today' }, { v: 'yesterday', l: 'Yesterday' },
@@ -265,11 +265,11 @@ export default function DairySalesPage() {
             {dateFilter === 'custom' && (
               <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl bg-fuchsia-50 border-2 border-fuchsia-200 p-3">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-fuchsia-700 mb-1 block">From Date</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700 mb-1 block">From Date</label>
                   <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="h-10 w-full rounded-lg border-2 border-fuchsia-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-fuchsia-700 mb-1 block">To Date</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700 mb-1 block">To Date</label>
                   <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="h-10 w-full rounded-lg border-2 border-fuchsia-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
                 </div>
               </div>
@@ -277,7 +277,7 @@ export default function DairySalesPage() {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Slot Filter</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block">Slot Filter</label>
             <div className="flex gap-1.5">
               <button onClick={() => setSlotFilter('all')} className={`px-3 py-1.5 rounded-lg text-xs font-extrabold ${slotFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>All Slots</button>
               <button onClick={() => setSlotFilter('morning')} className={`px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 ${slotFilter === 'morning' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700'}`}>
@@ -290,7 +290,7 @@ export default function DairySalesPage() {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Payment Method</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block">Payment Method</label>
             <div className="flex gap-1.5 overflow-x-auto pb-1">
               <button onClick={() => setPaymentFilter('all')} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ${paymentFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>All Payments</button>
               {Object.entries(paymentConfig).map(([k, cfg]) => (
@@ -324,22 +324,22 @@ export default function DairySalesPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-extrabold text-slate-900">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
-                            {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>}
-                            {isMorning && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold inline-flex items-center gap-1"><Sunrise className="h-2.5 w-2.5" />MORNING</span>}
-                            {isEvening && <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-extrabold inline-flex items-center gap-1"><Sunset className="h-2.5 w-2.5" />EVENING</span>}
+                            {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">VOIDED</span>}
+                            {isMorning && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1"><Sunrise className="h-2.5 w-2.5" />MORNING</span>}
+                            {isEvening && <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1"><Sunset className="h-2.5 w-2.5" />EVENING</span>}
                           </div>
                           <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2 flex-wrap">
                             <User className="h-3 w-3" />{sale.customer?.name || 'Walk-in'}
                             {sale.customer?.phone && <><span>•</span><span>{sale.customer.phone}</span></>}
                             <span>•</span><Package className="h-3 w-3" />{sale.items.length} items
                           </div>
-                          <div className="mt-1 text-[10px] text-slate-500 inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
+                          <div className="mt-1 text-[0.6875rem] text-slate-500 inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-2xl font-extrabold text-fuchsia-700 tabular-nums"><HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} /></div>
-                        {sale.creditAmount > 0 && <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">Khata: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} /></div>}
-                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-fuchsia-600 group-hover:text-fuchsia-700"><Eye className="h-3 w-3" /> Receipt <ArrowRight className="h-3 w-3" /></div>
+                        {sale.creditAmount > 0 && <div className="text-[0.6875rem] text-amber-700 font-extrabold mt-0.5">Khata: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} /></div>}
+                        <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-fuchsia-600 group-hover:text-fuchsia-700"><Eye className="h-3 w-3" /> Receipt <ArrowRight className="h-3 w-3" /></div>
                       </div>
                     </div>
                   </Link>

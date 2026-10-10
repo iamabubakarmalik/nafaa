@@ -93,15 +93,15 @@ export default function SalonDashboardPage() {
 
         <div className="grid sm:grid-cols-3 gap-4">
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Total Revenue</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Total Revenue</div>
             <div className="mt-1 text-3xl font-extrabold tabular-nums text-emerald-300">{formatPKR(monthly.revenue)}</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Collected</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Collected</div>
             <div className="mt-1 text-3xl font-extrabold tabular-nums text-cyan-300">{formatPKR(monthly.collected)}</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Outstanding</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Outstanding</div>
             <div className="mt-1 text-3xl font-extrabold tabular-nums text-amber-300">{formatPKR(monthly.revenue - monthly.collected)}</div>
           </div>
         </div>
@@ -151,9 +151,9 @@ export default function SalonDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm text-slate-900 dark:text-white">{apt.customerName || apt.appointmentNumber}</span>
-                        {isSoon && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">SOON</span>}
+                        {isSoon && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">SOON</span>}
                         <span className={
-                          'px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' +
+                          'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +
                           (apt.status === 'CONFIRMED' ? 'bg-blue-500' : apt.status === 'ARRIVED' ? 'bg-cyan-500' : 'bg-slate-500')
                         }>
                           {apt.status}
@@ -167,7 +167,7 @@ export default function SalonDashboardPage() {
                       <div className="text-sm font-extrabold text-slate-900 dark:text-white">
                         {format(new Date(apt.scheduledStart), 'HH:mm')}
                       </div>
-                      <div className="text-[10px] font-bold text-slate-500">
+                      <div className="text-[0.6875rem] font-bold text-slate-500">
                         {format(new Date(apt.scheduledStart), 'dd MMM')}
                       </div>
                     </div>
@@ -210,11 +210,11 @@ export default function SalonDashboardPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm truncate">{s.name}</div>
-                    <div className="text-[10px] font-bold text-slate-500 uppercase">{s.role}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{s.role}</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums text-sm">{formatPKR(s.revenue)}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{s.appointmentCount} services</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{s.appointmentCount} services</div>
                   </div>
                 </div>
               ))
@@ -241,16 +241,16 @@ export default function SalonDashboardPage() {
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white flex items-center justify-center font-extrabold text-xs shadow">
                     {i + 1}
                   </div>
-                  <div className="text-[9px] uppercase font-extrabold text-slate-500">{s.service?.category?.replace('_', ' ')}</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">{s.service?.category?.replace('_', ' ')}</div>
                 </div>
                 <div className="font-extrabold text-sm text-slate-900 dark:text-white line-clamp-1">{s.service?.name}</div>
                 <div className="mt-2 grid grid-cols-2 gap-1">
                   <div>
-                    <div className="text-[9px] uppercase font-extrabold text-slate-500">Bookings</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Bookings</div>
                     <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{s._count._all}</div>
                   </div>
                   <div>
-                    <div className="text-[9px] uppercase font-extrabold text-emerald-700">Revenue</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Revenue</div>
                     <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(s._sum.total ?? 0)}</div>
                   </div>
                 </div>

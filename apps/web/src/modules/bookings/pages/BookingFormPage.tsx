@@ -663,8 +663,8 @@ export default function BookingFormPage() {
               <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/25">
                 <BookmarkPlus className="h-3.5 w-3.5 text-amber-300" />
                 New Booking
-                {isCarpetBusiness && <span className="ml-1 px-1.5 py-0.5 rounded bg-emerald-500/30 text-[10px] font-extrabold uppercase">🧶 Carpet</span>}
-                {isMobileBusiness && <span className="ml-1 px-1.5 py-0.5 rounded bg-blue-500/30 text-[10px] font-extrabold uppercase">📱 Mobile</span>}
+                {isCarpetBusiness && <span className="ml-1 px-1.5 py-0.5 rounded bg-emerald-500/30 text-[0.6875rem] font-extrabold uppercase">🧶 Carpet</span>}
+                {isMobileBusiness && <span className="ml-1 px-1.5 py-0.5 rounded bg-blue-500/30 text-[0.6875rem] font-extrabold uppercase">📱 Mobile</span>}
               </div>
               <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold">Create Booking / Advance</h1>
               <p className="mt-2 text-sm text-white/80 max-w-lg">
@@ -682,7 +682,7 @@ export default function BookingFormPage() {
             )}
           </div>
 
-          <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+          <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
             <Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd><span className="text-white/60">Submit</span>
             <span className="text-white/30 mx-1">•</span>
             <Kbd>↑</Kbd><Kbd>↓</Kbd><Kbd>Enter</Kbd><span className="text-white/60">Dropdown nav</span>
@@ -787,10 +787,10 @@ export default function BookingFormPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-bold text-sm truncate text-slate-900 dark:text-white">{c.name}</div>
-                            {c.phone && <div className="text-[10px] text-slate-500 dark:text-slate-400">{c.phone}</div>}
+                            {c.phone && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400">{c.phone}</div>}
                           </div>
                           {c.balance > 0 && (
-                            <span className="text-[10px] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/20 px-1.5 py-0.5 rounded">
+                            <span className="text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/20 px-1.5 py-0.5 rounded">
                               {formatPKR(c.balance)}
                             </span>
                           )}
@@ -819,7 +819,7 @@ export default function BookingFormPage() {
                 <Package className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 Items to Reserve <span className="text-rose-500">*</span>
                 {cart.length > 0 && (
-                  <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-extrabold">
+                  <span className="ml-auto text-[0.6875rem] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-extrabold">
                     {cart.length} item{cart.length !== 1 ? 's' : ''}
                   </span>
                 )}
@@ -872,20 +872,20 @@ export default function BookingFormPage() {
                           <div className="font-bold text-sm truncate flex items-center gap-1 text-slate-900 dark:text-white">
                             {p.name}
                             {isCarpet && (
-                              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1 py-0.5 rounded">
+                              <span className="inline-flex items-center gap-0.5 text-[0.625rem] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1 py-0.5 rounded">
                                 <Layers className="h-2 w-2" /> ROLLS
                               </span>
                             )}
                             {needsImei && (
-                              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 px-1 py-0.5 rounded">
+                              <span className="inline-flex items-center gap-0.5 text-[0.625rem] font-extrabold bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 px-1 py-0.5 rounded">
                                 <Smartphone className="h-2 w-2" /> IMEI
                               </span>
                             )}
                             {p.hasVariants && !isCarpet && (
-                              <span className="text-[9px] font-extrabold bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 px-1 py-0.5 rounded">VAR</span>
+                              <span className="text-[0.625rem] font-extrabold bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 px-1 py-0.5 rounded">VAR</span>
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400">
                             {formatPKR(p.price)}
                             {isCarpet ? (
                               <span className={carpetSqft > 0 ? 'text-emerald-700 dark:text-emerald-400 ml-1 font-bold' : 'text-rose-700 dark:text-rose-400 ml-1 font-bold'}>
@@ -899,7 +899,7 @@ export default function BookingFormPage() {
                           </div>
                         </div>
                         {outOfStock && (
-                          <span className="text-[9px] font-extrabold bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded">
+                          <span className="text-[0.625rem] font-extrabold bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 px-1.5 py-0.5 rounded">
                             OUT
                           </span>
                         )}
@@ -940,11 +940,11 @@ export default function BookingFormPage() {
                         <div className="flex-1 min-w-0">
                           <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{item.productName}</div>
                           {item.variantName && (
-                            <div className="text-[10px] font-extrabold text-violet-700 dark:text-violet-300">{item.variantName}</div>
+                            <div className="text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-300">{item.variantName}</div>
                           )}
                           <div className="flex flex-wrap gap-1 mt-1">
                             {item.rollNumber && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[9px] font-extrabold">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[0.625rem] font-extrabold">
                                 <Layers className="h-2 w-2" />
                                 {item.rollNumber}
                                 {item.cutWidthFt && item.cutLengthFt && (
@@ -953,19 +953,19 @@ export default function BookingFormPage() {
                               </span>
                             )}
                             {item.cutPieceCode && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-violet-100 dark:bg-violet-500/20 text-violet-800 dark:text-violet-300 text-[9px] font-extrabold">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-violet-100 dark:bg-violet-500/20 text-violet-800 dark:text-violet-300 text-[0.625rem] font-extrabold">
                                 <Scissors className="h-2 w-2" /> {item.cutPieceCode}
                               </span>
                             )}
                             {item.imeiNumber && (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 text-[9px] font-extrabold font-mono">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 text-[0.625rem] font-extrabold font-mono">
                                 <Smartphone className="h-2 w-2" /> {item.imeiNumber}
                               </span>
                             )}
                           </div>
                           <div className="grid grid-cols-3 gap-2 mt-2">
                             <div>
-                              <label className="text-[9px] uppercase font-extrabold text-slate-600 dark:text-slate-400 block mb-0.5">
+                              <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 block mb-0.5">
                                 Qty ({item.unit}) {(item.rollId || item.cutPieceId || item.imeiId) && '🔒'}
                               </label>
                               <input
@@ -979,7 +979,7 @@ export default function BookingFormPage() {
                               />
                             </div>
                             <div>
-                              <label className="text-[9px] uppercase font-extrabold text-slate-600 dark:text-slate-400 block mb-0.5">
+                              <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 block mb-0.5">
                                 Rate (PKR){item.rollId && ' /sqft'}
                               </label>
                               <input
@@ -991,7 +991,7 @@ export default function BookingFormPage() {
                               />
                             </div>
                             <div>
-                              <label className="text-[9px] uppercase font-extrabold text-slate-600 dark:text-slate-400 block mb-0.5">Discount</label>
+                              <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 block mb-0.5">Discount</label>
                               <input
                                 type="number"
                                 step="0.01"
@@ -1040,7 +1040,7 @@ export default function BookingFormPage() {
                 {expectedPickupAt && (
                   <button
                     onClick={() => setExpectedPickupAt('')}
-                    className="h-7 px-2.5 rounded-lg bg-rose-100 dark:bg-rose-500/20 hover:bg-rose-200 dark:hover:bg-rose-500/30 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold inline-flex items-center gap-1 transition"
+                    className="h-7 px-2.5 rounded-lg bg-rose-100 dark:bg-rose-500/20 hover:bg-rose-200 dark:hover:bg-rose-500/30 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
                   >
                     <X className="h-3 w-3" /> Clear
                   </button>
@@ -1081,7 +1081,7 @@ export default function BookingFormPage() {
               <h3 className="font-extrabold text-slate-900 dark:text-white mb-3">Notes</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="text-[10px] font-extrabold uppercase text-amber-700 dark:text-amber-300 mb-1 block">
+                  <label className="text-[0.6875rem] font-extrabold uppercase text-amber-700 dark:text-amber-300 mb-1 block">
                     Customer Note (receipt pe dikhega)
                   </label>
                   <textarea
@@ -1093,7 +1093,7 @@ export default function BookingFormPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-extrabold uppercase text-slate-700 dark:text-slate-300 mb-1 block">
+                  <label className="text-[0.6875rem] font-extrabold uppercase text-slate-700 dark:text-slate-300 mb-1 block">
                     Internal Note (team-only, receipt pe nahi)
                   </label>
                   <textarea
@@ -1140,7 +1140,7 @@ export default function BookingFormPage() {
 
                 {/* Profit hint */}
                 {total > 0 && totalCost > 0 && (
-                  <div className={`mt-2 pt-2 border-t border-white/10 flex justify-between text-[11px] font-bold ${
+                  <div className={`mt-2 pt-2 border-t border-white/10 flex justify-between text-[0.6875rem] font-bold ${
                     grossProfit >= 0 ? 'text-emerald-300' : 'text-rose-300'
                   }`}>
                     <span>Profit ({profitMargin.toFixed(1)}%)</span>
@@ -1175,7 +1175,7 @@ export default function BookingFormPage() {
                     key={pct}
                     onClick={() => applyAdvancePercent(pct)}
                     disabled={total <= 0}
-                    className="h-8 px-2.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 border-2 border-emerald-200 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold inline-flex items-center gap-1 disabled:opacity-40 transition"
+                    className="h-8 px-2.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 border-2 border-emerald-200 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 disabled:opacity-40 transition"
                   >
                     <Percent className="h-2.5 w-2.5" /> {(pct * 100).toFixed(0)}%
                   </button>
@@ -1183,7 +1183,7 @@ export default function BookingFormPage() {
                 {advance > 0 && (
                   <button
                     onClick={() => setInitialAdvance('')}
-                    className="h-8 px-2.5 rounded-lg bg-rose-100 dark:bg-rose-500/20 hover:bg-rose-200 dark:hover:bg-rose-500/30 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold inline-flex items-center gap-1 transition"
+                    className="h-8 px-2.5 rounded-lg bg-rose-100 dark:bg-rose-500/20 hover:bg-rose-200 dark:hover:bg-rose-500/30 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
                   >
                     <X className="h-3 w-3" /> Clear
                   </button>
@@ -1201,7 +1201,7 @@ export default function BookingFormPage() {
                 />
                 {advance > 0 && (
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">
                       Payment Method
                     </label>
                     <select
@@ -1224,13 +1224,13 @@ export default function BookingFormPage() {
             <div className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-700 p-4">
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Advance</div>
+                  <div className="text-[0.6875rem] uppercase font-bold text-slate-500 dark:text-slate-400">Advance</div>
                   <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                     {formatPKR(advance)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">Balance</div>
+                  <div className="text-[0.6875rem] uppercase font-bold text-slate-500 dark:text-slate-400">Balance</div>
                   <div className="text-lg font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">
                     {formatPKR(balance)}
                   </div>
@@ -1246,7 +1246,7 @@ export default function BookingFormPage() {
                       style={{ width: `${Math.min(advancePercent, 100)}%` }}
                     />
                   </div>
-                  <div className="text-center text-[9px] font-extrabold text-slate-500 dark:text-slate-400 mt-1">
+                  <div className="text-center text-[0.625rem] font-extrabold text-slate-500 dark:text-slate-400 mt-1">
                     {advancePercent.toFixed(1)}% paid
                   </div>
                 </div>
@@ -1264,7 +1264,7 @@ export default function BookingFormPage() {
               Create Booking · {formatPKR(total)}
             </Button>
 
-            <div className="text-center text-[10px] font-bold text-slate-500 dark:text-slate-400">
+            <div className="text-center text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               <Kbd small>Ctrl</Kbd>+<Kbd small>Enter</Kbd> se bhi submit ho jayega
             </div>
           </aside>
@@ -1289,7 +1289,7 @@ function PresetChip({ label, onClick }: { label: string; onClick: () => void }) 
   return (
     <button
       onClick={onClick}
-      className="h-7 px-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 border-2 border-amber-200 dark:border-amber-500/40 text-amber-700 dark:text-amber-300 text-[10px] font-extrabold transition"
+      className="h-7 px-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 border-2 border-amber-200 dark:border-amber-500/40 text-amber-700 dark:text-amber-300 text-[0.6875rem] font-extrabold transition"
     >
       {label}
     </button>
@@ -1301,8 +1301,8 @@ function Kbd({ children, small }: { children: React.ReactNode; small?: boolean }
     <kbd
       className={`px-1.5 py-0.5 rounded font-mono font-bold shadow-sm ${
         small
-          ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[9px] border border-slate-300 dark:border-slate-600'
-          : 'bg-white/15 border border-white/25 text-white text-[9px]'
+          ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[0.625rem] border border-slate-300 dark:border-slate-600'
+          : 'bg-white/15 border border-white/25 text-white text-[0.625rem]'
       }`}
     >
       {children}
@@ -1336,7 +1336,7 @@ function BookingFormTeacher({ onClose }: { onClose: () => void }) {
           </p>
 
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-2">
               💡 Pro Tips
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -1349,7 +1349,7 @@ function BookingFormTeacher({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-2">
               🔒 Locked Items
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">

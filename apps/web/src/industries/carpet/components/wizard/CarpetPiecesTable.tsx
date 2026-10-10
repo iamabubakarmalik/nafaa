@@ -154,7 +154,7 @@ export function CarpetPiecesTable({
 
       {/* Footer */}
       <div className="border-t border-slate-100 bg-violet-50/50 p-2 flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-3 text-[11px] font-extrabold text-violet-800 pl-1">
+        <div className="flex items-center gap-3 text-[0.6875rem] font-extrabold text-violet-800 pl-1">
           <span>📦 {totalPieces} pieces</span>
           <span className="text-violet-400">•</span>
           <span>📐 {totalSqft.toFixed(1)} sqft total</span>
@@ -164,7 +164,7 @@ export function CarpetPiecesTable({
         <button
           type="button"
           onClick={onAdd}
-          className="px-2.5 py-1 rounded-lg bg-white border-2 border-dashed border-violet-300 hover:border-violet-500 hover:bg-violet-50 text-violet-700 text-[11px] font-extrabold inline-flex items-center gap-1 transition"
+          className="px-2.5 py-1 rounded-lg bg-white border-2 border-dashed border-violet-300 hover:border-violet-500 hover:bg-violet-50 text-violet-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
         >
           <Plus className="h-3 w-3" /> Add Piece Line
         </button>
@@ -175,12 +175,12 @@ export function CarpetPiecesTable({
 
 function ColHead({ label, hint, icon: Icon }: { label: string; hint?: string; icon?: any }) {
   return (
-    <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">
+    <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">
       <div className="flex items-center gap-0.5">
         {Icon && <Icon className="h-2.5 w-2.5" />}
         {label}
       </div>
-      {hint && <div className="text-[9px] font-bold text-slate-400 normal-case">{hint}</div>}
+      {hint && <div className="text-[0.625rem] font-bold text-slate-400 normal-case">{hint}</div>}
     </th>
   );
 }
@@ -219,7 +219,7 @@ function NumCell({
         ].join(' ')}
       />
       {suffix && (
-        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-extrabold text-slate-400 pointer-events-none">
+        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[0.625rem] font-extrabold text-slate-400 pointer-events-none">
           {suffix}
         </span>
       )}

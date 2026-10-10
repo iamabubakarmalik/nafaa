@@ -115,10 +115,10 @@ export default function WarrantyPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold">{c.claimNumber}</span>
-                      <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + STATUS_COLORS[c.status]}>
+                      <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[c.status]}>
                         {c.status.replace('_', ' ')}
                       </span>
-                      <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[9px] font-extrabold uppercase">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
                         {c.claimType.replace('_', ' ')}
                       </span>
                     </div>
@@ -219,17 +219,17 @@ function WarrantyForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Original Service Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Original Service Date</label>
             <input type="date" value={form.originalServiceDate} onChange={(e) => setForm({ ...form, originalServiceDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Warranty Expiry Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Warranty Expiry Date</label>
             <input type="date" value={form.warrantyExpiryDate} onChange={(e) => setForm({ ...form, warrantyExpiryDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
           </div>
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Photos of Issue</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photos of Issue</label>
           {form.photoUrls.length > 0 && (
             <div className="grid grid-cols-4 gap-1 mb-2">
               {form.photoUrls.map((url: string, i: number) => (

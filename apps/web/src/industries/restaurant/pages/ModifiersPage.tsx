@@ -154,19 +154,19 @@ function ModifierGroupCard({ group, onEdit, onToggle, onDelete }: {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">{group.name}</h3>
-              <span className="px-2 py-0.5 rounded-md bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[9px] font-extrabold uppercase">
+              <span className="px-2 py-0.5 rounded-md bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[0.625rem] font-extrabold uppercase">
                 {typeCfg?.label || group.type}
               </span>
               {group.isRequired && (
-                <span className="px-2 py-0.5 rounded-md bg-red-100 dark:bg-red-950/40 text-red-700 text-[9px] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded-md bg-red-100 dark:bg-red-950/40 text-red-700 text-[0.625rem] font-extrabold uppercase">
                   Required
                 </span>
               )}
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-800 text-slate-600 text-[9px] font-extrabold uppercase">
+              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-800 text-slate-600 text-[0.625rem] font-extrabold uppercase">
                 Choose {group.minSelections}–{group.maxSelections}
               </span>
               {group._count?.menuItems ? (
-                <span className="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                   <Package className="h-2 w-2" />
                   {group._count.menuItems} items
                 </span>
@@ -194,7 +194,7 @@ function ModifierGroupCard({ group, onEdit, onToggle, onDelete }: {
                       {(opt.priceAdjustment ?? 0) > 0 ? '+' : ''}{formatPKR(opt.priceAdjustment ?? 0)}
                     </span>
                   )}
-                  {opt.isDefault && <span className="text-[8px] uppercase text-emerald-600">DEF</span>}
+                  {opt.isDefault && <span className="text-[0.625rem] uppercase text-emerald-600">DEF</span>}
                 </div>
               ))}
             </div>
@@ -294,7 +294,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
         {/* Basic Info */}
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Group Name *</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Group Name *</label>
             <input
               autoFocus
               value={form.name}
@@ -304,7 +304,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Type</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Type</label>
             <select
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value as ModifierType })}
@@ -318,7 +318,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Description</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Description</label>
           <input
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -338,7 +338,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Min Selections</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Min Selections</label>
               <input
                 type="number"
                 min="0"
@@ -348,7 +348,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
               />
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Max Selections</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Max Selections</label>
               <input
                 type="number"
                 min="1"
@@ -448,7 +448,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
               </div>
             ))}
           </div>
-          <div className="mt-1 flex items-center justify-between text-[10px] font-bold text-slate-500 px-1">
+          <div className="mt-1 flex items-center justify-between text-[0.6875rem] font-bold text-slate-500 px-1">
             <span>Order • Emoji • Name • Price Adjustment • Default? • Delete</span>
           </div>
         </div>

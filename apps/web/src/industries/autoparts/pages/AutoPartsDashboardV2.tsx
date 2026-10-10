@@ -157,23 +157,23 @@ export default function AutoPartsDashboardV2() {
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="rounded-2xl bg-white border-2 border-slate-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-slate-700">Total Active</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-700">Total Active</div>
             <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{jobStats.total}</div>
           </div>
           <div className="rounded-2xl bg-white border-2 border-amber-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-amber-700">In Progress</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">In Progress</div>
             <div className="text-2xl font-extrabold text-amber-900 tabular-nums mt-1">{jobStats.inProgress}</div>
           </div>
           <div className="rounded-2xl bg-white border-2 border-orange-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-orange-700">Waiting</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-orange-700">Waiting</div>
             <div className="text-2xl font-extrabold text-orange-900 tabular-nums mt-1">{jobStats.waiting}</div>
           </div>
           <div className="rounded-2xl bg-white border-2 border-emerald-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Ready</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Ready</div>
             <div className="text-2xl font-extrabold text-emerald-900 tabular-nums mt-1">{jobStats.ready}</div>
           </div>
           <div className="rounded-2xl bg-white border-2 border-rose-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-rose-700">Urgent</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700">Urgent</div>
             <div className="text-2xl font-extrabold text-rose-900 tabular-nums mt-1">{jobStats.urgent}</div>
           </div>
         </div>
@@ -189,7 +189,7 @@ export default function AutoPartsDashboardV2() {
                   <AlertTriangle className="h-6 w-6" />
                 </div>
                 <div>
-                  <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-90">⚠️ Overdue Alerts</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider opacity-90">⚠️ Overdue Alerts</div>
                   <h3 className="text-2xl font-bold mt-1">{overdueReminders.length}</h3>
                 </div>
               </div>
@@ -206,7 +206,7 @@ export default function AutoPartsDashboardV2() {
                 <Bell className="h-6 w-6" />
               </div>
               <div>
-                <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-90">📅 Upcoming</div>
+                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider opacity-90">📅 Upcoming</div>
                 <h3 className="text-2xl font-bold mt-1">{upcomingReminders.length}</h3>
               </div>
             </div>
@@ -328,8 +328,8 @@ export default function AutoPartsDashboardV2() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-extrabold text-slate-900 text-sm">{job.jobNumber}</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase ${statusColor}`}>{job.status}</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase ${priorityColor}`}>{job.priority}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ${statusColor}`}>{job.status}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ${priorityColor}`}>{job.priority}</span>
                       </div>
                       <div className="text-xs text-slate-600 font-semibold mt-0.5 flex items-center gap-1">
                         <Car className="h-3 w-3" />
@@ -339,7 +339,7 @@ export default function AutoPartsDashboardV2() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(job.total)}</div>
-                    <div className="text-[10px] text-slate-500 font-bold mt-0.5">{formatDate(job.createdAt)}</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{formatDate(job.createdAt)}</div>
                   </div>
                 </Link>
               );

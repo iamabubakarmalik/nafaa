@@ -397,7 +397,7 @@ export default function LoginPage() {
 
             {/* Show saved account even when online */}
             {isOnline && offlineAvailable && cachedEmail && (
-              <p className="text-center text-[11px] text-slate-400 font-medium">
+              <p className="text-center text-[0.6875rem] text-slate-400 font-medium">
                 💾 Offline access ready for: <strong className="text-slate-600">{cachedEmail}</strong>
                 {' • '}
                 <button

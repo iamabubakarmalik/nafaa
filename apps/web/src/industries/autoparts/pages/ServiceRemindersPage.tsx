@@ -91,9 +91,9 @@ export default function ServiceRemindersPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-slate-900 dark:text-white">{r.title}</span>
-                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-extrabold uppercase">{r.reminderType}</span>
+                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">{r.reminderType}</span>
                         <span className={
-                          'px-2 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' +
+                          'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +
                           (r.status === 'DONE' ? 'bg-emerald-500' : r.status === 'PENDING' ? 'bg-blue-500' : 'bg-amber-500')
                         }>{r.status}</span>
                       </div>

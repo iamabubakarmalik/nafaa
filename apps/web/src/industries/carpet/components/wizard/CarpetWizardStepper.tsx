@@ -52,7 +52,7 @@ export function CarpetWizardStepper({ currentStep, stepValidation, onStepClick }
                 </div>
                 <div className="text-left min-w-0">
                   <div className={[
-                    'text-[10px] uppercase tracking-wider font-extrabold',
+                    'text-[0.6875rem] uppercase tracking-wider font-extrabold',
                     isActive ? 'text-white/90' : isPast ? 'text-emerald-700' : 'text-slate-500',
                   ].join(' ')}>
                     Step {s.id}
@@ -62,7 +62,7 @@ export function CarpetWizardStepper({ currentStep, stepValidation, onStepClick }
                     <span className="hidden sm:inline">{s.label}</span>
                   </div>
                   <div className={[
-                    'text-[10px] font-bold leading-tight hidden sm:block',
+                    'text-[0.6875rem] font-bold leading-tight hidden sm:block',
                     isActive ? 'text-white/80' : 'text-slate-500',
                   ].join(' ')}>{s.desc}</div>
                 </div>

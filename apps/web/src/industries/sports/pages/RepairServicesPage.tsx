@@ -159,7 +159,7 @@ export default function RepairServicesPage() {
                 className="rounded-xl bg-white border-2 border-rose-200 hover:border-rose-400 p-3 text-left transition">
                 <div className="flex items-center justify-between gap-2">
                   <div className="font-mono font-extrabold text-sm text-rose-900">{r.serviceNumber}</div>
-                  <div className="text-[10px] font-extrabold text-rose-700">
+                  <div className="text-[0.6875rem] font-extrabold text-rose-700">
                     {r.estimatedReadyAt && Math.abs(Math.floor((Date.now() - new Date(r.estimatedReadyAt).getTime()) / 86400000))} days late
                   </div>
                 </div>
@@ -248,11 +248,11 @@ function RepairCard({ repair: r, onView, onDelete }: any) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono font-extrabold text-slate-900 text-sm">{r.serviceNumber}</span>
-            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
+            <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
               <StatusIcon className="h-2.5 w-2.5" /> {meta.label}
             </span>
             {isOverdue && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold">
+              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold">
                 {daysLate}d late
               </span>
             )}
@@ -272,7 +272,7 @@ function RepairCard({ repair: r, onView, onDelete }: any) {
 
           <div className="text-xs text-slate-500 font-semibold italic mt-1 line-clamp-1">"{r.issue}"</div>
 
-          <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-500 font-bold">
+          <div className="flex items-center gap-3 mt-1.5 text-[0.6875rem] text-slate-500 font-bold">
             <span className="inline-flex items-center gap-0.5">
               <Calendar className="h-2.5 w-2.5" />
               Received: {new Date(r.receivedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
@@ -291,19 +291,19 @@ function RepairCard({ repair: r, onView, onDelete }: any) {
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">
             {r.finalCost ? 'Final' : 'Estimated'}
           </div>
           <div className="text-lg font-extrabold text-slate-900 tabular-nums">
             {formatPKR(r.finalCost || r.estimatedCost || 0)}
           </div>
           {r.advancePaid > 0 && (
-            <div className="text-[10px] font-bold text-slate-500 mt-0.5">
+            <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">
               Paid: <span className="text-emerald-700">{formatPKR(r.advancePaid)}</span>
             </div>
           )}
           {balance > 0 && (
-            <div className="text-[10px] font-extrabold text-rose-700 mt-0.5">
+            <div className="text-[0.6875rem] font-extrabold text-rose-700 mt-0.5">
               Balance: {formatPKR(balance)}
             </div>
           )}
@@ -602,18 +602,18 @@ function RepairDetailModal({ repair, onClose, onUpdated }: any) {
             <div className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">💰 Billing</div>
             <div className="grid sm:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[10px] font-extrabold text-emerald-700 mb-1">Estimated</label>
+                <label className="block text-[0.6875rem] font-extrabold text-emerald-700 mb-1">Estimated</label>
                 <div className="h-11 rounded-xl border-2 border-emerald-200 bg-white px-3 flex items-center text-sm font-extrabold tabular-nums text-slate-600">
                   {formatPKR(repair.estimatedCost || 0)}
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold text-emerald-700 mb-1">Final Cost</label>
+                <label className="block text-[0.6875rem] font-extrabold text-emerald-700 mb-1">Final Cost</label>
                 <input type="number" value={finalCost} onChange={(e) => setFinalCost(Number(e.target.value))}
                   className="h-11 w-full rounded-xl border-2 border-emerald-400 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-600" />
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold text-emerald-700 mb-1">Advance Paid</label>
+                <label className="block text-[0.6875rem] font-extrabold text-emerald-700 mb-1">Advance Paid</label>
                 <div className="h-11 rounded-xl border-2 border-emerald-200 bg-white px-3 flex items-center text-sm font-extrabold tabular-nums text-emerald-800">
                   {formatPKR(repair.advancePaid || 0)}
                 </div>
@@ -662,7 +662,7 @@ function RepairDetailModal({ repair, onClose, onUpdated }: any) {
 function InfoBox({ label, value }: any) {
   return (
     <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-sm font-extrabold text-slate-900 mt-0.5">{value}</div>
     </div>
   );
@@ -678,7 +678,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
     <C onClick={onClick} className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-amber-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

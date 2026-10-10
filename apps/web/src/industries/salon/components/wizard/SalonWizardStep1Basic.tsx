@@ -114,7 +114,7 @@ export function SalonWizardStep1Basic({ basic, onChange, errors }: Props) {
                   ].join(' ')}
                 >
                   <span className="text-xl">{cat.emoji}</span>
-                  <span className="text-[10px] leading-tight text-center">{cat.label}</span>
+                  <span className="text-[0.6875rem] leading-tight text-center">{cat.label}</span>
                 </button>
               );
             })}
@@ -178,7 +178,7 @@ export function SalonWizardStep1Basic({ basic, onChange, errors }: Props) {
               <TrendingUp className={['h-5 w-5',
                 isLoss ? 'text-rose-700' : margin >= 50 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
               <div>
-                <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                   isLoss ? 'text-rose-700' : margin >= 50 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                   {isLoss ? '⚠️ Loss Alert' : 'Profit per service'}
                 </div>

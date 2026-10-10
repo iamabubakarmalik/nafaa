@@ -156,7 +156,7 @@ export function PosUnitPicker({
                     ].join(' ')}
                   >
                     {p}
-                    <div className={['text-[10px] font-bold uppercase', active ? 'text-emerald-100' : 'text-slate-500'].join(' ')}>
+                    <div className={['text-[0.6875rem] font-bold uppercase', active ? 'text-emerald-100' : 'text-slate-500'].join(' ')}>
                       {selectedUnit.unitName}
                     </div>
                   </button>

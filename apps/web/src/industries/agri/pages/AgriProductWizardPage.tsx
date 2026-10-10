@@ -623,13 +623,13 @@ export default function AgriProductWizardPage() {
         <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-300 dark:border-amber-500/40 p-3 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2 min-w-0">
             <Sparkles className="h-4 w-4 text-amber-600 shrink-0" />
-            <span className="text-[13px] font-bold text-amber-900 dark:text-amber-200">
+            <span className="text-[0.8125rem] font-bold text-amber-900 dark:text-amber-200">
               Adhoora kaam mil gaya — wahin se shuru karein
             </span>
           </div>
           <div className="flex gap-1.5 shrink-0">
             <button onClick={() => { if (confirm('Naye sire se shuru karein?')) { w.reset(); setShowDraft(false); } }}
-              className="h-9 px-3 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-300 text-amber-800 dark:text-amber-200 text-[11px] font-black inline-flex items-center gap-1">
+              className="h-9 px-3 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-300 text-amber-800 dark:text-amber-200 text-[0.6875rem] font-black inline-flex items-center gap-1">
               <Trash2 className="h-3 w-3" /> Naya shuru
             </button>
             <button onClick={() => setShowDraft(false)}
@@ -664,7 +664,7 @@ export default function AgriProductWizardPage() {
         <div className="absolute inset-0 opacity-[0.06]"
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
         <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
             <Sprout className="h-3.5 w-3.5 text-lime-300" /> {isEdit ? 'Edit' : 'Nayi cheez'}
           </div>
           <h1 className="mt-2.5 text-2xl sm:text-3xl font-black leading-tight">
@@ -756,11 +756,11 @@ function AStepper({ current, validation, onGo }: any) {
                     : done ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                 </span>
                 <span className="text-left">
-                  <span className={`block text-[9px] uppercase tracking-wider font-black ${active ? 'text-white/80' : 'text-slate-400'}`}>
+                  <span className={`block text-[0.625rem] uppercase tracking-wider font-black ${active ? 'text-white/80' : 'text-slate-400'}`}>
                     Step {s.id} / 3
                   </span>
                   <span className="block text-sm font-black leading-tight">{s.label}</span>
-                  <span className={`block text-[10px] font-bold leading-tight ${active ? 'text-white/75' : bad ? 'text-rose-500' : 'text-slate-400'}`}>
+                  <span className={`block text-[0.6875rem] font-bold leading-tight ${active ? 'text-white/75' : bad ? 'text-rose-500' : 'text-slate-400'}`}>
                     {bad ? (v?.errors?.[0] ?? 'Kuch reh gaya') : s.desc}
                   </span>
                 </span>
@@ -851,14 +851,14 @@ function AStep1({ basic, onChange, onNext, validation, safety, onSafety, isEdit,
                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-300 hover:-translate-y-0.5',
                 ].join(' ')}>
                 <div className="text-2xl">{u.emoji}</div>
-                <div className={`mt-1 text-[11px] font-black ${on ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-300'}`}>
+                <div className={`mt-1 text-[0.6875rem] font-black ${on ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-300'}`}>
                   {u.label}
                 </div>
               </button>
             );
           })}
         </div>
-        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{def.hint}</p>
+        <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{def.hint}</p>
 
         {base === 'custom' && (
           <AField label="Apne naap ka naam" req>
@@ -944,7 +944,7 @@ function AStep1({ basic, onChange, onNext, validation, safety, onSafety, isEdit,
               <strong>{Number(safety.currentStock || 0)}</strong> kiya ja raha hai.
             </ANote>
           ) : (
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               Godown me abhi <strong>{originalStock}</strong> hai. Haath na lagayein to waisa hi rahega.
             </p>
           )
@@ -963,7 +963,7 @@ function AStep1({ basic, onChange, onNext, validation, safety, onSafety, isEdit,
                 <div key={k} className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 flex items-center gap-2.5 flex-wrap">
                   <span className="text-xl shrink-0">{d.emoji}</span>
                   <span className="font-extrabold text-sm text-slate-900 dark:text-white shrink-0">Per {d.label}</span>
-                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                     1 {d.label.toLowerCase()} = <strong>{rate.toFixed(rate < 1 ? 4 : 2)}</strong> {baseName} stock se
                   </span>
                   <button type="button" onClick={() => setAdded((xs) => xs.filter((x) => x !== k))}
@@ -982,7 +982,7 @@ function AStep1({ basic, onChange, onNext, validation, safety, onSafety, isEdit,
               const d = agriUnitDef(k);
               return (
                 <button key={k} type="button" onClick={() => setAdded((xs) => [...xs, k])}
-                  className="h-10 px-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-[11px] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition">
+                  className="h-10 px-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition">
                   <Plus className="h-3.5 w-3.5 text-emerald-500" /> {d.emoji} Per {d.label}
                 </button>
               );
@@ -1033,7 +1033,7 @@ function AStep1({ basic, onChange, onNext, validation, safety, onSafety, isEdit,
             {basic.imageUrls.map((url: string, i: number) => (
               <div key={i} className="relative aspect-square rounded-xl overflow-hidden border-2 border-slate-200 dark:border-slate-700 group">
                 <img src={url} alt="" className="h-full w-full object-cover" />
-                {i === 0 && <span className="absolute top-1 left-1 text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-600 text-white">Main</span>}
+                {i === 0 && <span className="absolute top-1 left-1 text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded bg-emerald-600 text-white">Main</span>}
                 <button type="button" onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_: any, x: number) => x !== i) })}
                   className="absolute top-1 right-1 h-6 w-6 rounded-lg bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                   <X className="h-3 w-3 text-rose-600" />
@@ -1065,7 +1065,7 @@ function AStep1({ basic, onChange, onNext, validation, safety, onSafety, isEdit,
                 <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
                   on ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
                 }`}><Icon className="h-4 w-4" /></span>
-                <span className="text-[11px] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
+                <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
               </button>
             );
           })}
@@ -1079,7 +1079,7 @@ function AStep1({ basic, onChange, onNext, validation, safety, onSafety, isEdit,
                 return (
                   <button key={t.id} type="button"
                     onClick={() => onChange({ tagIds: on ? basic.tagIds.filter((x: string) => x !== t.id) : [...basic.tagIds, t.id] })}
-                    className={`h-9 px-3 rounded-lg border-2 text-[11px] font-extrabold transition ${
+                    className={`h-9 px-3 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                       on ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                         : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                     }`}>{t.name}</button>
@@ -1167,7 +1167,7 @@ function AStep2({ basic, profile, onChange, onToggleCrop, onTogglePest, onToggle
             <div className="flex flex-wrap gap-1.5">
               {SEED_TYPES.map((t) => (
                 <button key={t} type="button" onClick={() => onChange({ seedType: basic.seedType === t ? '' : t } as any)}
-                  className={`h-9 px-3 rounded-lg border-2 text-[11px] font-extrabold transition ${
+                  className={`h-9 px-3 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                     basic.seedType === t ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                   }`}>{pretty(t)}</button>
@@ -1182,7 +1182,7 @@ function AStep2({ basic, profile, onChange, onToggleCrop, onTogglePest, onToggle
               <div className="flex flex-wrap gap-1.5">
                 {FERT_TYPES.map((t) => (
                   <button key={t} type="button" onClick={() => onChange({ fertilizerType: basic.fertilizerType === t ? '' : t } as any)}
-                    className={`h-9 px-3 rounded-lg border-2 text-[11px] font-extrabold transition ${
+                    className={`h-9 px-3 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                       basic.fertilizerType === t ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                         : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                     }`}>{pretty(t)}</button>
@@ -1201,7 +1201,7 @@ function AStep2({ basic, profile, onChange, onToggleCrop, onTogglePest, onToggle
             <div className="flex flex-wrap gap-1.5">
               {FEED_TYPES.map((t) => (
                 <button key={t} type="button" onClick={() => onChange({ feedType: basic.feedType === t ? '' : t } as any)}
-                  className={`h-9 px-3 rounded-lg border-2 text-[11px] font-extrabold transition ${
+                  className={`h-9 px-3 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                     basic.feedType === t ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                   }`}>{pretty(t)}</button>
@@ -1270,7 +1270,7 @@ function AStep2({ basic, profile, onChange, onToggleCrop, onTogglePest, onToggle
                   const on = profile.targetCrops.includes(c);
                   return (
                     <button key={c} type="button" onClick={() => onToggleCrop(c)}
-                      className={`h-9 px-3 rounded-lg border-2 text-[11px] font-extrabold transition ${
+                      className={`h-9 px-3 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                         on ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                           : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                       }`}>{c}</button>
@@ -1290,7 +1290,7 @@ function AStep2({ basic, profile, onChange, onToggleCrop, onTogglePest, onToggle
               {profile.targetCrops.filter((c: string) => !CROPS.includes(c)).length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {profile.targetCrops.filter((c: string) => !CROPS.includes(c)).map((c: string) => (
-                    <span key={c} className="h-9 px-3 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 text-[11px] font-extrabold inline-flex items-center gap-1.5">
+                    <span key={c} className="h-9 px-3 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5">
                       {c}<button type="button" onClick={() => onToggleCrop(c)}><X className="h-3 w-3" /></button>
                     </span>
                   ))}
@@ -1306,7 +1306,7 @@ function AStep2({ basic, profile, onChange, onToggleCrop, onTogglePest, onToggle
                   const on = profile.targetPests.includes(p);
                   return (
                     <button key={p} type="button" onClick={() => onTogglePest(p)}
-                      className={`h-9 px-3 rounded-lg border-2 text-[11px] font-extrabold transition ${
+                      className={`h-9 px-3 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                         on ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
                           : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                       }`}>{p}</button>
@@ -1323,7 +1323,7 @@ function AStep2({ basic, profile, onChange, onToggleCrop, onTogglePest, onToggle
                   const on = profile.targetAnimals.includes(a);
                   return (
                     <button key={a} type="button" onClick={() => onToggleAnimal(a)}
-                      className={`h-9 px-3 rounded-lg border-2 text-[11px] font-extrabold transition ${
+                      className={`h-9 px-3 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                         on ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
                           : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                       }`}>{a}</button>
@@ -1343,8 +1343,8 @@ function AStep2({ basic, profile, onChange, onToggleCrop, onTogglePest, onToggle
                       on ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-300'
                     }`}>
                     <div className="text-lg">{s.e}</div>
-                    <div className={`text-[12px] font-black ${on ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-900 dark:text-white'}`}>{s.l}</div>
-                    <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-tight mt-0.5">{s.hint}</div>
+                    <div className={`text-[0.75rem] font-black ${on ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-900 dark:text-white'}`}>{s.l}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 leading-tight mt-0.5">{s.hint}</div>
                   </button>
                 );
               })}
@@ -1442,8 +1442,8 @@ function AStep3({ basic, safety, onChange, onBack, onSubmit, saving, validation,
                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-rose-300'
                   }`}>
                   <div className="text-xl">{t.e}</div>
-                  <div className={`text-[12px] font-black mt-0.5 ${on ? 'text-rose-800 dark:text-rose-300' : 'text-slate-900 dark:text-white'}`}>{t.l}</div>
-                  <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-tight mt-0.5">{t.hint}</div>
+                  <div className={`text-[0.75rem] font-black mt-0.5 ${on ? 'text-rose-800 dark:text-rose-300' : 'text-slate-900 dark:text-white'}`}>{t.l}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 leading-tight mt-0.5">{t.hint}</div>
                 </button>
               );
             })}
@@ -1566,15 +1566,15 @@ function ASummary({ draft, stats, allValid }: any) {
           {img ? <img src={img} alt="" className="h-full w-full object-cover" />
                : <span className="text-5xl">{AGRI_KIND_EMOJI[kind]}</span>}
         </div>
-        <div className="text-[10px] font-black uppercase tracking-widest text-white/60">
+        <div className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60">
           {b.categoryName || 'Category nahi chuni'}
         </div>
         <div className="text-lg font-black leading-tight break-words">{b.name || 'Naam nahi likha'}</div>
         {allValid
-          ? <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/20 border border-emerald-400/30 px-2 py-1 text-[10px] font-black text-emerald-200">
+          ? <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/20 border border-emerald-400/30 px-2 py-1 text-[0.6875rem] font-black text-emerald-200">
               <CheckCircle2 className="h-3 w-3" /> Save ke liye tayyar
             </div>
-          : <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-500/20 border border-amber-400/30 px-2 py-1 text-[10px] font-black text-amber-200">
+          : <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-500/20 border border-amber-400/30 px-2 py-1 text-[0.6875rem] font-black text-amber-200">
               <AlertTriangle className="h-3 w-3" /> Kuch reh gaya hai
             </div>}
       </div>
@@ -1586,14 +1586,14 @@ function ASummary({ draft, stats, allValid }: any) {
         </div>
         <div className="p-3 space-y-2">
           <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/30 dark:to-slate-900 border-2 border-emerald-200 dark:border-emerald-800 p-3">
-            <div className="text-[10px] uppercase tracking-widest font-black text-emerald-700 dark:text-emerald-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-emerald-700 dark:text-emerald-300">
               {def.emoji} Per {baseName}
             </div>
             <div className="text-xl font-black text-emerald-900 dark:text-emerald-100 tabular-nums leading-tight">
               {Number(b.salePrice) > 0 ? formatPKR(Number(b.salePrice)) : '—'}
             </div>
             {Number(b.packSize) > 0 && !isMeasured(base) && base !== 'custom' && (
-              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                 1 {baseName} = {b.packSize} {b.packUnit}
               </div>
             )}
@@ -1601,7 +1601,7 @@ function ASummary({ draft, stats, allValid }: any) {
 
           {stats.margin > 0 && (
             <div className="rounded-xl bg-slate-50 dark:bg-slate-800 p-2.5">
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Margin</div>
+              <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Margin</div>
               <div className="text-base font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
                 {stats.margin.toFixed(1)}%
               </div>
@@ -1610,7 +1610,7 @@ function ASummary({ draft, stats, allValid }: any) {
 
           {stats.stockValue > 0 && (
             <div className="rounded-xl bg-slate-50 dark:bg-slate-800 p-2.5">
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Stock ki qeemat</div>
+              <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Stock ki qeemat</div>
               <div className="text-base font-black text-slate-900 dark:text-white tabular-nums">
                 {formatPKR(stats.stockValue)}
               </div>
@@ -1624,8 +1624,8 @@ function ASummary({ draft, stats, allValid }: any) {
               : cert.state === 'soon' ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30'
               : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30'
           }`}>
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Registration</div>
-            <div className={`text-[11px] font-extrabold leading-snug ${
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Registration</div>
+            <div className={`text-[0.6875rem] font-extrabold leading-snug ${
               cert.state === 'expired' ? 'text-rose-800 dark:text-rose-200'
                 : cert.state === 'soon' ? 'text-amber-800 dark:text-amber-200'
                 : 'text-emerald-800 dark:text-emerald-200'
@@ -1635,11 +1635,11 @@ function ASummary({ draft, stats, allValid }: any) {
 
         <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-slate-800 border-t-2 border-slate-100 dark:border-slate-800">
           <div className="p-3 text-center">
-            <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">Fasal</div>
+            <div className="text-[0.625rem] font-black uppercase tracking-widest text-slate-500">Fasal</div>
             <div className="text-base font-black text-slate-900 dark:text-white">{stats.targetCropCount}</div>
           </div>
           <div className="p-3 text-center">
-            <div className="text-[9px] font-black uppercase tracking-widest text-slate-500">Photos</div>
+            <div className="text-[0.625rem] font-black uppercase tracking-widest text-slate-500">Photos</div>
             <div className="text-base font-black text-slate-900 dark:text-white">{b.imageUrls.length}</div>
           </div>
         </div>
@@ -1679,7 +1679,7 @@ function AHead({ icon: Icon, title, desc }: any) {
       </div>
       <div className="min-w-0">
         <h3 className="font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h3>
-        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{desc}</p>
+        <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{desc}</p>
       </div>
     </div>
   );
@@ -1688,7 +1688,7 @@ function AHead({ icon: Icon, title, desc }: any) {
 function AField({ label, req, opt, children }: any) {
   return (
     <div>
-      <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+      <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">
         {label}
         {req && <span className="text-rose-500"> *</span>}
         {opt && <span className="text-slate-400 normal-case font-bold"> — marzi</span>}
@@ -1708,8 +1708,8 @@ function ATog({ icon: Icon, label, hint, on, onChange }: any) {
         on ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
       }`}><Icon className="h-4 w-4" /></span>
       <span className="min-w-0">
-        <span className="block text-[13px] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
-        {hint && <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</span>}
+        <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
+        {hint && <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</span>}
       </span>
     </button>
   );
@@ -1726,7 +1726,7 @@ function ANote({ tone = 'slate', icon: Icon, children }: any) {
   return (
     <div className={`rounded-2xl border-2 p-3 flex gap-2.5 ${tones[tone] ?? tones.slate}`}>
       <I className="h-4 w-4 shrink-0 mt-0.5" />
-      <p className="text-[12px] font-bold leading-snug min-w-0">{children}</p>
+      <p className="text-[0.75rem] font-bold leading-snug min-w-0">{children}</p>
     </div>
   );
 }
@@ -1741,7 +1741,7 @@ function AErrors({ errors, show }: any) {
       </div>
       <ul className="space-y-0.5">
         {errors.map((e: string, i: number) => (
-          <li key={i} className="text-[12px] font-bold text-rose-800 dark:text-rose-300">• {e}</li>
+          <li key={i} className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">• {e}</li>
         ))}
       </ul>
     </div>
@@ -1786,7 +1786,7 @@ function AGuide({ onClose }: { onClose: () => void }) {
             zehreelapan ke sawal khud chhup jayenge.
           </AGTip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <p className="text-[12px] font-bold text-slate-600 dark:text-slate-300">
+            <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
               Adhoora chhor dein to kuch nahi jata — draft khud save ho jata hai.
             </p>
           </div>
@@ -1804,8 +1804,8 @@ function AGTip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );
@@ -1855,11 +1855,11 @@ function ACategoryPicker({ value, onChange, productName }: {
   return (
     <div className="space-y-2.5">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <label className="text-[11px] font-black uppercase tracking-widest text-slate-500">
+        <label className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">
           Category <span className="text-rose-500">*</span>
         </label>
         {selected && (
-          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1">
+          <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1">
             <Sparkles className="h-3 w-3 text-emerald-500" />
             System samjha:{' '}
             <strong className="text-emerald-600 dark:text-emerald-400">
@@ -1877,7 +1877,7 @@ function ACategoryPicker({ value, onChange, productName }: {
           </span>
           <div className="min-w-0 flex-1">
             <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{selected.name}</div>
-            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               {selected._count?.products ?? 0} cheezein is me
             </div>
           </div>
@@ -1932,7 +1932,7 @@ function ACategoryPicker({ value, onChange, productName }: {
 
       {openSuggestions.length > 0 && (
         <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3">
-          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">
             Ready categories — click karein to ban jayegi
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -1943,12 +1943,12 @@ function ACategoryPicker({ value, onChange, productName }: {
                   if (ex) return onChange(ex.id, ex.name);
                   create.mutate(sg.name);
                 }}
-                className="h-9 px-2.5 rounded-lg bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-400 text-[11px] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 disabled:opacity-50 transition">
+                className="h-9 px-2.5 rounded-lg bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-400 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 disabled:opacity-50 transition">
                 <span>{sg.emoji}</span> {sg.name}
               </button>
             ))}
           </div>
-          <p className="text-[10px] font-bold text-slate-400 mt-2">
+          <p className="text-[0.6875rem] font-bold text-slate-400 mt-2">
             Ye sirf madad ke liye hain — jo naam aap ki dukaan par chalta hai, wohi likh lein.
           </p>
         </div>

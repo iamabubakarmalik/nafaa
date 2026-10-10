@@ -171,7 +171,7 @@ export default function RestaurantProfitReportPage() {
         <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-amber-400/25 blur-3xl pointer-events-none" />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Scale className="h-3.5 w-3.5 text-amber-300" /> Hotel · Munafa
             </div>
             <h1 className="mt-2.5 text-2xl sm:text-3xl font-black">💰 Kaunsi dish paisa banati hai</h1>
@@ -224,15 +224,15 @@ export default function RestaurantProfitReportPage() {
               <h3 className="font-black text-rose-900 dark:text-rose-200 text-sm">
                 Ye dish bikti bahut hain, kamati kam
               </h3>
-              <p className="mt-0.5 text-[12px] font-bold text-rose-800 dark:text-rose-300">
+              <p className="mt-0.5 text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">
                 Kitchen in par sab se zyada mehnat karti hai aur bachta sab se kam. Rate barhayein,
                 portion dekhein, ya recipe me koi mehngi cheez badlein.
               </p>
               <div className="mt-2 space-y-1">
                 {stats.busyButPoor.map((r) => (
                   <div key={r.recipeId} className="flex items-center justify-between gap-2 rounded-xl bg-white dark:bg-slate-800 px-2.5 py-1.5 flex-wrap">
-                    <span className="text-[12px] font-black text-slate-900 dark:text-white truncate">{r.name}</span>
-                    <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400 tabular-nums shrink-0">
+                    <span className="text-[0.75rem] font-black text-slate-900 dark:text-white truncate">{r.name}</span>
+                    <span className="text-[0.6875rem] font-bold text-rose-700 dark:text-rose-400 tabular-nums shrink-0">
                       {r.totalOrdered} dafa biki · food cost {r.foodCostPct.toFixed(0)}% · ek plate par {money(r.profit)}
                     </span>
                   </div>
@@ -252,7 +252,7 @@ export default function RestaurantProfitReportPage() {
             </span>
             <div className="min-w-0">
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Sab se zyada kamai in se hui</h2>
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                 Ek plate ka munafa × kitni dafa biki — dukaan inhi par chalti hai
               </p>
             </div>
@@ -269,7 +269,7 @@ export default function RestaurantProfitReportPage() {
                     }`}>{i + 1}</span>
                     <span className="flex-1 min-w-0">
                       <span className="block text-sm font-black text-slate-900 dark:text-white truncate">{r.name}</span>
-                      <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                      <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                         {r.totalOrdered} dafa · ek plate par {money(r.profit)}
                       </span>
                     </span>
@@ -354,37 +354,37 @@ export default function RestaurantProfitReportPage() {
                     <td className="px-3 py-2.5">
                       <Link to={r.productId ? `/restaurant-menu/${r.productId}` : '/restaurant/menu'}
                         className="block min-w-0 group">
-                        <span className="block text-[13px] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-orange-600 transition">
+                        <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-orange-600 transition">
                           {r.name}
                         </span>
                         {!r.isAvailable && (
-                          <span className="block text-[10px] font-bold text-slate-400">Menu par nahi</span>
+                          <span className="block text-[0.6875rem] font-bold text-slate-400">Menu par nahi</span>
                         )}
                       </Link>
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[13px] font-black text-slate-900 dark:text-white tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.8125rem] font-black text-slate-900 dark:text-white tabular-nums">
                       {formatPKR(r.price)}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[12px] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
                       {money(r.cost)}
                     </td>
                     <td className="px-3 py-2.5 text-right">
-                      <span className={`text-[13px] font-black tabular-nums ${
+                      <span className={`text-[0.8125rem] font-black tabular-nums ${
                         r.profit > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                       }`}>{money(r.profit)}</span>
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[12px] font-black text-slate-700 dark:text-slate-200 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-black text-slate-700 dark:text-slate-200 tabular-nums">
                       {r.foodCostPct > 0 ? `${r.foodCostPct.toFixed(0)}%` : '—'}
                     </td>
                     <td className="px-3 py-2.5">
-                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black whitespace-nowrap ${r.g.c}`}>
+                      <span className={`px-2 py-0.5 rounded-lg text-[0.6875rem] font-black whitespace-nowrap ${r.g.c}`}>
                         {r.g.l}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[12px] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
                       {r.totalOrdered || '—'}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[13px] font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.8125rem] font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
                       {r.earned > 0 ? money(r.earned) : '—'}
                     </td>
                   </tr>
@@ -398,12 +398,12 @@ export default function RestaurantProfitReportPage() {
       {withoutRecipe.length > 0 && (
         <section className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-start gap-2.5 flex-wrap print:hidden">
           <Soup className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
-          <p className="flex-1 min-w-[220px] text-[12px] font-bold text-slate-700 dark:text-slate-300">
+          <p className="flex-1 min-w-[220px] text-[0.75rem] font-bold text-slate-700 dark:text-slate-300">
             <strong>{withoutRecipe.length} dish</strong> par recipe nahi bani — in ka food cost nikal hi
             nahi sakta. Ho sakta hai inhi me se koi nuqsan par bik rahi ho aur pata hi na chale.
           </p>
           <Link to="/restaurant/recipes"
-            className="h-9 px-3 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 shrink-0 transition">
+            className="h-9 px-3 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 shrink-0 transition">
             Recipe banayein
           </Link>
         </section>
@@ -418,7 +418,7 @@ const heroBtn = 'h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border borde
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-2.5 text-left text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -431,12 +431,12 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
       </div>
       <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none truncate">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
-      {sub && <p className="mt-0.5 text-[10px] font-bold text-slate-400 truncate">{sub}</p>}
+      {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
     </div>
   );
 }
@@ -472,15 +472,15 @@ function Teacher({ onClose }: any) {
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-black text-slate-900 dark:text-white">{x.t}</p>
-                <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
               </div>
             </div>
           ))}
           <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
+            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['G', 'Ye safha'], ['R', 'Taaza'], ['P', 'Print'], ['Esc', 'Band']].map(([k, l]) => (
-                <span key={k} className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/80">
+                <span key={k} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/80">
                   <kbd className="px-1.5 py-0.5 rounded bg-white/15 font-black">{k}</kbd> {l}
                 </span>
               ))}

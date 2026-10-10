@@ -65,7 +65,7 @@ export default function ElectronicsPurchasesPage() {
         /* Bill banate waqt: serial wali cheez par badge */
         draftLineExtra={({ productId }) =>
           serialProductIds.has(productId) ? (
-            <span className="px-1 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+            <span className="px-1 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
               <Barcode className="h-2.5 w-2.5" /> Serial
             </span>
           ) : null
@@ -76,7 +76,7 @@ export default function ElectronicsPurchasesPage() {
           const have = serialCountByProduct.get(item.product.id) ?? 0;
           return (
             <div className="mt-2 rounded-lg bg-violet-50 border border-violet-200 px-2.5 py-2 flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] font-bold text-violet-800 flex-1 min-w-0">
+              <span className="text-[0.6875rem] font-bold text-violet-800 flex-1 min-w-0">
                 Serial wali cheez — abhi <b>{have}</b> units darj hain
               </span>
               <button
@@ -87,7 +87,7 @@ export default function ElectronicsPurchasesPage() {
                   costPrice: item.costPrice,
                   supplierRef: purchase.purchaseNumber,
                 })}
-                className="h-8 px-2.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-[11px] font-extrabold inline-flex items-center gap-1 shrink-0 transition">
+                className="h-8 px-2.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 shrink-0 transition">
                 <Plus className="h-3 w-3" /> Serial Daalein
               </button>
             </div>
@@ -172,7 +172,7 @@ function BulkSerialModal({
               <Barcode className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Serial Numbers</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Serial Numbers</div>
               <h3 className="font-extrabold truncate">{productName}</h3>
             </div>
           </div>
@@ -184,11 +184,11 @@ function BulkSerialModal({
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider">Bill Me Aaye</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider">Bill Me Aaye</div>
               <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{expected}</div>
             </div>
             <div className="rounded-xl bg-violet-50 border-2 border-violet-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-violet-600 tracking-wider">Pehle Se Darj</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-violet-600 tracking-wider">Pehle Se Darj</div>
               <div className="text-2xl font-extrabold text-violet-900 tabular-nums">{alreadyHave}</div>
             </div>
           </div>
@@ -200,28 +200,28 @@ function BulkSerialModal({
             <textarea rows={8} value={text} onChange={(e) => setText(e.target.value)} autoFocus
               placeholder={'SN123456789\nSN987654321, 356938035643809\nSN555000111'}
               className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-mono focus:outline-none focus:border-violet-500 transition" />
-            <p className="mt-1.5 text-[11px] font-semibold text-slate-500">
+            <p className="mt-1.5 text-[0.6875rem] font-semibold text-slate-500">
               IMEI bhi hai to comma laga kar sath likhein — <span className="font-mono">serial, imei</span>
             </p>
           </div>
 
           {entries.length > 0 && (
             <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3 flex items-center gap-2 flex-wrap">
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-extrabold">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold">
                 {entries.length} serial tayyar
               </span>
               {dupesInPaste > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-extrabold inline-flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                   <Copy className="h-3 w-3" /> {dupesInPaste} do bar likhe the
                 </span>
               )}
               {short > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-extrabold">
+                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold">
                   {short} abhi baqi hain
                 </span>
               )}
               {short < 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-extrabold inline-flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" /> bill se {-short} zyada
                 </span>
               )}
@@ -234,7 +234,7 @@ function BulkSerialModal({
             </label>
             <input type="date" value={warrantyStart} onChange={(e) => setWarrantyStart(e.target.value)}
               className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition" />
-            <p className="mt-1.5 text-[11px] font-semibold text-slate-500">
+            <p className="mt-1.5 text-[0.6875rem] font-semibold text-slate-500">
               Product ki warranty ke mahine isi tareekh se ginay jayenge
             </p>
           </div>

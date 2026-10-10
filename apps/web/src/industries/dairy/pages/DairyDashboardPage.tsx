@@ -87,21 +87,21 @@ export default function DairyDashboardPage() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 flex items-center gap-1"><Sunrise className="h-3 w-3" />Delivered Today</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 flex items-center gap-1"><Sunrise className="h-3 w-3" />Delivered Today</div>
             <div className="mt-1 text-2xl font-extrabold tabular-nums">{today.deliveredCount || 0}</div>
             <div className="text-xs text-white/60 font-semibold">of {today.scheduledDeliveries || 0} scheduled</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Milk Delivered</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Milk Delivered</div>
             <div className="mt-1 text-2xl font-extrabold tabular-nums text-cyan-300">{(today.deliveredLiters || 0).toFixed(1)}L</div>
             <div className="text-xs text-white/60 font-semibold">To customers</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Revenue Today</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Revenue Today</div>
             <div className="mt-1 text-2xl font-extrabold tabular-nums text-emerald-300">{formatPKR(today.deliveredRevenue || 0)}</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Received from Farmers</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Received from Farmers</div>
             <div className="mt-1 text-2xl font-extrabold tabular-nums text-amber-300">{(today.suppliedLiters || 0).toFixed(1)}L</div>
             <div className="text-xs text-white/60 font-semibold">{formatPKR(today.suppliedAmount || 0)} payable</div>
           </div>

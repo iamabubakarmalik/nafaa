@@ -36,7 +36,7 @@ export function HeroKpiCard({ title, value, subtitle, icon: Icon, color, isHighl
           <h3 className="mt-2 text-2xl font-extrabold text-slate-900 truncate tabular-nums">{value}</h3>
           {subtitle && <p className="mt-1 text-xs text-slate-500 truncate">{subtitle}</p>}
           {trend !== undefined && trend !== 0 && (
-            <div className={`mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
+            <div className={`mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[0.6875rem] font-extrabold ${
               trend >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
             }`}>
               {trend >= 0 ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
@@ -78,9 +78,9 @@ export function IndustryStatCard({ label, value, sub, icon: Icon, color }: StatC
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-bold text-slate-500">{label}</div>
         <div className="text-lg font-extrabold text-slate-900 tabular-nums">{value}</div>
-        {sub && <div className="text-[10px] text-slate-500 font-bold">{sub}</div>}
+        {sub && <div className="text-[0.6875rem] text-slate-500 font-bold">{sub}</div>}
       </div>
     </div>
   );
@@ -185,7 +185,7 @@ export function DashboardHero({
           <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
             <span className="text-base">{emoji}</span>
             {tenantName || 'Your Shop'}
-            <span className={`ml-1 px-1.5 py-0.5 rounded ${industryBadgeColor} text-[10px] font-extrabold uppercase`}>
+            <span className={`ml-1 px-1.5 py-0.5 rounded ${industryBadgeColor} text-[0.6875rem] font-extrabold uppercase`}>
               {industryLabel}
             </span>
           </div>

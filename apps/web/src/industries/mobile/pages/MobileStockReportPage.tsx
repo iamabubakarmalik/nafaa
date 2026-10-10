@@ -241,7 +241,7 @@ export default function MobileStockReportPage() {
         <div className="relative">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
                 <Boxes className="h-3.5 w-3.5 text-amber-300" /> Stock Report
                 {shopName && <><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>}
               </div>
@@ -279,13 +279,13 @@ export default function MobileStockReportPage() {
           {/* Bara number + bantwara */}
           <div className="mt-5 grid lg:grid-cols-[1.1fr_2fr] gap-3">
             <div className="rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider inline-flex items-center gap-1.5">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider inline-flex items-center gap-1.5">
                 <Wallet className="h-3.5 w-3.5" /> Kul Stock Value
               </div>
               <div className="mt-1 text-3xl sm:text-4xl font-extrabold tabular-nums">
                 {hideCost ? '••••••' : formatPKR(t?.totalValue ?? 0)}
               </div>
-              <div className="mt-1.5 text-[11px] font-bold text-white/80">
+              <div className="mt-1.5 text-[0.6875rem] font-bold text-white/80">
                 Bechne par milega{' '}
                 <strong className="text-emerald-300">{formatPKR(t?.totalRetailValue ?? 0)}</strong>
                 {(t?.potentialProfit ?? 0) > 0 && (
@@ -349,7 +349,7 @@ export default function MobileStockReportPage() {
               </div>
               <div>
                 <h3 className="font-extrabold text-slate-900 dark:text-white">Maal Ki Umar</h3>
-                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Sirf phone — accessories ki umar track nahi hoti</p>
+                <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">Sirf phone — accessories ki umar track nahi hoti</p>
               </div>
             </div>
             {bucket && (
@@ -397,10 +397,10 @@ export default function MobileStockReportPage() {
                     }`}>
                     <div className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full shrink-0" style={{ background: BUCKET_COLORS[b.key] }} />
-                      <span className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 truncate">{b.label}</span>
+                      <span className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 truncate">{b.label}</span>
                     </div>
                     <div className="mt-0.5 font-extrabold text-slate-900 dark:text-white tabular-nums">{b.phones + b.usedPhones}</div>
-                    <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tabular-nums truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums truncate">
                       {hideCost ? '•••' : formatPKR(b.phoneValue + b.usedValue)}
                     </div>
                   </button>
@@ -453,16 +453,16 @@ export default function MobileStockReportPage() {
                   return (
                     <div key={row.ptaStatus} className="rounded-xl border-2 border-slate-200 dark:border-slate-700 p-2.5 flex items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <span className={`inline-flex px-1.5 py-0.5 rounded border text-[10px] font-extrabold uppercase ${cfg?.bg} ${cfg?.text} ${cfg?.border}`}>
+                        <span className={`inline-flex px-1.5 py-0.5 rounded border text-[0.6875rem] font-extrabold uppercase ${cfg?.bg} ${cfg?.text} ${cfg?.border}`}>
                           {PTA_STATUS_LABELS[row.ptaStatus as PtaStatus]}
                         </span>
-                        <div className="mt-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                        <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
                           Tax: {hideCost ? '•••' : formatPKR(row.taxPaid)}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{row.count}</div>
-                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
                           {hideCost ? '•••' : formatPKR(row.stockValue)}
                         </div>
                       </div>
@@ -509,7 +509,7 @@ export default function MobileStockReportPage() {
                     : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-300'
                 }`}>
                 <k.icon className="h-3.5 w-3.5" /> {k.label}
-                <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${kind === k.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-slate-700'}`}>
+                <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${kind === k.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-slate-700'}`}>
                   {counts[k.v]}
                 </span>
               </button>
@@ -550,18 +550,18 @@ export default function MobileStockReportPage() {
                         {r.name}
                         {r.variantName && <span className="ml-1.5 text-violet-700 dark:text-violet-400">{r.variantName}</span>}
                       </div>
-                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] uppercase ${meta.chip}`}>{meta.label}</span>
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                        <span className={`px-1.5 py-0.5 rounded text-[0.625rem] uppercase ${meta.chip}`}>{meta.label}</span>
                         {(r.ref || r.sku) && <span className="font-mono">{r.ref ?? r.sku}</span>}
                         {r.brand && <span>{r.brand}</span>}
                         {r.ptaStatus && (
-                          <span className={`px-1.5 py-0.5 rounded border text-[9px] font-extrabold uppercase ${PTA_STATUS_COLORS[r.ptaStatus as PtaStatus]?.bg} ${PTA_STATUS_COLORS[r.ptaStatus as PtaStatus]?.text} ${PTA_STATUS_COLORS[r.ptaStatus as PtaStatus]?.border}`}>
+                          <span className={`px-1.5 py-0.5 rounded border text-[0.625rem] font-extrabold uppercase ${PTA_STATUS_COLORS[r.ptaStatus as PtaStatus]?.bg} ${PTA_STATUS_COLORS[r.ptaStatus as PtaStatus]?.text} ${PTA_STATUS_COLORS[r.ptaStatus as PtaStatus]?.border}`}>
                             {PTA_STATUS_LABELS[r.ptaStatus as PtaStatus]}
                           </span>
                         )}
                         {r.condition && <span className="text-violet-600 dark:text-violet-400">{r.condition}</span>}
                         {r.isLow && r.kind === 'ACCESSORY' && (
-                          <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 text-[9px] font-extrabold">KAM STOCK</span>
+                          <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 text-[0.625rem] font-extrabold">KAM STOCK</span>
                         )}
                       </div>
                     </div>
@@ -569,14 +569,14 @@ export default function MobileStockReportPage() {
                     {r.ageDays != null && (
                       <div className="text-right shrink-0 hidden sm:block">
                         <div className={`text-sm font-extrabold tabular-nums ${ageTone(r.ageDays)}`}>{r.ageDays}d</div>
-                        <div className="text-[10px] font-bold text-slate-400">umar</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-400">umar</div>
                       </div>
                     )}
 
                     {r.kind === 'ACCESSORY' && (
                       <div className="text-right shrink-0 hidden sm:block">
                         <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{r.stock}</div>
-                        <div className="text-[10px] font-bold text-slate-400">{r.unit}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-400">{r.unit}</div>
                       </div>
                     )}
 
@@ -584,7 +584,7 @@ export default function MobileStockReportPage() {
                       <div className="text-base font-extrabold text-slate-900 dark:text-white tabular-nums">
                         {hideCost ? '•••' : formatPKR(rowValue)}
                       </div>
-                      <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                      <div className="text-[0.6875rem] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
                         → {formatPKR(r.kind === 'ACCESSORY' ? r.retailValue : r.price)}
                       </div>
                     </div>
@@ -660,7 +660,7 @@ export default function MobileStockReportPage() {
         )}
 
         {rows.length > 300 && (
-          <div className="p-3 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400 border-t-2 border-slate-100 dark:border-slate-800">
+          <div className="p-3 text-center text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 border-t-2 border-slate-100 dark:border-slate-800">
             Pehle 300 dikhaye — poori list CSV me download karo
           </div>
         )}
@@ -676,12 +676,12 @@ export default function MobileStockReportPage() {
 function HeroSplit({ label, count, sub, value, icon: Icon }: any) {
   return (
     <div className="rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 p-3">
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> <span className="truncate">{label}</span>
       </div>
       <div className="mt-1 text-xl sm:text-2xl font-extrabold tabular-nums">{count}</div>
-      <div className="text-[10px] font-bold text-white/70">{sub}</div>
-      <div className="mt-1 text-[11px] font-extrabold text-emerald-300 tabular-nums truncate">{value}</div>
+      <div className="text-[0.6875rem] font-bold text-white/70">{sub}</div>
+      <div className="mt-1 text-[0.6875rem] font-extrabold text-emerald-300 tabular-nums truncate">{value}</div>
     </div>
   );
 }
@@ -697,10 +697,10 @@ function Detail({ label, value, icon: Icon, mono, strong, tone = 'slate' }: any)
   if (value === null || value === undefined || value === '') return null;
   return (
     <div className="flex items-baseline justify-between gap-3 py-1 border-b border-slate-100 dark:border-slate-800 last:border-0">
-      <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 shrink-0">
+      <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 shrink-0">
         {Icon && <Icon className="h-3 w-3" />} {label}
       </span>
-      <span className={`text-[12px] tabular-nums truncate ${mono ? 'font-mono' : ''} ${strong ? 'font-extrabold' : 'font-bold'} ${DETAIL_TONES[tone]}`}>
+      <span className={`text-[0.75rem] tabular-nums truncate ${mono ? 'font-mono' : ''} ${strong ? 'font-extrabold' : 'font-bold'} ${DETAIL_TONES[tone]}`}>
         {value}
       </span>
     </div>
@@ -718,7 +718,7 @@ function StockTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900 dark:text-white">Stock Report Kaise Parhein?</h3>
             </div>
           </div>
@@ -765,7 +765,7 @@ function GuideStep({ n, title, body, tips }: any) {
           {tips && (
             <ul className="mt-2 space-y-1">
               {tips.map((tp: string, i: number) => (
-                <li key={i} className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
+                <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
                   <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                 </li>
               ))}

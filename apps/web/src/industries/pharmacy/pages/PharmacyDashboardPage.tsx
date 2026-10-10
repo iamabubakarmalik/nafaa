@@ -134,7 +134,7 @@ export default function PharmacyDashboardPage() {
           <RLink to="/pharmacy/prescriptions?status=PENDING" className="rounded-2xl bg-blue-50 dark:bg-blue-950/40 border-2 border-blue-200 dark:border-blue-800 p-4 hover:shadow-lg transition">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-blue-700">Pending Review</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Pending Review</div>
                 <div className="text-3xl font-extrabold text-blue-700 tabular-nums mt-1">{rx.pending}</div>
                 <div className="text-xs text-blue-600 font-semibold mt-1">Needs pharmacist verify</div>
               </div>
@@ -144,7 +144,7 @@ export default function PharmacyDashboardPage() {
           <RLink to="/pharmacy/prescriptions?status=VERIFIED" className="rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-200 dark:border-emerald-800 p-4 hover:shadow-lg transition">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-emerald-700">Ready to Dispense</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Ready to Dispense</div>
                 <div className="text-3xl font-extrabold text-emerald-700 tabular-nums mt-1">{rx.verified}</div>
                 <div className="text-xs text-emerald-600 font-semibold mt-1">Verified prescriptions</div>
               </div>
@@ -154,7 +154,7 @@ export default function PharmacyDashboardPage() {
           <div className="rounded-2xl bg-violet-50 dark:bg-violet-950/40 border-2 border-violet-200 dark:border-violet-800 p-4">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-violet-700">Dispensed Today</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700">Dispensed Today</div>
                 <div className="text-3xl font-extrabold text-violet-700 tabular-nums mt-1">{rx.dispensedToday}</div>
                 <div className="text-xs text-violet-600 font-semibold mt-1">Successfully filled</div>
               </div>
@@ -205,14 +205,14 @@ export default function PharmacyDashboardPage() {
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm truncate text-slate-900 dark:text-white">{s.product?.name}</div>
                     {s.product?.productSalts?.[0] && (
-                      <div className="text-[10px] text-slate-500 font-semibold truncate">
+                      <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">
                         {s.product.productSalts[0].salt?.name} {s.product.productSalts[0].strength}
                       </div>
                     )}
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(s._sum?.total ?? 0)}</div>
-                    <div className="text-[10px] text-slate-500 font-semibold">{s._sum?.quantity} units</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-semibold">{s._sum?.quantity} units</div>
                   </div>
                 </div>
               ))
@@ -256,7 +256,7 @@ export default function PharmacyDashboardPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-sm truncate text-slate-900 dark:text-white">{b.product?.name}</div>
-                      <div className="text-[10px] text-slate-500 font-mono font-bold">
+                      <div className="text-[0.6875rem] text-slate-500 font-mono font-bold">
                         Batch: {b.batchNumber} • Qty: {b.quantity}
                       </div>
                     </div>
@@ -267,7 +267,7 @@ export default function PharmacyDashboardPage() {
                       }>
                         {daysLeft <= 0 ? 'EXPIRED' : daysLeft + ' days'}
                       </div>
-                      <div className="text-[10px] text-slate-500 font-semibold">
+                      <div className="text-[0.6875rem] text-slate-500 font-semibold">
                         {format(new Date(b.expiryDate), 'dd MMM yyyy')}
                       </div>
                     </div>

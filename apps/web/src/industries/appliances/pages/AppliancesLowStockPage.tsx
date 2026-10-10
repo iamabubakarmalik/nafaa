@@ -319,16 +319,16 @@ export default function AppliancesLowStockPage() {
             </div>
           </div>
           <button onClick={() => setPicked(allPicked ? new Set() : new Set(rows.map((r) => r.productId)))}
-            className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[11px] font-extrabold transition">
+            className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[0.6875rem] font-extrabold transition">
             {allPicked ? 'Sab hatao' : 'Sab chuno'}
           </button>
-          <button onClick={waOrder} className="h-10 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-[11px] font-extrabold inline-flex items-center gap-1.5 transition">
+          <button onClick={waOrder} className="h-10 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition">
             <MessageCircle className="h-3.5 w-3.5" /> WhatsApp Order
           </button>
-          <button onClick={exportCsv} className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition">
+          <button onClick={exportCsv} className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition">
             <FileDown className="h-3.5 w-3.5" /> CSV
           </button>
-          <button onClick={printA4} className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition">
+          <button onClick={printA4} className="h-10 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition">
             <ShoppingCart className="h-3.5 w-3.5" /> Purchase Order
           </button>
           <button onClick={() => setPicked(new Set())} className="h-10 w-10 ml-auto rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
@@ -403,19 +403,19 @@ function LowCard({ r, checked, onToggle }: { r: ApplianceLowStockRow; checked: b
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{r.name}</h3>
-            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
               {r.brand ? `${r.brand} • ` : ''}{cm.label}
               {r.capacity ? ` • ${r.capacity}` : ''}
             </div>
             {r.modelNumber && (
-              <div className="font-mono text-[10px] font-bold text-slate-400 dark:text-slate-500 truncate">{r.modelNumber}</div>
+              <div className="font-mono text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 truncate">{r.modelNumber}</div>
             )}
           </div>
         </div>
 
         {/* Stock bar */}
         <div className="mt-3">
-          <div className="flex items-center justify-between text-[11px] font-extrabold mb-1">
+          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold mb-1">
             <span className={r.isOut ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400'}>
               {r.isOut ? '🚫 Bilkul khatam' : `${r.stock} ${r.unit || 'pcs'} bachay`}
             </span>
@@ -429,16 +429,16 @@ function LowCard({ r, checked, onToggle }: { r: ApplianceLowStockRow; checked: b
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <div className="rounded-xl bg-cyan-50 dark:bg-cyan-500/10 border border-cyan-200 dark:border-cyan-500/30 px-2.5 py-2">
-            <div className="text-[9px] text-cyan-700 dark:text-cyan-400 font-extrabold uppercase tracking-wider">Mangwayein</div>
+            <div className="text-[0.625rem] text-cyan-700 dark:text-cyan-400 font-extrabold uppercase tracking-wider">Mangwayein</div>
             <div className="text-sm font-extrabold text-cyan-700 dark:text-cyan-300 tabular-nums">{need} {r.unit || 'pcs'}</div>
           </div>
           <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 px-2.5 py-2">
-            <div className="text-[9px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">Kharcha</div>
+            <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">Kharcha</div>
             <div className="text-sm font-extrabold text-slate-700 dark:text-slate-200 tabular-nums truncate">{formatPKR(r.reorderCost)}</div>
           </div>
         </div>
 
-        <div className="mt-2 flex items-center gap-1.5 flex-wrap text-[10px] font-bold">
+        <div className="mt-2 flex items-center gap-1.5 flex-wrap text-[0.6875rem] font-bold">
           {r.requiresSerial && (
             <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 inline-flex items-center gap-1">
               <Barcode className="h-3 w-3" /> Serial
@@ -461,7 +461,7 @@ function LowCard({ r, checked, onToggle }: { r: ApplianceLowStockRow; checked: b
           )}
         </div>
 
-        <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-slate-400 dark:text-slate-500">
+        <div className="mt-2 flex items-center justify-between text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
           <span>Lagat {formatPKR(r.costPrice)}</span>
           <span>Bechna {formatPKR(r.price)}</span>
         </div>
@@ -524,10 +524,10 @@ function LowTable({ rows, picked, allPicked, onToggle, onToggleAll }: {
                     <Link to={`/appliance-products/${r.productId}`} className="flex items-center gap-2 group">
                       <span className="text-lg shrink-0">{catEmoji(r.categoryType)}</span>
                       <div className="min-w-0">
-                        <div className="text-[13px] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
                           {r.name}
                         </div>
-                        <div className="text-[10px] font-bold text-slate-400">
+                        <div className="text-[0.6875rem] font-bold text-slate-400">
                           {catLabel(r.categoryType)}{r.capacity ? ` • ${r.capacity}` : ''}{r.sku ? ` • ${r.sku}` : ''}
                         </div>
                       </div>
@@ -535,7 +535,7 @@ function LowTable({ rows, picked, allPicked, onToggle, onToggleAll }: {
                   </td>
                   <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
                     {r.brand || '—'}
-                    {r.modelNumber && <div className="font-mono text-[10px] text-slate-400">{r.modelNumber}</div>}
+                    {r.modelNumber && <div className="font-mono text-[0.6875rem] text-slate-400">{r.modelNumber}</div>}
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-extrabold tabular-nums ${
@@ -553,7 +553,7 @@ function LowTable({ rows, picked, allPicked, onToggle, onToggleAll }: {
           </tbody>
           <tfoot>
             <tr className="bg-slate-900 dark:bg-slate-950 text-white">
-              <td colSpan={5} className="px-3 py-3 text-right text-[11px] font-extrabold uppercase tracking-widest">Kul</td>
+              <td colSpan={5} className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-widest">Kul</td>
               <td className="px-3 py-3 text-center text-xs font-extrabold text-cyan-300 tabular-nums">
                 {rows.reduce((s, r) => s + Math.max(r.lowStockAlert - r.stock, 1), 0)}
               </td>
@@ -571,7 +571,7 @@ function LowTable({ rows, picked, allPicked, onToggle, onToggleAll }: {
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -597,7 +597,7 @@ function LowStockTeacher({ onClose }: { onClose: () => void }) {
             <><strong>Serial wale model</strong> (AC, fridge, washing machine) ki ginti <strong>serial register</strong> se aati hai — jitne serial "Stock me" hain, utna stock</>,
             <><strong>Chhoti cheezein</strong> (iron, blender, fan) ki ginti normal stock se aati hai</>,
             <><strong>Alert level</strong> har product ki apni settings me set hota hai — jab stock us se neeche jaye, cheez yahan aa jati hai</>,
-            <><span className="px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-black">Bilkul khatam</span> matlab stock bilkul 0 — customer aaye to khali haath jayega</>,
+            <><span className="px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-black">Bilkul khatam</span> matlab stock bilkul 0 — customer aaye to khali haath jayega</>,
           ],
         },
         {

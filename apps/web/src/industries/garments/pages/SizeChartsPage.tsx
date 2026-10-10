@@ -157,22 +157,22 @@ function SizeChartCard({ chart, onEdit, onDelete }: { chart: SizeChart; onEdit: 
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-extrabold text-slate-900 dark:text-white">{chart.name}</h3>
               {chart.isDefault && (
-                <span className="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                   <Award className="h-2 w-2" />
                   Default
                 </span>
               )}
               {chart.gender && (
-                <span className="px-2 py-0.5 rounded bg-cyan-100 dark:bg-cyan-950/40 text-cyan-700 text-[9px] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded bg-cyan-100 dark:bg-cyan-950/40 text-cyan-700 text-[0.625rem] font-extrabold uppercase">
                   {genderCfg?.emoji} {chart.gender}
                 </span>
               )}
               {chart.categoryType && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[9px] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
                   {chart.categoryType.replace('_', ' ')}
                 </span>
               )}
-              <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[9px] font-extrabold uppercase">
+              <span className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[0.625rem] font-extrabold uppercase">
                 {chart.unit}
               </span>
             </div>
@@ -197,7 +197,7 @@ function SizeChartCard({ chart, onEdit, onDelete }: { chart: SizeChart; onEdit: 
             <thead className="bg-slate-50 dark:bg-neutral-800/50">
               <tr>
                 {columns.map((col) => (
-                  <th key={col} className="px-3 py-2 text-left text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400">
+                  <th key={col} className="px-3 py-2 text-left text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400">
                     {col}
                   </th>
                 ))}
@@ -326,7 +326,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
         {/* Basic info */}
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Chart Name *</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Chart Name *</label>
             <input
               autoFocus
               value={form.name}
@@ -337,7 +337,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Gender</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Gender</label>
             <select
               value={form.gender}
               onChange={(e) => setForm({ ...form, gender: e.target.value })}
@@ -351,7 +351,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Category</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Category</label>
             <select
               value={form.categoryType}
               onChange={(e) => setForm({ ...form, categoryType: e.target.value })}
@@ -365,7 +365,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Unit</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Unit</label>
             <div className="grid grid-cols-2 gap-1">
               <button
                 onClick={() => setForm({ ...form, unit: 'INCH' })}
@@ -389,7 +389,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
           </div>
 
           <div className="sm:col-span-2">
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Description</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Description</label>
             <input
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -453,9 +453,9 @@ function SizeChartForm({ editing, onClose, onSaved }: {
             <table className="w-full text-sm">
               <thead className="bg-slate-100 dark:bg-neutral-800">
                 <tr>
-                  <th className="px-2 py-2 text-[10px] uppercase font-extrabold text-slate-600 w-12">#</th>
+                  <th className="px-2 py-2 text-[0.6875rem] uppercase font-extrabold text-slate-600 w-12">#</th>
                   {columns.map((col) => (
-                    <th key={col} className="px-2 py-2 text-left text-[10px] uppercase font-extrabold text-slate-600">
+                    <th key={col} className="px-2 py-2 text-left text-[0.6875rem] uppercase font-extrabold text-slate-600">
                       {col}
                     </th>
                   ))}

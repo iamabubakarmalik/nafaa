@@ -52,14 +52,14 @@ export function HotelWizardStepper({ currentStep, stepValidation, onStepClick }:
                 </div>
                 <div className="text-left">
                   <div className={[
-                    'text-[10px] uppercase tracking-wider font-extrabold',
+                    'text-[0.6875rem] uppercase tracking-wider font-extrabold',
                     isActive ? 'text-white/90' : isPast ? 'text-indigo-700' : 'text-slate-500',
                   ].join(' ')}>
                     Step {s.id}
                   </div>
                   <div className="text-sm font-extrabold leading-tight">{s.label}</div>
                   <div className={[
-                    'text-[10px] font-bold leading-tight mt-0.5',
+                    'text-[0.6875rem] font-bold leading-tight mt-0.5',
                     isActive ? 'text-white/80' : 'text-slate-500',
                   ].join(' ')}>
                     {s.desc}

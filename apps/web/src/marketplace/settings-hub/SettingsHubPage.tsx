@@ -111,7 +111,7 @@ export default function SettingsHubPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-black truncate">{s.label}</div>
-                    <div className={`text-[10px] font-medium truncate ${isActive ? 'text-white/80' : 'text-slate-500'}`}>
+                    <div className={`text-[0.6875rem] font-medium truncate ${isActive ? 'text-white/80' : 'text-slate-500'}`}>
                       {s.desc}
                     </div>
                   </div>
@@ -194,12 +194,12 @@ function IntegrationsSection({ settings, onChange }: any) {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-black text-slate-900">{integ.label}</span>
                         {state.isConnected ? (
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 inline-flex items-center gap-0.5">
+                          <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 inline-flex items-center gap-0.5">
                             <CheckCircle2 className="h-2.5 w-2.5" />
                             Connected
                           </span>
                         ) : (
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                          <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
                             Not Configured
                           </span>
                         )}
@@ -222,7 +222,7 @@ function IntegrationsSection({ settings, onChange }: any) {
                           <button
                             onClick={() => testMutation.mutate(integ.key)}
                             disabled={testMutation.isPending}
-                            className="ml-auto text-[10px] font-black text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+                            className="ml-auto text-[0.6875rem] font-black text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
                           >
                             <TestTube className="h-3 w-3" />
                             Test
@@ -306,7 +306,7 @@ function TaxSection({ settings, onChange }: any) {
             />
             <div>
               <div className="text-sm font-black text-slate-900">Prices Include Tax</div>
-              <div className="text-[10px] text-slate-500 font-bold">Tax already baked into displayed prices</div>
+              <div className="text-[0.6875rem] text-slate-500 font-bold">Tax already baked into displayed prices</div>
             </div>
           </label>
         </>
@@ -383,7 +383,7 @@ function PoliciesSection({ settings, onChange }: any) {
             onChange={(e) => onChange({ ...s, autoAcceptTime: Number(e.target.value) })}
             className="w-full h-11 px-3 rounded-xl border-2 border-slate-200 text-sm font-black outline-none focus:border-emerald-500"
           />
-          <p className="text-[10px] text-slate-500 font-bold mt-1">Orders auto-accept after this time</p>
+          <p className="text-[0.6875rem] text-slate-500 font-bold mt-1">Orders auto-accept after this time</p>
         </div>
         <div>
           <label className="text-sm font-black text-slate-700 mb-1.5 block">Min Order Amount (PKR)</label>
@@ -414,7 +414,7 @@ function PoliciesSection({ settings, onChange }: any) {
         />
         <div>
           <div className="text-sm font-black text-slate-900">Allow Guest Checkout</div>
-          <div className="text-[10px] text-slate-500 font-bold">Customers can order without signing up</div>
+          <div className="text-[0.6875rem] text-slate-500 font-bold">Customers can order without signing up</div>
         </div>
       </label>
     </div>
@@ -453,13 +453,13 @@ function WebhooksSection({ webhooks }: any) {
                   <div className="font-mono text-xs font-black text-slate-900 truncate">{w.url}</div>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {w.events.map((e: string) => (
-                      <span key={e} className="text-[9px] font-black px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                      <span key={e} className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">
                         {e}
                       </span>
                     ))}
                   </div>
                   {w.lastFiredAt && (
-                    <div className="text-[10px] text-slate-500 font-bold mt-1">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold mt-1">
                       Last fired: {relativeTime(w.lastFiredAt)}
                       {w.failureCount > 0 && (
                         <span className="ml-2 text-rose-700">· {w.failureCount} failures</span>
@@ -557,7 +557,7 @@ function BlacklistSection({ blacklist }: any) {
           <div key={list.key} className="rounded-xl border-2 border-slate-200 overflow-hidden">
             <div className="px-3 py-2 bg-slate-50 flex items-center justify-between">
               <span className="text-xs font-black text-slate-700">{list.label}</span>
-              <span className="text-[10px] font-black text-slate-500">{list.items.length} blocked</span>
+              <span className="text-[0.6875rem] font-black text-slate-500">{list.items.length} blocked</span>
             </div>
             <div className="max-h-40 overflow-y-auto divide-y divide-slate-100">
               {list.items.length === 0 ? (
@@ -572,7 +572,7 @@ function BlacklistSection({ blacklist }: any) {
                         qc.invalidateQueries({ queryKey: ['settings-hub'] });
                         toast.success('Removed from blacklist');
                       }}
-                      className="text-[10px] font-black text-emerald-600 hover:text-emerald-700"
+                      className="text-[0.6875rem] font-black text-emerald-600 hover:text-emerald-700"
                     >
                       Unblock
                     </button>
@@ -622,7 +622,7 @@ function AuditLogSection() {
                     <span className="font-bold text-slate-600">{entry.action}</span>{' '}
                     <span className="font-mono text-xs text-slate-500">{entry.entityType}</span>
                   </div>
-                  <div className="text-[10px] text-slate-400 font-bold mt-0.5">
+                  <div className="text-[0.6875rem] text-slate-400 font-bold mt-0.5">
                     {relativeTime(entry.createdAt)}
                     {entry.ipAddress && <> · IP {entry.ipAddress}</>}
                   </div>

@@ -421,7 +421,7 @@ export default function AdvisoryPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Leaf className="h-3.5 w-3.5 text-lime-300" /> Fasal ki raay
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
@@ -470,14 +470,14 @@ export default function AdvisoryPage() {
               {stats.due > 0 && stats.soon > 0 && ' · '}
               {stats.soon > 0 && `${stats.soon} agle teen din me`}
             </h3>
-            <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
+            <p className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
               Raay de kar poochna zaroori hai ke faida hua ya nahi. Jo dukaan poochti hai, farmer
               wohin wapas aata hai — aur agla maal bhi wahin se leta hai.
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {stats.dueList.map((r: any) => (
                 <span key={r.id}
-                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 text-[11px] font-extrabold text-amber-900 dark:text-amber-200">
+                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200">
                   🌾 {r.cropName}
                   {r.toFollow !== null && <span className="opacity-70"> · {dayPhrase(r.toFollow)}</span>}
                 </span>
@@ -516,7 +516,7 @@ export default function AdvisoryPage() {
       {(stats.noStock > 0 || stats.outStock > 0) && (
         <section className="rounded-3xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-4 flex items-start gap-3 flex-wrap print:hidden">
           <Package className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
-          <p className="flex-1 min-w-[200px] text-[12px] font-bold text-rose-900 dark:text-rose-200">
+          <p className="flex-1 min-w-[200px] text-[0.75rem] font-bold text-rose-900 dark:text-rose-200">
             {stats.outStock > 0 && (
               <><strong>{stats.outStock}</strong> mashwaron ki fasal ka kuch maal khatam hai. </>
             )}
@@ -547,7 +547,7 @@ export default function AdvisoryPage() {
             }`}>
             <Icon className="h-4 w-4" /> {label}
             {count !== undefined && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-lg tabular-nums ${
+              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
                 tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
               }`}>{count}</span>
             )}
@@ -591,7 +591,7 @@ export default function AdvisoryPage() {
                 ['all', `Sab (${stats.total})`],
               ] as const).map(([v, label]) => (
                 <button key={v} onClick={() => setFilter(v as Filter)}
-                  className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black transition ${
+                  className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     filter === v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
                   }`}>{label}</button>
@@ -671,20 +671,20 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="font-mono font-extrabold text-slate-900 dark:text-white">{a.advisoryNumber}</span>
               {a.completed ? (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1">
                   <CheckCircle2 className="h-2.5 w-2.5" /> Poora
                 </span>
               ) : a.followDue ? (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-amber-500 text-white inline-flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase bg-amber-500 text-white inline-flex items-center gap-1">
                   <Phone className="h-2.5 w-2.5" /> Baat karni hai
                 </span>
               ) : (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300">
+                <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300">
                   Chal raha
                 </span>
               )}
               {stage && (
-                <span className="px-2 py-0.5 rounded-md bg-lime-100 dark:bg-lime-500/20 text-lime-700 dark:text-lime-300 text-[9px] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded-md bg-lime-100 dark:bg-lime-500/20 text-lime-700 dark:text-lime-300 text-[0.625rem] font-extrabold uppercase">
                   {stage.e} {stage.v}
                 </span>
               )}
@@ -697,7 +697,7 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
               )}
             </div>
 
-            <div className="mt-1 flex items-center gap-3 text-[11px] text-slate-600 dark:text-slate-400 font-bold flex-wrap">
+            <div className="mt-1 flex items-center gap-3 text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold flex-wrap">
               {a.landAreaAcres ? (
                 <span className="inline-flex items-center gap-1"><Layers className="h-3 w-3" />{a.landAreaAcres} acre</span>
               ) : null}
@@ -722,13 +722,13 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
 
         {!a.completed && a.followUpDate && (
           <div className="text-right shrink-0">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider">Follow-up</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider">Follow-up</div>
             <div className={`text-sm font-black tabular-nums ${
               a.followDue ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300'
             }`}>
               {a.toFollow !== null ? dayPhrase(a.toFollow) : '—'}
             </div>
-            <div className="text-[10px] font-bold text-slate-400">
+            <div className="text-[0.6875rem] font-bold text-slate-400">
               {new Date(a.followUpDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}
             </div>
           </div>
@@ -737,10 +737,10 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
 
       {a.currentIssues && (
         <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5">
-          <div className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-0.5 inline-flex items-center gap-1">
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-0.5 inline-flex items-center gap-1">
             <Bug className="h-3 w-3" /> Masla
           </div>
-          <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200 leading-snug whitespace-pre-wrap">
+          <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200 leading-snug whitespace-pre-wrap">
             {a.currentIssues}
           </p>
         </div>
@@ -748,10 +748,10 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
 
       {a.notes && (
         <div className="rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-2.5">
-          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5 inline-flex items-center gap-1">
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-0.5 inline-flex items-center gap-1">
             <FlaskConical className="h-3 w-3" /> Jo raay di
           </div>
-          <p className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 leading-snug whitespace-pre-wrap">
+          <p className="text-[0.75rem] font-semibold text-slate-700 dark:text-slate-200 leading-snug whitespace-pre-wrap">
             {a.notes}
           </p>
         </div>
@@ -763,11 +763,11 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
           : a.outStock > 0 ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30'
           : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30'
       }`}>
-        <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1 inline-flex items-center gap-1">
+        <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1 inline-flex items-center gap-1">
           <Package className="h-3 w-3" /> Is fasal ka maal
         </div>
         {a.items.length === 0 ? (
-          <p className="text-[11px] font-bold text-rose-800 dark:text-rose-300 leading-snug">
+          <p className="text-[0.6875rem] font-bold text-rose-800 dark:text-rose-300 leading-snug">
             Koi cheez <strong>{a.cropName}</strong> se juri nahi. Product ke andar "kis fasal par
             chalta hai" bhar dein — phir mashwara dete waqt yahin nazar aa jayegi.
           </p>
@@ -775,7 +775,7 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
           <div className="flex flex-wrap gap-1">
             {a.items.slice(0, 6).map((i: any) => (
               <Link key={i.productId} to={`/agri-products/${i.productId}`}
-                className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-extrabold transition hover:underline ${
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold transition hover:underline ${
                   i.isOut ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                     : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200'
                 }`}>
@@ -784,7 +784,7 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
               </Link>
             ))}
             {a.items.length > 6 && (
-              <span className="text-[10px] font-extrabold text-slate-400 self-center">+{a.items.length - 6}</span>
+              <span className="text-[0.6875rem] font-extrabold text-slate-400 self-center">+{a.items.length - 6}</span>
             )}
           </div>
         )}
@@ -793,11 +793,11 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
       {!a.completed && (
         <div className="flex gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 print:hidden">
           <button onClick={onComplete} disabled={busy}
-            className="h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+            className="h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
             <CheckCircle2 className="h-3.5 w-3.5" /> Poora ho gaya
           </button>
           <Link to="/pos"
-            className="h-9 px-3 rounded-lg bg-lime-50 dark:bg-lime-500/15 hover:bg-lime-100 dark:hover:bg-lime-500/25 text-lime-700 dark:text-lime-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+            className="h-9 px-3 rounded-lg bg-lime-50 dark:bg-lime-500/15 hover:bg-lime-100 dark:hover:bg-lime-500/25 text-lime-700 dark:text-lime-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
             <Package className="h-3.5 w-3.5" /> POS par jayein
           </Link>
         </div>
@@ -831,7 +831,7 @@ function Analytics({ stats, cropChart, stageChart, issueChart, monthChart, rows 
             <TrendingUp className="h-4 w-4 text-emerald-600" />
             <h3 className="font-black text-emerald-900 dark:text-emerald-200">Is se kya faida uthana hai</h3>
           </div>
-          <p className="text-[12px] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
+          <p className="text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
             Sab se zyada masla <strong>"{topIssue.name}"</strong> ka aa raha hai
             {topCrop && <> aur sab se zyada fasal <strong>{topCrop.name}</strong> ki hai</>}.
             Yani us masle ki dawa ki maang sab se zyada hai — us ka stock poora rakhein aur
@@ -924,11 +924,11 @@ function Analytics({ stats, cropChart, stageChart, issueChart, monthChart, rows 
                   <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
                     {r.cropName}{r.cropVariety ? ` · ${r.cropVariety}` : ''}
                   </div>
-                  <div className="text-[11px] font-bold text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                     {r.advisoryNumber}{r.currentIssues ? ` · ${String(r.currentIssues).slice(0, 40)}` : ''}
                   </div>
                 </div>
-                <span className={`text-[11px] font-black tabular-nums shrink-0 px-2 py-1 rounded-lg ${
+                <span className={`text-[0.6875rem] font-black tabular-nums shrink-0 px-2 py-1 rounded-lg ${
                   (r.toFollow ?? 0) <= 0 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                 }`}>
@@ -1043,7 +1043,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
                       <User className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                       <span className="flex-1 min-w-0">
                         <span className="block text-sm font-extrabold text-slate-900 dark:text-white truncate">{f.fullName}</span>
-                        <span className="block text-[10px] font-bold text-slate-500">{f.phone || 'Phone nahi'}</span>
+                        <span className="block text-[0.6875rem] font-bold text-slate-500">{f.phone || 'Phone nahi'}</span>
                       </span>
                     </button>
                   ))}
@@ -1088,7 +1088,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
 
         {/* Masla */}
         <div>
-          <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+          <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">
             Kya masla hai?
           </label>
           <textarea rows={3} value={form.currentIssues}
@@ -1102,7 +1102,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
                   ...form,
                   currentIssues: form.currentIssues ? `${form.currentIssues}, ${iss}` : iss,
                 })}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-500/15 text-[11px] font-extrabold text-slate-600 dark:text-slate-300 transition">
+                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 transition">
                 + {iss}
               </button>
             ))}
@@ -1139,7 +1139,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
         {!form.followUpDate && (
           <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex items-center gap-3 flex-wrap">
             <Phone className="h-4 w-4 text-amber-600 shrink-0" />
-            <p className="flex-1 min-w-[180px] text-[11px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="flex-1 min-w-[180px] text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
               Follow-up ki tareekh bhar dein — warna ye mashwara likh kar bhool jayega. Spray ya
               khaad ka asar aam tor par 10 din me nazar aa jata hai.
             </p>
@@ -1152,12 +1152,12 @@ function AdvisoryForm({ onClose, onSaved }: any) {
 
         {!valid && (
           <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3">
-            <div className="text-[11px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300 mb-1">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300 mb-1">
               Ye reh gaya hai
             </div>
             <ul className="space-y-0.5">
               {errors.map((e) => (
-                <li key={e} className="text-[12px] font-bold text-rose-800 dark:text-rose-300">• {e}</li>
+                <li key={e} className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">• {e}</li>
               ))}
             </ul>
           </div>
@@ -1183,7 +1183,7 @@ const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-
 function Field({ label, req, opt, children }: any) {
   return (
     <div>
-      <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+      <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">
         {label}
         {req && <span className="text-rose-500"> *</span>}
         {opt && <span className="text-slate-400 normal-case font-bold"> — marzi</span>}
@@ -1210,9 +1210,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1231,10 +1231,10 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-4 w-4 ${tones[tone] ?? tones.emerald}`} />
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
       </div>
       <div className="mt-1.5 text-lg font-black text-slate-900 dark:text-white break-words">{value}</div>
-      {sub && <div className="text-[11px] font-bold text-slate-400 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -1303,7 +1303,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-5 space-y-3 text-sm">
           <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3">
-            <p className="text-[12px] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
+            <p className="text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
               Farmer sirf maal nahi khareedta — <strong>bharosa</strong> khareedta hai. Jo dukaan
               sahi mashwara deti hai, wohi us ka saara season ka maal bechti hai.
             </p>
@@ -1331,8 +1331,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             maangne ka sab se sahi waqt.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> nayi raay</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
@@ -1353,8 +1353,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

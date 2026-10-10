@@ -38,7 +38,7 @@ export function CustomersHero({ gradient, emoji, industryLabel, industryBadgeCol
           <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
             <span className="text-base">{emoji}</span>
             {industryLabel}
-            <span className={`ml-1 px-1.5 py-0.5 rounded ${industryBadgeColor} text-[10px] font-extrabold uppercase`}>
+            <span className={`ml-1 px-1.5 py-0.5 rounded ${industryBadgeColor} text-[0.6875rem] font-extrabold uppercase`}>
               {industryLabel}
             </span>
           </div>
@@ -159,11 +159,11 @@ export function CustomerCard({ customer: c, themeColor, extraBadges, onDelete }:
 
         <div className="mt-4 grid grid-cols-2 gap-2">
           <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-2.5 py-2">
-            <div className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">Spent</div>
+            <div className="text-[0.6875rem] text-emerald-700 font-bold uppercase tracking-wider">Spent</div>
             <div className="text-sm font-extrabold text-emerald-700 truncate">{formatPKR(c.totalSpent)}</div>
           </div>
           <div className={`rounded-lg px-2.5 py-2 border ${c.balance > 0 ? 'bg-rose-50 border-rose-200' : 'bg-slate-50 border-slate-200'}`}>
-            <div className={`text-[10px] font-bold uppercase tracking-wider ${c.balance > 0 ? 'text-rose-700' : 'text-slate-500'}`}>Khata</div>
+            <div className={`text-[0.6875rem] font-bold uppercase tracking-wider ${c.balance > 0 ? 'text-rose-700' : 'text-slate-500'}`}>Khata</div>
             <div className={`text-sm font-extrabold truncate ${c.balance > 0 ? 'text-rose-700' : 'text-slate-700'}`}>
               {formatPKR(c.balance)}
             </div>
@@ -173,7 +173,7 @@ export function CustomerCard({ customer: c, themeColor, extraBadges, onDelete }:
         {(c.loyaltyPoints > 0 || extraBadges) && (
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {c.loyaltyPoints > 0 && (
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-bold">
                 <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
                 {c.loyaltyPoints.toLocaleString()} pts
               </div>

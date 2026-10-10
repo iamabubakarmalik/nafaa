@@ -263,7 +263,7 @@ export function JewelryWizardStep1Basic({ basic, onChange, errors }: Props) {
                   ].join(' ')}
                 >
                   <div className="text-2xl mb-1">{m.emoji}</div>
-                  <div className="text-[10px] font-extrabold">{m.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
                 </button>
               );
             })}
@@ -489,7 +489,7 @@ export function JewelryWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt={`jewelry-${idx}`} className="w-full h-full object-cover" />
                 {idx === 0 && (
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-amber-600 text-white text-[9px] font-extrabold">PRIMARY</div>
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-amber-600 text-white text-[0.625rem] font-extrabold">PRIMARY</div>
                 )}
                 <button
                   onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, i) => i !== idx) })}

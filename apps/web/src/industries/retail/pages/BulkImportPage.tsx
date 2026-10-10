@@ -344,7 +344,7 @@ export default function BulkImportPage() {
 
         <div className="relative flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Sparkles className="h-3.5 w-3.5 text-amber-300" /> Bulk Import
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">
@@ -565,7 +565,7 @@ export default function BulkImportPage() {
           {/* Column mapping */}
           {rawHeaders.length > 0 && (
             <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-300 mb-2">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-300 mb-2">
                 🔗 Column Mapping (auto-detected)
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -575,7 +575,7 @@ export default function BulkImportPage() {
                     <div
                       key={h}
                       className={[
-                        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border-2 text-[11px] font-extrabold',
+                        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold',
                         field
                           ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300'
                           : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
@@ -731,11 +731,11 @@ function BulkImportTeacher({ hasJobs, onClose, onDownloadTemplate }: {
 
           {/* Live misal */}
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
               📊 Misal: Supplier ki Rate List
             </div>
             <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2 font-mono text-[10px] leading-relaxed">
+              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2 font-mono text-[0.6875rem] leading-relaxed">
                 naam, kharid, rate, qty<br />
                 Milk 1L, 240, 270, 50<br />
                 Sugar 1kg, 160, 180, 100
@@ -794,8 +794,8 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
   return (
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -806,7 +806,7 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
 function StepPill({ n, label, state }: { n: number; label: string; state: 'done' | 'active' | 'todo' }) {
   return (
     <div className={[
-      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-extrabold border backdrop-blur-md transition',
+      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.6875rem] font-extrabold border backdrop-blur-md transition',
       state === 'done'
         ? 'bg-emerald-400/25 border-emerald-300/50 text-emerald-200'
         : state === 'active'
@@ -817,7 +817,7 @@ function StepPill({ n, label, state }: { n: number; label: string; state: 'done'
         <CheckCircle2 className="h-3.5 w-3.5" />
       ) : (
         <span className={[
-          'h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-black',
+          'h-4 w-4 rounded-full flex items-center justify-center text-[0.625rem] font-black',
           state === 'active' ? 'bg-slate-900 text-amber-300' : 'bg-white/20 text-white/60',
         ].join(' ')}>
           {n}
@@ -839,18 +839,18 @@ function ValidCell({ label, value, tone, icon: Icon, hint }: any) {
   };
   return (
     <div className={`rounded-lg border-2 p-2 ${tones[tone]}`}>
-      <div className="flex items-center gap-1 text-[10px] uppercase font-extrabold">
+      <div className="flex items-center gap-1 text-[0.6875rem] uppercase font-extrabold">
         <Icon className="h-3 w-3" /> {label}
       </div>
       <div className="text-lg font-extrabold tabular-nums">{value}</div>
-      {hint && <div className="text-[9px] font-bold opacity-80">{hint}</div>}
+      {hint && <div className="text-[0.625rem] font-bold opacity-80">{hint}</div>}
     </div>
   );
 }
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-2 py-2 text-left text-[10px] uppercase font-extrabold text-slate-700 dark:text-slate-300 whitespace-nowrap ${className}`}>
+    <th className={`px-2 py-2 text-left text-[0.6875rem] uppercase font-extrabold text-slate-700 dark:text-slate-300 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -929,7 +929,7 @@ function JobRow({ job, onView }: { job: BulkImportJob; onView: () => void }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{job.fileName || 'Untitled'}</span>
-          <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 text-white ${c.color}`}>
+          <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ${c.color}`}>
             <Icon className={`h-2.5 w-2.5 ${job.status === 'PROCESSING' ? 'animate-spin' : ''}`} />
             {c.label}
           </span>
@@ -1015,7 +1015,7 @@ function StatBox({ label, value, tone }: any) {
   };
   return (
     <div className={`rounded-xl border-2 p-3 text-center ${tones[tone]}`}>
-      <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-75">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-75">{label}</div>
       <div className="text-2xl font-extrabold tabular-nums mt-1">{value}</div>
     </div>
   );

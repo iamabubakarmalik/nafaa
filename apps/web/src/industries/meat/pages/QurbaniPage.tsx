@@ -124,8 +124,8 @@ function BookingCard({ booking }: { booking: QurbaniBooking }) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{booking.bookingNumber}</span>
-              <span className="px-2 py-0.5 rounded-full bg-fuchsia-500 text-white text-[9px] font-extrabold uppercase">{booking.status}</span>
-              <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950/40 text-purple-700 text-[9px] font-extrabold uppercase">{booking.occasion}</span>
+              <span className="px-2 py-0.5 rounded-full bg-fuchsia-500 text-white text-[0.625rem] font-extrabold uppercase">{booking.status}</span>
+              <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950/40 text-purple-700 text-[0.625rem] font-extrabold uppercase">{booking.occasion}</span>
             </div>
             <div className="mt-1 text-sm font-bold text-slate-900">{booking.customerName}</div>
             <div className="text-xs text-slate-600 font-semibold inline-flex items-center gap-1">
@@ -143,7 +143,7 @@ function BookingCard({ booking }: { booking: QurbaniBooking }) {
 
       {booking.slaughterDate && (
         <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 p-2 text-xs">
-          <div className="text-[10px] uppercase font-extrabold text-amber-700">Slaughter Date</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Slaughter Date</div>
           <div className="font-extrabold text-amber-900">
             {format(new Date(booking.slaughterDate), 'dd MMM yyyy')}
             {booking.slaughterDay && ' (Day ' + booking.slaughterDay + ')'}
@@ -174,9 +174,9 @@ function BookingCard({ booking }: { booking: QurbaniBooking }) {
 
       <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
         <div>
-          <div className="text-[10px] font-extrabold text-emerald-700">Paid: {formatPKR(booking.paidAmount)}</div>
+          <div className="text-[0.6875rem] font-extrabold text-emerald-700">Paid: {formatPKR(booking.paidAmount)}</div>
           {remaining > 0 && (
-            <div className="text-[10px] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
+            <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
           )}
         </div>
         <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(booking.finalPrice || booking.advanceAmount)}</div>
@@ -250,7 +250,7 @@ function QurbaniForm({ onClose, onSaved }: any) {
 
         {/* Occasion + Animal */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Occasion *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Occasion *</label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {OCCASIONS.map((o) => (
               <button key={o.value} onClick={() => setForm({ ...form, occasion: o.value })} className={
@@ -262,7 +262,7 @@ function QurbaniForm({ onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Animal *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Animal *</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {ANIMAL_TYPES.map((a) => (
               <button key={a.value} onClick={() => setForm({ ...form, animalType: a.value, shareCount: a.shares > 1 ? form.shareCount : 1 })} className={
@@ -270,8 +270,8 @@ function QurbaniForm({ onClose, onSaved }: any) {
                 (form.animalType === a.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-fuchsia-300')
               }>
                 <div className="text-3xl mb-1">{a.emoji}</div>
-                <div className="text-[10px] font-extrabold">{a.label}</div>
-                <div className="text-[9px] font-bold text-slate-500">Up to {a.shares} shares</div>
+                <div className="text-[0.6875rem] font-extrabold">{a.label}</div>
+                <div className="text-[0.625rem] font-bold text-slate-500">Up to {a.shares} shares</div>
               </button>
             ))}
           </div>
@@ -285,11 +285,11 @@ function QurbaniForm({ onClose, onSaved }: any) {
             <div className="text-sm font-extrabold text-purple-900 mb-2">Share Details</div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-purple-700 mb-1 block">Total Shares (max {maxShares})</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-purple-700 mb-1 block">Total Shares (max {maxShares})</label>
                 <input type="number" min="1" max={maxShares} value={form.shareCount} onChange={(e) => setForm({ ...form, shareCount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-purple-300 bg-white dark:bg-purple-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-purple-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-purple-700 mb-1 block">This customer takes</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-purple-700 mb-1 block">This customer takes</label>
                 <input type="number" min="1" value={form.shareNumber} onChange={(e) => setForm({ ...form, shareNumber: e.target.value })} className="h-11 w-full rounded-xl border-2 border-purple-300 bg-white dark:bg-purple-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-purple-500" />
               </div>
             </div>
@@ -299,15 +299,15 @@ function QurbaniForm({ onClose, onSaved }: any) {
         {/* Pricing + Date */}
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Advance (Rs)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Advance (Rs)</label>
             <input type="number" value={form.advanceAmount} onChange={(e) => setForm({ ...form, advanceAmount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Final Price</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Final Price</label>
             <input type="number" value={form.finalPrice} onChange={(e) => setForm({ ...form, finalPrice: e.target.value })} placeholder="TBD" className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Slaughter Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Slaughter Date</label>
             <input type="date" value={form.slaughterDate} onChange={(e) => setForm({ ...form, slaughterDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
           </div>
         </div>

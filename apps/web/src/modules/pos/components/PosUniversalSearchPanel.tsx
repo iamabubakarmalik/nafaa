@@ -199,7 +199,7 @@ export function PosUniversalSearchPanel({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <div className="text-base font-extrabold text-slate-900 truncate">{p.name}</div>
-                      <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-extrabold uppercase">
+                      <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[0.6875rem] font-extrabold uppercase">
                         Product
                       </span>
                     </div>
@@ -237,7 +237,7 @@ export function PosUniversalSearchPanel({
                       <div className="text-base font-extrabold text-slate-900 truncate">
                         {roll.rollNumber}
                       </div>
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 text-[10px] font-extrabold uppercase">
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold uppercase">
                         Roll
                       </span>
                     </div>
@@ -286,7 +286,7 @@ export function PosUniversalSearchPanel({
                     <div className="text-base font-extrabold text-slate-900 truncate">
                       {piece.pieceCode}
                     </div>
-                    <span className="px-2 py-0.5 rounded-md bg-violet-100 text-violet-700 text-[10px] font-extrabold uppercase">
+                    <span className="px-2 py-0.5 rounded-md bg-violet-100 text-violet-700 text-[0.6875rem] font-extrabold uppercase">
                       Cut Piece
                     </span>
                   </div>
@@ -321,7 +321,7 @@ export function PosUniversalSearchPanel({
         </div>
       )}
 
-      <div className="px-4 py-2 border-t border-slate-100 bg-slate-50/70 text-[11px] text-slate-600 font-bold flex items-center gap-1.5">
+      <div className="px-4 py-2 border-t border-slate-100 bg-slate-50/70 text-[0.6875rem] text-slate-600 font-bold flex items-center gap-1.5">
         <Sparkles className="h-3 w-3 text-emerald-600" />
         Tip: roll number ya piece code likhte hi direct result upar aa jayega
       </div>

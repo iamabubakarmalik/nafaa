@@ -235,7 +235,7 @@ export default function QuickKeysPage() {
 
         <div className="relative flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Sparkles className="h-3.5 w-3.5 text-amber-300" /> POS Shortcuts
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">
@@ -358,9 +358,9 @@ export default function QuickKeysPage() {
                 {hotkeyConflicts.map(([hotkey, arr]) => (
                   <div
                     key={hotkey}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-slate-800 border border-rose-300 dark:border-rose-500/40 px-2 py-1 text-[11px] font-extrabold text-rose-800 dark:text-rose-300"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-white dark:bg-slate-800 border border-rose-300 dark:border-rose-500/40 px-2 py-1 text-[0.6875rem] font-extrabold text-rose-800 dark:text-rose-300"
                   >
-                    <kbd className="px-1.5 py-0.5 rounded bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-mono text-[10px]">
+                    <kbd className="px-1.5 py-0.5 rounded bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-mono text-[0.6875rem]">
                       {hotkey}
                     </kbd>
                     → {arr.map((k) => k.label).join(' vs ')}
@@ -472,7 +472,7 @@ export default function QuickKeysPage() {
                     <Grid3x3 className="h-4 w-4" />
                   </div>
                   <h3 className="font-extrabold text-slate-900 dark:text-white">{group}</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] font-extrabold">
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[0.6875rem] font-extrabold">
                     {groupKeys.length}
                   </span>
                 </div>
@@ -538,7 +538,7 @@ function QuickKeysTeacher({ hasKeys, onClose, onStart }: { hasKeys: boolean; onC
 
           {/* Live misal */}
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300">
               ⚡ Misal: Counter pe rush hai
             </div>
             <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -551,7 +551,7 @@ function QuickKeysTeacher({ hasKeys, onClose, onStart }: { hasKeys: boolean; onC
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-slate-500 dark:text-slate-400">✅ Ab:</span>
                 <span className="px-2 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-extrabold">
-                  <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-white font-mono text-[10px] mr-1">Q</kbd>
+                  <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-white font-mono text-[0.6875rem] mr-1">Q</kbd>
                   dabao → Milk cart mein! (1 sec)
                 </span>
               </div>
@@ -602,8 +602,8 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
   return (
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -614,7 +614,7 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
 function StepPill({ n, label, state }: { n: number; label: string; state: 'done' | 'active' | 'todo' }) {
   return (
     <div className={[
-      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-extrabold border backdrop-blur-md transition',
+      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.6875rem] font-extrabold border backdrop-blur-md transition',
       state === 'done'
         ? 'bg-emerald-400/25 border-emerald-300/50 text-emerald-200'
         : state === 'active'
@@ -625,7 +625,7 @@ function StepPill({ n, label, state }: { n: number; label: string; state: 'done'
         <CheckCircle2 className="h-3.5 w-3.5" />
       ) : (
         <span className={[
-          'h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-black',
+          'h-4 w-4 rounded-full flex items-center justify-center text-[0.625rem] font-black',
           state === 'active' ? 'bg-slate-900 text-amber-300' : 'bg-white/20 text-white/60',
         ].join(' ')}>
           {n}
@@ -666,14 +666,14 @@ function KeyTile({ qk, flashing, hasConflict, canMoveUp, canMoveDown, onMoveUp, 
 
       <div className="relative h-full flex flex-col items-center justify-center text-center">
         <div className="text-3xl sm:text-4xl mb-1.5 drop-shadow-sm">{qk.icon || '⚡'}</div>
-        <div className="text-[11px] sm:text-xs font-extrabold text-slate-900 dark:text-white line-clamp-2 leading-tight">
+        <div className="text-[0.6875rem] sm:text-xs font-extrabold text-slate-900 dark:text-white line-clamp-2 leading-tight">
           {qk.label}
         </div>
       </div>
 
       {qk.hotkey && (
         <div className={[
-          'absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-mono font-extrabold shadow',
+          'absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded text-[0.625rem] font-mono font-extrabold shadow',
           hasConflict
             ? 'bg-rose-600 text-white'
             : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900',
@@ -685,7 +685,7 @@ function KeyTile({ qk, flashing, hasConflict, canMoveUp, canMoveDown, onMoveUp, 
       )}
 
       {!qk.isActive && (
-        <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-slate-500 text-white text-[9px] font-extrabold">
+        <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-slate-500 text-white text-[0.625rem] font-extrabold">
           OFF
         </div>
       )}
@@ -859,7 +859,7 @@ function QuickKeyForm({ editing, nextPosition, existingKeys, onClose, onSaved }:
               maxLength={20}
               className={inputCls('h-12 text-base font-extrabold', touched && !form.label.trim())}
             />
-            <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1 text-right">
+            <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 mt-1 text-right">
               {form.label.length}/20
             </div>
           </Field>
@@ -916,7 +916,7 @@ function QuickKeyForm({ editing, nextPosition, existingKeys, onClose, onSaved }:
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-extrabold truncate text-slate-900 dark:text-white">{p.name}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold tabular-nums">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold tabular-nums">
                           {formatPKR(p.price)}
                         </div>
                       </div>
@@ -937,7 +937,7 @@ function QuickKeyForm({ editing, nextPosition, existingKeys, onClose, onSaved }:
                     <div className="text-xs font-extrabold text-emerald-900 dark:text-emerald-200 truncate">
                       ✓ {linkedProduct.name}
                     </div>
-                    <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold tabular-nums">
+                    <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-bold tabular-nums">
                       {formatPKR(linkedProduct.price)}
                     </div>
                   </div>
@@ -996,7 +996,7 @@ function QuickKeyForm({ editing, nextPosition, existingKeys, onClose, onSaved }:
                   key={cat.name}
                   onClick={() => setEmojiCategory(cat.name)}
                   className={[
-                    'px-3 py-1 rounded-lg text-[11px] font-extrabold transition',
+                    'px-3 py-1 rounded-lg text-[0.6875rem] font-extrabold transition',
                     emojiCategory === cat.name
                       ? 'bg-amber-600 text-white shadow-md'
                       : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300',
@@ -1061,7 +1061,7 @@ function QuickKeyForm({ editing, nextPosition, existingKeys, onClose, onSaved }:
 
         {/* RIGHT — Preview */}
         <div>
-          <label className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 text-center">
+          <label className="block text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-2 text-center">
             <Eye className="h-3 w-3 inline" /> Live Preview
           </label>
           <div
@@ -1087,14 +1087,14 @@ function QuickKeyForm({ editing, nextPosition, existingKeys, onClose, onSaved }:
             </div>
             {form.hotkey && (
               <div className={[
-                'absolute top-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-mono font-extrabold',
+                'absolute top-2 left-2 px-1.5 py-0.5 rounded text-[0.6875rem] font-mono font-extrabold',
                 hotkeyConflict ? 'bg-rose-600 text-white' : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900',
               ].join(' ')}>
                 {form.hotkey}
               </div>
             )}
             {!form.isActive && (
-              <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-slate-500 text-white text-[10px] font-extrabold">
+              <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-slate-500 text-white text-[0.6875rem] font-extrabold">
                 OFF
               </div>
             )}
@@ -1173,14 +1173,14 @@ function Kpi({ label, value, sub, icon: Icon, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm dark:shadow-black/20 hover:shadow-md dark:hover:shadow-lg transition-all hover:-translate-y-0.5">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
             {label}
           </div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">
             {value}
           </div>
           {sub && (
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
+            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
               {sub}
             </div>
           )}

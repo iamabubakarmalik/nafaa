@@ -113,7 +113,7 @@ function emojiIcon(emoji: string) {
   const hit = emojiCache.get(emoji);
   if (hit) return hit;
   const C = ({ className }: { className?: string }) => (
-    <span className={cn('inline-flex items-center justify-center text-[13px] leading-none', className)} aria-hidden>{emoji}</span>
+    <span className={cn('inline-flex items-center justify-center text-[0.8125rem] leading-none', className)} aria-hidden>{emoji}</span>
   );
   emojiCache.set(emoji, C);
   return C;
@@ -225,8 +225,8 @@ function SidebarFull({ tenantName, tenantSlug, businessType, role, permissions, 
             {industry?.emoji && !isMarketplace ? <span className="leading-none">{industry.emoji}</span> : <Logo size={20} />}
           </span>
           <div className="min-w-0">
-            <div className="truncate text-[14px] font-semibold leading-tight text-slate-900 dark:text-white">{tenantName || 'My store'}</div>
-            <div className="truncate text-[12px] capitalize text-slate-500 dark:text-slate-400">
+            <div className="truncate text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-white">{tenantName || 'My store'}</div>
+            <div className="truncate text-[0.75rem] capitalize text-slate-500 dark:text-slate-400">
               {subtitle}{tenantSlug ? <span className="normal-case"> · @{tenantSlug}</span> : null}
             </div>
           </div>
@@ -250,7 +250,7 @@ function SidebarFull({ tenantName, tenantSlug, businessType, role, permissions, 
             onKeyDown={(e) => { if (e.key === 'Escape') { setSearch(''); searchRef.current?.blur(); } }}
             placeholder="Search menu"
             aria-label="Search menu"
-            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-[13px] text-slate-900 placeholder:text-slate-400 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-[0.8125rem] text-slate-900 placeholder:text-slate-400 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
           />
           {search && (
             <button onClick={() => setSearch('')} aria-label="Clear search"
@@ -269,7 +269,7 @@ function SidebarFull({ tenantName, tenantSlug, businessType, role, permissions, 
       {/* ─── Nav ─── */}
       <nav ref={navRef} aria-label="Main" className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-2 pb-4 [scrollbar-width:thin]">
         {q && (
-          <div className="px-2.5 text-[12px] text-slate-500">{total === 0 ? 'No matches' : `${total} result${total > 1 ? 's' : ''}`}</div>
+          <div className="px-2.5 text-[0.75rem] text-slate-500">{total === 0 ? 'No matches' : `${total} result${total > 1 ? 's' : ''}`}</div>
         )}
 
         {!q && pinned.length > 0 && (
@@ -323,7 +323,7 @@ function SidebarFull({ tenantName, tenantSlug, businessType, role, permissions, 
           <div className="px-4 py-10 text-center">
             <Search className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-700" />
             <div className="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Nothing found for “{search}”</div>
-            <button onClick={() => setSearch('')} className="mt-2 text-[13px] font-medium text-emerald-700 hover:underline dark:text-emerald-400">Clear search</button>
+            <button onClick={() => setSearch('')} className="mt-2 text-[0.8125rem] font-medium text-emerald-700 hover:underline dark:text-emerald-400">Clear search</button>
           </div>
         )}
       </nav>
@@ -332,7 +332,7 @@ function SidebarFull({ tenantName, tenantSlug, businessType, role, permissions, 
       <div className="shrink-0 space-y-0.5 border-t border-slate-200/80 px-2 py-2 dark:border-slate-800">
         <FooterLink to={settingsHome} icon={Settings} label="Settings" active={isSettingsPath(location.pathname)} onClick={onItemClick} />
         <FooterLink to="/help" icon={HelpCircle} label="Help center" active={isActivePath(location.pathname, '/help')} onClick={onItemClick} />
-        <div className="flex items-center justify-between px-2.5 pt-1.5 text-[11px] text-slate-400">
+        <div className="flex items-center justify-between px-2.5 pt-1.5 text-[0.6875rem] text-slate-400">
           <span className="flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {workspace.shortLabel} workspace
           </span>
@@ -346,7 +346,7 @@ function SidebarFull({ tenantName, tenantSlug, businessType, role, permissions, 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <div>
-      <div className="flex items-center gap-2 px-2.5 py-1.5 text-[12px] font-semibold text-slate-500 dark:text-slate-400">
+      <div className="flex items-center gap-2 px-2.5 py-1.5 text-[0.75rem] font-semibold text-slate-500 dark:text-slate-400">
         {icon}<span>{title}</span>
       </div>
       <div className="space-y-0.5">{children}</div>
@@ -359,7 +359,7 @@ function GroupHeader({ label, icon: Icon, color, open, dot, live, onClick }: {
 }) {
   return (
     <button onClick={onClick} aria-expanded={open}
-      className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+      className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[0.75rem] font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
       <Icon className="h-3.5 w-3.5 shrink-0" style={color ? { color } : undefined} />
       <span className="flex-1 truncate">{label}</span>
       {live && <OnlineOrdersCount compact />}
@@ -380,7 +380,7 @@ function NavRow({ item, accent, fav, muted, hideStar, onToggleFav, onItemClick }
       end={END_PATHS.has(item.to)}
       onClick={onItemClick}
       className={({ isActive }) => cn(
-        'group/item relative flex h-9 items-center gap-2.5 rounded-lg pl-2.5 pr-1 text-[13.5px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500',
+        'group/item relative flex h-9 items-center gap-2.5 rounded-lg pl-2.5 pr-1 text-[0.84375rem] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500',
         isActive
           ? 'bg-white font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-800 dark:text-white dark:ring-slate-700'
           : muted
@@ -395,7 +395,7 @@ function NavRow({ item, accent, fav, muted, hideStar, onToggleFav, onItemClick }
           {item.hot && !isActive && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" aria-hidden />}
           {item.liveCount === 'online-orders' && <OnlineOrdersCount />}
           {!!item.count && <CountPill n={item.count} />}
-          {item.dim && <span className="shrink-0 text-[10px] font-medium text-slate-400">off</span>}
+          {item.dim && <span className="shrink-0 text-[0.6875rem] font-medium text-slate-400">off</span>}
           {item.badge && <ItemBadge text={item.badge} />}
           {!hideStar && onToggleFav && (
             <button
@@ -423,7 +423,7 @@ function FooterLink({ to, icon: Icon, label, active, onClick }: { to: string; ic
   return (
     <NavLink to={to} onClick={onClick}
       className={cn(
-        'flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[13.5px] transition-colors',
+        'flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-[0.84375rem] transition-colors',
         active
           ? 'bg-white font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-800 dark:text-white dark:ring-slate-700'
           : 'font-medium text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-white',
@@ -436,12 +436,12 @@ function FooterLink({ to, icon: Icon, label, active, onClick }: { to: string; ic
 function ItemBadge({ text }: { text: string }) {
   const tone = text === 'LIVE' ? 'bg-rose-500 text-white' : text === 'NEW' ? 'bg-emerald-500 text-white'
     : text === 'AI' ? 'bg-violet-500 text-white' : 'bg-amber-500 text-white';
-  return <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold tracking-wide', tone)}>{text}</span>;
+  return <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-[0.625rem] font-bold tracking-wide', tone)}>{text}</span>;
 }
 
 function CountPill({ n }: { n: number }) {
   return (
-    <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-md bg-amber-500/15 px-1.5 text-[10px] font-bold tabular-nums text-amber-700 dark:text-amber-300">
+    <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-md bg-amber-500/15 px-1.5 text-[0.6875rem] font-bold tabular-nums text-amber-700 dark:text-amber-300">
       {n > 99 ? '99+' : n}
     </span>
   );
@@ -455,7 +455,7 @@ export function OnlineOrdersCount({ compact, dot }: { compact?: boolean; dot?: b
   if (dot) return <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-amber-500 ring-2 ring-[#eef0f3] dark:ring-slate-950" aria-label={`${n} new online orders`} />;
   return (
     <span className={cn('flex shrink-0 items-center justify-center rounded-md bg-amber-500 font-bold text-white tabular-nums',
-      compact ? 'h-4 min-w-4 px-1 text-[9px]' : 'h-5 min-w-5 px-1.5 text-[10px]')}>
+      compact ? 'h-4 min-w-4 px-1 text-[0.625rem]' : 'h-5 min-w-5 px-1.5 text-[0.6875rem]')}>
       {n > 99 ? '99+' : n}
     </span>
   );
@@ -541,7 +541,7 @@ function SidebarRail({ role, permissions, onToggleCollapse }: Props) {
           );
         })}
         {pinned.length > 5 && (
-          <button onClick={() => setPinnedOpen((v) => !v)} className="h-5 text-[10px] font-semibold text-slate-400 hover:text-slate-700">
+          <button onClick={() => setPinnedOpen((v) => !v)} className="h-5 text-[0.6875rem] font-semibold text-slate-400 hover:text-slate-700">
             {pinnedOpen ? 'less' : `+${pinned.length - 5}`}
           </button>
         )}
@@ -584,11 +584,11 @@ function SidebarRail({ role, permissions, onToggleCollapse }: Props) {
             'fixed z-[80] animate-in fade-in slide-in-from-left-1 duration-100',
             fly.group
               ? 'w-60 rounded-xl border border-slate-200 bg-white p-1.5 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-white'
-              : 'pointer-events-none whitespace-pre rounded-lg bg-slate-900 px-2.5 py-1.5 text-[12px] font-medium text-white shadow-lg dark:bg-white dark:text-slate-900',
+              : 'pointer-events-none whitespace-pre rounded-lg bg-slate-900 px-2.5 py-1.5 text-[0.75rem] font-medium text-white shadow-lg dark:bg-white dark:text-slate-900',
           )}>
           {fly.group ? (
             <>
-              <div className="flex items-center gap-2 px-2.5 pb-1.5 pt-1 text-[12px] font-semibold text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-2 px-2.5 pb-1.5 pt-1 text-[0.75rem] font-semibold text-slate-500 dark:text-slate-400">
                 <fly.group.icon className="h-3.5 w-3.5" style={fly.group.color ? { color: fly.group.color } : undefined} /> {fly.group.label}
               </div>
               <div className="space-y-0.5">
@@ -597,7 +597,7 @@ function SidebarRail({ role, permissions, onToggleCollapse }: Props) {
                   const active = isActivePath(location.pathname, it.to);
                   return (
                     <button key={it.to} onClick={() => { navigate(it.to); setFly(null); }}
-                      className={cn('flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[13.5px] transition-colors',
+                      className={cn('flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[0.84375rem] transition-colors',
                         active ? 'bg-slate-100 font-semibold dark:bg-slate-800' : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white')}>
                       <Icon className="h-4 w-4 shrink-0" style={active ? { color: accent } : undefined} />
                       <span className="flex-1 truncate">{it.label}</span>

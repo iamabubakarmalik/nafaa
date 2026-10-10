@@ -110,7 +110,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
                 <AlertTriangle className="h-6 w-6 text-white" />
               </div>
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border border-white/20">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-wider border border-white/20">
                   <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                   Report Damage
                 </div>
@@ -210,7 +210,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
                     >
                       <div className="text-2xl mb-1">{r.emoji}</div>
                       <div className={
-                        'text-[10px] font-extrabold ' +
+                        'text-[0.6875rem] font-extrabold ' +
                         (form.reasonCode === r.value ? 'text-rose-900 dark:text-rose-300' : 'text-slate-700 dark:text-slate-300')
                       }>{r.label}</div>
                     </button>
@@ -221,7 +221,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
               {/* Quantity + Cost + Salvage */}
               <div className="grid sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Quantity *</label>
+                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Quantity *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -232,7 +232,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Unit Cost</label>
+                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Unit Cost</label>
                   <input
                     type="number"
                     step="0.01"
@@ -243,7 +243,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Salvage Value</label>
+                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Salvage Value</label>
                   <input
                     type="number"
                     step="0.01"
@@ -264,7 +264,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
 
               {/* Reason description */}
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Detailed Reason *</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Detailed Reason *</label>
                 <textarea
                   rows={2}
                   value={form.reason}
@@ -276,7 +276,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
 
               {/* Photos */}
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">
                   <Camera className="h-3 w-3 inline mr-1" />
                   Photos (evidence)
                 </label>
@@ -307,7 +307,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
 
               {/* Notes */}
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Internal Notes (optional)</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Internal Notes (optional)</label>
                 <textarea
                   rows={2}
                   value={form.notes}
@@ -345,7 +345,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
 
               {/* Impact preview */}
               <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-rose-900 text-white p-4 shadow-lg">
-                <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-80 mb-2">Impact Summary</div>
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-80 mb-2">Impact Summary</div>
                 <div className="grid grid-cols-3 gap-3 text-sm">
                   <div>
                     <div className="text-xs opacity-75 font-semibold">Cost Impact</div>

@@ -165,7 +165,7 @@ function VehicleCard({ vehicle, onEdit, onDelete }: any) {
               {hasAlerts && <AlertCircle className="h-4 w-4 text-amber-600" />}
             </div>
             <div className="text-xs font-extrabold text-blue-600">{vehicle.makeName} {vehicle.modelName}</div>
-            {vehicle.year && <div className="text-[10px] font-bold text-slate-500">{vehicle.year} • {vehicle.color}</div>}
+            {vehicle.year && <div className="text-[0.6875rem] font-bold text-slate-500">{vehicle.year} • {vehicle.color}</div>}
           </div>
         </div>
         <div className="opacity-0 group-hover:opacity-100 transition flex gap-1 shrink-0">
@@ -184,14 +184,14 @@ function VehicleCard({ vehicle, onEdit, onDelete }: any) {
       <div className="grid grid-cols-3 gap-1.5 text-xs">
         <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
           <Fuel className="h-3 w-3 mx-auto text-slate-500" />
-          <div className="text-[9px] font-bold text-slate-500 mt-0.5">{fuel?.emoji} {vehicle.fuelType}</div>
+          <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">{fuel?.emoji} {vehicle.fuelType}</div>
         </div>
         <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
           <Settings className="h-3 w-3 mx-auto text-slate-500" />
-          <div className="text-[9px] font-bold text-slate-500 mt-0.5">{vehicle.transmission}</div>
+          <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">{vehicle.transmission}</div>
         </div>
         <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
-          <div className="text-[9px] font-bold text-slate-500">{vehicle.odometerKm || 0} km</div>
+          <div className="text-[0.625rem] font-bold text-slate-500">{vehicle.odometerKm || 0} km</div>
         </div>
       </div>
 
@@ -225,12 +225,12 @@ function VehicleCard({ vehicle, onEdit, onDelete }: any) {
 
       <div className="grid grid-cols-2 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Services</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Services</div>
           <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{vehicle.totalServices}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-emerald-700">Total Spent</div>
-          <div className="font-extrabold text-emerald-700 tabular-nums text-[11px]">{formatPKR(vehicle.totalSpent).replace('Rs', '').trim()}</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Total Spent</div>
+          <div className="font-extrabold text-emerald-700 tabular-nums text-[0.6875rem]">{formatPKR(vehicle.totalSpent).replace('Rs', '').trim()}</div>
         </div>
       </div>
 
@@ -245,7 +245,7 @@ function VehicleCard({ vehicle, onEdit, onDelete }: any) {
 function DocAlert({ icon: Icon, label, days, date }: any) {
   const color = days < 0 ? 'text-rose-700 bg-rose-50' : days <= 15 ? 'text-amber-700 bg-amber-50' : days <= 30 ? 'text-orange-700 bg-orange-50' : 'text-slate-600';
   return (
-    <div className={'flex items-center justify-between px-2 py-1 rounded text-[10px] font-extrabold ' + color}>
+    <div className={'flex items-center justify-between px-2 py-1 rounded text-[0.6875rem] font-extrabold ' + color}>
       <span className="flex items-center gap-1">
         <Icon className="h-2.5 w-2.5" />
         {label}
@@ -374,15 +374,15 @@ function VehicleForm({ editing, onClose, onSaved }: any) {
           </div>
           <div className="grid sm:grid-cols-3 gap-2">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Insurance Expiry</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Insurance Expiry</label>
               <input type="date" value={form.insuranceExpiry} onChange={(e) => setForm({ ...form, insuranceExpiry: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Token Tax Expiry</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Token Tax Expiry</label>
               <input type="date" value={form.tokenTaxExpiry} onChange={(e) => setForm({ ...form, tokenTaxExpiry: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Fitness Expiry</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Fitness Expiry</label>
               <input type="date" value={form.fitnessExpiry} onChange={(e) => setForm({ ...form, fitnessExpiry: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
             </div>
           </div>
@@ -390,7 +390,7 @@ function VehicleForm({ editing, onClose, onSaved }: any) {
 
         {/* Photos */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Vehicle Photos</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Vehicle Photos</label>
           {form.photoUrls.length > 0 && (
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-1 mb-2">
               {form.photoUrls.map((url: string, i: number) => (

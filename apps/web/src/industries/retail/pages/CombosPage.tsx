@@ -232,7 +232,7 @@ export default function CombosPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
             <div className="text-xs font-bold text-slate-900">{printDate}</div>
           </div>
         </div>
@@ -245,7 +245,7 @@ export default function CombosPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Sparkles className="h-3.5 w-3.5 text-amber-300" /> Retail Combos
               {shopName && (
                 <>
@@ -376,7 +376,7 @@ export default function CombosPage() {
                   <Link
                     key={c.id}
                     to={`/retail/combos/${c.id}/edit`}
-                    className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-500/40 px-2 py-1 text-[11px] font-extrabold text-amber-800 dark:text-amber-300 hover:border-amber-500 transition"
+                    className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-500/40 px-2 py-1 text-[0.6875rem] font-extrabold text-amber-800 dark:text-amber-300 hover:border-amber-500 transition"
                   >
                     {c.name}
                     <span className="text-amber-600 dark:text-amber-400">
@@ -658,7 +658,7 @@ function ComboTeacher({ hasCombos, hasActive, onClose }: {
 
           {/* Live misal */}
           <div className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/30 bg-violet-50/60 dark:bg-violet-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300">
               🫖 Misal: Nashta Combo
             </div>
             <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -726,8 +726,8 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
   return (
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -738,7 +738,7 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
 function StepPill({ n, label, state }: { n: number; label: string; state: 'done' | 'active' | 'todo' }) {
   return (
     <div className={[
-      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-extrabold border backdrop-blur-md transition',
+      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.6875rem] font-extrabold border backdrop-blur-md transition',
       state === 'done'
         ? 'bg-emerald-400/25 border-emerald-300/50 text-emerald-200'
         : state === 'active'
@@ -749,7 +749,7 @@ function StepPill({ n, label, state }: { n: number; label: string; state: 'done'
         <CheckCircle2 className="h-3.5 w-3.5" />
       ) : (
         <span className={[
-          'h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-black',
+          'h-4 w-4 rounded-full flex items-center justify-center text-[0.625rem] font-black',
           state === 'active' ? 'bg-slate-900 text-amber-300' : 'bg-white/20 text-white/60',
         ].join(' ')}>
           {n}
@@ -794,12 +794,12 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
       {(isBestSeller || isTopRevenue) && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 flex gap-1">
           {isBestSeller && (
-            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-extrabold uppercase tracking-wider shadow-lg inline-flex items-center gap-1">
+            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shadow-lg inline-flex items-center gap-1">
               <Crown className="h-2.5 w-2.5" /> Best Seller
             </span>
           )}
           {isTopRevenue && (
-            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-extrabold uppercase tracking-wider shadow-lg inline-flex items-center gap-1">
+            <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shadow-lg inline-flex items-center gap-1">
               <Trophy className="h-2.5 w-2.5" /> Top Revenue
             </span>
           )}
@@ -822,7 +822,7 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
         )}
 
         {combo.tagLine && (
-          <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-white/95 dark:bg-slate-900/95 backdrop-blur text-[10px] font-extrabold text-violet-700 dark:text-violet-300 uppercase tracking-wider shadow-lg">
+          <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-white/95 dark:bg-slate-900/95 backdrop-blur text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-300 uppercase tracking-wider shadow-lg">
             {combo.tagLine}
           </div>
         )}
@@ -854,20 +854,20 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
           <h3 className="font-extrabold text-slate-900 dark:text-white text-sm truncate flex-1">
             {combo.name}
           </h3>
-          <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider shrink-0 ${sm.light} ${sm.dark}`}>
+          <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0 ${sm.light} ${sm.dark}`}>
             {combo.status}
           </span>
         </div>
 
         {/* Items preview */}
         <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 border border-slate-100 dark:border-slate-700">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
             <Package className="h-2.5 w-2.5" />
             {combo.items.length} items
           </div>
           <div className="space-y-0.5">
             {combo.items.slice(0, 2).map((item, i) => (
-              <div key={i} className="flex items-center gap-1.5 text-[11px]">
+              <div key={i} className="flex items-center gap-1.5 text-[0.6875rem]">
                 <span className="h-1 w-1 rounded-full bg-violet-500 shrink-0" />
                 <span className="font-bold text-slate-700 dark:text-slate-200 truncate flex-1">
                   {item.product?.name || '—'}
@@ -878,7 +878,7 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
               </div>
             ))}
             {combo.items.length > 2 && (
-              <div className="text-[10px] font-extrabold text-violet-700 dark:text-violet-400 pl-2.5">
+              <div className="text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-400 pl-2.5">
                 + {combo.items.length - 2} aur
               </div>
             )}
@@ -897,18 +897,18 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
               {formatPKR(combo.comboPrice)}
             </div>
             {combo.savingsAmount > 0 && (
-              <div className="text-[10px] font-extrabold text-amber-700 dark:text-amber-400 mt-0.5">
+              <div className="text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-400 mt-0.5">
                 Save {formatPKR(combo.savingsAmount)}
               </div>
             )}
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">Bike</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">Bike</div>
             <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">
               {combo.soldCount}
             </div>
             {!hideCost && Number(combo.totalRevenue) > 0 && (
-              <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                 {formatPKR(combo.totalRevenue)}
               </div>
             )}
@@ -959,7 +959,7 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
   return (
     <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm print:text-[10px]">
+        <table className="w-full text-sm print:text-[0.6875rem]">
           <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
             <tr>
               <Th>Combo</Th>
@@ -995,7 +995,7 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
                         {c.isFeatured && <Star className="h-3 w-3 text-amber-500 fill-amber-500 shrink-0" />}
                       </div>
                       {c.tagLine && (
-                        <div className="text-[10px] font-extrabold text-violet-700 dark:text-violet-400 uppercase truncate">
+                        <div className="text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-400 uppercase truncate">
                           {c.tagLine}
                         </div>
                       )}
@@ -1006,7 +1006,7 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
                   <div className="text-xs font-extrabold text-slate-700 dark:text-slate-200">
                     {c.items.length} products
                   </div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate max-w-[150px]">
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold truncate max-w-[150px]">
                     {c.items.slice(0, 2).map((it) => it.product?.name).filter(Boolean).join(', ')}
                     {c.items.length > 2 && ` +${c.items.length - 2}`}
                   </div>
@@ -1021,7 +1021,7 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
                   <div className="font-extrabold text-amber-700 dark:text-amber-400 tabular-nums text-xs">
                     {formatPKR(c.savingsAmount)}
                   </div>
-                  <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                  <div className="text-[0.6875rem] font-bold text-amber-600 dark:text-amber-400">
                     {c.savingsPercentage.toFixed(1)}%
                   </div>
                 </td>
@@ -1087,7 +1087,7 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>
+    <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>
       {children}
     </th>
   );
@@ -1101,7 +1101,7 @@ function StatusPill({ status }: { status: string }) {
     EXPIRED:  'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
   };
   return (
-    <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${map[status]}`}>
+    <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase tracking-wider ${map[status]}`}>
       {status}
     </span>
   );
@@ -1128,14 +1128,14 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
             {label}
           </div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">
             {value}
           </div>
           {sub && (
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
+            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
               {sub}
             </div>
           )}

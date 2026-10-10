@@ -159,10 +159,10 @@ export function PharmacyWizardStep2Clinical({
                         )}
                       </div>
                       {salt.requiresPrescription && (
-                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase">Rx</span>
+                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">Rx</span>
                       )}
                       {already ? (
-                        <span className="text-[10px] font-extrabold text-emerald-700">✓ Added</span>
+                        <span className="text-[0.6875rem] font-extrabold text-emerald-700">✓ Added</span>
                       ) : (
                         <Plus className="h-4 w-4 text-cyan-600" />
                       )}
@@ -192,7 +192,7 @@ export function PharmacyWizardStep2Clinical({
                     <div className="flex items-center gap-2 flex-wrap">
                       <div className="font-extrabold text-sm text-slate-900">{s.saltName}</div>
                       {s.isMainSalt && (
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold uppercase">Main</span>
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase">Main</span>
                       )}
                     </div>
                   </div>
@@ -203,7 +203,7 @@ export function PharmacyWizardStep2Clinical({
                         onUpdateSalt(s.tempId, { isMainSalt: !s.isMainSalt });
                       }}
                       className={[
-                        'h-8 px-2 rounded-lg text-[10px] font-extrabold transition',
+                        'h-8 px-2 rounded-lg text-[0.6875rem] font-extrabold transition',
                         s.isMainSalt
                           ? 'bg-emerald-100 text-emerald-700'
                           : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700',
@@ -222,7 +222,7 @@ export function PharmacyWizardStep2Clinical({
 
                 <div className="grid sm:grid-cols-3 gap-2">
                   <div className="sm:col-span-2">
-                    <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Strength *</label>
+                    <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Strength *</label>
                     <input
                       value={s.strength}
                       onChange={(e) => onUpdateSalt(s.tempId, { strength: e.target.value })}
@@ -231,7 +231,7 @@ export function PharmacyWizardStep2Clinical({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Unit</label>
+                    <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Unit</label>
                     <input
                       value={s.strengthUnit ?? ''}
                       onChange={(e) => onUpdateSalt(s.tempId, { strengthUnit: e.target.value })}
@@ -290,7 +290,7 @@ export function PharmacyWizardStep2Clinical({
                 <div className={['text-sm font-extrabold', active ? sc.color : 'text-slate-900'].join(' ')}>
                   {sc.label}
                 </div>
-                <div className={['text-[10px] font-bold mt-0.5', active ? sc.color : 'text-slate-500'].join(' ')}>
+                <div className={['text-[0.6875rem] font-bold mt-0.5', active ? sc.color : 'text-slate-500'].join(' ')}>
                   {sc.desc}
                 </div>
               </button>
@@ -314,7 +314,7 @@ export function PharmacyWizardStep2Clinical({
             />
             <div className="flex-1">
               <div className="text-xs font-extrabold text-amber-900">Requires Rx</div>
-              {requiresRxAuto && <div className="text-[9px] text-amber-700 font-semibold">Auto by schedule</div>}
+              {requiresRxAuto && <div className="text-[0.625rem] text-amber-700 font-semibold">Auto by schedule</div>}
             </div>
           </label>
 
@@ -382,8 +382,8 @@ export function PharmacyWizardStep2Clinical({
                   ].join(' ')}
                 >
                   <div className="text-2xl mb-1">{opt.emoji}</div>
-                  <div className="text-[10px] font-extrabold">{opt.label}</div>
-                  <div className={['text-[9px] font-bold mt-0.5', active ? 'text-white/80' : 'text-slate-500'].join(' ')}>
+                  <div className="text-[0.6875rem] font-extrabold">{opt.label}</div>
+                  <div className={['text-[0.625rem] font-bold mt-0.5', active ? 'text-white/80' : 'text-slate-500'].join(' ')}>
                     {opt.range}
                   </div>
                 </button>

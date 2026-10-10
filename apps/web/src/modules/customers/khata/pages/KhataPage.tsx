@@ -939,7 +939,7 @@ function GlobalKhataContent() {
 
           <div className="relative flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-xl px-3 py-1.5 text-[11px] font-black border border-white/20 uppercase tracking-widest shadow-lg">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-xl px-3 py-1.5 text-[0.6875rem] font-black border border-white/20 uppercase tracking-widest shadow-lg">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-fuchsia-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-fuchsia-400" />
@@ -1033,11 +1033,11 @@ function GlobalKhataContent() {
               </div>
               <div className="relative flex-1 min-w-0">
                 <div className="font-black text-sm">Sab ko yaad dilao — 1 click 🔔</div>
-                <div className="text-[11px] text-white/80 font-bold flex items-center gap-2 flex-wrap">
+                <div className="text-[0.6875rem] text-white/80 font-bold flex items-center gap-2 flex-wrap">
                   <span>{reminderList.length} customers • ready messages</span>
                   <button
                     onClick={() => setShowTemplateEditor(true)}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-[10px] font-black transition"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-[0.6875rem] font-black transition"
                   >
                     <Edit3 className="h-2.5 w-2.5" /> Templates
                   </button>
@@ -1052,7 +1052,7 @@ function GlobalKhataContent() {
             </div>
           )}
 
-          <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-black items-center">
+          <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-black items-center">
             <Kbd>/</Kbd><span className="text-white/60">Search</span>
             <span className="text-white/30 mx-1">•</span>
             <Kbd>U</Kbd><span className="text-white/60">Naya Udhaar</span>
@@ -1102,7 +1102,7 @@ function GlobalKhataContent() {
               </div>
               <div>
                 <h3 className="font-black text-slate-900 dark:text-white text-sm">Udhaar Kitna Purana?</h3>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Jitna purana, utna mushkil wasooli</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">Jitna purana, utna mushkil wasooli</p>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -1118,7 +1118,7 @@ function GlobalKhataContent() {
         <>
         <section className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 space-y-3">
           <div className="flex gap-1.5 flex-wrap items-center">
-            <div className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mr-1">Period:</div>
+            <div className="text-[0.6875rem] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mr-1">Period:</div>
             {(['all', 'today', 'week', 'month', 'year'] as PeriodFilter[]).map((p) => (
               <button
                 key={p}
@@ -1152,17 +1152,17 @@ function GlobalKhataContent() {
                 </div>
                 <div>
                   <h4 className="text-sm font-black text-cyan-900 dark:text-cyan-100">Custom Date Range</h4>
-                  <p className="text-[10px] text-cyan-700 dark:text-cyan-300 font-bold">Apni marzi ke dates</p>
+                  <p className="text-[0.6875rem] text-cyan-700 dark:text-cyan-300 font-bold">Apni marzi ke dates</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] uppercase font-black text-cyan-700 dark:text-cyan-300 tracking-wider mb-1">📅 From</label>
+                  <label className="block text-[0.6875rem] uppercase font-black text-cyan-700 dark:text-cyan-300 tracking-wider mb-1">📅 From</label>
                   <input type="date" value={customFrom} max={customTo} onChange={(e) => setCustomFrom(e.target.value)}
                     className="h-11 w-full rounded-xl border-2 border-cyan-300 dark:border-cyan-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-black text-cyan-700 dark:text-cyan-300 tracking-wider mb-1">📅 To</label>
+                  <label className="block text-[0.6875rem] uppercase font-black text-cyan-700 dark:text-cyan-300 tracking-wider mb-1">📅 To</label>
                   <input type="date" value={customTo} min={customFrom} max={toDateInput(new Date())} onChange={(e) => setCustomTo(e.target.value)}
                     className="h-11 w-full rounded-xl border-2 border-cyan-300 dark:border-cyan-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition" />
                 </div>
@@ -1175,12 +1175,12 @@ function GlobalKhataContent() {
                   { l: 'Is Saal', fn: () => { const n = new Date(); setCustomFrom(toDateInput(new Date(n.getFullYear(), 0, 1))); setCustomTo(toDateInput(n)); } },
                 ].map((p) => (
                   <button key={p.l} onClick={p.fn}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-cyan-200 dark:border-cyan-500/40 text-[10px] font-black text-cyan-700 dark:text-cyan-300 hover:border-cyan-400 transition">
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-cyan-200 dark:border-cyan-500/40 text-[0.6875rem] font-black text-cyan-700 dark:text-cyan-300 hover:border-cyan-400 transition">
                     {p.l}
                   </button>
                 ))}
               </div>
-              <div className="text-[11px] font-bold text-cyan-800 dark:text-cyan-200 bg-cyan-100 dark:bg-cyan-500/20 rounded-lg px-3 py-2 inline-flex items-center gap-2">
+              <div className="text-[0.6875rem] font-bold text-cyan-800 dark:text-cyan-200 bg-cyan-100 dark:bg-cyan-500/20 rounded-lg px-3 py-2 inline-flex items-center gap-2">
                 <Calendar className="h-3.5 w-3.5" />
                 Showing: <strong>{formatDate(customFrom)}</strong> se <strong>{formatDate(customTo)}</strong>
               </div>
@@ -1233,7 +1233,7 @@ function GlobalKhataContent() {
                   ].join(' ')}
                 >
                   {o.l}
-                  <span className={['px-1.5 rounded text-[10px] tabular-nums', filter === o.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>
+                  <span className={['px-1.5 rounded text-[0.6875rem] tabular-nums', filter === o.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>
                     {o.c}
                   </span>
                 </button>
@@ -1352,7 +1352,7 @@ function QuickCustomerModal({ initialName, initialPhone, onClose, onCreated }: {
           <div className="absolute -top-10 -right-10 h-36 w-36 rounded-full bg-blue-400/25 blur-2xl" />
           <div className="relative flex items-start justify-between gap-3">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
                 <UserPlus className="h-3 w-3" /> Quick Add
               </div>
               <h3 className="text-xl font-black mt-2">Naya Customer</h3>
@@ -1399,7 +1399,7 @@ function QuickCustomerModal({ initialName, initialPhone, onClose, onCreated }: {
               />
             </div>
             {phone && !phoneOk && (
-              <div className="mt-1 text-[11px] font-black text-rose-600 dark:text-rose-400 flex items-center gap-1">
+              <div className="mt-1 text-[0.6875rem] font-black text-rose-600 dark:text-rose-400 flex items-center gap-1">
                 <AlertTriangle className="h-3 w-3" /> Sahi mobile likho (03XX-XXXXXXX)
               </div>
             )}
@@ -1416,7 +1416,7 @@ function QuickCustomerModal({ initialName, initialPhone, onClose, onCreated }: {
               className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-black tabular-nums text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition"
             />
             {Number(creditLimit) > 0 && (
-              <div className="mt-1.5 text-[11px] font-bold text-blue-700 dark:text-blue-300">
+              <div className="mt-1.5 text-[0.6875rem] font-bold text-blue-700 dark:text-blue-300">
                 ✓ Is customer ko max <strong>{formatPKR(Number(creditLimit))}</strong> tak udhaar milega
               </div>
             )}
@@ -1503,7 +1503,7 @@ function CustomerPickerModal({ title, subtitle, accent, onClose, onPicked, onCha
               <Users className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider font-black text-white/70">{title}</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-black text-white/70">{title}</div>
               <h3 className="font-black truncate">{subtitle}</h3>
             </div>
           </div>
@@ -1533,7 +1533,7 @@ function CustomerPickerModal({ title, subtitle, accent, onClose, onPicked, onCha
                 <p className="text-sm font-black text-slate-700 dark:text-slate-300">
                   {q ? `"${search}" nahi mila` : 'Koi customer nahi'}
                 </p>
-                <p className="text-[11px] font-bold text-slate-500 mt-0.5">Neeche se abhi bana lo</p>
+                <p className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Neeche se abhi bana lo</p>
               </div>
             ) : customers.map((c) => (
               <button key={c.id} onClick={() => onPicked(c)}
@@ -1543,7 +1543,7 @@ function CustomerPickerModal({ title, subtitle, accent, onClose, onPicked, onCha
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-black text-slate-900 dark:text-white text-sm truncate">{c.name}</div>
-                  <div className="text-[11px] font-bold text-slate-500 flex items-center gap-2">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 flex items-center gap-2">
                     <span>{c.phone ?? '—'}</span>
                     {Number(c.shopBalance ?? c.balance ?? 0) > 0 && (
                       <span className="text-rose-600 dark:text-rose-400">baqi {formatPKR(Number(c.shopBalance ?? c.balance ?? 0))}</span>
@@ -1566,7 +1566,7 @@ function CustomerPickerModal({ title, subtitle, accent, onClose, onPicked, onCha
               </div>
               <div className="text-left flex-1 min-w-0">
                 <div className="font-black text-sm truncate">"{search.trim()}" — naya customer banao</div>
-                <div className="text-[11px] font-bold opacity-80">1 click me ban jayega aur select bhi</div>
+                <div className="text-[0.6875rem] font-bold opacity-80">1 click me ban jayega aur select bhi</div>
               </div>
               <Plus className="h-5 w-5 shrink-0" />
             </button>
@@ -1609,7 +1609,7 @@ function InlineCustomerCreate({ initialName, accent, onCancel, onCreated }: any)
 
   return (
     <div className={`rounded-2xl border-2 p-4 space-y-3 ${accent === 'violet' ? 'border-violet-300 dark:border-violet-500/40 bg-violet-50/60 dark:bg-violet-500/5' : 'border-orange-300 dark:border-orange-500/40 bg-orange-50/60 dark:bg-orange-500/5'}`}>
-      <div className="text-[10px] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+      <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
         <Sparkles className="h-3 w-3" /> Naya Customer — yahin banao
       </div>
       <input
@@ -1630,7 +1630,7 @@ function InlineCustomerCreate({ initialName, accent, onCancel, onCreated }: any)
         }`}
       />
       {phone && !phoneOk && (
-        <div className="text-[10px] font-black text-rose-600 flex items-center gap-1">
+        <div className="text-[0.6875rem] font-black text-rose-600 flex items-center gap-1">
           <AlertTriangle className="h-3 w-3" /> Sahi mobile likho ya khali chhodo
         </div>
       )}
@@ -1701,7 +1701,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-emerald-400/25 blur-2xl" />
           <div className="relative flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
                 <MessageCircle className="h-3 w-3" /> WhatsApp Reminder
               </div>
               <h3 className="text-xl font-black mt-2 truncate">{genderIcon} {customer.name}</h3>
@@ -1716,7 +1716,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
                   </>
                 )}
               </div>
-              <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white/10 border border-white/20 text-[10px] font-black">
+              <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white/10 border border-white/20 text-[0.6875rem] font-black">
                 <Wand2 className="h-2.5 w-2.5" />
                 AI: {detected.gender === 'F' ? 'Female' : detected.gender === 'M' ? 'Male' : 'Unknown'}
                 {detected.isElder && ' • Elder'}
@@ -1731,7 +1731,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
-            <div className="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">Tone</div>
+            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">Tone</div>
             <div className="grid grid-cols-3 gap-1.5">
               {REMINDER_TONES.map((t) => (
                 <button
@@ -1745,7 +1745,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
                   ].join(' ')}
                 >
                   <div className="text-sm font-black">{t.l}</div>
-                  <div className={`text-[9px] font-bold ${tone === t.v && !isCustom ? 'text-white/80' : 'text-slate-500'}`}>{t.d}</div>
+                  <div className={`text-[0.625rem] font-bold ${tone === t.v && !isCustom ? 'text-white/80' : 'text-slate-500'}`}>{t.d}</div>
                 </button>
               ))}
             </div>
@@ -1753,9 +1753,9 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <div className="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">Salutation (kaise pukaro)</div>
+              <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">Salutation (kaise pukaro)</div>
               {salutation === 'auto' && (
-                <div className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
+                <div className="text-[0.625rem] font-black text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
                   <Sparkles className="h-2.5 w-2.5" /> AI ne pehchan liya
                 </div>
               )}
@@ -1766,7 +1766,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
                   key={s.v}
                   onClick={() => { setSalutation(s.v); setIsCustom(false); }}
                   title={s.d}
-                  className={`px-2.5 py-1.5 rounded-lg border-2 text-[11px] font-black transition ${
+                  className={`px-2.5 py-1.5 rounded-lg border-2 text-[0.6875rem] font-black transition ${
                     salutation === s.v
                       ? 'bg-gradient-to-r from-fuchsia-600 to-purple-600 border-transparent text-white shadow-sm'
                       : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-fuchsia-300'
@@ -1780,19 +1780,19 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <div className="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">
+              <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">
                 Message {isCustom && <span className="text-amber-600 dark:text-amber-400 ml-1">✏️ Custom</span>}
               </div>
               <div className="flex gap-1">
                 <button
                   onClick={onEditTemplates}
-                  className="text-[10px] font-black text-fuchsia-700 dark:text-fuchsia-400 inline-flex items-center gap-1 hover:underline"
+                  className="text-[0.6875rem] font-black text-fuchsia-700 dark:text-fuchsia-400 inline-flex items-center gap-1 hover:underline"
                 >
                   <Edit3 className="h-2.5 w-2.5" /> Templates
                 </button>
                 <button
                   onClick={copyMsg}
-                  className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1 hover:underline"
+                  className="text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1 hover:underline"
                 >
                   {copied ? <CheckCircle2 className="h-2.5 w-2.5" /> : <Copy className="h-2.5 w-2.5" />}
                   {copied ? 'Copied' : 'Copy'}
@@ -1813,7 +1813,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
             {isCustom && (
               <button
                 onClick={() => { setIsCustom(false); setCustomMsg(generatedMsg); }}
-                className="mt-1 text-[10px] font-black text-amber-700 dark:text-amber-400 inline-flex items-center gap-1 hover:underline"
+                className="mt-1 text-[0.6875rem] font-black text-amber-700 dark:text-amber-400 inline-flex items-center gap-1 hover:underline"
               >
                 <RefreshCw className="h-2.5 w-2.5" /> Auto-generated pe wapas
               </button>
@@ -1880,7 +1880,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-fuchsia-400/25 blur-2xl" />
           <div className="relative flex items-start justify-between">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
                 <Edit3 className="h-3 w-3" /> Template Editor
               </div>
               <h3 className="text-xl font-black mt-2">Reminder Messages Customize</h3>
@@ -1906,7 +1906,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
                 ].join(' ')}
               >
                 <div className="text-sm font-black">{t.l}</div>
-                <div className={`text-[9px] font-bold ${activeTone === t.v ? 'text-white/80' : 'text-slate-500'}`}>{t.d}</div>
+                <div className={`text-[0.625rem] font-bold ${activeTone === t.v ? 'text-white/80' : 'text-slate-500'}`}>{t.d}</div>
               </button>
             ))}
           </div>
@@ -1914,7 +1914,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
-            <div className="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">
+            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">
               Placeholders (click to insert)
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -1923,7 +1923,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
                   key={p.k}
                   onClick={() => insertPlaceholder(p.k)}
                   title={p.d}
-                  className="px-2 py-1 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-500/20 border border-fuchsia-300 dark:border-fuchsia-500/40 text-[10px] font-mono font-black text-fuchsia-700 dark:text-fuchsia-300 hover:bg-fuchsia-200 dark:hover:bg-fuchsia-500/30 transition"
+                  className="px-2 py-1 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-500/20 border border-fuchsia-300 dark:border-fuchsia-500/40 text-[0.6875rem] font-mono font-black text-fuchsia-700 dark:text-fuchsia-300 hover:bg-fuchsia-200 dark:hover:bg-fuchsia-500/30 transition"
                 >
                   {p.k}
                 </button>
@@ -1932,7 +1932,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
           </div>
 
           <div>
-            <div className="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">
+            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">
               Template ({activeTone})
             </div>
             <textarea
@@ -1944,7 +1944,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
           </div>
 
           <div>
-            <div className="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">
+            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">
               Live Preview (sample: Faiza, Rs 5,500, 12 din)
             </div>
             <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 text-sm font-semibold text-slate-800 dark:text-slate-100 whitespace-pre-wrap leading-relaxed">
@@ -1952,7 +1952,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300">
             💡 <strong>Smart:</strong> <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">{'{sal}'}</code> automatically bhai/baji/uncle/aunty lagata hai — agar naam mein pehle se hai to skip. Faiza ✓ Uncle Shuja ✓
           </div>
         </div>
@@ -2046,7 +2046,7 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-emerald-400/25 blur-2xl" />
           <div className="relative flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-black uppercase tracking-wider border border-white/20">
                 <BellRing className="h-3 w-3 text-emerald-300" /> Bulk Reminders
               </div>
               <h3 className="font-black text-lg mt-1">Sab Ko Yaad Dilao 🔔</h3>
@@ -2100,13 +2100,13 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
                     )}
                   </div>
                 </div>
-                <div className="text-right shrink-0 text-[10px] font-black text-slate-500 dark:text-slate-400">
+                <div className="text-right shrink-0 text-[0.6875rem] font-black text-slate-500 dark:text-slate-400">
                   {idx + 1} / {total}
                 </div>
               </div>
 
               <div>
-                <div className="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">Tone</div>
+                <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">Tone</div>
                 <div className="grid grid-cols-3 gap-1.5">
                   {REMINDER_TONES.map((t) => (
                     <button
@@ -2126,14 +2126,14 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
               </div>
 
               <div>
-                <div className="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">Kaise pukaro</div>
+                <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">Kaise pukaro</div>
                 <div className="flex flex-wrap gap-1">
                   {SALUTATIONS.map((s) => (
                     <button
                       key={s.v}
                       onClick={() => { setSalutation(s.v); setIsCustom(false); }}
                       title={s.d}
-                      className={`px-2 py-1 rounded-lg border text-[10px] font-black transition ${
+                      className={`px-2 py-1 rounded-lg border text-[0.6875rem] font-black transition ${
                         salutation === s.v
                           ? 'bg-gradient-to-r from-fuchsia-600 to-purple-600 border-transparent text-white'
                           : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
@@ -2147,10 +2147,10 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <div className="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">
+                  <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">
                     Message {isCustom && <span className="text-amber-600 ml-1">✏️</span>}
                   </div>
-                  <button onClick={copyMsg} className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1 hover:underline">
+                  <button onClick={copyMsg} className="text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1 hover:underline">
                     {copied ? <CheckCircle2 className="h-2.5 w-2.5" /> : <Copy className="h-2.5 w-2.5" />}
                     {copied ? 'Copied' : 'Copy'}
                   </button>
@@ -2204,7 +2204,7 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalLis
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-cyan-400/25 blur-2xl" />
           <div className="relative flex items-start justify-between gap-3">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
                 <Printer className="h-3 w-3" /> Print & Export
               </div>
               <h3 className="text-xl font-black mt-2">📊 Khata Nikalo</h3>
@@ -2225,7 +2225,7 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalLis
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h4 className="text-base font-black text-slate-900 dark:text-white">A4 Full Report</h4>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-black uppercase">PDF</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[0.625rem] font-black uppercase">PDF</span>
                 </div>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
                   Colored PDF, KPIs, aging breakdown, complete table, signatures.
@@ -2243,7 +2243,7 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalLis
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h4 className="text-base font-black text-slate-900 dark:text-white">Thermal List (80mm)</h4>
-                  <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black uppercase">Sab Ek Print Me</span>
+                  <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-black uppercase">Sab Ek Print Me</span>
                 </div>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
                   Saare customers ka khata ek hi lambi thermal print pe — naam, phone, balance, aging. Aik aik nahi nikalna!
@@ -2261,7 +2261,7 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalLis
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h4 className="text-base font-black text-slate-900 dark:text-white">CSV Export</h4>
-                  <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white text-[9px] font-black uppercase">Excel</span>
+                  <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white text-[0.625rem] font-black uppercase">Excel</span>
                 </div>
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">Excel/Google Sheets ke liye raw data.</p>
               </div>
@@ -2270,7 +2270,7 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalLis
           </button>
 
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400 mb-1">💡 Tips</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400 mb-1">💡 Tips</div>
             <TipRow><strong>PDF:</strong> A4 → print dialog me "Save as PDF"</TipRow>
             <TipRow><strong>Colored:</strong> "Background graphics" ON karo</TipRow>
             <TipRow><strong>Per customer:</strong> Row me 🖨️ dabao → 80mm thermal statement</TipRow>
@@ -2304,7 +2304,7 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
 
         <div className="p-5 space-y-4">
           <div className="rounded-2xl border-2 border-orange-300 dark:border-orange-500/40 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-500/10 dark:to-red-500/10 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-black text-orange-800 dark:text-orange-200 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-orange-800 dark:text-orange-200 flex items-center gap-1">
               <Plus className="h-3 w-3" /> 🟠 Naya Udhaar (Bina POS Ke)
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -2315,7 +2315,7 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
           </div>
 
           <div className="rounded-2xl border-2 border-fuchsia-300 dark:border-fuchsia-500/40 bg-gradient-to-br from-fuchsia-50 to-purple-50 dark:from-fuchsia-500/10 dark:to-purple-500/10 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-black text-fuchsia-800 dark:text-fuchsia-200 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-fuchsia-800 dark:text-fuchsia-200 flex items-center gap-1">
               <ShoppingCart className="h-3 w-3" /> 🛒 Udhaar Sale Kaise?
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -2326,7 +2326,7 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
           </div>
 
           <div className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-black text-emerald-800 dark:text-emerald-200 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-emerald-800 dark:text-emerald-200 flex items-center gap-1">
               <MessageCircle className="h-3 w-3" /> 💬 Smart Reminders
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -2341,7 +2341,7 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
           </div>
 
           <div className="rounded-2xl border-2 border-cyan-300 dark:border-cyan-500/40 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-500/10 dark:to-blue-500/10 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-black text-cyan-800 dark:text-cyan-200 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-cyan-800 dark:text-cyan-200 flex items-center gap-1">
               <Printer className="h-3 w-3" /> 🖨️ Print & PDF
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -2353,8 +2353,8 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
           </div>
 
           <div className="rounded-xl bg-slate-900 dark:bg-slate-950 border border-slate-700 p-3 text-xs font-semibold text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-black text-fuchsia-300 mb-2">⌨️ Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-fuchsia-300 mb-2">⌨️ Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem]">
               <div><kbd className="px-1.5 py-0.5 bg-slate-700 rounded font-mono">U</kbd> Naya udhaar</div>
               <div><kbd className="px-1.5 py-0.5 bg-slate-700 rounded font-mono">P</kbd> Print / PDF</div>
               <div><kbd className="px-1.5 py-0.5 bg-slate-700 rounded font-mono">N</kbd> Bulk reminders</div>
@@ -2424,22 +2424,22 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-black text-slate-900 dark:text-white text-base sm:text-lg truncate">{customer.name}</h3>
             {isAged && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black uppercase inline-flex items-center gap-1 animate-pulse">
+              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-black uppercase inline-flex items-center gap-1 animate-pulse">
                 <Flame className="h-2.5 w-2.5" /> {customer.ageDays} din
               </span>
             )}
             {!isAged && isHigh && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black uppercase inline-flex items-center gap-1">
+              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-black uppercase inline-flex items-center gap-1">
                 <AlertTriangle className="h-2.5 w-2.5" /> Zyada
               </span>
             )}
             {isAdvance && (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-black uppercase inline-flex items-center gap-1">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[0.625rem] font-black uppercase inline-flex items-center gap-1">
                 <Award className="h-2.5 w-2.5" /> Advance
               </span>
             )}
             {!hasBalance && !isAdvance && customer.salesCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] font-black uppercase">Clear ✓</span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.625rem] font-black uppercase">Clear ✓</span>
             )}
           </div>
           <div className="mt-0.5 flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400 font-bold flex-wrap">
@@ -2452,7 +2452,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">
+          <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">
             {isAdvance ? 'Advance' : 'Udhaar'}
           </div>
           <div className={[
@@ -2499,14 +2499,14 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
 
       {expanded && (
         <div className="border-t-2 border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-800/40 space-y-2 max-h-96 overflow-y-auto">
-          <div className="text-[10px] uppercase font-black text-slate-600 dark:text-slate-400 tracking-wider mb-2">
+          <div className="text-[0.6875rem] uppercase font-black text-slate-600 dark:text-slate-400 tracking-wider mb-2">
             Sales History ({customer.allSales.length})
           </div>
           {customer.allSales.length === 0 ? (
             <div className="rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 text-center">
               <BookOpen className="h-8 w-8 text-slate-400 mx-auto mb-1" />
               <p className="text-sm text-slate-600 dark:text-slate-300 font-black">Koi Sale Nahi</p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Is period me sales nahi hui</p>
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Is period me sales nahi hui</p>
             </div>
           ) : (
             [...customer.allSales].sort((a: any, b: any) => new Date(b.soldAt).getTime() - new Date(a.soldAt).getTime()).slice(0, 20).map((sale: any) => {
@@ -2518,14 +2518,14 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-black text-slate-900 dark:text-white text-xs">{sale.saleNumber}</span>
-                        {credit > 0 && <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase">Udhaar</span>}
+                        {credit > 0 && <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.625rem] font-black uppercase">Udhaar</span>}
                       </div>
-                      <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 inline-flex items-center gap-1">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5 inline-flex items-center gap-1">
                         <Calendar className="h-2.5 w-2.5" />
                         {new Date(sale.soldAt).toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}
                       </div>
                       {sale.receivedByName && (
-                        <div className="text-[11px] font-black text-amber-800 dark:text-amber-300 mt-0.5 inline-flex items-center gap-1">
+                        <div className="text-[0.6875rem] font-black text-amber-800 dark:text-amber-300 mt-0.5 inline-flex items-center gap-1">
                           <UserCheck className="h-2.5 w-2.5" /> Le gaya: {sale.receivedByName}
                         </div>
                       )}
@@ -2534,7 +2534,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
                       <div className="font-black text-slate-900 dark:text-white tabular-nums text-sm">
                         {hideCost ? '••••' : formatPKR(sale.total)}
                       </div>
-                      {credit > 0 && <div className="text-[10px] font-black text-amber-700 dark:text-amber-400">Baqi {formatPKR(credit)}</div>}
+                      {credit > 0 && <div className="text-[0.6875rem] font-black text-amber-700 dark:text-amber-400">Baqi {formatPKR(credit)}</div>}
                     </div>
                   </div>
                 </Link>
@@ -2567,7 +2567,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl" />
           <div className="relative flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[11px] uppercase font-black text-emerald-200 tracking-wider">Paisay Wasool</div>
+              <div className="text-[0.6875rem] uppercase font-black text-emerald-200 tracking-wider">Paisay Wasool</div>
               <div className="text-xl font-black mt-1 truncate">{customer.name}</div>
               <div className="text-xs font-bold text-white/80 mt-0.5">Kul udhaar: <strong className="text-amber-300">{formatPKR(customer.balance)}</strong></div>
             </div>
@@ -2580,8 +2580,8 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[10px] uppercase font-black text-slate-600 dark:text-slate-400 tracking-wider">Kitna paisa mila?</label>
-              <button onClick={() => setShowCalc(!showCalc)} className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1">
+              <label className="text-[0.6875rem] uppercase font-black text-slate-600 dark:text-slate-400 tracking-wider">Kitna paisa mila?</label>
+              <button onClick={() => setShowCalc(!showCalc)} className="text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1">
                 <Zap className="h-3 w-3" /> Calculator
               </button>
             </div>
@@ -2627,7 +2627,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-black text-slate-600 dark:text-slate-400 tracking-wider mb-1 block">Note (optional)</label>
+            <label className="text-[0.6875rem] uppercase font-black text-slate-600 dark:text-slate-400 tracking-wider mb-1 block">Note (optional)</label>
             <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Cash, Bank transfer..."
               className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
           </div>
@@ -2659,7 +2659,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
           <button onClick={() => onConfirm(payAmount, note)} disabled={!isValid || loading}
             className="w-full h-14 sm:h-16 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-600 text-white font-black shadow-2xl shadow-emerald-500/50 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-5">
             <div className="text-left">
-              <div className="text-[10px] uppercase font-black text-white/80 tracking-wider">
+              <div className="text-[0.6875rem] uppercase font-black text-white/80 tracking-wider">
                 {loading ? 'Save...' : 'Payment confirm'}
               </div>
               <div className="text-xl sm:text-2xl tabular-nums leading-none mt-0.5">{formatPKR(payAmount)}</div>
@@ -2684,7 +2684,7 @@ function AgingBucket({ emoji, label, value, tone }: any) {
   return (
     <div className={`rounded-xl border-2 p-3 text-center ${tones[tone]}`}>
       <div className="text-xl">{emoji}</div>
-      <div className="text-[9px] uppercase tracking-wider font-black opacity-80 mt-1">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-80 mt-1">{label}</div>
       <div className="text-base font-black tabular-nums mt-0.5">{formatPKR(value)}</div>
     </div>
   );
@@ -2701,7 +2701,7 @@ function TipRow({ children }: { children: React.ReactNode }) {
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[10px]">
+    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[0.6875rem]">
       {children}
     </kbd>
   );
@@ -2732,9 +2732,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight, onClick, active }
       )}
       <div className="relative flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0 group-hover:scale-110 transition`}>
           <Icon className="h-5 w-5" />
@@ -2768,7 +2768,7 @@ function UdhaarModal({ customer, loading, onClose, onConfirm }: any) {
               <Plus className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider font-black text-white/70">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-black text-white/70">
                 Udhaar chadhayein — bina sale ke
               </div>
               <h3 className="font-black truncate">{customer.name}</h3>
@@ -2895,7 +2895,7 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
               <BookOpen className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-black text-white/70">Purana Khata</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-black text-white/70">Purana Khata</div>
               <h3 className="font-black">Copy Se Software Par</h3>
             </div>
           </div>
@@ -2925,7 +2925,7 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-black text-slate-900 dark:text-white text-sm truncate">{chosen.name}</div>
-                  <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                  <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400">
                     {chosen.phone ?? 'phone nahi'} · abhi {formatPKR(chosen.balance ?? 0)} baqi
                   </div>
                 </div>
@@ -2948,7 +2948,7 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
                   ) : customers.length === 0 && !canQuickCreate ? (
                     <div className="p-6 text-center">
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Koi customer nahi mila</p>
-                      <p className="text-[11px] font-bold text-slate-500 mt-0.5">Naam likho — neeche bana sakte ho</p>
+                      <p className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Naam likho — neeche bana sakte ho</p>
                     </div>
                   ) : customers.map((c) => (
                     <button key={c.id} onClick={() => { setChosen(c); setBalance(c.balance || ''); }}
@@ -2958,7 +2958,7 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-black text-slate-900 dark:text-white text-sm truncate">{c.name}</div>
-                        <div className="text-[11px] font-bold text-slate-500">{c.phone ?? '—'}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500">{c.phone ?? '—'}</div>
                       </div>
                       {c.balance > 0 && (
                         <span className="text-xs font-black text-rose-600 tabular-nums shrink-0">{formatPKR(c.balance)}</span>
@@ -2978,7 +2978,7 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
                     </div>
                     <div className="text-left flex-1 min-w-0">
                       <div className="font-black text-sm truncate">"{search.trim()}" — naya customer banao</div>
-                      <div className="text-[10px] font-bold opacity-80">Phir seedha purana khata set karo</div>
+                      <div className="text-[0.6875rem] font-bold opacity-80">Phir seedha purana khata set karo</div>
                     </div>
                     <Plus className="h-4 w-4 shrink-0" />
                   </button>
@@ -3013,7 +3013,7 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
                   onChange={(e) => setBalance(e.target.value === '' ? '' : Number(e.target.value))}
                   placeholder="0"
                   className="h-16 w-full rounded-2xl border-2 border-violet-400 bg-white dark:bg-slate-800 px-4 text-center text-3xl font-black tabular-nums text-violet-900 dark:text-violet-200 focus:outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200 dark:focus:ring-violet-500/30 transition" />
-                <p className="mt-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                <p className="mt-1.5 text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">
                   Ye balance <b>set</b> hoga — jurta nahi. Copy me jo likha hai wohi likhein.
                 </p>
               </div>
@@ -3324,9 +3324,9 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                 {customer.name?.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-wider font-black text-white/70">Poora Khata</div>
+                <div className="text-[0.6875rem] uppercase tracking-wider font-black text-white/70">Poora Khata</div>
                 <h3 className="text-xl font-black truncate">{customer.name}</h3>
-                <div className="text-[11px] font-bold text-white/80 flex items-center gap-2 flex-wrap">
+                <div className="text-[0.6875rem] font-bold text-white/80 flex items-center gap-2 flex-wrap">
                   {customer.phone && <span>📞 {customer.phone}</span>}
                   {customer.creditLimit > 0 && <span>Limit {formatPKR(customer.creditLimit)}</span>}
                 </div>
@@ -3359,7 +3359,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                   : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-purple-300'
               }`}>
               <k.icon className="h-3.5 w-3.5" /> {k.label}
-              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${filter === k.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-slate-700'}`}>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${filter === k.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-slate-700'}`}>
                 {COUNTS[k.v]}
               </span>
             </button>
@@ -3394,10 +3394,10 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-black text-slate-900 dark:text-white text-sm">{r.title}</span>
                       {r.reference && (
-                        <span className="font-mono text-[10px] font-black text-slate-500 dark:text-slate-400">{r.reference}</span>
+                        <span className="font-mono text-[0.6875rem] font-black text-slate-500 dark:text-slate-400">{r.reference}</span>
                       )}
                     </div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
                       <span className="inline-flex items-center gap-1">
                         <Calendar className="h-2.5 w-2.5" />
                         {new Date(r.at).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}
@@ -3408,7 +3408,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                         sab se pehle isi par nazar jani chahiye, is liye
                         note se alag apna chip. */}
                     {r.receivedBy && (
-                      <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-500/40 text-[11px] font-black text-amber-900 dark:text-amber-200">
+                      <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-500/40 text-[0.6875rem] font-black text-amber-900 dark:text-amber-200">
                         <UserCheck className="h-3 w-3" />
                         Le gaya: {r.receivedBy}
                         {r.receivedByPhone && (
@@ -3417,10 +3417,10 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                       </div>
                     )}
                     {r.note && (
-                      <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 italic mt-0.5">{r.note}</div>
+                      <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 italic mt-0.5">{r.note}</div>
                     )}
                     {r.sub && !r.note && (
-                      <div className="text-[11px] font-semibold text-slate-500 mt-0.5">{r.sub}</div>
+                      <div className="text-[0.6875rem] font-semibold text-slate-500 mt-0.5">{r.sub}</div>
                     )}
                   </div>
 
@@ -3435,7 +3435,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                       </div>
                     ) : null}
                     {r.balanceAfter !== undefined && (
-                      <div className="text-[10px] font-bold text-slate-400 tabular-nums">
+                      <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                         baqi {formatPKR(r.balanceAfter)}
                       </div>
                     )}
@@ -3445,7 +3445,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                 {r.sale && (
                   <>
                     <button onClick={() => setOpenSale(isOpen ? null : r.id)}
-                      className="w-full px-3 py-2 border-t-2 border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] font-black text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                      className="w-full px-3 py-2 border-t-2 border-slate-100 dark:border-slate-800 flex items-center justify-between text-[0.6875rem] font-black text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
                       <span className="inline-flex items-center gap-1.5">
                         <Package className="h-3 w-3" /> {(r.sale.items ?? []).length} cheezein
                       </span>
@@ -3454,7 +3454,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                     {isOpen && (
                       <div className="px-3 pb-3 space-y-1 bg-slate-50 dark:bg-slate-800/40">
                         {(r.sale.items ?? []).map((it: any) => (
-                          <div key={it.id} className="flex items-center justify-between gap-2 text-[11px] py-1 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                          <div key={it.id} className="flex items-center justify-between gap-2 text-[0.6875rem] py-1 border-b border-slate-100 dark:border-slate-800 last:border-0">
                             <span className="font-bold text-slate-700 dark:text-slate-200 truncate">
                               {it.product?.name ?? it.note ?? 'Item'}
                             </span>
@@ -3467,7 +3467,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                           </div>
                         ))}
                         <Link to={`/sales/${r.sale.id}/receipt`}
-                          className="mt-1 inline-flex items-center gap-1 text-[11px] font-black text-fuchsia-700 dark:text-fuchsia-400 hover:underline">
+                          className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-black text-fuchsia-700 dark:text-fuchsia-400 hover:underline">
                           Receipt kholein <ArrowRight className="h-3 w-3" />
                         </Link>
                       </div>
@@ -3513,7 +3513,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
 
           <div className="px-5 py-4 bg-gradient-to-r from-cyan-600 to-blue-700 text-white flex items-center justify-between gap-3 shrink-0">
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider font-black text-white/70">Statement Print</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-black text-white/70">Statement Print</div>
               <h3 className="text-lg font-black truncate">{customer.name}</h3>
             </div>
             <button onClick={() => setShowPrintOpts(false)}
@@ -3524,7 +3524,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
 
           <div className="p-5 space-y-4 overflow-y-auto">
             <div>
-              <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Kaghaz</div>
+              <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Kaghaz</div>
               <div className="grid grid-cols-2 gap-2">
                 {([
                   { v: 'a4' as const, label: 'A4 / PDF', sub: 'Poora safha' },
@@ -3537,14 +3537,14 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                         : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
                     }`}>
                     <div className="text-sm font-black text-slate-900 dark:text-white">{p.label}</div>
-                    <div className="text-[11px] font-bold text-slate-500">{p.sub}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{p.sub}</div>
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Adaigi ka wada (marzi se)
               </label>
               <input type="date" value={promiseDate} onChange={(e) => setPromiseDate(e.target.value)}
@@ -3552,7 +3552,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
             </div>
 
             <div>
-              <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Note (parche par chhapega)
               </label>
               <textarea value={printNote} onChange={(e) => setPrintNote(e.target.value)} rows={3}
@@ -3560,7 +3560,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                 className="mt-1.5 w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white resize-none" />
             </div>
 
-            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               {timeline.length} entries · Baqi {formatPKR(Math.abs(bal))} {isAdvance ? '(advance)' : ''}
               {isLoading && <span className="block mt-1 text-amber-600">Khata abhi load ho raha hai…</span>}
             </div>
@@ -3586,7 +3586,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
 function MiniBox({ label, value, big }: { label: string; value: string; big?: boolean }) {
   return (
     <div className={`rounded-xl backdrop-blur border p-2.5 ${big ? 'bg-white/25 border-white/40' : 'bg-white/10 border-white/20'}`}>
-      <div className="text-[9px] uppercase font-black text-white/70 tracking-wider truncate">{label}</div>
+      <div className="text-[0.625rem] uppercase font-black text-white/70 tracking-wider truncate">{label}</div>
       <div className={`font-black tabular-nums truncate ${big ? 'text-lg' : 'text-sm'}`}>{value}</div>
     </div>
   );
@@ -3655,7 +3655,7 @@ function KhataAnalytics({ khataData, stats, hideCost }: any) {
       <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-purple-900 to-fuchsia-800 text-white p-5 shadow-xl">
         <div className="flex items-center gap-2 mb-3">
           <Zap className="h-4 w-4 text-amber-300" />
-          <span className="text-[10px] uppercase font-black tracking-wider text-white/80">Wasooli Ki Sehat</span>
+          <span className="text-[0.6875rem] uppercase font-black tracking-wider text-white/80">Wasooli Ki Sehat</span>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <AnaBox label="Customers ne khareeda" value={hideCost ? '••••' : formatPKR(recovery.kharida)} />
@@ -3682,7 +3682,7 @@ function KhataAnalytics({ khataData, stats, hideCost }: any) {
             </div>
             <div>
               <h3 className="font-black text-slate-900 dark:text-white text-sm">Paisa Kitna Purana</h3>
-              <p className="text-[10px] font-bold text-slate-500">Jitna purana, utni mushkil wasooli</p>
+              <p className="text-[0.6875rem] font-bold text-slate-500">Jitna purana, utni mushkil wasooli</p>
             </div>
           </div>
           {aging.length === 0 ? (
@@ -3710,7 +3710,7 @@ function KhataAnalytics({ khataData, stats, hideCost }: any) {
             </div>
             <div>
               <h3 className="font-black text-slate-900 dark:text-white text-sm">Sab Se Bara Udhaar</h3>
-              <p className="text-[10px] font-bold text-slate-500">Laal = credit limit se upar</p>
+              <p className="text-[0.6875rem] font-bold text-slate-500">Laal = credit limit se upar</p>
             </div>
           </div>
           {top.length === 0 ? (
@@ -3764,7 +3764,7 @@ function KhataAnalytics({ khataData, stats, hideCost }: any) {
             </div>
             <div>
               <h3 className="font-black text-slate-900 dark:text-white text-sm">Sab Se Purana Udhaar</h3>
-              <p className="text-[10px] font-bold text-slate-500">Inhe pehle yaad dilana chahiye</p>
+              <p className="text-[0.6875rem] font-bold text-slate-500">Inhe pehle yaad dilana chahiye</p>
             </div>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -3775,7 +3775,7 @@ function KhataAnalytics({ khataData, stats, hideCost }: any) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-black text-slate-900 dark:text-white text-sm truncate">{c.name}</div>
-                  <div className="text-[11px] font-bold text-slate-500">
+                  <div className="text-[0.6875rem] font-bold text-slate-500">
                     {c.ageDays} din se baqi{c.phone ? ` · ${c.phone}` : ''}
                   </div>
                 </div>
@@ -3799,11 +3799,11 @@ function AnaBox({ label, value, sub, tone, big }: any) {
   };
   return (
     <div className={`rounded-2xl backdrop-blur border p-3 ${big ? 'bg-white/25 border-white/40 shadow-lg' : 'bg-white/10 border-white/20'}`}>
-      <div className="text-[10px] uppercase font-black text-white/70 tracking-wider truncate">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-black text-white/70 tracking-wider truncate">{label}</div>
       <div className={`mt-1 font-black tabular-nums truncate ${big ? 'text-2xl' : 'text-lg'} ${tones[tone] ?? ''}`}>
         {value}
       </div>
-      {sub && <div className="text-[10px] font-bold text-white/70 truncate">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 truncate">{sub}</div>}
     </div>
   );
 }
@@ -3821,9 +3821,9 @@ function InsightCard({ icon: Icon, tone, title, main, sub }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase font-black text-slate-500 tracking-wider">{title}</div>
+        <div className="text-[0.6875rem] uppercase font-black text-slate-500 tracking-wider">{title}</div>
         <div className="font-black text-slate-900 dark:text-white truncate">{main}</div>
-        {sub && <div className="text-[11px] font-bold text-slate-500 truncate">{sub}</div>}
+        {sub && <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{sub}</div>}
       </div>
     </div>
   );

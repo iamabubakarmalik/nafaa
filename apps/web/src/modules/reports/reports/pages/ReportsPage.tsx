@@ -311,12 +311,12 @@ export default function ReportsPage() {
                             </div>
                             <div>
                               <div className="font-bold text-slate-900 text-sm">{pm.paymentMethod}</div>
-                              <div className="text-[10px] text-slate-500 font-bold">{pm.count} transactions</div>
+                              <div className="text-[0.6875rem] text-slate-500 font-bold">{pm.count} transactions</div>
                             </div>
                           </div>
                           <div className="text-right">
                             <div className="font-extrabold text-slate-900 text-sm">{formatPKR(pm.total)}</div>
-                            <div className="text-[10px] text-slate-500 font-bold">{pm.percent.toFixed(1)}%</div>
+                            <div className="text-[0.6875rem] text-slate-500 font-bold">{pm.percent.toFixed(1)}%</div>
                           </div>
                         </div>
                         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -495,13 +495,13 @@ export default function ReportsPage() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
-                    <th className="text-center px-3 py-3 font-bold text-[10px] uppercase tracking-wider w-12">#</th>
-                    <th className="text-left px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Product</th>
-                    <th className="text-right px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Qty Sold</th>
-                    <th className="text-right px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Orders</th>
-                    <th className="text-right px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Revenue</th>
-                    <th className="text-right px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Profit</th>
-                    <th className="text-center px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Margin</th>
+                    <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider w-12">#</th>
+                    <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Product</th>
+                    <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Qty Sold</th>
+                    <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Orders</th>
+                    <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Revenue</th>
+                    <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Profit</th>
+                    <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Margin</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -528,7 +528,7 @@ export default function ReportsPage() {
                           </div>
                           <div>
                             <div className="font-bold text-slate-900 text-sm">{p.product?.name || 'Unknown'}</div>
-                            <div className="text-[10px] text-slate-500 font-mono">{p.product?.sku || '—'}</div>
+                            <div className="text-[0.6875rem] text-slate-500 font-mono">{p.product?.sku || '—'}</div>
                           </div>
                         </div>
                       </td>
@@ -603,7 +603,7 @@ export default function ReportsPage() {
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-900 truncate">{tc.customer?.name || 'Unknown'}</span>
                           {tc.customer?.isVip && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-amber-100 text-amber-700">
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[0.625rem] font-extrabold bg-amber-100 text-amber-700">
                               <Star className="h-2.5 w-2.5 fill-amber-500" /> VIP
                             </span>
                           )}
@@ -612,7 +612,7 @@ export default function ReportsPage() {
                           {tc.customer?.phone || 'No phone'} • {tc.orderCount} orders
                         </div>
                         {tc.customer && tc.customer.loyaltyPoints > 0 && (
-                          <div className="text-[10px] font-bold text-violet-700 mt-0.5">
+                          <div className="text-[0.6875rem] font-bold text-violet-700 mt-0.5">
                             🎯 {tc.customer.loyaltyPoints} loyalty points
                           </div>
                         )}
@@ -620,9 +620,9 @@ export default function ReportsPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-violet-700 text-lg tabular-nums">{formatPKR(tc.totalSpent)}</div>
-                      <div className="text-[10px] text-slate-500 font-bold">AOV {formatPKR(tc.avgOrderValue)}</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">AOV {formatPKR(tc.avgOrderValue)}</div>
                       {(tc.customer?.balance ?? 0) > 0 && (
-                        <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">
+                        <div className="text-[0.6875rem] text-amber-700 font-extrabold mt-0.5">
                           Udhaar: {formatPKR(tc.customer?.balance ?? 0)}
                         </div>
                       )}
@@ -914,7 +914,7 @@ function PnLLine({ label, value, type, sub }: { label: string; value: number; ty
       <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-300">
         <div>
           <div className="font-extrabold text-emerald-900">{label}</div>
-          {sub && <div className="text-[10px] text-emerald-700 font-bold">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-emerald-700 font-bold">{sub}</div>}
         </div>
         <div className={`font-extrabold text-xl tabular-nums ${value >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
           {formatPKR(value)}
@@ -926,7 +926,7 @@ function PnLLine({ label, value, type, sub }: { label: string; value: number; ty
     <div className={`flex items-center justify-between py-2 ${type === 'bold' ? 'border-t border-slate-200 pt-3 font-bold' : ''}`}>
       <div>
         <span className={`text-sm ${type === 'bold' ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{label}</span>
-        {sub && <span className="ml-2 text-[10px] text-slate-500 font-bold">({sub})</span>}
+        {sub && <span className="ml-2 text-[0.6875rem] text-slate-500 font-bold">({sub})</span>}
       </div>
       <span className={`font-bold tabular-nums ${
         type === 'positive' ? 'text-emerald-700' :
@@ -952,7 +952,7 @@ function MiniStat({ label, value, color, icon: Icon }: any) {
     <div className={`rounded-xl border-2 ${colors[color]} p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-70" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-80">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-80">{label}</div>
       </div>
       <div className="text-lg font-extrabold tabular-nums">{value}</div>
     </div>

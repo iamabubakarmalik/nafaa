@@ -102,7 +102,7 @@ export function BookstoreWizardStep1Basic({ basic, onChange, onTypeChange, error
                     ].join(' ')}>
                       {t.label}
                     </div>
-                    <div className="text-[11px] text-slate-600 font-semibold mt-0.5 leading-tight">{t.desc}</div>
+                    <div className="text-[0.6875rem] text-slate-600 font-semibold mt-0.5 leading-tight">{t.desc}</div>
                   </div>
                 </div>
               </button>
@@ -253,7 +253,7 @@ export function BookstoreWizardStep1Basic({ basic, onChange, onTypeChange, error
               <TrendingUp className={['h-5 w-5',
                 isLoss ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
               <div>
-                <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                   isLoss ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                   {isLoss ? '⚠️ Loss Alert' : 'Profit per item'}
                 </div>
@@ -269,7 +269,7 @@ export function BookstoreWizardStep1Basic({ basic, onChange, onTypeChange, error
                 {margin.toFixed(1)}%
               </div>
               {discount > 0 && (
-                <div className="text-[10px] font-extrabold text-blue-700 mt-0.5">
+                <div className="text-[0.6875rem] font-extrabold text-blue-700 mt-0.5">
                   {discount.toFixed(1)}% off MRP
                 </div>
               )}

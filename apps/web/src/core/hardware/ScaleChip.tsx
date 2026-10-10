@@ -24,7 +24,7 @@ export function ScaleChip({ onUse }: { onUse: (kg: number) => void }) {
     <div className="flex items-center gap-3 rounded-2xl border-2 border-sky-300 bg-sky-50 px-3 py-2 dark:border-sky-500/40 dark:bg-sky-500/10">
       <Scale className="h-5 w-5 shrink-0 text-sky-700 dark:text-sky-300" />
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] font-extrabold uppercase tracking-wider text-sky-700 dark:text-sky-300">
+        <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-sky-700 dark:text-sky-300">
           Tarazu {scale.ready ? (scale.stable ? '· ruka hua' : '· hil raha…') : ''}
         </div>
         <div className="text-xl font-extrabold tabular-nums text-sky-900 dark:text-sky-100">

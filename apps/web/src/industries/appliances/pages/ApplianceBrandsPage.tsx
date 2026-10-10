@@ -154,12 +154,12 @@ function BrandCard({ brand: b, onEdit, onDelete }: any) {
           {b.countryOfOrigin && <div className="text-xs font-bold text-slate-500 mt-0.5">📍 {b.countryOfOrigin}</div>}
           <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
             {b.authorizedDealer && (
-              <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+              <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <CheckCircle2 className="h-2.5 w-2.5" /> Authorized
               </span>
             )}
             {b.installationIncluded && (
-              <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase">
+              <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">
                 🎁 Install
               </span>
             )}
@@ -187,11 +187,11 @@ function BrandCard({ brand: b, onEdit, onDelete }: any) {
 
       <div className="mt-3 grid grid-cols-2 gap-2 pt-3 border-t border-slate-100">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Products</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Products</div>
           <div className="text-lg font-extrabold text-slate-900 tabular-nums">{b.productCount || 0}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Revenue</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
           <div className="text-sm font-extrabold text-violet-700 tabular-nums">{formatPKR(b.totalRevenue || 0)}</div>
         </div>
       </div>
@@ -396,7 +396,7 @@ function Kpi({ icon: Icon, label, value, tone, onClick }: any) {
         onClick ? 'hover:border-violet-300 hover:shadow-md transition' : ''].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>

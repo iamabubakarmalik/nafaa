@@ -114,9 +114,9 @@ export default function FarmerSuppliesPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold">{s.farmer?.name}</span>
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-extrabold uppercase">{s.slot}</span>
-                      {s.quality && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">{s.quality.replace('_', ' ')}</span>}
-                      {s.isPaid && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase">PAID</span>}
+                      <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">{s.slot}</span>
+                      {s.quality && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">{s.quality.replace('_', ' ')}</span>}
+                      {s.isPaid && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">PAID</span>}
                     </div>
                     <div className="mt-0.5 text-xs text-slate-500 font-semibold">
                       {format(new Date(s.supplyDate), 'dd MMM HH:mm')}
@@ -128,21 +128,21 @@ export default function FarmerSuppliesPage() {
 
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-slate-500">Qty</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Qty</div>
                     <div className="text-lg font-extrabold text-cyan-700 tabular-nums">{s.quantity}L</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-slate-500">Rate</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Rate</div>
                     <div className="text-sm font-extrabold tabular-nums">{formatPKR(s.ratePerLiter)}</div>
                   </div>
                   {s.fatBonus > 0 && (
                     <div className="text-center">
-                      <div className="text-[9px] uppercase font-extrabold text-amber-700">Bonus</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Bonus</div>
                       <div className="text-sm font-extrabold text-amber-700 tabular-nums">{formatPKR(s.fatBonus)}</div>
                     </div>
                   )}
                   <div className="text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-emerald-700">Total</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Total</div>
                     <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(s.totalAmount)}</div>
                   </div>
                   {!s.isPaid && (
@@ -170,7 +170,7 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="mt-1 text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
         </div>
         <div className={'h-10 w-10 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow shrink-0'}>
@@ -221,7 +221,7 @@ function SupplyForm({ farmers, onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-4">
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Farmer *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Farmer *</label>
           <select autoFocus value={form.farmerId} onChange={(e) => {
             const f = farmers.find((x: any) => x.id === e.target.value);
             setForm({ ...form, farmerId: e.target.value, ratePerLiter: f?.ratePerLiter || '' });
@@ -233,11 +233,11 @@ function SupplyForm({ farmers, onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Date/Time *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Date/Time *</label>
             <input type="datetime-local" value={form.supplyDate} onChange={(e) => setForm({ ...form, supplyDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Slot</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Slot</label>
             <select value={form.slot} onChange={(e) => setForm({ ...form, slot: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
               {SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -245,21 +245,21 @@ function SupplyForm({ farmers, onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-cyan-700 mb-1 block">Quantity (Liters) *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-1 block">Quantity (Liters) *</label>
           <input type="number" step="0.1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} className="h-14 w-full rounded-xl border-2 border-cyan-300 bg-cyan-50 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-cyan-500" />
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Fat %</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Fat %</label>
             <input type="number" step="0.1" value={form.fatContent} onChange={(e) => setForm({ ...form, fatContent: e.target.value })} placeholder="6.0" className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">SNF %</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">SNF %</label>
             <input type="number" step="0.1" value={form.snfContent} onChange={(e) => setForm({ ...form, snfContent: e.target.value })} placeholder="8.5" className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Quality</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Quality</label>
             <select value={form.quality} onChange={(e) => setForm({ ...form, quality: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
               <option value="">-- Auto --</option>
               {QUALITIES.map((q) => <option key={q} value={q}>{q.replace('_', ' ')}</option>)}
@@ -269,11 +269,11 @@ function SupplyForm({ farmers, onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Rate/Liter (override)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Rate/Liter (override)</label>
             <input type="number" step="0.01" value={form.ratePerLiter} onChange={(e) => setForm({ ...form, ratePerLiter: e.target.value })} placeholder={selectedFarmer?.ratePerLiter} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Adjustment</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Adjustment</label>
             <input type="number" step="0.01" value={form.otherAdjustment} onChange={(e) => setForm({ ...form, otherAdjustment: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
         </div>

@@ -128,7 +128,7 @@ export default function MobileLowStockPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <ShieldAlert className="h-3.5 w-3.5 text-amber-300" /> Low Stock Alert
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold">Kya khatam ho raha hai?</h1>
@@ -295,7 +295,7 @@ export default function MobileLowStockPage() {
                           </span>
                         )}
                       </div>
-                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                         {p.brand && <span>{p.brand}</span>}
                         {p.color && <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">{p.color}</span>}
                         {p.sku && <span className="font-mono">{p.sku}</span>}
@@ -309,14 +309,14 @@ export default function MobileLowStockPage() {
                       }`}>
                         {p.inStock}
                       </div>
-                      <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                         {p.isOut ? 'khatam' : `alert: ${p.lowStockAlert}`}
                       </div>
                     </div>
 
                     <Link
                       to={`/products/${p.productId}/imei`}
-                      className="h-9 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold inline-flex items-center gap-1 shrink-0 transition print:hidden"
+                      className="h-9 px-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 shrink-0 transition print:hidden"
                       title="IMEI add karo"
                     >
                       IMEI <ChevronRight className="h-3 w-3" />
@@ -356,7 +356,7 @@ export default function MobileLowStockPage() {
 
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{a.name}</div>
-                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                         {a.brand && <span>{a.brand}</span>}
                         {a.sku && <span className="font-mono">{a.sku}</span>}
                         <span className="tabular-nums">{formatPKR(a.price)}</span>
@@ -373,16 +373,16 @@ export default function MobileLowStockPage() {
                         a.isOut ? 'text-rose-600 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'
                       }`}>
                         {a.stock}
-                        <span className="text-[10px] font-bold text-slate-400 ml-0.5">{a.unit}</span>
+                        <span className="text-[0.6875rem] font-bold text-slate-400 ml-0.5">{a.unit}</span>
                       </div>
-                      <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                         {a.isOut ? 'khatam' : `alert: ${a.lowStockAlert}`}
                       </div>
                     </div>
 
                     <Link
                       to="/purchases"
-                      className="h-9 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold inline-flex items-center gap-1 shrink-0 transition print:hidden"
+                      className="h-9 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 shrink-0 transition print:hidden"
                       title="Purchase entry karo"
                     >
                       <ShoppingCart className="h-3 w-3" /> Mangwao
@@ -414,11 +414,11 @@ function SummaryCard({ label, value, icon: Icon, tone, hint }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider truncate">
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider truncate">
           {label}
         </div>
         <div className="font-extrabold text-slate-900 dark:text-white text-xl tabular-nums">{value}</div>
-        {hint && <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 truncate">{hint}</div>}
+        {hint && <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 truncate">{hint}</div>}
       </div>
     </div>
   );

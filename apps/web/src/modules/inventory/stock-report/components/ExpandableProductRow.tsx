@@ -56,7 +56,7 @@ export function ExpandableProductRow({
       {/* Sub-section header */}
       <div className="flex items-center gap-2">
         <div className="h-px flex-1 bg-gradient-to-r from-slate-200 via-slate-400 to-slate-200" />
-        <div className="px-3 py-1 rounded-full bg-slate-900 text-white text-[10px] font-extrabold uppercase tracking-wider">
+        <div className="px-3 py-1 rounded-full bg-slate-900 text-white text-[0.6875rem] font-extrabold uppercase tracking-wider">
           Detailed Breakdown
         </div>
         <div className="h-px flex-1 bg-gradient-to-r from-slate-200 via-slate-400 to-slate-200" />
@@ -80,7 +80,7 @@ export function ExpandableProductRow({
         <>
           <div className="flex items-center gap-2 pt-2">
             <div className="h-px flex-1 bg-violet-200" />
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-violet-700">
+            <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-violet-700">
               + Variants Master List
             </div>
             <div className="h-px flex-1 bg-violet-200" />

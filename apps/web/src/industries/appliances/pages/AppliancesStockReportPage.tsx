@@ -321,7 +321,7 @@ export default function AppliancesStockReportPage() {
                       bucket === b.key ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-500/15'
                         : 'border-slate-200 dark:border-slate-700 hover:border-cyan-300'
                     }`}>
-                    <div className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">{b.label}</div>
+                    <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">{b.label}</div>
                     <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{b.units}</div>
                   </button>
                 ))}
@@ -353,13 +353,13 @@ export default function AppliancesStockReportPage() {
                           <Link to={`/appliance-products/${r.productId}`} className="flex items-center gap-2 group">
                             <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
                             <div className="min-w-0">
-                              <div className="text-[13px] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{r.name}</div>
-                              <div className="text-[10px] font-bold text-slate-400">{catLabel(r.categoryType)}{r.sku ? ` • ${r.sku}` : ''}</div>
+                              <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{r.name}</div>
+                              <div className="text-[0.6875rem] font-bold text-slate-400">{catLabel(r.categoryType)}{r.sku ? ` • ${r.sku}` : ''}</div>
                             </div>
                           </Link>
                         </td>
                         <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">{r.brand || '—'}</td>
-                        <td className="px-3 py-2.5 text-center text-sm font-extrabold text-slate-800 dark:text-slate-100 tabular-nums">{r.stock} <span className="text-[10px] font-bold text-slate-400">{r.unit}</span></td>
+                        <td className="px-3 py-2.5 text-center text-sm font-extrabold text-slate-800 dark:text-slate-100 tabular-nums">{r.stock} <span className="text-[0.6875rem] font-bold text-slate-400">{r.unit}</span></td>
                         <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">{formatPKR(r.unitCost)}</td>
                         <td className="px-3 py-2.5 text-right text-xs font-extrabold text-slate-800 dark:text-slate-100 tabular-nums whitespace-nowrap">{formatPKR(r.value)}</td>
                         <td className="px-3 py-2.5 pr-4 text-right text-xs font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums whitespace-nowrap">{formatPKR(r.retailValue)}</td>
@@ -368,7 +368,7 @@ export default function AppliancesStockReportPage() {
                   </tbody>
                   <tfoot>
                     <tr className="bg-slate-900 dark:bg-slate-950 text-white">
-                      <td colSpan={4} className="px-3 py-3 text-right text-[11px] font-extrabold uppercase tracking-widest">Kul</td>
+                      <td colSpan={4} className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-widest">Kul</td>
                       <td className="px-3 py-3 text-right text-xs font-extrabold text-cyan-300 tabular-nums whitespace-nowrap">
                         {formatPKR(products.reduce((s, r) => s + r.value, 0))}
                       </td>
@@ -426,8 +426,8 @@ export default function AppliancesStockReportPage() {
               <div key={r.id} className="flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 px-2.5 py-2">
                 <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{r.name}</div>
-                  <div className="font-mono text-[10px] font-bold text-slate-400">{r.serialNumber}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{r.name}</div>
+                  <div className="font-mono text-[0.6875rem] font-bold text-slate-400">{r.serialNumber}</div>
                 </div>
                 <StatusBadge meta={instStatusMeta(r.installationStatus)} size="xs" />
               </div>
@@ -486,18 +486,18 @@ function SerialTable({ rows, mode }: { rows: StockSerialRow[]; mode: Tab }) {
                     <Link to={`/appliance-products/${r.productId}`} className="flex items-center gap-2 group">
                       <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
                       <div className="min-w-0">
-                        <div className="text-[13px] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{r.name}</div>
-                        <div className="font-mono text-[10px] font-bold text-slate-400">{r.serialNumber}</div>
+                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{r.name}</div>
+                        <div className="font-mono text-[0.6875rem] font-bold text-slate-400">{r.serialNumber}</div>
                       </div>
                     </Link>
                   </td>
                   <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
                     {r.brand || '—'}
-                    {r.modelNumber && <div className="font-mono text-[10px] text-slate-400">{r.modelNumber}</div>}
-                    {r.capacity && <div className="text-[10px] text-slate-400">{r.capacity}</div>}
+                    {r.modelNumber && <div className="font-mono text-[0.6875rem] text-slate-400">{r.modelNumber}</div>}
+                    {r.capacity && <div className="text-[0.6875rem] text-slate-400">{r.capacity}</div>}
                   </td>
                   <td className="px-3 py-2.5 text-center">
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold tabular-nums ${
+                    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold tabular-nums ${
                       r.ageDays > 90 ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                         : r.ageDays > 60 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
                         : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
@@ -508,15 +508,15 @@ function SerialTable({ rows, mode }: { rows: StockSerialRow[]; mode: Tab }) {
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     {wDays === null || wDays === undefined ? (
-                      <span className="text-[11px] font-bold text-slate-400">—</span>
+                      <span className="text-[0.6875rem] font-bold text-slate-400">—</span>
                     ) : (
                       <div>
-                        <span className={`text-[11px] font-extrabold ${
+                        <span className={`text-[0.6875rem] font-extrabold ${
                           wDays < 0 ? 'text-rose-600 dark:text-rose-400'
                             : wDays <= 30 ? 'text-amber-600 dark:text-amber-400'
                             : 'text-emerald-600 dark:text-emerald-400'
                         }`}>{daysPhrase(wDays)}</span>
-                        {mode === 'warranty' && <div className="text-[9px] font-bold text-slate-400">{wKind}</div>}
+                        {mode === 'warranty' && <div className="text-[0.625rem] font-bold text-slate-400">{wKind}</div>}
                       </div>
                     )}
                   </td>
@@ -528,7 +528,7 @@ function SerialTable({ rows, mode }: { rows: StockSerialRow[]; mode: Tab }) {
           </tbody>
           <tfoot>
             <tr className="bg-slate-900 dark:bg-slate-950 text-white">
-              <td colSpan={5} className="px-3 py-3 text-right text-[11px] font-extrabold uppercase tracking-widest">
+              <td colSpan={5} className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-widest">
                 {rows.length} units ka total
               </td>
               <td className="px-3 py-3 text-right text-xs font-extrabold text-cyan-300 tabular-nums whitespace-nowrap">
@@ -552,14 +552,14 @@ function TabBtn({ active, onClick, icon: Icon, label, badge }: any) {
         active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
       }`}>
       <Icon className="h-4 w-4" /> {label}
-      {badge ? <span className={`px-1.5 rounded-full text-[9px] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700'}`}>{badge}</span> : null}
+      {badge ? <span className={`px-1.5 rounded-full text-[0.625rem] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700'}`}>{badge}</span> : null}
     </button>
   );
 }
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );

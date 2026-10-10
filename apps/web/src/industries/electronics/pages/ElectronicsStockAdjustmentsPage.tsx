@@ -265,7 +265,7 @@ export default function ElectronicsStockAdjustmentsPage() {
                   : 'bg-white border-slate-200 text-slate-600 hover:border-orange-300'
               }`}>
               <k.icon className="h-3.5 w-3.5" /> {k.label}
-              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
             </button>
           ))}
         </div>
@@ -306,13 +306,13 @@ export default function ElectronicsStockAdjustmentsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-slate-900 text-sm truncate">{a.product.name}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${m.chip}`}>{m.label}</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${m.chip}`}>{m.label}</span>
                     </div>
-                    <div className="mt-0.5 text-[11px] font-bold text-slate-500 truncate">
+                    <div className="mt-0.5 text-[0.6875rem] font-bold text-slate-500 truncate">
                       {a.reason}
                       {(a as any).note && <span className="italic"> · {(a as any).note}</span>}
                     </div>
-                    <div className="text-[10px] font-bold text-slate-400 mt-0.5">
+                    <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5">
                       {new Date(a.createdAt).toLocaleString('en-PK')}
                       {(a as any).createdBy?.fullName && ` · ${(a as any).createdBy.fullName}`}
                     </div>
@@ -321,7 +321,7 @@ export default function ElectronicsStockAdjustmentsPage() {
                     m.sign === 1 ? 'text-emerald-600' : 'text-rose-600'
                   }`}>
                     {m.sign === 1 ? '+' : '−'}{a.quantity}
-                    <span className="text-[10px] font-bold text-slate-400 ml-1">{a.product.unit}</span>
+                    <span className="text-[0.6875rem] font-bold text-slate-400 ml-1">{a.product.unit}</span>
                   </div>
                 </div>
               );
@@ -360,7 +360,7 @@ export default function ElectronicsStockAdjustmentsPage() {
                     <div className="font-extrabold text-slate-900 text-sm truncate">
                       {s.product?.name ?? 'Serial unit'}
                     </div>
-                    <div className="text-[11px] font-bold text-slate-500 font-mono truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 font-mono truncate">
                       {s.serialNumber}{s.imei ? ` · IMEI ${s.imei}` : ''}
                     </div>
                   </div>
@@ -369,7 +369,7 @@ export default function ElectronicsStockAdjustmentsPage() {
                       <div className="text-sm font-extrabold text-slate-900 tabular-nums">
                         {hideCost ? '•••' : formatPKR(s.purchasePrice)}
                       </div>
-                      <div className="text-[10px] font-bold text-slate-400">lagat</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-400">lagat</div>
                     </div>
                   )}
                   <div className="flex gap-1.5 shrink-0 print:hidden">
@@ -453,7 +453,7 @@ function NewAdjustmentModal({ onClose, shopId }: { onClose: () => void; shopId: 
               <ClipboardCheck className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Nayi Durusti</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Nayi Durusti</div>
               <h3 className="font-extrabold">Stock Ki Ginti Theek Karein</h3>
             </div>
           </div>
@@ -473,7 +473,7 @@ function NewAdjustmentModal({ onClose, shopId }: { onClose: () => void; shopId: 
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 text-sm truncate">{picked.name}</div>
-                  <div className="text-[11px] font-bold text-slate-600">
+                  <div className="text-[0.6875rem] font-bold text-slate-600">
                     Abhi {picked.stock} {picked.unit} maujood
                   </div>
                 </div>
@@ -501,7 +501,7 @@ function NewAdjustmentModal({ onClose, shopId }: { onClose: () => void; shopId: 
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-slate-900 text-sm truncate">{p.name}</div>
-                        <div className="text-[11px] font-bold text-slate-500">{p.stock} {p.unit} maujood</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500">{p.stock} {p.unit} maujood</div>
                       </div>
                     </button>
                   ))}
@@ -526,7 +526,7 @@ function NewAdjustmentModal({ onClose, shopId }: { onClose: () => void; shopId: 
                       <m.icon className={`h-4 w-4 ${a ? 'text-orange-600' : 'text-slate-500'}`} />
                       <span className="font-extrabold text-sm text-slate-900">{m.label}</span>
                     </div>
-                    <div className="text-[10px] font-bold text-slate-500 mt-0.5">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">
                       Stock {m.sign === 1 ? 'barhega' : 'kam hoga'}
                     </div>
                   </button>
@@ -560,7 +560,7 @@ function NewAdjustmentModal({ onClose, shopId }: { onClose: () => void; shopId: 
             <div className="flex flex-wrap gap-1.5 mb-2">
               {REASONS.map((r) => (
                 <button key={r} onClick={() => setReason(r)}
-                  className={`px-2.5 py-1.5 rounded-lg border-2 text-[11px] font-extrabold transition ${
+                  className={`px-2.5 py-1.5 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                     reason === r ? 'border-orange-500 bg-orange-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-orange-300'
                   }`}>
                   {r}
@@ -632,7 +632,7 @@ function SerialActionModal({ serial, kind, onClose, onDone }: {
               {kind === 'defective' ? <Wrench className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">
                 {kind === 'defective' ? 'Kharab Mark Karein' : 'Wapas Mark Karein'}
               </div>
               <h3 className="font-extrabold truncate">{serial.product?.name ?? 'Serial unit'}</h3>
@@ -645,9 +645,9 @@ function SerialActionModal({ serial, kind, onClose, onDone }: {
 
         <div className="p-5 space-y-4">
           <div className="rounded-xl bg-violet-50 border-2 border-violet-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-violet-700 tracking-wider">Serial</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 tracking-wider">Serial</div>
             <div className="font-mono font-extrabold text-violet-900">{serial.serialNumber}</div>
-            {serial.imei && <div className="text-[11px] font-bold text-violet-700 font-mono">IMEI {serial.imei}</div>}
+            {serial.imei && <div className="text-[0.6875rem] font-bold text-violet-700 font-mono">IMEI {serial.imei}</div>}
           </div>
 
           <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3 flex items-start gap-2">
@@ -663,7 +663,7 @@ function SerialActionModal({ serial, kind, onClose, onDone }: {
             <div className="flex flex-wrap gap-1.5 mb-2">
               {PRESETS.map((r) => (
                 <button key={r} onClick={() => setReason(r)}
-                  className={`px-2.5 py-1.5 rounded-lg border-2 text-[11px] font-extrabold transition ${
+                  className={`px-2.5 py-1.5 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                     reason === r ? 'border-rose-500 bg-rose-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-rose-300'
                   }`}>
                   {r}
@@ -706,11 +706,11 @@ function HeroStat({ label, value, sub, icon: Icon, highlight }: any) {
     <div className={`rounded-2xl backdrop-blur border p-4 ${
       highlight ? 'bg-white/25 border-white/40 shadow-lg' : 'bg-white/10 border-white/20'
     }`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
       <div className="mt-1 text-2xl font-extrabold tabular-nums">{value}</div>
-      {sub && <div className="mt-0.5 text-[11px] font-bold text-white/70">{sub}</div>}
+      {sub && <div className="mt-0.5 text-[0.6875rem] font-bold text-white/70">{sub}</div>}
     </div>
   );
 }
@@ -749,7 +749,7 @@ function AdjustTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Stock Durusti</h3>
             </div>
           </div>
@@ -768,7 +768,7 @@ function AdjustTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

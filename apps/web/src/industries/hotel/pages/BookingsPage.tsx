@@ -153,28 +153,28 @@ function BookingCard({ booking }: any) {
              isToday ? 'bg-amber-100 dark:bg-amber-950/40' :
              'bg-slate-100 dark:bg-neutral-800')
           }>
-            <div className="text-[10px] uppercase font-extrabold text-slate-600">
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">
               {booking.status === 'CHECKED_IN' ? 'In-House' : 'Check-in'}
             </div>
             <div className="text-xl font-extrabold">{format(new Date(booking.checkInDate), 'dd')}</div>
-            <div className="text-[9px] font-bold text-slate-500 uppercase">{format(new Date(booking.checkInDate), 'MMM')}</div>
+            <div className="text-[0.625rem] font-bold text-slate-500 uppercase">{format(new Date(booking.checkInDate), 'MMM')}</div>
           </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{booking.guestName}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + cfg.color}>
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>
                 {cfg.label}
               </span>
               {isToday && booking.status === 'CONFIRMED' && (
-                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">TODAY</span>
+                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">TODAY</span>
               )}
               {isUpcoming && !isToday && (
-                <span className="px-2 py-0.5 rounded bg-cyan-500 text-white text-[9px] font-extrabold uppercase">IN {daysUntilCheckIn}D</span>
+                <span className="px-2 py-0.5 rounded bg-cyan-500 text-white text-[0.625rem] font-extrabold uppercase">IN {daysUntilCheckIn}D</span>
               )}
               <span className="text-lg" title={booking.source}>{SOURCE_EMOJI[booking.source] || '📌'}</span>
             </div>
-            <div className="text-[10px] font-mono font-bold text-slate-500">{booking.bookingNumber}</div>
+            <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{booking.bookingNumber}</div>
             {booking.guestPhone && (
               <div className="flex items-center gap-1 text-xs text-slate-600 font-bold mt-1">
                 <Phone className="h-3 w-3" />
@@ -204,10 +204,10 @@ function BookingCard({ booking }: any) {
         <div className="text-right shrink-0">
           <div className="text-xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(booking.grandTotal)}</div>
           {booking.balanceAmount > 0 && booking.paymentStatus !== 'PAID' && (
-            <div className="text-[10px] font-extrabold text-amber-700">Due: {formatPKR(booking.balanceAmount)}</div>
+            <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(booking.balanceAmount)}</div>
           )}
           {booking.paymentStatus === 'PAID' && (
-            <div className="text-[10px] font-extrabold text-emerald-700">PAID</div>
+            <div className="text-[0.6875rem] font-extrabold text-emerald-700">PAID</div>
           )}
           <div className="mt-1 inline-flex items-center gap-1 text-xs font-extrabold text-blue-600">
             View <ArrowRight className="h-3 w-3" />

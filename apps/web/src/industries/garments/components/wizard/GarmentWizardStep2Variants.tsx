@@ -208,7 +208,7 @@ export function GarmentWizardStep2Variants({
 
               {Object.entries(SIZE_PRESETS).map(([groupKey, sizes]) => (
                 <div key={groupKey} className="mb-2">
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1 capitalize">{groupKey.replace(/([A-Z])/g, ' $1')}</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1 capitalize">{groupKey.replace(/([A-Z])/g, ' $1')}</div>
                   <div className="flex flex-wrap gap-1">
                     {sizes.map((s) => {
                       const active = selectedSizes.includes(s);
@@ -270,7 +270,7 @@ export function GarmentWizardStep2Variants({
                         className="h-5 w-5 rounded-full border-2 border-white shadow shrink-0"
                         style={{ backgroundColor: c.hex }}
                       />
-                      <span className="text-[10px] font-extrabold text-slate-700 truncate">{c.name}</span>
+                      <span className="text-[0.6875rem] font-extrabold text-slate-700 truncate">{c.name}</span>
                     </button>
                   );
                 })}
@@ -278,7 +278,7 @@ export function GarmentWizardStep2Variants({
 
               <div className="mt-2 flex gap-2 items-end">
                 <div className="flex-1">
-                  <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-0.5">Custom Color Name</label>
+                  <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-0.5">Custom Color Name</label>
                   <input
                     value={customColorName}
                     onChange={(e) => setCustomColorName(e.target.value)}
@@ -287,7 +287,7 @@ export function GarmentWizardStep2Variants({
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-extrabold text-slate-500 mb-0.5">Hex</label>
+                  <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-0.5">Hex</label>
                   <input
                     type="color"
                     value={customColorHex}
@@ -320,7 +320,7 @@ export function GarmentWizardStep2Variants({
             <section className="rounded-2xl border-2 border-pink-200 bg-white p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-pink-700">
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-pink-700">
                     Configured Variants
                   </div>
                   <h4 className="font-extrabold text-slate-900 text-sm mt-0.5">
@@ -333,13 +333,13 @@ export function GarmentWizardStep2Variants({
                 <table className="w-full text-xs">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Size</th>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Color</th>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">SKU</th>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Barcode</th>
-                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Price</th>
-                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Stock</th>
-                      <th className="px-2 py-2 text-center font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">⭐</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Size</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Color</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">SKU</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Barcode</th>
+                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Price</th>
+                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Stock</th>
+                      <th className="px-2 py-2 text-center font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">⭐</th>
                       <th className="px-2 py-2"></th>
                     </tr>
                   </thead>

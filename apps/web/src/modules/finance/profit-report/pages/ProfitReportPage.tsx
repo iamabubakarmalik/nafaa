@@ -245,7 +245,7 @@ export default function ProfitReportPage() {
           >
             <Sliders className="h-4 w-4" /> Filters
             {hasActiveFilters && (
-              <span className="h-5 w-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center">
+              <span className="h-5 w-5 rounded-full bg-emerald-600 text-white text-[0.6875rem] font-bold flex items-center justify-center">
                 !
               </span>
             )}
@@ -353,7 +353,7 @@ export default function ProfitReportPage() {
                 <Crown className="h-5 w-5 text-amber-500" />
                 <h3 className="font-extrabold text-emerald-900">Top 5 Profitable</h3>
               </div>
-              <span className="text-[10px] font-bold uppercase text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">
+              <span className="text-[0.6875rem] font-bold uppercase text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">
                 Best Performers
               </span>
             </div>
@@ -374,7 +374,7 @@ export default function ProfitReportPage() {
                 <Percent className="h-5 w-5 text-violet-600" />
                 <h3 className="font-extrabold text-violet-900">Highest Margin %</h3>
               </div>
-              <span className="text-[10px] font-bold uppercase text-violet-700 bg-violet-100 px-2 py-1 rounded-full">
+              <span className="text-[0.6875rem] font-bold uppercase text-violet-700 bg-violet-100 px-2 py-1 rounded-full">
                 Best Margins
               </span>
             </div>
@@ -413,7 +413,7 @@ export default function ProfitReportPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-bold text-slate-900 text-sm truncate">{p.name}</div>
-                  <div className="text-[11px] text-slate-500">
+                  <div className="text-[0.6875rem] text-slate-500">
                     {p.quantitySold} {p.unit} sold
                   </div>
                 </div>
@@ -421,7 +421,7 @@ export default function ProfitReportPage() {
                   <div className="font-extrabold text-rose-700 text-sm tabular-nums">
                     {formatPKR(p.profit)}
                   </div>
-                  <div className="text-[10px] text-rose-600 font-bold">
+                  <div className="text-[0.6875rem] text-rose-600 font-bold">
                     {p.margin.toFixed(1)}%
                   </div>
                 </div>
@@ -560,16 +560,16 @@ export default function ProfitReportPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-slate-700 border-b-2 border-slate-200">
                 <tr>
-                  <th className="text-center px-3 py-3 font-bold text-[10px] uppercase tracking-wider w-12">#</th>
-                  <th className="text-left px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Product</th>
-                  <th className="text-left px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Cat / Brand</th>
-                  <th className="text-center px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Industry</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Sold</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Avg Price</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Revenue</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Cost</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Profit</th>
-                  <th className="text-center px-3 py-3 font-bold text-[10px] uppercase tracking-wider">Margin</th>
+                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider w-12">#</th>
+                  <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Product</th>
+                  <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Cat / Brand</th>
+                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Industry</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Sold</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Avg Price</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Revenue</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Cost</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Profit</th>
+                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Margin</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -680,7 +680,7 @@ function TopProductCard({
       </div>
       <div className="min-w-0 flex-1">
         <div className="font-bold text-slate-900 text-sm truncate">{product.name}</div>
-        <div className="text-[11px] text-slate-500">
+        <div className="text-[0.6875rem] text-slate-500">
           {product.quantitySold} {product.unit} • {product.ordersCount} orders
         </div>
       </div>
@@ -690,14 +690,14 @@ function TopProductCard({
             <div className="font-extrabold text-emerald-700 text-sm tabular-nums">
               {formatPKR(product.profit)}
             </div>
-            <div className="text-[10px] text-emerald-600 font-bold">{product.margin.toFixed(1)}%</div>
+            <div className="text-[0.6875rem] text-emerald-600 font-bold">{product.margin.toFixed(1)}%</div>
           </>
         ) : (
           <>
             <div className="font-extrabold text-violet-700 text-base tabular-nums">
               {product.margin.toFixed(1)}%
             </div>
-            <div className="text-[10px] text-violet-600 font-bold">{formatPKR(product.profit)}</div>
+            <div className="text-[0.6875rem] text-violet-600 font-bold">{formatPKR(product.profit)}</div>
           </>
         )}
       </div>
@@ -720,7 +720,7 @@ function ProfitTableRow({ product: p, rank }: { product: ProductProfit; rank: nu
     >
       <td className="px-3 py-3 text-center">
         <span
-          className={`inline-flex items-center justify-center h-6 w-6 rounded-md text-[10px] font-extrabold ${
+          className={`inline-flex items-center justify-center h-6 w-6 rounded-md text-[0.6875rem] font-extrabold ${
             rank <= 3 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
           }`}
         >
@@ -738,7 +738,7 @@ function ProfitTableRow({ product: p, rank }: { product: ProductProfit; rank: nu
           </div>
           <div className="min-w-0">
             <div className="font-bold text-slate-900 text-sm line-clamp-1">{p.name}</div>
-            <div className="flex items-center gap-1.5 mt-0.5 text-[10px]">
+            <div className="flex items-center gap-1.5 mt-0.5 text-[0.6875rem]">
               {p.sku && <span className="font-mono text-slate-500">{p.sku}</span>}
               {p.variantCount > 0 && (
                 <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 font-bold">
@@ -762,24 +762,24 @@ function ProfitTableRow({ product: p, rank }: { product: ProductProfit; rank: nu
           </div>
         )}
         {p.brandName && (
-          <div className="text-[10px] font-bold text-violet-700 mt-0.5">{p.brandName}</div>
+          <div className="text-[0.6875rem] font-bold text-violet-700 mt-0.5">{p.brandName}</div>
         )}
       </td>
       <td className="px-3 py-3 text-center">
         {p.industryType === 'CARPET' ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">
             <Layers className="h-2.5 w-2.5" /> CARPET
           </span>
         ) : p.industryType === 'MOBILE' ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-extrabold">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">
             <Smartphone className="h-2.5 w-2.5" /> MOBILE
           </span>
         ) : p.industryType === 'WEIGHT_BASED' ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-extrabold">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">
             WEIGHT
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[9px] font-extrabold">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold">
             <Package className="h-2.5 w-2.5" /> STANDARD
           </span>
         )}
@@ -788,7 +788,7 @@ function ProfitTableRow({ product: p, rank }: { product: ProductProfit; rank: nu
         <div className="font-extrabold text-slate-900 tabular-nums">
           {p.quantitySold.toFixed(p.quantitySold % 1 === 0 ? 0 : 2)}
         </div>
-        <div className="text-[10px] text-slate-500 font-bold uppercase">{p.unit}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">{p.unit}</div>
       </td>
       <td className="px-3 py-3 text-right text-xs font-bold text-slate-700 tabular-nums">
         {formatPKR(p.avgSellPrice)}
@@ -809,7 +809,7 @@ function ProfitTableRow({ product: p, rank }: { product: ProductProfit; rank: nu
       </td>
       <td className="px-3 py-3 text-center">
         <span
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
             isHighMargin
               ? 'bg-emerald-100 text-emerald-700'
               : isMediumMargin

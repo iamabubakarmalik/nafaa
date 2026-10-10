@@ -393,7 +393,7 @@ export default function SyncCenterPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               {status.isOnline ? (
                 <><Wifi className="h-3.5 w-3.5 text-emerald-300" /> Online</>
               ) : (
@@ -458,7 +458,7 @@ export default function SyncCenterPage() {
         {/* Sync progress bar */}
         {status.progress && status.progress.total > 0 && (
           <div className="relative mt-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-3">
-            <div className="flex justify-between text-[11px] font-extrabold text-white mb-1.5">
+            <div className="flex justify-between text-[0.6875rem] font-extrabold text-white mb-1.5">
               <span className="inline-flex items-center gap-1.5">
                 <RefreshCw className="h-3 w-3 animate-spin" /> Syncing…
               </span>
@@ -475,7 +475,7 @@ export default function SyncCenterPage() {
 
         {/* Last sync + storage */}
         {(status.lastSync || storage) && (
-          <div className="relative mt-3 flex flex-wrap gap-2 items-center text-[11px] font-bold">
+          <div className="relative mt-3 flex flex-wrap gap-2 items-center text-[0.6875rem] font-bold">
             {status.lastSync && (
               <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-2.5 py-1 backdrop-blur-md">
                 <Clock className="h-3 w-3 text-cyan-300" />
@@ -492,7 +492,7 @@ export default function SyncCenterPage() {
         )}
 
         {/* Keyboard hints */}
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>R</Kbd><span className="text-white/60">Refresh</span>
@@ -576,7 +576,7 @@ export default function SyncCenterPage() {
                 <Database className="h-4 w-4 text-blue-600" />
                 Offline Data Snapshot
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                 Ye sab kuch aap ke device pe cached hai — offline chalega
               </p>
             </div>
@@ -601,7 +601,7 @@ export default function SyncCenterPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">7-Din Activity Trend</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Sales vs Other events daily</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Sales vs Other events daily</p>
               </div>
               <TrendingUp className="h-5 w-5 text-blue-500" />
             </div>
@@ -634,7 +634,7 @@ export default function SyncCenterPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Category Breakdown</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Event types split</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Event types split</p>
               </div>
               <Filter className="h-5 w-5 text-violet-500" />
             </div>
@@ -740,7 +740,7 @@ export default function SyncCenterPage() {
               <button
                 key={o.v}
                 onClick={() => setDateFilter(o.v)}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold transition whitespace-nowrap ${
+                className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold transition whitespace-nowrap ${
                   dateFilter === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -765,7 +765,7 @@ export default function SyncCenterPage() {
 
         {/* Category pills */}
         <div className="flex gap-1.5 flex-wrap items-center">
-          <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest mr-1">Type:</span>
+          <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest mr-1">Type:</span>
           <button
             onClick={() => setCategoryFilter('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
@@ -796,7 +796,7 @@ export default function SyncCenterPage() {
 
         {/* Status pills */}
         <div className="flex gap-1.5 flex-wrap items-center">
-          <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest mr-1">Status:</span>
+          <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest mr-1">Status:</span>
           <button
             onClick={() => setStatusFilter('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
@@ -858,15 +858,15 @@ export default function SyncCenterPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm print:text-[10px]">
+            <table className="min-w-full text-sm print:text-[0.6875rem]">
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Type</th>
-                  <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Title / Details</th>
-                  <th className="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Amount</th>
-                  <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Status</th>
-                  <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Date</th>
-                  <th className="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 print:hidden">Actions</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Type</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Title / Details</th>
+                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Amount</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Status</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Date</th>
+                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 print:hidden">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -884,9 +884,9 @@ export default function SyncCenterPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="font-extrabold text-slate-900 dark:text-white">{e.title}</div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{e.description}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{e.description}</div>
                         {e.error && (
-                          <div className="mt-1 text-[10px] text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded px-1.5 py-0.5 inline-block">
+                          <div className="mt-1 text-[0.6875rem] text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 rounded px-1.5 py-0.5 inline-block">
                             ⚠️ {e.error}
                             {e.retryCount && e.retryCount > 0 && ` (${e.retryCount} tries)`}
                           </div>
@@ -900,7 +900,7 @@ export default function SyncCenterPage() {
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-extrabold border ${statCfg.light} ${statCfg.dark}`}>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-extrabold border ${statCfg.light} ${statCfg.dark}`}>
                           <span>{statCfg.emoji}</span>
                           {statCfg.label}
                         </span>
@@ -993,7 +993,7 @@ function SyncTeacher({ onClose }: { onClose: () => void }) {
           </p>
 
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-1">
               📋 4 Status
             </div>
             <TypeRow emoji="⏳" label="Pending" color="text-amber-700 dark:text-amber-400" desc="Save ho gaya, sync ka intezaar" />
@@ -1003,7 +1003,7 @@ function SyncTeacher({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-1">
               💾 Data Snapshot Kya Hai?
             </div>
             <p>Aap ke device pe cached data ki gainti — ye sab <strong>net ke baghair bhi chalega</strong>:</p>
@@ -1048,7 +1048,7 @@ function TypeRow({ emoji, label, color, desc }: { emoji: string; label: string; 
       <span className="text-base shrink-0">{emoji}</span>
       <div className="min-w-0 flex-1">
         <div className={`text-xs font-extrabold ${color}`}>{label}</div>
-        <div className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold">{desc}</div>
       </div>
     </div>
   );
@@ -1085,9 +1085,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, isPositive, isNegative }: an
     ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1114,7 +1114,7 @@ function SnapCard({ icon: Icon, label, value, color }: { icon: any; label: strin
         <Icon className="w-4 h-4" />
       </div>
       <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{value.toLocaleString()}</div>
-      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{label}</div>
+      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{label}</div>
     </div>
   );
 }

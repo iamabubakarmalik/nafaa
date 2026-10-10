@@ -985,22 +985,22 @@ export default function RetailPosPage() {
                     {isOnline ? (
                       <div className="h-6 px-2 rounded-full bg-emerald-500/30 flex items-center gap-1">
                         <Wifi className="h-3 w-3 text-emerald-200" />
-                        <span className="text-[9px] font-extrabold text-emerald-200">LIVE</span>
+                        <span className="text-[0.625rem] font-extrabold text-emerald-200">LIVE</span>
                       </div>
                     ) : (
                       <div className="h-6 px-2 rounded-full bg-amber-500/30 flex items-center gap-1 animate-pulse">
                         <WifiOff className="h-3 w-3 text-amber-200" />
-                        <span className="text-[9px] font-extrabold text-amber-200">OFFLINE</span>
+                        <span className="text-[0.625rem] font-extrabold text-amber-200">OFFLINE</span>
                       </div>
                     )}
                     {autoPrint && (
                       <div className="h-6 px-2 rounded-full bg-sky-500/30 flex items-center gap-1" title={`Auto-print ON (${printerWidth}mm)`}>
                         <Printer className="h-3 w-3 text-sky-200" />
-                        <span className="text-[9px] font-extrabold text-sky-200">{printerWidth}mm</span>
+                        <span className="text-[0.625rem] font-extrabold text-sky-200">{printerWidth}mm</span>
                       </div>
                     )}
                   </div>
-                  <p className="text-[11px] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                  <p className="text-[0.6875rem] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
                     <Store className="h-3 w-3 shrink-0" />
                     <span className="truncate">{tenant?.name || 'My Shop'}</span>
                   </p>
@@ -1031,7 +1031,7 @@ export default function RetailPosPage() {
                   className="lg:hidden relative h-10 w-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 flex items-center justify-center transition">
                   <ShoppingCart className="h-5 w-5" />
                   {itemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">
                       {itemCount}
                     </span>
                   )}
@@ -1069,7 +1069,7 @@ export default function RetailPosPage() {
               <button onClick={() => setScannerOpen(true)}
                 className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-800 hover:from-slate-800 hover:to-slate-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
                 <Camera className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="text-[9px] sm:text-[10px] font-extrabold uppercase">Scan</span>
+                <span className="text-[0.625rem] sm:text-[0.6875rem] font-extrabold uppercase">Scan</span>
               </button>
             </div>
 
@@ -1086,7 +1086,7 @@ export default function RetailPosPage() {
                   className={['shrink-0 h-9 sm:h-10 px-3 rounded-xl text-xs sm:text-sm font-extrabold inline-flex items-center gap-1.5 border-2 transition active:scale-95',
                     !categoryId ? 'bg-sky-600 text-white border-sky-600 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-sky-300'].join(' ')}>
                   <Grid3x3 className="h-3.5 w-3.5" /> Sab
-                  <span className={['px-1.5 rounded-md text-[10px] tabular-nums', !categoryId ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'].join(' ')}>{products.length}</span>
+                  <span className={['px-1.5 rounded-md text-[0.6875rem] tabular-nums', !categoryId ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'].join(' ')}>{products.length}</span>
                 </button>
                 {categories.map((cat: any) => {
                   const count = categoryCounts[cat.id] || 0;
@@ -1098,7 +1098,7 @@ export default function RetailPosPage() {
                       style={{ backgroundColor: active ? cat.color : undefined, borderColor: active ? cat.color : undefined, color: active ? '#fff' : undefined }}>
                       {!active && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cat.color }} />}
                       <span className={active ? '' : 'text-slate-700 dark:text-slate-200'}>{cat.name}</span>
-                      <span className={['px-1.5 rounded-md text-[10px] tabular-nums', active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'].join(' ')}>{count}</span>
+                      <span className={['px-1.5 rounded-md text-[0.6875rem] tabular-nums', active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'].join(' ')}>{count}</span>
                     </button>
                   );
                 })}
@@ -1147,10 +1147,10 @@ export default function RetailPosPage() {
                 <div className="space-y-4">
                   {Object.entries(groupedQuickKeys).map(([group, keys]) => (
                     <div key={group}>
-                      <div className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-2 flex items-center gap-1.5">
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-2 flex items-center gap-1.5">
                         <div className="h-1 w-6 rounded-full bg-amber-500" />
                         {group}
-                        <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[9px] tabular-nums">{keys.length}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[0.625rem] tabular-nums">{keys.length}</span>
                       </div>
                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-6 gap-2">
                         {keys.map((k) => (
@@ -1201,12 +1201,12 @@ export default function RetailPosPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[11px] font-extrabold flex items-center justify-center tabular-nums">
+                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[0.6875rem] font-extrabold flex items-center justify-center tabular-nums">
                   {itemCount}
                 </span>
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
                 <div className="text-lg font-extrabold tabular-nums leading-none">{hidePrices ? '••••' : formatPKR(total)}</div>
               </div>
             </div>

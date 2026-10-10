@@ -51,17 +51,17 @@ export function SaleItemRow({ item, alreadyAdded, onAdd }: Props) {
               {item.product.name}
             </div>
             {isCarpet && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40">
                 <Layers className="h-2.5 w-2.5" /> CARPET
               </span>
             )}
             {rollNumber && (
-              <span className="text-[9px] font-extrabold text-emerald-700 dark:text-emerald-400 font-mono bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/30">
+              <span className="text-[0.625rem] font-extrabold text-emerald-700 dark:text-emerald-400 font-mono bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/30">
                 🧵 {rollNumber}
               </span>
             )}
             {pieceCode && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-extrabold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-500/10 px-1.5 py-0.5 rounded border border-violet-200 dark:border-violet-500/30">
+              <span className="inline-flex items-center gap-0.5 text-[0.625rem] font-extrabold text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-500/10 px-1.5 py-0.5 rounded border border-violet-200 dark:border-violet-500/30">
                 <Scissors className="h-2.5 w-2.5" />
                 {pieceCode}
               </span>
@@ -69,7 +69,7 @@ export function SaleItemRow({ item, alreadyAdded, onAdd }: Props) {
           </div>
 
           {variant && (
-            <div className="text-[11px] font-bold text-violet-700 dark:text-violet-300 flex items-center gap-1 mt-0.5">
+            <div className="text-[0.6875rem] font-bold text-violet-700 dark:text-violet-300 flex items-center gap-1 mt-0.5">
               {variant.colorHex && (
                 <span
                   className="h-2 w-2 rounded-full border border-slate-300 dark:border-slate-600"
@@ -82,12 +82,12 @@ export function SaleItemRow({ item, alreadyAdded, onAdd }: Props) {
 
           {/* Carpet dimensions if in note */}
           {isCarpet && item.note && (
-            <div className="text-[10px] text-emerald-700 dark:text-emerald-400 mt-0.5 font-bold italic line-clamp-1">
+            <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 mt-0.5 font-bold italic line-clamp-1">
               {item.note}
             </div>
           )}
 
-          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-semibold">
+          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 font-semibold">
             Sold: {formatQty(item.quantity)} · Returned: {formatQty(item.returnedQty || 0)} ·
             Available:{' '}
             <span className="font-extrabold text-emerald-700 dark:text-emerald-400">
@@ -105,13 +105,13 @@ export function SaleItemRow({ item, alreadyAdded, onAdd }: Props) {
                   style={{ width: `${returnPct}%` }}
                 />
               </div>
-              <div className="text-[9px] text-amber-700 dark:text-amber-400 font-extrabold mt-0.5">
+              <div className="text-[0.625rem] text-amber-700 dark:text-amber-400 font-extrabold mt-0.5">
                 {returnPct.toFixed(0)}% already returned
               </div>
             </div>
           )}
 
-          <div className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 mt-0.5">
+          <div className="text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400 mt-0.5">
             {formatPKR(item.price)} / {item.product.unit}
             {isCarpet && (
               <span className="text-slate-500 dark:text-slate-400 font-semibold italic">

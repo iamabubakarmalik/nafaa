@@ -71,7 +71,7 @@ export function ImageGallery({
           </div>
 
           {img.isPrimary && (
-            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold shadow">
+            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.6875rem] font-bold shadow">
               ⭐ PRIMARY
             </div>
           )}

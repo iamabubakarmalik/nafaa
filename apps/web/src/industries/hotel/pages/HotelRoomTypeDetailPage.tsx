@@ -176,7 +176,7 @@ export default function HotelRoomTypeDetailPage() {
 
             <div className="mt-5 flex items-center gap-4 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Base Rate</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Base Rate</div>
                 <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
                   {formatPKRFull(roomType.basePrice)}
                   <span className="text-sm font-bold text-white/70 ml-1">/night</span>
@@ -184,7 +184,7 @@ export default function HotelRoomTypeDetailPage() {
               </div>
               {roomType.weekendPrice && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Weekend</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Weekend</div>
                   <div className="text-xl font-extrabold tabular-nums text-cyan-300 leading-none mt-1">
                     {formatPKRFull(roomType.weekendPrice)}
                   </div>
@@ -192,7 +192,7 @@ export default function HotelRoomTypeDetailPage() {
               )}
               {roomType.peakPrice && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Peak Season</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Peak Season</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1">
                     {formatPKRFull(roomType.peakPrice)}
                   </div>
@@ -211,7 +211,7 @@ export default function HotelRoomTypeDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Manage Rooms</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Status, HK, edit</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Status, HK, edit</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -221,7 +221,7 @@ export default function HotelRoomTypeDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">New Booking</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Reserve now</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Reserve now</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -231,7 +231,7 @@ export default function HotelRoomTypeDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Housekeeping</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Cleaning tasks</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Cleaning tasks</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -241,7 +241,7 @@ export default function HotelRoomTypeDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Add More Rooms</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Bulk generate</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Bulk generate</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -288,7 +288,7 @@ export default function HotelRoomTypeDetailPage() {
 
         {roomType.amenities && roomType.amenities.length > 0 && (
           <div className="mt-4 pt-4 border-t-2 border-slate-100">
-            <div className="text-[10px] uppercase font-extrabold text-purple-700 mb-2">Additional Features</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-purple-700 mb-2">Additional Features</div>
             <div className="flex flex-wrap gap-1.5">
               {roomType.amenities.map((a: string) => (
                 <span key={a} className="px-2.5 py-1 rounded-full bg-purple-100 border border-purple-300 text-purple-800 text-xs font-extrabold">
@@ -330,7 +330,7 @@ export default function HotelRoomTypeDetailPage() {
           <div className="p-4 space-y-4">
             {roomsByFloor.map(([floor, rooms]) => (
               <div key={floor}>
-                <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2">
                   Floor {floor} • {rooms.length} rooms
                 </div>
                 <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-10 gap-2">
@@ -345,7 +345,7 @@ export default function HotelRoomTypeDetailPage() {
                       <div key={room.id} className="rounded-lg border-2 border-slate-200 bg-white p-2 text-center">
                         <div className={'h-1 rounded-full ' + statusColor + ' mb-1'} />
                         <div className="text-sm font-extrabold text-slate-900 tabular-nums">{room.roomNumber}</div>
-                        <div className="text-[9px] font-bold text-slate-500 truncate">{room.status}</div>
+                        <div className="text-[0.625rem] font-bold text-slate-500 truncate">{room.status}</div>
                       </div>
                     );
                   })}
@@ -385,7 +385,7 @@ export default function HotelRoomTypeDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <div className="font-mono font-extrabold text-sm text-slate-900">{b.bookingNumber}</div>
-                        <span className="text-[10px] text-slate-500 font-bold">{b.status}</span>
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">{b.status}</span>
                       </div>
                       <div className="text-xs text-slate-600 font-semibold mt-0.5">
                         {b.guestName} • {b.nights} nights
@@ -415,10 +415,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -428,7 +428,7 @@ function StatusBox({ label, value, bg }: any) {
     <div className="rounded-xl border-2 border-slate-200 bg-white p-3">
       <div className="flex items-center gap-2">
         <div className={'h-3 w-3 rounded-full ' + bg} />
-        <div className="text-[10px] uppercase font-extrabold text-slate-600">{label}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">{label}</div>
       </div>
       <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
     </div>

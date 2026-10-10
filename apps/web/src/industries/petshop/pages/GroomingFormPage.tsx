@@ -238,7 +238,7 @@ export default function GroomingFormPage() {
                     className={`p-2.5 rounded-xl border-2 transition flex flex-col items-center gap-0.5 ${
                       form.petSpecies === s.v ? 'border-rose-500 bg-rose-500 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-rose-400'}`}>
                     <span className="text-xl">{s.e}</span>
-                    <span className="text-[10px] font-extrabold">{s.l}</span>
+                    <span className="text-[0.6875rem] font-extrabold">{s.l}</span>
                   </button>
                 ))}
               </div>
@@ -298,8 +298,8 @@ export default function GroomingFormPage() {
                       className={`p-3 rounded-xl border-2 transition flex flex-col items-center gap-1 ${
                         active ? 'border-violet-600 bg-violet-600 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-violet-400'}`}>
                       <span className="text-2xl">{s.e}</span>
-                      <span className="text-[10px] font-extrabold text-center leading-tight">{s.l}</span>
-                      <span className={`text-[10px] font-bold ${active ? 'text-white/80' : 'text-emerald-700'}`}>
+                      <span className="text-[0.6875rem] font-extrabold text-center leading-tight">{s.l}</span>
+                      <span className={`text-[0.6875rem] font-bold ${active ? 'text-white/80' : 'text-emerald-700'}`}>
                         {formatPKR(s.price)}
                       </span>
                     </button>
@@ -372,7 +372,7 @@ export default function GroomingFormPage() {
                   </div>
                 )}
                 {slotsData.booked?.length > 0 && (
-                  <div className="mt-2 text-[10px] font-bold text-slate-500">
+                  <div className="mt-2 text-[0.6875rem] font-bold text-slate-500">
                     Booked: {slotsData.booked.map((b: any) => b.scheduledSlot).filter(Boolean).join(', ')}
                   </div>
                 )}
@@ -394,7 +394,7 @@ export default function GroomingFormPage() {
 
             <div className="rounded-2xl bg-emerald-100 border-2 border-emerald-300 p-4 flex items-center justify-between">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-emerald-700">Total Fee</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Total Fee</div>
                 <div className="text-xs font-bold text-emerald-800 mt-0.5">
                   {formatPKR(form.serviceFee)} + {formatPKR(form.additionalCharges)} − {formatPKR(form.discount)}
                 </div>
@@ -426,7 +426,7 @@ export default function GroomingFormPage() {
         {/* SUMMARY SIDEBAR */}
         <aside className="flex flex-col gap-3 xl:sticky xl:top-4 xl:self-start">
           <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white p-5 shadow-xl">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Booking Preview</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Booking Preview</div>
             <h3 className="mt-2 font-extrabold text-2xl leading-tight">
               {form.petName || 'Pet name...'}
             </h3>
@@ -448,13 +448,13 @@ export default function GroomingFormPage() {
             </div>
 
             <div className="mt-4 pt-4 border-t border-white/20">
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Total Fee</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Total Fee</div>
               <div className="text-3xl font-extrabold tabular-nums text-emerald-300 mt-1">{formatPKRFull(totalFee)}</div>
             </div>
           </div>
 
           <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 space-y-1.5">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600">Checklist</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600">Checklist</div>
             <Chk done={!!form.customerName.trim()} label="Customer name" />
             <Chk done={!!form.customerPhone.trim()} label="Customer phone" />
             <Chk done={!!form.petName.trim()} label="Pet name" />

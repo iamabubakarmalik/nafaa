@@ -54,12 +54,12 @@ export function WorkspaceSwitcher() {
             : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800',
         )}
       >
-        <span className={cn('flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br text-[15px] leading-none shadow-sm', current.gradient)}>
+        <span className={cn('flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br text-[0.9375rem] leading-none shadow-sm', current.gradient)}>
           {current.emoji}
         </span>
         <span className="hidden text-left sm:block">
-          <span className="block text-[10px] font-medium leading-none text-slate-500">Workspace</span>
-          <span className="mt-0.5 block max-w-[110px] truncate text-[13px] font-semibold leading-tight text-slate-900 dark:text-white">{current.shortLabel}</span>
+          <span className="block text-[0.6875rem] font-medium leading-none text-slate-500">Workspace</span>
+          <span className="mt-0.5 block max-w-[110px] truncate text-[0.8125rem] font-semibold leading-tight text-slate-900 dark:text-white">{current.shortLabel}</span>
         </span>
         <ChevronsUpDown className="h-3.5 w-3.5 text-slate-400" />
       </button>
@@ -67,8 +67,8 @@ export function WorkspaceSwitcher() {
       <Panel open={open} onClose={close} align="left" widthClass="sm:w-[360px]" label="Switch workspace">
         <div className="flex items-center justify-between px-4 pb-2 pt-3 sm:pt-4">
           <div>
-            <div className="text-[15px] font-semibold">Workspaces</div>
-            <div className="text-[12px] text-slate-500">Same data, different tools</div>
+            <div className="text-[0.9375rem] font-semibold">Workspaces</div>
+            <div className="text-[0.75rem] text-slate-500">Same data, different tools</div>
           </div>
           <Kbd className="hidden sm:inline-flex">⌥W</Kbd>
         </div>
@@ -83,17 +83,17 @@ export function WorkspaceSwitcher() {
                 <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-xl shadow-sm', ws.gradient)}>{ws.emoji}</span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
-                    <span className="text-[14px] font-semibold">{ws.label}</span>
-                    {active && <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">Current</span>}
+                    <span className="text-[0.875rem] font-semibold">{ws.label}</span>
+                    {active && <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-white">Current</span>}
                   </span>
-                  <span className="mt-0.5 block text-[12.5px] leading-snug text-slate-500 dark:text-slate-400">{ws.description}</span>
+                  <span className="mt-0.5 block text-[0.78125rem] leading-snug text-slate-500 dark:text-slate-400">{ws.description}</span>
                 </span>
                 {active && <Check className="mt-1 h-4 w-4 shrink-0 text-emerald-600" />}
               </button>
             );
           })}
         </div>
-        <div className="border-t border-slate-100 px-4 py-2.5 text-[12px] text-slate-500 dark:border-slate-800">
+        <div className="border-t border-slate-100 px-4 py-2.5 text-[0.75rem] text-slate-500 dark:border-slate-800">
           Your products, sales and customers stay in sync across workspaces.
         </div>
       </Panel>

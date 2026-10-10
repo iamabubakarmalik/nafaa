@@ -106,7 +106,7 @@ export default function ServicesBizDashboardV2() {
                 <Briefcase className="h-7 w-7" />
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-cyan-700">Active Service Jobs</div>
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-cyan-700">Active Service Jobs</div>
                 <div className="text-2xl font-extrabold text-slate-900">{jobStats.active} jobs in progress</div>
                 <div className="text-sm text-slate-700 font-semibold mt-0.5">
                   Today: <span className="font-extrabold text-red-700">{jobStats.today}</span> •
@@ -221,13 +221,13 @@ export default function ServicesBizDashboardV2() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-sm text-slate-900">{j.jobNumber}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ${PRIORITY_COLORS[j.priority] || 'bg-blue-500'}`}>{j.priority}</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ${PRIORITY_COLORS[j.priority] || 'bg-blue-500'}`}>{j.priority}</span>
                     </div>
                     <div className="text-xs text-slate-600 font-bold truncate">{j.customerName} • {j.serviceName}</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-xs font-extrabold text-slate-700 uppercase">{j.status.replace('_', ' ')}</div>
-                    <div className="text-[10px] font-bold text-emerald-700">{formatPKR(j.totalCharge)}</div>
+                    <div className="text-[0.6875rem] font-bold text-emerald-700">{formatPKR(j.totalCharge)}</div>
                   </div>
                 </Link>
               ))
@@ -257,7 +257,7 @@ export default function ServicesBizDashboardV2() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm">{amc.amcNumber}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase">{amc.type}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">{amc.type}</span>
                       </div>
                       <div className="text-xs text-slate-700 font-bold truncate">{amc.customerName}</div>
                     </div>
@@ -293,7 +293,7 @@ function QuickLink({ to, icon: Icon, label, color, badge }: any) {
   };
   return (
     <Link to={to} className="group rounded-2xl bg-white border-2 border-slate-200 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition relative">
-      {badge && <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-red-500 text-white text-[8px] font-extrabold uppercase animate-pulse">{badge}</span>}
+      {badge && <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">{badge}</span>}
       <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform mb-2`}>
         <Icon className="h-5 w-5" />
       </div>

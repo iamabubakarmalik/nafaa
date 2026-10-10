@@ -283,15 +283,15 @@ function RiderCard({ rider, onEdit, onDelete, onStatusChange }: {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Deliveries</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Deliveries</div>
           <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{rider.totalDeliveries}</div>
         </div>
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-emerald-700">Tips</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Tips</div>
           <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(rider.totalTips).replace('Rs', '')}</div>
         </div>
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-amber-700 flex items-center justify-center gap-0.5">
+          <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 flex items-center justify-center gap-0.5">
             <Star className="h-2 w-2 fill-current" /> Rating
           </div>
           <div className="text-lg font-extrabold text-amber-700 tabular-nums">
@@ -367,7 +367,7 @@ function RiderForm({ editing, onClose, onSaved }: {
       <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
         {/* Photo */}
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Photo</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Photo</label>
           {form.avatarUrl ? (
             <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-neutral-700">
               <img src={form.avatarUrl} alt="" className="w-full h-full object-cover" />
@@ -392,7 +392,7 @@ function RiderForm({ editing, onClose, onSaved }: {
         {/* Basic */}
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Full Name *</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Full Name *</label>
             <input
               autoFocus
               value={form.name}
@@ -402,7 +402,7 @@ function RiderForm({ editing, onClose, onSaved }: {
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Phone *</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Phone *</label>
             <input
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -411,7 +411,7 @@ function RiderForm({ editing, onClose, onSaved }: {
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">CNIC</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">CNIC</label>
             <input
               value={form.cnic}
               onChange={(e) => setForm({ ...form, cnic: e.target.value })}
@@ -420,7 +420,7 @@ function RiderForm({ editing, onClose, onSaved }: {
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Email</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Email</label>
             <input
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -434,7 +434,7 @@ function RiderForm({ editing, onClose, onSaved }: {
         <div className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-4 space-y-3">
           <div className="text-sm font-extrabold text-slate-900 dark:text-white">Vehicle Info</div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Vehicle Type</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Vehicle Type</label>
             <div className="grid grid-cols-5 gap-2">
               {VEHICLE_OPTIONS.map((v) => (
                 <button
@@ -448,7 +448,7 @@ function RiderForm({ editing, onClose, onSaved }: {
                   }
                 >
                   <div className="text-2xl mb-1">{v.emoji}</div>
-                  <div className="text-[10px] font-extrabold text-slate-700 dark:text-slate-300">{v.value}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300">{v.value}</div>
                 </button>
               ))}
             </div>
@@ -456,7 +456,7 @@ function RiderForm({ editing, onClose, onSaved }: {
 
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Vehicle Number</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Vehicle Number</label>
               <input
                 value={form.vehicleNumber}
                 onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })}
@@ -465,7 +465,7 @@ function RiderForm({ editing, onClose, onSaved }: {
               />
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">License Number</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">License Number</label>
               <input
                 value={form.licenseNumber}
                 onChange={(e) => setForm({ ...form, licenseNumber: e.target.value })}
@@ -487,7 +487,7 @@ function RiderForm({ editing, onClose, onSaved }: {
 
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Commission Type</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Commission Type</label>
               <select
                 value={form.commissionType}
                 onChange={(e) => setForm({ ...form, commissionType: e.target.value })}
@@ -499,7 +499,7 @@ function RiderForm({ editing, onClose, onSaved }: {
               </select>
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">
                 Commission Value {form.commissionType === 'PERCENTAGE' ? '(%)' : '(Rs)'}
               </label>
               <input
@@ -514,7 +514,7 @@ function RiderForm({ editing, onClose, onSaved }: {
 
           {form.isEmployee && (
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Base Monthly Salary (Rs)</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Base Monthly Salary (Rs)</label>
               <input
                 type="number"
                 step="0.01"
@@ -528,7 +528,7 @@ function RiderForm({ editing, onClose, onSaved }: {
 
         {/* Notes */}
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Notes</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Notes</label>
           <textarea
             rows={2}
             value={form.notes}

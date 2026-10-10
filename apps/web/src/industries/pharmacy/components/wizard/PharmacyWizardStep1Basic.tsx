@@ -208,7 +208,7 @@ export function PharmacyWizardStep1Basic({ basic, onChange, errors }: Props) {
                   type="button"
                   onClick={() => onChange({ dosageForm: form })}
                   className={[
-                    'py-2 rounded-lg text-[10px] font-extrabold transition border-2',
+                    'py-2 rounded-lg text-[0.6875rem] font-extrabold transition border-2',
                     active
                       ? 'border-teal-600 bg-teal-600 text-white'
                       : 'border-slate-200 bg-white text-slate-700 hover:border-teal-400',
@@ -377,7 +377,7 @@ export function PharmacyWizardStep1Basic({ basic, onChange, errors }: Props) {
               <TrendingUp className={['h-5 w-5',
                 isLoss ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
               <div>
-                <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                   isLoss ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                   {isLoss ? '⚠️ Loss Alert' : `Profit per ${basic.unit || 'unit'}`}
                 </div>
@@ -500,7 +500,7 @@ export function PharmacyWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt={`med-${idx}`} className="w-full h-full object-cover" />
                 {idx === 0 && (
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-teal-600 text-white text-[9px] font-extrabold">PRIMARY</div>
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-teal-600 text-white text-[0.625rem] font-extrabold">PRIMARY</div>
                 )}
                 <button
                   onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, i) => i !== idx) })}

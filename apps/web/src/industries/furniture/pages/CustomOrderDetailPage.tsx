@@ -467,10 +467,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-2xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-4`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-2xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-1">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-1">{sub}</div>}
     </div>
   );
 }
@@ -487,7 +487,7 @@ function ActionCard({ onClick, icon: Icon, label, desc, tone }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="font-extrabold text-slate-900 text-sm">{label}</div>
-      <div className="text-[10px] text-slate-500 font-semibold">{desc}</div>
+      <div className="text-[0.6875rem] text-slate-500 font-semibold">{desc}</div>
     </button>
   );
 }
@@ -497,7 +497,7 @@ function Row({ icon: Icon, label, value, mono }: any) {
     <div className="flex items-start gap-3 text-sm">
       {Icon && <Icon className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />}
       <div className="flex-1 min-w-0">
-        <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
         <div className={`font-extrabold text-slate-900 ${mono ? 'font-mono' : ''} break-words`}>{value}</div>
       </div>
     </div>
@@ -513,7 +513,7 @@ function PayBox({ label, value, tone }: any) {
   };
   return (
     <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
-      <div className="text-[10px] uppercase font-extrabold opacity-75">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold opacity-75">{label}</div>
       <div className="text-lg font-extrabold tabular-nums mt-1">{value}</div>
     </div>
   );

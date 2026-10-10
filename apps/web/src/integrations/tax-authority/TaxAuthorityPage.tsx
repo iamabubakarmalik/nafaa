@@ -107,7 +107,7 @@ function Editor({ data }: { data: TaxOverview }) {
       <Card title={<span className="flex items-center gap-2"><Landmark className="h-4 w-4" /> Authority</span>}>
         <div className="space-y-4">
           <Segmented value={authority} onChange={setAuthority} items={[{ value: 'PRA', label: 'PRA · Punjab' }, { value: 'SRB', label: 'SRB · Sindh' }, { value: 'KPRA', label: 'KPRA · KP' }, { value: 'FBR', label: 'FBR POS (retail)' }]} />
-          <ol className="space-y-1 rounded-lg bg-slate-50 p-3 text-[13px] text-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+          <ol className="space-y-1 rounded-lg bg-slate-50 p-3 text-[0.8125rem] text-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
             {STEPS[authority].map((s, i) => <li key={i}><b>{i + 1}.</b> {s}</li>)}
             <li className="flex flex-wrap gap-3 pt-1">
               <a href={meta.portal} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-emerald-700 hover:underline">Registration portal <ExternalLink className="h-3.5 w-3.5" /></a>
@@ -172,7 +172,7 @@ function Editor({ data }: { data: TaxOverview }) {
       </Card>
 
       {Object.keys(data.stats).length > 0 && (
-        <p className="text-[12.5px] text-slate-500">Bheje gaye bill aur un ka haal: <a href="/tax/invoices" className="font-semibold text-emerald-700 hover:underline">Tax → Invoices</a></p>
+        <p className="text-[0.78125rem] text-slate-500">Bheje gaye bill aur un ka haal: <a href="/tax/invoices" className="font-semibold text-emerald-700 hover:underline">Tax → Invoices</a></p>
       )}
     </>
   );

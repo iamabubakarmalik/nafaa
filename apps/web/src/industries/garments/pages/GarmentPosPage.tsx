@@ -327,19 +327,19 @@ export default function GarmentPosPage() {
                           <div className="w-full h-full flex items-center justify-center"><Shirt className="h-10 w-10 text-slate-400" /></div>
                         )}
                         <div className="absolute top-1 left-1 flex flex-col gap-1">
-                          {profile.isNewArrival && <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold uppercase shadow inline-flex items-center gap-0.5"><Sparkles className="h-2 w-2" /> NEW</span>}
-                          {profile.isBestSeller && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase shadow inline-flex items-center gap-0.5"><Star className="h-2 w-2 fill-current" /> BEST</span>}
-                          {profile.isOnSale && <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[9px] font-extrabold uppercase shadow inline-flex items-center gap-0.5"><Zap className="h-2 w-2" /> SALE</span>}
-                          {hasVariants && <span className="px-1.5 py-0.5 rounded bg-violet-600 text-white text-[9px] font-extrabold uppercase shadow inline-flex items-center gap-0.5"><Palette className="h-2 w-2" /> VAR</span>}
+                          {profile.isNewArrival && <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase shadow inline-flex items-center gap-0.5"><Sparkles className="h-2 w-2" /> NEW</span>}
+                          {profile.isBestSeller && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase shadow inline-flex items-center gap-0.5"><Star className="h-2 w-2 fill-current" /> BEST</span>}
+                          {profile.isOnSale && <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase shadow inline-flex items-center gap-0.5"><Zap className="h-2 w-2" /> SALE</span>}
+                          {hasVariants && <span className="px-1.5 py-0.5 rounded bg-violet-600 text-white text-[0.625rem] font-extrabold uppercase shadow inline-flex items-center gap-0.5"><Palette className="h-2 w-2" /> VAR</span>}
                         </div>
-                        {outOfStock && <div className="absolute inset-x-0 bottom-0 py-1 bg-rose-600 text-white text-center text-[10px] font-extrabold">OUT OF STOCK</div>}
+                        {outOfStock && <div className="absolute inset-x-0 bottom-0 py-1 bg-rose-600 text-white text-center text-[0.6875rem] font-extrabold">OUT OF STOCK</div>}
                       </div>
                       <div className="p-2">
                         <div className="font-extrabold text-slate-900 text-xs line-clamp-2 leading-tight min-h-[2rem]">{p.name}</div>
-                        {profile.styleCode && <div className="text-[9px] font-mono text-slate-500 mt-0.5">{profile.styleCode}</div>}
+                        {profile.styleCode && <div className="text-[0.625rem] font-mono text-slate-500 mt-0.5">{profile.styleCode}</div>}
                         <div className="mt-1 flex items-baseline justify-between">
                           <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.price)}</div>
-                          {!hasVariants && <div className="text-[9px] font-bold text-slate-500">{p.stock} {p.unit}</div>}
+                          {!hasVariants && <div className="text-[0.625rem] font-bold text-slate-500">{p.stock} {p.unit}</div>}
                         </div>
                       </div>
                     </button>
@@ -355,7 +355,7 @@ export default function GarmentPosPage() {
           <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20"><Shirt className="h-2.5 w-2.5" /> Garment Cart</div>
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20"><Shirt className="h-2.5 w-2.5" /> Garment Cart</div>
                 <div className="text-2xl font-extrabold tabular-nums mt-1">{totalItems.toFixed(0)} items</div>
                 <div className="text-xs text-white/80 font-semibold">{formatPKRFull(total)}</div>
               </div>
@@ -425,7 +425,7 @@ export default function GarmentPosPage() {
 
               <div className="grid grid-cols-3 gap-1">
                 {(['FULL_PAYMENT', 'PARTIAL_CREDIT', 'FULL_CREDIT'] as const).map((m) => (
-                  <button key={m} onClick={() => setSaleMode(m)} className={`py-2 rounded-lg text-[10px] font-extrabold transition ${saleMode === m ? 'bg-pink-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-700'}`}>
+                  <button key={m} onClick={() => setSaleMode(m)} className={`py-2 rounded-lg text-[0.6875rem] font-extrabold transition ${saleMode === m ? 'bg-pink-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-700'}`}>
                     {m === 'FULL_PAYMENT' ? 'Full Pay' : m === 'PARTIAL_CREDIT' ? 'Partial' : 'Udhaar'}
                   </button>
                 ))}
@@ -502,7 +502,7 @@ function VariantMatrixPicker({ product, onSelect, onClose }: {
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl">
         <div className="px-6 py-4 bg-gradient-to-br from-pink-600 to-fuchsia-700 text-white flex items-center justify-between">
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-white/80">Select Variant</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">Select Variant</div>
             <h3 className="text-xl font-extrabold">{product.name}</h3>
           </div>
           <button onClick={onClose} className="h-9 w-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center"><X className="h-5 w-5" /></button>
@@ -564,7 +564,7 @@ function VariantMatrixPicker({ product, onSelect, onClose }: {
             <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-300 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-emerald-700">Selected Variant</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Selected Variant</div>
                   <div className="text-lg font-extrabold text-slate-900">{matchingVariant.name}</div>
                 </div>
                 <div className="text-right">
@@ -580,7 +580,7 @@ function VariantMatrixPicker({ product, onSelect, onClose }: {
                   <button onClick={() => setQty(Math.min(matchingVariant.stock, qty + 1))} className="h-10 w-10 bg-emerald-600 text-white hover:bg-emerald-700 font-extrabold">+</button>
                 </div>
                 <div className="ml-auto text-right">
-                  <div className="text-[10px] uppercase font-extrabold text-emerald-700">Total</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Total</div>
                   <div className="text-xl font-extrabold text-emerald-900 tabular-nums">{formatPKR((matchingVariant.price || product.price) * qty)}</div>
                 </div>
               </div>

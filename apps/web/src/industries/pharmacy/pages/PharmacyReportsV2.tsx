@@ -165,12 +165,12 @@ export default function PharmacyReportsV2() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
-                    <th className="text-center px-3 py-3 font-bold text-[10px] uppercase w-12">#</th>
-                    <th className="text-left px-3 py-3 font-bold text-[10px] uppercase">Medicine</th>
-                    <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Sold</th>
-                    <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Revenue</th>
-                    <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Profit</th>
-                    <th className="text-center px-3 py-3 font-bold text-[10px] uppercase">Margin</th>
+                    <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase w-12">#</th>
+                    <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase">Medicine</th>
+                    <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Sold</th>
+                    <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Revenue</th>
+                    <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Profit</th>
+                    <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase">Margin</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -237,11 +237,11 @@ export default function PharmacyReportsV2() {
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50 text-slate-600">
                     <tr>
-                      <th className="text-left px-3 py-3 font-bold text-[10px] uppercase">Medicine</th>
-                      <th className="text-left px-3 py-3 font-bold text-[10px] uppercase">Batch #</th>
-                      <th className="text-left px-3 py-3 font-bold text-[10px] uppercase">Expiry Date</th>
-                      <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Qty</th>
-                      <th className="text-center px-3 py-3 font-bold text-[10px] uppercase">Status</th>
+                      <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase">Medicine</th>
+                      <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase">Batch #</th>
+                      <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase">Expiry Date</th>
+                      <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Qty</th>
+                      <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">

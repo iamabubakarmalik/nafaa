@@ -319,7 +319,7 @@ export default function MobileProductsPage() {
                   <Trash2 className="h-6 w-6" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/80">
+                  <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/80">
                     Permanent Delete — Step {bulkDeleteStep}/2
                   </div>
                   <h3 className="font-extrabold text-lg">{selected.size} products</h3>
@@ -401,7 +401,7 @@ export default function MobileProductsPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
             <div className="text-xs font-bold text-slate-900">{printDate}</div>
           </div>
         </div>
@@ -414,7 +414,7 @@ export default function MobileProductsPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Smartphone className="h-3.5 w-3.5 text-amber-300" /> Mobile Industry
               {shopName && (
                 <>
@@ -484,7 +484,7 @@ export default function MobileProductsPage() {
           </div>
         </div>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>Esc</Kbd><span className="text-white/60">Band</span>
@@ -545,7 +545,7 @@ export default function MobileProductsPage() {
                   <button
                     key={p.id}
                     onClick={() => setStockModalProduct(p)}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[11px] font-extrabold text-amber-900 dark:text-amber-200 transition"
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200 transition"
                   >
                     {p.name} <span className="text-rose-700 dark:text-rose-400">({p.stock} {p.unit})</span>
                   </button>
@@ -785,7 +785,7 @@ export default function MobileProductsPage() {
         /* ═══ TABLE ═══ */
         <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm print:text-[10px]">
+            <table className="w-full text-sm print:text-[0.6875rem]">
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
                 <tr>
                   <th className="px-3 py-3 w-10 print:hidden">
@@ -827,7 +827,7 @@ export default function MobileProductsPage() {
                               {p.name}
                               {p.isFeatured && <Star className="h-3 w-3 text-amber-500 fill-amber-500 shrink-0" />}
                             </div>
-                            <div className="text-[10px] font-mono text-slate-500 dark:text-slate-400 truncate">
+                            <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-slate-400 truncate">
                               {p.sku || p.barcode || '—'}
                             </div>
                           </div>
@@ -838,10 +838,10 @@ export default function MobileProductsPage() {
                       </td>
                       <td className="px-3 py-2.5">
                         {p.category ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold text-white" style={{ backgroundColor: p.category.color || '#64748b' }}>
+                          <span className="px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold text-white" style={{ backgroundColor: p.category.color || '#64748b' }}>
                             {p.category.name}
                           </span>
-                        ) : <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">—</span>}
+                        ) : <span className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold">—</span>}
                       </td>
                       {!hideCost && <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-slate-300 tabular-nums">{formatPKR(p.costPrice || 0)}</td>}
                       <td className="px-3 py-2.5 text-right font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(p.price || 0)}</td>
@@ -851,9 +851,9 @@ export default function MobileProductsPage() {
                             'font-extrabold tabular-nums text-sm',
                             isOut ? 'text-rose-700 dark:text-rose-400' : isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-900 dark:text-white',
                           ].join(' ')}>
-                            {stock} <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{isPhone ? 'IMEI' : p.unit}</span>
+                            {stock} <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{isPhone ? 'IMEI' : p.unit}</span>
                           </span>
-                          <span className="text-[9px] font-extrabold text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition print:hidden">+ Stock</span>
+                          <span className="text-[0.625rem] font-extrabold text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition print:hidden">+ Stock</span>
                         </button>
                       </td>
                       {!hideCost && (
@@ -972,7 +972,7 @@ function MobileProductsTeacher({ onClose, onAddPhone }: { onClose: () => void; o
           </p>
 
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2.5">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
               ➕ Product kaise add karein
             </div>
             <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -1013,7 +1013,7 @@ function GuideRow({ emoji, title, desc }: { emoji: string; title: string; desc: 
       <span className="text-lg shrink-0">{emoji}</span>
       <div className="min-w-0 flex-1">
         <div className="font-extrabold text-slate-900 dark:text-white text-xs">{title}</div>
-        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">{desc}</div>
       </div>
     </div>
   );
@@ -1081,7 +1081,7 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
           )}
           {(isOut || isLow) && (
             <div className={[
-              'absolute inset-x-0 bottom-0 py-1 text-center text-[10px] font-extrabold text-white',
+              'absolute inset-x-0 bottom-0 py-1 text-center text-[0.6875rem] font-extrabold text-white',
               isOut ? 'bg-rose-600' : 'bg-amber-500',
             ].join(' ')}>
               {isOut ? 'STOCK KHATAM' : `SIRF ${stock} ${isPhone ? 'IMEI' : p.unit} BACHA`}
@@ -1092,21 +1092,21 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
         <div className="p-2.5">
           <div className="font-extrabold text-slate-900 dark:text-white text-xs leading-tight line-clamp-2 min-h-[2rem]">{p.name}</div>
           {p.category && (
-            <div className="mt-1 inline-flex items-center gap-1 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md text-white" style={{ backgroundColor: p.category.color || '#64748b' }}>
+            <div className="mt-1 inline-flex items-center gap-1 text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md text-white" style={{ backgroundColor: p.category.color || '#64748b' }}>
               {p.category.name}
             </div>
           )}
           <div className="mt-1.5 flex items-end justify-between gap-1">
             <div>
               <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">{formatPKR(p.price || 0)}</div>
-              <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400">per {isPhone ? 'unit' : p.unit}</div>
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">per {isPhone ? 'unit' : p.unit}</div>
             </div>
             <div className="text-right">
               <div className={[
                 'text-sm font-extrabold tabular-nums leading-none',
                 isOut ? 'text-rose-700 dark:text-rose-400' : isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300',
               ].join(' ')}>{stock}</div>
-              <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400">{isPhone ? 'IMEIs' : 'stock'}</div>
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">{isPhone ? 'IMEIs' : 'stock'}</div>
             </div>
           </div>
         </div>
@@ -1115,7 +1115,7 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
       <div className="px-2.5 pb-2.5 flex items-center gap-1">
         <button
           onClick={onStock}
-          className="flex-1 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 text-[10px] font-extrabold inline-flex items-center justify-center gap-1 transition"
+          className="flex-1 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 transition"
         >
           <Plus className="h-3 w-3" /> Stock
         </button>
@@ -1144,7 +1144,7 @@ function TypePill({ isPhone, compact }: { isPhone: boolean; compact?: boolean })
   return (
     <span className={[
       'inline-flex items-center gap-1 rounded-full font-extrabold',
-      compact ? 'px-1.5 py-0.5 text-[9px] shadow-sm backdrop-blur' : 'px-2 py-0.5 text-[10px]',
+      compact ? 'px-1.5 py-0.5 text-[0.625rem] shadow-sm backdrop-blur' : 'px-2 py-0.5 text-[0.6875rem]',
       isPhone
         ? 'bg-blue-100 dark:bg-blue-500/80 text-blue-700 dark:text-white'
         : 'bg-emerald-100 dark:bg-emerald-500/80 text-emerald-700 dark:text-white',
@@ -1172,7 +1172,7 @@ function Thumb({ p, size = 'h-10 w-10' }: any) {
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>
+    <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>
       {children}
     </th>
   );
@@ -1185,7 +1185,7 @@ function Pill({ tone, children }: any) {
     rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
     slate: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${tones[tone]}`}>{children}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${tones[tone]}`}>{children}</span>;
 }
 
 function IconBtn({ to, title, tone, children }: any) {
@@ -1222,9 +1222,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

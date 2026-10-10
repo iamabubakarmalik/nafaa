@@ -248,7 +248,7 @@ export default function AutoPartsSalesPage() {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" />Date Range</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" />Date Range</label>
             <div className="flex gap-1.5 overflow-x-auto pb-1">
               {([
                 { v: 'today', l: 'Today' }, { v: 'yesterday', l: 'Yesterday' },
@@ -264,11 +264,11 @@ export default function AutoPartsSalesPage() {
             {dateFilter === 'custom' && (
               <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-slate-700 mb-1 block">From Date</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-slate-700 mb-1 block">From Date</label>
                   <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="h-10 w-full rounded-lg border-2 border-slate-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-slate-700" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-slate-700 mb-1 block">To Date</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-slate-700 mb-1 block">To Date</label>
                   <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="h-10 w-full rounded-lg border-2 border-slate-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-slate-700" />
                 </div>
               </div>
@@ -277,7 +277,7 @@ export default function AutoPartsSalesPage() {
 
           {view === 'sales' && (
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Payment Method</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block">Payment Method</label>
               <div className="flex gap-1.5 overflow-x-auto pb-1">
                 <button onClick={() => setPaymentFilter('all')} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ${paymentFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>All Payments</button>
                 {Object.entries(paymentConfig).map(([k, cfg]) => (
@@ -311,19 +311,19 @@ export default function AutoPartsSalesPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-mono font-extrabold text-slate-900">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
-                              {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>}
-                              {sale.creditAmount > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold">UDHAAR</span>}
+                              {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">VOIDED</span>}
+                              {sale.creditAmount > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold">UDHAAR</span>}
                             </div>
                             <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2 flex-wrap">
                               <User className="h-3 w-3" />{sale.customer?.name || 'Walk-in'}
                               <span>•</span><Package className="h-3 w-3" />{sale.items.length} parts
                             </div>
-                            <div className="mt-1 text-[10px] text-slate-500 inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
+                            <div className="mt-1 text-[0.6875rem] text-slate-500 inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="text-2xl font-extrabold text-emerald-700 tabular-nums"><HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} /></div>
-                          {sale.creditAmount > 0 && <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">Udhaar: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} /></div>}
+                          {sale.creditAmount > 0 && <div className="text-[0.6875rem] text-amber-700 font-extrabold mt-0.5">Udhaar: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} /></div>}
                         </div>
                       </div>
                     </Link>
@@ -348,7 +348,7 @@ export default function AutoPartsSalesPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-extrabold text-slate-900">{job.jobNumber}</span>
-                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-extrabold uppercase">{job.status}</span>
+                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.6875rem] font-extrabold uppercase">{job.status}</span>
                           </div>
                           <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2 flex-wrap">
                             <Car className="h-3 w-3" />{job.registrationNumber} • {job.makeName} {job.modelName}

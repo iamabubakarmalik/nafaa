@@ -104,28 +104,28 @@ export default function BookstoreDashboardV2() {
             <div className="h-8 w-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center mb-1">
               <BookOpen className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-amber-700">Books</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Books</div>
             <div className="text-lg font-extrabold text-slate-900 mt-0.5">Catalog</div>
           </Link>
           <Link to="/bookstore/stationery" className="rounded-2xl bg-white border-2 border-blue-200 hover:border-blue-400 p-3 transition">
             <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center mb-1">
               <Pencil className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-blue-700">Stationery</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Stationery</div>
             <div className="text-lg font-extrabold text-slate-900 mt-0.5">Manage</div>
           </Link>
           <Link to="/bookstore/art-supplies" className="rounded-2xl bg-white border-2 border-pink-200 hover:border-pink-400 p-3 transition">
             <div className="h-8 w-8 rounded-lg bg-pink-100 text-pink-700 flex items-center justify-center mb-1">
               <Palette className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-pink-700">Art Supplies</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-pink-700">Art Supplies</div>
             <div className="text-lg font-extrabold text-slate-900 mt-0.5">Colors</div>
           </Link>
           <Link to="/bookstore/schools" className="rounded-2xl bg-white border-2 border-emerald-200 hover:border-emerald-400 p-3 transition">
             <div className="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center mb-1">
               <School className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Schools</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Schools</div>
             <div className="text-lg font-extrabold text-slate-900 mt-0.5">Book Lists</div>
           </Link>
         </div>

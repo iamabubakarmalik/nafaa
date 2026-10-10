@@ -28,7 +28,7 @@ export function ClinicWizardStep3Safety({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Age Restrictions</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Kis umar ke patients ke liye</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Kis umar ke patients ke liye</p>
           </div>
         </div>
 
@@ -64,7 +64,7 @@ export function ClinicWizardStep3Safety({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Maternal Safety</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Pregnancy & breastfeeding safe?</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Pregnancy & breastfeeding safe?</p>
           </div>
         </div>
 
@@ -82,7 +82,7 @@ export function ClinicWizardStep3Safety({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Legal & Consent</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Documentation required</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Documentation required</p>
           </div>
         </div>
 
@@ -100,7 +100,7 @@ export function ClinicWizardStep3Safety({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Follow-up</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Repeat visits required?</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Repeat visits required?</p>
           </div>
         </div>
 
@@ -128,7 +128,7 @@ export function ClinicWizardStep3Safety({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Warning Notes</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Important safety warnings</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Important safety warnings</p>
           </div>
         </div>
 
@@ -192,7 +192,7 @@ function SafeToggle({ active, onToggle, emoji, label, desc, tone }: any) {
         <span className="text-2xl">{emoji}</span>
         <div>
           <div className={'font-extrabold text-sm ' + (active ? 'text-white' : 'text-slate-900')}>{label}</div>
-          <div className={'text-[10px] font-semibold ' + (active ? 'text-white/85' : 'text-slate-500')}>{desc}</div>
+          <div className={'text-[0.6875rem] font-semibold ' + (active ? 'text-white/85' : 'text-slate-500')}>{desc}</div>
         </div>
       </div>
     </button>

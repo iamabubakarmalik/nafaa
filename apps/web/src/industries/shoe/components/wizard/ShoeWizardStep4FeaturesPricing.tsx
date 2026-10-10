@@ -153,7 +153,7 @@ export function ShoeWizardStep4FeaturesPricing({
                   const next = current ? `${current}\n${c}` : c;
                   onChangeWarranty({ careInstructions: next });
                 }}
-                className="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 text-[10px] font-extrabold">
+                className="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 text-[0.6875rem] font-extrabold">
                 + {c}
               </button>
             ))}
@@ -202,7 +202,7 @@ export function ShoeWizardStep4FeaturesPricing({
 
         {cost > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Quick markup
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -223,7 +223,7 @@ export function ShoeWizardStep4FeaturesPricing({
               <div className="flex items-center gap-2.5">
                 <TrendingUp className={['h-6 w-6', loss ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
                 <div>
-                  <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                  <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                     loss ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                     {loss ? 'Loss warning' : 'Profit per pair'}
                   </div>
@@ -299,7 +299,7 @@ function Feat({ checked, onChange, icon: Icon, label, tone }: any) {
       className={['flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition',
         checked ? tones[tone] : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'].join(' ')}>
       <Icon className={['h-5 w-5', checked ? '' : 'text-slate-500'].join(' ')} />
-      <span className="text-[11px] font-extrabold text-center">{label}</span>
+      <span className="text-[0.6875rem] font-extrabold text-center">{label}</span>
     </button>
   );
 }

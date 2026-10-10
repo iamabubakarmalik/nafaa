@@ -71,7 +71,7 @@ export default function OnlineReportsPage() {
             {channels!.map((c) => <option key={c.id} value={c.id}>{c.displayName}</option>)}
           </select>
         )}
-        {isFetching && <span className="text-[12px] text-slate-400">Taaza ho raha…</span>}
+        {isFetching && <span className="text-[0.75rem] text-slate-400">Taaza ho raha…</span>}
       </div>
 
       {isLoading ? (
@@ -107,7 +107,7 @@ export default function OnlineReportsPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-1 flex justify-between text-[11px] text-slate-400"><span>{data.byDay[0]?.day}</span><span>{data.byDay[data.byDay.length - 1]?.day}</span></div>
+            <div className="mt-1 flex justify-between text-[0.6875rem] text-slate-400"><span>{data.byDay[0]?.day}</span><span>{data.byDay[data.byDay.length - 1]?.day}</span></div>
           </Card>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -136,9 +136,9 @@ export default function OnlineReportsPage() {
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {data.codAging.map((a, i) => (
                 <div key={a.label} className={cn('rounded-lg border p-3', i === 3 && a.count ? 'border-rose-200 bg-rose-50 dark:border-rose-500/30 dark:bg-rose-500/5' : 'border-slate-200 dark:border-slate-800')}>
-                  <div className="text-[12px] text-slate-500">{a.label}</div>
+                  <div className="text-[0.75rem] text-slate-500">{a.label}</div>
                   <div className="text-lg font-semibold tabular-nums text-slate-900 dark:text-white">{rs(a.value)}</div>
-                  <div className="text-[12px] text-slate-500">{a.count} parcel</div>
+                  <div className="text-[0.75rem] text-slate-500">{a.count} parcel</div>
                 </div>
               ))}
             </div>
@@ -158,8 +158,8 @@ function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
   if (!rows.length) return <EmptyState title="Kuch nahi" />;
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[13px]">
-        <thead className="bg-slate-50 text-left text-[11.5px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+      <table className="w-full text-[0.8125rem]">
+        <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
           <tr>{head.map((h, i) => <th key={h} className={cn('px-4 py-2 sm:px-5', i > 0 && 'text-right')}>{h}</th>)}</tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

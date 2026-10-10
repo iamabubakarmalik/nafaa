@@ -176,11 +176,11 @@ export function AddRollModal({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-extrabold leading-none">Add Roll</h2>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-extrabold">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-[0.6875rem] font-extrabold">
                   <Zap className="h-2.5 w-2.5" /> FAST
                 </span>
               </div>
-              <p className="text-[11px] text-white/85 font-semibold mt-0.5">
+              <p className="text-[0.6875rem] text-white/85 font-semibold mt-0.5">
                 Prices auto-fill • 10-second entry
               </p>
             </div>
@@ -198,7 +198,7 @@ export function AddRollModal({
           {/* Product + Variant */}
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-[0.6875rem] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
                 Product *
               </label>
               <select
@@ -218,7 +218,7 @@ export function AddRollModal({
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-[0.6875rem] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
                 Color / Variant
               </label>
               <select
@@ -241,7 +241,7 @@ export function AddRollModal({
 
           {/* Auto price preview (visible immediately after product select) */}
           {selectedProduct && (
-            <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-white border-2 border-emerald-200 p-3 flex items-center gap-2 flex-wrap text-[11px]">
+            <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-white border-2 border-emerald-200 p-3 flex items-center gap-2 flex-wrap text-[0.6875rem]">
               <Sparkles className="h-3 w-3 text-emerald-700 shrink-0" />
               <span className="font-extrabold text-emerald-900">Auto-filled from {selectedVariant ? 'variant' : 'product'}:</span>
               <span className="font-bold text-slate-700">
@@ -265,7 +265,7 @@ export function AddRollModal({
           {/* Roll number + Auto toggle */}
           <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-end">
             <div>
-              <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-[0.6875rem] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
                 Roll Number
               </label>
               <input
@@ -291,12 +291,12 @@ export function AddRollModal({
 
           {/* Dimensions — big, clear inputs */}
           <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3.5 space-y-3">
-            <div className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <div className="text-[0.6875rem] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
               <Ruler className="h-3 w-3" /> Dimensions
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Width</label>
+                <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Width</label>
                 <div className="flex gap-1">
                   <div className="relative flex-1">
                     <input
@@ -331,7 +331,7 @@ export function AddRollModal({
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Length *</label>
+                <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Length *</label>
                 <div className="flex gap-1">
                   <div className="relative flex-1">
                     <input
@@ -371,21 +371,21 @@ export function AddRollModal({
             {totalSqft > 0 && (
               <div className="rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-3 flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-100">Total Area</div>
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-100">Total Area</div>
                   <div className="text-2xl font-extrabold tabular-nums">
                     {totalSqft.toFixed(2)} <span className="text-sm font-bold">sqft</span>
                   </div>
-                  <div className="text-[10px] text-emerald-100 font-bold">
+                  <div className="text-[0.6875rem] text-emerald-100 font-bold">
                     {widthReal.toFixed(2)}ft × {lengthReal.toFixed(2)}ft
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-100">Sale Value</div>
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-100">Sale Value</div>
                   <div className="text-2xl font-extrabold tabular-nums">
                     {formatPKRFull(totalSaleValue)}
                   </div>
                   {profit > 0 && (
-                    <div className="text-[10px] text-emerald-100 font-bold">
+                    <div className="text-[0.6875rem] text-emerald-100 font-bold">
                       Profit {formatPKRFull(profit)} ({margin.toFixed(0)}%)
                     </div>
                   )}
@@ -396,7 +396,7 @@ export function AddRollModal({
 
           {/* Rack (single field, quick access) */}
           <div>
-            <label className="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5 items-center gap-1.5">
+            <label className="block text-[0.6875rem] font-extrabold text-slate-700 uppercase tracking-wider mb-1.5 items-center gap-1.5">
               <MapPin className="h-3 w-3" /> Rack / Location
             </label>
             <input

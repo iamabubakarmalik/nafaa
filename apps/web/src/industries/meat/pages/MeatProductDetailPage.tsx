@@ -145,17 +145,17 @@ export default function MeatProductDetailPage() {
               </div>
             )}
             {profile?.isHalalCertified && (
-              <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <ShieldCheck className="h-3 w-3" /> HALAL
               </div>
             )}
             {product.isFeatured && (
-              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <Star className="h-3 w-3 fill-white" /> FEATURED
               </div>
             )}
             {profile?.isOnSale && (
-              <div className="absolute top-14 right-3 px-2 py-1 rounded-lg bg-rose-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-14 right-3 px-2 py-1 rounded-lg bg-rose-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <Zap className="h-3 w-3" /> SALE
               </div>
             )}
@@ -224,14 +224,14 @@ export default function MeatProductDetailPage() {
 
             <div className="mt-5 flex items-center gap-4 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Price per kg</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Price per kg</div>
                 <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
                   {formatPKRFull(profile?.pricePerKg || product.price)}
                 </div>
               </div>
               {profile?.pricePerPiece && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Per piece</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Per piece</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
                     {formatPKRFull(profile.pricePerPiece)}
                   </div>
@@ -239,7 +239,7 @@ export default function MeatProductDetailPage() {
               )}
               {product.wholesalePrice && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1">
                     {formatPKRFull(product.wholesalePrice)}
                   </div>
@@ -247,7 +247,7 @@ export default function MeatProductDetailPage() {
               )}
               {product.costPrice > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
                     {formatPKRFull(product.costPrice)}
                   </div>
@@ -273,19 +273,19 @@ export default function MeatProductDetailPage() {
           <div className="grid sm:grid-cols-3 gap-3 text-sm">
             {profile.halalCertNumber && (
               <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3">
-                <div className="text-[10px] uppercase font-extrabold text-emerald-700">Certificate #</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Certificate #</div>
                 <div className="font-extrabold text-emerald-900 font-mono">{profile.halalCertNumber}</div>
               </div>
             )}
             {profile.halalCertBy && (
               <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3">
-                <div className="text-[10px] uppercase font-extrabold text-emerald-700">Certified By</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Certified By</div>
                 <div className="font-extrabold text-emerald-900">{profile.halalCertBy}</div>
               </div>
             )}
             {profile.halalCertExpiry && (
               <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3">
-                <div className="text-[10px] uppercase font-extrabold text-emerald-700">Expires</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Expires</div>
                 <div className="font-extrabold text-emerald-900">
                   {new Date(profile.halalCertExpiry).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                 </div>
@@ -294,7 +294,7 @@ export default function MeatProductDetailPage() {
           </div>
           {profile.otherCerts && profile.otherCerts.length > 0 && (
             <div className="mt-3">
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1">Other Certifications</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Other Certifications</div>
               <div className="flex flex-wrap gap-1.5">
                 {profile.otherCerts.map((cert: string) => (
                   <span key={cert} className="px-2 py-1 rounded bg-slate-100 text-slate-700 text-xs font-extrabold">{cert}</span>
@@ -471,7 +471,7 @@ export default function MeatProductDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <div className="font-mono font-extrabold text-sm text-slate-900">{s.saleNumber}</div>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
@@ -504,10 +504,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -515,12 +515,12 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
 function InfoBox({ icon: Icon, label, value, sub }: any) {
   return (
     <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-      <div className="flex items-center gap-1 text-[10px] uppercase font-extrabold text-slate-600 mb-1">
+      <div className="flex items-center gap-1 text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">
         <Icon className="h-3 w-3" />
         {label}
       </div>
       <div className="font-extrabold text-slate-900 text-sm">{value}</div>
-      {sub && <div className="text-[10px] text-slate-500 font-bold mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -536,7 +536,7 @@ function NutritionBox({ label, value, unit, tone }: any) {
   };
   return (
     <div className={`rounded-lg border-2 p-3 text-center ${tones[tone]}`}>
-      <div className="text-[10px] uppercase font-extrabold opacity-80">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold opacity-80">{label}</div>
       <div className="text-xl font-extrabold tabular-nums mt-1">{value}<span className="text-xs font-bold ml-0.5">{unit}</span></div>
     </div>
   );

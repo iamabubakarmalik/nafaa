@@ -168,7 +168,7 @@ export default function NewJobPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 New Service Job
               </div>
@@ -214,7 +214,7 @@ export default function NewJobPage() {
                         <button key={c.id} onClick={() => { setForm({ ...form, customerId: c.id, customerName: c.name, customerPhone: c.phone || '', customerEmail: (c as any).email || '' }); setShowCustomerPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
                           <User className="h-3.5 w-3.5 text-slate-400" />
                           <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                          <span className="text-[10px] text-slate-500 font-bold">{c.phone}</span>
+                          <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
                         </button>
                       ))}
                     </div>
@@ -239,7 +239,7 @@ export default function NewJobPage() {
             </h3>
 
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Service *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Service *</label>
               <div className="flex gap-2">
                 <input value={form.serviceName} onChange={(e) => setForm({ ...form, serviceName: e.target.value })} placeholder="Service name" className="h-11 flex-1 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
                 <Button variant="secondary" onClick={() => setShowServicePicker(true)}>
@@ -250,7 +250,7 @@ export default function NewJobPage() {
             </div>
 
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Priority *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Priority *</label>
               <div className="grid grid-cols-5 gap-2">
                 {PRIORITIES.map((p) => (
                   <button key={p.value} onClick={() => setForm({ ...form, priority: p.value })} className={
@@ -258,7 +258,7 @@ export default function NewJobPage() {
                     (form.priority === p.value ? p.color + ' border-transparent text-white shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 hover:border-blue-300')
                   }>
                     <div className="text-xl">{p.emoji}</div>
-                    <div className="text-[9px] font-extrabold mt-0.5">{p.label}</div>
+                    <div className="text-[0.625rem] font-extrabold mt-0.5">{p.label}</div>
                   </button>
                 ))}
               </div>
@@ -302,7 +302,7 @@ export default function NewJobPage() {
                   (form.locationType === l.value ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-rose-300')
                 }>
                   <div className="text-2xl mb-1">{l.emoji}</div>
-                  <div className="text-[10px] font-extrabold">{l.label.replace(/^[\S]+ /, '')}</div>
+                  <div className="text-[0.6875rem] font-extrabold">{l.label.replace(/^[\S]+ /, '')}</div>
                 </button>
               ))}
             </div>
@@ -326,19 +326,19 @@ export default function NewJobPage() {
             </h3>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-violet-700 mb-1 block">Scheduled Start</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1 block">Scheduled Start</label>
                 <input type="datetime-local" value={form.scheduledStart} onChange={(e) => setForm({ ...form, scheduledStart: e.target.value })} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-violet-700 mb-1 block">Scheduled End</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1 block">Scheduled End</label>
                 <input type="datetime-local" value={form.scheduledEnd} onChange={(e) => setForm({ ...form, scheduledEnd: e.target.value })} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Preferred Time Slot</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Preferred Time Slot</label>
                 <input value={form.preferredTimeSlot} onChange={(e) => setForm({ ...form, preferredTimeSlot: e.target.value })} placeholder="e.g. Morning 9-12" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Assign Technician</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Assign Technician</label>
                 <select value={form.primaryTechnicianId} onChange={(e) => setForm({ ...form, primaryTechnicianId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
                   <option value="">-- Assign later --</option>
                   {technicians.map((t) => {
@@ -372,7 +372,7 @@ export default function NewJobPage() {
                 {parts.map((p, i) => (
                   <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] uppercase font-extrabold text-slate-600">Part #{i + 1}</span>
+                      <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Part #{i + 1}</span>
                       <button onClick={() => removePart(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -384,21 +384,21 @@ export default function NewJobPage() {
                     </div>
                     <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="text-[9px] uppercase font-extrabold text-blue-700 mb-0.5 block">Qty</label>
+                        <label className="text-[0.625rem] uppercase font-extrabold text-blue-700 mb-0.5 block">Qty</label>
                         <input type="number" min="1" step="0.1" value={p.quantity} onChange={(e) => updatePart(i, { quantity: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
                       </div>
                       <div>
-                        <label className="text-[9px] uppercase font-extrabold text-emerald-700 mb-0.5 block">Unit Price</label>
+                        <label className="text-[0.625rem] uppercase font-extrabold text-emerald-700 mb-0.5 block">Unit Price</label>
                         <input type="number" step="0.01" value={p.unitPrice} onChange={(e) => updatePart(i, { unitPrice: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
                       </div>
                       <div>
-                        <label className="text-[9px] uppercase font-extrabold text-slate-600 mb-0.5 block">Total</label>
+                        <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Total</label>
                         <div className="h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-sm font-extrabold text-emerald-800 tabular-nums">
                           {formatPKR(p.quantity * p.unitPrice)}
                         </div>
                       </div>
                       <div>
-                        <label className="text-[9px] uppercase font-extrabold text-slate-600 mb-0.5 block">Warranty (d)</label>
+                        <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Warranty (d)</label>
                         <input type="number" value={p.warrantyDays} onChange={(e) => updatePart(i, { warrantyDays: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold tabular-nums text-center focus:outline-none focus:border-orange-500" />
                       </div>
                     </div>
@@ -422,22 +422,22 @@ export default function NewJobPage() {
           <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Technician Notes</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Technician Notes</label>
                 <textarea rows={2} value={form.technicianNotes} onChange={(e) => setForm({ ...form, technicianNotes: e.target.value })} placeholder="Notes for technician..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Internal Notes</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Internal Notes</label>
                 <textarea rows={2} value={form.internalNotes} onChange={(e) => setForm({ ...form, internalNotes: e.target.value })} placeholder="Internal only..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
               </div>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Job Warranty Days</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Job Warranty Days</label>
                 <input type="number" value={form.jobWarrantyDays} onChange={(e) => setForm({ ...form, jobWarrantyDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Warranty Terms</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Warranty Terms</label>
                 <input value={form.jobWarrantyTerms} onChange={(e) => setForm({ ...form, jobWarrantyTerms: e.target.value })} placeholder="e.g. Parts + Labour" className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
               </div>
             </div>
@@ -448,24 +448,24 @@ export default function NewJobPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Charges</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Charges</div>
 
               <div className="space-y-2">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Visit Charge</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Visit Charge</label>
                   <input type="number" value={form.visitCharge} onChange={(e) => setForm({ ...form, visitCharge: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Labour Charge</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Labour Charge</label>
                   <input type="number" value={form.labourCharge} onChange={(e) => setForm({ ...form, labourCharge: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Transport</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Transport</label>
                   <input type="number" value={form.transportCharge} onChange={(e) => setForm({ ...form, transportCharge: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 {['URGENT', 'EMERGENCY'].includes(form.priority) && (
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-red-300 mb-0.5 block">Emergency Charge</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-red-300 mb-0.5 block">Emergency Charge</label>
                     <input type="number" value={form.emergencyCharge} onChange={(e) => setForm({ ...form, emergencyCharge: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-red-500/20 border border-red-400/40 px-2 text-sm font-extrabold tabular-nums text-white focus:outline-none focus:border-red-300" />
                   </div>
                 )}
@@ -478,11 +478,11 @@ export default function NewJobPage() {
 
               <div className="mt-3 space-y-2">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
                   <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
                   <input type="number" value={form.discountAmount} onChange={(e) => setForm({ ...form, discountAmount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
               </div>
@@ -500,7 +500,7 @@ export default function NewJobPage() {
               {form.advanceRequired && (
                 <div className="mt-1">
                   <input type="number" value={form.advancePct} onChange={(e) => setForm({ ...form, advancePct: e.target.value })} placeholder="Advance %" className="h-9 w-full rounded-lg bg-amber-500/20 border border-amber-400/40 px-2 text-sm font-extrabold tabular-nums text-white focus:outline-none focus:border-amber-300" />
-                  <div className="text-[10px] text-amber-300 font-extrabold mt-1 text-center">
+                  <div className="text-[0.6875rem] text-amber-300 font-extrabold mt-1 text-center">
                     Advance: {formatPKR((total * Number(form.advancePct)) / 100)}
                   </div>
                 </div>
@@ -535,10 +535,10 @@ export default function NewJobPage() {
               {services.map((svc) => (
                 <button key={svc.id} onClick={() => selectService(svc)} className="p-3 rounded-xl border-2 border-slate-200 dark:border-neutral-700 hover:border-cyan-500 hover:shadow-lg text-left">
                   <div className="font-extrabold text-sm truncate">{svc.name}</div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase">{svc.category.replace('_', ' ')}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{svc.category.replace('_', ' ')}</div>
                   <div className="mt-1 flex items-center gap-2">
                     <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(svc.baseCharge)}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{svc.estimatedDurationMin}min</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{svc.estimatedDurationMin}min</div>
                   </div>
                 </button>
               ))}

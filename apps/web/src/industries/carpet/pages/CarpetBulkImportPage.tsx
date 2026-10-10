@@ -555,7 +555,7 @@ export default function CarpetBulkImportPage() {
                         <div className="flex items-center gap-1.5">
                           <span className="font-mono font-extrabold text-blue-900 text-sm">{col.name}</span>
                           {col.required && (
-                            <span className="text-[10px] font-bold text-rose-600 bg-rose-100 px-1.5 py-0.5 rounded">REQ</span>
+                            <span className="text-[0.6875rem] font-bold text-rose-600 bg-rose-100 px-1.5 py-0.5 rounded">REQ</span>
                           )}
                         </div>
                         <div className="text-blue-700 text-xs font-semibold mt-0.5">{col.desc}</div>
@@ -649,7 +649,7 @@ export default function CarpetBulkImportPage() {
                 previewFilter === 'all' ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
-              All <span className={`px-1.5 py-0.5 rounded text-[10px] ${previewFilter === 'all' ? 'bg-white/20' : 'bg-slate-200'}`}>{preview.totalRows}</span>
+              All <span className={`px-1.5 py-0.5 rounded text-[0.6875rem] ${previewFilter === 'all' ? 'bg-white/20' : 'bg-slate-200'}`}>{preview.totalRows}</span>
             </button>
             <button
               onClick={() => setPreviewFilter('valid')}
@@ -657,7 +657,7 @@ export default function CarpetBulkImportPage() {
                 previewFilter === 'valid' ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-2 border-emerald-200'
               }`}
             >
-              <CheckCircle2 className="h-3.5 w-3.5" /> Valid <span className={`px-1.5 py-0.5 rounded text-[10px] ${previewFilter === 'valid' ? 'bg-white/30' : 'bg-emerald-200'}`}>{preview.validCount}</span>
+              <CheckCircle2 className="h-3.5 w-3.5" /> Valid <span className={`px-1.5 py-0.5 rounded text-[0.6875rem] ${previewFilter === 'valid' ? 'bg-white/30' : 'bg-emerald-200'}`}>{preview.validCount}</span>
             </button>
             <button
               onClick={() => setPreviewFilter('invalid')}
@@ -665,7 +665,7 @@ export default function CarpetBulkImportPage() {
                 previewFilter === 'invalid' ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border-2 border-rose-200'
               }`}
             >
-              <FileWarning className="h-3.5 w-3.5" /> Invalid <span className={`px-1.5 py-0.5 rounded text-[10px] ${previewFilter === 'invalid' ? 'bg-white/30' : 'bg-rose-200'}`}>{preview.invalidCount}</span>
+              <FileWarning className="h-3.5 w-3.5" /> Invalid <span className={`px-1.5 py-0.5 rounded text-[0.6875rem] ${previewFilter === 'invalid' ? 'bg-white/30' : 'bg-rose-200'}`}>{preview.invalidCount}</span>
             </button>
           </div>
 
@@ -685,14 +685,14 @@ export default function CarpetBulkImportPage() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 border-b-2 border-slate-200 sticky top-0">
                   <tr>
-                    <th className="px-3 py-3 text-left text-[11px] font-extrabold uppercase tracking-wider text-slate-700">#</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Status</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Product</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Roll #</th>
-                    <th className="px-3 py-3 text-right text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Size</th>
-                    <th className="px-3 py-3 text-right text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Cost</th>
-                    <th className="px-3 py-3 text-right text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Sale</th>
-                    <th className="px-3 py-3 text-left text-[11px] font-extrabold uppercase tracking-wider text-slate-700">Issues</th>
+                    <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">#</th>
+                    <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Status</th>
+                    <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Product</th>
+                    <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Roll #</th>
+                    <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Size</th>
+                    <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Cost</th>
+                    <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Sale</th>
+                    <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Issues</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

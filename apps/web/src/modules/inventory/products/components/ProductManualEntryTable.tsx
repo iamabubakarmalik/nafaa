@@ -211,7 +211,7 @@ export function ProductManualEntryTable({
                       >
                         <td className="px-2 py-2 text-center">
                           <div className="flex flex-col items-center gap-0.5">
-                            <span className="font-mono font-extrabold text-slate-500 text-[10px]">{idx + 1}</span>
+                            <span className="font-mono font-extrabold text-slate-500 text-[0.6875rem]">{idx + 1}</span>
                             {!status.isEmpty && (status.isValid
                               ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
                               : <AlertCircle className="h-3.5 w-3.5 text-rose-600" />)}
@@ -356,7 +356,7 @@ export function ProductManualEntryTable({
                           <td colSpan={12} className="px-4 py-3">
                             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                               <div>
-                                <label className="block text-[9px] font-extrabold text-slate-600 uppercase mb-1">Wholesale Price</label>
+                                <label className="block text-[0.625rem] font-extrabold text-slate-600 uppercase mb-1">Wholesale Price</label>
                                 <input
                                   type="number" step="0.01"
                                   value={row.wholesalePrice}
@@ -366,7 +366,7 @@ export function ProductManualEntryTable({
                                 />
                               </div>
                               <div>
-                                <label className="block text-[9px] font-extrabold text-slate-600 uppercase mb-1">Barcode</label>
+                                <label className="block text-[0.625rem] font-extrabold text-slate-600 uppercase mb-1">Barcode</label>
                                 <input
                                   type="text"
                                   value={row.barcode}
@@ -376,7 +376,7 @@ export function ProductManualEntryTable({
                                 />
                               </div>
                               <div>
-                                <label className="block text-[9px] font-extrabold text-slate-600 uppercase mb-1">Low Stock Alert</label>
+                                <label className="block text-[0.625rem] font-extrabold text-slate-600 uppercase mb-1">Low Stock Alert</label>
                                 <input
                                   type="number"
                                   value={row.lowStockAlert}
@@ -386,7 +386,7 @@ export function ProductManualEntryTable({
                                 />
                               </div>
                               <div>
-                                <label className="block text-[9px] font-extrabold text-slate-600 uppercase mb-1">Image URLs (comma-sep)</label>
+                                <label className="block text-[0.625rem] font-extrabold text-slate-600 uppercase mb-1">Image URLs (comma-sep)</label>
                                 <input
                                   type="text"
                                   value={row.imageUrls}
@@ -396,7 +396,7 @@ export function ProductManualEntryTable({
                                 />
                               </div>
                               <div className="sm:col-span-2 lg:col-span-4">
-                                <label className="block text-[9px] font-extrabold text-slate-600 uppercase mb-1">Description</label>
+                                <label className="block text-[0.625rem] font-extrabold text-slate-600 uppercase mb-1">Description</label>
                                 <input
                                   type="text"
                                   value={row.description}
@@ -427,7 +427,7 @@ export function ProductManualEntryTable({
                                   <span className="text-xs font-bold">Featured</span>
                                 </label>
                                 {profit > 0 && (
-                                  <div className="ml-auto inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-lg">
+                                  <div className="ml-auto inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-lg">
                                     <TrendingUp className="h-3 w-3" />
                                     Profit: {formatPKRFull(profit)} ({((profit / Number(row.price)) * 100).toFixed(1)}%)
                                   </div>
@@ -492,7 +492,7 @@ function StatPill({
     <div className={`rounded-xl border-2 px-3 py-2 ${tones[tone]}`}>
       <div className="flex items-center gap-1 mb-0.5">
         <Icon className="h-3 w-3 opacity-70" />
-        <div className="text-[9px] uppercase font-extrabold opacity-70">{label}</div>
+        <div className="text-[0.625rem] uppercase font-extrabold opacity-70">{label}</div>
       </div>
       <div className="text-base font-extrabold tabular-nums truncate">{value}</div>
     </div>

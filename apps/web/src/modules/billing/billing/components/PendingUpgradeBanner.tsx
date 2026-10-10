@@ -37,17 +37,17 @@ export function PendingUpgradeBanner() {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-amber-700 px-1.5 py-0.5 rounded-md bg-amber-200">
+              <span className="text-[0.625rem] font-extrabold uppercase tracking-wider text-amber-700 px-1.5 py-0.5 rounded-md bg-amber-200">
                 Upgrade Pending
               </span>
-              <span className="text-[10px] font-mono font-extrabold text-amber-700">
+              <span className="text-[0.6875rem] font-mono font-extrabold text-amber-700">
                 {invoice.invoiceNumber}
               </span>
             </div>
             <p className="text-sm font-extrabold text-amber-900 truncate">
               {subscription.plan.name} — {formatPKR(invoice.amountDue)}
             </p>
-            <p className="text-[10px] text-amber-700 font-semibold mt-0.5">
+            <p className="text-[0.6875rem] text-amber-700 font-semibold mt-0.5">
               Payment karein ya cancel kar do
             </p>
           </div>

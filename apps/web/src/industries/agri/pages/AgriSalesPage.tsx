@@ -580,7 +580,7 @@ export default function AgriSalesPage() {
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Receipt className="h-3.5 w-3.5 text-lime-300" /> Agri · Bikri
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
@@ -634,7 +634,7 @@ export default function AgriSalesPage() {
             <h3 className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">
               💰 {showValue(formatPKR(stats.credit))} udhaar gaya — {stats.creditCount} bill par
             </h3>
-            <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
+            <p className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
               Is muddat ki <strong>{stats.creditPct.toFixed(0)}%</strong> bikri udhaar par gayi.
               Agri me ye aam hai — farmer katai ke baad deta hai — magar hisab rakhna zaroori hai,
               warna sarmaya bahar hi para reh jata hai.
@@ -676,7 +676,7 @@ export default function AgriSalesPage() {
                   on ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 ring-2 ring-emerald-200 dark:ring-emerald-500/20'
                     : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-emerald-400'
                 }`}>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 truncate">
+                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">
                   {k.e} {k.l}
                 </div>
                 <div className="mt-1 text-base font-black text-slate-900 dark:text-white tabular-nums truncate">
@@ -702,7 +702,7 @@ export default function AgriSalesPage() {
             }`}>
             <Icon className="h-4 w-4" /> {label}
             {count !== undefined && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-lg tabular-nums ${
+              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
                 tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
               }`}>{count}</span>
             )}
@@ -756,13 +756,13 @@ export default function AgriSalesPage() {
 
         <div className="flex gap-1.5 flex-wrap items-center">
           <button onClick={() => setPayFilter('all')}
-            className={`h-9 px-3 rounded-xl border-2 text-[11px] font-black transition ${
+            className={`h-9 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
               payFilter === 'all' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                 : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
             }`}>Har tareeqa</button>
           {Object.entries(PAY).map(([k, v]) => (
             <button key={k} onClick={() => setPayFilter(payFilter === k ? 'all' : (k as PaymentMethod))}
-              className={`h-9 px-3 rounded-xl border-2 text-[11px] font-black inline-flex items-center gap-1 transition ${
+              className={`h-9 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1 transition ${
                 payFilter === k ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                   : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
               }`}>
@@ -770,7 +770,7 @@ export default function AgriSalesPage() {
             </button>
           ))}
           <button onClick={() => setCreditOnly(!creditOnly)}
-            className={`h-9 px-3 rounded-xl border-2 text-[11px] font-black inline-flex items-center gap-1 transition ${
+            className={`h-9 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1 transition ${
               creditOnly ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
                 : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-amber-400'
             }`}>
@@ -865,14 +865,14 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-white">{s.saleNumber}</span> <SaleSourceBadge sale={s as any} className="ml-1 align-middle" />
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 ${pay.chip}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${pay.chip}`}>
                 <PayIcon className="h-2.5 w-2.5" /> {pay.label}
               </span>
               {voided && (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-rose-600 text-white">Void</span>
+                <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase bg-rose-600 text-white">Void</span>
               )}
               {credit > 0 && !voided && (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
                   Udhaar {showValue(formatPKR(credit))}
                 </span>
               )}
@@ -880,14 +880,14 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
                 const k = KINDS.find((x) => x.v === g);
                 if (!k) return null;
                 return (
-                  <span key={g} className="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                  <span key={g} className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                     {k.e} {k.l}
                   </span>
                 );
               })}
             </div>
 
-            <div className="mt-1 flex items-center gap-3 text-[11px] font-bold text-slate-600 dark:text-slate-400 flex-wrap">
+            <div className="mt-1 flex items-center gap-3 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 flex-wrap">
               <span className="inline-flex items-center gap-1">
                 <User className="h-3 w-3" />{s.customer?.name ?? 'Walk-in'}
               </span>
@@ -899,13 +899,13 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
 
             <div className="mt-2 flex flex-wrap gap-1">
               {items.slice(0, 4).map((i: any, n: number) => (
-                <span key={n} className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold">
+                <span key={n} className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold">
                   {AGRI_KIND_EMOJI[infoOf(i).kind as AgriKind]} {i.product?.name ?? 'Cheez'} ·{' '}
                   {fmtQty(i.quantity)} {agriUnitLabel(i.product?.unit ?? '')}
                 </span>
               ))}
               {items.length > 4 && (
-                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-extrabold">
+                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 text-[0.6875rem] font-extrabold">
                   +{items.length - 4} aur
                 </span>
               )}
@@ -917,16 +917,16 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
               {showValue(formatPKR(s.total))}
             </div>
             {credit > 0 ? (
-              <div className="text-[11px] font-extrabold text-amber-600 dark:text-amber-400 mt-0.5 tabular-nums">
+              <div className="text-[0.6875rem] font-extrabold text-amber-600 dark:text-amber-400 mt-0.5 tabular-nums">
                 mila {showValue(formatPKR(s.paidAmount))}
               </div>
             ) : (
-              <div className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">
+              <div className="text-[0.6875rem] font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">
                 Poora paisa mila
               </div>
             )}
             {Number(s.discount) > 0 && (
-              <div className="text-[10px] font-bold text-slate-400 tabular-nums">
+              <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                 chhoot {showValue(formatPKR(s.discount))}
               </div>
             )}
@@ -937,21 +937,21 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
       {!voided && (
         <div className="px-3 sm:px-4 pb-3 flex gap-1.5 flex-wrap print:hidden">
           <Link to={receiptLink(s.id, true)} target="_blank"
-            className="h-9 px-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+            className="h-9 px-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
             <Printer className="h-3.5 w-3.5" /> Print
           </Link>
           {s.customer?.phone && (
             <a href={waHref} target="_blank" rel="noreferrer"
-              className="h-9 px-3 rounded-lg bg-green-50 dark:bg-green-500/15 hover:bg-green-100 dark:hover:bg-green-500/25 text-green-700 dark:text-green-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+              className="h-9 px-3 rounded-lg bg-green-50 dark:bg-green-500/15 hover:bg-green-100 dark:hover:bg-green-500/25 text-green-700 dark:text-green-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
               <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
             </a>
           )}
           <button onClick={onReturn}
-            className="h-9 px-3 rounded-lg bg-sky-50 dark:bg-sky-500/15 hover:bg-sky-100 dark:hover:bg-sky-500/25 text-sky-700 dark:text-sky-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+            className="h-9 px-3 rounded-lg bg-sky-50 dark:bg-sky-500/15 hover:bg-sky-100 dark:hover:bg-sky-500/25 text-sky-700 dark:text-sky-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
             <Undo2 className="h-3.5 w-3.5" /> Wapsi
           </button>
           <button onClick={onVoid}
-            className="ml-auto h-9 px-3 rounded-lg bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+            className="ml-auto h-9 px-3 rounded-lg bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
             <Trash2 className="h-3.5 w-3.5" /> Void
           </button>
         </div>
@@ -959,7 +959,7 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
 
       {s.voidReason && (
         <div className="px-3 sm:px-4 pb-3">
-          <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2 text-[11px] font-bold text-rose-800 dark:text-rose-300">
+          <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2 text-[0.6875rem] font-bold text-rose-800 dark:text-rose-300">
             ❌ Void ki wajah: {s.voidReason}
           </div>
         </div>
@@ -994,7 +994,7 @@ function Analytics({
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <h3 className="font-black text-amber-900 dark:text-amber-200">Aadhi se zyada bikri udhaar par</h3>
           </div>
-          <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200 leading-relaxed">
+          <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200 leading-relaxed">
             Is muddat me <strong>{stats.creditPct.toFixed(0)}%</strong> maal udhaar par gaya. Agri me
             ye aam hai — farmer katai ke baad deta hai — magar itna paisa bahar hone par naya maal
             mangwane ke liye cash nahi bachta. "Fasal ka calendar" me dekhein ke kis ki katai qareeb
@@ -1124,12 +1124,12 @@ function Analytics({
           }`}>
             <div className="flex items-center gap-1.5">
               <p.icon className="h-4 w-4 text-emerald-600" />
-              <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">{p.label}</span>
+              <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">{p.label}</span>
             </div>
             <div className="mt-1 text-lg font-black text-slate-900 dark:text-white tabular-nums">
               {showValue(formatPKR(p.bikri))}
             </div>
-            <div className="text-[10px] font-bold text-slate-400">{p.range} · {p.bill} bill · {p.pct.toFixed(0)}%</div>
+            <div className="text-[0.6875rem] font-bold text-slate-400">{p.range} · {p.bill} bill · {p.pct.toFixed(0)}%</div>
           </div>
         ))}
       </section>
@@ -1170,7 +1170,7 @@ function Analytics({
                   <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
                     {s.customer?.name ?? 'Walk-in'}
                   </div>
-                  <div className="text-[11px] font-bold text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                     {s.saleNumber} · {ago(s.soldAt)}
                   </div>
                 </div>
@@ -1213,7 +1213,7 @@ function VoidModal({ sale, onClose, onConfirm, saving }: any) {
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-rose-600 to-red-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <Trash2 className="h-3 w-3" /> Bill void karein
             </div>
             <h3 className="font-extrabold text-lg mt-1.5 truncate font-mono">{sale.saleNumber}</h3>
@@ -1227,12 +1227,12 @@ function VoidModal({ sale, onClose, onConfirm, saving }: any) {
         </div>
 
         <div className="p-5 space-y-3">
-          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-2.5 text-[11px] font-bold text-emerald-900 dark:text-emerald-200">
+          <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-2.5 text-[0.6875rem] font-bold text-emerald-900 dark:text-emerald-200">
             Void karne par saara maal stock me wapas chala jayega, aur udhaar bhi khatam ho jayega.
           </div>
 
           <div>
-            <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+            <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">
               Wajah <span className="text-rose-500">*</span>
             </label>
             <textarea rows={2} autoFocus value={reason} onChange={(e) => setReason(e.target.value)}
@@ -1243,7 +1243,7 @@ function VoidModal({ sale, onClose, onConfirm, saving }: any) {
           <div className="flex flex-wrap gap-1.5">
             {VOID_REASONS.map((r) => (
               <button key={r} type="button" onClick={() => setReason(r)}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-[11px] font-extrabold text-slate-600 dark:text-slate-300 transition">
+                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 transition">
                 {r}
               </button>
             ))}
@@ -1295,14 +1295,14 @@ function ReceiptPrefsPopover({ anchorRef, prefs, onChange, onClose }: any) {
       <div className="absolute z-50 w-[280px] rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3"
         style={{ top: pos.top, left: pos.left }}>
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Receipt ki settings</span>
+          <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Receipt ki settings</span>
           <button onClick={onClose} className="h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
             <X className="h-3.5 w-3.5 text-slate-400" />
           </button>
         </div>
 
         <div>
-          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Kaghaz ka naap</div>
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1">Kaghaz ka naap</div>
           <div className="grid grid-cols-2 gap-1.5">
             {(['58', '80'] as const).map((w) => (
               <button key={w} onClick={() => onChange({ paperWidth: w })}
@@ -1315,7 +1315,7 @@ function ReceiptPrefsPopover({ anchorRef, prefs, onChange, onClose }: any) {
         </div>
 
         <div>
-          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Kitni tafseel</div>
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1">Kitni tafseel</div>
           <div className="grid grid-cols-2 gap-1.5">
             {([['short', 'Chhota'], ['full', 'Poora']] as const).map(([m, l]) => (
               <button key={m} onClick={() => onChange({ mode: m })}
@@ -1330,7 +1330,7 @@ function ReceiptPrefsPopover({ anchorRef, prefs, onChange, onClose }: any) {
         {([['autoPrint', 'Kholte hi print ho jaye'], ['showLogo', 'Logo dikhayein']] as const).map(([k, l]) => (
           <button key={k} onClick={() => onChange({ [k]: !prefs[k] })}
             className="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-            <span className="text-[12px] font-extrabold text-slate-700 dark:text-slate-200">{l}</span>
+            <span className="text-[0.75rem] font-extrabold text-slate-700 dark:text-slate-200">{l}</span>
             <span className={`h-5 w-9 rounded-full transition relative ${prefs[k] ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-600'}`}>
               <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${prefs[k] ? 'left-[1.15rem]' : 'left-0.5'}`} />
             </span>
@@ -1364,9 +1364,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight, onClick, active }
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1386,10 +1386,10 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-4 w-4 ${tones[tone] ?? tones.emerald}`} />
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
       </div>
       <div className="mt-1.5 text-lg font-black text-slate-900 dark:text-white tabular-nums break-words">{value}</div>
-      {sub && <div className="text-[11px] font-bold text-slate-400 mt-0.5 truncate">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5 truncate">{sub}</div>}
     </div>
   );
 }
@@ -1424,7 +1424,7 @@ function ListCard({ icon: Icon, title, rows, emptyText }: any) {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.title}</span>
-                  <span className="block text-[11px] font-bold text-slate-400 truncate">{r.sub}</span>
+                  <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">{r.sub}</span>
                 </span>
                 <span className="text-sm font-black tabular-nums text-slate-900 dark:text-white shrink-0">{r.value}</span>
               </>
@@ -1521,8 +1521,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             me farmer ka naam, phone, ya fasal likh dein.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">B</kbd> bill scan</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
@@ -1543,8 +1543,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

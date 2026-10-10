@@ -124,7 +124,7 @@ export default function ShoeTryOnPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono font-extrabold text-sm">{r.requestNumber}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${meta.bg} ${meta.color}`}>{meta.label}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${meta.bg} ${meta.color}`}>{meta.label}</span>
                     </div>
                     <div className="mt-1 font-extrabold text-slate-900 text-sm truncate">{r.productName}</div>
                     <div className="mt-1 text-xs text-slate-600 font-bold flex items-center gap-3 flex-wrap">
@@ -133,7 +133,7 @@ export default function ShoeTryOnPage() {
                       {r.requestedSizes?.length > 0 && (
                         <span className="inline-flex items-center gap-1">
                           Sizes: {r.requestedSizes.map((s: string) => (
-                            <span key={s} className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">{s}</span>
+                            <span key={s} className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[0.6875rem] font-extrabold">{s}</span>
                           ))}
                         </span>
                       )}
@@ -277,7 +277,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
     <C onClick={onClick} className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-emerald-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

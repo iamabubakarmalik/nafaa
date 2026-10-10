@@ -102,7 +102,7 @@ export default function AttendancePage() {
           </div>
           <div className="flex items-center gap-4 flex-wrap">
             <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/20 px-6 py-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Currently Inside</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Currently Inside</div>
               <div className="text-4xl font-extrabold tabular-nums text-emerald-300">{currentlyInside.length}</div>
             </div>
           </div>
@@ -132,7 +132,7 @@ export default function AttendancePage() {
                   (scanMethod === m.v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-emerald-300')
                 }>
                   <div className="text-2xl mb-1">{m.emoji}</div>
-                  <div className="text-[10px] font-extrabold">{m.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
                 </button>
               ))}
             </div>
@@ -141,7 +141,7 @@ export default function AttendancePage() {
             {scanMethod !== 'MANUAL' ? (
               <>
                 <div className="text-center">
-                  <div className="text-[10px] uppercase font-extrabold text-emerald-700 mb-2">
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-2">
                     {scanMethod === 'QR_CODE' && '📱 Scan QR Code'}
                     {scanMethod === 'RFID_CARD' && '💳 Tap RFID Card'}
                     {scanMethod === 'BIOMETRIC' && '👆 Place Finger on Scanner'}
@@ -306,8 +306,8 @@ export default function AttendancePage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-sm">{att.member?.memberNumber || att.guestName || 'Guest'}</span>
-                      {isInside && <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-extrabold uppercase">INSIDE</span>}
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-600 text-[9px] font-extrabold uppercase">{att.method}</span>
+                      {isInside && <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase">INSIDE</span>}
+                      <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-600 text-[0.625rem] font-extrabold uppercase">{att.method}</span>
                     </div>
                     <div className="text-xs text-slate-500 font-semibold">
                       {format(new Date(att.checkInAt), 'HH:mm')}

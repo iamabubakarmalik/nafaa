@@ -214,7 +214,7 @@ function StationForm({ editing, onClose, onSaved }: any) {
         {/* Presets */}
         {!editing && (
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Quick Presets</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Quick Presets</label>
             <div className="grid grid-cols-4 gap-2">
               {STATION_PRESETS.map((p) => (
                 <button
@@ -223,7 +223,7 @@ function StationForm({ editing, onClose, onSaved }: any) {
                   className="p-2 rounded-lg border-2 border-slate-200 dark:border-neutral-700 hover:border-orange-400 text-center transition"
                 >
                   <div className="text-2xl">{p.emoji}</div>
-                  <div className="text-[10px] font-extrabold text-slate-700 dark:text-slate-300 mt-1">{p.name}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300 mt-1">{p.name}</div>
                 </button>
               ))}
             </div>
@@ -232,7 +232,7 @@ function StationForm({ editing, onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Station Name *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Station Name *</label>
             <input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -241,7 +241,7 @@ function StationForm({ editing, onClose, onSaved }: any) {
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Short Code (KOT)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Short Code (KOT)</label>
             <input
               value={form.code}
               onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
@@ -253,18 +253,18 @@ function StationForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Printer Name (optional)</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Printer Name (optional)</label>
           <input
             value={form.printerName}
             onChange={(e) => setForm({ ...form, printerName: e.target.value })}
             placeholder="Epson-Grill-01 / Kitchen-Printer-Main"
             className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500"
           />
-          <p className="mt-1 text-[10px] text-slate-500 font-semibold">KOTs for this station will print to this printer</p>
+          <p className="mt-1 text-[0.6875rem] text-slate-500 font-semibold">KOTs for this station will print to this printer</p>
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Auto-route Categories to this station</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Auto-route Categories to this station</label>
           {categories.length === 0 ? (
             <div className="text-xs text-slate-500 font-semibold italic">No categories exist. Create categories first.</div>
           ) : (

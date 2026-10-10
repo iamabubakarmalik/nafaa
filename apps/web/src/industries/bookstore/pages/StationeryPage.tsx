@@ -124,20 +124,20 @@ export default function StationeryPage() {
                 </div>
                 <div className="p-3 space-y-1">
                   <h3 className="font-extrabold text-sm text-slate-900 dark:text-white line-clamp-1">{item.product?.name}</h3>
-                  <div className="text-[10px] font-extrabold uppercase text-amber-600">{cat?.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase text-amber-600">{cat?.label}</div>
                   <div className="flex flex-wrap gap-1">
-                    {item.brand && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase">{item.brand}</span>}
-                    {item.color && <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-extrabold uppercase">{item.color}</span>}
-                    {item.isSchoolItem && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase">🎒 School</span>}
-                    {item.isOfficeItem && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold uppercase">💼 Office</span>}
-                    {item.isFastMoving && <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[9px] font-extrabold uppercase">🔥 Fast</span>}
+                    {item.brand && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">{item.brand}</span>}
+                    {item.color && <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">{item.color}</span>}
+                    {item.isSchoolItem && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase">🎒 School</span>}
+                    {item.isOfficeItem && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold uppercase">💼 Office</span>}
+                    {item.isFastMoving && <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[0.625rem] font-extrabold uppercase">🔥 Fast</span>}
                   </div>
                   {item.packSize && (
-                    <div className="text-[10px] font-bold text-slate-500">Pack of {item.packSize} {item.packUnit}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">Pack of {item.packSize} {item.packUnit}</div>
                   )}
                   <div className="pt-1 flex items-end justify-between">
                     <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(item.product?.price ?? 0)}</div>
-                    <div className="text-[10px] font-extrabold text-slate-500">Stock: {item.product?.stock ?? 0}</div>
+                    <div className="text-[0.6875rem] font-extrabold text-slate-500">Stock: {item.product?.stock ?? 0}</div>
                   </div>
                 </div>
               </Link>

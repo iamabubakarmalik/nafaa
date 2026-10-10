@@ -122,7 +122,7 @@ export function CustomerSearchInline({
       <div className="relative">
         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 items-center justify-between">
           <span>Existing Customer</span>
-          <span className="text-[9px] text-slate-500 font-normal">
+          <span className="text-[0.625rem] text-slate-500 font-normal">
             ↑↓ navigate · Enter select
           </span>
         </label>
@@ -181,7 +181,7 @@ export function CustomerSearchInline({
                   {c.name}
                   {c.isVip && <Star className="h-3 w-3 text-amber-500 fill-current" />}
                 </div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
                   {c.phone && (
                     <span className="inline-flex items-center gap-1">
                       <Phone className="h-2.5 w-2.5" />
@@ -216,7 +216,7 @@ export function CustomerSearchInline({
             </div>
             <div>
               <div className="font-bold text-violet-900 dark:text-violet-100">{customerName}</div>
-              <div className="text-[10px] text-violet-700 dark:text-violet-300">
+              <div className="text-[0.6875rem] text-violet-700 dark:text-violet-300">
                 ✓ Existing customer linked
               </div>
             </div>

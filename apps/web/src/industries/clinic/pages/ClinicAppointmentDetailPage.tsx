@@ -73,7 +73,7 @@ export default function AppointmentDetailPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 Token #{apt.tokenNumber || '?'} • {apt.appointmentNumber}
               </div>
@@ -142,7 +142,7 @@ export default function AppointmentDetailPage() {
                   }>
                     {isActive && !isCurrent ? '✓' : i + 1}
                   </div>
-                  <span className={'text-[9px] font-extrabold uppercase ' + (isActive ? cfg.textColor : 'text-slate-400')}>
+                  <span className={'text-[0.625rem] font-extrabold uppercase ' + (isActive ? cfg.textColor : 'text-slate-400')}>
                     {cfg.label}
                   </span>
                 </div>
@@ -188,7 +188,7 @@ export default function AppointmentDetailPage() {
                   <div className="font-extrabold text-slate-900 dark:text-white text-base">
                     {apt.patient?.fullName}
                   </div>
-                  <div className="text-[10px] font-mono font-bold text-blue-600">{apt.patient?.mrn}</div>
+                  <div className="text-[0.6875rem] font-mono font-bold text-blue-600">{apt.patient?.mrn}</div>
                   {apt.patient?.phonePrimary && (
                     <a href={'tel:' + apt.patient.phonePrimary} className="flex items-center gap-1 text-blue-700 font-bold hover:underline">
                       <Phone className="h-3 w-3" />
@@ -206,7 +206,7 @@ export default function AppointmentDetailPage() {
                   </div>
                   {apt.patient?.allergies?.length > 0 && (
                     <div className="mt-2 rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 p-2">
-                      <div className="text-[10px] uppercase font-extrabold text-rose-700 flex items-center gap-1">
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700 flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" />
                         ALLERGIES
                       </div>
@@ -215,7 +215,7 @@ export default function AppointmentDetailPage() {
                   )}
                   {apt.patient?.chronicConditions?.length > 0 && (
                     <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 p-2">
-                      <div className="text-[10px] uppercase font-extrabold text-amber-700">Chronic Conditions</div>
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Chronic Conditions</div>
                       <div className="text-xs font-bold text-amber-900 mt-1">{apt.patient.chronicConditions.join(', ')}</div>
                     </div>
                   )}
@@ -259,7 +259,7 @@ export default function AppointmentDetailPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill</div>
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Consultation</span><span className="font-bold tabular-nums">{formatPKR(apt.consultationFee)}</span></div>
                 {apt.otherCharges > 0 && <div className="flex justify-between"><span className="text-white/70">Other</span><span className="font-bold tabular-nums">{formatPKR(apt.otherCharges)}</span></div>}
@@ -383,10 +383,10 @@ function VitalField({ label, value, onChange, unit, color, step }: any) {
   };
   return (
     <div>
-      <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-0.5 block">{label}</label>
+      <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">{label}</label>
       <div className="relative">
         <input type="number" step={step || '1'} value={value} onChange={(e) => onChange(e.target.value)} className={'h-11 w-full rounded-xl border-2 px-3 pr-12 text-sm font-extrabold tabular-nums focus:outline-none ' + colors[color]} />
-        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-500">{unit}</span>
+        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[0.6875rem] font-bold text-slate-500">{unit}</span>
       </div>
     </div>
   );
@@ -521,7 +521,7 @@ function PrescriptionPanel({ appointmentId, encounter }: any) {
           {items.map((item, i) => (
             <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 p-3 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase font-extrabold text-slate-600">Drug #{i + 1}</span>
+                <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Drug #{i + 1}</span>
                 <button onClick={() => removeItem(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
                   <Trash2 className="h-3 w-3" />
                 </button>
@@ -581,7 +581,7 @@ function PrescriptionPanel({ appointmentId, encounter }: any) {
               <div key={rx.id} className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-mono font-extrabold text-xs">{rx.prescriptionNumber}</span>
-                  <span className="text-[10px] font-bold text-slate-500">{format(new Date(rx.issuedAt), 'dd MMM')}</span>
+                  <span className="text-[0.6875rem] font-bold text-slate-500">{format(new Date(rx.issuedAt), 'dd MMM')}</span>
                 </div>
                 <div className="space-y-1">
                   {rx.items?.map((it: any) => (
@@ -698,7 +698,7 @@ function LabOrdersPanel({ appointmentId, encounter, patientId, doctorId }: any) 
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-mono font-extrabold text-xs">{lo.orderNumber}</span>
                   <span className={
-                    'px-2 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' +
+                    'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +
                     (lo.status === 'REPORTED' ? 'bg-emerald-600' : lo.status === 'COMPLETED' ? 'bg-blue-600' : 'bg-amber-500')
                   }>{lo.status}</span>
                 </div>
@@ -732,7 +732,7 @@ function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Amount *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Amount *</label>
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
           <div className="flex gap-2">

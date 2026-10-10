@@ -443,7 +443,7 @@ export default function TeamPage() {
                         <div className={`text-sm font-extrabold ${active ? cfg.text : 'text-slate-900'}`}>
                           {labels[r]}
                         </div>
-                        <div className={`text-[9px] font-bold mt-0.5 ${active ? cfg.text : 'text-slate-500'}`}>
+                        <div className={`text-[0.625rem] font-bold mt-0.5 ${active ? cfg.text : 'text-slate-500'}`}>
                           {hints[r]}
                         </div>
                       </button>
@@ -471,7 +471,7 @@ export default function TeamPage() {
                       </option>
                     ))}
                   </select>
-                  <p className="text-[10px] text-indigo-800 mt-1.5 font-semibold flex items-center gap-1">
+                  <p className="text-[0.6875rem] text-indigo-800 mt-1.5 font-semibold flex items-center gap-1">
                     {form.shopId ? (
                       <><Lock className="h-2.5 w-2.5" /> User sirf is shop ka data dekh sakega</>
                     ) : (
@@ -489,11 +489,11 @@ export default function TeamPage() {
                       <KeyRound className="h-4 w-4" />
                       Access Permissions
                     </h4>
-                    <p className="text-[10px] text-violet-700 mt-0.5 font-semibold">
+                    <p className="text-[0.6875rem] text-violet-700 mt-0.5 font-semibold">
                       Role defaults auto-load • Customize anytime
                     </p>
                   </div>
-                  <div className="rounded-full bg-violet-600 text-white px-2.5 py-1 text-[10px] font-extrabold shadow-md">
+                  <div className="rounded-full bg-violet-600 text-white px-2.5 py-1 text-[0.6875rem] font-extrabold shadow-md">
                     {form.permissions.length} perms
                   </div>
                 </div>
@@ -517,14 +517,14 @@ export default function TeamPage() {
                           <div className="text-xs font-extrabold inline-flex items-center gap-1.5" style={{ color: group.color }}>
                             <Settings2 className="h-3 w-3" />
                             {group.title}
-                            <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 rounded-full">
+                            <span className="text-[0.625rem] font-bold text-slate-500 bg-slate-100 px-1.5 rounded-full">
                               {count}/{group.permissions.length}
                             </span>
                           </div>
                           <button
                             type="button"
                             onClick={() => selectAll(group)}
-                            className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full transition ${
+                            className={`text-[0.625rem] font-extrabold px-2 py-0.5 rounded-full transition ${
                               allSelected
                                 ? 'bg-rose-100 text-rose-700 hover:bg-rose-200'
                                 : someSelected
@@ -541,7 +541,7 @@ export default function TeamPage() {
                             return (
                               <label
                                 key={permission}
-                                className={`flex items-center gap-1.5 rounded-lg border-2 px-2 py-1 text-[10px] cursor-pointer transition ${
+                                className={`flex items-center gap-1.5 rounded-lg border-2 px-2 py-1 text-[0.6875rem] cursor-pointer transition ${
                                   active
                                     ? 'border-violet-300 bg-violet-50'
                                     : 'border-slate-200 bg-white hover:border-violet-200 hover:bg-violet-50/30'
@@ -637,7 +637,7 @@ export default function TeamPage() {
 
             <div className="space-y-2">
               <div className="flex gap-1 flex-wrap items-center">
-                <span className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold mr-1">Status:</span>
+                <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-extrabold mr-1">Status:</span>
                 {[
                   { v: 'all' as Filter, l: 'All', count: stats.total, c: 'bg-slate-900' },
                   { v: 'active' as Filter, l: 'Active', count: stats.active, c: 'bg-emerald-600' },
@@ -646,22 +646,22 @@ export default function TeamPage() {
                   <button
                     key={opt.v}
                     onClick={() => setFilter(opt.v)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition inline-flex items-center gap-1 ${
+                    className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1 ${
                       filter === opt.v ? `${opt.c} text-white shadow-sm` : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
                     {opt.l}
-                    <span className={`px-1 rounded-full text-[9px] ${filter === opt.v ? 'bg-white/20' : 'bg-slate-200'}`}>
+                    <span className={`px-1 rounded-full text-[0.625rem] ${filter === opt.v ? 'bg-white/20' : 'bg-slate-200'}`}>
                       {opt.count}
                     </span>
                   </button>
                 ))}
               </div>
               <div className="flex gap-1 flex-wrap items-center">
-                <span className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold mr-1">Role:</span>
+                <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-extrabold mr-1">Role:</span>
                 <button
                   onClick={() => setRoleFilter('all')}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                  className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition ${
                     roleFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
@@ -671,7 +671,7 @@ export default function TeamPage() {
                   <button
                     key={r}
                     onClick={() => setRoleFilter(r)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                    className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition ${
                       roleFilter === r ? `${roleColors[r].bg} ${roleColors[r].text} ring-2 ring-${r === 'OWNER' ? 'amber' : r === 'MANAGER' ? 'violet' : r === 'CASHIER' ? 'blue' : 'slate'}-300` : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
@@ -700,7 +700,7 @@ export default function TeamPage() {
                       Editing access: {selectedMember.fullName}
                     </div>
                     <p className="text-xs text-violet-700 mt-0.5 font-semibold flex items-center gap-2">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold ${roleColors[selectedMember.role].bg} ${roleColors[selectedMember.role].text}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${roleColors[selectedMember.role].bg} ${roleColors[selectedMember.role].text}`}>
                         {selectedMember.role}
                       </span>
                       <span>•</span>
@@ -739,14 +739,14 @@ export default function TeamPage() {
                         <div className="text-sm font-extrabold inline-flex items-center gap-1.5" style={{ color: group.color }}>
                           <Settings2 className="h-3.5 w-3.5" />
                           {group.title}
-                          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 rounded-full">
+                          <span className="text-[0.6875rem] font-bold text-slate-500 bg-slate-100 px-1.5 rounded-full">
                             {count}/{group.permissions.length}
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={() => selectAllEdit(group)}
-                          className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full transition ${
+                          className={`text-[0.6875rem] font-extrabold px-2 py-0.5 rounded-full transition ${
                             allSelected ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : someSelected ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                           }`}
                         >
@@ -835,15 +835,15 @@ export default function TeamPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-slate-900 truncate">{m.fullName}</span>
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold ${cfg.bg} ${cfg.text}`}>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${cfg.bg} ${cfg.text}`}>
                               {m.role}
                             </span>
                             {m.isActive ? (
-                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">
+                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold">
                                 <UserCheck className="h-2.5 w-2.5" /> Active
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">
+                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">
                                 <UserX className="h-2.5 w-2.5" /> Inactive
                               </span>
                             )}
@@ -858,7 +858,7 @@ export default function TeamPage() {
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400 flex-wrap font-bold">
+                          <div className="flex items-center gap-3 mt-1.5 text-[0.6875rem] text-slate-400 flex-wrap font-bold">
                             {m.assignedShop ? (
                               <span className="inline-flex items-center gap-1 text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded-md">
                                 <Building2 className="h-2.5 w-2.5" />
@@ -975,19 +975,19 @@ function PosWarning({ permissions, onFix }: { permissions: string[]; onFix: () =
           <p className="text-xs font-extrabold text-amber-900">
             POS counter theek se nahi chalega
           </p>
-          <p className="mt-0.5 text-[11px] font-bold text-amber-800">
+          <p className="mt-0.5 text-[0.6875rem] font-bold text-amber-800">
             Is bande ko POS ki ijazat to hai, magar ye {missing.length === 1 ? 'cheez' : 'cheezein'} nahi
             di gayi — in ke baghair counter par maal nazar hi nahi aayega aur offline sync bhi ruk jayegi:
           </p>
           <div className="mt-1.5 flex flex-wrap gap-1">
             {missing.map((m) => (
-              <span key={m} className="px-1.5 py-0.5 rounded-md bg-white text-[10px] font-extrabold text-amber-900 border border-amber-200">
+              <span key={m} className="px-1.5 py-0.5 rounded-md bg-white text-[0.6875rem] font-extrabold text-amber-900 border border-amber-200">
                 {getPermissionLabel(m)}
               </span>
             ))}
           </div>
           <button type="button" onClick={onFix}
-            className="mt-2 h-8 px-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-extrabold transition">
+            className="mt-2 h-8 px-3 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[0.6875rem] font-extrabold transition">
             Ye {missing.length === 1 ? 'de dein' : 'sab de dein'}
           </button>
         </div>

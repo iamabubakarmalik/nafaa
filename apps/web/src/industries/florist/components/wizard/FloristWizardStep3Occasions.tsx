@@ -147,7 +147,7 @@ export function FloristWizardStep3Occasions({ occasions, onChange, errors }: Pro
                     a ? 'border-pink-600 bg-pink-600 text-white shadow-md scale-[1.02]'
                       : 'border-slate-200 bg-white text-slate-700 hover:border-pink-400'].join(' ')}>
                   <span className="text-2xl">{o.e}</span>
-                  <span className="text-[10px] font-extrabold text-center leading-tight">{o.l}</span>
+                  <span className="text-[0.6875rem] font-extrabold text-center leading-tight">{o.l}</span>
                 </button>
               );
             })}
@@ -170,7 +170,7 @@ export function FloristWizardStep3Occasions({ occasions, onChange, errors }: Pro
 
         {occasions.occasions.length > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2">
               {occasions.occasions.length} occasions tagged
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -198,11 +198,11 @@ export function FloristWizardStep3Occasions({ occasions, onChange, errors }: Pro
             placeholder="Red roses symbolize deep love and passion. Perfect for expressing sincere feelings..."
             className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
           <div className="mt-2 flex flex-wrap gap-1.5">
-            <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">Quick fills:</span>
+            <span className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">Quick fills:</span>
             {Object.entries(FLOWER_MEANINGS).slice(0, 5).map(([flower, meaning]) => (
               <button key={flower} type="button"
                 onClick={() => onChange({ meaning })}
-                className="px-2 py-1 rounded-md bg-slate-100 hover:bg-fuchsia-100 text-slate-700 hover:text-fuchsia-700 text-[10px] font-extrabold transition">
+                className="px-2 py-1 rounded-md bg-slate-100 hover:bg-fuchsia-100 text-slate-700 hover:text-fuchsia-700 text-[0.6875rem] font-extrabold transition">
                 {flower}
               </button>
             ))}
@@ -222,7 +222,7 @@ export function FloristWizardStep3Occasions({ occasions, onChange, errors }: Pro
                 onClick={() => onChange({ careInstructions: t.text })}
                 className="rounded-xl border-2 border-slate-200 hover:border-emerald-400 bg-white p-3 text-left transition group">
                 <div className="font-extrabold text-sm text-slate-900 group-hover:text-emerald-700">{t.l}</div>
-                <div className="text-[10px] text-slate-500 font-semibold mt-1 line-clamp-2">{t.text}</div>
+                <div className="text-[0.6875rem] text-slate-500 font-semibold mt-1 line-clamp-2">{t.text}</div>
               </button>
             ))}
           </div>
@@ -294,7 +294,7 @@ export function FloristWizardStep3Occasions({ occasions, onChange, errors }: Pro
                 onChange={(e) => onChange({ minLeadTimeHours: e.target.value === '' ? '' : Number(e.target.value) })}
                 placeholder="2"
                 className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
-              <p className="mt-1 text-[10px] text-slate-500 font-bold">
+              <p className="mt-1 text-[0.6875rem] text-slate-500 font-bold">
                 How long in advance customer needs to order (e.g. 2 hours for standard, 24 hours for custom)
               </p>
             </div>

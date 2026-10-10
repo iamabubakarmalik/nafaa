@@ -147,7 +147,7 @@ export default function MobileKhataPage() {
         <div className="relative">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
                 <Wallet className="h-3.5 w-3.5 text-indigo-300" /> Khata
               </div>
               <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold">Logon se kitna lena hai?</h1>
@@ -215,7 +215,7 @@ export default function MobileKhataPage() {
             }`}
           >
             <HandCoins className="h-3.5 w-3.5" /> Udhaar
-            {debtors.length > 0 && <span className="px-1.5 rounded-full bg-black/15 text-[10px] tabular-nums">{debtors.length}</span>}
+            {debtors.length > 0 && <span className="px-1.5 rounded-full bg-black/15 text-[0.6875rem] tabular-nums">{debtors.length}</span>}
           </button>
           <button
             onClick={() => setTab('emi')}
@@ -226,7 +226,7 @@ export default function MobileKhataPage() {
             }`}
           >
             <CreditCard className="h-3.5 w-3.5" /> EMI
-            {emiPlans.length > 0 && <span className="px-1.5 rounded-full bg-black/15 text-[10px] tabular-nums">{emiPlans.length}</span>}
+            {emiPlans.length > 0 && <span className="px-1.5 rounded-full bg-black/15 text-[0.6875rem] tabular-nums">{emiPlans.length}</span>}
           </button>
         </div>
 
@@ -291,7 +291,7 @@ export default function MobileKhataPage() {
                       >
                         {d.name} <ChevronRight className="h-3 w-3 opacity-50" />
                       </Link>
-                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                         {d.phone && (
                           <span className="inline-flex items-center gap-1 font-mono">
                             <Phone className="h-3 w-3" /> {d.phone}
@@ -312,7 +312,7 @@ export default function MobileKhataPage() {
                       }`}>
                         {formatPKR(d.balance)}
                       </div>
-                      <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">lena hai</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">lena hai</div>
                     </div>
 
                     <div className="flex gap-1.5 shrink-0 print:hidden">
@@ -332,7 +332,7 @@ export default function MobileKhataPage() {
                       )}
                       <button
                         onClick={() => setPayTarget({ id: d.id, name: d.name, balance: d.balance })}
-                        className="h-9 px-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-extrabold inline-flex items-center gap-1 transition"
+                        className="h-9 px-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
                       >
                         <Banknote className="h-3.5 w-3.5" /> Lo
                       </button>
@@ -391,22 +391,22 @@ export default function MobileKhataPage() {
                           >
                             {p.customerName}
                           </Link>
-                          <span className="font-mono text-[10px] font-extrabold text-violet-700 dark:text-violet-400">
+                          <span className="font-mono text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-400">
                             {p.planNumber}
                           </span>
                           {late && (
-                            <span className="px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold uppercase">
+                            <span className="px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold uppercase">
                               {p.overdueCount} qist late
                             </span>
                           )}
                           {p.status === 'DEFAULTED' && (
-                            <span className="px-1.5 py-0.5 rounded bg-slate-800 text-white text-[10px] font-extrabold uppercase">
+                            <span className="px-1.5 py-0.5 rounded bg-slate-800 text-white text-[0.6875rem] font-extrabold uppercase">
                               Defaulted
                             </span>
                           )}
                         </div>
 
-                        <div className="mt-1 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        <div className="mt-1 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                           {p.customerPhone && (
                             <span className="inline-flex items-center gap-1 font-mono">
                               <Phone className="h-3 w-3" /> {p.customerPhone}
@@ -426,7 +426,7 @@ export default function MobileKhataPage() {
 
                         {/* Progress */}
                         <div className="mt-2">
-                          <div className="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                          <div className="flex justify-between text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mb-1">
                             <span>{formatPKR(p.paidAmount)} ada</span>
                             <span className="tabular-nums">{paidPct.toFixed(0)}%</span>
                           </div>
@@ -447,9 +447,9 @@ export default function MobileKhataPage() {
                         }`}>
                           {formatPKR(p.remainingAmount)}
                         </div>
-                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">baqi</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">baqi</div>
                         {late && (
-                          <div className="text-[10px] font-extrabold text-rose-600 dark:text-rose-400 tabular-nums mt-0.5">
+                          <div className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 tabular-nums mt-0.5">
                             {formatPKR(p.overdueAmount)} late
                           </div>
                         )}
@@ -465,14 +465,14 @@ export default function MobileKhataPage() {
                           )}
                           target="_blank"
                           rel="noreferrer"
-                          className="h-9 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold inline-flex items-center gap-1 transition"
+                          className="h-9 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
                         >
                           <MessageCircle className="h-3.5 w-3.5" /> Yaad Dilao
                         </a>
                       )}
                       <Link
                         to={`/emi-plans/${p.id}`}
-                        className="h-9 px-2.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-[11px] font-extrabold inline-flex items-center gap-1 transition"
+                        className="h-9 px-2.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
                       >
                         <Banknote className="h-3.5 w-3.5" /> Qist Lo
                       </Link>
@@ -543,7 +543,7 @@ function ReceivePaymentModal({
                 <Banknote className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/80">Udhaar Wapsi</div>
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/80">Udhaar Wapsi</div>
                 <h3 className="font-extrabold text-lg truncate">{customer.name}</h3>
               </div>
             </div>
@@ -563,12 +563,12 @@ function ReceivePaymentModal({
 
           <div>
             <div className="flex items-baseline justify-between mb-1.5">
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
                 Kitna mila
               </label>
               <button
                 onClick={() => setAmount(String(customer.balance))}
-                className="text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline"
+                className="text-[0.6875rem] font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline"
               >
                 Poora {formatPKR(customer.balance)}
               </button>
@@ -628,7 +628,7 @@ function HeroStat({ label, value, icon: Icon, accent }: any) {
     <div className={`rounded-2xl backdrop-blur-md border p-3 ${
       accent ? 'bg-amber-400/20 border-amber-300/40' : 'bg-white/10 border-white/20'
     }`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
       <div className="mt-1 text-xl sm:text-2xl font-extrabold tabular-nums truncate">{value}</div>
@@ -650,7 +650,7 @@ function MiniStat({ label, value, icon: Icon, tone }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider truncate">{label}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider truncate">{label}</div>
         <div className="font-extrabold text-slate-900 dark:text-white text-lg tabular-nums truncate">{value}</div>
       </div>
     </div>

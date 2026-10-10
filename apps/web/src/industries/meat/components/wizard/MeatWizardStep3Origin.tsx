@@ -221,7 +221,7 @@ export function MeatWizardStep3Origin({ origin, onChange, errors }: Props) {
             <TrendingUp className={['h-5 w-5', origin.isPopular ? 'text-red-600' : 'text-slate-400'].join(' ')} />
             <div className="flex-1">
               <div className="font-extrabold text-slate-900 text-sm">Popular</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Best-selling</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Best-selling</div>
             </div>
           </label>
 
@@ -232,7 +232,7 @@ export function MeatWizardStep3Origin({ origin, onChange, errors }: Props) {
             <Star className={['h-5 w-5', origin.isNewArrival ? 'text-blue-600 fill-blue-600' : 'text-slate-400'].join(' ')} />
             <div className="flex-1">
               <div className="font-extrabold text-slate-900 text-sm">New Arrival</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Just launched</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Just launched</div>
             </div>
           </label>
 
@@ -243,7 +243,7 @@ export function MeatWizardStep3Origin({ origin, onChange, errors }: Props) {
             <Zap className={['h-5 w-5', origin.isOnSale ? 'text-rose-600' : 'text-slate-400'].join(' ')} />
             <div className="flex-1">
               <div className="font-extrabold text-slate-900 text-sm">On Sale</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Discount active</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Discount active</div>
             </div>
           </label>
         </div>

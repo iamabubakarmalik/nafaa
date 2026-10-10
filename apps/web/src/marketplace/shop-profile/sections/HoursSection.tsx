@@ -162,7 +162,7 @@ export default function HoursSection({ s, set }: Props) {
             >
               <div className="min-w-[100px]">
                 <div className="text-sm font-black text-slate-900">{day.label}</div>
-                <div className="text-[10px] text-slate-500 font-medium">{day.urdu}</div>
+                <div className="text-[0.6875rem] text-slate-500 font-medium">{day.urdu}</div>
               </div>
 
               <label className="flex items-center gap-2 cursor-pointer">
@@ -195,13 +195,13 @@ export default function HoursSection({ s, set }: Props) {
                     />
                   </div>
 
-                  <div className="text-[10px] text-slate-500 font-bold">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                     ({formatTime12h(daySettings.open || '09:00')} - {formatTime12h(daySettings.close || '22:00')})
                   </div>
 
                   <button
                     onClick={() => copyToAllDays(day.key)}
-                    className="ml-auto text-[10px] font-black text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+                    className="ml-auto text-[0.6875rem] font-black text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
                     title="Copy to all days"
                   >
                     <Copy className="h-3 w-3" />
@@ -227,7 +227,7 @@ export default function HoursSection({ s, set }: Props) {
             <div className="flex-1">
               <div className="font-black text-emerald-900 text-sm flex items-center gap-2">
                 🕌 Namaz Time Break
-                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-600 text-white">
+                <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-emerald-600 text-white">
                   MANUAL CONTROL
                 </span>
               </div>
@@ -254,7 +254,7 @@ export default function HoursSection({ s, set }: Props) {
                   onChange={(e) => updatePrayerSetting('pauseBeforeMinutes', Number(e.target.value))}
                   className="w-full h-10 px-3 rounded-lg border-2 border-emerald-300 bg-white text-sm font-black outline-none focus:border-emerald-500"
                 />
-                <p className="text-[10px] text-emerald-700 font-bold mt-1">Namaz se pehle shop band ho jayegi</p>
+                <p className="text-[0.6875rem] text-emerald-700 font-bold mt-1">Namaz se pehle shop band ho jayegi</p>
               </div>
               <div>
                 <label className="text-xs font-black text-emerald-900 mb-1.5 block">
@@ -268,7 +268,7 @@ export default function HoursSection({ s, set }: Props) {
                   onChange={(e) => updatePrayerSetting('resumeAfterMinutes', Number(e.target.value))}
                   className="w-full h-10 px-3 rounded-lg border-2 border-emerald-300 bg-white text-sm font-black outline-none focus:border-emerald-500"
                 />
-                <p className="text-[10px] text-emerald-700 font-bold mt-1">Namaz ke baad kitni der mein khulegi</p>
+                <p className="text-[0.6875rem] text-emerald-700 font-bold mt-1">Namaz ke baad kitni der mein khulegi</p>
               </div>
             </div>
 
@@ -303,13 +303,13 @@ export default function HoursSection({ s, set }: Props) {
                           <div className={`text-sm font-black ${enabled ? 'text-emerald-900' : 'text-slate-500'}`}>
                             {prayer.label}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-bold">{prayer.urdu}</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-bold">{prayer.urdu}</div>
                         </div>
                       </label>
 
                       {enabled && (
                         <div className="mt-2 pt-2 border-t border-emerald-200">
-                          <label className="text-[10px] font-black text-emerald-900 mb-1 block">
+                          <label className="text-[0.6875rem] font-black text-emerald-900 mb-1 block">
                             Namaz Ka Waqt (approximate)
                           </label>
                           <div className="flex items-center gap-2">
@@ -319,12 +319,12 @@ export default function HoursSection({ s, set }: Props) {
                               onChange={(e) => updatePrayer(prayer.key, 'time', e.target.value)}
                               className="h-9 px-2 rounded-lg border-2 border-emerald-300 bg-white text-xs font-bold outline-none focus:border-emerald-500"
                             />
-                            <span className="text-[10px] font-black text-emerald-700">
+                            <span className="text-[0.6875rem] font-black text-emerald-700">
                               {formatTime12h(prayerTime)}
                             </span>
                           </div>
                           <div className="mt-1.5 rounded bg-emerald-100/70 p-1.5">
-                            <p className="text-[10px] text-emerald-800 font-bold">
+                            <p className="text-[0.6875rem] text-emerald-800 font-bold">
                               🚫 Shop pause: <span className="font-black">{formatTime12h(breakStart)}</span> se <span className="font-black">{formatTime12h(breakEnd)}</span> tak
                             </p>
                           </div>
@@ -347,13 +347,13 @@ export default function HoursSection({ s, set }: Props) {
                 />
                 <div className="flex-1">
                   <div className="text-sm font-black text-purple-900">🕌 Jummah (Friday) Extended Break</div>
-                  <div className="text-[10px] text-purple-700 font-bold">Friday ko lambi break lein Zohar ki jagah</div>
+                  <div className="text-[0.6875rem] text-purple-700 font-bold">Friday ko lambi break lein Zohar ki jagah</div>
                 </div>
               </label>
               {prayerConfig.jummahEnabled && (
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] font-black text-purple-900 mb-1 block">Break Start</label>
+                    <label className="text-[0.6875rem] font-black text-purple-900 mb-1 block">Break Start</label>
                     <div className="flex items-center gap-1.5">
                       <input
                         type="time"
@@ -361,13 +361,13 @@ export default function HoursSection({ s, set }: Props) {
                         onChange={(e) => updatePrayerSetting('jummahStart', e.target.value)}
                         className="h-9 px-2 rounded-lg border-2 border-purple-300 bg-white text-xs font-bold outline-none focus:border-purple-500 flex-1"
                       />
-                      <span className="text-[10px] font-black text-purple-700 whitespace-nowrap">
+                      <span className="text-[0.6875rem] font-black text-purple-700 whitespace-nowrap">
                         {formatTime12h(prayerConfig.jummahStart || '12:30')}
                       </span>
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-purple-900 mb-1 block">Break End</label>
+                    <label className="text-[0.6875rem] font-black text-purple-900 mb-1 block">Break End</label>
                     <div className="flex items-center gap-1.5">
                       <input
                         type="time"
@@ -375,7 +375,7 @@ export default function HoursSection({ s, set }: Props) {
                         onChange={(e) => updatePrayerSetting('jummahEnd', e.target.value)}
                         className="h-9 px-2 rounded-lg border-2 border-purple-300 bg-white text-xs font-bold outline-none focus:border-purple-500 flex-1"
                       />
-                      <span className="text-[10px] font-black text-purple-700 whitespace-nowrap">
+                      <span className="text-[0.6875rem] font-black text-purple-700 whitespace-nowrap">
                         {formatTime12h(prayerConfig.jummahEnd || '14:30')}
                       </span>
                     </div>
@@ -400,7 +400,7 @@ export default function HoursSection({ s, set }: Props) {
             <div className="flex-1">
               <div className="font-black text-amber-900 text-sm flex items-center gap-2">
                 🌙 Ramzan Special Schedule
-                <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-600 text-white">
+                <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-amber-600 text-white">
                   MANUAL CONTROL
                 </span>
               </div>
@@ -431,7 +431,7 @@ export default function HoursSection({ s, set }: Props) {
               {ramzanConfig.sehriEnabled && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] font-black text-amber-900 mb-1 block">Sehri Start</label>
+                    <label className="text-[0.6875rem] font-black text-amber-900 mb-1 block">Sehri Start</label>
                     <div className="flex items-center gap-1.5">
                       <input
                         type="time"
@@ -439,13 +439,13 @@ export default function HoursSection({ s, set }: Props) {
                         onChange={(e) => updateRamzan('sehriStart', e.target.value)}
                         className="h-9 px-2 rounded-lg border-2 border-amber-300 bg-white text-xs font-bold outline-none focus:border-amber-500 flex-1"
                       />
-                      <span className="text-[10px] font-black text-amber-700 whitespace-nowrap">
+                      <span className="text-[0.6875rem] font-black text-amber-700 whitespace-nowrap">
                         {formatTime12h(ramzanConfig.sehriStart || '02:00')}
                       </span>
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-amber-900 mb-1 block">Sehri End</label>
+                    <label className="text-[0.6875rem] font-black text-amber-900 mb-1 block">Sehri End</label>
                     <div className="flex items-center gap-1.5">
                       <input
                         type="time"
@@ -453,7 +453,7 @@ export default function HoursSection({ s, set }: Props) {
                         onChange={(e) => updateRamzan('sehriEnd', e.target.value)}
                         className="h-9 px-2 rounded-lg border-2 border-amber-300 bg-white text-xs font-bold outline-none focus:border-amber-500 flex-1"
                       />
-                      <span className="text-[10px] font-black text-amber-700 whitespace-nowrap">
+                      <span className="text-[0.6875rem] font-black text-amber-700 whitespace-nowrap">
                         {formatTime12h(ramzanConfig.sehriEnd || '04:30')}
                       </span>
                     </div>
@@ -480,7 +480,7 @@ export default function HoursSection({ s, set }: Props) {
               {ramzanConfig.pauseDuringFast && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] font-black text-amber-900 mb-1 block">Pause Start (after Sehri)</label>
+                    <label className="text-[0.6875rem] font-black text-amber-900 mb-1 block">Pause Start (after Sehri)</label>
                     <div className="flex items-center gap-1.5">
                       <input
                         type="time"
@@ -488,13 +488,13 @@ export default function HoursSection({ s, set }: Props) {
                         onChange={(e) => updateRamzan('fastStart', e.target.value)}
                         className="h-9 px-2 rounded-lg border-2 border-amber-300 bg-white text-xs font-bold outline-none focus:border-amber-500 flex-1"
                       />
-                      <span className="text-[10px] font-black text-amber-700 whitespace-nowrap">
+                      <span className="text-[0.6875rem] font-black text-amber-700 whitespace-nowrap">
                         {formatTime12h(ramzanConfig.fastStart || '05:00')}
                       </span>
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-amber-900 mb-1 block">Resume (before Iftar)</label>
+                    <label className="text-[0.6875rem] font-black text-amber-900 mb-1 block">Resume (before Iftar)</label>
                     <div className="flex items-center gap-1.5">
                       <input
                         type="time"
@@ -502,7 +502,7 @@ export default function HoursSection({ s, set }: Props) {
                         onChange={(e) => updateRamzan('fastEnd', e.target.value)}
                         className="h-9 px-2 rounded-lg border-2 border-amber-300 bg-white text-xs font-bold outline-none focus:border-amber-500 flex-1"
                       />
-                      <span className="text-[10px] font-black text-amber-700 whitespace-nowrap">
+                      <span className="text-[0.6875rem] font-black text-amber-700 whitespace-nowrap">
                         {formatTime12h(ramzanConfig.fastEnd || '17:00')}
                       </span>
                     </div>
@@ -529,7 +529,7 @@ export default function HoursSection({ s, set }: Props) {
               {ramzanConfig.iftarBoostEnabled && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] font-black text-orange-900 mb-1 block">Boost Start</label>
+                    <label className="text-[0.6875rem] font-black text-orange-900 mb-1 block">Boost Start</label>
                     <div className="flex items-center gap-1.5">
                       <input
                         type="time"
@@ -537,13 +537,13 @@ export default function HoursSection({ s, set }: Props) {
                         onChange={(e) => updateRamzan('iftarStart', e.target.value)}
                         className="h-9 px-2 rounded-lg border-2 border-orange-300 bg-white text-xs font-bold outline-none focus:border-orange-500 flex-1"
                       />
-                      <span className="text-[10px] font-black text-orange-700 whitespace-nowrap">
+                      <span className="text-[0.6875rem] font-black text-orange-700 whitespace-nowrap">
                         {formatTime12h(ramzanConfig.iftarStart || '16:00')}
                       </span>
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-orange-900 mb-1 block">Boost End</label>
+                    <label className="text-[0.6875rem] font-black text-orange-900 mb-1 block">Boost End</label>
                     <div className="flex items-center gap-1.5">
                       <input
                         type="time"
@@ -551,7 +551,7 @@ export default function HoursSection({ s, set }: Props) {
                         onChange={(e) => updateRamzan('iftarEnd', e.target.value)}
                         className="h-9 px-2 rounded-lg border-2 border-orange-300 bg-white text-xs font-bold outline-none focus:border-orange-500 flex-1"
                       />
-                      <span className="text-[10px] font-black text-orange-700 whitespace-nowrap">
+                      <span className="text-[0.6875rem] font-black text-orange-700 whitespace-nowrap">
                         {formatTime12h(ramzanConfig.iftarEnd || '19:00')}
                       </span>
                     </div>
@@ -578,7 +578,7 @@ export default function HoursSection({ s, set }: Props) {
               {ramzanConfig.taraweehEnabled && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] font-black text-purple-900 mb-1 block">Pause Start</label>
+                    <label className="text-[0.6875rem] font-black text-purple-900 mb-1 block">Pause Start</label>
                     <div className="flex items-center gap-1.5">
                       <input
                         type="time"
@@ -586,13 +586,13 @@ export default function HoursSection({ s, set }: Props) {
                         onChange={(e) => updateRamzan('taraweehStart', e.target.value)}
                         className="h-9 px-2 rounded-lg border-2 border-purple-300 bg-white text-xs font-bold outline-none focus:border-purple-500 flex-1"
                       />
-                      <span className="text-[10px] font-black text-purple-700 whitespace-nowrap">
+                      <span className="text-[0.6875rem] font-black text-purple-700 whitespace-nowrap">
                         {formatTime12h(ramzanConfig.taraweehStart || '20:30')}
                       </span>
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-purple-900 mb-1 block">Pause End</label>
+                    <label className="text-[0.6875rem] font-black text-purple-900 mb-1 block">Pause End</label>
                     <div className="flex items-center gap-1.5">
                       <input
                         type="time"
@@ -600,7 +600,7 @@ export default function HoursSection({ s, set }: Props) {
                         onChange={(e) => updateRamzan('taraweehEnd', e.target.value)}
                         className="h-9 px-2 rounded-lg border-2 border-purple-300 bg-white text-xs font-bold outline-none focus:border-purple-500 flex-1"
                       />
-                      <span className="text-[10px] font-black text-purple-700 whitespace-nowrap">
+                      <span className="text-[0.6875rem] font-black text-purple-700 whitespace-nowrap">
                         {formatTime12h(ramzanConfig.taraweehEnd || '22:00')}
                       </span>
                     </div>
@@ -611,7 +611,7 @@ export default function HoursSection({ s, set }: Props) {
 
             <div className="rounded-lg bg-amber-100 border border-amber-300 p-2 flex items-start gap-2">
               <Info className="h-3.5 w-3.5 text-amber-700 shrink-0 mt-0.5" />
-              <p className="text-[10px] text-amber-800 font-bold">
+              <p className="text-[0.6875rem] text-amber-800 font-bold">
                 Ramzan schedule sirf Ramzan ke mahine mein active hoga. Normal working hours override ho jayenge.
               </p>
             </div>

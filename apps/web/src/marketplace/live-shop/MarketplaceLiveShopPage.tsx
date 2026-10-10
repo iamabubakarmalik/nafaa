@@ -45,7 +45,7 @@ export default function MarketplaceLiveShopPage() {
               <Radio className="h-3.5 w-3.5" />
               Live Shopping
               {(counts.LIVE || 0) > 0 && (
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-white text-[9px] animate-pulse">
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-white text-[0.625rem] animate-pulse">
                   🔴 ON AIR
                 </span>
               )}
@@ -67,7 +67,7 @@ export default function MarketplaceLiveShopPage() {
               <div key={s} className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <StatusIcon className="h-3 w-3 opacity-80" />
-                  <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">{s}</div>
+                  <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">{s}</div>
                 </div>
                 <div className="text-xl font-black tabular-nums">{counts[s] || 0}</div>
               </div>
@@ -162,14 +162,14 @@ function LiveShowCard({ show: ls, onGoLive, onEnd, onCancel }: any) {
             <Video className="h-16 w-16 text-white/40" />
           </div>
         )}
-        <div className={`absolute top-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-full ${meta.bg} ${meta.color} inline-flex items-center gap-1 shadow`}>
+        <div className={`absolute top-2 left-2 text-[0.6875rem] font-black px-2 py-0.5 rounded-full ${meta.bg} ${meta.color} inline-flex items-center gap-1 shadow`}>
           <StatusIcon className="h-2.5 w-2.5" />
           {meta.label}
           {ls.status === 'LIVE' && <span className="ml-1 h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse" />}
         </div>
         {ls.status === 'LIVE' && (
           <div className="absolute bottom-2 left-2 flex items-center gap-2">
-            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-900/80 text-white backdrop-blur inline-flex items-center gap-1">
+            <span className="text-[0.6875rem] font-black px-2 py-0.5 rounded-full bg-slate-900/80 text-white backdrop-blur inline-flex items-center gap-1">
               <Eye className="h-2.5 w-2.5" />
               {ls.peakViewerCount} viewers
             </span>
@@ -204,7 +204,7 @@ function LiveShowCard({ show: ls, onGoLive, onEnd, onCancel }: any) {
                 <Play className="h-3 w-3" />
                 Go Live Now
               </button>
-              <button onClick={onCancel} className="text-[10px] text-rose-600 hover:text-rose-700 font-black">Cancel</button>
+              <button onClick={onCancel} className="text-[0.6875rem] text-rose-600 hover:text-rose-700 font-black">Cancel</button>
             </>
           )}
           {ls.status === 'LIVE' && (
@@ -213,7 +213,7 @@ function LiveShowCard({ show: ls, onGoLive, onEnd, onCancel }: any) {
               End Show
             </button>
           )}
-          <span className="text-[10px] text-slate-500 font-bold ml-auto">{relativeTime(ls.createdAt)}</span>
+          <span className="text-[0.6875rem] text-slate-500 font-bold ml-auto">{relativeTime(ls.createdAt)}</span>
         </div>
       </div>
     </div>
@@ -224,8 +224,8 @@ function MiniStat({ label, value, icon: Icon, isText }: any) {
   return (
     <div className="rounded-lg bg-slate-50 border border-slate-200 p-2 text-center">
       <Icon className="h-3 w-3 text-slate-500 mx-auto mb-1" />
-      <div className={`font-black text-slate-900 tabular-nums ${isText ? 'text-[10px]' : 'text-sm'}`}>{value}</div>
-      <div className="text-[9px] font-black text-slate-500 uppercase">{label}</div>
+      <div className={`font-black text-slate-900 tabular-nums ${isText ? 'text-[0.6875rem]' : 'text-sm'}`}>{value}</div>
+      <div className="text-[0.625rem] font-black text-slate-500 uppercase">{label}</div>
     </div>
   );
 }
@@ -353,13 +353,13 @@ function CreateLiveShowModal({ onClose, onSuccess }: any) {
                     </div>
                     <div className="flex-1 min-w-0 text-xs">
                       <div className="font-black text-slate-900 truncate">{p.publicName}</div>
-                      <div className="text-[10px] text-slate-500 font-bold">Rs {formatPKR(p.publicPrice)}</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">Rs {formatPKR(p.publicPrice)}</div>
                     </div>
                   </label>
                 );
               })}
             </div>
-            <p className="text-[10px] text-slate-500 font-bold mt-1">
+            <p className="text-[0.6875rem] text-slate-500 font-bold mt-1">
               {form.featuredProductIds.length} selected
             </p>
           </div>

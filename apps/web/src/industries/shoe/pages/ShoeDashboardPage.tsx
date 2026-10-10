@@ -265,7 +265,7 @@ export default function ShoeDashboardPage() {
                   <div className="font-extrabold text-sm truncate text-slate-900 group-hover:text-orange-700">
                     {p.modelName || 'Product'}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                     {p.totalSold ?? 0} pairs sold
                   </div>
                 </div>
@@ -306,9 +306,9 @@ export default function ShoeDashboardPage() {
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm truncate text-slate-900">{b.name}</div>
                   <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                    {b.isPremium && <span className="px-1 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold">PREMIUM</span>}
-                    {b.isLocal && <span className="px-1 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">LOCAL</span>}
-                    {b.isSportsBrand && <span className="px-1 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold">SPORTS</span>}
+                    {b.isPremium && <span className="px-1 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">PREMIUM</span>}
+                    {b.isLocal && <span className="px-1 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">LOCAL</span>}
+                    {b.isSportsBrand && <span className="px-1 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">SPORTS</span>}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
@@ -335,10 +335,10 @@ function HeroTile({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3 sm:p-4`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-lg sm:text-xl font-extrabold text-white tabular-nums leading-none truncate">{value}</div>
-      <div className="text-[10px] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
     </div>
   );
 }
@@ -392,22 +392,22 @@ function ModuleCard({ label, icon: Icon, tone, pending, completed, extra, link }
   return (
     <Link to={link} className={`rounded-3xl bg-gradient-to-br from-white to-slate-50 border-2 ${parts[2]} p-4 shadow-sm hover:shadow-lg transition group`}>
       <div className="flex items-center justify-between gap-2">
-        <div className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white bg-gradient-to-r ${parts[0]} ${parts[1]}`}>
+        <div className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-wider text-white bg-gradient-to-r ${parts[0]} ${parts[1]}`}>
           <Icon className="h-3 w-3" /> {label}
         </div>
         <ArrowRight className="h-4 w-4 text-slate-400 group-hover:translate-x-1 transition" />
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Pending</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Pending</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums leading-none mt-1">{pending}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Completed</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Completed</div>
           <div className="text-2xl font-extrabold text-emerald-700 tabular-nums leading-none mt-1">{completed}</div>
         </div>
       </div>
-      <div className="mt-2 text-[10px] font-bold text-slate-500">{extra}</div>
+      <div className="mt-2 text-[0.6875rem] font-bold text-slate-500">{extra}</div>
     </Link>
   );
 }

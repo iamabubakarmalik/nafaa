@@ -189,12 +189,12 @@ function DeliveryCard({ delivery, onAssign, onNext, onFail }: any) {
               <Link to={'/restaurant/orders/' + delivery.orderId} className="font-extrabold text-slate-900 dark:text-white text-lg hover:text-violet-600">
                 {order?.orderNumber}
               </Link>
-              <span className={'px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase text-white ' + cfg.bg}>
+              <span className={'px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold uppercase text-white ' + cfg.bg}>
                 {cfg.label}
               </span>
               {elapsed > 0 && (
                 <span className={
-                  'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold ' +
+                  'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.6875rem] font-extrabold ' +
                   (elapsed > 45 ? 'bg-rose-100 text-rose-700' : elapsed > 25 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600')
                 }>
                   <Timer className="h-2.5 w-2.5" />
@@ -206,7 +206,7 @@ function DeliveryCard({ delivery, onAssign, onNext, onFail }: any) {
             <div className="mt-1 grid sm:grid-cols-2 gap-2 text-xs">
               {/* Customer */}
               <div className="space-y-1">
-                <div className="text-[10px] uppercase font-extrabold text-slate-500">Customer</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Customer</div>
                 {order?.customerName && (
                   <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-bold">
                     <User className="h-3 w-3 text-slate-400" />
@@ -229,14 +229,14 @@ function DeliveryCard({ delivery, onAssign, onNext, onFail }: any) {
 
               {/* Rider */}
               <div className="space-y-1">
-                <div className="text-[10px] uppercase font-extrabold text-slate-500">Rider</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Rider</div>
                 {rider ? (
                   <>
                     <Link to={'/restaurant/riders'} className="flex items-center gap-1.5 text-violet-700 font-bold hover:underline">
                       {rider.avatarUrl ? (
                         <img src={rider.avatarUrl} alt="" className="h-5 w-5 rounded-full object-cover" />
                       ) : (
-                        <div className="h-5 w-5 rounded-full bg-violet-500 text-white flex items-center justify-center text-[10px] font-extrabold">
+                        <div className="h-5 w-5 rounded-full bg-violet-500 text-white flex items-center justify-center text-[0.6875rem] font-extrabold">
                           {rider.name.charAt(0)}
                         </div>
                       )}
@@ -247,7 +247,7 @@ function DeliveryCard({ delivery, onAssign, onNext, onFail }: any) {
                       {rider.phone}
                     </a>
                     {rider.vehicleNumber && (
-                      <div className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400">
+                      <div className="text-[0.6875rem] font-mono font-bold text-slate-600 dark:text-slate-400">
                         🏍️ {rider.vehicleNumber}
                       </div>
                     )}
@@ -259,7 +259,7 @@ function DeliveryCard({ delivery, onAssign, onNext, onFail }: any) {
             </div>
 
             {delivery.distanceKm && (
-              <div className="mt-2 flex items-center gap-3 text-[10px] text-slate-500 font-semibold">
+              <div className="mt-2 flex items-center gap-3 text-[0.6875rem] text-slate-500 font-semibold">
                 <span>{delivery.distanceKm.toFixed(1)} km</span>
                 {delivery.estimatedMinutes && <span>ETA: {delivery.estimatedMinutes}m</span>}
                 {delivery.deliveryFee > 0 && <span className="text-emerald-700 font-extrabold">Fee: {formatPKR(delivery.deliveryFee)}</span>}
@@ -341,7 +341,7 @@ function AssignRiderModal({ orderId, riders, onClose, onAssigned }: any) {
         </div>
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Select Available Rider</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Select Available Rider</label>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {riders.length === 0 ? (
                 <div className="text-sm text-slate-500 font-semibold italic p-4 text-center">No active riders. Add riders first.</div>
@@ -381,14 +381,14 @@ function AssignRiderModal({ orderId, riders, onClose, onAssigned }: any) {
           {selectedRider && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">ETA (minutes)</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">ETA (minutes)</label>
                 <input
                   type="number" value={estimatedMinutes} onChange={(e) => setEstimatedMinutes(Number(e.target.value))}
                   className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500"
                 />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Distance (km)</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Distance (km)</label>
                 <input
                   type="number" step="0.1" value={distanceKm} onChange={(e) => setDistanceKm(e.target.value)}
                   placeholder="Optional"
@@ -396,14 +396,14 @@ function AssignRiderModal({ orderId, riders, onClose, onAssigned }: any) {
                 />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Delivery Fee (Rs)</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Delivery Fee (Rs)</label>
                 <input
                   type="number" step="0.01" value={deliveryFee} onChange={(e) => setDeliveryFee(e.target.value)}
                   className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500"
                 />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Rider Commission</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Rider Commission</label>
                 <input
                   type="number" step="0.01" value={riderCommission} onChange={(e) => setRiderCommission(e.target.value)}
                   className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500"

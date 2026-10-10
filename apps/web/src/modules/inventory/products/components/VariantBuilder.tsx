@@ -156,7 +156,7 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
 
       {/* QUICK TEMPLATES */}
       <div className="rounded-2xl bg-white border-2 border-violet-200 p-3">
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 mb-2 flex items-center gap-1">
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 mb-2 flex items-center gap-1">
           <Zap className="h-3 w-3" /> Quick Templates
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -180,10 +180,10 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
           </div>
           <div>
             <div className="font-extrabold text-slate-900 text-sm">Colors</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Click to select multiple</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Click to select multiple</div>
           </div>
           {colors.length > 0 && (
-            <span className="ml-auto px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-extrabold">
+            <span className="ml-auto px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.6875rem] font-extrabold">
               {colors.length} selected
             </span>
           )}
@@ -247,10 +247,10 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
           </div>
           <div>
             <div className="font-extrabold text-slate-900 text-sm">Sizes / Codes / Capacity</div>
-            <div className="text-[10px] text-slate-500 font-semibold">XS-XXL, 32GB, 250ml, etc.</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">XS-XXL, 32GB, 250ml, etc.</div>
           </div>
           {sizes.length > 0 && (
-            <span className="ml-auto px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 text-[10px] font-extrabold">
+            <span className="ml-auto px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 text-[0.6875rem] font-extrabold">
               {sizes.length} selected
             </span>
           )}
@@ -299,14 +299,14 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
       {/* SELECTED PREVIEW */}
       {(colors.length > 0 || sizes.length > 0) && (
         <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 space-y-3">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-700 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-700 flex items-center gap-1">
             <CheckCircle2 className="h-3 w-3 text-emerald-600" />
             Selected Options
           </div>
 
           {colors.length > 0 && (
             <div>
-              <div className="text-[10px] font-extrabold text-slate-600 mb-1.5">Colors ({colors.length})</div>
+              <div className="text-[0.6875rem] font-extrabold text-slate-600 mb-1.5">Colors ({colors.length})</div>
               <div className="flex flex-wrap gap-1.5">
                 {colors.map((c) => (
                   <span
@@ -332,7 +332,7 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
 
           {sizes.length > 0 && (
             <div>
-              <div className="text-[10px] font-extrabold text-slate-600 mb-1.5">Sizes ({sizes.length})</div>
+              <div className="text-[0.6875rem] font-extrabold text-slate-600 mb-1.5">Sizes ({sizes.length})</div>
               <div className="flex flex-wrap gap-1.5">
                 {sizes.map((s) => (
                   <span
@@ -361,9 +361,9 @@ export function VariantBuilder({ basePrice, baseCostPrice, onGenerate }: Props) 
             <Sparkles className="h-6 w-6" />
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700">Will Generate</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700">Will Generate</div>
             <div className="text-3xl font-extrabold text-violet-900 tabular-nums leading-none">{totalVariants}</div>
-            <div className="text-[10px] text-violet-700 font-bold mt-0.5">
+            <div className="text-[0.6875rem] text-violet-700 font-bold mt-0.5">
               {colors.length} colors × {sizes.length} sizes = {totalVariants} variants
             </div>
           </div>

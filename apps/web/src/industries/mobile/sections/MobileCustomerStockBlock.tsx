@@ -45,7 +45,7 @@ export function MobileCustomerStockBlock({
     <div className="pt-3 border-t border-slate-100 space-y-2">
       {/* Stock availability */}
       <div className="flex items-center justify-between">
-        <div className="text-[11px] uppercase tracking-wider text-slate-700 font-bold">
+        <div className="text-[0.6875rem] uppercase tracking-wider text-slate-700 font-bold">
           Availability
         </div>
         <div className={`text-xs font-extrabold ${
@@ -71,10 +71,10 @@ export function MobileCustomerStockBlock({
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${colors.bg} ${colors.text} ${colors.border}`}
                 >
                   <ShieldCheck className="h-2.5 w-2.5" />
-                  <span className="text-[10px] font-extrabold">
+                  <span className="text-[0.6875rem] font-extrabold">
                     {PTA_STATUS_LABELS[status]}
                   </span>
-                  <span className="text-[9px] opacity-70">({count})</span>
+                  <span className="text-[0.625rem] opacity-70">({count})</span>
                 </div>
               );
             })}
@@ -83,7 +83,7 @@ export function MobileCustomerStockBlock({
           {avgWarranty > 0 && (
             <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-teal-700">
               <Award className="h-2.5 w-2.5" />
-              <span className="text-[10px] font-extrabold">{avgWarranty}m warranty</span>
+              <span className="text-[0.6875rem] font-extrabold">{avgWarranty}m warranty</span>
             </div>
           )}
         </div>
@@ -91,7 +91,7 @@ export function MobileCustomerStockBlock({
 
       {/* Quick info note */}
       {inStockCount === 0 && (
-        <div className="text-[10px] text-slate-500 italic">
+        <div className="text-[0.6875rem] text-slate-500 italic">
           IMEI add karne ke baad customer ko PTA + warranty status visible hogi
         </div>
       )}

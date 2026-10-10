@@ -412,7 +412,7 @@ export default function ShopsPage() {
                 }`}
               >
                 {shop.isMain && (
-                  <div className="absolute top-0 right-0 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[10px] font-extrabold rounded-bl-2xl inline-flex items-center gap-1 shadow">
+                  <div className="absolute top-0 right-0 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[0.6875rem] font-extrabold rounded-bl-2xl inline-flex items-center gap-1 shadow">
                     <Star className="h-3 w-3 fill-white" /> MAIN
                   </div>
                 )}
@@ -428,11 +428,11 @@ export default function ShopsPage() {
                   <div className="flex-1 min-w-0 pt-1">
                     <h4 className="text-lg font-extrabold text-slate-900 truncate">{shop.name}</h4>
                     <div className="flex items-center gap-1 mt-1 flex-wrap">
-                      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
+                      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.6875rem] font-bold">
                         {typeCfg.label}
                       </span>
                       {!shop.isActive && (
-                        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-bold">
                           INACTIVE
                         </span>
                       )}
@@ -461,15 +461,15 @@ export default function ShopsPage() {
                 {stats && isOwner && (
                   <div className="mt-4 pt-4 border-t border-slate-200 grid grid-cols-3 gap-2 text-center">
                     <div>
-                      <div className="text-[9px] font-bold text-slate-500 uppercase">Today</div>
+                      <div className="text-[0.625rem] font-bold text-slate-500 uppercase">Today</div>
                       <div className="text-sm font-extrabold text-emerald-700">Rs {stats.todaySales.toLocaleString('en-PK')}</div>
                     </div>
                     <div>
-                      <div className="text-[9px] font-bold text-slate-500 uppercase">Orders</div>
+                      <div className="text-[0.625rem] font-bold text-slate-500 uppercase">Orders</div>
                       <div className="text-sm font-extrabold text-slate-900">{stats.todayOrders}</div>
                     </div>
                     <div>
-                      <div className="text-[9px] font-bold text-slate-500 uppercase">Low Stock</div>
+                      <div className="text-[0.625rem] font-bold text-slate-500 uppercase">Low Stock</div>
                       <div className={`text-sm font-extrabold ${stats.lowStockCount > 0 ? 'text-amber-700' : 'text-slate-400'}`}>
                         {stats.lowStockCount}
                       </div>
@@ -478,7 +478,7 @@ export default function ShopsPage() {
                 )}
 
                 {/* Footer counts */}
-                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[0.6875rem]">
                   <div className="flex items-center gap-3 text-slate-600">
                     {shop._count?.users !== undefined && (
                       <span className="inline-flex items-center gap-1 font-bold">
@@ -578,7 +578,7 @@ export default function ShopsPage() {
                       >
                         <Icon className={`h-6 w-6 mx-auto mb-1 ${active ? `text-${cfg.color}-600` : 'text-slate-400'}`} />
                         <div className="text-sm font-extrabold text-slate-900">{cfg.label}</div>
-                        <div className="text-[10px] text-slate-500 font-semibold">{cfg.description}</div>
+                        <div className="text-[0.6875rem] text-slate-500 font-semibold">{cfg.description}</div>
                       </button>
                     );
                   })}

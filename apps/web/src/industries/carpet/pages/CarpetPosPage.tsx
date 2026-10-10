@@ -495,7 +495,7 @@ export default function CarpetPosPage() {
                       </div>
                     )}
                   </div>
-                  <p className="text-[11px] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                  <p className="text-[0.6875rem] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
                     <Store className="h-3 w-3 shrink-0" />
                     <span className="truncate">{tenant?.name || 'Carpet Store'}</span>
                     <span className="text-white/40">•</span>
@@ -520,7 +520,7 @@ export default function CarpetPosPage() {
                   className="lg:hidden relative h-10 w-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 flex items-center justify-center transition">
                   <ShoppingCart className="h-4 w-4" />
                   {cart.length > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">
                       {cart.length}
                     </span>
                   )}
@@ -561,7 +561,7 @@ export default function CarpetPosPage() {
               <button onClick={() => setScannerOpen(true)}
                 className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
                 <Camera className="h-5 w-5" />
-                <span className="text-[9px] font-extrabold uppercase">Scan</span>
+                <span className="text-[0.625rem] font-extrabold uppercase">Scan</span>
               </button>
             </div>
 
@@ -588,7 +588,7 @@ export default function CarpetPosPage() {
                   </button>
                 );
               })}
-              <div className="ml-auto text-[10px] font-extrabold text-slate-500 self-center shrink-0 pr-1">
+              <div className="ml-auto text-[0.6875rem] font-extrabold text-slate-500 self-center shrink-0 pr-1">
                 {activeTab === 'rolls' ? filteredRolls.length : activeTab === 'pieces' ? filteredCutPieces.length : filteredAccessories.length} items
               </div>
             </div>
@@ -690,12 +690,12 @@ export default function CarpetPosPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[11px] font-extrabold flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[0.6875rem] font-extrabold flex items-center justify-center">
                   {cart.length}
                 </span>
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
                 <div className="text-lg font-extrabold tabular-nums leading-none">{hidePrices ? '••••' : formatPKR(total)}</div>
               </div>
             </div>
@@ -721,9 +721,9 @@ function TabButton({ active, onClick, icon: Icon, label, count, color, shortcut 
       <Icon className="h-4 w-4" />
       <span>{label}</span>
       {count > 0 && (
-        <span className={`px-1.5 rounded-md text-[10px] ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>{count}</span>
+        <span className={`px-1.5 rounded-md text-[0.6875rem] ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>{count}</span>
       )}
-      <span className={`hidden lg:inline text-[9px] font-mono px-1 rounded ${active ? 'bg-white/20' : 'bg-slate-200 text-slate-500'}`}>
+      <span className={`hidden lg:inline text-[0.625rem] font-mono px-1 rounded ${active ? 'bg-white/20' : 'bg-slate-200 text-slate-500'}`}>
         {shortcut}
       </span>
     </button>
@@ -747,17 +747,17 @@ function RollTile({ roll, hidePrices, onClick }: any) {
             <Layers className="h-12 w-12 text-emerald-300" />
           </div>
         )}
-        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-extrabold font-mono shadow-lg">
+        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[0.6875rem] font-extrabold font-mono shadow-lg">
           {roll.rollNumber}
         </div>
         {roll.variant && (
-          <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-violet-600 text-white text-[10px] font-extrabold inline-flex items-center gap-1">
+          <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-violet-600 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
             {roll.variant.colorHex && <span className="h-2 w-2 rounded-full border border-white" style={{ backgroundColor: roll.variant.colorHex }} />}
             {roll.variant.name}
           </div>
         )}
         {isLow && (
-          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold animate-pulse">LOW</div>
+          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold animate-pulse">LOW</div>
         )}
       </div>
       <div className="p-2 sm:p-2.5">
@@ -768,9 +768,9 @@ function RollTile({ roll, hidePrices, onClick }: any) {
           <div className="text-sm sm:text-base font-extrabold text-emerald-700 tabular-nums">
             {hidePrices ? '•••' : formatPKR(roll.salePricePerSqft || 0)}
           </div>
-          <div className="text-[10px] font-extrabold text-slate-600 tabular-nums">{remaining.toFixed(0)} sqft</div>
+          <div className="text-[0.6875rem] font-extrabold text-slate-600 tabular-nums">{remaining.toFixed(0)} sqft</div>
         </div>
-        <div className="mt-1 flex items-center gap-1 text-[10px] text-slate-500 font-bold">
+        <div className="mt-1 flex items-center gap-1 text-[0.6875rem] text-slate-500 font-bold">
           <Ruler className="h-2.5 w-2.5" />
           {Number(roll.widthFt)}ft × {Number(roll.remainingLengthFt)}ft
           {roll.rackNumber && (<><span>•</span><MapPin className="h-2.5 w-2.5" />{roll.rackNumber}</>)}
@@ -791,8 +791,8 @@ function PieceTile({ piece, hidePrices, onClick }: any) {
       <div className="aspect-square bg-gradient-to-br from-violet-100 to-fuchsia-100 relative flex flex-col items-center justify-center p-3">
         <Scissors className="h-10 w-10 text-violet-500 mb-1" />
         <div className="text-xs font-mono font-extrabold text-violet-900 text-center">{piece.pieceCode}</div>
-        <div className="text-[10px] font-bold text-slate-600 mt-0.5">{piece.widthFt}ft × {piece.lengthFt}ft</div>
-        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-violet-600 text-white text-[9px] font-extrabold">
+        <div className="text-[0.6875rem] font-bold text-slate-600 mt-0.5">{piece.widthFt}ft × {piece.lengthFt}ft</div>
+        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-violet-600 text-white text-[0.625rem] font-extrabold">
           {Number(piece.totalSqft).toFixed(1)} sqft
         </div>
         {piece.variant?.colorHex && (
@@ -806,7 +806,7 @@ function PieceTile({ piece, hidePrices, onClick }: any) {
             {hidePrices ? '•••' : formatPKR(piece.salePrice || 0)}
           </div>
           {piece.rackNumber && (
-            <div className="text-[10px] font-bold text-slate-500 inline-flex items-center gap-0.5">
+            <div className="text-[0.6875rem] font-bold text-slate-500 inline-flex items-center gap-0.5">
               <MapPin className="h-2.5 w-2.5" />{piece.rackNumber}
             </div>
           )}
@@ -853,7 +853,7 @@ function AccessoryTile({ product, hidePrices, cart, onClick }: any) {
           <div className="text-base font-extrabold text-emerald-700 tabular-nums">
             {hidePrices ? '•••' : formatPKR(product.price)}
           </div>
-          <div className="text-[10px] font-bold text-slate-500">{product.stock} {product.unit}</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500">{product.stock} {product.unit}</div>
         </div>
       </div>
     </button>
@@ -891,7 +891,7 @@ function CartPanel(props: any) {
       <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
               🧶 Carpet Cart • {cart.length} items
             </div>
             <div className="text-3xl sm:text-4xl font-extrabold tabular-nums leading-none mt-1">
@@ -977,13 +977,13 @@ function CartPanel(props: any) {
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm text-slate-900 leading-tight">{item.name}</div>
                   {item.rollNumber && (
-                    <div className="text-[10px] font-mono font-extrabold text-emerald-700 mt-0.5">Roll: {item.rollNumber}</div>
+                    <div className="text-[0.6875rem] font-mono font-extrabold text-emerald-700 mt-0.5">Roll: {item.rollNumber}</div>
                   )}
                   {item.cutPieceCode && (
-                    <div className="text-[10px] font-mono font-extrabold text-violet-700 mt-0.5">Piece: {item.cutPieceCode}</div>
+                    <div className="text-[0.6875rem] font-mono font-extrabold text-violet-700 mt-0.5">Piece: {item.cutPieceCode}</div>
                   )}
                   {item.note && (
-                    <div className="text-[10px] font-mono text-slate-600 mt-1 bg-white/60 rounded px-1.5 py-0.5 truncate">{item.note}</div>
+                    <div className="text-[0.6875rem] font-mono text-slate-600 mt-1 bg-white/60 rounded px-1.5 py-0.5 truncate">{item.note}</div>
                   )}
                 </div>
                 <button onClick={() => setCart((prev: any) => prev.filter((c: any) => c.cartLineId !== item.cartLineId))}
@@ -1020,7 +1020,7 @@ function CartPanel(props: any) {
         {cart.length > 0 && (
           <div className="rounded-2xl bg-orange-50 border-4 border-orange-200 p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <div className="text-[10px] uppercase font-extrabold text-orange-700 inline-flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-orange-700 inline-flex items-center gap-1">
                 <Wrench className="h-3 w-3" /> Service Charges
               </div>
               <button onClick={addServiceCharge} className="text-xs font-extrabold text-orange-600 inline-flex items-center gap-0.5 active:scale-95">
@@ -1066,7 +1066,7 @@ function CartPanel(props: any) {
           <div className="grid grid-cols-3 gap-1">
             {(['FULL_PAYMENT', 'PARTIAL_CREDIT', 'FULL_CREDIT'] as const).map((m) => (
               <button key={m} onClick={() => setSaleMode(m)}
-                className={`py-2 rounded-lg text-[10px] font-extrabold transition active:scale-95 ${
+                className={`py-2 rounded-lg text-[0.6875rem] font-extrabold transition active:scale-95 ${
                   saleMode === m ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                 }`}>
                 {m === 'FULL_PAYMENT' ? '💵 Full' : m === 'PARTIAL_CREDIT' ? '📝 Partial' : '📔 Udhaar'}
@@ -1110,7 +1110,7 @@ function CartPanel(props: any) {
           <button onClick={onCheckout} disabled={!canCheckout || loading}
             className="w-full h-16 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 active:scale-[0.98] text-white font-extrabold shadow-2xl transition disabled:opacity-50 flex items-center justify-between px-5">
             <div className="text-left">
-              <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">
                 {loading ? 'Processing...' : 'Complete Sale'}
               </div>
               <div className="text-xl tabular-nums leading-none mt-0.5">{formatPKR(total)}</div>

@@ -148,7 +148,7 @@ export function ReturnHistoryTable({ returns, loading }: Props) {
                     <td className="px-6 py-3 text-center">
                       {cutPiecesCount > 0 ? (
                         <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold"
                           title={r.createdCutPieces?.join(', ')}
                         >
                           <Scissors className="h-2.5 w-2.5" />

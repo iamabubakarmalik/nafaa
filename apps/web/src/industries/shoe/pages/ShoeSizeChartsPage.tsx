@@ -72,8 +72,8 @@ export default function ShoeSizeChartsPage() {
                 <div className="min-w-0">
                   <h3 className="font-extrabold text-slate-900 truncate">{c.name}</h3>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {c.gender && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold">{c.gender}</span>}
-                    {c.categoryType && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold">{c.categoryType.replace(/_/g, ' ')}</span>}
+                    {c.gender && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">{c.gender}</span>}
+                    {c.categoryType && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold">{c.categoryType.replace(/_/g, ' ')}</span>}
                   </div>
                 </div>
               </div>
@@ -208,5 +208,5 @@ function ChartFormModal({ editing, onClose, onSaved }: any) {
 }
 
 function Th({ children }: any) {
-  return <th className="px-2 py-2 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700">{children}</th>;
+  return <th className="px-2 py-2 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">{children}</th>;
 }

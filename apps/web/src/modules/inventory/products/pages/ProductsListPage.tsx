@@ -624,7 +624,7 @@ export default function ProductsListPage() {
           {showFilters && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t-2 border-slate-100">
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Category</label>
+                <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Category</label>
                 <select
                   className="h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-2 text-xs font-bold focus:outline-none"
                   value={params.categoryId ?? ''}
@@ -637,7 +637,7 @@ export default function ProductsListPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Brand</label>
+                <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Brand</label>
                 <select
                   className="h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-2 text-xs font-bold focus:outline-none"
                   value={params.brandId ?? ''}
@@ -650,7 +650,7 @@ export default function ProductsListPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1">Tag</label>
+                <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1">Tag</label>
                 <select
                   className="h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-2 text-xs font-bold focus:outline-none"
                   value={params.tagId ?? ''}
@@ -685,7 +685,7 @@ export default function ProductsListPage() {
                 <div className="font-extrabold text-sm">{selected.size} selected</div>
                 <button
                   onClick={toggleSelectAll}
-                  className="text-[10px] font-bold underline hover:text-amber-100"
+                  className="text-[0.6875rem] font-bold underline hover:text-amber-100"
                 >
                   {selected.size === items.length ? 'Deselect all' : `Select all ${items.length}`}
                 </button>
@@ -782,13 +782,13 @@ export default function ProductsListPage() {
                         className="h-4 w-4 rounded border-2 border-slate-300"
                       />
                     </th>
-                    <th className="px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Product</th>
-                    <th className="px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Category</th>
-                    <th className="px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">SKU</th>
-                    <th className="px-3 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Price</th>
-                    <th className="px-3 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Stock</th>
-                    <th className="px-3 py-3 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Status</th>
-                    <th className="px-3 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Actions</th>
+                    <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Product</th>
+                    <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Category</th>
+                    <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">SKU</th>
+                    <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Price</th>
+                    <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Stock</th>
+                    <th className="px-3 py-3 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Status</th>
+                    <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -827,10 +827,10 @@ export default function ProductsListPage() {
                               </Link>
                               <div className="flex items-center gap-1 flex-wrap mt-0.5">
                                 {p.brand && (
-                                  <span className="text-[10px] font-bold text-violet-700">{p.brand.name}</span>
+                                  <span className="text-[0.6875rem] font-bold text-violet-700">{p.brand.name}</span>
                                 )}
                                 {hasIndustryRibbon && (
-                                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase"
+                                  <span className="text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded uppercase"
                                         style={{ color: theme.accentHex, backgroundColor: `${theme.accentHex}15` }}>
                                     {theme.ribbonLabel}
                                   </span>
@@ -853,16 +853,16 @@ export default function ProductsListPage() {
                             {formatPKR(p.price)}
                           </div>
                           {p.wholesalePrice && (
-                            <div className="text-[9px] text-amber-700 font-bold">W: {formatPKR(p.wholesalePrice)}</div>
+                            <div className="text-[0.625rem] text-amber-700 font-bold">W: {formatPKR(p.wholesalePrice)}</div>
                           )}
                         </td>
                         <td className="px-3 py-3 text-right">
                           {isCarpetP ? (
                             <div>
                               <div className="font-extrabold text-emerald-700 tabular-nums">
-                                {carpetData ? carpetData.totalSqft.toFixed(0) : 0} <span className="text-[10px]">{p.unit}</span>
+                                {carpetData ? carpetData.totalSqft.toFixed(0) : 0} <span className="text-[0.6875rem]">{p.unit}</span>
                               </div>
-                              <div className="text-[9px] text-slate-500 font-bold">
+                              <div className="text-[0.625rem] text-slate-500 font-bold">
                                 {carpetData?.rollCount ?? 0} rolls
                               </div>
                             </div>
@@ -870,21 +870,21 @@ export default function ProductsListPage() {
                             <div className={`font-extrabold tabular-nums ${
                               isOut ? 'text-rose-700' : isLow ? 'text-amber-700' : 'text-slate-900'
                             }`}>
-                              {p.stock} <span className="text-[10px] font-bold opacity-70">{p.unit}</span>
+                              {p.stock} <span className="text-[0.6875rem] font-bold opacity-70">{p.unit}</span>
                             </div>
                           )}
                         </td>
                         <td className="px-3 py-3 text-center">
                           {!p.isActive ? (
-                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[9px] font-extrabold">INACTIVE</span>
+                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold">INACTIVE</span>
                           ) : isCarpetP && carpetData && carpetData.rollCount === 0 ? (
-                            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-extrabold">NO ROLLS</span>
+                            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.625rem] font-extrabold">NO ROLLS</span>
                           ) : isOut ? (
-                            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-extrabold">OUT</span>
+                            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.625rem] font-extrabold">OUT</span>
                           ) : isLow ? (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-extrabold">LOW</span>
+                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">LOW</span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">ACTIVE</span>
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">ACTIVE</span>
                           )}
                         </td>
                         <td className="px-3 py-3">
@@ -982,10 +982,10 @@ function KpiTile({
     <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-3">
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold leading-none tabular-nums">{value}</div>
-      {sub && <div className="text-[10px] font-bold opacity-75 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold opacity-75 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -993,7 +993,7 @@ function KpiTile({
 function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
     <div>
-      <div className="text-[10px] uppercase font-extrabold text-white/70">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">{label}</div>
       <div className="text-lg font-extrabold tabular-nums">{value}</div>
     </div>
   );
@@ -1073,7 +1073,7 @@ function ProductCard({
     >
       {/* Industry ribbon */}
       {hasIndustryRibbon && (
-        <div className={`absolute top-0 left-0 z-10 px-2 py-0.5 rounded-br-lg bg-gradient-to-r ${theme.ribbon} text-white text-[9px] font-extrabold uppercase tracking-wider shadow`}>
+        <div className={`absolute top-0 left-0 z-10 px-2 py-0.5 rounded-br-lg bg-gradient-to-r ${theme.ribbon} text-white text-[0.625rem] font-extrabold uppercase tracking-wider shadow`}>
           <span className="mr-1">{theme.emoji}</span>{theme.ribbonLabel}
         </div>
       )}
@@ -1122,7 +1122,7 @@ function ProductCard({
 
           {!p.isActive && (
             <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center">
-              <span className="px-2 py-1 rounded-md bg-slate-900 text-white text-[10px] font-extrabold uppercase tracking-wider">
+              <span className="px-2 py-1 rounded-md bg-slate-900 text-white text-[0.6875rem] font-extrabold uppercase tracking-wider">
                 Inactive
               </span>
             </div>
@@ -1133,7 +1133,7 @@ function ProductCard({
       {/* Body */}
       <div className="p-3 space-y-1.5">
         {p.brand && (
-          <div className="text-[10px] uppercase tracking-wider text-violet-700 font-bold">
+          <div className="text-[0.6875rem] uppercase tracking-wider text-violet-700 font-bold">
             {p.brand.name}
           </div>
         )}
@@ -1149,14 +1149,14 @@ function ProductCard({
             <div className="flex items-center justify-between pt-1">
               <div className="font-extrabold text-sm tabular-nums" style={{ color: theme.accentHex }}>
                 {carpetPriceDisplay}
-                <span className="text-[9px] font-bold text-slate-500 ml-0.5">/{p.unit}</span>
+                <span className="text-[0.625rem] font-bold text-slate-500 ml-0.5">/{p.unit}</span>
               </div>
               {hasCarpetStock ? (
-                <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                <span className="text-[0.6875rem] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
                   {carpetTotalSqft.toFixed(0)} {p.unit}
                 </span>
               ) : (
-                <span className="text-[10px] font-extrabold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
+                <span className="text-[0.6875rem] font-extrabold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
                   NO ROLLS
                 </span>
               )}
@@ -1164,13 +1164,13 @@ function ProductCard({
 
             <div className="flex flex-wrap gap-1 pt-1">
               {carpetRollCount > 0 && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-0.5 text-[0.6875rem] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                   <Layers className="h-2.5 w-2.5" />
                   {carpetRollCount} roll{carpetRollCount !== 1 ? 's' : ''}
                 </span>
               )}
               {carpetCutPieces > 0 && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-violet-700 bg-violet-50 border border-violet-200 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-0.5 text-[0.6875rem] font-bold text-violet-700 bg-violet-50 border border-violet-200 px-2 py-0.5 rounded-full">
                   <Scissors className="h-2.5 w-2.5" />
                   {carpetCutPieces} piece{carpetCutPieces !== 1 ? 's' : ''}
                 </span>
@@ -1180,7 +1180,7 @@ function ProductCard({
             <div className="flex gap-1 pt-1">
               <Link
                 to={detailHref}
-                className={`flex-1 px-2 py-1.5 rounded-lg bg-gradient-to-r ${theme.ribbon} hover:opacity-90 text-white text-[10px] font-extrabold inline-flex items-center justify-center gap-1 transition shadow-sm`}
+                className={`flex-1 px-2 py-1.5 rounded-lg bg-gradient-to-r ${theme.ribbon} hover:opacity-90 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 transition shadow-sm`}
                 title="Full product detail"
               >
                 <Eye className="h-2.5 w-2.5" /> View Details
@@ -1209,14 +1209,14 @@ function ProductCard({
                 {formatPKR(p.price)}
               </div>
               {isOut ? (
-                <span className="text-[10px] font-extrabold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">OUT</span>
+                <span className="text-[0.6875rem] font-extrabold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">OUT</span>
               ) : isLow ? (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-0.5 text-[0.6875rem] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
                   <AlertTriangle className="h-2.5 w-2.5" />
                   {p.stock} {p.unit}
                 </span>
               ) : (
-                <span className="text-[10px] font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+                <span className="text-[0.6875rem] font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
                   {p.stock} {p.unit}
                 </span>
               )}
@@ -1224,11 +1224,11 @@ function ProductCard({
 
             <div className="flex flex-wrap gap-1 pt-1">
               {p._count && p._count.variants! > 0 && (
-                <span className="text-[10px] font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full">
+                <span className="text-[0.6875rem] font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full">
                   {p._count.variants} variants
                 </span>
               )}
-              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-0.5 text-[0.6875rem] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
                 <ShieldCheck className="h-2.5 w-2.5" /> IMEI
               </span>
             </div>
@@ -1236,7 +1236,7 @@ function ProductCard({
             <div className="flex gap-1 pt-1">
               <Link
                 to={detailHref}
-                className={`flex-1 px-2 py-1.5 rounded-lg bg-gradient-to-r ${theme.ribbon} hover:opacity-90 text-white text-[10px] font-extrabold inline-flex items-center justify-center gap-1 transition shadow-sm`}
+                className={`flex-1 px-2 py-1.5 rounded-lg bg-gradient-to-r ${theme.ribbon} hover:opacity-90 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 transition shadow-sm`}
                 title="Full detail with IMEIs"
               >
                 <Eye className="h-2.5 w-2.5" /> View Details
@@ -1265,14 +1265,14 @@ function ProductCard({
                 {formatPKR(p.price)}
               </div>
               {isOut ? (
-                <span className="text-[10px] font-extrabold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">OUT</span>
+                <span className="text-[0.6875rem] font-extrabold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">OUT</span>
               ) : isLow ? (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-0.5 text-[0.6875rem] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
                   <AlertTriangle className="h-2.5 w-2.5" />
                   {p.stock} {p.unit}
                 </span>
               ) : (
-                <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                <span className="text-[0.6875rem] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
                   {p.stock} {p.unit}
                 </span>
               )}
@@ -1280,18 +1280,18 @@ function ProductCard({
 
             <div className="flex flex-wrap gap-1 pt-1">
               {p._count && p._count.variants! > 0 && (
-                <span className="text-[10px] font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full">
+                <span className="text-[0.6875rem] font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full">
                   {p._count.variants} variants
                 </span>
               )}
               {p._count && p._count.images! > 0 && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-0.5 text-[0.6875rem] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
                   <ImageIcon className="h-2.5 w-2.5" />
                   {p._count.images}
                 </span>
               )}
               {p.wholesalePrice && (
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                <span className="text-[0.6875rem] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
                   W/S
                 </span>
               )}
@@ -1300,7 +1300,7 @@ function ProductCard({
             <div className="flex gap-1 pt-1">
               <Link
                 to={detailHref}
-                className={`flex-1 px-2 py-1.5 rounded-lg bg-gradient-to-r ${theme.ribbon} hover:opacity-90 text-white text-[10px] font-extrabold inline-flex items-center justify-center gap-1 transition shadow-sm`}
+                className={`flex-1 px-2 py-1.5 rounded-lg bg-gradient-to-r ${theme.ribbon} hover:opacity-90 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 transition shadow-sm`}
                 title="View product details"
               >
                 <Eye className="h-3 w-3" /> View Details
@@ -1382,7 +1382,7 @@ function QuickEditProductModal({
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3 space-y-3">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-blue-700 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700 flex items-center gap-1">
               <DollarSign className="h-3 w-3" />
               Pricing
             </div>
@@ -1420,7 +1420,7 @@ function QuickEditProductModal({
           </div>
 
           <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-3 space-y-3">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700 flex items-center gap-1">
               <Package className="h-3 w-3" />
               Stock
             </div>
@@ -1444,7 +1444,7 @@ function QuickEditProductModal({
           </div>
 
           <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-700 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-700 flex items-center gap-1">
               <Sparkles className="h-3 w-3" />
               Status
             </div>
@@ -1529,7 +1529,7 @@ function DeleteProductModal({
               <Trash2 className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/80">
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/80">
                 Permanent Delete — Step {step}/2
               </div>
               <h3 className="font-extrabold text-lg truncate">{product.name}</h3>

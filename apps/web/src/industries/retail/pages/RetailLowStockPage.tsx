@@ -288,7 +288,7 @@ export default function RetailLowStockPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
             <div className="text-xs font-bold text-slate-900">{printDate}</div>
           </div>
         </div>
@@ -301,7 +301,7 @@ export default function RetailLowStockPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <AlertTriangle className="h-3.5 w-3.5 text-amber-300" /> Stock Alerts
               {shopName && (
                 <>
@@ -364,7 +364,7 @@ export default function RetailLowStockPage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-extrabold text-sm">Supplier ko poori order list bhejo</div>
-              <div className="text-[11px] text-white/75 font-semibold">
+              <div className="text-[0.6875rem] text-white/75 font-semibold">
                 {filtered.length} items • suggested quantities ke sath • 1 click copy
               </div>
             </div>
@@ -384,7 +384,7 @@ export default function RetailLowStockPage() {
         )}
 
         {/* Keyboard hints */}
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>Esc</Kbd><span className="text-white/60">Band</span>
@@ -402,7 +402,7 @@ export default function RetailLowStockPage() {
               <h3 className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">
                 {industryStock.industryEmoji} {industryStock.industryName} Restock Priority
               </h3>
-              <p className="text-[11px] text-amber-800 dark:text-amber-300/80 font-bold">
+              <p className="text-[0.6875rem] text-amber-800 dark:text-amber-300/80 font-bold">
                 {industryStock.restockRules.length} urgency levels
               </p>
             </div>
@@ -413,8 +413,8 @@ export default function RetailLowStockPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-xl shrink-0">{rule.emoji}</span>
                   <div className="min-w-0">
-                    <div className="text-[11px] font-extrabold" style={{ color: rule.color }}>{rule.label}</div>
-                    <div className="text-[9px] text-slate-600 dark:text-slate-400 font-semibold line-clamp-2">{rule.description}</div>
+                    <div className="text-[0.6875rem] font-extrabold" style={{ color: rule.color }}>{rule.label}</div>
+                    <div className="text-[0.625rem] text-slate-600 dark:text-slate-400 font-semibold line-clamp-2">{rule.description}</div>
                   </div>
                 </div>
               </div>
@@ -440,7 +440,7 @@ export default function RetailLowStockPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Top 10 Urgent Items</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Stock vs alert threshold</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Stock vs alert threshold</p>
               </div>
               <BarChart3 className="h-5 w-5 text-amber-500" />
             </div>
@@ -464,7 +464,7 @@ export default function RetailLowStockPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Category Breakdown</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Kaunsi category sab se zyada affected</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Kaunsi category sab se zyada affected</p>
               </div>
               <Layers className="h-5 w-5 text-violet-500" />
             </div>
@@ -596,7 +596,7 @@ export default function RetailLowStockPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm print:text-[10px]">
+            <table className="min-w-full text-sm print:text-[0.6875rem]">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-b-2 border-slate-200 dark:border-slate-700">
                 <tr>
                   <Th>#</Th>
@@ -626,7 +626,7 @@ export default function RetailLowStockPage() {
                           : 'bg-amber-50/40 dark:bg-amber-500/5 hover:bg-amber-50/60 dark:hover:bg-amber-500/10',
                       ].join(' ')}
                     >
-                      <td className="px-3 py-3 text-[10px] font-extrabold text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                      <td className="px-3 py-3 text-[0.6875rem] font-extrabold text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2.5">
                           <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 print:hidden">
@@ -638,7 +638,7 @@ export default function RetailLowStockPage() {
                           </div>
                           <div className="min-w-0">
                             <div className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{p.productName}</div>
-                            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{p.sku || p.barcode || '—'}</div>
+                            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">{p.sku || p.barcode || '—'}</div>
                           </div>
                         </div>
                       </td>
@@ -649,7 +649,7 @@ export default function RetailLowStockPage() {
                             <span className="truncate">{p.category}</span>
                           </div>
                         )}
-                        {p.brand && (<div className="text-[10px] font-bold text-violet-700 dark:text-violet-400 mt-0.5">{p.brand}</div>)}
+                        {p.brand && (<div className="text-[0.6875rem] font-bold text-violet-700 dark:text-violet-400 mt-0.5">{p.brand}</div>)}
                       </td>
                       <td className="px-3 py-3 text-right">
                         <button
@@ -660,10 +660,10 @@ export default function RetailLowStockPage() {
                           <span className={`font-extrabold text-lg tabular-nums ${isCritical ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
                             {formatQty(p.stock)}
                           </span>
-                          <span className="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition">+ Stock</span>
+                          <span className="text-[0.625rem] font-extrabold text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition">+ Stock</span>
                         </button>
                         <span className="hidden print:inline font-extrabold">{formatQty(p.stock)}</span>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase print:hidden">{p.unit}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold uppercase print:hidden">{p.unit}</div>
                       </td>
                       <td className="px-3 py-3 text-right text-slate-700 dark:text-slate-300 font-bold tabular-nums text-xs">
                         {formatQty(p.lowStockAlert)} {p.unit}
@@ -676,14 +676,14 @@ export default function RetailLowStockPage() {
                               style={{ width: `${Math.max(urgPct, 4)}%` }}
                             />
                           </div>
-                          <span className={`text-[9px] font-extrabold tabular-nums ${isCritical ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                          <span className={`text-[0.625rem] font-extrabold tabular-nums ${isCritical ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
                             {isCritical ? '0%' : `${urgPct}%`}
                           </span>
                         </div>
                       </td>
                       <td className="px-3 py-3 text-right">
                         <span className="font-extrabold text-sky-700 dark:text-sky-400 tabular-nums text-xs">
-                          {orderQty} <span className="text-[9px] text-slate-500 dark:text-slate-400">{p.unit}</span>
+                          {orderQty} <span className="text-[0.625rem] text-slate-500 dark:text-slate-400">{p.unit}</span>
                         </span>
                       </td>
                       <td className="px-3 py-3 text-center">
@@ -882,7 +882,7 @@ function Kbd({ children }: { children: React.ReactNode }) {
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider ${className}`}>
+    <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider ${className}`}>
       {children}
     </th>
   );
@@ -893,7 +893,7 @@ function Pill({ tone, children }: any) {
     rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
     amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${tones[tone]}`}>{children}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${tones[tone]}`}>{children}</span>;
 }
 
 function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
@@ -917,9 +917,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

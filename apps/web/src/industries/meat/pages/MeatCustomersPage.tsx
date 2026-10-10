@@ -147,13 +147,13 @@ export default function MeatCustomersPage() {
               extraBadges={
                 <>
                   {c.totalKg > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[0.6875rem] font-bold">
                       <Weight className="h-3 w-3" />
                       {c.totalKg.toFixed(0)}kg
                     </div>
                   )}
                   {c.isWholesale && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[0.6875rem] font-bold">
                       <Building2 className="h-3 w-3" />
                       Wholesale
                     </div>

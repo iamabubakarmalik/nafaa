@@ -329,7 +329,7 @@ export default function GiftPackFormPage() {
             {originalTotal > 0 && (
               <>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">Quick discount</div>
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">Quick discount</div>
                   <div className="flex flex-wrap gap-1.5">
                     {DISCOUNT_QUICK.map((d) => (
                       <button key={d} onClick={() => applyDiscount(d)}
@@ -345,7 +345,7 @@ export default function GiftPackFormPage() {
                   savingsPct >= 15 ? 'bg-emerald-50 border-emerald-300' : 'bg-amber-50 border-amber-300'}`}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className={`text-[10px] uppercase tracking-wider font-extrabold ${
+                      <div className={`text-[0.6875rem] uppercase tracking-wider font-extrabold ${
                         isLoss ? 'text-rose-700' : savingsPct >= 15 ? 'text-emerald-700' : 'text-amber-700'}`}>
                         {isLoss ? '⚠️ Loss warning!' : 'Customer Savings'}
                       </div>
@@ -373,14 +373,14 @@ export default function GiftPackFormPage() {
                 <Gift className="h-5 w-5 text-pink-600" />
                 <div>
                   <div className="font-extrabold text-sm">Pre-wrapped</div>
-                  <div className="text-[11px] text-slate-500">Ready to give as gift</div>
+                  <div className="text-[0.6875rem] text-slate-500">Ready to give as gift</div>
                 </div>
               </label>
               <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-200 hover:border-rose-300 cursor-pointer has-[:checked]:border-rose-400 has-[:checked]:bg-rose-50">
                 <input type="checkbox" checked={form.includesCard} onChange={(e) => setForm({ ...form, includesCard: e.target.checked })} className="h-5 w-5 rounded" />
                 <div>
                   <div className="font-extrabold text-sm">💌 Includes card</div>
-                  <div className="text-[11px] text-slate-500">Greeting card in box</div>
+                  <div className="text-[0.6875rem] text-slate-500">Greeting card in box</div>
                 </div>
               </label>
             </div>
@@ -390,7 +390,7 @@ export default function GiftPackFormPage() {
               <Sparkles className="h-5 w-5 text-rose-600" />
               <div className="flex-1">
                 <div className="font-extrabold text-sm">Seasonal pack</div>
-                <div className="text-[11px] text-slate-500">Limited-time offer</div>
+                <div className="text-[0.6875rem] text-slate-500">Limited-time offer</div>
               </div>
             </label>
 
@@ -453,7 +453,7 @@ export default function GiftPackFormPage() {
         <aside className="flex flex-col gap-3 xl:sticky xl:top-4 xl:self-start">
           <div className="rounded-3xl bg-white border-2 border-violet-300 shadow-lg overflow-hidden">
             <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-violet-50 to-purple-50">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 flex items-center gap-1">
                 <Sparkles className="h-3 w-3" /> Live Preview
               </div>
             </div>
@@ -495,7 +495,7 @@ export default function GiftPackFormPage() {
           </div>
 
           <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 space-y-1.5">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3" /> Checklist
             </div>
             <Chk done={!!form.name.trim()} label="Pack name" />

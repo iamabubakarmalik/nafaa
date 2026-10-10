@@ -140,19 +140,19 @@ export default function JewelryCustomersPage() {
               extraBadges={
                 <>
                   {c.jewelryPurchases > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-bold">
                       <Gem className="h-3 w-3" />
                       {c.jewelryPurchases} pieces
                     </div>
                   )}
                   {c.totalWeight > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.6875rem] font-bold">
                       <Scale className="h-3 w-3" />
                       {c.totalWeight.toFixed(1)}g
                     </div>
                   )}
                   {c.hallmarkCount > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-bold">
                       <ShieldCheck className="h-3 w-3" />
                       {c.hallmarkCount} verified
                     </div>

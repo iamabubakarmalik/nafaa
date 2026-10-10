@@ -181,28 +181,28 @@ function StationCard({ station, session, now, onStart, onEnd, onPauseResume }: a
               <span className="text-2xl">{STATION_ICONS[station.stationType] || '🎮'}</span>
               <div className="min-w-0">
                 <div className="font-extrabold text-slate-900 text-sm truncate">{station.name}</div>
-                <div className="text-[10px] font-mono text-slate-500">#{station.stationNumber}</div>
+                <div className="text-[0.6875rem] font-mono text-slate-500">#{station.stationNumber}</div>
               </div>
             </div>
           </div>
           {isMaint ? (
-            <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+            <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
               <Wrench className="h-2.5 w-2.5" /> Maint
             </span>
           ) : hasSession ? (
-            <span className={`px-2 py-0.5 rounded-full text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 ${
+            <span className={`px-2 py-0.5 rounded-full text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 ${
               isPaused ? 'bg-amber-500' : 'bg-emerald-500'}`}>
               {isPaused ? <Pause className="h-2.5 w-2.5" /> : <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />}
               {isPaused ? 'Paused' : 'Live'}
             </span>
           ) : (
-            <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[9px] font-extrabold uppercase">
+            <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[0.625rem] font-extrabold uppercase">
               Free
             </span>
           )}
         </div>
 
-        <div className="text-[10px] font-bold text-slate-600 mb-2">
+        <div className="text-[0.6875rem] font-bold text-slate-600 mb-2">
           {formatPKR(station.pricePerHour)}/hr
           {station.peakHourPrice && ` • peak ${formatPKR(station.peakHourPrice)}`}
         </div>
@@ -210,24 +210,24 @@ function StationCard({ station, session, now, onStart, onEnd, onPauseResume }: a
         {hasSession && (
           <div className="space-y-2">
             <div className="rounded-xl bg-white/70 border-2 border-slate-200 p-2">
-              <div className="text-[9px] uppercase font-extrabold text-slate-500">Customer</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Customer</div>
               <div className="font-extrabold text-sm text-slate-900 truncate">
                 {session.customerName || 'Walk-in'}
               </div>
-              <div className="text-[10px] font-bold text-slate-500">
+              <div className="text-[0.6875rem] font-bold text-slate-500">
                 {session.playerCount || 1} player(s){session.gameSelected ? ` • ${session.gameSelected}` : ''}
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-1.5">
               <div className="rounded-lg bg-white/70 border-2 border-slate-200 p-2 text-center">
-                <div className="text-[9px] uppercase font-extrabold text-slate-500">Elapsed</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Elapsed</div>
                 <div className="text-lg font-extrabold text-slate-900 tabular-nums leading-none mt-0.5">
                   {hours}<span className="text-xs">h</span> {mins}<span className="text-xs">m</span>
                 </div>
               </div>
               <div className="rounded-lg bg-emerald-100 border-2 border-emerald-300 p-2 text-center">
-                <div className="text-[9px] uppercase font-extrabold text-emerald-700">Running bill</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Running bill</div>
                 <div className="text-lg font-extrabold text-emerald-800 tabular-nums leading-none mt-0.5">
                   {formatPKR(currentBill)}
                 </div>
@@ -432,24 +432,24 @@ function EndSessionModal({ session, now, onClose, onEnded }: any) {
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 flex items-center gap-1">
                 <Clock className="h-3 w-3" /> Duration
               </div>
               <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">
                 {hours}<span className="text-sm">h</span> {mins}<span className="text-sm">m</span>
               </div>
               {session.totalPauseMinutes > 0 && (
-                <div className="text-[10px] text-amber-700 font-bold mt-0.5">
+                <div className="text-[0.6875rem] text-amber-700 font-bold mt-0.5">
                   {session.totalPauseMinutes}m paused (excluded)
                 </div>
               )}
             </div>
             <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-emerald-700 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 flex items-center gap-1">
                 <DollarSign className="h-3 w-3" /> Base charge
               </div>
               <div className="text-2xl font-extrabold text-emerald-900 tabular-nums mt-1">{formatPKR(baseAmount)}</div>
-              <div className="text-[10px] text-emerald-700 font-bold mt-0.5">
+              <div className="text-[0.6875rem] text-emerald-700 font-bold mt-0.5">
                 @ {formatPKR(session.ratePerHour)}/hr
               </div>
             </div>
@@ -539,7 +539,7 @@ function HeroStat({ icon: Icon, label, value, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-2xl font-extrabold text-white tabular-nums leading-none">{value}</div>
     </div>

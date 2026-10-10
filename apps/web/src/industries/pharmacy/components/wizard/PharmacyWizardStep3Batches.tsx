@@ -169,12 +169,12 @@ export function PharmacyWizardStep3Batches({
                 <table className="w-full text-xs">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Batch #</th>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Mfg Date</th>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Expiry</th>
-                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Qty</th>
-                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Cost</th>
-                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Total</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Batch #</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Mfg Date</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Expiry</th>
+                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Qty</th>
+                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Cost</th>
+                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Total</th>
                       <th className="px-2 py-2"></th>
                     </tr>
                   </thead>
@@ -368,7 +368,7 @@ export function PharmacyWizardStep3Batches({
                           {formatPKR(p.price)} • Stock: {p.stock}
                         </div>
                       </div>
-                      {already ? <span className="text-[10px] font-extrabold text-emerald-700">✓ Added</span> : <Plus className="h-4 w-4 text-violet-600" />}
+                      {already ? <span className="text-[0.6875rem] font-extrabold text-emerald-700">✓ Added</span> : <Plus className="h-4 w-4 text-violet-600" />}
                     </button>
                   );
                 })}

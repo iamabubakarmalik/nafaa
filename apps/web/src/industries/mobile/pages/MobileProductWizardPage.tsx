@@ -238,7 +238,7 @@ export default function MobileProductWizardPage() {
             <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-blue-700 text-white flex items-center justify-center shadow-xl shadow-blue-500/30 mx-auto mb-4">
               <CheckCircle2 className="h-10 w-10" />
             </div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-slate-800 border border-blue-200 dark:border-blue-500/40 px-3 py-1 text-[11px] font-extrabold text-blue-800 dark:text-blue-300 mb-2">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-slate-800 border border-blue-200 dark:border-blue-500/40 px-3 py-1 text-[0.6875rem] font-extrabold text-blue-800 dark:text-blue-300 mb-2">
               {isAccessory ? <Headphones className="h-3.5 w-3.5" /> : <Smartphone className="h-3.5 w-3.5" />}
               {isAccessory ? 'ACCESSORY' : 'PHONE'}
             </div>
@@ -263,7 +263,7 @@ export default function MobileProductWizardPage() {
               />
             </div>
 
-            <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/40 px-3 py-1 text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300">
+            <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/40 px-3 py-1 text-[0.6875rem] font-extrabold text-emerald-800 dark:text-emerald-300">
               <ShieldCheck className="h-3.5 w-3.5" /> Offline cache bhi refresh ho gaya — POS me turant dikhega
             </div>
           </div>
@@ -414,7 +414,7 @@ export default function MobileProductWizardPage() {
         <div className="relative">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest">
                 {isAccessory ? <Headphones className="h-3.5 w-3.5 text-fuchsia-300" /> : <Smartphone className="h-3.5 w-3.5 text-amber-300" />}
                 {isEdit ? `Editing ${isAccessory ? 'Accessory' : 'Phone'}` : isAccessory ? 'New Accessory' : 'New Phone'}
                 {!isOnline && (
@@ -455,7 +455,7 @@ export default function MobileProductWizardPage() {
               return (
                 <div
                   key={st.s}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold border transition ${
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.6875rem] font-extrabold border transition ${
                     active
                       ? 'bg-white text-slate-900 border-white shadow-lg'
                       : st.valid
@@ -548,7 +548,7 @@ export default function MobileProductWizardPage() {
               Step {draft.step} of 3 {isAccessory && draft.step === 3 ? '• Stock qty' : ''}
             </div>
             {!currentValidation.valid && (
-              <div className="inline-flex items-center gap-1 text-[11px] text-rose-700 dark:text-rose-400 font-bold max-w-full">
+              <div className="inline-flex items-center gap-1 text-[0.6875rem] text-rose-700 dark:text-rose-400 font-bold max-w-full">
                 <AlertTriangle className="h-3 w-3 shrink-0" />
                 <span className="truncate">{currentValidation.errors[0]}</span>
               </div>
@@ -623,7 +623,7 @@ function TypeCard({ active, onClick, icon: Icon, emoji, title, desc, tone }: {
           <div className={`font-extrabold text-base sm:text-lg ${active ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200'}`}>
             {title}
           </div>
-          <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 leading-tight">{desc}</div>
+          <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 leading-tight">{desc}</div>
         </div>
       </div>
     </button>
@@ -707,7 +707,7 @@ function WizardTeacher({ isAccessory, onClose }: { isAccessory: boolean; onClose
           )}
 
           <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-1">
               ⌨️ Shortcuts (desktop)
             </div>
             <KbdRow keys="Ctrl + →" desc="Next step" />
@@ -742,7 +742,7 @@ function StepCard({ num, title, desc, tip }: { num: number; title: string; desc:
       <div className="min-w-0 flex-1">
         <div className="text-sm font-extrabold text-slate-900 dark:text-white">{title}</div>
         <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-0.5">{desc}</div>
-        <div className="text-[10px] text-blue-700 dark:text-blue-300 font-extrabold mt-1 inline-flex items-center gap-1">
+        <div className="text-[0.6875rem] text-blue-700 dark:text-blue-300 font-extrabold mt-1 inline-flex items-center gap-1">
           <Sparkles className="h-3 w-3" /> {tip}
         </div>
       </div>
@@ -753,7 +753,7 @@ function StepCard({ num, title, desc, tip }: { num: number; title: string; desc:
 function KbdRow({ keys, desc }: { keys: string; desc: string }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <kbd className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-mono font-bold text-[10px] shadow-sm">
+      <kbd className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-mono font-bold text-[0.6875rem] shadow-sm">
         {keys}
       </kbd>
       <span className="text-slate-600 dark:text-slate-300">{desc}</span>
@@ -765,7 +765,7 @@ function HeroStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-xl bg-white/10 backdrop-blur-md border border-white/20 px-3 py-2 text-center min-w-[62px]">
       <div className="text-lg sm:text-xl font-extrabold tabular-nums leading-none">{value}</div>
-      <div className="text-[9px] uppercase tracking-wider font-extrabold text-white/60 mt-1">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-wider font-extrabold text-white/60 mt-1">{label}</div>
     </div>
   );
 }
@@ -774,7 +774,7 @@ function SuccessStat({ icon: Icon, label, value }: { icon: any; label: string; v
   return (
     <div className="rounded-xl bg-white dark:bg-slate-900 border-2 border-blue-200 dark:border-blue-500/30 p-3">
       <Icon className="h-4 w-4 text-blue-500 dark:text-blue-400 mx-auto mb-1" />
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-blue-700 dark:text-blue-300">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700 dark:text-blue-300">{label}</div>
       <div className="text-2xl font-extrabold text-blue-900 dark:text-blue-100 tabular-nums mt-0.5">{value}</div>
     </div>
   );

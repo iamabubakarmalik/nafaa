@@ -172,7 +172,7 @@ function WooOneClick({ channelId, woo, siteUrl, name, onChange }: {
           <span className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-900 shadow flex items-center justify-center text-2xl shrink-0">🟣</span>
           <div className="min-w-0 flex-1">
             <div className="font-black text-slate-900 dark:text-white">WooCommerce se jura hai ✓</div>
-            <div className="text-[12px] font-bold text-slate-600 dark:text-slate-300 truncate">
+            <div className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 truncate">
               {siteUrl}{woo.connectedAt ? ` · ${new Date(woo.connectedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} se` : ''}
             </div>
           </div>
@@ -190,7 +190,7 @@ function WooOneClick({ channelId, woo, siteUrl, name, onChange }: {
             <div key={t} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
               <div className="text-lg">{e}</div>
               <div className="mt-1 text-xs font-black text-slate-800 dark:text-slate-100">{t}</div>
-              <div className="text-[11px] font-bold text-slate-500">{d}</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">{d}</div>
             </div>
           ))}
         </div>
@@ -236,13 +236,13 @@ function WooOneClick({ channelId, woo, siteUrl, name, onChange }: {
           </Button>
         </div>
         {!connect.oneClickReady && <div className="mt-3"><HttpsNotice compact reason={connect.publicApi?.reason} fix={connect.publicApi?.fix} /></div>}
-        <p className="mt-2 text-[11px] font-bold text-slate-500">
+        <p className="mt-2 text-[0.6875rem] font-bold text-slate-500">
           Chhoti window me aap ki WordPress site khulegi → login → <b>Approve</b>. Keys aur webhooks Nafaa khud lagata hai.
         </p>
-        {connect.phase === 'denied' && <p className="mt-2 text-[12px] font-bold text-rose-600">Approve nahi hua — dobara koshish karein.</p>}
-        {connect.error && <p className="mt-2 text-[12px] font-bold text-rose-600">{connect.error}</p>}
+        {connect.phase === 'denied' && <p className="mt-2 text-[0.75rem] font-bold text-rose-600">Approve nahi hua — dobara koshish karein.</p>}
+        {connect.error && <p className="mt-2 text-[0.75rem] font-bold text-rose-600">{connect.error}</p>}
       </div>
-      <button onClick={() => setShowKeys((v) => !v)} className="text-[12px] font-black text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 inline-flex items-center gap-1">
+      <button onClick={() => setShowKeys((v) => !v)} className="text-[0.75rem] font-black text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 inline-flex items-center gap-1">
         <KeyRound className="h-3.5 w-3.5" /> Popup nahi chalta? Keys khud daalein
       </button>
       {showKeys && <ManualKeysForm channelId={channelId} site={site} onDone={() => onlineOrdersApi.channel(channelId).then(onChange)} />}
@@ -291,7 +291,7 @@ function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
           <div className="rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 p-4 flex flex-wrap items-center gap-3">
             <div className="min-w-0 flex-1">
               <div className="text-sm font-black text-amber-900 dark:text-amber-200">⚠️ Shopify ko ek dafa dobara install karein</div>
-              <div className="text-[12px] font-bold text-amber-800 dark:text-amber-300">
+              <div className="text-[0.75rem] font-bold text-amber-800 dark:text-amber-300">
                 Shopify ab naya (khud-refresh hone wala) token maangta hai. Dobara install se orders, stock aur status chalne lagenge — koi data nahi mitega.
               </div>
             </div>
@@ -305,7 +305,7 @@ function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
           <span className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-900 shadow flex items-center justify-center text-2xl shrink-0">🟢</span>
           <div className="min-w-0 flex-1">
             <div className="font-black text-slate-900 dark:text-white">Shopify se jura hai ✓</div>
-            <div className="text-[12px] font-bold text-slate-600 dark:text-slate-300 truncate">
+            <div className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 truncate">
               {shopify.shop}{shopify.locationName ? ` · stock location: ${shopify.locationName}` : ''}
             </div>
           </div>
@@ -323,7 +323,7 @@ function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
             <div key={t} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
               <div className="text-lg">{e}</div>
               <div className="mt-1 text-xs font-black text-slate-800 dark:text-slate-100">{t}</div>
-              <div className="text-[11px] font-bold text-slate-500">{d}</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">{d}</div>
             </div>
           ))}
         </div>
@@ -357,11 +357,11 @@ function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
             Shopify se jorein
           </Button>
         </div>
-        <p className="mt-2 text-[11px] font-bold text-slate-500">
+        <p className="mt-2 text-[0.6875rem] font-bold text-slate-500">
           Chhoti window me Shopify khulega → login → <b>Install</b>. Token aur webhooks Nafaa khud lagata hai.
         </p>
-        {connect.phase === 'denied' && <p className="mt-2 text-[12px] font-bold text-rose-600">Install nahi hua — dobara koshish karein.</p>}
-        {connect.error && <p className="mt-2 text-[12px] font-bold text-rose-600">{connect.error}</p>}
+        {connect.phase === 'denied' && <p className="mt-2 text-[0.75rem] font-bold text-rose-600">Install nahi hua — dobara koshish karein.</p>}
+        {connect.error && <p className="mt-2 text-[0.75rem] font-bold text-rose-600">{connect.error}</p>}
       </div>
       {!connect.oneClickReady && (
         <HttpsNotice compact

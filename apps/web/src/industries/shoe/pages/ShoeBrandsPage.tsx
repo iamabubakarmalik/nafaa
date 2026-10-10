@@ -139,11 +139,11 @@ export default function ShoeBrandsPage() {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 truncate">{b.name}</div>
-                  {b.code && <div className="text-[10px] font-mono text-slate-500">{b.code}</div>}
+                  {b.code && <div className="text-[0.6875rem] font-mono text-slate-500">{b.code}</div>}
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {b.isPremium && <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold">PREMIUM</span>}
-                    {b.isSportsBrand && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold">SPORTS</span>}
-                    {b.isLocal && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">LOCAL</span>}
+                    {b.isPremium && <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">PREMIUM</span>}
+                    {b.isSportsBrand && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">SPORTS</span>}
+                    {b.isLocal && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">LOCAL</span>}
                   </div>
                 </div>
                 <button onClick={() => toggle.mutate(b.id)} className={b.isFeatured ? 'text-amber-500' : 'text-slate-400 hover:text-amber-500'}>
@@ -159,11 +159,11 @@ export default function ShoeBrandsPage() {
 
               <div className="mt-3 grid grid-cols-2 gap-2 pt-3 border-t border-slate-100">
                 <div>
-                  <div className="text-[9px] uppercase font-extrabold text-slate-500">Products</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Products</div>
                   <div className="text-lg font-extrabold text-slate-900 tabular-nums">{(b as any).productCount || 0}</div>
                 </div>
                 <div>
-                  <div className="text-[9px] uppercase font-extrabold text-slate-500">Revenue</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
                   <div className="text-sm font-extrabold text-violet-700 tabular-nums">{formatPKR(b.totalRevenue || 0)}</div>
                 </div>
               </div>

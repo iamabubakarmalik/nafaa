@@ -272,20 +272,20 @@ export default function AppliancesProfitReportPage() {
 
       {/* Range */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Arsa</span>
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Arsa</span>
         {RANGES.map((r) => (
           <button key={r.days} onClick={() => { setDays(r.days); setCustom(null); }}
-            className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border-2 transition ${
+            className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
               !custom && days === r.days ? 'bg-cyan-600 border-cyan-600 text-white shadow'
                 : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
             }`}>{r.label}</button>
         ))}
         <div className="flex items-center gap-1.5 ml-1">
           <input type="date" value={custom?.from ?? ''} onChange={(e) => setCustom({ from: e.target.value, to: custom?.to ?? toDateInput(new Date()) })}
-            className="h-9 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-[11px] font-bold text-slate-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark]" />
-          <span className="text-[11px] font-bold text-slate-400">se</span>
+            className="h-9 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-[0.6875rem] font-bold text-slate-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark]" />
+          <span className="text-[0.6875rem] font-bold text-slate-400">se</span>
           <input type="date" value={custom?.to ?? ''} onChange={(e) => setCustom({ from: custom?.from ?? toDateInput(new Date()), to: e.target.value })}
-            className="h-9 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-[11px] font-bold text-slate-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark]" />
+            className="h-9 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-[0.6875rem] font-bold text-slate-900 dark:text-white [color-scheme:light] dark:[color-scheme:dark]" />
         </div>
       </div>
 
@@ -309,12 +309,12 @@ export default function AppliancesProfitReportPage() {
                   <span className="text-xs font-extrabold text-slate-700 dark:text-slate-200 truncate">
                     {STREAM_ICONS[s.key]} {s.label}
                   </span>
-                  <span className="text-[10px] font-extrabold tabular-nums shrink-0" style={{ color: STREAM_COLORS[s.key] }}>
+                  <span className="text-[0.6875rem] font-extrabold tabular-nums shrink-0" style={{ color: STREAM_COLORS[s.key] }}>
                     {share.toFixed(0)}%
                   </span>
                 </div>
                 <div className="mt-1.5 text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(s.revenue)}</div>
-                <div className="mt-0.5 flex items-center justify-between text-[10px] font-bold">
+                <div className="mt-0.5 flex items-center justify-between text-[0.6875rem] font-bold">
                   <span className="text-emerald-600 dark:text-emerald-400">munafa {formatPKR(s.profit)}</span>
                   {s.count > 0 && <span className="text-slate-400">{s.count} bar</span>}
                 </div>
@@ -387,7 +387,7 @@ export default function AppliancesProfitReportPage() {
           {(a?.services?.unpaid ?? 0) > 0 && (
             <div className="mt-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3 flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
-              <div className="text-[11px] font-bold text-rose-800 dark:text-rose-200">
+              <div className="text-[0.6875rem] font-bold text-rose-800 dark:text-rose-200">
                 <strong className="text-sm">{formatPKR(a?.services?.unpaid ?? 0)}</strong> ka repair ka paisa abhi baqi hai —
                 <Link to="/appliances/service-requests" className="underline ml-1 font-extrabold">wusool karein</Link>
               </div>
@@ -420,8 +420,8 @@ export default function AppliancesProfitReportPage() {
             <div className="mt-3 space-y-1.5">
               {(a?.amc?.byType ?? []).map((tp) => (
                 <div key={tp.type} className="flex items-center gap-2 rounded-xl bg-violet-50 dark:bg-violet-500/10 px-2.5 py-2">
-                  <span className="text-[11px] font-extrabold text-violet-800 dark:text-violet-200 flex-1">{tp.type}</span>
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{tp.count} contracts</span>
+                  <span className="text-[0.6875rem] font-extrabold text-violet-800 dark:text-violet-200 flex-1">{tp.type}</span>
+                  <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{tp.count} contracts</span>
                   <span className="text-xs font-extrabold tabular-nums text-violet-700 dark:text-violet-300">{formatPKR(tp.value)}</span>
                 </div>
               ))}
@@ -468,7 +468,7 @@ export default function AppliancesProfitReportPage() {
               {(a?.topProducts ?? []).slice(0, 10).map((p, i) => (
                 <Link key={p.id} to={`/appliance-products/${p.id}`}
                   className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition group">
-                  <span className={`h-6 w-6 rounded-lg text-[10px] font-extrabold flex items-center justify-center shrink-0 ${
+                  <span className={`h-6 w-6 rounded-lg text-[0.6875rem] font-extrabold flex items-center justify-center shrink-0 ${
                     i === 0 ? 'bg-amber-500 text-white' : i === 1 ? 'bg-slate-400 text-white' : i === 2 ? 'bg-orange-500 text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                   }`}>{i + 1}</span>
@@ -476,13 +476,13 @@ export default function AppliancesProfitReportPage() {
                     <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
                       {p.category ? catEmoji(p.category) : '📦'} {p.name}
                     </div>
-                    <div className="text-[10px] font-bold text-slate-400">
+                    <div className="text-[0.6875rem] font-bold text-slate-400">
                       {p.units} units • {p.margin.toFixed(0)}% margin
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-xs font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400">{formatPKR(p.profit)}</div>
-                    <div className="text-[10px] font-bold text-slate-400 tabular-nums">{formatPKR(p.revenue)}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">{formatPKR(p.revenue)}</div>
                   </div>
                 </Link>
               ))}
@@ -502,11 +502,11 @@ export default function AppliancesProfitReportPage() {
                 const em = energyMeta(e.energyRating);
                 return (
                   <div key={e.energyRating} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
-                    <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 flex-1 truncate">
+                    <span className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 flex-1 truncate">
                       {em.emoji} {em.label}
                     </span>
-                    <span className="text-[10px] font-bold text-slate-400">{e.units} units</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                    <span className="text-[0.6875rem] font-bold text-slate-400">{e.units} units</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
                       e.margin >= 20 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                         : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
                     }`}>{e.margin.toFixed(0)}%</span>
@@ -525,12 +525,12 @@ export default function AppliancesProfitReportPage() {
             <div className="space-y-1.5">
               {(a?.topBrands ?? []).map((b, i) => (
                 <div key={b.id} className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
-                  <span className={`h-6 w-6 rounded-lg text-[10px] font-extrabold flex items-center justify-center shrink-0 ${
+                  <span className={`h-6 w-6 rounded-lg text-[0.6875rem] font-extrabold flex items-center justify-center shrink-0 ${
                     i === 0 ? 'bg-violet-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                   }`}>{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{b.name}</div>
-                    <div className="text-[10px] font-bold text-slate-400">{b.units} units • {b.margin.toFixed(0)}% margin</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-400">{b.units} units • {b.margin.toFixed(0)}% margin</div>
                   </div>
                   <div className="text-xs font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400 shrink-0">{formatPKR(b.profit)}</div>
                 </div>
@@ -552,7 +552,7 @@ function Box({ label, value, tone = 'slate' }: { label: string; value: string; t
   };
   return (
     <div className={`rounded-xl border px-2.5 py-2 ${tones[tone]}`}>
-      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
       <div className="text-sm font-extrabold tabular-nums truncate">{value}</div>
     </div>
   );

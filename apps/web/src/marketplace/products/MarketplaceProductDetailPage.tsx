@@ -171,7 +171,7 @@ export default function MarketplaceProductDetailPage() {
               <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-black border border-white/20">
                 <span>{theme.emoji}</span> Marketplace Product
                 {isListed && (
-                  <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px]">LIVE</span>
+                  <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[0.625rem]">LIVE</span>
                 )}
               </div>
               <h1 className="mt-3 text-2xl md:text-3xl font-black leading-tight">
@@ -248,7 +248,7 @@ export default function MarketplaceProductDetailPage() {
                 className="w-full h-11 px-3 rounded-xl border-2 border-slate-200 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
               />
               {profile.productName && profile.productName !== merged.publicName && (
-                <p className="text-[10px] text-slate-500 font-medium mt-1">
+                <p className="text-[0.6875rem] text-slate-500 font-medium mt-1">
                   POS name: <span className="font-black">{profile.productName}</span>
                 </p>
               )}
@@ -263,7 +263,7 @@ export default function MarketplaceProductDetailPage() {
                 placeholder="Premium quality handwoven wool carpet, imported from Iran. 100% natural dyes..."
                 className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 resize-none transition"
               />
-              <div className="text-[10px] font-bold text-slate-400 mt-1 text-right">
+              <div className="text-[0.6875rem] font-bold text-slate-400 mt-1 text-right">
                 {(merged.publicDescription || '').length}/2000
               </div>
             </Field>
@@ -317,12 +317,12 @@ export default function MarketplaceProductDetailPage() {
                 />
               </div>
               <div className="flex gap-1.5 mt-2 flex-wrap">
-                <span className="text-[10px] font-black text-slate-500">Quick add:</span>
+                <span className="text-[0.6875rem] font-black text-slate-500">Quick add:</span>
                 {['premium', 'bestseller', 'new-arrival', 'discount', 'trending', 'handmade', 'imported'].map((t) => (
                   <button
                     key={t}
                     onClick={() => addTag(t)}
-                    className="text-[10px] font-black text-emerald-700 hover:bg-emerald-50 px-1.5 py-0.5 rounded disabled:opacity-40"
+                    className="text-[0.6875rem] font-black text-emerald-700 hover:bg-emerald-50 px-1.5 py-0.5 rounded disabled:opacity-40"
                     disabled={(merged.tags || []).includes(t)}
                   >
                     +{t}
@@ -345,7 +345,7 @@ export default function MarketplaceProductDetailPage() {
                   className="w-full h-11 px-3 rounded-xl border-2 border-slate-200 text-sm font-bold outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
                 />
                 {profile.productPrice && Number(profile.productPrice) !== merged.publicPrice && (
-                  <p className="text-[10px] text-slate-500 font-medium mt-1">
+                  <p className="text-[0.6875rem] text-slate-500 font-medium mt-1">
                     POS price: <span className="font-black">Rs {formatPKR(profile.productPrice)}</span>
                     {merged.publicPrice > Number(profile.productPrice) && (
                       <span className="text-emerald-700 ml-1">
@@ -367,7 +367,7 @@ export default function MarketplaceProductDetailPage() {
                   className="w-full h-11 px-3 rounded-xl border-2 border-slate-200 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
                 />
                 {merged.compareAtPrice && merged.publicPrice && merged.compareAtPrice > merged.publicPrice && (
-                  <p className="text-[10px] text-emerald-700 font-black mt-1">
+                  <p className="text-[0.6875rem] text-emerald-700 font-black mt-1">
                     🎉 {Math.round(((merged.compareAtPrice - merged.publicPrice) / merged.compareAtPrice) * 100)}% OFF
                   </p>
                 )}
@@ -436,7 +436,7 @@ export default function MarketplaceProductDetailPage() {
                       Add Image
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-500 font-medium mt-2">
+                  <p className="text-[0.6875rem] text-slate-500 font-medium mt-2">
                     Paste image URL from any hosting (Cloudinary, imgur, Unsplash direct link, etc.)
                   </p>
                 </div>
@@ -454,7 +454,7 @@ export default function MarketplaceProductDetailPage() {
                     <div className="text-xs font-black text-slate-700">
                       Uploaded Images ({merged.publicImages!.length}/10)
                     </div>
-                    <div className="text-[10px] font-bold text-slate-500">
+                    <div className="text-[0.6875rem] font-bold text-slate-500">
                       Hover mein reorder / remove
                     </div>
                   </div>
@@ -463,7 +463,7 @@ export default function MarketplaceProductDetailPage() {
                       <div key={idx} className="relative group aspect-square rounded-xl bg-slate-100 overflow-hidden border-2 border-slate-200 hover:border-blue-400 transition">
                         <img src={url} alt="" className="w-full h-full object-cover" />
                         {idx === 0 && (
-                          <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-black shadow">
+                          <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-black shadow">
                             MAIN
                           </div>
                         )}
@@ -500,7 +500,7 @@ export default function MarketplaceProductDetailPage() {
                         {idx > 0 && (
                           <button
                             onClick={() => moveImage(idx, 0)}
-                            className="absolute bottom-1 left-1 h-6 px-2 rounded-md bg-emerald-600/95 backdrop-blur text-white text-[9px] font-black opacity-0 group-hover:opacity-100 transition shadow"
+                            className="absolute bottom-1 left-1 h-6 px-2 rounded-md bg-emerald-600/95 backdrop-blur text-white text-[0.625rem] font-black opacity-0 group-hover:opacity-100 transition shadow"
                           >
                             Make Main
                           </button>
@@ -537,7 +537,7 @@ export default function MarketplaceProductDetailPage() {
                   {merged.posImages.map((url, idx) => (
                     <div key={idx} className="relative group aspect-square rounded-lg bg-slate-100 overflow-hidden border-2 border-slate-200">
                       <img src={url} alt="" className="w-full h-full object-cover" />
-                      <div className="absolute top-1 left-1 px-1 py-0.5 rounded bg-slate-900/70 text-white text-[8px] font-black">
+                      <div className="absolute top-1 left-1 px-1 py-0.5 rounded bg-slate-900/70 text-white text-[0.625rem] font-black">
                         POS
                       </div>
                       {!merged.usingPosImages && (
@@ -549,7 +549,7 @@ export default function MarketplaceProductDetailPage() {
                               toast.success('POS image added to marketing images');
                             }
                           }}
-                          className="absolute inset-0 bg-slate-900/70 text-white text-[10px] font-black opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
+                          className="absolute inset-0 bg-slate-900/70 text-white text-[0.6875rem] font-black opacity-0 group-hover:opacity-100 transition flex items-center justify-center"
                         >
                           + Add to Marketing
                         </button>
@@ -596,11 +596,11 @@ export default function MarketplaceProductDetailPage() {
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 border-b-2 border-slate-100">
                       <tr>
-                        <th className="text-left px-3 py-2 text-[10px] font-black uppercase text-slate-600">Variant</th>
-                        <th className="text-left px-3 py-2 text-[10px] font-black uppercase text-slate-600">SKU</th>
-                        <th className="text-right px-3 py-2 text-[10px] font-black uppercase text-slate-600">Price</th>
-                        <th className="text-right px-3 py-2 text-[10px] font-black uppercase text-slate-600">Stock</th>
-                        <th className="text-center px-3 py-2 text-[10px] font-black uppercase text-slate-600">Status</th>
+                        <th className="text-left px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">Variant</th>
+                        <th className="text-left px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">SKU</th>
+                        <th className="text-right px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">Price</th>
+                        <th className="text-right px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">Stock</th>
+                        <th className="text-center px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -614,14 +614,14 @@ export default function MarketplaceProductDetailPage() {
                               <div>
                                 <div className="font-black text-slate-900 text-xs">{v.name}</div>
                                 {v.attributes && Object.keys(v.attributes).length > 0 && (
-                                  <div className="text-[10px] text-slate-500 font-bold">
+                                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                                     {Object.entries(v.attributes).map(([k, val]) => `${k}: ${val}`).join(' · ')}
                                   </div>
                                 )}
                               </div>
                             </div>
                           </td>
-                          <td className="px-3 py-2 font-mono text-[10px] text-slate-500">{v.sku || '—'}</td>
+                          <td className="px-3 py-2 font-mono text-[0.6875rem] text-slate-500">{v.sku || '—'}</td>
                           <td className="text-right px-3 py-2 font-black text-xs text-emerald-700 tabular-nums">
                             {v.price ? `Rs ${formatPKR(v.price)}` : '—'}
                           </td>
@@ -630,11 +630,11 @@ export default function MarketplaceProductDetailPage() {
                           </td>
                           <td className="text-center px-3 py-2">
                             {v.isAvailable !== false ? (
-                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
+                              <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
                                 AVAILABLE
                               </span>
                             ) : (
-                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                              <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
                                 OUT
                               </span>
                             )}
@@ -645,7 +645,7 @@ export default function MarketplaceProductDetailPage() {
                   </table>
                 </div>
 
-                <div className="text-[10px] text-slate-500 font-bold text-center">
+                <div className="text-[0.6875rem] text-slate-500 font-bold text-center">
                   💡 Variants edit karne ke liye POS mein product ki details modify karein — yahan auto-sync ho jayega
                 </div>
               </div>
@@ -699,7 +699,7 @@ export default function MarketplaceProductDetailPage() {
                       Add Video
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-500 font-medium mt-2">
+                  <p className="text-[0.6875rem] text-slate-500 font-medium mt-2">
                     <strong>Supported:</strong> YouTube (youtube.com/watch), Vimeo, direct .mp4/.webm URLs
                   </p>
                 </div>
@@ -790,7 +790,7 @@ export default function MarketplaceProductDetailPage() {
                       className="w-full h-11 px-3 rounded-xl border-2 border-purple-200 text-sm font-bold outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition"
                     />
                     {merged.bargainMinPrice && merged.publicPrice && (
-                      <p className="text-[10px] text-purple-700 font-black mt-1">
+                      <p className="text-[0.6875rem] text-purple-700 font-black mt-1">
                         Max discount allowed: {Math.round(((merged.publicPrice - merged.bargainMinPrice) / merged.publicPrice) * 100)}%
                       </p>
                     )}
@@ -828,7 +828,7 @@ export default function MarketplaceProductDetailPage() {
                 maxLength={60}
                 className="w-full h-11 px-3 rounded-xl border-2 border-slate-200 text-sm font-bold outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500/20 transition"
               />
-              <div className="text-[10px] font-bold text-slate-400 mt-1 text-right">
+              <div className="text-[0.6875rem] font-bold text-slate-400 mt-1 text-right">
                 {(merged.metaTitle || '').length}/60
               </div>
             </Field>
@@ -841,7 +841,7 @@ export default function MarketplaceProductDetailPage() {
                 placeholder="Premium quality handwoven Persian rug with natural wool..."
                 className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 text-sm outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-500/20 resize-none transition"
               />
-              <div className="text-[10px] font-bold text-slate-400 mt-1 text-right">
+              <div className="text-[0.6875rem] font-bold text-slate-400 mt-1 text-right">
                 {(merged.metaDescription || '').length}/160
               </div>
             </Field>
@@ -852,7 +852,7 @@ export default function MarketplaceProductDetailPage() {
         <aside className="lg:sticky lg:top-4 h-fit space-y-3">
           {/* Carousel style selector */}
           <div className="rounded-2xl bg-white border-2 border-slate-200 p-3 shadow-sm">
-            <div className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">
+            <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 mb-2">
               Carousel Style
             </div>
             <div className="grid grid-cols-2 gap-1">
@@ -860,7 +860,7 @@ export default function MarketplaceProductDetailPage() {
                 <button
                   key={style}
                   onClick={() => { setPreviewCarouselStyle(style); setPreviewImageIdx(0); }}
-                  className={`text-[10px] font-black px-2 py-1.5 rounded-lg transition capitalize ${
+                  className={`text-[0.6875rem] font-black px-2 py-1.5 rounded-lg transition capitalize ${
                     previewCarouselStyle === style
                       ? 'bg-emerald-600 text-white shadow'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -877,7 +877,7 @@ export default function MarketplaceProductDetailPage() {
             <div className="px-4 py-3 bg-slate-900 text-white flex items-center gap-2">
               <Eye className="h-4 w-4" />
               <span className="text-xs font-black uppercase tracking-wider">Live Preview</span>
-              <span className="ml-auto text-[9px] font-black bg-emerald-500 px-1.5 py-0.5 rounded">Customer View</span>
+              <span className="ml-auto text-[0.625rem] font-black bg-emerald-500 px-1.5 py-0.5 rounded">Customer View</span>
             </div>
             <div className="p-4">
               <ProductPreviewCard
@@ -888,7 +888,7 @@ export default function MarketplaceProductDetailPage() {
                 onIdxChange={setPreviewImageIdx}
               />
             </div>
-            <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-[10px] font-bold text-slate-500 text-center">
+            <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 text-[0.6875rem] font-bold text-slate-500 text-center">
               Ye customers ko marketplace pe dikhega
             </div>
           </div>
@@ -954,7 +954,7 @@ function MiniStat({ label, value, icon: Icon }: any) {
     <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-3">
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-black opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90">{label}</div>
       </div>
       <div className="text-xl font-black leading-none tabular-nums">{value}</div>
     </div>
@@ -992,7 +992,7 @@ function ToggleRow({ icon: Icon, label, hint, checked, onChange, accent }: any) 
       </div>
       <div className="flex-1 min-w-0">
         <div className={`text-sm font-black ${checked ? a.text : 'text-slate-900'}`}>{label}</div>
-        <div className="text-[10px] text-slate-500 font-medium mt-0.5">{hint}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-medium mt-0.5">{hint}</div>
       </div>
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only" />
       <div className={`h-6 w-11 rounded-full transition ${checked ? a.on : 'bg-slate-200'} relative shrink-0`}>
@@ -1056,7 +1056,7 @@ function ProductPreviewCard({ product: p, theme, carouselStyle, activeIdx, onIdx
       {carouselStyle === 'default' && (
         <div className="aspect-square bg-slate-100 relative">
           {renderMedia(active)}
-          <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-br-lg bg-gradient-to-r ${theme.ribbon} text-white text-[9px] font-black uppercase tracking-wider`}>
+          <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-br-lg bg-gradient-to-r ${theme.ribbon} text-white text-[0.625rem] font-black uppercase tracking-wider`}>
             {theme.emoji} {theme.label}
           </div>
           {active?.type === 'video' && (
@@ -1066,7 +1066,7 @@ function ProductPreviewCard({ product: p, theme, carouselStyle, activeIdx, onIdx
           )}
           {discount > 0 && (
             <div className="absolute bottom-2 right-2 h-10 w-10 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg">
-              <div className="text-[10px] font-black">-{discount}%</div>
+              <div className="text-[0.6875rem] font-black">-{discount}%</div>
             </div>
           )}
           {allMedia.length > 1 && (
@@ -1097,7 +1097,7 @@ function ProductPreviewCard({ product: p, theme, carouselStyle, activeIdx, onIdx
             {renderMedia(active)}
             {discount > 0 && (
               <div className="absolute top-2 right-2 h-10 w-10 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg">
-                <div className="text-[10px] font-black">-{discount}%</div>
+                <div className="text-[0.6875rem] font-black">-{discount}%</div>
               </div>
             )}
           </div>
@@ -1140,7 +1140,7 @@ function ProductPreviewCard({ product: p, theme, carouselStyle, activeIdx, onIdx
             {renderMedia(active)}
             {discount > 0 && (
               <div className="absolute top-2 right-2 h-10 w-10 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg">
-                <div className="text-[10px] font-black">-{discount}%</div>
+                <div className="text-[0.6875rem] font-black">-{discount}%</div>
               </div>
             )}
           </div>
@@ -1160,11 +1160,11 @@ function ProductPreviewCard({ product: p, theme, carouselStyle, activeIdx, onIdx
           )}
           {discount > 0 && (
             <div className="absolute top-2 right-2 h-10 w-10 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg">
-              <div className="text-[10px] font-black">-{discount}%</div>
+              <div className="text-[0.6875rem] font-black">-{discount}%</div>
             </div>
           )}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent p-2 opacity-0 group-hover:opacity-100 transition">
-            <span className="text-[10px] font-black text-white">🔍 Hover to zoom</span>
+            <span className="text-[0.6875rem] font-black text-white">🔍 Hover to zoom</span>
           </div>
         </div>
       )}
@@ -1192,7 +1192,7 @@ function ProductPreviewCard({ product: p, theme, carouselStyle, activeIdx, onIdx
         </h3>
 
         {p.marketplaceCategory && (
-          <div className="text-[10px] font-bold text-slate-500">{p.marketplaceCategory}</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500">{p.marketplaceCategory}</div>
         )}
 
         <div className="flex items-center gap-2 pt-1">
@@ -1217,7 +1217,7 @@ function ProductPreviewCard({ product: p, theme, carouselStyle, activeIdx, onIdx
         {p.tags && p.tags.length > 0 && (
           <div className="flex gap-1 flex-wrap pt-1">
             {p.tags.slice(0, 4).map((t: string) => (
-              <span key={t} className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+              <span key={t} className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
                 #{t}
               </span>
             ))}
@@ -1226,16 +1226,16 @@ function ProductPreviewCard({ product: p, theme, carouselStyle, activeIdx, onIdx
 
         <div className="flex gap-1 flex-wrap pt-1">
           {p.bargainEnabled && (
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">💰 BARGAIN</span>
+            <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">💰 BARGAIN</span>
           )}
           {p.groupBuyEnabled && (
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">👥 GROUP</span>
+            <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">👥 GROUP</span>
           )}
           {p.auctionEnabled && (
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-red-100 text-red-700">🔨 AUCTION</span>
+            <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-red-100 text-red-700">🔨 AUCTION</span>
           )}
           {!p.isAvailable && (
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">OUT OF STOCK</span>
+            <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">OUT OF STOCK</span>
           )}
         </div>
 

@@ -77,7 +77,7 @@ export function PosReceiverField({
           <div className="text-xs font-extrabold text-slate-900 dark:text-white leading-tight">
             Maal lene kaun aaya hai?
           </div>
-          <div className="text-[11px] font-bold text-amber-800 dark:text-amber-300 truncate">
+          <div className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 truncate">
             {customerName
               ? `${customerName} khud aaye hain to khali chhor dein`
               : 'Optional — khali bhi chhor sakte hain'}
@@ -117,7 +117,7 @@ export function PosReceiverField({
           <button
             type="button"
             onClick={() => setShowPhone(true)}
-            className="mt-1.5 text-[11px] font-extrabold text-amber-800 dark:text-amber-300 hover:underline"
+            className="mt-1.5 text-[0.6875rem] font-extrabold text-amber-800 dark:text-amber-300 hover:underline"
           >
             + Phone bhi likhein
           </button>
@@ -126,7 +126,7 @@ export function PosReceiverField({
 
       {chips.length > 0 && (
         <div className="mt-2.5">
-          <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-extrabold text-amber-800 dark:text-amber-300 mb-1.5">
+          <div className="flex items-center gap-1 text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-800 dark:text-amber-300 mb-1.5">
             <Clock className="h-3 w-3" /> Pehle aaye hain
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -135,7 +135,7 @@ export function PosReceiverField({
                 key={r.name}
                 type="button"
                 onClick={() => pick(r)}
-                className="h-8 px-2.5 rounded-lg bg-white dark:bg-slate-900 border-2 border-amber-200 dark:border-amber-500/30 text-[11px] font-extrabold text-slate-800 dark:text-slate-100 hover:border-amber-500 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition active:scale-[0.97] max-w-full truncate"
+                className="h-8 px-2.5 rounded-lg bg-white dark:bg-slate-900 border-2 border-amber-200 dark:border-amber-500/30 text-[0.6875rem] font-extrabold text-slate-800 dark:text-slate-100 hover:border-amber-500 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition active:scale-[0.97] max-w-full truncate"
               >
                 {r.name}
               </button>

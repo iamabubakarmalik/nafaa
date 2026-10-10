@@ -263,7 +263,7 @@ function RetailKhataContent() {
               </p>
             </div>
             <div className="text-right">
-              <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+              <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
               <div className="text-xs font-bold text-slate-900">{printDate}</div>
             </div>
           </div>
@@ -276,7 +276,7 @@ function RetailKhataContent() {
 
           <div className="relative flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
                 <BookOpen className="h-3.5 w-3.5 text-amber-300" /> Customer Khata
               </div>
               <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">📔 Udhaar Book</h1>
@@ -333,7 +333,7 @@ function RetailKhataContent() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-extrabold text-sm">Sab ko yaad dilao — 1 click mein 🔔</div>
-                <div className="text-[11px] text-white/80 font-semibold">
+                <div className="text-[0.6875rem] text-white/80 font-semibold">
                   {reminderList.length} customers (phone walay) — har kisi ka message ready, bas Next-Next-Send
                 </div>
               </div>
@@ -347,7 +347,7 @@ function RetailKhataContent() {
           )}
 
           {/* Keyboard hints */}
-          <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+          <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
             <Kbd>/</Kbd><span className="text-white/60">Search</span>
             <span className="text-white/30 mx-1">•</span>
             <Kbd>Esc</Kbd><span className="text-white/60">Band</span>
@@ -371,7 +371,7 @@ function RetailKhataContent() {
               </div>
               <div>
                 <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Udhaar Kitna Purana Hai?</h3>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Jitna purana, utna mushkil wasooli</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">Jitna purana, utna mushkil wasooli</p>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -432,7 +432,7 @@ function RetailKhataContent() {
                   ].join(' ')}
                 >
                   {o.l}
-                  <span className={['px-1.5 rounded text-[10px] tabular-nums', filter === o.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>
+                  <span className={['px-1.5 rounded text-[0.6875rem] tabular-nums', filter === o.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>
                     {o.c}
                   </span>
                 </button>
@@ -565,7 +565,7 @@ function BulkReminderWizard({ customers, shopName, onClose }: {
         <div className="shrink-0 bg-gradient-to-br from-slate-950 via-emerald-900 to-green-700 text-white px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-wider border border-white/20">
                 <BellRing className="h-3 w-3 text-emerald-300" /> Bulk Reminders
               </div>
               <h3 className="font-extrabold text-lg mt-1">Sab Ko Yaad Dilao 🔔</h3>
@@ -623,14 +623,14 @@ function BulkReminderWizard({ customers, shopName, onClose }: {
                     )}
                   </div>
                 </div>
-                <div className="text-right shrink-0 text-[10px] font-extrabold text-slate-500 dark:text-slate-400">
+                <div className="text-right shrink-0 text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400">
                   {idx + 1} / {total}
                 </div>
               </div>
 
               {/* Tone selector */}
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">Message ka tone</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">Message ka tone</div>
                 <div className="grid grid-cols-3 gap-1.5">
                   {REMINDER_TONES.map((t) => (
                     <button
@@ -644,7 +644,7 @@ function BulkReminderWizard({ customers, shopName, onClose }: {
                       ].join(' ')}
                     >
                       <div className="text-sm font-extrabold text-slate-900 dark:text-white">{t.l}</div>
-                      <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400">{t.d}</div>
+                      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">{t.d}</div>
                     </button>
                   ))}
                 </div>
@@ -653,10 +653,10 @@ function BulkReminderWizard({ customers, shopName, onClose }: {
               {/* Message preview */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Message Preview</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Message Preview</div>
                   <button
                     onClick={copyMsg}
-                    className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1 hover:underline"
+                    className="text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1 hover:underline"
                   >
                     {copied ? <CheckCircle2 className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                     {copied ? 'Copied!' : 'Copy'}
@@ -696,7 +696,7 @@ function BulkReminderWizard({ customers, shopName, onClose }: {
                 <SkipForward className="h-4 w-4" />
               </button>
             </div>
-            <p className="text-center text-[10px] font-bold text-slate-400 dark:text-slate-500">
+            <p className="text-center text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
               WhatsApp khulega → wahan Send dabao → yahan automatically agla customer
             </p>
           </div>
@@ -795,17 +795,17 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg truncate">{customer.name}</h3>
             {isAged && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-1 animate-pulse">
+              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 animate-pulse">
                 <Flame className="h-2.5 w-2.5" /> {customer.ageDays} din se
               </span>
             )}
             {!isAged && isHigh && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-1">
+              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1">
                 <AlertTriangle className="h-2.5 w-2.5" /> Zyada
               </span>
             )}
             {!hasBalance && customer.salesCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] font-extrabold uppercase">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.625rem] font-extrabold uppercase">
                 Clear ✓
               </span>
             )}
@@ -831,7 +831,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Udhaar</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Udhaar</div>
           <div className={[
             'text-2xl sm:text-3xl font-extrabold tabular-nums leading-none',
             isAged || isHigh ? 'text-rose-700 dark:text-rose-400' : hasBalance ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400',
@@ -839,7 +839,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
             {hideCost ? '••••' : formatPKR(customer.balance)}
           </div>
           {!hideCost && customer.totalSales > 0 && (
-            <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
               Total {formatPKR(customer.totalSales)}
             </div>
           )}
@@ -875,7 +875,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
 
       {expanded && (
         <div className="border-t-2 border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-800/40 space-y-2 max-h-96 overflow-y-auto">
-          <div className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-2">
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-2">
             Sales History ({customer.allSales.length})
           </div>
           {customer.allSales.length === 0 ? (
@@ -899,12 +899,12 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono font-extrabold text-slate-900 dark:text-white text-xs">{sale.saleNumber}</span>
                           {credit > 0 && (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[9px] font-extrabold uppercase">
+                            <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.625rem] font-extrabold uppercase">
                               Udhaar
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 inline-flex items-center gap-1">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5 inline-flex items-center gap-1">
                           <Calendar className="h-2.5 w-2.5" />
                           {new Date(sale.soldAt).toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}
                         </div>
@@ -914,7 +914,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
                           {hideCost ? '••••' : formatPKR(sale.total)}
                         </div>
                         {credit > 0 && (
-                          <div className="text-[10px] font-extrabold text-amber-700 dark:text-amber-400">
+                          <div className="text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-400">
                             Baqi {formatPKR(credit)}
                           </div>
                         )}
@@ -959,7 +959,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl pointer-events-none" />
           <div className="relative flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[11px] uppercase font-extrabold text-emerald-200 tracking-wider">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-200 tracking-wider">
                 Paisay Wasool
               </div>
               <div className="text-xl font-extrabold mt-1 truncate">{customer.name}</div>
@@ -979,12 +979,12 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider">
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider">
                 Kitna paisa mila?
               </label>
               <button
                 onClick={() => setShowCalc(!showCalc)}
-                className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1"
+                className="text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1"
               >
                 <DollarSign className="h-3 w-3" /> Calculator
               </button>
@@ -1061,7 +1061,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-1 block">
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-1 block">
               Note <span className="text-slate-400 dark:text-slate-500 normal-case font-bold">(optional)</span>
             </label>
             <input
@@ -1117,7 +1117,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
             ].join(' ')}
           >
             <div className="text-left">
-              <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">
                 {loading ? 'Save ho raha...' : 'Payment confirm karo'}
               </div>
               <div className="text-xl sm:text-2xl tabular-nums leading-none mt-0.5">{formatPKR(payAmount)}</div>
@@ -1142,7 +1142,7 @@ function AgingBucket({ emoji, label, value, tone }: any) {
   return (
     <div className={`rounded-xl border-2 p-3 text-center ${tones[tone]}`}>
       <div className="text-xl">{emoji}</div>
-      <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-80 mt-1">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-80 mt-1">{label}</div>
       <div className="text-base font-extrabold tabular-nums mt-0.5">{formatPKR(value)}</div>
     </div>
   );
@@ -1187,9 +1187,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight, onClick, active }
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

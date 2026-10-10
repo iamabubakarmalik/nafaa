@@ -279,7 +279,7 @@ export default function HotelSalesPage() {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" />Date Range</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" />Date Range</label>
             <div className="flex gap-1.5 overflow-x-auto pb-1">
               {([
                 { v: 'today', l: 'Today' }, { v: 'yesterday', l: 'Yesterday' },
@@ -295,11 +295,11 @@ export default function HotelSalesPage() {
             {dateFilter === 'custom' && (
               <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl bg-indigo-50 border-2 border-indigo-200 p-3">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-indigo-700 mb-1 block">From Date</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-indigo-700 mb-1 block">From Date</label>
                   <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="h-10 w-full rounded-lg border-2 border-indigo-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-indigo-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-indigo-700 mb-1 block">To Date</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-indigo-700 mb-1 block">To Date</label>
                   <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="h-10 w-full rounded-lg border-2 border-indigo-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-indigo-500" />
                 </div>
               </div>
@@ -308,7 +308,7 @@ export default function HotelSalesPage() {
 
           {view === 'bookings' && (
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Status</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block">Status</label>
               <div className="flex gap-1.5 overflow-x-auto pb-1">
                 {['all', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'].map((s) => (
                   <button key={s} onClick={() => setStatusFilter(s)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ${statusFilter === s ? 'bg-indigo-600 text-white shadow' : 'bg-slate-100 text-slate-700'}`}>
@@ -346,8 +346,8 @@ export default function HotelSalesPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-mono font-extrabold text-slate-900">{b.bookingNumber}</span>
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${statusColor}`}>{b.status.replace('_', ' ')}</span>
-                              <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] font-extrabold">
+                              <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold uppercase ${statusColor}`}>{b.status.replace('_', ' ')}</span>
+                              <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[0.6875rem] font-extrabold">
                                 {b.bookedRooms?.length || 0} room{(b.bookedRooms?.length || 0) !== 1 ? 's' : ''}
                               </span>
                             </div>
@@ -356,7 +356,7 @@ export default function HotelSalesPage() {
                               {b.guestPhone && <><span>•</span><span>{b.guestPhone}</span></>}
                               <span>•</span><Users className="h-3 w-3" />{b.totalAdults}A {b.totalChildren}C
                             </div>
-                            <div className="mt-1 text-[10px] text-slate-500 font-bold inline-flex items-center gap-2 flex-wrap">
+                            <div className="mt-1 text-[0.6875rem] text-slate-500 font-bold inline-flex items-center gap-2 flex-wrap">
                               <Calendar className="h-2.5 w-2.5" />
                               {new Date(b.checkInDate).toLocaleDateString('en-PK')} → {new Date(b.checkOutDate).toLocaleDateString('en-PK')}
                               <span>•</span>
@@ -367,8 +367,8 @@ export default function HotelSalesPage() {
                         </div>
                         <div className="text-right shrink-0">
                           <div className="text-2xl font-extrabold text-emerald-700 tabular-nums"><HiddenAmount value={formatPKR(b.grandTotal)} hidden={hideAmounts} /></div>
-                          {b.advancePaid > 0 && <div className="text-[10px] text-emerald-700 font-extrabold mt-0.5">Advance: <HiddenAmount value={formatPKR(b.advancePaid)} hidden={hideAmounts} /></div>}
-                          <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-indigo-600 group-hover:text-indigo-700"><Eye className="h-3 w-3" />View <ArrowRight className="h-3 w-3" /></div>
+                          {b.advancePaid > 0 && <div className="text-[0.6875rem] text-emerald-700 font-extrabold mt-0.5">Advance: <HiddenAmount value={formatPKR(b.advancePaid)} hidden={hideAmounts} /></div>}
+                          <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-indigo-600 group-hover:text-indigo-700"><Eye className="h-3 w-3" />View <ArrowRight className="h-3 w-3" /></div>
                         </div>
                       </div>
                     </Link>
@@ -401,7 +401,7 @@ export default function HotelSalesPage() {
                         </div>
                         <div className="text-right shrink-0">
                           <div className="text-2xl font-extrabold text-emerald-700 tabular-nums"><HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} /></div>
-                          <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-indigo-600 group-hover:text-indigo-700"><Eye className="h-3 w-3" />Receipt<ArrowRight className="h-3 w-3" /></div>
+                          <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-indigo-600 group-hover:text-indigo-700"><Eye className="h-3 w-3" />Receipt<ArrowRight className="h-3 w-3" /></div>
                         </div>
                       </div>
                     </Link>

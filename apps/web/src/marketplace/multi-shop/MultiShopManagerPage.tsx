@@ -129,7 +129,7 @@ export default function MultiShopManagerPage() {
                     }`} />
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-black text-slate-900 truncate">{item.shopName}</div>
-                      <div className="text-[10px] text-slate-600 font-bold truncate">{item.reason}</div>
+                      <div className="text-[0.6875rem] text-slate-600 font-bold truncate">{item.reason}</div>
                     </div>
                     <ArrowRight className="h-3 w-3 text-slate-400 shrink-0" />
                   </Link>
@@ -196,7 +196,7 @@ function HeroKpi({ label, value, icon: Icon, highlight, isText }: any) {
     }`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
       </div>
       <div className={`font-black leading-none tabular-nums ${isText ? 'text-sm' : 'text-xl'}`}>{value}</div>
     </div>
@@ -250,18 +250,18 @@ function ShopCard({ shop, isSelected, onToggleSelect }: any) {
               <span className={vm.color}>{vm.emoji}</span>
             </div>
             {shop.city && (
-              <div className="flex items-center gap-1 text-[10px] text-slate-500 font-bold mt-0.5">
+              <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 font-bold mt-0.5">
                 <MapPin className="h-2.5 w-2.5" />
                 {shop.city}
               </div>
             )}
             <div className="flex items-center gap-1.5 mt-1.5">
-              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded ${statusMeta.bg} ${statusMeta.color} inline-flex items-center gap-0.5`}>
+              <span className={`text-[0.625rem] font-black px-1.5 py-0.5 rounded ${statusMeta.bg} ${statusMeta.color} inline-flex items-center gap-0.5`}>
                 <StatusIcon className="h-2.5 w-2.5" />
                 {statusMeta.label}
               </span>
               {shop.ratingCount > 0 && (
-                <span className="text-[9px] font-black text-amber-700 inline-flex items-center gap-0.5">
+                <span className="text-[0.625rem] font-black text-amber-700 inline-flex items-center gap-0.5">
                   <Star className="h-2.5 w-2.5 fill-current" />
                   {shop.ratingAverage.toFixed(1)} ({shop.ratingCount})
                 </span>
@@ -279,7 +279,7 @@ function ShopCard({ shop, isSelected, onToggleSelect }: any) {
       </div>
 
       <div className="px-4 pb-2">
-        <div className="text-[10px] font-black text-slate-500 uppercase mb-0.5">Today Revenue</div>
+        <div className="text-[0.6875rem] font-black text-slate-500 uppercase mb-0.5">Today Revenue</div>
         <div className="text-lg font-black text-emerald-700 tabular-nums">Rs {formatPKR(shop.todayRevenue)}</div>
       </div>
 
@@ -313,7 +313,7 @@ function MiniStat({ label, value, icon: Icon, color, highlight }: any) {
     <div className={`rounded-lg p-2 border ${
       highlight ? 'ring-2 ring-current border-current animate-pulse' : 'border-slate-200'
     } ${colors[color]}`}>
-      <div className="flex items-center gap-1 text-[9px] font-black uppercase">
+      <div className="flex items-center gap-1 text-[0.625rem] font-black uppercase">
         <Icon className="h-2.5 w-2.5" />
         {label}
       </div>
@@ -382,7 +382,7 @@ function CompareModal({ shopIds, allShops, onClose }: any) {
                         </div>
                         <div className="h-7 rounded-lg bg-slate-100 overflow-hidden relative">
                           <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg" style={{ width: `${pct}%` }} />
-                          <div className="absolute inset-0 flex items-center px-3 text-[10px] font-black text-white">
+                          <div className="absolute inset-0 flex items-center px-3 text-[0.6875rem] font-black text-white">
                             {s.orders} orders · AOV Rs {formatPKR(s.avgOrderValue)}
                           </div>
                         </div>
@@ -397,9 +397,9 @@ function CompareModal({ shopIds, allShops, onClose }: any) {
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="text-left px-3 py-2 text-[10px] font-black uppercase text-slate-600">Metric</th>
+                      <th className="text-left px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">Metric</th>
                       {data.shops.map((s) => (
-                        <th key={s.shopId} className="text-right px-3 py-2 text-[10px] font-black uppercase text-slate-600 truncate">
+                        <th key={s.shopId} className="text-right px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600 truncate">
                           {s.shopName}
                         </th>
                       ))}

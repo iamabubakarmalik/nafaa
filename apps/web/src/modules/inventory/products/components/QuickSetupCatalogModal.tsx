@@ -247,7 +247,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                   <Rocket className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/80">
+                  <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/80">
                     Step 2 of 2 — Review & Confirm
                   </div>
                   <h2 className="font-extrabold text-lg">{selectedIds.size} products ready to import</h2>
@@ -266,19 +266,19 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
             <div className="rounded-2xl bg-sky-50 dark:bg-sky-900/20 border-2 border-sky-200 dark:border-sky-800 p-4">
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-sky-700 dark:text-sky-300">Products</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-sky-700 dark:text-sky-300">Products</div>
                   <div className="text-2xl font-extrabold text-sky-900 dark:text-sky-100 tabular-nums">
                     {stats.selectedCount}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-sky-700 dark:text-sky-300">Est. Sales</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-sky-700 dark:text-sky-300">Est. Sales</div>
                   <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                     {formatPKR(stats.totalPrice)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-sky-700 dark:text-sky-300">Est. Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-sky-700 dark:text-sky-300">Est. Cost</div>
                   <div className="text-2xl font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">
                     {formatPKR(stats.totalCost)}
                   </div>
@@ -305,7 +305,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{p.name}</div>
-                      <div className="text-[10px] text-slate-500 font-bold">
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">
                         {p.brand} • {p.category}
                       </div>
                     </div>
@@ -368,7 +368,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                 <Zap className="h-6 w-6 text-amber-300" />
               </div>
               <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border border-white/20">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-wider border border-white/20">
                   <Sparkles className="h-2.5 w-2.5 text-amber-300" /> Quick Setup
                 </div>
                 <h2 className="text-xl sm:text-2xl font-extrabold mt-1">Pakistan Grocery Catalog</h2>
@@ -376,7 +376,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                   Ready-made products list — select karo aur import kar do 🚀
                 </p>
                 {shopName && (
-                  <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/25 border border-emerald-300/40 px-2.5 py-1 text-[10px] font-extrabold backdrop-blur">
+                  <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/25 border border-emerald-300/40 px-2.5 py-1 text-[0.6875rem] font-extrabold backdrop-blur">
                     <span className="text-sm">🏪</span>
                     <span className="text-white/90">Stock jayegi:</span>
                     <span className="text-emerald-100">{shopName}</span>
@@ -607,7 +607,7 @@ function ProductCard({
         </div>
       )}
       {p.alreadyExists && (
-        <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold uppercase tracking-wider shadow">
+        <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shadow">
           Imported
         </div>
       )}
@@ -634,7 +634,7 @@ function ProductCard({
       <div className="p-2.5 space-y-1">
         {categoryColor && (
           <div
-            className="inline-block px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider text-white"
+            className="inline-block px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase tracking-wider text-white"
             style={{ backgroundColor: categoryColor }}
           >
             {p.category}
@@ -643,14 +643,14 @@ function ProductCard({
         <div className="font-extrabold text-slate-900 dark:text-white text-xs line-clamp-2 leading-tight min-h-[2rem]">
           {p.name}
         </div>
-        <div className="text-[10px] font-bold text-violet-700 dark:text-violet-400 truncate">
+        <div className="text-[0.6875rem] font-bold text-violet-700 dark:text-violet-400 truncate">
           {p.brand}
         </div>
         <div className="flex items-end justify-between pt-1">
           <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">
             {formatPKR(p.price)}
           </div>
-          <div className="text-[9px] font-bold text-slate-500">/{p.unit}</div>
+          <div className="text-[0.625rem] font-bold text-slate-500">/{p.unit}</div>
         </div>
       </div>
     </button>
@@ -670,7 +670,7 @@ function StatBox({ label, value, icon: Icon, tone }: any) {
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
-        <div className="text-[9px] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
         <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
       </div>
     </div>
@@ -683,7 +683,7 @@ function MiniStat({ label, value, highlight }: any) {
       'rounded-xl backdrop-blur border p-2.5',
       highlight ? 'bg-amber-500/25 border-amber-300/40' : 'bg-white/10 border-white/20',
     ].join(' ')}>
-      <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       <div className="text-lg font-extrabold tabular-nums mt-0.5">{value}</div>
     </div>
   );
@@ -705,7 +705,7 @@ function PriceInput({
   const t = toneMap[tone];
   return (
     <div>
-      <label className={`block text-[9px] font-extrabold uppercase mb-0.5 text-center ${t.text}`}>{label}</label>
+      <label className={`block text-[0.625rem] font-extrabold uppercase mb-0.5 text-center ${t.text}`}>{label}</label>
       <input
         type="number"
         min={0}

@@ -204,7 +204,7 @@ export default function CosmeticsBrandsPage() {
                             {b.name}
                             {b.isPremium && <Crown className="h-3 w-3 text-violet-600 fill-violet-100" />}
                           </div>
-                          {b.code && <div className="text-[10px] font-mono text-slate-500">{b.code}</div>}
+                          {b.code && <div className="text-[0.6875rem] font-mono text-slate-500">{b.code}</div>}
                         </div>
                       </div>
                     </td>
@@ -279,11 +279,11 @@ function BrandCard({ brand: b, onEdit, onDelete, onToggleFeatured }: any) {
 
       <div className="mt-3 grid grid-cols-2 gap-2 pt-3 border-t border-slate-100">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Products</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Products</div>
           <div className="text-lg font-extrabold text-slate-900 tabular-nums">{b.totalProducts || 0}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Revenue</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
           <div className="text-sm font-extrabold text-pink-700 tabular-nums">{formatPKR(b.totalRevenue || 0)}</div>
         </div>
       </div>
@@ -462,14 +462,14 @@ function Cert({ emoji, label, tone }: any) {
     teal: 'bg-teal-100 text-teal-800',
   };
   return (
-    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${tones[tone]}`}>
+    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[0.6875rem] font-extrabold ${tones[tone]}`}>
       {emoji} {label}
     </span>
   );
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
 }
 
 function Kpi({ icon: Icon, label, value, tone, onClick }: any) {
@@ -485,7 +485,7 @@ function Kpi({ icon: Icon, label, value, tone, onClick }: any) {
       className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-pink-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>

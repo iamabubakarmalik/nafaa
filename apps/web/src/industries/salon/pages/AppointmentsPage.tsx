@@ -222,7 +222,7 @@ function AppointmentCard({ apt }: any) {
             (isSoon ? 'bg-amber-100 dark:bg-amber-950/40' : 'bg-slate-100 dark:bg-neutral-800')
           }>
             <div className={
-              'text-[10px] uppercase font-extrabold ' +
+              'text-[0.6875rem] uppercase font-extrabold ' +
               (isSoon ? 'text-amber-700' : 'text-slate-600')
             }>{dateLabel}</div>
             <div className={
@@ -231,7 +231,7 @@ function AppointmentCard({ apt }: any) {
             }>
               {format(startDate, 'HH:mm')}
             </div>
-            <div className="text-[9px] font-bold text-slate-500">
+            <div className="text-[0.625rem] font-bold text-slate-500">
               {differenceInMinutes(new Date(apt.scheduledEnd), startDate)}min
             </div>
           </div>
@@ -239,21 +239,21 @@ function AppointmentCard({ apt }: any) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{apt.customerName || apt.appointmentNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white inline-flex items-center gap-1 ' + statusCfg.color}>
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white inline-flex items-center gap-1 ' + statusCfg.color}>
                 <StatusIcon className="h-2.5 w-2.5" />
                 {statusCfg.label}
               </span>
               {isSoon && (
-                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 animate-pulse">
+                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 animate-pulse">
                   <Zap className="h-2 w-2" />
                   IN {minsToStart}MIN
                 </span>
               )}
               {apt.paymentStatus === 'PAID' && (
-                <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase">PAID</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase">PAID</span>
               )}
               {apt.customerRating && (
-                <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                   <Star className="h-2 w-2 fill-current" />
                   {apt.customerRating}
                 </span>
@@ -271,13 +271,13 @@ function AppointmentCard({ apt }: any) {
 
             <div className="mt-2 flex flex-wrap gap-1">
               {apt.services?.slice(0, 4).map((s: any, i: number) => (
-                <span key={i} className="px-2 py-0.5 rounded bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[10px] font-extrabold">
+                <span key={i} className="px-2 py-0.5 rounded bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[0.6875rem] font-extrabold">
                   {s.serviceName}
                   {s.staffName && ' • ' + s.staffName}
                 </span>
               ))}
               {(apt.services?.length || 0) > 4 && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[10px] font-extrabold text-slate-500">
+                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.6875rem] font-extrabold text-slate-500">
                   +{(apt.services?.length || 0) - 4} more
                 </span>
               )}
@@ -292,7 +292,7 @@ function AppointmentCard({ apt }: any) {
         <div className="text-right shrink-0">
           <div className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(apt.total)}</div>
           {remaining > 0 && apt.paymentStatus !== 'PAID' && (
-            <div className="text-[10px] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
+            <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
           )}
           <div className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-pink-600">
             View <ArrowRight className="h-3 w-3" />

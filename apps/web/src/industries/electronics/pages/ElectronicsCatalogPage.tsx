@@ -236,7 +236,7 @@ export default function ElectronicsCatalogPage() {
                 className="h-11 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition relative">
                 <ShoppingBag className="h-4 w-4" /> Cart
                 {cart.totalItems > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 h-5 min-w-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-1.5 h-5 min-w-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">
                     {cart.totalItems}
                   </span>
                 )}
@@ -277,7 +277,7 @@ export default function ElectronicsCatalogPage() {
               </div>
               <div>
                 <h3 className="font-extrabold text-amber-950">🎁 Combo Deals</h3>
-                <p className="text-[11px] font-bold text-amber-800">Sath lein to sasta parta hai</p>
+                <p className="text-[0.6875rem] font-bold text-amber-800">Sath lein to sasta parta hai</p>
               </div>
             </div>
             <button onClick={() => setShowBundles(false)}
@@ -291,10 +291,10 @@ export default function ElectronicsCatalogPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="font-extrabold text-slate-900 truncate">{b.name}</div>
-                    <div className="text-[11px] font-bold text-slate-500">{b.items?.length ?? 0} cheezein</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{b.items?.length ?? 0} cheezein</div>
                   </div>
                   {b.savingsPct > 0 && (
-                    <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-extrabold shrink-0">
+                    <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold shrink-0">
                       -{Math.round(b.savingsPct)}%
                     </span>
                   )}
@@ -306,7 +306,7 @@ export default function ElectronicsCatalogPage() {
                   )}
                 </div>
                 {b.savings > 0 && (
-                  <div className="mt-1 text-[11px] font-extrabold text-emerald-600">
+                  <div className="mt-1 text-[0.6875rem] font-extrabold text-emerald-600">
                     {formatPKR(b.savings)} ki bachat
                   </div>
                 )}
@@ -342,7 +342,7 @@ export default function ElectronicsCatalogPage() {
         {groupCats && groupCats.length > 1 && (
           <div className="flex gap-1.5 flex-wrap pt-1 border-t-2 border-slate-100">
             <button onClick={() => setCategory('all')}
-              className={`h-8 px-2.5 rounded-lg text-[11px] font-extrabold transition border ${
+              className={`h-8 px-2.5 rounded-lg text-[0.6875rem] font-extrabold transition border ${
                 category === 'all' ? 'bg-slate-900 text-white border-transparent' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400'
               }`}>
               Sab {group}
@@ -351,7 +351,7 @@ export default function ElectronicsCatalogPage() {
               const m = CATEGORY_META[c];
               return (
                 <button key={c} onClick={() => setCategory(c)}
-                  className={`h-8 px-2.5 rounded-lg text-[11px] font-extrabold inline-flex items-center gap-1 transition border ${
+                  className={`h-8 px-2.5 rounded-lg text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition border ${
                     category === c ? 'bg-slate-900 text-white border-transparent' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-400'
                   }`}>
                   <span>{m.emoji}</span> {m.label}
@@ -373,7 +373,7 @@ export default function ElectronicsCatalogPage() {
 
           {PRICE_RANGES.map((r, i) => (
             <button key={r.label} onClick={() => setPriceIdx(priceIdx === i ? null : i)}
-              className={`h-9 px-2.5 rounded-lg text-[11px] font-extrabold transition border-2 ${
+              className={`h-9 px-2.5 rounded-lg text-[0.6875rem] font-extrabold transition border-2 ${
                 priceIdx === i ? 'bg-emerald-600 text-white border-transparent shadow' : 'bg-white border-slate-200 text-slate-600 hover:border-emerald-300'
               }`}>
               {r.label}
@@ -389,14 +389,14 @@ export default function ElectronicsCatalogPage() {
           </select>
 
           <button onClick={() => setOnlyStock((v) => !v)}
-            className={`h-9 px-2.5 rounded-lg text-[11px] font-extrabold inline-flex items-center gap-1 transition border-2 ${
+            className={`h-9 px-2.5 rounded-lg text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition border-2 ${
               onlyStock ? 'bg-blue-600 text-white border-transparent shadow' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300'
             }`}>
             <CheckCircle2 className="h-3.5 w-3.5" /> Sirf stock me
           </button>
 
           <button onClick={() => setOnlyWishlist((v) => !v)}
-            className={`h-9 px-2.5 rounded-lg text-[11px] font-extrabold inline-flex items-center gap-1 transition border-2 ${
+            className={`h-9 px-2.5 rounded-lg text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition border-2 ${
               onlyWishlist ? 'bg-rose-500 text-white border-transparent shadow' : 'bg-white border-slate-200 text-slate-600 hover:border-rose-300'
             }`}>
             <Heart className={`h-3.5 w-3.5 ${onlyWishlist ? 'fill-white' : ''}`} /> Pasand ({wishlist.count})
@@ -404,7 +404,7 @@ export default function ElectronicsCatalogPage() {
 
           {hasFilters && (
             <button onClick={clearFilters}
-              className="h-9 px-2.5 rounded-lg text-[11px] font-extrabold bg-slate-100 text-slate-600 hover:bg-slate-200 inline-flex items-center gap-1 transition">
+              className="h-9 px-2.5 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 text-slate-600 hover:bg-slate-200 inline-flex items-center gap-1 transition">
               <X className="h-3.5 w-3.5" /> Filter hatao
             </button>
           )}
@@ -490,15 +490,15 @@ function ProductCard({ p, liked, onLike, onAdd }: {
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
           {p.isNewArrival && (
-            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold shadow">🆕 NAYA</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[0.625rem] font-extrabold shadow">🆕 NAYA</span>
           )}
           {p.isBestSeller && (
-            <span className="px-1.5 py-0.5 rounded-md bg-orange-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-orange-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
               <Award className="h-2.5 w-2.5" /> HIT
             </span>
           )}
           {saving > 0 && (
-            <span className="px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[9px] font-extrabold shadow">
+            <span className="px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[0.625rem] font-extrabold shadow">
               {formatPKR(saving)} kam
             </span>
           )}
@@ -510,13 +510,13 @@ function ProductCard({ p, liked, onLike, onAdd }: {
         </button>
 
         {p.isFeatured && (
-          <div className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+          <div className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
             <Star className="h-2.5 w-2.5 fill-white" /> KHAAS
           </div>
         )}
 
         {out && (
-          <div className="absolute inset-x-0 bottom-0 py-1.5 bg-slate-900/80 text-center text-[11px] font-extrabold text-white backdrop-blur">
+          <div className="absolute inset-x-0 bottom-0 py-1.5 bg-slate-900/80 text-center text-[0.6875rem] font-extrabold text-white backdrop-blur">
             Stock khatam
           </div>
         )}
@@ -525,40 +525,40 @@ function ProductCard({ p, liked, onLike, onAdd }: {
       {/* Body */}
       <div className="p-3 space-y-2">
         <div>
-          <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+          <div className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-500 uppercase tracking-wider">
             {meta && <span>{meta.emoji} {meta.label}</span>}
           </div>
           <h3 className="mt-0.5 font-extrabold text-slate-900 text-sm leading-tight line-clamp-2" title={p.name}>
             {p.name}
           </h3>
           {p.brandName && (
-            <div className="text-[11px] font-bold text-slate-500 truncate">{p.brandName}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{p.brandName}</div>
           )}
         </div>
 
         {/* Chips */}
         <div className="flex items-center gap-1 flex-wrap">
           {cond && p.conditionType !== 'BRAND_NEW' && (
-            <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${cond.chip}`}>
+            <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${cond.chip}`}>
               {cond.emoji} {cond.label}
             </span>
           )}
           {p.warrantyMonths > 0 ? (
-            <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
               <ShieldCheck className="h-2.5 w-2.5" /> {p.warrantyMonths}m warranty
             </span>
           ) : (
-            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
               <ShieldAlert className="h-2.5 w-2.5" /> Warranty nahi
             </span>
           )}
           {p.requiresSerial && (
-            <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
               <Barcode className="h-2.5 w-2.5" /> Serial
             </span>
           )}
           {p.notInShop && (
-            <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold">
+            <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">
               Shop me assign nahi
             </span>
           )}
@@ -566,7 +566,7 @@ function ProductCard({ p, liked, onLike, onAdd }: {
 
         {/* Specs */}
         {(p.connectivity?.length > 0 || p.screenSize) && (
-          <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-bold text-slate-500">
+          <div className="flex items-center gap-1.5 flex-wrap text-[0.6875rem] font-bold text-slate-500">
             {p.screenSize && (
               <span className="inline-flex items-center gap-0.5"><Monitor className="h-2.5 w-2.5" /> {p.screenSize}</span>
             )}
@@ -585,11 +585,11 @@ function ProductCard({ p, liked, onLike, onAdd }: {
               <>
                 <div className="text-lg font-extrabold text-slate-900 tabular-nums leading-none">{formatPKR(p.price)}</div>
                 {p.mrp && p.mrp > p.price && (
-                  <div className="text-[10px] font-bold text-slate-400 line-through tabular-nums">{formatPKR(p.mrp)}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-400 line-through tabular-nums">{formatPKR(p.mrp)}</div>
                 )}
               </>
             )}
-            <div className={`text-[10px] font-extrabold mt-0.5 ${out ? 'text-rose-600' : avail <= p.lowStockAlert ? 'text-amber-600' : 'text-emerald-600'}`}>
+            <div className={`text-[0.6875rem] font-extrabold mt-0.5 ${out ? 'text-rose-600' : avail <= p.lowStockAlert ? 'text-amber-600' : 'text-emerald-600'}`}>
               {out ? 'Khatam' : `${avail} ${p.unit} maujood`}
             </div>
           </div>
@@ -612,7 +612,7 @@ function HeroStat({ label, value, icon: Icon, highlight }: any) {
     <div className={`rounded-xl backdrop-blur border p-2.5 ${
       highlight ? 'bg-white/25 border-white/40' : 'bg-white/10 border-white/20'
     }`}>
-      <div className="flex items-center gap-1 text-[9px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1 text-[0.625rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3 w-3" /> <span className="truncate">{label}</span>
       </div>
       <div className="mt-0.5 text-xl font-extrabold tabular-nums">{value}</div>
@@ -654,7 +654,7 @@ function CatalogTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Catalog Kaise Chalayein?</h3>
             </div>
           </div>
@@ -673,7 +673,7 @@ function CatalogTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

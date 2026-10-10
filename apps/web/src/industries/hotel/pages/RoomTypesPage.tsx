@@ -160,7 +160,7 @@ function RoomTypeCard({ rt, onEdit, onDelete }: any) {
         )}
 
         <div className="absolute top-2 left-2 flex flex-col gap-1">
-          <span className="px-2 py-0.5 rounded bg-slate-900/70 backdrop-blur text-white text-[10px] font-extrabold uppercase">
+          <span className="px-2 py-0.5 rounded bg-slate-900/70 backdrop-blur text-white text-[0.6875rem] font-extrabold uppercase">
             {type?.emoji} {type?.label}
           </span>
         </div>
@@ -176,11 +176,11 @@ function RoomTypeCard({ rt, onEdit, onDelete }: any) {
 
         <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between">
           <div className="text-white">
-            <div className="text-[10px] uppercase font-extrabold text-white/80">{rt.code}</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">{rt.code}</div>
             <div className="text-xs font-bold">{rt.bedCount}× {rt.bedType?.replace('_', ' ')}</div>
           </div>
           <div className="text-right text-white">
-            <div className="text-[10px] uppercase font-extrabold text-white/80">Rooms</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">Rooms</div>
             <div className="text-lg font-extrabold tabular-nums">{availableCount}/{roomCount}</div>
           </div>
         </div>
@@ -200,13 +200,13 @@ function RoomTypeCard({ rt, onEdit, onDelete }: any) {
           {rt.hasWifi && <span className="p-1 rounded bg-cyan-100 dark:bg-cyan-950/40 text-cyan-700" title="WiFi"><Wifi className="h-3 w-3" /></span>}
           {rt.hasTV && <span className="p-1 rounded bg-purple-100 dark:bg-purple-950/40 text-purple-700" title="TV"><Tv className="h-3 w-3" /></span>}
           {rt.hasMinibar && <span className="p-1 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700" title="Minibar"><Coffee className="h-3 w-3" /></span>}
-          {rt.hasBalcony && <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[9px] font-extrabold uppercase">Balcony</span>}
-          {rt.hasKitchen && <span className="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-950/40 text-orange-700 text-[9px] font-extrabold uppercase">Kitchen</span>}
+          {rt.hasBalcony && <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[0.625rem] font-extrabold uppercase">Balcony</span>}
+          {rt.hasKitchen && <span className="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-950/40 text-orange-700 text-[0.625rem] font-extrabold uppercase">Kitchen</span>}
         </div>
 
         <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
           <div>
-            <div className="text-[10px] font-extrabold text-slate-500 uppercase">Base Rate</div>
+            <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase">Base Rate</div>
             <div className="text-2xl font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKR(rt.basePrice)}<span className="text-xs font-bold text-slate-500">/night</span></div>
           </div>
         </div>
@@ -294,15 +294,15 @@ function RoomTypeForm({ editing, onClose, onSaved }: any) {
           <div className="text-sm font-extrabold text-blue-900">Capacity</div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Max Adults</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Max Adults</label>
               <input type="number" value={form.maxAdults} onChange={(e) => setForm({ ...form, maxAdults: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Max Children</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Max Children</label>
               <input type="number" value={form.maxChildren} onChange={(e) => setForm({ ...form, maxChildren: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Max Occupancy</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Max Occupancy</label>
               <input type="number" value={form.maxOccupancy} onChange={(e) => setForm({ ...form, maxOccupancy: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
             </div>
           </div>
@@ -322,19 +322,19 @@ function RoomTypeForm({ editing, onClose, onSaved }: any) {
           <div className="text-sm font-extrabold text-emerald-900 flex items-center gap-2"><DollarSign className="h-4 w-4" />Pricing</div>
           <div className="grid sm:grid-cols-4 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Base *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Base *</label>
               <input type="number" value={form.basePrice} onChange={(e) => setForm({ ...form, basePrice: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Weekend</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Weekend</label>
               <input type="number" value={form.weekendPrice} onChange={(e) => setForm({ ...form, weekendPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Peak</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Peak</label>
               <input type="number" value={form.peakPrice} onChange={(e) => setForm({ ...form, peakPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Hourly</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Hourly</label>
               <input type="number" value={form.hourlyPrice} onChange={(e) => setForm({ ...form, hourlyPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
           </div>
@@ -342,7 +342,7 @@ function RoomTypeForm({ editing, onClose, onSaved }: any) {
 
         {/* Amenities */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Room Amenities</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Room Amenities</label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
               { key: 'hasAC', label: 'AC', icon: Wind },
@@ -376,7 +376,7 @@ function RoomTypeForm({ editing, onClose, onSaved }: any) {
 
         {/* Images */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Room Images</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Room Images</label>
           {form.imageUrls.length > 0 && (
             <div className="grid grid-cols-4 gap-1 mb-2">
               {form.imageUrls.map((url: string, i: number) => (

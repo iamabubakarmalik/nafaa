@@ -98,7 +98,7 @@ export default function CalendarViewPage() {
                 'p-3 text-center border-l border-slate-100 dark:border-neutral-800 ' +
                 (isSameDay(day, new Date()) ? 'bg-pink-50 dark:bg-pink-950/30' : '')
               }>
-                <div className="text-[10px] uppercase font-extrabold text-slate-500">{format(day, 'EEE')}</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{format(day, 'EEE')}</div>
                 <div className={
                   'text-lg font-extrabold ' +
                   (isSameDay(day, new Date()) ? 'text-pink-700' : 'text-slate-900 dark:text-white')
@@ -125,7 +125,7 @@ export default function CalendarViewPage() {
                         key={apt.id}
                         to={'/salon/appointments/' + apt.id}
                         className={
-                          'block rounded-lg p-1.5 text-[10px] hover:shadow-md transition ' +
+                          'block rounded-lg p-1.5 text-[0.6875rem] hover:shadow-md transition ' +
                           (apt.status === 'CONFIRMED' ? 'bg-blue-100 dark:bg-blue-950/40 text-blue-800 hover:bg-blue-200' :
                            apt.status === 'ARRIVED' ? 'bg-cyan-100 dark:bg-cyan-950/40 text-cyan-800 hover:bg-cyan-200' :
                            apt.status === 'IN_PROGRESS' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 hover:bg-amber-200' :

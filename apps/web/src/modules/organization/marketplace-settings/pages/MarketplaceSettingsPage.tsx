@@ -230,7 +230,7 @@ export default function MarketplaceSettingsPage() {
             ) : (
               groups.map((group) => (
                 <div key={group} className="mb-3 last:mb-0">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-3 py-1.5">{group}</div>
+                  <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-400 px-3 py-1.5">{group}</div>
                   {sections.filter((s) => s.group === group).map((s) => {
                     const Icon = s.icon;
                     const isActive = active === s.id;
@@ -250,7 +250,7 @@ export default function MarketplaceSettingsPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-black truncate">{s.label}</div>
-                          <div className="text-[10px] text-slate-500 truncate font-medium">{s.desc}</div>
+                          <div className="text-[0.6875rem] text-slate-500 truncate font-medium">{s.desc}</div>
                         </div>
                         {isActive && <ChevronRight className="h-4 w-4 shrink-0" />}
                       </button>

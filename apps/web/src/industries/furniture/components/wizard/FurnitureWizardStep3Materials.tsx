@@ -125,7 +125,7 @@ export function FurnitureWizardStep3Materials({
         <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
           {MATERIAL_GROUPS.map((grp) => (
             <div key={grp.group}>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-1.5">{grp.group}</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 mb-1.5">{grp.group}</div>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {grp.items.map((m) => {
                   const a = materials.primaryMaterial === m.v;
@@ -135,7 +135,7 @@ export function FurnitureWizardStep3Materials({
                         a ? 'border-amber-600 bg-amber-600 text-white shadow-md scale-[1.03]'
                           : 'border-slate-200 bg-white text-slate-700 hover:border-amber-400'].join(' ')}>
                       <span className="text-xl leading-none">{m.e}</span>
-                      <span className="text-[10px] font-extrabold text-center leading-tight">{m.l}</span>
+                      <span className="text-[0.6875rem] font-extrabold text-center leading-tight">{m.l}</span>
                     </button>
                   );
                 })}
@@ -214,7 +214,7 @@ export function FurnitureWizardStep3Materials({
           </div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2">Quick presets</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2">Quick presets</div>
           <div className="flex flex-wrap gap-1.5">
             {COLOR_PRESETS.map((c) => (
               <button key={c.hex} type="button"
@@ -286,7 +286,7 @@ export function FurnitureWizardStep3Materials({
 
         {delivery.requiresAssembly && (
           <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700">Assembly details</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700">Assembly details</div>
             <div className="grid sm:grid-cols-3 gap-3">
               <Input label="Time (minutes)" type="number" value={delivery.assemblyTimeMinutes}
                 onChange={(e) => onChangeDelivery({ assemblyTimeMinutes: e.target.value === '' ? '' : Number(e.target.value) })}
@@ -391,7 +391,7 @@ export function FurnitureWizardStep3Materials({
             <Truck className="h-5 w-5 text-orange-600" />
             <div className="flex-1">
               <div className="font-extrabold text-sm text-slate-900">Requires Large Vehicle</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Suzuki/Shehzore/Truck</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Suzuki/Shehzore/Truck</div>
             </div>
           </label>
           <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-200 hover:border-orange-300 cursor-pointer">
@@ -401,7 +401,7 @@ export function FurnitureWizardStep3Materials({
             <Users className="h-5 w-5 text-orange-600" />
             <div className="flex-1">
               <div className="font-extrabold text-sm text-slate-900">Multiple Helpers Needed</div>
-              <div className="text-[10px] text-slate-500 font-semibold">For loading/carrying</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">For loading/carrying</div>
             </div>
           </label>
         </div>

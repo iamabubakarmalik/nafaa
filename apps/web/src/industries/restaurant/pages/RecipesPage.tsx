@@ -91,9 +91,9 @@ export default function RecipesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-xs truncate text-slate-900 dark:text-white">{mi.product?.name}</div>
-                  <div className="text-[10px] text-slate-500 font-semibold">{formatPKR(mi.product?.price ?? 0)}</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-semibold">{formatPKR(mi.product?.price ?? 0)}</div>
                 </div>
-                {mi.recipe && <span className="px-1.5 py-0.5 rounded bg-lime-100 dark:bg-lime-950/40 text-lime-700 text-[8px] font-extrabold uppercase">Has Recipe</span>}
+                {mi.recipe && <span className="px-1.5 py-0.5 rounded bg-lime-100 dark:bg-lime-950/40 text-lime-700 text-[0.625rem] font-extrabold uppercase">Has Recipe</span>}
               </button>
             ))}
           </div>
@@ -207,14 +207,14 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
         <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4">
           <div className="text-xs uppercase font-extrabold text-slate-500">Recipe Cost</div>
           <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(totalCost)}</div>
-          <div className="text-[10px] text-slate-500 font-bold">per {yieldQuantity} {yieldUnit}</div>
+          <div className="text-[0.6875rem] text-slate-500 font-bold">per {yieldQuantity} {yieldUnit}</div>
         </div>
         <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4">
           <div className="text-xs uppercase font-extrabold text-slate-500">Cost per Portion</div>
           <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">
             {formatPKR(yieldQuantity > 0 ? totalCost / yieldQuantity : 0)}
           </div>
-          <div className="text-[10px] text-slate-500 font-bold">1 {yieldUnit}</div>
+          <div className="text-[0.6875rem] text-slate-500 font-bold">1 {yieldUnit}</div>
         </div>
         <div className={
           'rounded-2xl border-2 p-4 ' +
@@ -233,7 +233,7 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
             {marginPct.toFixed(1)}%
           </div>
           <div className={
-            'text-[10px] font-bold ' +
+            'text-[0.6875rem] font-bold ' +
             (marginPct > 50 ? 'text-emerald-700' : marginPct > 30 ? 'text-amber-700' : 'text-rose-700')
           }>
             Profit: {formatPKR(menuPrice - totalCost)}
@@ -246,7 +246,7 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
         <h3 className="text-sm font-bold text-slate-900 dark:text-white">Recipe Yield</h3>
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Yield Quantity</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Yield Quantity</label>
             <input
               type="number" step="0.01" min="0.01"
               value={yieldQuantity}
@@ -255,7 +255,7 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Yield Unit</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Yield Unit</label>
             <select
               value={yieldUnit}
               onChange={(e) => setYieldUnit(e.target.value)}
@@ -272,7 +272,7 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
             </select>
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Cooking Time (min)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Cooking Time (min)</label>
             <input
               type="number" min="1"
               value={cookingTime}
@@ -381,7 +381,7 @@ function IngredientsSection({ ingredients, onChange }: {
         <div className="flex items-center gap-2">
           <Package className="h-4 w-4 text-lime-600" />
           <h3 className="text-sm font-bold text-slate-900 dark:text-white">Ingredients</h3>
-          <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-neutral-700 text-[10px] font-extrabold">{ingredients.length}</span>
+          <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-neutral-700 text-[0.6875rem] font-extrabold">{ingredients.length}</span>
         </div>
         <Button size="sm" onClick={() => setShowPicker(true)} className="bg-gradient-to-r from-lime-600 to-emerald-700">
           <Plus className="h-3.5 w-3.5" />
@@ -443,7 +443,7 @@ function IngredientsSection({ ingredients, onChange }: {
                   <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
                     {ing.ingredient?.name || 'Ingredient'}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-semibold">Stock: {ing.ingredient?.stock ?? '—'}</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-semibold">Stock: {ing.ingredient?.stock ?? '—'}</div>
                 </div>
               </div>
 
@@ -467,7 +467,7 @@ function IngredientsSection({ ingredients, onChange }: {
               </div>
 
               <div className="col-span-2 relative">
-                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] font-extrabold text-slate-500">Rs</span>
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[0.625rem] font-extrabold text-slate-500">Rs</span>
                 <input
                   type="number" step="0.01"
                   value={ing.costPerUnit ?? 0}
@@ -481,7 +481,7 @@ function IngredientsSection({ ingredients, onChange }: {
                 <div className="text-sm font-extrabold text-emerald-700 tabular-nums">
                   {formatPKR((ing.quantity ?? 0) * (ing.costPerUnit ?? 0))}
                 </div>
-                <label className="inline-flex items-center gap-1 text-[9px] font-bold text-slate-500 cursor-pointer">
+                <label className="inline-flex items-center gap-1 text-[0.625rem] font-bold text-slate-500 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={ing.isOptional || false}

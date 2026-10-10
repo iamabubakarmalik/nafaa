@@ -91,7 +91,7 @@ export function CosmeticsWizardStep4Certifications({
                 <span className="text-2xl shrink-0">{c.icon}</span>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm">{c.label}</div>
-                  <div className="text-[10px] font-bold opacity-75">{c.desc}</div>
+                  <div className="text-[0.6875rem] font-bold opacity-75">{c.desc}</div>
                 </div>
                 <div className={['h-6 w-6 rounded-lg flex items-center justify-center shrink-0',
                   a ? 'bg-current text-white' : 'bg-slate-100 text-slate-400'].join(' ')}>
@@ -153,7 +153,7 @@ export function CosmeticsWizardStep4Certifications({
           </div>
 
           <div className="rounded-2xl bg-white border-2 border-amber-200 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-amber-700">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-700">
               Initial batch (optional — fill if adding stock now)
             </div>
 
@@ -174,7 +174,7 @@ export function CosmeticsWizardStep4Certifications({
                   <Lbl>Expiry Date {batch.initialBatchNumber?.trim() && '*'}</Lbl>
                   {batch.manufactureDate && batch.shelfLifeMonths && (
                     <button type="button" onClick={calcExpiry}
-                      className="text-[10px] font-extrabold text-amber-700 hover:underline">
+                      className="text-[0.6875rem] font-extrabold text-amber-700 hover:underline">
                       Auto-calculate
                     </button>
                   )}

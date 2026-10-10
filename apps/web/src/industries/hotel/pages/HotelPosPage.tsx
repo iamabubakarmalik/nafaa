@@ -175,18 +175,18 @@ export default function HotelPosPage() {
         <section className="rounded-2xl bg-white border-2 border-slate-200 p-4">
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Check-in *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Check-in *</label>
               <input type="date" value={checkInDate} onChange={(e) => setCheckInDate(e.target.value)} min={today}
                 className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Check-out *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Check-out *</label>
               <input type="date" value={checkOutDate} onChange={(e) => setCheckOutDate(e.target.value)} min={checkInDate}
                 className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
             </div>
             <div className="rounded-xl bg-indigo-50 border-2 border-indigo-200 flex items-center justify-center p-2">
               <div className="text-center">
-                <div className="text-[10px] uppercase font-extrabold text-indigo-700">Stay Duration</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-indigo-700">Stay Duration</div>
                 <div className="text-2xl font-extrabold text-indigo-900 tabular-nums">{nights} night{nights !== 1 ? 's' : ''}</div>
               </div>
             </div>
@@ -213,10 +213,10 @@ export default function HotelPosPage() {
                     <Bed className="h-16 w-16" />
                   </div>
                 )}
-                <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-slate-900/70 backdrop-blur text-white text-[10px] font-extrabold uppercase">
+                <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-slate-900/70 backdrop-blur text-white text-[0.6875rem] font-extrabold uppercase">
                   {group.roomType.code}
                 </div>
-                <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-extrabold">
+                <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[0.6875rem] font-extrabold">
                   {group.count} available
                 </div>
               </div>
@@ -238,7 +238,7 @@ export default function HotelPosPage() {
                     <div className="text-2xl font-extrabold text-emerald-700 tabular-nums leading-none">
                       {formatPKR(group.roomType.basePrice)}
                     </div>
-                    <div className="text-[10px] text-slate-500 font-bold">per night</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">per night</div>
                   </div>
                   <button onClick={() => addRoom(group)}
                     className="px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-700 text-white text-xs font-extrabold inline-flex items-center gap-1 hover:shadow-lg">
@@ -247,11 +247,11 @@ export default function HotelPosPage() {
                 </div>
                 {group.rooms && group.rooms.length > 0 && (
                   <div className="pt-2 border-t border-slate-100">
-                    <div className="text-[9px] uppercase font-extrabold text-slate-500 mb-1">Available Rooms</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">Available Rooms</div>
                     <div className="flex flex-wrap gap-1">
                       {group.rooms.slice(0, 6).map((r: any) => (
                         <button key={r.id} onClick={() => addRoom(group, r)}
-                          className="px-2 py-0.5 rounded bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 text-[10px] font-extrabold font-mono">
+                          className="px-2 py-0.5 rounded bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 text-[0.6875rem] font-extrabold font-mono">
                           {r.roomNumber}
                         </button>
                       ))}
@@ -276,7 +276,7 @@ export default function HotelPosPage() {
                   </div>
                   <div className="text-right">
                     <div className="font-extrabold text-emerald-700">{formatPKR(room.ratePerNight * nights)}</div>
-                    <div className="text-[10px] text-slate-500">{nights} nights × {formatPKR(room.ratePerNight)}</div>
+                    <div className="text-[0.6875rem] text-slate-500">{nights} nights × {formatPKR(room.ratePerNight)}</div>
                   </div>
                   <button onClick={() => removeRoom(i)}
                     className="h-8 w-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -335,7 +335,7 @@ export default function HotelPosPage() {
                     <User className="h-3.5 w-3.5 text-slate-400" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-extrabold truncate">{g.fullName}</div>
-                      <div className="text-[10px] text-slate-500 font-bold">{g.phone}</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">{g.phone}</div>
                     </div>
                     {g.isVIP && <Star className="h-3 w-3 text-amber-500 fill-current" />}
                   </button>
@@ -346,19 +346,19 @@ export default function HotelPosPage() {
 
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Guest Name *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Guest Name *</label>
               <input value={guestName} onChange={(e) => setGuestName(e.target.value)}
                 placeholder="Full name"
                 className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Phone *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Phone *</label>
               <input value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)}
                 placeholder="03XX..."
                 className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500" />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Email</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Email</label>
               <input value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)}
                 placeholder="email@example.com"
                 className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500" />
@@ -367,12 +367,12 @@ export default function HotelPosPage() {
 
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Total Adults</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Total Adults</label>
               <input type="number" min="1" value={totalAdults} onChange={(e) => setTotalAdults(Number(e.target.value))}
                 className="h-11 w-full rounded-xl border-2 border-blue-300 bg-blue-50 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-cyan-700 mb-1 block">Total Children</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-1 block">Total Children</label>
               <input type="number" min="0" value={totalChildren} onChange={(e) => setTotalChildren(Number(e.target.value))}
                 className="h-11 w-full rounded-xl border-2 border-cyan-300 bg-cyan-50 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-cyan-500" />
             </div>
@@ -383,7 +383,7 @@ export default function HotelPosPage() {
           <h3 className="font-extrabold text-slate-900">Booking Details</h3>
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Source</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Source</label>
               <div className="grid grid-cols-3 gap-1">
                 {SOURCES.map((s) => (
                   <button key={s.value} onClick={() => setSource(s.value)}
@@ -391,13 +391,13 @@ export default function HotelPosPage() {
                       source === s.value ? 'border-indigo-500 bg-indigo-50 shadow' : 'border-slate-200 bg-white hover:border-indigo-300'
                     }`}>
                     <div className="text-xl">{s.emoji}</div>
-                    <div className="text-[9px] font-extrabold">{s.label}</div>
+                    <div className="text-[0.625rem] font-extrabold">{s.label}</div>
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Meal Plan</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Meal Plan</label>
               <select value={mealPlan} onChange={(e) => setMealPlan(e.target.value as MealPlan)}
                 className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500">
                 {MEAL_PLANS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
@@ -452,7 +452,7 @@ export default function HotelPosPage() {
           <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200">
             <div>
               <div className="font-extrabold text-slate-900 text-sm">{room.roomTypeName}</div>
-              {room.roomNumber && <div className="text-[10px] font-mono text-slate-600">Room {room.roomNumber}</div>}
+              {room.roomNumber && <div className="text-[0.6875rem] font-mono text-slate-600">Room {room.roomNumber}</div>}
             </div>
             <div className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(room.ratePerNight * nights)}</div>
           </div>
@@ -467,17 +467,17 @@ export default function HotelPosPage() {
         
         <div className="grid grid-cols-3 gap-2">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Tax %</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Tax %</label>
             <input type="number" value={taxPct} onChange={(e) => setTaxPct(Number(e.target.value))}
               className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-indigo-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Service %</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Service %</label>
             <input type="number" value={serviceChargePct} onChange={(e) => setServiceChargePct(Number(e.target.value))}
               className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-indigo-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Discount</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Discount</label>
             <input type="number" value={discount} onChange={(e) => setDiscount(Number(e.target.value))}
               className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-indigo-500" />
           </div>
@@ -495,7 +495,7 @@ export default function HotelPosPage() {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Advance Payment</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Advance Payment</label>
           <input type="number" value={advancePaid} onChange={(e) => setAdvancePaid(Number(e.target.value))}
             placeholder="0"
             className="h-12 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-lg font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />

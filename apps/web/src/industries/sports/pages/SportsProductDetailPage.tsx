@@ -208,27 +208,27 @@ export default function SportsProductDetailPage() {
                 <div className="w-full h-full flex items-center justify-center text-white/50"><Dumbbell className="h-16 w-16" /></div>
               )}
               {profile?.isProfessional && (
-                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-blue-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-blue-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Trophy className="h-3 w-3" /> PRO GRADE
                 </div>
               )}
               {profile?.isFeatured && !profile?.isProfessional && (
-                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Star className="h-3 w-3 fill-white" /> FEATURED
                 </div>
               )}
               {profile?.isBestSeller && (
-                <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-orange-600 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-orange-600 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Award className="h-3 w-3 fill-white" /> BESTSELLER
                 </div>
               )}
               {profile?.isNewArrival && (
-                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[10px] font-extrabold shadow-lg">
+                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[0.6875rem] font-extrabold shadow-lg">
                   🆕 NEW
                 </div>
               )}
               {profile?.isTeamOrderable && (
-                <div className="absolute bottom-3 left-3 px-2 py-1 rounded-lg bg-violet-600 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute bottom-3 left-3 px-2 py-1 rounded-lg bg-violet-600 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Users className="h-3 w-3" /> TEAM
                 </div>
               )}
@@ -275,24 +275,24 @@ export default function SportsProductDetailPage() {
 
             <div className="mt-5 flex items-end gap-5 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Retail Price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Retail Price</div>
                 <div className="text-4xl font-extrabold tabular-nums leading-none mt-1">{formatPKRFull(product.price)}</div>
               </div>
               {!hideCost && Number(product.costPrice || 0) > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">{formatPKRFull(product.costPrice)}</div>
                 </div>
               )}
               {profile?.teamPrice ? (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Team Price</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Team Price</div>
                   <div className="text-xl font-extrabold tabular-nums text-emerald-300 leading-none mt-1">{formatPKRFull(profile.teamPrice)}</div>
                 </div>
               ) : null}
               {!hideCost && stats.profitPerUnit !== 0 && (
                 <div className={`rounded-xl px-3 py-2 backdrop-blur border ${stats.profitPerUnit >= 0 ? 'bg-emerald-400/20 border-emerald-300/40' : 'bg-rose-400/20 border-rose-300/40'}`}>
-                  <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Profit / unit</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Profit / unit</div>
                   <div className="text-lg font-extrabold tabular-nums leading-none mt-0.5">
                     {formatPKRFull(stats.profitPerUnit)} <span className="text-xs opacity-80">({stats.margin.toFixed(0)}%)</span>
                   </div>
@@ -339,7 +339,7 @@ export default function SportsProductDetailPage() {
                 <Icon className="h-4 w-4" />
                 {t.label}
                 {t.count !== undefined && (
-                  <span className={`px-1.5 rounded-full text-[10px] font-extrabold ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>{t.count}</span>
+                  <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>{t.count}</span>
                 )}
               </button>
             );
@@ -544,11 +544,11 @@ export default function SportsProductDetailPage() {
               return (
                 <div key={v.id} className={`rounded-2xl border-2 p-3 ${vStock <= 0 ? 'border-rose-200 bg-rose-50/40' : vLow ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-white'}`}>
                   <div className="font-extrabold text-slate-900 text-sm truncate">{v.name}</div>
-                  <div className="text-[10px] font-mono text-slate-500 mt-0.5">{v.sku || v.barcode || '—'}</div>
+                  <div className="text-[0.6875rem] font-mono text-slate-500 mt-0.5">{v.sku || v.barcode || '—'}</div>
                   <div className="mt-2 flex items-end justify-between">
                     <div className="text-base font-extrabold text-emerald-700 tabular-nums">{formatPKRFull(v.price)}</div>
                     <div className={`text-sm font-extrabold tabular-nums ${vStock <= 0 ? 'text-rose-700' : vLow ? 'text-amber-700' : 'text-slate-700'}`}>
-                      {vStock} <span className="text-[10px] font-bold text-slate-500">pcs</span>
+                      {vStock} <span className="text-[0.6875rem] font-bold text-slate-500">pcs</span>
                     </div>
                   </div>
                 </div>
@@ -573,7 +573,7 @@ export default function SportsProductDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-extrabold text-sm text-slate-900">{s.saleNumber}</span>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
@@ -608,13 +608,13 @@ export default function SportsProductDetailPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold text-slate-900 text-sm">{String(m.type || 'MOVEMENT').replace(/_/g, ' ')}</div>
-                    <div className="text-[11px] text-slate-500 font-semibold truncate">
+                    <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">
                       {m.note || m.reason || '—'}
                       {m.createdAt && ` • ${new Date(m.createdAt).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}`}
                     </div>
                   </div>
                   <div className={`font-extrabold tabular-nums shrink-0 ${isIn ? 'text-emerald-700' : 'text-rose-700'}`}>
-                    {isIn && qty > 0 ? '+' : ''}{qty} <span className="text-[10px] font-bold text-slate-500">pcs</span>
+                    {isIn && qty > 0 ? '+' : ''}{qty} <span className="text-[0.6875rem] font-bold text-slate-500">pcs</span>
                   </div>
                 </div>
               );
@@ -652,10 +652,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -730,7 +730,7 @@ function InfoBox({ label, value, tone }: any) {
   };
   return (
     <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
-      <div className="text-[10px] uppercase font-extrabold opacity-75">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold opacity-75">{label}</div>
       <div className="text-lg font-extrabold mt-0.5">{value}</div>
     </div>
   );

@@ -82,16 +82,16 @@ export function RepairStatusTimeline({ logs }: Props) {
                     )}
                     <RepairStatusBadge status={log.toStatus} size="sm" />
                     {isLatest && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-600 text-white font-bold uppercase">
+                      <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-emerald-600 text-white font-bold uppercase">
                         Latest
                       </span>
                     )}
                   </div>
                   <div className="text-right">
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
                       {formatTime(log.changedAt)}
                     </div>
-                    <div className="text-[9px] text-slate-400 dark:text-slate-500">
+                    <div className="text-[0.625rem] text-slate-400 dark:text-slate-500">
                       {timeAgo(log.changedAt)}
                     </div>
                   </div>
@@ -102,7 +102,7 @@ export function RepairStatusTimeline({ logs }: Props) {
                   </div>
                 )}
                 {(log as any).changedByName && (
-                  <div className="mt-1.5 text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <div className="mt-1.5 text-[0.6875rem] text-slate-500 dark:text-slate-400 flex items-center gap-1">
                     <User className="h-2.5 w-2.5" />
                     {(log as any).changedByName}
                   </div>

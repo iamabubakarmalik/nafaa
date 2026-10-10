@@ -124,9 +124,9 @@ export function HardwareWizardStep3BulkReorder({
                   ].join(' ')}
                 >
                   <div className="text-xs font-extrabold">{p.label}</div>
-                  <div className="text-[10px] font-bold mt-0.5">{p.minQuantity}+ {unit}</div>
-                  <div className="text-[10px] font-extrabold text-emerald-700 mt-0.5">-{p.discountPct}%</div>
-                  {exists && <div className="text-[9px] text-emerald-600 mt-0.5">✓ Added</div>}
+                  <div className="text-[0.6875rem] font-bold mt-0.5">{p.minQuantity}+ {unit}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-emerald-700 mt-0.5">-{p.discountPct}%</div>
+                  {exists && <div className="text-[0.625rem] text-emerald-600 mt-0.5">✓ Added</div>}
                 </button>
               );
             })}
@@ -167,11 +167,11 @@ export function HardwareWizardStep3BulkReorder({
             <table className="w-full text-xs">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Tier Label</th>
-                  <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Min Qty</th>
-                  <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Max Qty</th>
-                  <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Price/{unit}</th>
-                  <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Discount</th>
+                  <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Tier Label</th>
+                  <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Min Qty</th>
+                  <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Max Qty</th>
+                  <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Price/{unit}</th>
+                  <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Discount</th>
                   <th className="px-2 py-2"></th>
                 </tr>
               </thead>

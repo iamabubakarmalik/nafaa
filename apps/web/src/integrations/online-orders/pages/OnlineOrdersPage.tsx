@@ -473,7 +473,7 @@ export default function OnlineOrdersPage() {
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Globe className="h-3.5 w-3.5 text-emerald-300" /> Website · Orders
               {(counts.PENDING ?? 0) > 0 && (
                 <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 text-slate-900">
@@ -489,7 +489,7 @@ export default function OnlineOrdersPage() {
               <strong>{showValue(rs(stats.value))}</strong>
               {stats.codDueValue > 0 && <> · <span className="text-amber-200">{showValue(rs(stats.codDueValue))} COD baqi</span></>}
             </p>
-            <p className="mt-1 text-[11px] font-bold text-white/70">
+            <p className="mt-1 text-[0.6875rem] font-bold text-white/70">
               Accept karo — bill aur receipt khud banti hai, stock kam ho jata hai.
             </p>
           </div>
@@ -557,14 +557,14 @@ export default function OnlineOrdersPage() {
                     <h3 className="font-black text-rose-900 dark:text-rose-200 text-sm">
                       {stalePending.length} naya order {STALE_MIN} minute se zyada se ruka hai
                     </h3>
-                    <p className="text-[12px] font-bold text-rose-800 dark:text-rose-300 mt-0.5">
+                    <p className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300 mt-0.5">
                       Sab se purana <strong>#{orderNo(stalePending[0])}</strong> ({stalePending[0].customerName}) —{' '}
                       {waitMin(stalePending[0], now)} minute. Der hone par customer cancel kar deta hai.
                     </p>
                     <div className="mt-2 flex gap-1.5 flex-wrap">
                       {stalePending.slice(0, 4).map((o) => (
                         <button key={o.id} onClick={() => { goTab('PENDING'); open(o.id); }}
-                          className="h-8 px-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-black transition">
+                          className="h-8 px-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[0.6875rem] font-black transition">
                           #{orderNo(o)} · {waitMin(o, now)}m
                         </button>
                       ))}
@@ -579,13 +579,13 @@ export default function OnlineOrdersPage() {
                     <h3 className="font-black text-amber-900 dark:text-amber-200 text-sm">
                       {cancelRequests.length} customer ne cancel maanga hai
                     </h3>
-                    <p className="text-[12px] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
+                    <p className="text-[0.75rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
                       Parcel bhejne se pehle dekh lein — warna courier ka kharcha aur wapsi dono aapke sar.
                     </p>
                     <div className="mt-2 flex gap-1.5 flex-wrap">
                       {cancelRequests.slice(0, 4).map((o) => (
                         <button key={o.id} onClick={() => { goTab('ALL'); open(o.id); }}
-                          className="h-8 px-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black transition">
+                          className="h-8 px-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[0.6875rem] font-black transition">
                           #{orderNo(o)} · {statusShort(o.orderStatus)}
                         </button>
                       ))}
@@ -617,10 +617,10 @@ export default function OnlineOrdersPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-base sm:text-lg font-black truncate">{t.label}</span>
                         {t.n !== undefined && (
-                          <span className={`px-2 py-0.5 rounded-full text-[11px] font-black tabular-nums ${on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums ${on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
                         )}
                       </div>
-                      <div className={`text-[11px] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.hint}</div>
+                      <div className={`text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.hint}</div>
                     </div>
                   </div>
                 </button>
@@ -643,7 +643,7 @@ export default function OnlineOrdersPage() {
                     !c.live && 'opacity-60')}>
                   <span>{channelMeta(c.type).emoji}</span> {c.displayName}
                   {c.pendingOrders > 0 && (
-                    <span className={cn('rounded-md px-1.5 text-[10px] tabular-nums', channelId === c.id ? 'bg-white/25' : 'bg-amber-500 text-white')}>{c.pendingOrders}</span>
+                    <span className={cn('rounded-md px-1.5 text-[0.6875rem] tabular-nums', channelId === c.id ? 'bg-white/25' : 'bg-amber-500 text-white')}>{c.pendingOrders}</span>
                   )}
                 </button>
               ))}
@@ -666,13 +666,13 @@ export default function OnlineOrdersPage() {
                       <span className="flex items-center gap-1.5 text-sm font-black">
                         {t.label}
                         {c > 0 && (
-                          <span className={cn('rounded-md px-1.5 text-[11px] tabular-nums',
+                          <span className={cn('rounded-md px-1.5 text-[0.6875rem] tabular-nums',
                             t.key === 'PENDING' ? 'bg-amber-500 text-white' : t.key === 'COD_DUE' ? 'bg-rose-500 text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200')}>
                             {c}
                           </span>
                         )}
                       </span>
-                      <span className="text-[10px] font-bold text-slate-400 hidden sm:block">{t.hint}</span>
+                      <span className="text-[0.6875rem] font-bold text-slate-400 hidden sm:block">{t.hint}</span>
                     </button>
                   );
                 })}
@@ -706,7 +706,7 @@ export default function OnlineOrdersPage() {
                   <>
                     <div className="fixed inset-0 z-30" onClick={() => setShowDate(false)} />
                     <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-2">
-                      <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Tareekh chunein</div>
+                      <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Tareekh chunein</div>
                       <div className="grid grid-cols-2 gap-1.5">
                         {DATE_OPTS.map(([v, l]) => (
                           <button key={v} onClick={() => { setDateFilter(v); if (v !== 'custom') setShowDate(false); }}
@@ -719,15 +719,15 @@ export default function OnlineOrdersPage() {
                         <div className="grid grid-cols-2 gap-2 pt-1">
                           {([['Se', customStart, setCustomStart], ['Tak', customEnd, setCustomEnd]] as const).map(([l, v, set]) => (
                             <div key={l}>
-                              <label className="text-[10px] font-black uppercase text-slate-500 mb-1 block">{l}</label>
+                              <label className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1 block">{l}</label>
                               <input type="date" value={v} onChange={(e) => set(e.target.value)}
                                 className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 [color-scheme:light] dark:[color-scheme:dark]" />
                             </div>
                           ))}
                         </div>
                       )}
-                      <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[11px] font-bold text-slate-500 text-center">{rangeLabel}</div>
-                      <p className="text-[10px] font-bold text-slate-400 text-center">"Naye" aur "Chal rahe" par tareekh nahi lagti — koi order chhupe na.</p>
+                      <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[0.6875rem] font-bold text-slate-500 text-center">{rangeLabel}</div>
+                      <p className="text-[0.6875rem] font-bold text-slate-400 text-center">"Naye" aur "Chal rahe" par tareekh nahi lagti — koi order chhupe na.</p>
                     </div>
                   </>
                 )}
@@ -741,7 +741,7 @@ export default function OnlineOrdersPage() {
                   }`}>
                   <Filter className="h-4 w-4" /> Chaant
                   {(sourceFilter !== 'all' || payFilter !== 'all') && (
-                    <span className="h-5 w-5 rounded-full bg-amber-600 text-white text-[10px] flex items-center justify-center">
+                    <span className="h-5 w-5 rounded-full bg-amber-600 text-white text-[0.6875rem] flex items-center justify-center">
                       {[sourceFilter !== 'all', payFilter !== 'all'].filter(Boolean).length}
                     </span>
                   )}
@@ -752,22 +752,22 @@ export default function OnlineOrdersPage() {
                     <div className="fixed inset-0 z-30" onClick={() => setShowMore(false)} />
                     <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3">
                       <div>
-                        <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Order kahan se aaya</div>
+                        <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Order kahan se aaya</div>
                         <div className="grid grid-cols-2 gap-1.5">
                           {['all', ...sources].map((s) => (
                             <button key={s} onClick={() => setSourceFilter(s)}
-                              className={`h-10 rounded-xl text-[11px] font-black truncate px-2 transition ${
+                              className={`h-10 rounded-xl text-[0.6875rem] font-black truncate px-2 transition ${
                                 sourceFilter === s ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                               }`}>{s === 'all' ? 'Sab' : s}</button>
                           ))}
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Paisa</div>
+                        <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Paisa</div>
                         <div className="grid grid-cols-3 gap-1.5">
                           {([['all', 'Sab'], ['COD', 'COD'], ['PAID', 'Paid']] as const).map(([v, l]) => (
                             <button key={v} onClick={() => setPayFilter(v)}
-                              className={`h-10 rounded-xl text-[11px] font-black transition ${
+                              className={`h-10 rounded-xl text-[0.6875rem] font-black transition ${
                                 payFilter === v ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                               }`}>{l}</button>
                           ))}
@@ -787,7 +787,7 @@ export default function OnlineOrdersPage() {
             </div>
 
             {hasFilters && (
-              <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-black">
+              <div className="flex items-center gap-1.5 flex-wrap text-[0.6875rem] font-black">
                 <span className="text-slate-400">Chaant:</span>
                 <span className="px-2 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
                   {view === 'list' && !dateApplies ? 'Har tareekh (kaam ki qatar)' : rangeLabel}
@@ -814,8 +814,8 @@ export default function OnlineOrdersPage() {
                         <button key={s.key}
                           onClick={() => goTab(s.key === 'PENDING' ? 'PENDING' : s.key === 'DELIVERED' ? 'DELIVERED' : 'ACTIVE')}
                           className="relative rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-3 text-left hover:border-emerald-400 transition">
-                          <div className="flex items-center gap-1.5 text-[11px] font-black text-slate-500">
-                            <span className="h-5 w-5 rounded-md bg-emerald-600 text-white flex items-center justify-center text-[10px]">{i + 1}</span>
+                          <div className="flex items-center gap-1.5 text-[0.6875rem] font-black text-slate-500">
+                            <span className="h-5 w-5 rounded-md bg-emerald-600 text-white flex items-center justify-center text-[0.6875rem]">{i + 1}</span>
                             <Icon className="h-3.5 w-3.5" />
                           </div>
                           <div className="mt-1.5 text-xs font-black text-slate-700 dark:text-slate-200 truncate">{s.label}</div>
@@ -827,7 +827,7 @@ export default function OnlineOrdersPage() {
                       );
                     })}
                   </div>
-                  <div className="mt-3 grid sm:grid-cols-3 gap-2 text-[12px] font-bold">
+                  <div className="mt-3 grid sm:grid-cols-3 gap-2 text-[0.75rem] font-bold">
                     <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 p-2.5 text-emerald-800 dark:text-emerald-300">
                       ✅ Kamyab delivery: <strong>{stats.successRate.toFixed(0)}%</strong> (khatam hue orders me se)
                     </div>
@@ -851,11 +851,11 @@ export default function OnlineOrdersPage() {
                         <div className="flex items-center gap-2">
                           <p.icon className={`h-4 w-4 ${top ? 'text-emerald-600' : 'text-slate-400'}`} />
                           <span className="text-sm font-black text-slate-900 dark:text-white">{p.label}</span>
-                          {top && <span className="ml-auto text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-emerald-600 text-white">Rush</span>}
+                          {top && <span className="ml-auto text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-emerald-600 text-white">Rush</span>}
                         </div>
-                        <div className="text-[10px] font-bold text-slate-400">{p.range}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-400">{p.range}</div>
                         <div className="mt-2 text-lg font-black text-slate-900 dark:text-white tabular-nums">{p.orders} order</div>
-                        <div className="text-[11px] font-bold text-slate-500">{showValue(rs(p.value))} · {p.pct.toFixed(0)}%</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500">{showValue(rs(p.value))} · {p.pct.toFixed(0)}%</div>
                         <div className="mt-2 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                           <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-600" style={{ width: `${p.pct}%` }} />
                         </div>
@@ -907,7 +907,7 @@ export default function OnlineOrdersPage() {
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
-                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-2">
+                        <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-2">
                           Hara column sab se masroof ghanta hai — us waqt koi phone ke paas ho taake order foran accept ho.
                         </p>
                       </>
@@ -946,7 +946,7 @@ export default function OnlineOrdersPage() {
                         <div className="grid grid-cols-2 gap-1.5 mt-1">
                           {sourcePie.map((p) => (
                             <div key={p.name} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 flex items-center justify-between gap-2">
-                              <span className="text-[11px] font-black text-slate-600 dark:text-slate-300 truncate">{p.emoji} {p.name} · {p.orders}</span>
+                              <span className="text-[0.6875rem] font-black text-slate-600 dark:text-slate-300 truncate">{p.emoji} {p.name} · {p.orders}</span>
                               <span className="text-xs font-black tabular-nums shrink-0" style={{ color: p.hex }}>{showValue(rs(p.value))}</span>
                             </div>
                           ))}
@@ -971,11 +971,11 @@ export default function OnlineOrdersPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-1.5 mt-1">
                           <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 p-2">
-                            <div className="text-[10px] font-black text-emerald-700 dark:text-emerald-300">COD wasool</div>
+                            <div className="text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-300">COD wasool</div>
                             <div className="text-sm font-black tabular-nums text-emerald-800 dark:text-emerald-200">{showValue(rs(payPie.codCollected))}</div>
                           </div>
                           <button onClick={() => goTab('COD_DUE')} className="rounded-xl bg-orange-50 dark:bg-orange-500/10 p-2 text-left hover:ring-2 ring-orange-300 transition">
-                            <div className="text-[10px] font-black text-orange-700 dark:text-orange-300">COD abhi baqi →</div>
+                            <div className="text-[0.6875rem] font-black text-orange-700 dark:text-orange-300">COD abhi baqi →</div>
                             <div className="text-sm font-black tabular-nums text-orange-800 dark:text-orange-200">{showValue(rs(payPie.codPending))}</div>
                           </button>
                         </div>
@@ -1009,7 +1009,7 @@ export default function OnlineOrdersPage() {
                     <>
                       <div className="mb-3 rounded-2xl bg-teal-50 dark:bg-teal-500/10 border-2 border-teal-200 dark:border-teal-500/30 p-3 flex items-center gap-3">
                         <Repeat className="h-5 w-5 text-teal-600 shrink-0" />
-                        <p className="text-[12px] font-bold text-teal-900 dark:text-teal-200">
+                        <p className="text-[0.75rem] font-bold text-teal-900 dark:text-teal-200">
                           <strong>{customers.repeatPct.toFixed(0)}%</strong> customer dobara order karte hain.
                           {customers.repeatPct < 20 ? ' Kam hai — parcel me shukriya card ya agle order par discount rakhein.' : ' Achha hai — inhein WhatsApp par naye maal ki khabar dein.'}
                         </p>
@@ -1022,13 +1022,13 @@ export default function OnlineOrdersPage() {
                             }`}>{i === 0 ? '👑' : i + 1}</span>
                             <div className="min-w-0 flex-1">
                               <div className="font-black text-sm text-slate-900 dark:text-white truncate">{c.name}</div>
-                              <div className="text-[11px] font-bold text-slate-500 truncate">
+                              <div className="text-[0.6875rem] font-bold text-slate-500 truncate">
                                 {c.orders} order{c.city ? ` · ${c.city}` : ''}{c.phone ? ` · ${c.phone}` : ''}
                               </div>
                             </div>
                             <div className="text-right shrink-0">
                               <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">{showValue(rs(c.value))}</div>
-                              {c.due > 0 && <div className="text-[10px] font-black text-orange-600 tabular-nums">{showValue(rs(c.due))} COD baqi</div>}
+                              {c.due > 0 && <div className="text-[0.6875rem] font-black text-orange-600 tabular-nums">{showValue(rs(c.due))} COD baqi</div>}
                             </div>
                           </div>
                         ))}
@@ -1038,7 +1038,7 @@ export default function OnlineOrdersPage() {
                 </Panel>
 
                 {allOrders.length >= 500 && (
-                  <p className="text-[11px] font-bold text-slate-400 text-center">
+                  <p className="text-[0.6875rem] font-bold text-slate-400 text-center">
                     Analytics haal ke 500 orders par hai — lambi muddat ke liye tareekh chhoti karein.
                   </p>
                 )}
@@ -1109,7 +1109,7 @@ export default function OnlineOrdersPage() {
                       <div className="text-4xl">👈</div>
                       <div className="mt-2 font-black text-slate-800 dark:text-white">Order chunein</div>
                       <p className="mt-1 text-sm text-slate-500">Poori detail, items, customer aur buttons yahan dikhenge.</p>
-                      <p className="mt-3 text-[11px] font-bold text-slate-400 inline-flex items-center gap-1.5">
+                      <p className="mt-3 text-[0.6875rem] font-bold text-slate-400 inline-flex items-center gap-1.5">
                         <Keyboard className="h-3.5 w-3.5" /> <kbd className="px-1.5 rounded border">J</kbd> / <kbd className="px-1.5 rounded border">K</kbd> se agla / pichla
                       </p>
                     </div>
@@ -1188,35 +1188,35 @@ function OrderRow({ order: o, now, active, hide, onClick, selecting, checked }: 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="font-mono font-black text-sm text-slate-900 dark:text-white">#{orderNo(o)}</span>
-              <span className={cn('flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-black', st.tone)}>
+              <span className={cn('flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-black', st.tone)}>
                 <span className={cn('h-1.5 w-1.5 rounded-full', st.dot, isNew && 'animate-pulse')} />{st.short}
               </span>
-              <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">{src.label}</span>
+              <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">{src.label}</span>
               {branchName && (
-                <span className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[10px] font-bold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">🏪 {branchName}</span>
+                <span className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-violet-700 dark:bg-violet-500/15 dark:text-violet-300">🏪 {branchName}</span>
               )}
               {o.isCod && o.paymentStatus !== 'PAID' && (
-                <span className="rounded-md bg-orange-100 px-1.5 py-0.5 text-[10px] font-black text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">COD</span>
+                <span className="rounded-md bg-orange-100 px-1.5 py-0.5 text-[0.6875rem] font-black text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">COD</span>
               )}
               {o.paymentStatus === 'PAID' && (
-                <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">PAID</span>
+                <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[0.6875rem] font-black text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">PAID</span>
               )}
-              {o.isTest && <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-black text-amber-700">TEST</span>}
+              {o.isTest && <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[0.6875rem] font-black text-amber-700">TEST</span>}
               {!isClosed(o) && <RiskBadge risk={o.risk} />}
               {o.isCod && o.paymentStatus !== 'PAID' && !isClosed(o) && !o.dispatchedAt && (
                 o.confirmation?.result === 'CONFIRMED'
-                  ? <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">✓ Confirm</span>
+                  ? <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[0.6875rem] font-black text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">✓ Confirm</span>
                   : o.confirmation?.result === 'REFUSED'
-                    ? <span className="rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-black text-rose-700">Mana kiya</span>
-                    : <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+                    ? <span className="rounded-md bg-rose-100 px-1.5 py-0.5 text-[0.6875rem] font-black text-rose-700">Mana kiya</span>
+                    : <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[0.6875rem] font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
                         {o.confirmation?.result === 'NO_ANSWER' ? `Jawab nahi (${o.confirmation.attempts})` : 'Confirm baqi'}
                       </span>
               )}
               {o.metadata?.cancelRequested && o.orderStatus !== 'CANCELLED' && (
-                <span className="rounded-md bg-rose-600 px-1.5 py-0.5 text-[10px] font-black text-white">Customer ne cancel maanga</span>
+                <span className="rounded-md bg-rose-600 px-1.5 py-0.5 text-[0.6875rem] font-black text-white">Customer ne cancel maanga</span>
               )}
               {late && (
-                <span className="rounded-md bg-rose-100 dark:bg-rose-500/20 px-1.5 py-0.5 text-[10px] font-black text-rose-700 dark:text-rose-300 inline-flex items-center gap-1">
+                <span className="rounded-md bg-rose-100 dark:bg-rose-500/20 px-1.5 py-0.5 text-[0.6875rem] font-black text-rose-700 dark:text-rose-300 inline-flex items-center gap-1">
                   <Timer className="h-2.5 w-2.5" /> {wait} min se ruka
                 </span>
               )}
@@ -1230,7 +1230,7 @@ function OrderRow({ order: o, now, active, hide, onClick, selecting, checked }: 
               <Package className="h-3 w-3 shrink-0" />
               <span>{o.items.length} cheezein · {Number(qty.toFixed(2))} qty</span>
             </div>
-            <div className="mt-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 flex-wrap">
+            <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 flex-wrap">
               <Clock className="h-2.5 w-2.5" />
               <span className="text-slate-700 dark:text-slate-200">{fmtTime(o.receivedAt)}</span>
               <span className="text-slate-300">•</span>
@@ -1240,12 +1240,12 @@ function OrderRow({ order: o, now, active, hide, onClick, selecting, checked }: 
             </div>
             <div className="mt-2 flex flex-wrap gap-1">
               {o.items.slice(0, 4).map((it, n) => (
-                <span key={n} className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[200px] truncate">
+                <span key={n} className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[200px] truncate">
                   {it.name} × {Number(Number(it.quantity).toFixed(2))}
                 </span>
               ))}
               {o.items.length > 4 && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">+{o.items.length - 4} aur</span>
+                <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">+{o.items.length - 4} aur</span>
               )}
             </div>
           </div>
@@ -1254,8 +1254,8 @@ function OrderRow({ order: o, now, active, hide, onClick, selecting, checked }: 
           <div className={cn('text-xl sm:text-2xl font-black tabular-nums', isClosed(o) ? 'text-slate-400 line-through' : 'text-emerald-700 dark:text-emerald-400')}>
             {hide ? '•••••' : rs(o.total)}
           </div>
-          {o.trackingNumber && <div className="mt-0.5 text-[10px] font-black text-slate-500">🚚 {o.trackingNumber}</div>}
-          {isNew && !late && <div className="mt-0.5 text-[10px] font-black text-amber-600">Accept karein</div>}
+          {o.trackingNumber && <div className="mt-0.5 text-[0.6875rem] font-black text-slate-500">🚚 {o.trackingNumber}</div>}
+          {isNew && !late && <div className="mt-0.5 text-[0.6875rem] font-black text-amber-600">Accept karein</div>}
         </div>
       </div>
     </button>
@@ -1283,9 +1283,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active, highlight, 
       ].join(' ')}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0 ${pulse ? 'animate-pulse' : ''}`}>
           <Icon className="h-5 w-5" />
@@ -1304,7 +1304,7 @@ function Panel({ icon: Icon, title, hint, children }: { icon: any; title: string
         </div>
         <div className="min-w-0">
           <h3 className="font-black text-slate-900 dark:text-white text-base leading-tight">{title}</h3>
-          {hint && <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
+          {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
         </div>
       </div>
       {children}
@@ -1319,11 +1319,11 @@ function RankList({ rows }: { rows: { key: string; title: string; meta: string; 
       {rows.map((r, i) => (
         <div key={r.key} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
           <div className="flex items-center gap-2.5 mb-1.5">
-            <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[11px] font-black shrink-0 ${
+            <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[0.6875rem] font-black shrink-0 ${
               i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
             }`}>{i === 0 ? '🏆' : i + 1}</span>
             <span className="font-black text-sm text-slate-900 dark:text-white truncate flex-1">{r.title}</span>
-            <span className="text-[11px] font-bold text-slate-400 shrink-0">{r.meta}</span>
+            <span className="text-[0.6875rem] font-bold text-slate-400 shrink-0">{r.meta}</span>
             <span className="text-sm font-black text-slate-900 dark:text-white tabular-nums shrink-0">{r.right}</span>
           </div>
           <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
@@ -1383,7 +1383,7 @@ function EmptyState() {
           <div key={n} className="rounded-2xl bg-white/80 dark:bg-slate-900/60 border-2 border-emerald-200 dark:border-emerald-500/30 p-3">
             <div className="h-6 w-6 rounded-lg bg-emerald-600 text-white text-xs font-black flex items-center justify-center">{n}</div>
             <div className="mt-1.5 text-sm font-black text-slate-900 dark:text-white">{t}</div>
-            <div className="text-[11px] font-bold text-slate-500">{d}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500">{d}</div>
           </div>
         ))}
       </div>
@@ -1427,8 +1427,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             "Naye" aur "Chal rahe" par tareekh nahi lagti taake koi purana ruka hua order chhup na jaye. Baqi list aur analytics par lagti hai.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><Kbd>/</Kbd> dhoondo</div>
               <div><Kbd>N</Kbd> naye orders</div>
               <div><Kbd>J</Kbd> <Kbd>K</Kbd> agla / pichla</div>
@@ -1457,8 +1457,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

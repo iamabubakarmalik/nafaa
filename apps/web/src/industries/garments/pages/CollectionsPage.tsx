@@ -212,12 +212,12 @@ function CollectionCard({ collection, onEdit, onToggleFeatured, onDelete }: {
         {/* Badges */}
         <div className="absolute top-3 left-3 flex gap-1 flex-wrap">
           {collection.isFeatured && (
-            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <Star className="h-2 w-2 fill-current" />
               Featured
             </span>
           )}
-          <span className="px-2 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white text-[9px] font-extrabold uppercase shadow">
+          <span className="px-2 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white text-[0.625rem] font-extrabold uppercase shadow">
             {season?.label}
           </span>
         </div>
@@ -255,7 +255,7 @@ function CollectionCard({ collection, onEdit, onToggleFeatured, onDelete }: {
         <div>
           <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">{collection.name}</h3>
           {collection.code && (
-            <div className="text-[10px] font-mono font-bold text-slate-500">{collection.code}</div>
+            <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{collection.code}</div>
           )}
           {collection.year && (
             <div className="text-xs font-extrabold text-fuchsia-600 mt-0.5">{collection.year}</div>
@@ -343,7 +343,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
       <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Collection Name *</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Collection Name *</label>
             <input
               autoFocus
               value={form.name}
@@ -354,7 +354,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Code</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Code</label>
             <input
               value={form.code}
               onChange={(e) => setForm({ ...form, code: e.target.value })}
@@ -364,7 +364,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Year</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Year</label>
             <input
               type="number"
               value={form.year}
@@ -376,7 +376,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
 
         {/* Season picker */}
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Season *</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Season *</label>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {SEASONS.map((s) => {
               const active = form.season === s.value;
@@ -392,7 +392,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
                   }
                 >
                   <div className="text-2xl mb-1">{s.emoji}</div>
-                  <div className="text-[10px] font-extrabold text-slate-700 dark:text-slate-300">{s.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300">{s.label}</div>
                 </button>
               );
             })}
@@ -400,7 +400,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Description</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Description</label>
           <textarea
             rows={3}
             value={form.description}
@@ -412,7 +412,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Launch Date</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Launch Date</label>
             <input
               type="date"
               value={form.launchDate}
@@ -421,7 +421,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">End Date</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">End Date</label>
             <input
               type="date"
               value={form.endDate}
@@ -432,7 +432,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Cover Image</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Cover Image</label>
           {form.coverImageUrl ? (
             <div className="relative w-full aspect-video rounded-xl overflow-hidden border-2 border-slate-200 dark:border-neutral-700">
               <img src={form.coverImageUrl} alt="" className="w-full h-full object-cover" />
@@ -456,7 +456,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Color Theme</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Color Theme</label>
             <input
               value={form.colorTheme}
               onChange={(e) => setForm({ ...form, colorTheme: e.target.value })}
@@ -465,7 +465,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Display Order</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Display Order</label>
             <input
               type="number"
               value={form.displayOrder}

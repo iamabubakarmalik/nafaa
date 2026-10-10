@@ -165,7 +165,7 @@ function ProductPicker({ initial, onPick }: { initial: string; onPick: (p: Produ
             >
               <div className="min-w-0">
                 <div className="truncate text-sm font-bold text-slate-900 dark:text-white">{p.name}</div>
-                <div className="text-[11px] text-slate-500">{p.sku ? `SKU ${p.sku} · ` : ''}Stock {p.stock}</div>
+                <div className="text-[0.6875rem] text-slate-500">{p.sku ? `SKU ${p.sku} · ` : ''}Stock {p.stock}</div>
               </div>
               <span className="text-sm font-black text-slate-700 dark:text-slate-200">{rs(p.price)}</span>
             </button>

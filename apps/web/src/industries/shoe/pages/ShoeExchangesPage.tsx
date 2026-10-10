@@ -121,8 +121,8 @@ export default function ShoeExchangesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono font-extrabold text-sm">{e.exchangeNumber}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${meta.bg} ${meta.color}`}>{meta.label}</span>
-                      {e.reasonCategory && <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[9px] font-extrabold">{e.reasonCategory}</span>}
+                      <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${meta.bg} ${meta.color}`}>{meta.label}</span>
+                      {e.reasonCategory && <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold">{e.reasonCategory}</span>}
                     </div>
                     <div className="mt-1 font-extrabold text-slate-900 text-sm truncate">{e.productName}</div>
                     <div className="mt-2 flex items-center gap-3 flex-wrap text-xs">
@@ -148,7 +148,7 @@ export default function ShoeExchangesPage() {
                   <div className="text-right shrink-0">
                     {(e.priceDifference !== 0 || e.refundIssued > 0 || e.additionalCharged > 0) && (
                       <div>
-                        <div className="text-[10px] uppercase font-extrabold text-slate-500">Difference</div>
+                        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Difference</div>
                         <div className={`text-sm font-extrabold tabular-nums ${e.priceDifference >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                           {formatPKR(Math.abs(e.priceDifference))}
                         </div>
@@ -276,7 +276,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
     <C onClick={onClick} className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-rose-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

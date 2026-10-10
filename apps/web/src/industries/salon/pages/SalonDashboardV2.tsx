@@ -283,7 +283,7 @@ export default function SalonDashboardV2() {
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
             {statusBreakdown.map((s) => (
               <div key={s.status} className="rounded-2xl bg-white border-2 p-3" style={{ borderColor: s.color + '60' }}>
-                <div className="text-[10px] uppercase font-extrabold" style={{ color: s.color }}>{s.label}</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold" style={{ color: s.color }}>{s.label}</div>
                 <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{s.count}</div>
                 <div className="h-1 rounded-full mt-1" style={{ backgroundColor: s.color, opacity: 0.3 }}>
                   <div className="h-full rounded-full" style={{ backgroundColor: s.color, width: `${(s.count / appointmentStats.total) * 100}%` }} />
@@ -467,7 +467,7 @@ export default function SalonDashboardV2() {
                   </div>
                   <div className="min-w-0">
                     <div className="font-mono font-extrabold text-slate-900 text-sm">{sale.saleNumber}</div>
-                    <div className="text-[11px] text-slate-500">
+                    <div className="text-[0.6875rem] text-slate-500">
                       {sale.customer?.name || 'Walk-in'} • {formatDate(sale.soldAt)}
                     </div>
                   </div>
@@ -475,7 +475,7 @@ export default function SalonDashboardV2() {
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-emerald-700 text-sm">{formatPKR(sale.total)}</div>
                   {sale.creditAmount > 0 && (
-                    <div className="text-[10px] text-amber-700 font-bold">Udhaar: {formatPKR(sale.creditAmount)}</div>
+                    <div className="text-[0.6875rem] text-amber-700 font-bold">Udhaar: {formatPKR(sale.creditAmount)}</div>
                   )}
                 </div>
               </Link>
@@ -511,7 +511,7 @@ function NextAppointmentBanner({ appointment }: { appointment: any }) {
             {isImminent ? <Zap className="h-7 w-7" /> : <Clock className="h-7 w-7" />}
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-90">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-90">
               {isImminent ? '⚡ Coming Up NOW' : 'Next Appointment'}
             </div>
             <div className="text-2xl font-extrabold mt-0.5">
@@ -589,7 +589,7 @@ function UpcomingAppointmentsCard({ appointments }: { appointments: any[] }) {
                         <span className="font-extrabold text-slate-900 truncate">
                           {apt.customerName || 'Walk-in'}
                         </span>
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase text-white"
+                        <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white"
                           style={{ backgroundColor: statusColor }}>
                           {apt.status}
                         </span>
@@ -603,7 +603,7 @@ function UpcomingAppointmentsCard({ appointments }: { appointments: any[] }) {
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums text-sm">{formatPKR(apt.total)}</div>
                     {isSoon && (
-                      <div className="text-[9px] font-extrabold text-amber-700 uppercase animate-pulse">In {minsToStart}m</div>
+                      <div className="text-[0.625rem] font-extrabold text-amber-700 uppercase animate-pulse">In {minsToStart}m</div>
                     )}
                   </div>
                 </Link>
@@ -662,12 +662,12 @@ function StaffLeaderboardCard({ staff }: { staff: any[] }) {
                   )}
                   <div className="min-w-0">
                     <div className="font-bold text-slate-900 truncate text-sm">{name}</div>
-                    <div className="text-[10px] text-slate-500 font-bold uppercase">{s.role}</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">{s.role}</div>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-sm font-extrabold text-slate-900 tabular-nums">{s.totalAppointments || 0}</div>
-                  <div className="text-[10px] font-bold text-emerald-700 tabular-nums">
+                  <div className="text-[0.6875rem] font-bold text-emerald-700 tabular-nums">
                     {formatPKR(s.totalCommission || 0)}
                   </div>
                 </div>
@@ -728,7 +728,7 @@ function TopServicesCard({ services }: { services: any[] }) {
                   )}
                   <div className="min-w-0">
                     <div className="font-bold text-slate-900 truncate text-sm">{s.name}</div>
-                    <div className="text-[10px] text-slate-500 font-bold flex items-center gap-1">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold flex items-center gap-1">
                       <Clock className="h-2.5 w-2.5" />
                       {s.durationMinutes}m • {s.totalBookings || 0} bookings
                     </div>
@@ -738,7 +738,7 @@ function TopServicesCard({ services }: { services: any[] }) {
                   <div className="font-extrabold text-emerald-700 text-sm tabular-nums">
                     {formatPKR(s.totalRevenue || 0)}
                   </div>
-                  <div className="text-[10px] font-bold text-slate-500 tabular-nums">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 tabular-nums">
                     {formatPKR(s.price)}/service
                   </div>
                 </div>
@@ -788,14 +788,14 @@ function MembershipTiersCard({ tiers, totalMembers }: { tiers: any[]; totalMembe
                     <span className="text-2xl">{TIER_EMOJI[t.tier] || '⭐'}</span>
                     <div>
                       <div className="font-extrabold text-slate-900 text-sm">{t.tier}</div>
-                      <div className="text-[10px] font-bold text-slate-500">{t.count} members</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">{t.count} members</div>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="font-extrabold text-emerald-700 text-sm tabular-nums">
                       {formatPKR(t.revenue)}
                     </div>
-                    <div className="text-[10px] font-bold text-slate-500">{pct.toFixed(0)}% of members</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{pct.toFixed(0)}% of members</div>
                   </div>
                 </div>
                 <div className="h-1.5 rounded-full bg-slate-200 overflow-hidden">

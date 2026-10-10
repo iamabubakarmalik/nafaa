@@ -201,17 +201,17 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
 
         <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
           {service.isFeatured && (
-            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <Star className="h-2 w-2 fill-current" /> Featured
             </span>
           )}
           {service.isPopular && (
-            <span className="px-2 py-0.5 rounded-md bg-red-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-2 py-0.5 rounded-md bg-red-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <TrendingUp className="h-2 w-2" /> Popular
             </span>
           )}
           {hasDiscount && (
-            <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <Zap className="h-2 w-2" /> SALE
             </span>
           )}
@@ -237,7 +237,7 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
         <div>
           <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight line-clamp-1">{service.name}</h3>
           {category && (
-            <span className="text-[10px] font-extrabold uppercase text-fuchsia-600">{category.label}</span>
+            <span className="text-[0.6875rem] font-extrabold uppercase text-fuchsia-600">{category.label}</span>
           )}
         </div>
 
@@ -335,7 +335,7 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Service Name *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Service Name *</label>
             <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Deep Conditioning Treatment" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
           </div>
 
@@ -356,15 +356,15 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Regular Price *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Regular Price *</label>
               <input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Discount Price</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Discount Price</label>
               <input type="number" step="0.01" value={form.discountPrice} onChange={(e) => setForm({ ...form, discountPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-rose-200 bg-white dark:bg-rose-950/30 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Cost Price</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Cost Price</label>
               <input type="number" step="0.01" value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} placeholder="Materials/products" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
             </div>
           </div>
@@ -378,15 +378,15 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Duration (min) *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Duration (min) *</label>
               <input type="number" value={form.durationMinutes} onChange={(e) => setForm({ ...form, durationMinutes: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Buffer Before</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Buffer Before</label>
               <input type="number" value={form.bufferBefore} onChange={(e) => setForm({ ...form, bufferBefore: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Buffer After</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Buffer After</label>
               <input type="number" value={form.bufferAfter} onChange={(e) => setForm({ ...form, bufferAfter: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
             </div>
           </div>
@@ -394,7 +394,7 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
 
         {/* Gender */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Available For</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Available For</label>
           <div className="grid grid-cols-3 gap-2">
             {[
               { key: 'forMen', label: 'Men', emoji: '👨' },
@@ -421,11 +421,11 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Percentage (%)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Percentage (%)</label>
               <input type="number" step="0.1" value={form.commissionPct} onChange={(e) => setForm({ ...form, commissionPct: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Fixed (Rs)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Fixed (Rs)</label>
               <input type="number" step="0.01" value={form.commissionFixed} onChange={(e) => setForm({ ...form, commissionFixed: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
           </div>
@@ -433,7 +433,7 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
 
         {/* Image */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Service Image</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Service Image</label>
           {form.imageUrl ? (
             <div className="relative w-full aspect-video rounded-xl overflow-hidden border-2 border-slate-200">
               <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />

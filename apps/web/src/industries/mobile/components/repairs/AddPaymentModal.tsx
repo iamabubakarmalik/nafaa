@@ -136,7 +136,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
               <Banknote className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-emerald-700 dark:text-emerald-300 font-bold">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-emerald-700 dark:text-emerald-300 font-bold">
                 Payment Record
               </div>
               <h3 className="font-bold text-slate-900 dark:text-white">{ticketNumber}</h3>
@@ -153,14 +153,14 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
         <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
           {balanceDue > 0 ? (
             <div className="rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border-2 border-amber-200 dark:border-amber-800 p-3 text-center">
-              <div className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-300">
+              <div className="text-[0.6875rem] uppercase font-bold text-amber-700 dark:text-amber-300">
                 Balance Due
               </div>
               <div className="text-3xl font-extrabold text-amber-900 dark:text-amber-100">
                 {formatPKR(balanceDue)}
               </div>
               {customerName && (
-                <div className="text-[11px] text-amber-700 dark:text-amber-300 mt-1 font-bold">
+                <div className="text-[0.6875rem] text-amber-700 dark:text-amber-300 mt-1 font-bold">
                   from {customerName}
                 </div>
               )}
@@ -188,7 +188,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
               <button
                 type="button"
                 onClick={() => setAmount(String(balanceDue))}
-                className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 hover:bg-emerald-200 text-emerald-800 dark:text-emerald-200 text-[10px] font-bold"
+                className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 hover:bg-emerald-200 text-emerald-800 dark:text-emerald-200 text-[0.6875rem] font-bold"
               >
                 Full ({formatPKR(balanceDue)})
               </button>
@@ -197,7 +197,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
               <button
                 type="button"
                 onClick={() => setAmount(String(Math.round(balanceDue / 2)))}
-                className="px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-950/40 hover:bg-blue-200 text-blue-800 dark:text-blue-200 text-[10px] font-bold"
+                className="px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-950/40 hover:bg-blue-200 text-blue-800 dark:text-blue-200 text-[0.6875rem] font-bold"
               >
                 Half
               </button>
@@ -207,7 +207,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
                 key={a}
                 type="button"
                 onClick={() => setAmount(String(a))}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-bold"
               >
                 Rs {a >= 1000 ? `${a / 1000}k` : a}
               </button>
@@ -246,7 +246,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
                     key={m.val}
                     type="button"
                     onClick={() => setMethod(m.val)}
-                    className={`p-2 rounded-lg border-2 text-[10px] font-bold transition ${
+                    className={`p-2 rounded-lg border-2 text-[0.6875rem] font-bold transition ${
                       active
                         ? `bg-${m.color}-50 dark:bg-${m.color}-950/40 border-${m.color}-400 text-${m.color}-800 dark:text-${m.color}-200 shadow`
                         : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'
@@ -255,7 +255,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
                     <Icon className="h-4 w-4 mx-auto mb-1" />
                     {m.label}
                     {m.hint && (
-                      <div className="text-[8px] font-normal opacity-60 mt-0.5">{m.hint}</div>
+                      <div className="text-[0.625rem] font-normal opacity-60 mt-0.5">{m.hint}</div>
                     )}
                   </button>
                 );

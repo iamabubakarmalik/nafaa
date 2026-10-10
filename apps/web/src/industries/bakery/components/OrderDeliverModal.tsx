@@ -307,7 +307,7 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
         onClick={(e) => e.stopPropagation()}>
         <div className={`shrink-0 px-5 py-4 bg-gradient-to-br ${head} text-white flex items-start justify-between gap-3`}>
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <Receipt className="h-3 w-3" /> De diya — bill banayein
             </div>
             <h3 className="font-extrabold text-lg mt-1.5 truncate">{order.customerName || 'Order'} · {order.orderNumber}</h3>
@@ -324,8 +324,8 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
           {already && (
             <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-300 p-3 flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-              <p className="text-[12px] font-bold text-emerald-900 dark:text-emerald-200 flex-1">Is order ka bill pehle hi ban chuka hai.</p>
-              <button onClick={() => navigate(`/sales/${already}/receipt`)} className="h-9 px-3 rounded-lg bg-emerald-600 text-white text-[11px] font-black">Bill dekhein</button>
+              <p className="text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200 flex-1">Is order ka bill pehle hi ban chuka hai.</p>
+              <button onClick={() => navigate(`/sales/${already}/receipt`)} className="h-9 px-3 rounded-lg bg-emerald-600 text-white text-[0.6875rem] font-black">Bill dekhein</button>
             </div>
           )}
 
@@ -334,7 +334,7 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
             <div className="flex items-center gap-2 mb-2">
               <Package className="h-4 w-4 text-slate-500" />
               <h4 className="font-black text-sm text-slate-900 dark:text-white">Cheezein</h4>
-              <span className="text-[11px] font-bold text-slate-400 ml-auto">Jori hui cheez ka stock ghatega</span>
+              <span className="text-[0.6875rem] font-bold text-slate-400 ml-auto">Jori hui cheez ka stock ghatega</span>
             </div>
             <div className="space-y-2">
               {lines.map((l, i) => {
@@ -347,19 +347,19 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
                       {l.productId ? <Link2 className="h-4 w-4 text-emerald-600 shrink-0" /> : <Link2Off className="h-4 w-4 text-amber-600 shrink-0" />}
                       <div className="min-w-0 flex-1">
                         <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{l.name}</div>
-                        <div className="text-[11px] font-bold text-slate-500 tabular-nums">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 tabular-nums">
                           {l.qty}{l.unit ? ` ${l.unit}` : ''} × {formatPKR(l.rate)} = {formatPKR(l.qty * l.rate)}
                         </div>
                         {p ? (
-                          <div className={`text-[10px] font-black ${short ? 'text-rose-600' : 'text-emerald-700 dark:text-emerald-400'}`}>
+                          <div className={`text-[0.6875rem] font-black ${short ? 'text-rose-600' : 'text-emerald-700 dark:text-emerald-400'}`}>
                             ↳ {p.name} · stock {Number(stock!.toFixed(2))} {p.unit}{short ? ' — kam hai' : ''}
                           </div>
                         ) : (
-                          <div className="text-[10px] font-black text-amber-700 dark:text-amber-400">Maal se nahi juri — rakam bill me "extra" ban kar jayegi</div>
+                          <div className="text-[0.6875rem] font-black text-amber-700 dark:text-amber-400">Maal se nahi juri — rakam bill me "extra" ban kar jayegi</div>
                         )}
                       </div>
                       <button onClick={() => { setLinkingIdx(linkingIdx === i ? null : i); setQ(''); }}
-                        className="h-9 px-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-[11px] font-black text-slate-700 dark:text-slate-200 shrink-0">
+                        className="h-9 px-2.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-[0.6875rem] font-black text-slate-700 dark:text-slate-200 shrink-0">
                         {l.productId ? 'Badlein' : 'Jorein'}
                       </button>
                       {l.productId && (
@@ -381,11 +381,11 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
                           {productOptions.map((p) => (
                             <button key={p.id}
                               onClick={() => { setLines((xs) => xs.map((x, k) => (k === i ? { ...x, productId: p.id, unit: x.unit ?? p.unit } : x))); setLinkingIdx(null); }}
-                              className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400 text-[11px] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
-                              {p.name} <span className="text-[10px] text-slate-400">{Number(Number(p.shopStock ?? p.stock ?? 0).toFixed(2))} {p.unit}</span>
+                              className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                              {p.name} <span className="text-[0.6875rem] text-slate-400">{Number(Number(p.shopStock ?? p.stock ?? 0).toFixed(2))} {p.unit}</span>
                             </button>
                           ))}
-                          {productOptions.length === 0 && <span className="text-[11px] font-bold text-slate-400">Kuch nahi mila</span>}
+                          {productOptions.length === 0 && <span className="text-[0.6875rem] font-bold text-slate-400">Kuch nahi mila</span>}
                         </div>
                       </div>
                     )}
@@ -396,7 +396,7 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
             {stockShort.length > 0 && (
               <div className="mt-2 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 flex gap-2">
                 <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-                <p className="text-[11px] font-bold text-rose-900 dark:text-rose-200">
+                <p className="text-[0.6875rem] font-bold text-rose-900 dark:text-rose-200">
                   {stockShort.map((l) => l.name).join(', ')} — stock kam hai. Order ke liye banaya maal stock me chadha dein,
                   warna system bill rok sakta hai ya stock minus ho jayega.
                 </p>
@@ -414,14 +414,14 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
               onChange={(e) => setCollect(e.target.value === '' ? '' : Number(e.target.value))}
               className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
             <div className="flex gap-1.5">
-              <button onClick={() => setCollect(due0)} className="h-9 flex-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-[11px] font-black text-slate-700 dark:text-slate-200">Poora {formatPKR(due0)}</button>
-              <button onClick={() => setCollect(0)} className="h-9 flex-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-[11px] font-black text-slate-700 dark:text-slate-200">Kuch nahi — udhaar</button>
+              <button onClick={() => setCollect(due0)} className="h-9 flex-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-black text-slate-700 dark:text-slate-200">Poora {formatPKR(due0)}</button>
+              <button onClick={() => setCollect(0)} className="h-9 flex-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-black text-slate-700 dark:text-slate-200">Kuch nahi — udhaar</button>
             </div>
             {now > 0 && (
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
                 {METHODS.map((m) => (
                   <button key={m.id} onClick={() => setMethod(m.id)}
-                    className={`h-10 rounded-xl text-[11px] font-black inline-flex items-center justify-center gap-1 transition ${
+                    className={`h-10 rounded-xl text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${
                       method === m.id ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                     }`}><m.icon className="h-3.5 w-3.5" /> {m.label}</button>
                 ))}
@@ -433,14 +433,14 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
           <section className="space-y-2">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-slate-500" />
-              <h4 className="font-black text-sm text-slate-900 dark:text-white">Customer {dueAfter > 0 ? <span className="text-rose-500">*</span> : <span className="text-[11px] font-bold text-slate-400">— marzi</span>}</h4>
+              <h4 className="font-black text-sm text-slate-900 dark:text-white">Customer {dueAfter > 0 ? <span className="text-rose-500">*</span> : <span className="text-[0.6875rem] font-bold text-slate-400">— marzi</span>}</h4>
             </div>
             {chosenCustomer ? (
               <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 p-3 flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{chosenCustomer.name}</div>
-                  <div className="text-[11px] font-bold text-slate-500">
+                  <div className="text-[0.6875rem] font-bold text-slate-500">
                     {chosenCustomer.phone ?? ''}{Number(chosenCustomer.balance) > 0 ? ` · pehle se ${formatPKR(chosenCustomer.balance)} udhaar` : ''}
                     {!customerId && autoCustomer ? ' · phone se khud mila' : ''}
                   </div>
@@ -457,7 +457,7 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
                   <div className="flex flex-wrap gap-1.5">
                     {custOptions.map((c) => (
                       <button key={c.id} onClick={() => setCustomerId(c.id)}
-                        className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400 text-[11px] font-extrabold text-slate-700 dark:text-slate-200">
+                        className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200">
                         {c.name}{c.phone ? ` · ${c.phone}` : ''}
                       </button>
                     ))}
@@ -465,7 +465,7 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
                 )}
                 {(order.customerName || order.customerPhone) && (
                   <button onClick={() => addCustomer.mutate()} disabled={addCustomer.isPending}
-                    className="w-full h-10 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-[11px] font-black text-slate-700 dark:text-slate-200 inline-flex items-center justify-center gap-1.5 disabled:opacity-50">
+                    className="w-full h-10 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-[0.6875rem] font-black text-slate-700 dark:text-slate-200 inline-flex items-center justify-center gap-1.5 disabled:opacity-50">
                     {addCustomer.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UserPlus className="h-3.5 w-3.5" />}
                     "{order.customerName}" ko naya customer banayein
                   </button>
@@ -488,19 +488,19 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={printBill} onChange={(e) => setPrintBill(e.target.checked)} className="h-4 w-4 rounded accent-pink-600" />
             <Printer className="h-4 w-4 text-slate-500" />
-            <span className="text-[12px] font-black text-slate-700 dark:text-slate-200">Bill bante hi print karein</span>
+            <span className="text-[0.75rem] font-black text-slate-700 dark:text-slate-200">Bill bante hi print karein</span>
           </label>
 
           <div className="rounded-xl bg-slate-50 dark:bg-slate-800 p-2.5 flex gap-2">
             <Info className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               Pehle ka advance bhi is bill me "mila" gina jata hai — taake bikri ka poora hisab ek jagah rahe.
             </p>
           </div>
 
           {errors.length > 0 && (
             <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3">
-              {errors.map((e, i) => <div key={i} className="text-[12px] font-bold text-amber-900 dark:text-amber-200">• {e}</div>)}
+              {errors.map((e, i) => <div key={i} className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">• {e}</div>)}
             </div>
           )}
         </div>
@@ -521,7 +521,7 @@ function Row({ label, value, tone, bold }: { label: string; value: string; tone?
   const c = tone === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' : tone === 'amber' ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white';
   return (
     <div className="flex items-center justify-between">
-      <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="text-[0.75rem] font-bold text-slate-500 dark:text-slate-400">{label}</span>
       <span className={`text-sm tabular-nums ${bold ? 'font-black' : 'font-extrabold'} ${c}`}>{value}</span>
     </div>
   );

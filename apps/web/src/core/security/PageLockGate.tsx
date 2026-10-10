@@ -89,7 +89,7 @@ export function PageLockGate({ children }: { children: React.ReactNode }) {
             <p className="mt-1 text-sm font-bold text-white/85">
               Malik ne is safhe par PIN laga rakha hai
             </p>
-            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-extrabold border border-white/25">
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25">
               <Shield className="h-3 w-3 text-emerald-300" />
               <span className="font-mono">{location.pathname}</span>
             </div>
@@ -111,7 +111,7 @@ export function PageLockGate({ children }: { children: React.ReactNode }) {
             {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Unlock className="h-5 w-5" />} Kholein
           </button>
 
-          <p className="text-center text-[11px] font-bold text-slate-500 dark:text-slate-400">
+          <p className="text-center text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
             Ek dafa PIN daalne par {store.unlockMinutes} minute tak saray lock safhe khule rahenge
           </p>
 

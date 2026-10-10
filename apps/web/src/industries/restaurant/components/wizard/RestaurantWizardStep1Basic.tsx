@@ -152,7 +152,7 @@ export function RestaurantWizardStep1Basic({ basic, onChange, onToggleDay, error
             <div className="flex items-center gap-2">
               <TrendingUp className={['h-5 w-5', isLoss ? 'text-rose-700' : margin >= 40 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
               <div>
-                <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                   isLoss ? 'text-rose-700' : margin >= 40 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                   {isLoss ? '⚠️ Loss Alert' : 'Profit per item'}
                 </div>
@@ -328,7 +328,7 @@ export function RestaurantWizardStep1Basic({ basic, onChange, onToggleDay, error
               <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt={`menu-${idx}`} className="w-full h-full object-cover" />
                 {idx === 0 && (
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-orange-600 text-white text-[9px] font-extrabold">PRIMARY</div>
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-orange-600 text-white text-[0.625rem] font-extrabold">PRIMARY</div>
                 )}
                 <button
                   onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, i) => i !== idx) })}

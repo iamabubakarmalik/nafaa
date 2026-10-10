@@ -78,13 +78,13 @@ export function ServicesBizWizardStep3Warranty({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Duration & Skill Level</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">How long and what expertise?</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">How long and what expertise?</p>
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-[11px] font-extrabold text-blue-700 mb-1.5 uppercase tracking-wider">
+            <label className="block text-[0.6875rem] font-extrabold text-blue-700 mb-1.5 uppercase tracking-wider">
               ⏱️ Estimated Duration (minutes)
             </label>
             <input
@@ -116,8 +116,8 @@ export function ServicesBizWizardStep3Warranty({
                   ].join(' ')}
                 >
                   <div className="text-2xl mb-1">{s.emoji}</div>
-                  <div className={'text-[10px] font-extrabold ' + (active ? 'text-violet-800' : 'text-slate-900 dark:text-white')}>{s.label}</div>
-                  <div className="text-[9px] font-semibold text-slate-500 mt-0.5">{s.desc}</div>
+                  <div className={'text-[0.6875rem] font-extrabold ' + (active ? 'text-violet-800' : 'text-slate-900 dark:text-white')}>{s.label}</div>
+                  <div className="text-[0.625rem] font-semibold text-slate-500 mt-0.5">{s.desc}</div>
                 </button>
               );
             })}
@@ -132,10 +132,10 @@ export function ServicesBizWizardStep3Warranty({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Required Tools</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Tools needed for this service</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Tools needed for this service</p>
           </div>
           {warranty.requiredTools.length > 0 && (
-            <span className="ml-auto px-2 py-0.5 rounded bg-orange-100 text-orange-700 text-[10px] font-extrabold">
+            <span className="ml-auto px-2 py-0.5 rounded bg-orange-100 text-orange-700 text-[0.6875rem] font-extrabold">
               {warranty.requiredTools.length} selected
             </span>
           )}
@@ -181,7 +181,7 @@ export function ServicesBizWizardStep3Warranty({
 
         {warranty.requiredTools.length > 0 && (
           <div className="rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-200 p-2">
-            <div className="text-[9px] uppercase font-extrabold text-orange-700 mb-1">Selected Tools</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-orange-700 mb-1">Selected Tools</div>
             <div className="flex flex-wrap gap-1">
               {warranty.requiredTools.map((t) => (
                 <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white dark:bg-neutral-800 border border-orange-300 text-xs font-extrabold text-orange-900">
@@ -203,10 +203,10 @@ export function ServicesBizWizardStep3Warranty({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Common Parts / Materials</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Typical parts used in this service</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Typical parts used in this service</p>
           </div>
           {warranty.requiredParts.length > 0 && (
-            <span className="ml-auto px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">
+            <span className="ml-auto px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold">
               {warranty.requiredParts.length} selected
             </span>
           )}
@@ -258,7 +258,7 @@ export function ServicesBizWizardStep3Warranty({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">License / Certification</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Does this service require special certification?</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Does this service require special certification?</p>
           </div>
         </div>
 
@@ -277,7 +277,7 @@ export function ServicesBizWizardStep3Warranty({
           <GraduationCap className="h-5 w-5 text-amber-600" />
           <div>
             <div className="font-extrabold text-sm">Requires License / Certification</div>
-            <div className="text-[10px] text-slate-500 font-semibold">e.g. Electrician license, HVAC cert.</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">e.g. Electrician license, HVAC cert.</div>
           </div>
         </label>
 
@@ -298,13 +298,13 @@ export function ServicesBizWizardStep3Warranty({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Service Warranty</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Guarantee for the service work</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Guarantee for the service work</p>
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-[11px] font-extrabold text-emerald-700 mb-1.5 uppercase tracking-wider">
+            <label className="block text-[0.6875rem] font-extrabold text-emerald-700 mb-1.5 uppercase tracking-wider">
               🛡️ Warranty Days
             </label>
             <input
@@ -336,7 +336,7 @@ export function ServicesBizWizardStep3Warranty({
                   ].join(' ')}
                 >
                   <div className="text-xl mb-1">{w.emoji}</div>
-                  <div className={'text-[10px] font-extrabold ' + (active ? 'text-emerald-800' : 'text-slate-900 dark:text-white')}>{w.label}</div>
+                  <div className={'text-[0.6875rem] font-extrabold ' + (active ? 'text-emerald-800' : 'text-slate-900 dark:text-white')}>{w.label}</div>
                 </button>
               );
             })}

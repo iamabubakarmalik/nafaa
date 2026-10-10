@@ -125,7 +125,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
         {/* Head */}
         <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-sky-600 to-cyan-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <Zap className="h-3 w-3 text-amber-300" /> Quick Add
             </div>
             <h3 className="font-extrabold text-xl mt-1.5">Naya Product</h3>
@@ -228,7 +228,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
           {/* Quick markup */}
           {Number(cost) > 0 && (
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-amber-500" /> Fatafat rate
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -263,7 +263,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
                 ].join(' ')} />
                 <div>
                   <div className={[
-                    'text-[10px] uppercase font-extrabold',
+                    'text-[0.6875rem] uppercase font-extrabold',
                     profit < 0 ? 'text-rose-700 dark:text-rose-400' : margin >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400',
                   ].join(' ')}>
                     {profit < 0 ? 'Nuqsaan!' : 'Faida'}

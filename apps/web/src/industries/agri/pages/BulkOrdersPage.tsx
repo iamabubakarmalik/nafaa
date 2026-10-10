@@ -432,7 +432,7 @@ export default function BulkOrdersPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Tractor className="h-3.5 w-3.5 text-lime-300" /> Bare order
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
@@ -484,7 +484,7 @@ export default function BulkOrdersPage() {
             <div className="mt-2 flex flex-wrap gap-1.5">
               {stats.todayList.map((r: any) => (
                 <Link key={r.id} to={`/agri/bulk-orders/${r.id}`}
-                  className={`px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 text-[11px] font-extrabold transition ${
+                  className={`px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 text-[0.6875rem] font-extrabold transition ${
                     r.lateDelivery
                       ? 'border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-rose-900 dark:text-rose-200'
                       : 'border-sky-200 dark:border-sky-500/40 hover:border-sky-400 text-sky-900 dark:text-sky-200'
@@ -512,7 +512,7 @@ export default function BulkOrdersPage() {
             <h3 className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">
               💰 {stats.overdueCredit} farmer ka udhaar ki tareekh guzar chuki — {formatPKR(stats.overdueAmount)}
             </h3>
-            <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
+            <p className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
               Katai ke baad farmer ke paas paisa aata hai — wohi waqt maangne ka sab se behtar hai.
               Us ke baad paisa kahin aur lag jata hai aur agle season tak intezaar karna parta hai.
             </p>
@@ -565,11 +565,11 @@ export default function BulkOrdersPage() {
             <Icon className="h-4 w-4" />
             <span className="truncate">{label}</span>
             {count !== undefined && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-lg tabular-nums ${
+              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
                 tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
               }`}>{count}</span>
             )}
-            <kbd className="hidden sm:inline text-[9px] opacity-60">{key}</kbd>
+            <kbd className="hidden sm:inline text-[0.625rem] opacity-60">{key}</kbd>
           </button>
         ))}
       </div>
@@ -622,7 +622,7 @@ export default function BulkOrdersPage() {
                 })),
               ].map((s) => (
                 <button key={s.v} onClick={() => setStatusFilter(s.v)}
-                  className={`shrink-0 h-10 px-3 rounded-xl border-2 text-[11px] font-black transition ${
+                  className={`shrink-0 h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     statusFilter === s.v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
                   }`}>{s.label}</button>
@@ -631,13 +631,13 @@ export default function BulkOrdersPage() {
 
             <div className="flex gap-1.5 flex-wrap items-center">
               <button onClick={() => setSeasonFilter('all')}
-                className={`h-9 px-3 rounded-xl border-2 text-[11px] font-black transition ${
+                className={`h-9 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                   seasonFilter === 'all' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                     : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
                 }`}>Har mausam</button>
               {SEASONS.map((s) => (
                 <button key={s.v} onClick={() => setSeasonFilter(s.v)}
-                  className={`h-9 px-3 rounded-xl border-2 text-[11px] font-black transition ${
+                  className={`h-9 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     seasonFilter === s.v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
                   }`}>{s.e} {s.l}</button>
@@ -725,32 +725,32 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
                 className="font-mono font-extrabold text-slate-900 dark:text-white hover:text-emerald-600 transition">
                 {order.orderNumber}
               </Link>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ${cfg.color}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ${cfg.color}`}>
                 {cfg.label}
               </span>
               {season && (
-                <span className="px-2 py-0.5 rounded-md bg-lime-100 dark:bg-lime-500/20 text-lime-700 dark:text-lime-300 text-[9px] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded-md bg-lime-100 dark:bg-lime-500/20 text-lime-700 dark:text-lime-300 text-[0.625rem] font-extrabold uppercase">
                   {season.e} {season.l}
                 </span>
               )}
               {order.isCredit && (
-                <span className="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[9px] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.625rem] font-extrabold uppercase">
                   Udhaar
                 </span>
               )}
               {order.isDelivery && (
-                <span className="px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                   <Truck className="h-2.5 w-2.5" /> Pahunchana hai
                 </span>
               )}
               {order.cropTarget && (
-                <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.625rem] font-extrabold uppercase">
                   🌱 {order.cropTarget}
                 </span>
               )}
             </div>
 
-            <div className="mt-2 flex items-center gap-3 text-[11px] text-slate-600 dark:text-slate-400 font-bold flex-wrap">
+            <div className="mt-2 flex items-center gap-3 text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold flex-wrap">
               {order.customerName && (
                 <span className="inline-flex items-center gap-1"><User className="h-3 w-3" />{order.customerName}</span>
               )}
@@ -777,7 +777,7 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
             </div>
 
             {order.deliveryAddress && (
-              <div className="mt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400 inline-flex items-start gap-1">
+              <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-start gap-1">
                 <MapPin className="h-3 w-3 shrink-0 mt-0.5" />
                 <span className="line-clamp-1">{order.deliveryAddress}</span>
               </div>
@@ -786,12 +786,12 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
             <div className="mt-2 flex flex-wrap gap-1">
               {(order.items ?? []).slice(0, 4).map((it: any, i: number) => (
                 <span key={i}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold">
+                  className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold">
                   {it.productName} · {fmtQty(it.quantity)} {it.unit}
                 </span>
               ))}
               {(order.items?.length || 0) > 4 && (
-                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-extrabold">
+                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 text-[0.6875rem] font-extrabold">
                   +{(order.items?.length || 0) - 4} aur
                 </span>
               )}
@@ -800,21 +800,21 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider">
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider">
             {fmtQty(order.qty)} cheezein
           </div>
           <div className="text-xl font-black text-slate-900 dark:text-white tabular-nums leading-none mt-0.5">
             {formatPKR(order.total)}
           </div>
           {order.remaining > 0 ? (
-            <div className={`text-[11px] font-extrabold tabular-nums mt-0.5 ${
+            <div className={`text-[0.6875rem] font-extrabold tabular-nums mt-0.5 ${
               order.overdueCredit ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400'
             }`}>
               Baqi {formatPKR(order.remaining)}
               {order.toDue !== null && ` · ${dayPhrase(order.toDue)}`}
             </div>
           ) : (
-            <div className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5 inline-flex items-center gap-1">
+            <div className="text-[0.6875rem] font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5 inline-flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3" /> Poora paisa mil gaya
             </div>
           )}
@@ -828,7 +828,7 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
             <div className={`h-full rounded-full ${order.overdueCredit ? 'bg-rose-500' : 'bg-emerald-500'}`}
               style={{ width: `${Math.min(paidPct, 100)}%` }} />
           </div>
-          <div className="mt-1 text-[10px] font-bold text-slate-400 tabular-nums">
+          <div className="mt-1 text-[0.6875rem] font-bold text-slate-400 tabular-nums">
             {formatPKR(order.paidAmount)} mil chuka · {paidPct.toFixed(0)}%
           </div>
         </div>
@@ -836,34 +836,34 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
 
       <div className="flex gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 flex-wrap print:hidden">
         <Link to={`/agri/bulk-orders/${order.id}`}
-          className="h-9 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+          className="h-9 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
           Poora dekhein
         </Link>
 
         {order.remaining > 0 && (
           <button onClick={onPay}
-            className="h-9 px-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+            className="h-9 px-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
             <Wallet className="h-3.5 w-3.5" /> Paisa aaya
           </button>
         )}
 
         {cfg.next && !order.closed && (
           <button onClick={() => onAdvance(cfg.next)} disabled={busy}
-            className={`h-9 px-3 rounded-lg text-white text-[11px] font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition ${STATUS[cfg.next].color} hover:opacity-90`}>
+            className={`h-9 px-3 rounded-lg text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition ${STATUS[cfg.next].color} hover:opacity-90`}>
             {cfg.nextLabel} <ArrowRight className="h-3.5 w-3.5" />
           </button>
         )}
 
         {!order.closed && (
           <button onClick={onCancel}
-            className="ml-auto h-9 px-3 rounded-lg bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+            className="ml-auto h-9 px-3 rounded-lg bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
             <Ban className="h-3.5 w-3.5" /> Cancel
           </button>
         )}
       </div>
 
       {order.cancellationReason && (
-        <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 text-[12px] font-bold text-rose-800 dark:text-rose-300">
+        <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">
           ❌ Cancel ki wajah: {order.cancellationReason}
         </div>
       )}
@@ -906,19 +906,19 @@ function Board({ rows, onAdvance, busy }: {
               <div className={`rounded-2xl border-2 p-3 mb-2 ${cfg.pill} border-transparent`}>
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-black text-sm">{cfg.label}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-white/60 dark:bg-black/20 text-[11px] font-black tabular-nums">
+                  <span className="px-2 py-0.5 rounded-full bg-white/60 dark:bg-black/20 text-[0.6875rem] font-black tabular-nums">
                     {list.length}
                   </span>
                 </div>
-                <div className="text-[10px] font-bold opacity-80 mt-0.5">{cfg.hint}</div>
+                <div className="text-[0.6875rem] font-bold opacity-80 mt-0.5">{cfg.hint}</div>
                 {amount > 0 && (
-                  <div className="text-[11px] font-black tabular-nums mt-1">{formatPKR(amount)}</div>
+                  <div className="text-[0.6875rem] font-black tabular-nums mt-1">{formatPKR(amount)}</div>
                 )}
               </div>
 
               <div className="space-y-2">
                 {list.length === 0 ? (
-                  <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-4 text-center text-[11px] font-bold text-slate-400">
+                  <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-4 text-center text-[0.6875rem] font-bold text-slate-400">
                     Khali
                   </div>
                 ) : list.map((r) => (
@@ -929,22 +929,22 @@ function Board({ rows, onAdvance, busy }: {
                         : 'border-slate-200 dark:border-slate-800'
                     }`}>
                     <Link to={`/agri/bulk-orders/${r.id}`}
-                      className="font-mono font-extrabold text-[12px] text-slate-900 dark:text-white hover:text-emerald-600 block truncate transition">
+                      className="font-mono font-extrabold text-[0.75rem] text-slate-900 dark:text-white hover:text-emerald-600 block truncate transition">
                       {r.orderNumber}
                     </Link>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                       {r.customerName || 'Farmer'}
                     </div>
                     <div className="mt-1 flex items-center justify-between gap-2">
-                      <span className="text-[12px] font-black text-slate-900 dark:text-white tabular-nums">
+                      <span className="text-[0.75rem] font-black text-slate-900 dark:text-white tabular-nums">
                         {formatPKR(r.total)}
                       </span>
-                      <span className="text-[10px] font-bold text-slate-400 tabular-nums">
+                      <span className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                         {fmtQty(r.qty)} cheezein
                       </span>
                     </div>
                     {r.deliveryDate && (
-                      <div className={`mt-1 text-[10px] font-extrabold inline-flex items-center gap-1 ${
+                      <div className={`mt-1 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 ${
                         r.lateDelivery ? 'text-rose-600 dark:text-rose-400'
                           : r.deliverToday ? 'text-sky-600 dark:text-sky-400'
                           : 'text-slate-400'
@@ -955,7 +955,7 @@ function Board({ rows, onAdvance, busy }: {
                     )}
                     {cfg.next && (
                       <button onClick={() => onAdvance(r.id, cfg.next!)} disabled={busy}
-                        className={`mt-2 w-full h-8 rounded-lg text-white text-[10px] font-extrabold inline-flex items-center justify-center gap-1 disabled:opacity-50 transition ${STATUS[cfg.next].color} hover:opacity-90`}>
+                        className={`mt-2 w-full h-8 rounded-lg text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 disabled:opacity-50 transition ${STATUS[cfg.next].color} hover:opacity-90`}>
                         {cfg.nextLabel} <ArrowRight className="h-3 w-3" />
                       </button>
                     )}
@@ -996,7 +996,7 @@ function PaymentModal({ order, onClose, onConfirm, saving }: any) {
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-emerald-600 to-lime-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <Wallet className="h-3 w-3" /> Paisa aaya
             </div>
             <h3 className="font-extrabold text-lg mt-1.5 truncate">{order.customerName || order.orderNumber}</h3>
@@ -1011,7 +1011,7 @@ function PaymentModal({ order, onClose, onConfirm, saving }: any) {
 
         <div className="p-5 space-y-4">
           <div>
-            <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+            <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">
               Kitna paisa aaya?
             </label>
             <input autoFocus type="number" min={0} max={remaining} step="any" value={amount}
@@ -1029,7 +1029,7 @@ function PaymentModal({ order, onClose, onConfirm, saving }: any) {
 
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between gap-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider">Ab baqi rahega</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider">Ab baqi rahega</div>
               <div className={`text-2xl font-black tabular-nums ${
                 remaining - n <= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'
               }`}>
@@ -1090,7 +1090,7 @@ function CancelModal({ order, onClose, onConfirm, saving }: any) {
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-rose-600 to-red-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <Ban className="h-3 w-3" /> Order cancel karein
             </div>
             <h3 className="font-extrabold text-lg mt-1.5 truncate font-mono">{order.orderNumber}</h3>
@@ -1105,7 +1105,7 @@ function CancelModal({ order, onClose, onConfirm, saving }: any) {
 
         <div className="p-5 space-y-3">
           <div>
-            <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+            <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">
               Cancel kyun kar rahe hain? <span className="text-rose-500">*</span>
             </label>
             <textarea rows={3} autoFocus value={reason} onChange={(e) => setReason(e.target.value)}
@@ -1116,14 +1116,14 @@ function CancelModal({ order, onClose, onConfirm, saving }: any) {
           <div className="flex flex-wrap gap-1.5">
             {CANCEL_REASONS.map((r) => (
               <button key={r} type="button" onClick={() => setReason(r)}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-[11px] font-extrabold text-slate-600 dark:text-slate-300 transition">
+                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 transition">
                 {r}
               </button>
             ))}
           </div>
 
           {Number(order.paidAmount) > 0 && (
-            <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 text-[11px] font-bold text-amber-900 dark:text-amber-200 flex items-start gap-2">
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200 flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
               <span>
                 Is order par <strong>{formatPKR(order.paidAmount)}</strong> pehle hi mil chuka hai.
@@ -1181,7 +1181,7 @@ function Analytics({ stats, statusPie, monthChart, seasonChart, topProducts, row
             <Scissors className="h-4 w-4 text-amber-600" />
             <h3 className="font-black text-amber-900 dark:text-amber-200">Wusooli ka waqt</h3>
           </div>
-          <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200 leading-relaxed">
+          <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200 leading-relaxed">
             Abhi <strong>{formatPKR(stats.moneyOut)}</strong> farmer ke paas hai. Ye paisa katai ke
             baad hi aata hai — us waqt "Fasal ka calendar" khol kar dekhein ke kis fasal ki katai
             chal rahi hai, aur unhi farmer se pehle maangein jin ki fasal kat chuki hai.
@@ -1270,12 +1270,12 @@ function Analytics({ stats, statusPie, monthChart, seasonChart, topProducts, row
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{f.name}</div>
-                  <div className="text-[11px] font-bold text-slate-400">
+                  <div className="text-[0.6875rem] font-bold text-slate-400">
                     {f.n} order{f.phone ? ` · ${f.phone}` : ''}
                   </div>
                 </div>
                 {f.baqi > 0 && (
-                  <span className="text-[11px] font-black tabular-nums text-amber-600 dark:text-amber-400 shrink-0">
+                  <span className="text-[0.6875rem] font-black tabular-nums text-amber-600 dark:text-amber-400 shrink-0">
                     baqi {formatPKR(f.baqi)}
                   </span>
                 )}
@@ -1311,9 +1311,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1332,10 +1332,10 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-4 w-4 ${tones[tone] ?? tones.emerald}`} />
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
       </div>
       <div className="mt-1.5 text-xl font-black text-slate-900 dark:text-white tabular-nums break-words">{value}</div>
-      {sub && <div className="text-[11px] font-bold text-slate-400 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -1404,7 +1404,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-5 space-y-3 text-sm">
           <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3">
-            <p className="text-[12px] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
+            <p className="text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
               Bara order chhoti bikri jaisa nahi hota. Maal bori me jata hai, aksar{' '}
               <strong>udhaar par</strong>, aur paisa <strong>katai ke baad</strong> aata hai.
               Is liye do cheezon ka hisab rakhna parta hai: maal kahan tak pahuncha, aur paisa
@@ -1435,8 +1435,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             khud wapas nahi karega — wo aap ko khud sambhalna hoga.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-3</kbd> tabs</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">Enter</kbd> payment save</div>
@@ -1457,8 +1457,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

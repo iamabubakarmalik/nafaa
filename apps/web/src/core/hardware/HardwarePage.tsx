@@ -60,7 +60,7 @@ export default function HardwarePage() {
           <Segmented value={s.printMode} onChange={(v) => s.set({ printMode: v })} items={modes} />
 
           {s.printMode === 'browser' && (
-            <p className="text-[13px] text-slate-600 dark:text-slate-300">
+            <p className="text-[0.8125rem] text-slate-600 dark:text-slate-300">
               Abhi wala tareeqa: bill ek chhoti window me khulta hai aur Windows ka printer chhapta hai. Tez aur bina dialog chahiye to <b>Direct</b> chunein.
             </p>
           )}
@@ -103,12 +103,12 @@ export default function HardwarePage() {
                 )}
               </div>
               {st.printer.ready && (
-                <p className="flex items-center gap-1.5 text-[13px] text-slate-600 dark:text-slate-300">
+                <p className="flex items-center gap-1.5 text-[0.8125rem] text-slate-600 dark:text-slate-300">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" /> {prettyLabel(st.printer.label)}
                 </p>
               )}
               {!st.printer.ready && s.printerLabel && (
-                <p className="text-[13px] text-amber-700 dark:text-amber-300">
+                <p className="text-[0.8125rem] text-amber-700 dark:text-amber-300">
                   {st.printer.error ?? 'Pichla printer abhi nahi mila'} — tab tak bill browser print se nikalte rahenge.
                 </p>
               )}
@@ -116,7 +116,7 @@ export default function HardwarePage() {
               <SettingRow title="Bill par barcode" help="Wapsi par bill scan ho sake. Purana printer barcode na chhape to band kar dein."
                 control={<Toggle checked={s.printBarcode} onChange={(v) => s.set({ printBarcode: v })} />} />
 
-              <details className="rounded-lg bg-slate-50 p-3 text-[13px] text-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+              <details className="rounded-lg bg-slate-50 p-3 text-[0.8125rem] text-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
                 <summary className="cursor-pointer font-semibold">USB printer list me aata hai par jurta nahi? (Windows)</summary>
                 <ol className="mt-2 list-decimal space-y-1 pl-5">
                   <li>Windows ne printer ka apna driver laga rakha hai, is liye browser usay nahi le sakta.</li>
@@ -138,7 +138,7 @@ export default function HardwarePage() {
             control={<Toggle checked={s.drawerOnCash} onChange={(v) => s.set({ drawerOnCash: v })} disabled={s.printMode === 'browser'} />} />
           <Btn disabled={s.printMode === 'browser'} loading={busy === 'drawer'} icon={<Archive className="h-4 w-4" />}
             onClick={() => run('drawer', () => openCashDrawer())}>Abhi kholein (test)</Btn>
-          {s.printMode === 'browser' && <p className="text-[12.5px] text-slate-500">Browser print se drawer nahi khul sakta — upar printer ko Direct karein.</p>}
+          {s.printMode === 'browser' && <p className="text-[0.78125rem] text-slate-500">Browser print se drawer nahi khul sakta — upar printer ko Direct karein.</p>}
         </div>
       </Card>
 
@@ -164,11 +164,11 @@ export default function HardwarePage() {
           </div>
           {s.scaleEnabled && (
             <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-              <div className="text-[12px] text-slate-500">Live wazan {st.scale.ready && (st.scale.stable ? '· ruka hua' : '· hil raha')}</div>
+              <div className="text-[0.75rem] text-slate-500">Live wazan {st.scale.ready && (st.scale.stable ? '· ruka hua' : '· hil raha')}</div>
               <div className="text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white">
                 {st.scale.weightKg === null ? '—' : `${st.scale.weightKg.toFixed(3)} kg`}
               </div>
-              <div className="mt-1 font-mono text-[11.5px] text-slate-400">{st.scale.error ?? (st.scale.raw ? `tarazu ne bheja: ${st.scale.raw}` : 'Tarazu se abhi kuch nahi aaya — speed (baud) badal kar dekhein')}</div>
+              <div className="mt-1 font-mono text-[0.71875rem] text-slate-400">{st.scale.error ?? (st.scale.raw ? `tarazu ne bheja: ${st.scale.raw}` : 'Tarazu se abhi kuch nahi aaya — speed (baud) badal kar dekhein')}</div>
             </div>
           )}
         </div>
@@ -177,7 +177,7 @@ export default function HardwarePage() {
       {/* ─────────────── CUSTOMER DISPLAY ─────────────── */}
       <Card title={<span className="flex items-center gap-2"><Monitor className="h-4 w-4" /> Customer display</span>}
         description="Customer ki taraf wali screen par live bill aur 'Wapsi' ki raqam — bharosa barhta hai, jhagra kam.">
-        <div className="space-y-2 text-[13px] text-slate-700 dark:text-slate-200">
+        <div className="space-y-2 text-[0.8125rem] text-slate-700 dark:text-slate-200">
           <ol className="list-decimal space-y-1 pl-5">
             <li>Doosra monitor / purana LCD computer se HDMI par jorein.</li>
             <li>Neeche button dabayein — nayi window khulegi. Usay doosri screen par le jayein aur double-click (full screen).</li>
@@ -190,7 +190,7 @@ export default function HardwarePage() {
       </Card>
 
       <Card title="Barcode scanner">
-        <p className="text-[13px] text-slate-700 dark:text-slate-200">
+        <p className="text-[0.8125rem] text-slate-700 dark:text-slate-200">
           USB / wireless scanner khud chalta hai — kuch set nahi karna. POS par kahin bhi scan karein, cheez bill me aa jati hai.
         </p>
       </Card>
@@ -205,8 +205,8 @@ function TransportBtn({ t, cur, on, icon, title, sub, disabled }: {
     <button type="button" disabled={disabled} onClick={() => on(t)}
       className={cn('rounded-xl border-2 p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-40',
         cur === t ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-500/10' : 'border-slate-200 hover:border-slate-300 dark:border-slate-700')}>
-      <div className="flex items-center gap-2 text-[13.5px] font-semibold text-slate-900 dark:text-white">{icon} {title}</div>
-      <div className="mt-0.5 text-[12px] text-slate-500">{disabled ? 'Is browser me nahi' : sub}</div>
+      <div className="flex items-center gap-2 text-[0.84375rem] font-semibold text-slate-900 dark:text-white">{icon} {title}</div>
+      <div className="mt-0.5 text-[0.75rem] text-slate-500">{disabled ? 'Is browser me nahi' : sub}</div>
     </button>
   );
 }

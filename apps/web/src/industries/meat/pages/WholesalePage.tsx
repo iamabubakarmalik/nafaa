@@ -127,7 +127,7 @@ function AccountCard({ account, onEdit }: any) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-extrabold text-slate-900 dark:text-white truncate">{account.businessName}</div>
-          <div className="text-[10px] font-mono font-bold text-slate-500">{account.accountNumber}</div>
+          <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{account.accountNumber}</div>
           <div className="text-xs font-extrabold text-violet-600">{account.businessType}</div>
         </div>
         <button onClick={onEdit} className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
@@ -144,22 +144,22 @@ function AccountCard({ account, onEdit }: any) {
 
       <div className="grid grid-cols-3 gap-1 text-xs">
         <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2 text-center">
-          <div className="text-[9px] uppercase font-extrabold text-emerald-700">Revenue</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Revenue</div>
           <div className="text-sm font-extrabold text-emerald-800 tabular-nums">{formatPKR(account.totalPurchases).replace('Rs', '').trim()}</div>
         </div>
         <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2 text-center">
-          <div className="text-[9px] uppercase font-extrabold text-amber-700">Outstanding</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Outstanding</div>
           <div className="text-sm font-extrabold text-amber-800 tabular-nums">{formatPKR(account.totalOutstanding).replace('Rs', '').trim()}</div>
         </div>
         <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2 text-center">
-          <div className="text-[9px] uppercase font-extrabold text-blue-700">Orders</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Orders</div>
           <div className="text-sm font-extrabold text-blue-800 tabular-nums">{account.totalOrders}</div>
         </div>
       </div>
 
       {account.creditLimit > 0 && (
         <div>
-          <div className="flex items-center justify-between text-[10px] font-extrabold mb-1">
+          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold mb-1">
             <span className="text-slate-600">Credit Used</span>
             <span className={creditUsedPct > 80 ? 'text-rose-700' : creditUsedPct > 50 ? 'text-amber-700' : 'text-emerald-700'}>
               {formatPKR(account.currentBalance)} / {formatPKR(account.creditLimit)}
@@ -245,7 +245,7 @@ function WholesaleForm({ editing, onClose, onSaved }: any) {
             </div>
           ) : (
             <div>
-              <label className="text-[10px] uppercase font-extrabold mb-1 block">Select Customer *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold mb-1 block">Select Customer *</label>
               <input autoFocus value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="Search..." className="h-11 w-full rounded-xl border-2 border-violet-200 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
               <div className="mt-2 max-h-52 overflow-y-auto space-y-1 rounded-xl border border-slate-200">
                 {(customersData?.items ?? []).map((c) => (
@@ -278,15 +278,15 @@ function WholesaleForm({ editing, onClose, onSaved }: any) {
               <div className="text-sm font-extrabold text-emerald-900">💳 Credit Terms</div>
               <div className="grid sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Credit Limit (Rs)</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Credit Limit (Rs)</label>
                   <input type="number" value={form.creditLimit} onChange={(e) => setForm({ ...form, creditLimit: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Credit Days</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Credit Days</label>
                   <input type="number" value={form.creditDays} onChange={(e) => setForm({ ...form, creditDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Discount %</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Discount %</label>
                   <input type="number" step="0.1" value={form.discountPct} onChange={(e) => setForm({ ...form, discountPct: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                 </div>
               </div>

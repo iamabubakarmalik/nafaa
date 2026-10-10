@@ -51,7 +51,7 @@ export function SyncStatusBadge() {
         {icon}
         <span className="hidden sm:inline">{label}</span>
         {totalPending > 0 && (
-          <span className="sm:hidden bg-white/60 rounded-full px-1.5 text-[10px] font-bold">
+          <span className="sm:hidden bg-white/60 rounded-full px-1.5 text-[0.6875rem] font-bold">
             {totalPending}
           </span>
         )}

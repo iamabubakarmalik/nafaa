@@ -150,7 +150,7 @@ export function BulkImeiAddModal({
               <Smartphone className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-blue-700 font-bold">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-blue-700 font-bold">
                 Add IMEIs with PTA Status
               </div>
               <h3 className="font-bold text-slate-900 truncate">{productName}</h3>
@@ -171,7 +171,7 @@ export function BulkImeiAddModal({
         <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 space-y-3">
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+              <label className="block text-[0.6875rem] font-bold uppercase tracking-wider text-slate-600 mb-1">
                 Cost Price (per unit)
               </label>
               <Input
@@ -183,7 +183,7 @@ export function BulkImeiAddModal({
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+              <label className="block text-[0.6875rem] font-bold uppercase tracking-wider text-slate-600 mb-1">
                 Warranty (months)
               </label>
               <Input
@@ -194,7 +194,7 @@ export function BulkImeiAddModal({
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+              <label className="block text-[0.6875rem] font-bold uppercase tracking-wider text-slate-600 mb-1">
                 Default PTA Tax (PKR)
               </label>
               <Input
@@ -209,7 +209,7 @@ export function BulkImeiAddModal({
 
           {/* PTA quick-set buttons */}
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+            <div className="text-[0.6875rem] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
               Quick Set PTA Status for All Rows
             </div>
             <div className="flex gap-1.5 flex-wrap">
@@ -221,7 +221,7 @@ export function BulkImeiAddModal({
                     key={status}
                     type="button"
                     onClick={() => applyPtaToAll(status)}
-                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border-2 hover:shadow ${colors.bg} ${colors.text} ${colors.border}`}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.6875rem] font-bold border-2 hover:shadow ${colors.bg} ${colors.text} ${colors.border}`}
                   >
                     <Icon className="h-3 w-3" />
                     Set All {PTA_STATUS_LABELS[status]}
@@ -309,7 +309,7 @@ export function BulkImeiAddModal({
                           className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm font-mono focus:outline-none focus:border-blue-500"
                         />
                         {item.imei1.length > 0 && item.imei1.length !== 15 && (
-                          <div className="text-[10px] text-rose-600 font-bold mt-0.5">
+                          <div className="text-[0.6875rem] text-rose-600 font-bold mt-0.5">
                             ⚠️ IMEI exactly 15 digits hone chahiye ({item.imei1.length}/15)
                           </div>
                         )}
@@ -327,7 +327,7 @@ export function BulkImeiAddModal({
                     {/* PTA selector + secondary fields */}
                     <div className="space-y-2 pl-9">
                       <div>
-                        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                        <div className="text-[0.625rem] font-bold uppercase tracking-wider text-slate-500 mb-1">
                           PTA Status
                         </div>
                         <div className="grid grid-cols-5 gap-1">
@@ -347,7 +347,7 @@ export function BulkImeiAddModal({
                                 }`}
                               >
                                 <Icon className={`h-3 w-3 ${active ? colors.text : 'text-slate-400'}`} />
-                                <span className={`text-[8px] font-bold ${active ? colors.text : 'text-slate-500'}`}>
+                                <span className={`text-[0.625rem] font-bold ${active ? colors.text : 'text-slate-500'}`}>
                                   {PTA_STATUS_LABELS[status].split(' ')[0]}
                                 </span>
                               </button>
@@ -407,7 +407,7 @@ export function BulkImeiAddModal({
         {/* Footer with PTA summary */}
         <div className="px-5 py-3 border-t border-slate-200 bg-gradient-to-br from-blue-50 to-indigo-50 space-y-2">
           {Object.keys(stats.byPta).length > 0 && (
-            <div className="flex items-center gap-1.5 flex-wrap text-[10px]">
+            <div className="flex items-center gap-1.5 flex-wrap text-[0.6875rem]">
               <span className="text-slate-600 font-bold">Summary:</span>
               {Object.entries(stats.byPta).map(([status, count]) => {
                 const colors = PTA_STATUS_COLORS[status as PtaStatus];

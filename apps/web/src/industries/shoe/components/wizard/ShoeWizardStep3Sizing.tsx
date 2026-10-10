@@ -62,10 +62,10 @@ export function ShoeWizardStep3Sizing({ sizing, onChange, errors }: Props) {
                   <span className="text-xl">{s.e}</span>
                   <span className="font-extrabold text-base">{s.l}</span>
                 </div>
-                <div className={['text-[10px] font-bold', a ? 'text-white/85' : 'text-slate-500'].join(' ')}>
+                <div className={['text-[0.6875rem] font-bold', a ? 'text-white/85' : 'text-slate-500'].join(' ')}>
                   {s.desc}
                 </div>
-                <div className={['text-[10px] font-mono mt-0.5', a ? 'text-white/70' : 'text-slate-400'].join(' ')}>
+                <div className={['text-[0.6875rem] font-mono mt-0.5', a ? 'text-white/70' : 'text-slate-400'].join(' ')}>
                   e.g. {s.sample}
                 </div>
               </button>
@@ -92,7 +92,7 @@ export function ShoeWizardStep3Sizing({ sizing, onChange, errors }: Props) {
                   a ? `${tones[w.color]} shadow-md scale-[1.02]` : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400'].join(' ')}>
                 <span className="text-2xl font-mono">{w.e}</span>
                 <span className="text-xs font-extrabold">{w.l}</span>
-                <span className={['text-[10px] font-bold', a ? 'text-white/80' : 'text-slate-500'].join(' ')}>
+                <span className={['text-[0.6875rem] font-bold', a ? 'text-white/80' : 'text-slate-500'].join(' ')}>
                   {w.desc}
                 </span>
               </button>
@@ -128,7 +128,7 @@ export function ShoeWizardStep3Sizing({ sizing, onChange, errors }: Props) {
         <section className="rounded-2xl bg-gradient-to-br from-slate-950 to-orange-900 text-white p-5 shadow-xl">
           <div className="flex items-center gap-2 mb-3">
             <Info className="h-4 w-4 text-amber-300" />
-            <span className="text-[10px] uppercase font-extrabold tracking-wider text-amber-300">Preview</span>
+            <span className="text-[0.6875rem] uppercase font-extrabold tracking-wider text-amber-300">Preview</span>
           </div>
           <div className="text-sm font-bold text-white/85">
             You've picked <strong className="text-amber-300">{sizing.sizeSystem}</strong> sizing
@@ -172,7 +172,7 @@ function FitToggle({ checked, onChange, icon, label, desc, tone }: any) {
       <span className="text-2xl">{icon}</span>
       <div className="min-w-0">
         <div className="font-extrabold text-sm">{label}</div>
-        <div className="text-[11px] font-semibold opacity-75">{desc}</div>
+        <div className="text-[0.6875rem] font-semibold opacity-75">{desc}</div>
       </div>
     </label>
   );

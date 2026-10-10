@@ -197,7 +197,7 @@ export default function ExportsPage() {
             </p>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur px-5 py-3 text-center">
-            <div className="text-[10px] uppercase tracking-wider text-white/70 font-bold">Reports Available</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider text-white/70 font-bold">Reports Available</div>
             <div className="mt-1 text-3xl font-extrabold">{EXPORT_CARDS.length}</div>
           </div>
         </div>
@@ -225,7 +225,7 @@ export default function ExportsPage() {
                   {card.formats.map((f) => {
                     const FormatIcon = f.icon;
                     return (
-                      <span key={f.label} className="inline-flex items-center gap-1 rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-[10px] font-bold">
+                      <span key={f.label} className="inline-flex items-center gap-1 rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-[0.6875rem] font-bold">
                         <FormatIcon className="h-2.5 w-2.5" />
                         {f.label}
                       </span>

@@ -116,16 +116,16 @@ export function OwnerPinCard() {
         badge={
           hasPin ? (
             unlocked ? (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-black">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-black">
                 Abhi khula hai
               </span>
             ) : (
-              <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white text-[10px] font-black">
+              <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white text-[0.6875rem] font-black">
                 Lock hai
               </span>
             )
           ) : (
-            <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-black">
+            <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.6875rem] font-black">
               Set nahi
             </span>
           )
@@ -150,7 +150,7 @@ export function OwnerPinCard() {
                 <div className="text-sm font-extrabold text-slate-900 dark:text-white">
                   {unlocked ? 'Is device par abhi khula hai' : 'Is device par lock hai'}
                 </div>
-                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                   PIN {fmtWhen(status?.pinUpdatedAt)} ko set/badla gaya
                 </div>
               </div>
@@ -285,7 +285,7 @@ export function PageLocksCard() {
       color="violet"
       badge={
         picked.length > 0 ? (
-          <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[10px] font-black tabular-nums">
+          <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-black tabular-nums">
             {picked.length} lock
           </span>
         ) : undefined
@@ -322,7 +322,7 @@ export function PageLocksCard() {
           <div className="space-y-3">
             {groups.map((g) => (
               <div key={g.group}>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">
+                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">
                   {g.group}
                 </div>
                 <div className="grid sm:grid-cols-2 gap-2">
@@ -342,8 +342,8 @@ export function PageLocksCard() {
                         </div>
                         <div className="min-w-0">
                           <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">{i.label}</div>
-                          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">{i.hint}</div>
-                          <div className="text-[10px] font-mono text-slate-400 truncate">{i.path}</div>
+                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{i.hint}</div>
+                          <div className="text-[0.6875rem] font-mono text-slate-400 truncate">{i.path}</div>
                         </div>
                       </button>
                     );
@@ -370,7 +370,7 @@ export function PageLocksCard() {
             <div className="flex gap-1.5 flex-wrap">
               {extra.map((p) => (
                 <button key={p} onClick={() => toggle(p)}
-                  className="px-2.5 py-1.5 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[11px] font-mono font-extrabold inline-flex items-center gap-1.5 transition">
+                  className="px-2.5 py-1.5 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-mono font-extrabold inline-flex items-center gap-1.5 transition">
                   {p} <X className="h-3 w-3" />
                 </button>
               ))}

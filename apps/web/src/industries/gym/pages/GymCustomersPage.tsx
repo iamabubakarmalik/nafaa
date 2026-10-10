@@ -129,13 +129,13 @@ export default function GymCustomersPage() {
               extraBadges={
                 <>
                   {c.isGymMember && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[0.6875rem] font-bold">
                       <Dumbbell className="h-3 w-3" />
                       Member
                     </div>
                   )}
                   {c.currentStreak >= 7 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[0.6875rem] font-bold">
                       🔥 {c.currentStreak}d streak
                     </div>
                   )}

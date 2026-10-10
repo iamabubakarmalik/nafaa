@@ -484,7 +484,7 @@ export default function SalesPage() {
               <Filter className="h-4 w-4" />
               Filters
               {hasFilters && (
-                <span className="h-5 w-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center">!</span>
+                <span className="h-5 w-5 rounded-full bg-emerald-600 text-white text-[0.6875rem] font-bold flex items-center justify-center">!</span>
               )}
             </button>
 
@@ -502,7 +502,7 @@ export default function SalesPage() {
           {showFilters && (
             <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-3">
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-2">Date Range</label>
+                <label className="block text-[0.6875rem] font-bold uppercase tracking-wider text-slate-600 mb-2">Date Range</label>
                 <div className="flex gap-2 flex-wrap">
                   {[
                     { v: 'all' as DateFilter, l: 'All Time' },
@@ -528,7 +528,7 @@ export default function SalesPage() {
                 {dateFilter === 'custom' && (
                   <div className="mt-2 grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">From</label>
+                      <label className="block text-[0.6875rem] font-bold text-slate-600 mb-1">From</label>
                       <input
                         type="date"
                         value={customStartDate}
@@ -537,7 +537,7 @@ export default function SalesPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">To</label>
+                      <label className="block text-[0.6875rem] font-bold text-slate-600 mb-1">To</label>
                       <input
                         type="date"
                         value={customEndDate}
@@ -550,7 +550,7 @@ export default function SalesPage() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-2">Payment Method</label>
+                <label className="block text-[0.6875rem] font-bold uppercase tracking-wider text-slate-600 mb-2">Payment Method</label>
                 <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={() => setPaymentFilter('all')}
@@ -580,7 +580,7 @@ export default function SalesPage() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-2">Kahan se</label>
+                <label className="block text-[0.6875rem] font-bold uppercase tracking-wider text-slate-600 mb-2">Kahan se</label>
                 <div className="flex gap-2 flex-wrap">
                   {([
                     { v: 'all', l: 'Sab' },
@@ -601,7 +601,7 @@ export default function SalesPage() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-2">Status</label>
+                <label className="block text-[0.6875rem] font-bold uppercase tracking-wider text-slate-600 mb-2">Status</label>
                 <div className="flex gap-2 flex-wrap">
                   {[
                     { v: 'all' as StatusFilter, l: 'All' },
@@ -634,19 +634,19 @@ export default function SalesPage() {
           {hasFilters && (
             <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 p-3 grid sm:grid-cols-4 gap-3">
               <div>
-                <div className="text-[10px] uppercase font-bold text-slate-600">Showing</div>
+                <div className="text-[0.6875rem] uppercase font-bold text-slate-600">Showing</div>
                 <div className="font-extrabold text-emerald-700">{filteredStats.count} sales</div>
               </div>
               <div>
-                <div className="text-[10px] uppercase font-bold text-slate-600">Total</div>
+                <div className="text-[0.6875rem] uppercase font-bold text-slate-600">Total</div>
                 <div className="font-extrabold text-slate-900">{showValue(formatPKR(filteredStats.totalAmount))}</div>
               </div>
               <div>
-                <div className="text-[10px] uppercase font-bold text-slate-600">Avg Order</div>
+                <div className="text-[0.6875rem] uppercase font-bold text-slate-600">Avg Order</div>
                 <div className="font-extrabold text-blue-700">{showValue(formatPKR(filteredStats.avgOrderValue))}</div>
               </div>
               <div>
-                <div className="text-[10px] uppercase font-bold text-slate-600">Udhaar</div>
+                <div className="text-[0.6875rem] uppercase font-bold text-slate-600">Udhaar</div>
                 <div className="font-extrabold text-amber-700">{showValue(formatPKR(filteredStats.totalCredit))}</div>
               </div>
             </div>
@@ -711,14 +711,14 @@ export default function SalesPage() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-slate-900 font-mono text-sm">{sale.saleNumber}</span>
                             <SaleSourceBadge sale={sale} />
-                            {isVoided && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>}
+                            {isVoided && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">VOIDED</span>}
                             {isReturned && (
-                              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold">
+                              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold">
                                 {sale.status === 'FULLY_RETURNED' ? 'RETURNED' : 'PARTIAL'}
                               </span>
                             )}
                             {sale.creditAmount > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                                 <BookOpen className="h-2.5 w-2.5" />
                                 UDHAAR
                               </span>
@@ -732,14 +732,14 @@ export default function SalesPage() {
                               const ro = roBySaleId[sale.id];
                               const ModeIcon = ro.mode === 'DINE_IN' ? Utensils : ro.mode === 'DELIVERY' ? Bike : ro.mode === 'TAKEAWAY' ? Takeaway : ro.mode === 'DRIVE_THRU' ? Car : ChefHat;
                               return (
-                                <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                                   <ModeIcon className="h-2.5 w-2.5" />
                                   {ro.table ? 'TABLE ' + ro.table.tableNumber : ro.mode.replace('_', ' ')}
                                 </span>
                               );
                             })()}
                             {!!(sale.serviceCharges && sale.serviceCharges > 0) && (
-                              <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                                 <Wrench className="h-2.5 w-2.5" />
                                 {hideAmounts ? (
                                   <>SERVICES <HiddenAmount value={`+${formatPKR(sale.serviceCharges)}`} hidden={hideAmounts} /></>
@@ -770,14 +770,14 @@ export default function SalesPage() {
 
                           <div className="mt-2 flex flex-wrap gap-1">
                             {sale.items.slice(0, 3).map((item) => (
-                              <span key={item.id} className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 max-w-[180px] truncate inline-flex items-center gap-1">
+                              <span key={item.id} className="px-2 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 text-slate-600 max-w-[180px] truncate inline-flex items-center gap-1">
                                 {item.product.unit === 'sqft' && <Layers className="h-2.5 w-2.5 text-emerald-600" />}
                                 {saleItemName(item)} × {formatQty(item.quantity)}
                                 <IndustrySlot slot={(p) => p.sales?.saleItemBadge} slotProps={{ item }} />
                               </span>
                             ))}
                             {sale.items.length > 3 && (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500">
+                              <span className="px-2 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 text-slate-500">
                                 +{sale.items.length - 3} more
                               </span>
                             )}
@@ -790,12 +790,12 @@ export default function SalesPage() {
                           <HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} />
                         </div>
                         {sale.creditAmount > 0 && !isVoided && (
-                          <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">
+                          <div className="text-[0.6875rem] text-amber-700 font-extrabold mt-0.5">
                             Udhaar: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} />
                           </div>
                         )}
                         {sale.changeAmount > 0 && !isVoided && (
-                          <div className="text-[10px] text-emerald-700 font-extrabold mt-0.5">
+                          <div className="text-[0.6875rem] text-emerald-700 font-extrabold mt-0.5">
                             Change: <HiddenAmount value={formatPKR(sale.changeAmount)} hidden={hideAmounts} />
                           </div>
                         )}
@@ -804,12 +804,12 @@ export default function SalesPage() {
                             <button
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setVoidTarget(sale); }}
                               title="Ye bikri wapas lein — stock wapas aa jayega"
-                              className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-extrabold inline-flex items-center gap-1 transition"
+                              className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
                             >
                               <Trash2 className="h-3 w-3" /> Wapas lein
                             </button>
                           )}
-                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 group-hover:text-emerald-700">
+                          <span className="inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-emerald-600 group-hover:text-emerald-700">
                             <Eye className="h-3 w-3" />
                             View Receipt
                             <ArrowRight className="h-3 w-3" />
@@ -847,7 +847,7 @@ export default function SalesPage() {
 
               <div className="p-5 space-y-3">
                 <div className="rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-3">
-                  <div className="text-[10px] font-black uppercase tracking-wider text-emerald-700 mb-1.5">
+                  <div className="text-[0.6875rem] font-black uppercase tracking-wider text-emerald-700 mb-1.5">
                     Ye sab khud theek ho jayega
                   </div>
                   <ul className="text-xs font-bold text-emerald-900 space-y-1">
@@ -858,13 +858,13 @@ export default function SalesPage() {
                   </ul>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 text-[11px] font-bold text-slate-600">
+                <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 text-[0.6875rem] font-bold text-slate-600">
                   Bill mitta nahi — us par <strong>VOIDED</strong> ka nishan lag jata hai.
                   Record rehta hai taake baad me pata chale ke kya hua tha.
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-600 mb-1.5">
+                  <label className="block text-[0.6875rem] font-black uppercase tracking-wider text-slate-600 mb-1.5">
                     Wajah (optional)
                   </label>
                   <input value={voidReason} onChange={(e) => setVoidReason(e.target.value)}

@@ -369,7 +369,7 @@ export default function TeamOrderFormPage() {
                           <div className="font-extrabold text-sm truncate">{p.name}</div>
                           <div className="text-xs text-slate-500 font-semibold">
                             {formatPKR(p.price)}
-                            {isTeamOrderable && <span className="ml-2 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">TEAM</span>}
+                            {isTeamOrderable && <span className="ml-2 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">TEAM</span>}
                           </div>
                         </div>
                         <Plus className="h-4 w-4 text-blue-600" />
@@ -404,25 +404,25 @@ export default function TeamOrderFormPage() {
                     </div>
                     <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-[9px] uppercase font-extrabold text-slate-500 mb-1">Qty</label>
+                        <label className="block text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">Qty</label>
                         <input type="number" min="1" value={item.quantity}
                           onChange={(e) => updateItem(i, { quantity: Math.max(1, Number(e.target.value)) })}
                           className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
                       </div>
                       <div>
-                        <label className="block text-[9px] uppercase font-extrabold text-slate-500 mb-1">Unit Price</label>
+                        <label className="block text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">Unit Price</label>
                         <input type="number" step="0.01" value={item.unitPrice}
                           onChange={(e) => updateItem(i, { unitPrice: Number(e.target.value) })}
                           className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
                       </div>
                       <div>
-                        <label className="block text-[9px] uppercase font-extrabold text-slate-500 mb-1">Size</label>
+                        <label className="block text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">Size</label>
                         <input value={item.size || ''} onChange={(e) => updateItem(i, { size: e.target.value })}
                           placeholder="M, L, XL..."
                           className="h-10 w-full rounded-lg border-2 border-slate-200 px-2 text-sm font-bold focus:outline-none focus:border-blue-500" />
                       </div>
                       <div>
-                        <label className="block text-[9px] uppercase font-extrabold text-emerald-700 mb-1">Total</label>
+                        <label className="block text-[0.625rem] uppercase font-extrabold text-emerald-700 mb-1">Total</label>
                         <div className="h-10 w-full rounded-lg border-2 border-emerald-200 bg-emerald-50 px-2 flex items-center text-sm font-extrabold text-emerald-800 tabular-nums">
                           {formatPKR(item.total || (item.quantity * item.unitPrice))}
                         </div>
@@ -436,7 +436,7 @@ export default function TeamOrderFormPage() {
                     )}
                     {item.customizationNotes === undefined && (
                       <button onClick={() => updateItem(i, { customizationNotes: '' })}
-                        className="mt-2 text-[10px] font-extrabold text-violet-700 hover:underline">
+                        className="mt-2 text-[0.6875rem] font-extrabold text-violet-700 hover:underline">
                         + Add customization note
                       </button>
                     )}
@@ -504,7 +504,7 @@ export default function TeamOrderFormPage() {
                     <div className="flex gap-1">
                       {[11, 15, 20, 25].map((n) => (
                         <button key={n} onClick={() => generateRoster(n)}
-                          className="px-2 py-1 rounded-lg bg-white border-2 border-violet-200 hover:border-violet-400 text-violet-700 text-[10px] font-extrabold">
+                          className="px-2 py-1 rounded-lg bg-white border-2 border-violet-200 hover:border-violet-400 text-violet-700 text-[0.6875rem] font-extrabold">
                           {n} players
                         </button>
                       ))}
@@ -643,7 +643,7 @@ export default function TeamOrderFormPage() {
           <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 text-white p-5 shadow-xl overflow-hidden relative">
             <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl" />
             <div className="relative">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-90 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-90 flex items-center gap-1">
                 <Trophy className="h-3 w-3" /> Order Summary
               </div>
               <h3 className="mt-2 font-extrabold text-xl truncate">{form.teamName || 'Team name...'}</h3>
@@ -679,7 +679,7 @@ export default function TeamOrderFormPage() {
           </div>
 
           <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 space-y-1.5">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3" /> Checklist
             </div>
             <Chk done={!!form.teamName.trim()} label="Team name" />

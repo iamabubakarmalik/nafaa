@@ -78,7 +78,7 @@ export function MobileVariantExtraPanel({
               <Smartphone className="h-3.5 w-3.5" />
             </div>
             <div>
-              <div className="text-[9px] uppercase tracking-wider text-blue-700 font-bold">
+              <div className="text-[0.625rem] uppercase tracking-wider text-blue-700 font-bold">
                 IMEI Stock for this variant
               </div>
               <div className="text-xs font-extrabold text-blue-900">
@@ -93,14 +93,14 @@ export function MobileVariantExtraPanel({
           <div className="flex gap-1.5">
             <Link
               to={`/products/${productId}/imei?variant=${variant.id}`}
-              className="inline-flex items-center gap-1 px-2 h-8 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[10px] font-bold transition"
+              className="inline-flex items-center gap-1 px-2 h-8 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[0.6875rem] font-bold transition"
             >
               <ExternalLink className="h-3 w-3" />
               View
             </Link>
             <button
               onClick={() => setShowAddModal(true)}
-              className="inline-flex items-center gap-1 px-2.5 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-extrabold transition"
+              className="inline-flex items-center gap-1 px-2.5 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[0.6875rem] font-extrabold transition"
             >
               <Plus className="h-3 w-3" />
               Add IMEIs
@@ -111,15 +111,15 @@ export function MobileVariantExtraPanel({
         {/* Stats */}
         <div className="grid grid-cols-3 gap-1.5">
           <div className="rounded-lg bg-white border border-blue-200 p-1.5 text-center">
-            <div className="text-[8px] uppercase text-blue-700 font-bold">Total</div>
+            <div className="text-[0.625rem] uppercase text-blue-700 font-bold">Total</div>
             <div className="text-sm font-extrabold text-blue-900">{stats.total}</div>
           </div>
           <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-1.5 text-center">
-            <div className="text-[8px] uppercase text-emerald-700 font-bold">In Stock</div>
+            <div className="text-[0.625rem] uppercase text-emerald-700 font-bold">In Stock</div>
             <div className="text-sm font-extrabold text-emerald-900">{stats.inStock}</div>
           </div>
           <div className="rounded-lg bg-violet-50 border border-violet-200 p-1.5 text-center">
-            <div className="text-[8px] uppercase text-violet-700 font-bold">Sold</div>
+            <div className="text-[0.625rem] uppercase text-violet-700 font-bold">Sold</div>
             <div className="text-sm font-extrabold text-violet-900">{stats.sold}</div>
           </div>
         </div>
@@ -129,7 +129,7 @@ export function MobileVariantExtraPanel({
           <div className="mt-2 pt-2 border-t border-blue-200">
             <div className="flex items-center gap-1 mb-1">
               <ShieldCheck className="h-2.5 w-2.5 text-emerald-700" />
-              <div className="text-[8px] uppercase text-emerald-700 font-bold">PTA Status</div>
+              <div className="text-[0.625rem] uppercase text-emerald-700 font-bold">PTA Status</div>
             </div>
             <div className="flex gap-0.5">
               {(['APPROVED', 'NON_PTA', 'PATCH', 'PENDING', 'EXEMPT'] as PtaStatus[]).map((status) => {
@@ -145,7 +145,7 @@ export function MobileVariantExtraPanel({
                     title={`${PTA_STATUS_LABELS[status]}: ${count}`}
                   >
                     <Icon className={`h-2.5 w-2.5 mx-auto ${count > 0 ? colors.text : 'text-slate-400'}`} />
-                    <div className={`text-[9px] font-extrabold ${count > 0 ? colors.text : 'text-slate-400'}`}>
+                    <div className={`text-[0.625rem] font-extrabold ${count > 0 ? colors.text : 'text-slate-400'}`}>
                       {count}
                     </div>
                   </div>
@@ -158,7 +158,7 @@ export function MobileVariantExtraPanel({
         {/* Empty state */}
         {stats.total === 0 && (
           <div className="mt-2 pt-2 border-t border-blue-200 text-center">
-            <div className="text-[10px] text-blue-700 italic">
+            <div className="text-[0.6875rem] text-blue-700 italic">
               No IMEIs yet for this variant. Click "Add IMEIs" above to start tracking.
             </div>
           </div>

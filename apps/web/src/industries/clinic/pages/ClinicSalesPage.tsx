@@ -226,29 +226,29 @@ export default function ClinicSalesPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-mono font-extrabold text-slate-900">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
-                            {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>}
-                            {sale.creditAmount > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold">UDHAAR</span>}
+                            {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">VOIDED</span>}
+                            {sale.creditAmount > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold">UDHAAR</span>}
                           </div>
                           <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2 flex-wrap">
                             <User className="h-3 w-3" />{sale.customer?.name || 'Walk-in'}
                             {sale.customer?.phone && <><span>•</span><span>{sale.customer.phone}</span></>}
                             <span>•</span><span>{sale.items.length} services</span>
                           </div>
-                          <div className="mt-1 text-[10px] text-slate-500 inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
+                          <div className="mt-1 text-[0.6875rem] text-slate-500 inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
                           <div className="mt-2 flex flex-wrap gap-1">
                             {sale.items.slice(0, 3).map((it: any) => (
-                              <span key={it.id} className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-50 border border-cyan-200 text-cyan-800 max-w-[200px] truncate">
+                              <span key={it.id} className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-cyan-50 border border-cyan-200 text-cyan-800 max-w-[200px] truncate">
                                 🩺 {it.product.name}
                               </span>
                             ))}
-                            {sale.items.length > 3 && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500">+{sale.items.length - 3}</span>}
+                            {sale.items.length > 3 && <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 text-slate-500">+{sale.items.length - 3}</span>}
                           </div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-2xl font-extrabold text-cyan-700 tabular-nums"><HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} /></div>
-                        {sale.creditAmount > 0 && <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">Balance: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} /></div>}
-                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-cyan-600"><Eye className="h-3 w-3" /> View <ArrowRight className="h-3 w-3" /></div>
+                        {sale.creditAmount > 0 && <div className="text-[0.6875rem] text-amber-700 font-extrabold mt-0.5">Balance: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} /></div>}
+                        <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-cyan-600"><Eye className="h-3 w-3" /> View <ArrowRight className="h-3 w-3" /></div>
                       </div>
                     </div>
                   </Link>

@@ -28,7 +28,7 @@ export function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[13px] font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+      <label className="text-[0.8125rem] font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
         <span>{label}</span>
         {required && <span className="text-rose-600 dark:text-rose-400">*</span>}
         {badge}
@@ -50,7 +50,7 @@ export function SyncedBadge({ label = 'Synced' }: { label?: string }) {
   return (
     <span
       title="Ye field aap ke onboarding setup se aaya hai"
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/40 text-[9px] font-black text-emerald-700 dark:text-emerald-300 uppercase tracking-wider"
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/40 text-[0.625rem] font-black text-emerald-700 dark:text-emerald-300 uppercase tracking-wider"
     >
       <Sparkles className="h-2.5 w-2.5" />
       {label}
@@ -434,7 +434,7 @@ export function SectionCard({
             {badge}
           </div>
           {desc && (
-            <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 mt-0.5 font-semibold leading-snug">
+            <p className="text-xs sm:text-[0.8125rem] text-slate-500 dark:text-slate-400 mt-0.5 font-semibold leading-snug">
               {desc}
             </p>
           )}
@@ -464,7 +464,7 @@ export function StatPill({ label, value, tone = 'emerald', icon: Icon }: StatPil
   };
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border-2 text-[11px] font-extrabold ${tones[tone]}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold ${tones[tone]}`}
     >
       {Icon && <Icon className="h-3 w-3" />}
       <span className="opacity-70">{label}</span>
@@ -479,7 +479,7 @@ export function Divider({ label }: { label?: string }) {
   return (
     <div className="my-4 flex items-center gap-3">
       <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
-      <span className="text-[10px] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">
+      <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">
         {label}
       </span>
       <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />

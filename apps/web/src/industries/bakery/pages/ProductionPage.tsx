@@ -217,7 +217,7 @@ export default function ProductionPage() {
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <ChefHat className="h-3.5 w-3.5 text-amber-300" /> Bakery · Production
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">👨‍🍳 Aaj Ki Baking</h1>
@@ -272,7 +272,7 @@ export default function ProductionPage() {
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-400'
             }`}>
             <Icon className="h-4 w-4 shrink-0" /> <span className="truncate">{label}</span>
-            <kbd className="hidden lg:inline text-[9px] opacity-60">{key}</kbd>
+            <kbd className="hidden lg:inline text-[0.625rem] opacity-60">{key}</kbd>
           </button>
         ))}
       </div>
@@ -300,7 +300,7 @@ export default function ProductionPage() {
               <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-black text-rose-900 dark:text-rose-200">Kharabi zyada ho rahi hai</h3>
-                <p className="text-[12px] font-bold text-rose-800 dark:text-rose-300 mt-0.5">
+                <p className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300 mt-0.5">
                   Har 100 me se <strong>{stats.failRate.toFixed(0)}</strong> kharab ho rahe hain. Neeche
                   dekhein kis cheez me sab se zyada — shayad oven ka temperature ya batch ka size
                   dekhna chahiye.
@@ -417,10 +417,10 @@ function PlanCard({ plan, onStart, onComplete, onBake, onFinish, busy }: any) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-black text-slate-900 dark:text-white">{plan.planNumber}</span>
-            <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md ${s.chip}`}>{s.label}</span>
-            {plan.shift && <span className="text-[10px] font-black text-slate-400">{plan.shift}</span>}
+            <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md ${s.chip}`}>{s.label}</span>
+            {plan.shift && <span className="text-[0.6875rem] font-black text-slate-400">{plan.shift}</span>}
           </div>
-          <div className="text-[11px] font-bold text-slate-400">
+          <div className="text-[0.6875rem] font-bold text-slate-400">
             {new Date(plan.planDate).toLocaleDateString('en-PK', { dateStyle: 'medium' })} · {items.length} cheezein
           </div>
         </div>
@@ -428,13 +428,13 @@ function PlanCard({ plan, onStart, onComplete, onBake, onFinish, busy }: any) {
         <div className="flex gap-1.5 print:hidden">
           {plan.status === 'PLANNED' && (
             <button onClick={onStart} disabled={busy}
-              className="h-9 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 disabled:opacity-60 transition">
+              className="h-9 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 disabled:opacity-60 transition">
               <Play className="h-3.5 w-3.5" /> Kaam shuru
             </button>
           )}
           {plan.status === 'IN_PROGRESS' && (
             <button onClick={onComplete} disabled={busy}
-              className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 disabled:opacity-60 transition">
+              className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 disabled:opacity-60 transition">
               <CheckCircle2 className="h-3.5 w-3.5" /> Plan mukammal
             </button>
           )}
@@ -445,7 +445,7 @@ function PlanCard({ plan, onStart, onComplete, onBake, onFinish, busy }: any) {
         <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
           <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
         </div>
-        <div className="mt-1 text-[10px] font-bold text-slate-400">{done} / {items.length} ban gaya</div>
+        <div className="mt-1 text-[0.6875rem] font-bold text-slate-400">{done} / {items.length} ban gaya</div>
       </div>
 
       <div className="divide-y divide-slate-100 dark:divide-slate-800 mt-2">
@@ -467,9 +467,9 @@ function PlanCard({ plan, onStart, onComplete, onBake, onFinish, busy }: any) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{i.productName}</span>
-                    <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md ${st(i.status).chip}`}>{st(i.status).label}</span>
+                    <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md ${st(i.status).chip}`}>{st(i.status).label}</span>
                   </div>
-                  <div className="text-[11px] font-bold text-slate-400 mt-0.5">
+                  <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5">
                     {i.ovenNumber ? `Oven ${i.ovenNumber} · ` : ''}
                     {i.bakingTempC ? `${i.bakingTempC}°C · ` : ''}
                     {i.bakerName ? `${i.bakerName} · ` : ''}
@@ -481,17 +481,17 @@ function PlanCard({ plan, onStart, onComplete, onBake, onFinish, busy }: any) {
                   <div className="text-lg font-black text-slate-900 dark:text-white tabular-nums">
                     {isDone ? fmtQty(Number(i.producedQty)) : fmtQty(Number(i.plannedQty))}
                   </div>
-                  <div className="text-[10px] font-bold text-slate-400">
+                  <div className="text-[0.6875rem] font-bold text-slate-400">
                     {isDone ? `${fmtQty(Number(i.plannedQty))} socha tha` : 'banana hai'}
                   </div>
                   {isDone && Number(i.failedQty) > 0 && (
-                    <div className="text-[10px] font-black text-rose-600">{fmtQty(Number(i.failedQty))} kharab</div>
+                    <div className="text-[0.6875rem] font-black text-rose-600">{fmtQty(Number(i.failedQty))} kharab</div>
                   )}
                 </div>
               </div>
 
               {isDone && shortfall > 0 && (
-                <p className="mt-2 text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                <p className="mt-2 text-[0.6875rem] font-bold text-amber-600 dark:text-amber-400">
                   {fmtQty(shortfall)} kam bana — socha {fmtQty(Number(i.plannedQty))} tha.
                 </p>
               )}
@@ -500,12 +500,12 @@ function PlanCard({ plan, onStart, onComplete, onBake, onFinish, busy }: any) {
                 <div className="mt-2.5 flex gap-1.5 flex-wrap print:hidden">
                   {i.status === 'PLANNED' && (
                     <button onClick={() => onBake(i)}
-                      className="h-9 px-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 transition">
+                      className="h-9 px-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                       <Flame className="h-3.5 w-3.5" /> Oven me daala
                     </button>
                   )}
                   <button onClick={() => onFinish(i)}
-                    className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 transition">
+                    className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Ban gaya
                   </button>
                 </div>
@@ -541,7 +541,7 @@ function BakeModal({ item, onClose, onDone }: any) {
       <div className="flex gap-1.5">
         {[160, 180, 200, 220].map((t) => (
           <button key={t} onClick={() => setTemp(t)}
-            className={`flex-1 h-9 rounded-lg text-[11px] font-black transition ${
+            className={`flex-1 h-9 rounded-lg text-[0.6875rem] font-black transition ${
               temp === t ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
             }`}>{t}°</button>
         ))}
@@ -621,7 +621,7 @@ function FinishModal({ item, onClose, onDone }: any) {
       </div>
 
       {shortfall > 0 && (
-        <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400">
+        <p className="text-[0.6875rem] font-bold text-amber-600 dark:text-amber-400">
           Socha {fmtQty(Number(item.plannedQty))} tha — {fmtQty(shortfall)} kam ban raha hai.
         </p>
       )}
@@ -634,8 +634,8 @@ function FinishModal({ item, onClose, onDone }: any) {
           makeBatch ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
         }`}><Timer className="h-4 w-4" /></span>
         <span className="min-w-0">
-          <span className="block text-[13px] font-extrabold text-slate-900 dark:text-white">Taazgi ka batch bhi bana do</span>
-          <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+          <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white">Taazgi ka batch bhi bana do</span>
+          <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
             Warna expiry ki warning kabhi nahi aayegi
           </span>
         </span>
@@ -650,7 +650,7 @@ function FinishModal({ item, onClose, onDone }: any) {
           <div className="flex gap-1.5">
             {[6, 12, 24, 48, 72].map((h) => (
               <button key={h} onClick={() => setHours(h)}
-                className={`flex-1 h-9 rounded-lg text-[11px] font-black transition ${
+                className={`flex-1 h-9 rounded-lg text-[0.6875rem] font-black transition ${
                   hours === h ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                 }`}>{h}h</button>
             ))}
@@ -741,7 +741,7 @@ function NewPlanModal({ onClose, onDone }: any) {
           {options.map((p) => (
             <button key={p.id}
               onClick={() => { setLines((xs) => [...xs, { productId: p.id, productName: p.name, plannedQty: '' }]); setSearch(''); }}
-              className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-orange-400 text-[11px] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition">
+              className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-orange-400 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition">
               <Plus className="h-3.5 w-3.5 text-orange-500" /> {p.name}
             </button>
           ))}
@@ -771,7 +771,7 @@ function Modal({ title, sub, icon: Icon, onClose, wide, children }: any) {
             <h3 className="font-extrabold text-orange-900 dark:text-orange-200 flex items-center gap-2">
               <Icon className="h-5 w-5" /> {title}
             </h3>
-            {sub && <p className="text-[11px] font-bold text-orange-700 dark:text-orange-300 truncate">{sub}</p>}
+            {sub && <p className="text-[0.6875rem] font-bold text-orange-700 dark:text-orange-300 truncate">{sub}</p>}
           </div>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center shrink-0">
             <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
@@ -786,7 +786,7 @@ function Modal({ title, sub, icon: Icon, onClose, wide, children }: any) {
 function Field({ label, children }: any) {
   return (
     <div>
-      <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">{label}</label>
+      <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">{label}</label>
       {children}
     </div>
   );
@@ -803,9 +803,9 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -866,8 +866,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             batch ka size dekhna chahiye.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> naya plan</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-3</kbd> tab badlo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
@@ -888,8 +888,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-orange-600 dark:text-orange-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

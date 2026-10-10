@@ -92,7 +92,7 @@ export function TrialExpiredModal() {
 
         {/* Footer */}
         <div className="mt-6 text-center">
-          <p className="text-[10px] text-slate-500 font-bold">
+          <p className="text-[0.6875rem] text-slate-500 font-bold">
             Need help? WhatsApp us at support
           </p>
         </div>

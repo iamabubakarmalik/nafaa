@@ -182,11 +182,11 @@ function TestCard({ test, onDelete }: any) {
             <Link to={`/optical/eye-tests/${test.id}`} className="font-mono font-extrabold text-slate-900 text-sm hover:text-emerald-700">
               {test.testNumber}
             </Link>
-            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
+            <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
               <StatusIcon className="h-2.5 w-2.5" /> {meta.label}
             </span>
-            {isToday && <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-extrabold uppercase">Today</span>}
-            {test.prescriptionIssued && <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-extrabold">Rx Issued</span>}
+            {isToday && <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase">Today</span>}
+            {test.prescriptionIssued && <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">Rx Issued</span>}
           </div>
 
           <div className="mt-1 flex items-center gap-3 text-sm text-slate-700 font-bold flex-wrap">
@@ -206,7 +206,7 @@ function TestCard({ test, onDelete }: any) {
             </div>
           )}
 
-          <div className="mt-2 flex items-center gap-3 text-[10px] text-slate-500 font-bold">
+          <div className="mt-2 flex items-center gap-3 text-[0.6875rem] text-slate-500 font-bold">
             <span className="inline-flex items-center gap-0.5">
               <Calendar className="h-2.5 w-2.5" />
               {dateObj.toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -223,10 +223,10 @@ function TestCard({ test, onDelete }: any) {
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">Fee</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Fee</div>
           <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(test.paidAmount || test.testFee)}</div>
           {test.paidAmount < test.testFee && !test.isWaivedOff && (
-            <div className="text-[10px] font-bold text-rose-700">Due {formatPKR(test.testFee - test.paidAmount)}</div>
+            <div className="text-[0.6875rem] font-bold text-rose-700">Due {formatPKR(test.testFee - test.paidAmount)}</div>
           )}
           <div className="mt-2 flex gap-1 justify-end">
             <Link to={`/optical/eye-tests/${test.id}`}
@@ -396,7 +396,7 @@ function StatCard({ label, value, icon: Icon, tone }: any) {
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1 truncate">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md shrink-0`}>

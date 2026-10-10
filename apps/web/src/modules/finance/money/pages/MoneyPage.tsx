@@ -222,7 +222,7 @@ export default function MoneyPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Landmark className="h-3.5 w-3.5 text-amber-300" /> Dukaan ka Hisab
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">💰 Mera Paisa Kahan Hai</h1>
@@ -257,19 +257,19 @@ export default function MoneyPage() {
         {p && (
           <div className="relative mt-5 grid sm:grid-cols-3 gap-4">
             <div className="sm:col-span-2 rounded-2xl bg-white/12 backdrop-blur border-2 border-white/25 p-4">
-              <div className="text-[10px] font-black uppercase tracking-widest text-white/70 flex items-center gap-1.5">
+              <div className="text-[0.6875rem] font-black uppercase tracking-widest text-white/70 flex items-center gap-1.5">
                 <PiggyBank className="h-3.5 w-3.5" /> Aaj kharch karne layak
               </div>
               <div className="text-3xl sm:text-4xl font-black tabular-nums mt-1 text-emerald-200"
                 title={exact(p.spendable)}>
                 {m(p.spendable)}
               </div>
-              <div className="text-[11px] font-bold text-white/70 mt-1">
+              <div className="text-[0.6875rem] font-bold text-white/70 mt-1">
                 Golak {m(p.cashInHand)}
                 {p.payables > 0 && <> manhaa supplier ka {m(p.payables)}</>}
               </div>
               {p.shortfall > 0 && (
-                <div className="mt-2 rounded-xl bg-rose-500/25 border border-rose-300/40 p-2 text-[11px] font-black text-rose-100 flex items-start gap-1.5">
+                <div className="mt-2 rounded-xl bg-rose-500/25 border border-rose-300/40 p-2 text-[0.6875rem] font-black text-rose-100 flex items-start gap-1.5">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                   Supplier ka {m(p.shortfall)} golak se zyada hai — wasooli par tawajjo dein
                 </div>
@@ -277,13 +277,13 @@ export default function MoneyPage() {
             </div>
 
             <div className="rounded-2xl bg-white/12 backdrop-blur border-2 border-white/25 p-4">
-              <div className="text-[10px] font-black uppercase tracking-widest text-white/70 flex items-center gap-1.5">
+              <div className="text-[0.6875rem] font-black uppercase tracking-widest text-white/70 flex items-center gap-1.5">
                 <Scale className="h-3.5 w-3.5" /> Dukaan ki maliyat
               </div>
               <div className="text-2xl sm:text-3xl font-black tabular-nums mt-1" title={exact(p.netWorth)}>
                 {m(p.netWorth)}
               </div>
-              <div className="text-[11px] font-bold text-white/70 mt-1">
+              <div className="text-[0.6875rem] font-bold text-white/70 mt-1">
                 Cash + maal + lena − dena
               </div>
             </div>
@@ -311,7 +311,7 @@ export default function MoneyPage() {
 
       {/* ═══════════ DAIRA ═══════════ */}
       <div className="flex items-center gap-2 flex-wrap print:hidden">
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 inline-flex items-center gap-1">
+        <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 inline-flex items-center gap-1">
           <CalendarRange className="h-3 w-3" /> Muddat
         </span>
         {RANGES.map((r) => (
@@ -346,7 +346,7 @@ export default function MoneyPage() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <div className="text-[9px] font-black uppercase tracking-widest text-slate-400">Kul</div>
+                  <div className="text-[0.625rem] font-black uppercase tracking-widest text-slate-400">Kul</div>
                   <div className="text-base font-black text-slate-900 dark:text-white tabular-nums">
                     {m(whereMoney.reduce((s, r) => s + r.value, 0))}
                   </div>
@@ -368,7 +368,7 @@ export default function MoneyPage() {
                         <div className="h-full rounded-full transition-all duration-700"
                           style={{ width: `${Math.min(pct, 100)}%`, background: r.hex }} />
                       </div>
-                      <div className="mt-1 flex items-center justify-between text-[10px] font-bold text-slate-400">
+                      <div className="mt-1 flex items-center justify-between text-[0.6875rem] font-bold text-slate-400">
                         <span>{r.hint}</span><span>{pct.toFixed(0)}%</span>
                       </div>
                     </div>
@@ -381,7 +381,7 @@ export default function MoneyPage() {
                       <span className="font-black text-sm text-rose-900 dark:text-rose-200 flex-1">Supplier ko dena</span>
                       <span className="text-sm font-black text-rose-700 dark:text-rose-300 tabular-nums">−{m(p.payables)}</span>
                     </div>
-                    <div className="text-[10px] font-bold text-rose-600 dark:text-rose-400 mt-0.5">
+                    <div className="text-[0.6875rem] font-bold text-rose-600 dark:text-rose-400 mt-0.5">
                       Ye upar wale hisse me se nikal jayega
                     </div>
                   </div>
@@ -404,7 +404,7 @@ export default function MoneyPage() {
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <div className="text-3xl font-black tabular-nums" style={{ color: health.hex }}>{health.score}</div>
-                  <div className="text-[11px] font-black" style={{ color: health.hex }}>{health.level}</div>
+                  <div className="text-[0.6875rem] font-black" style={{ color: health.hex }}>{health.level}</div>
                 </div>
               </div>
 
@@ -497,7 +497,7 @@ export default function MoneyPage() {
             </ResponsiveContainer>
           </div>
         )}
-        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-2">
+        <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-2">
           Column = paisa jo kharch hua (maal + kharch). Neeli lakeer = bikri. Sabz lakeer = jo waqai bacha.
           Sabz lakeer neeli se jitni door, utna acha.
         </p>
@@ -601,7 +601,7 @@ export default function MoneyPage() {
 
             <div className="p-5 space-y-3">
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+                <label className="block text-[0.6875rem] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
                   Kitne ka maal / kharch
                 </label>
                 <input type="number" min={0} autoFocus value={calcAmount}
@@ -683,10 +683,10 @@ function Stat({ icon: Icon, label, value, exact, sub, tone = 'sky', link, alert 
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 leading-tight">{label}</div>
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 leading-tight">{label}</div>
           <div className="mt-1 text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-tight break-words"
             title={exact}>{value}</div>
-          {sub && <div className="mt-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-snug">{sub}</div>}
+          {sub && <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 leading-snug">{sub}</div>}
         </div>
       </div>
     </div>
@@ -704,7 +704,7 @@ function Panel({ icon: Icon, title, hint, tone = 'sky', right, children }: any) 
           </div>
           <div className="min-w-0">
             <h3 className="font-black text-slate-900 dark:text-white text-base leading-tight">{title}</h3>
-            {hint && <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
+            {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
           </div>
         </div>
         {right}
@@ -729,7 +729,7 @@ function HealthRow({ ok, label, detail }: { ok: boolean; label: string; detail: 
         <div className={`text-xs font-black ${ok ? 'text-emerald-900 dark:text-emerald-200' : 'text-amber-900 dark:text-amber-200'}`}>
           {label}
         </div>
-        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{detail}</div>
+        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{detail}</div>
       </div>
     </div>
   );
@@ -742,11 +742,11 @@ function FlowCell({ tone, icon: Icon, label, value, detail }: any) {
   };
   return (
     <div className={`rounded-2xl border-2 p-3 ${map[tone]}`}>
-      <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] font-black uppercase tracking-wider">
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
       <div className="text-xl font-black tabular-nums mt-1">{value}</div>
-      <div className="text-[10px] font-bold opacity-70 mt-0.5">{detail}</div>
+      <div className="text-[0.6875rem] font-bold opacity-70 mt-0.5">{detail}</div>
     </div>
   );
 }
@@ -770,7 +770,7 @@ function LadderRow({ label, value, tone, m, exact, note, bold, big }: any) {
         <div className={`font-black ${big ? 'text-base text-white' : bold ? 'text-sm text-slate-900 dark:text-white' : 'text-sm text-slate-700 dark:text-slate-200'}`}>
           {label}
         </div>
-        {note && <div className={`text-[10px] font-bold ${big ? 'text-white/60' : 'text-slate-400'}`}>{note}</div>}
+        {note && <div className={`text-[0.6875rem] font-bold ${big ? 'text-white/60' : 'text-slate-400'}`}>{note}</div>}
       </div>
       <div className={`font-black tabular-nums shrink-0 ${big ? 'text-2xl text-white' : `text-lg ${map[tone]}`}`}
         title={exact(Math.abs(value))}>
@@ -788,9 +788,9 @@ function MiniStat({ label, value, tone, hint }: any) {
   };
   return (
     <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
-      <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500">{label}</div>
       <div className={`text-lg font-black tabular-nums ${map[tone]}`}>{value}</div>
-      <div className="text-[10px] font-bold text-slate-400">{hint}</div>
+      <div className="text-[0.6875rem] font-bold text-slate-400">{hint}</div>
     </div>
   );
 }
@@ -836,7 +836,7 @@ function MoneyGuide({ onClose }: { onClose: () => void }) {
           </p>
 
           <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-4">
-            <div className="text-[10px] font-black uppercase tracking-widest text-amber-800 dark:text-amber-300 mb-2">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-amber-800 dark:text-amber-300 mb-2">
               Teen cheezein jo log gaddmadd karte hain
             </div>
             <div className="space-y-2.5 text-xs font-bold text-amber-900 dark:text-amber-100">
@@ -858,7 +858,7 @@ function MoneyGuide({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-4">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">
               Sab se ahem number
             </div>
             <div className="text-xs font-bold text-slate-700 dark:text-slate-200 leading-relaxed space-y-2">
@@ -874,7 +874,7 @@ function MoneyGuide({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-4 space-y-2 text-xs font-bold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1">
               Har chart kya poochta hai
             </div>
             <div>🍩 <strong>Paisa kahan para hai</strong> — kul maliyat kin hisson me bati hai</div>

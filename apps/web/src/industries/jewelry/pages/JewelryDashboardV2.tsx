@@ -109,7 +109,7 @@ export default function JewelryDashboardV2() {
               </div>
               <div>
                 <h3 className="font-extrabold text-amber-900 text-sm">🪙 Live Metal Rates (per gram)</h3>
-                <p className="text-[10px] text-amber-700">Auto-refresh every 30 seconds</p>
+                <p className="text-[0.6875rem] text-amber-700">Auto-refresh every 30 seconds</p>
               </div>
             </div>
             <Link to="/jewelry/metal-rates">
@@ -123,12 +123,12 @@ export default function JewelryDashboardV2() {
               <div key={r.id} className="rounded-xl bg-white border-2 border-amber-200 p-3">
                 <div className="flex items-center gap-1.5 mb-1">
                   <span className="text-lg">{METAL_ICONS[r.metalType] || '💎'}</span>
-                  <span className="text-[10px] font-extrabold text-slate-700 uppercase">
+                  <span className="text-[0.6875rem] font-extrabold text-slate-700 uppercase">
                     {r.metalType.replace('_', ' ')} {r.purity.replace('KARAT_', '').replace('SILVER_', 'S').replace('PLATINUM_', 'Pt-')}K
                   </span>
                 </div>
                 <div className="text-lg font-extrabold text-amber-700 tabular-nums">Rs {r.ratePerGram.toLocaleString()}</div>
-                <div className="text-[9px] text-slate-500 font-bold">
+                <div className="text-[0.625rem] text-slate-500 font-bold">
                   {new Date(r.updatedAt || r.effectiveFrom).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}
                 </div>
               </div>
@@ -179,7 +179,7 @@ export default function JewelryDashboardV2() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Karigars</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Craftsman tracking</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Craftsman tracking</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -189,7 +189,7 @@ export default function JewelryDashboardV2() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Custom Orders</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Bespoke workflow</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Bespoke workflow</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -199,7 +199,7 @@ export default function JewelryDashboardV2() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Exchanges</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Old gold exchange</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Old gold exchange</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -209,7 +209,7 @@ export default function JewelryDashboardV2() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Metal Stock</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Raw material</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Raw material</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -228,9 +228,9 @@ export default function JewelryDashboardV2() {
             {metalStats.map((m) => (
               <div key={m.metal} className="rounded-xl bg-white border-2 p-3" style={{ borderColor: m.color + '60' }}>
                 <div className="text-2xl mb-1">{METAL_ICONS[m.metal]}</div>
-                <div className="text-[10px] uppercase font-extrabold text-slate-600">{m.metal.replace('_', ' ')}</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">{m.metal.replace('_', ' ')}</div>
                 <div className="text-2xl font-extrabold tabular-nums" style={{ color: m.color }}>{m.count}</div>
-                <div className="text-[10px] font-bold text-slate-500">items</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500">items</div>
               </div>
             ))}
           </div>

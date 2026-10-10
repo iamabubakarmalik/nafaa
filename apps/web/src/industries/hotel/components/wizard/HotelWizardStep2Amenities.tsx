@@ -149,7 +149,7 @@ export function HotelWizardStep2Amenities({
             <h3 className="font-extrabold text-indigo-900 text-base">Standard Amenities</h3>
             <p className="text-xs text-indigo-700 font-semibold">Click to toggle each feature</p>
           </div>
-          <div className="text-[10px] font-extrabold text-indigo-700 bg-indigo-100 px-2 py-1 rounded-lg">
+          <div className="text-[0.6875rem] font-extrabold text-indigo-700 bg-indigo-100 px-2 py-1 rounded-lg">
             {AMENITY_TILES.filter((t) => amenities[t.key]).length} of {AMENITY_TILES.length}
           </div>
         </div>
@@ -181,7 +181,7 @@ export function HotelWizardStep2Amenities({
                     active ? '' : 'text-slate-900',
                   ].join(' ')}>{tile.label}</div>
                   <div className={[
-                    'text-[10px] font-semibold leading-tight',
+                    'text-[0.6875rem] font-semibold leading-tight',
                     active ? 'opacity-80' : 'text-slate-500',
                   ].join(' ')}>{tile.desc}</div>
                 </div>
@@ -226,7 +226,7 @@ export function HotelWizardStep2Amenities({
 
         {/* Quick add chips */}
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">Quick Add</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2">Quick Add</div>
           <div className="flex flex-wrap gap-1.5">
             {COMMON_EXTRAS.map((extra) => {
               const active = amenities.customAmenities.includes(extra);
@@ -252,7 +252,7 @@ export function HotelWizardStep2Amenities({
         {/* Selected custom amenities */}
         {amenities.customAmenities.length > 0 && (
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-purple-700 mb-2">
+            <div className="text-[0.6875rem] uppercase font-extrabold text-purple-700 mb-2">
               Selected ({amenities.customAmenities.length})
             </div>
             <div className="flex flex-wrap gap-1.5">

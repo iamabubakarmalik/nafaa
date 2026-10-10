@@ -217,7 +217,7 @@ export default function RestaurantPurchasesV2() {
 
             {/* Ingredient category quick chips */}
             <div className="rounded-2xl bg-orange-50 border border-orange-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-orange-700 mb-2">Common Ingredient Categories</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-orange-700 mb-2">Common Ingredient Categories</div>
               <div className="flex flex-wrap gap-2">
                 {INGREDIENT_CATEGORIES.map((cat) => {
                   const Icon = cat.icon;
@@ -289,7 +289,7 @@ export default function RestaurantPurchasesV2() {
                         className="w-full px-3 py-2.5 text-left hover:bg-orange-50 transition"
                       >
                         <div className="font-bold text-sm text-slate-900 truncate">{p.name}</div>
-                        <div className="text-[10px] text-slate-500 font-mono">
+                        <div className="text-[0.6875rem] text-slate-500 font-mono">
                           Stock: <span className="font-bold text-emerald-700">{formatQty(p.stock)} {p.unit}</span>
                           {p.costPrice > 0 && <> • Cost: <span className="font-bold">{formatPKR(p.costPrice)}</span></>}
                         </div>
@@ -309,11 +309,11 @@ export default function RestaurantPurchasesV2() {
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Qty * ({selectedProduct.unit})</label>
+                      <label className="block text-[0.6875rem] font-bold text-slate-600 mb-1">Qty * ({selectedProduct.unit})</label>
                       <input type="number" step="0.01" value={qty} onChange={(e) => setQty(e.target.value)} className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm font-bold" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Cost/unit *</label>
+                      <label className="block text-[0.6875rem] font-bold text-slate-600 mb-1">Cost/unit *</label>
                       <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm font-bold" />
                     </div>
                     <div className="flex items-end">
@@ -414,14 +414,14 @@ export default function RestaurantPurchasesV2() {
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <div className="font-bold text-slate-900 font-mono text-xs">{p.purchaseNumber}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold truncate inline-flex items-center gap-1">
+                          <div className="text-[0.6875rem] text-slate-500 font-semibold truncate inline-flex items-center gap-1">
                             <Building2 className="h-2.5 w-2.5" />
                             {p.supplierName}
                           </div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="font-extrabold text-orange-700 text-sm tabular-nums">{formatPKR(p.total)}</div>
-                          <div className="text-[10px] text-slate-500">{formatDate(p.purchasedAt)}</div>
+                          <div className="text-[0.6875rem] text-slate-500">{formatDate(p.purchasedAt)}</div>
                         </div>
                       </div>
                     </Link>
@@ -439,7 +439,7 @@ export default function RestaurantPurchasesV2() {
                     <AlertTriangle className="h-6 w-6" />
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase tracking-wider font-bold text-rose-700">Outstanding Due</div>
+                    <div className="text-[0.6875rem] uppercase tracking-wider font-bold text-rose-700">Outstanding Due</div>
                     <div className="text-2xl font-extrabold text-rose-900">{formatPKR(summary?.outstandingDue ?? 0)}</div>
                   </div>
                 </div>
@@ -531,7 +531,7 @@ export default function RestaurantPurchasesV2() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-bold text-slate-900 text-sm truncate">{ts.supplier?.name}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold">{ts.orderCount} orders</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-semibold">{ts.orderCount} orders</div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="font-extrabold text-orange-700 text-sm tabular-nums">{formatPKR(ts.totalSpent)}</div>
@@ -561,7 +561,7 @@ export default function RestaurantPurchasesV2() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-bold text-slate-900 text-sm truncate">{tp.product?.name}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold">
+                          <div className="text-[0.6875rem] text-slate-500 font-semibold">
                             {formatQty(tp.quantityPurchased)} {tp.product?.unit} • {tp.orderCount} orders
                           </div>
                         </div>
@@ -641,12 +641,12 @@ export default function RestaurantPurchasesV2() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-slate-900 font-mono text-sm">{p.purchaseNumber}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
                               p.status === 'RECEIVED' ? 'bg-emerald-100 text-emerald-700' :
                               p.status === 'PENDING' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'
                             }`}>{p.status}</span>
                             {balance > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">
+                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">
                                 Due {formatPKR(balance)}
                               </span>
                             )}
@@ -669,7 +669,7 @@ export default function RestaurantPurchasesV2() {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-2xl font-extrabold text-orange-700 tabular-nums">{formatPKR(p.total)}</div>
-                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-orange-600">
+                        <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-orange-600">
                           <Eye className="h-3 w-3" /> Details <ArrowRight className="h-3 w-3" />
                         </div>
                       </div>

@@ -960,26 +960,26 @@ export default function BakeryPosPage() {
                     <h2 className="text-base sm:text-lg font-extrabold leading-none">🍰 Bakery Counter</h2>
                     {isOnline ? (
                       <span className="h-6 px-2 rounded-full bg-emerald-500/30 inline-flex items-center gap-1">
-                        <Wifi className="h-3 w-3 text-emerald-200" /><span className="text-[9px] font-extrabold text-emerald-200">LIVE</span>
+                        <Wifi className="h-3 w-3 text-emerald-200" /><span className="text-[0.625rem] font-extrabold text-emerald-200">LIVE</span>
                       </span>
                     ) : (
                       <span className="h-6 px-2 rounded-full bg-amber-500/30 inline-flex items-center gap-1 animate-pulse">
-                        <WifiOff className="h-3 w-3 text-amber-200" /><span className="text-[9px] font-extrabold text-amber-200">OFFLINE</span>
+                        <WifiOff className="h-3 w-3 text-amber-200" /><span className="text-[0.625rem] font-extrabold text-amber-200">OFFLINE</span>
                       </span>
                     )}
                     {autoPrint && (
                       <span className="h-6 px-2 rounded-full bg-sky-500/30 inline-flex items-center gap-1" title={`Auto-print ON (${printerWidth}mm)`}>
-                        <Printer className="h-3 w-3 text-sky-200" /><span className="text-[9px] font-extrabold text-sky-200">{printerWidth}mm</span>
+                        <Printer className="h-3 w-3 text-sky-200" /><span className="text-[0.625rem] font-extrabold text-sky-200">{printerWidth}mm</span>
                       </span>
                     )}
                     {counts.urgent > 0 && (
                       <button onClick={() => { setViewMode('products'); setKind('urgent'); }}
-                        className="h-6 px-2 rounded-full bg-amber-400/90 text-slate-900 inline-flex items-center gap-1 text-[9px] font-extrabold hover:bg-amber-300 transition">
+                        className="h-6 px-2 rounded-full bg-amber-400/90 text-slate-900 inline-flex items-center gap-1 text-[0.625rem] font-extrabold hover:bg-amber-300 transition">
                         <Timer className="h-3 w-3" /> {counts.urgent} JALD BECHO
                       </button>
                     )}
                   </div>
-                  <p className="text-[11px] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                  <p className="text-[0.6875rem] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
                     <Store className="h-3 w-3 shrink-0" /><span className="truncate">{tenant?.name || 'Bakery'}</span>
                   </p>
                 </div>
@@ -1004,7 +1004,7 @@ export default function BakeryPosPage() {
                   className="lg:hidden relative h-10 w-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 flex items-center justify-center transition">
                   <ShoppingCart className="h-5 w-5" />
                   {itemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">{itemCount}</span>
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">{itemCount}</span>
                   )}
                 </button>
               </div>
@@ -1037,7 +1037,7 @@ export default function BakeryPosPage() {
               </div>
               <button onClick={() => setScannerOpen(true)} title="Camera scan (F2)"
                 className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
-                <Camera className="h-5 w-5 sm:h-6 sm:w-6" /><span className="text-[9px] sm:text-[10px] font-extrabold uppercase">Scan</span>
+                <Camera className="h-5 w-5 sm:h-6 sm:w-6" /><span className="text-[0.625rem] sm:text-[0.6875rem] font-extrabold uppercase">Scan</span>
               </button>
             </div>
 
@@ -1066,7 +1066,7 @@ export default function BakeryPosPage() {
                           on ? `${o.on} shadow-md` : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-pink-300'
                         }`}>
                         <o.icon className="h-3.5 w-3.5" /> {o.l}
-                        <span className={`px-1.5 rounded-md text-[10px] tabular-nums ${on ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>{o.n}</span>
+                        <span className={`px-1.5 rounded-md text-[0.6875rem] tabular-nums ${on ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>{o.n}</span>
                       </button>
                     );
                   })}
@@ -1088,7 +1088,7 @@ export default function BakeryPosPage() {
                           style={active ? { backgroundColor: cat.color || '#db2777', borderColor: cat.color || '#db2777', color: '#fff' } : undefined}>
                           {!active && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cat.color || '#94a3b8' }} />}
                           <span className={active ? '' : 'text-slate-700 dark:text-slate-200'}>{cat.name}</span>
-                          <span className={`px-1.5 rounded-md text-[10px] tabular-nums ${active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>{cat.count}</span>
+                          <span className={`px-1.5 rounded-md text-[0.6875rem] tabular-nums ${active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>{cat.count}</span>
                         </button>
                       );
                     })}
@@ -1139,9 +1139,9 @@ export default function BakeryPosPage() {
               <div className="space-y-4">
                 {Object.entries(groupedQuickKeys).map(([group, keys]) => (
                   <div key={group}>
-                    <div className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-2 flex items-center gap-1.5">
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-2 flex items-center gap-1.5">
                       <div className="h-1 w-6 rounded-full bg-pink-500" /> {group}
-                      <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[9px] tabular-nums">{keys.length}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[0.625rem] tabular-nums">{keys.length}</span>
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-6 gap-2">
                       {keys.map((k) => <PosQuickKeyTile key={k.id} qk={k} products={products} combos={combos} hidePrices={hidePrices} onClick={() => addQuickKey(k)} />)}
@@ -1188,10 +1188,10 @@ export default function BakeryPosPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-pink-700 text-[11px] font-extrabold flex items-center justify-center tabular-nums">{itemCount}</span>
+                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-pink-700 text-[0.6875rem] font-extrabold flex items-center justify-center tabular-nums">{itemCount}</span>
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
                 <div className="text-lg font-extrabold tabular-nums leading-none">{hidePrices ? '••••' : formatPKR(total)}</div>
               </div>
             </div>
@@ -1244,17 +1244,17 @@ function BakeryTile({ row, inCart, hidePrices, onClick }: {
         )}
         <div className="absolute top-2 left-2 flex flex-col items-start gap-1">
           {expired && (
-            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-600 text-white shadow inline-flex items-center gap-1">
+            <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-600 text-white shadow inline-flex items-center gap-1">
               <Flame className="h-2.5 w-2.5" /> Waqt guzra
             </span>
           )}
           {soon && (
-            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-500 text-white shadow inline-flex items-center gap-1">
+            <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-500 text-white shadow inline-flex items-center gap-1">
               <Timer className="h-2.5 w-2.5" /> {Math.max(1, Math.round(urgent!))}h baqi
             </span>
           )}
           {profile?.requiresRefrigeration && (
-            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-sky-600 text-white shadow inline-flex items-center gap-1">
+            <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-sky-600 text-white shadow inline-flex items-center gap-1">
               <Snowflake className="h-2.5 w-2.5" /> Fridge
             </span>
           )}
@@ -1265,20 +1265,20 @@ function BakeryTile({ row, inCart, hidePrices, onClick }: {
           )}
         </div>
         {(out || low) && (
-          <div className={`absolute inset-x-0 bottom-0 py-0.5 text-center text-[9px] font-extrabold text-white ${out ? 'bg-slate-700' : 'bg-amber-500'}`}>
+          <div className={`absolute inset-x-0 bottom-0 py-0.5 text-center text-[0.625rem] font-extrabold text-white ${out ? 'bg-slate-700' : 'bg-amber-500'}`}>
             {out ? 'STOCK 0' : `SIRF ${Number(stock.toFixed(2))} BACHA`}
           </div>
         )}
       </div>
 
       <div className="p-2.5">
-        <div className="font-extrabold text-[13px] text-slate-900 dark:text-white leading-tight line-clamp-2 min-h-[2.1rem]">{p.name}</div>
+        <div className="font-extrabold text-[0.8125rem] text-slate-900 dark:text-white leading-tight line-clamp-2 min-h-[2.1rem]">{p.name}</div>
         <div className="mt-1 flex items-end justify-between gap-1">
           <div className="min-w-0">
             <div className="text-base font-black text-pink-600 dark:text-pink-400 tabular-nums leading-none">
               {hidePrices ? '••••' : formatPKR(p.price)}
             </div>
-            <div className="text-[9px] font-bold text-slate-400 mt-0.5 truncate">
+            <div className="text-[0.625rem] font-bold text-slate-400 mt-0.5 truncate">
               per {p.unit}{!hidePrices && slicePrice > 0 && ` • slice ${formatPKR(slicePrice)}`}
             </div>
           </div>
@@ -1299,7 +1299,7 @@ function BakeryTile({ row, inCart, hidePrices, onClick }: {
             </div>
             {/* Unit baein taraf "per pcs" me pehle hi likha hai —
                 yahan dobara likhne se "per pcs … pcs" parha jata tha */}
-            <div className="text-[9px] font-bold text-slate-400 mt-0.5">
+            <div className="text-[0.625rem] font-bold text-slate-400 mt-0.5">
               {kind === 'made' ? '🧁' : '📦'} baqi
             </div>
           </div>

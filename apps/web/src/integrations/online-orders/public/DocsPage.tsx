@@ -61,23 +61,23 @@ export default function DocsPage() {
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white"><BookOpen className="h-4 w-4" /></span>
           <div className="min-w-0 flex-1">
-            <div className="text-[14px] font-bold text-slate-900">Nafaa — Online store guide</div>
-            <div className="truncate text-[12px] text-slate-500">Website, Indolj, WooCommerce, Shopify — khud jorein, khud chalayein</div>
+            <div className="text-[0.875rem] font-bold text-slate-900">Nafaa — Online store guide</div>
+            <div className="truncate text-[0.75rem] text-slate-500">Website, Indolj, WooCommerce, Shopify — khud jorein, khud chalayein</div>
           </div>
-          <a href="/online-store/channels" className="rounded-lg bg-slate-900 px-3 py-1.5 text-[12.5px] font-semibold text-white">Nafaa kholein</a>
+          <a href="/online-store/channels" className="rounded-lg bg-slate-900 px-3 py-1.5 text-[0.78125rem] font-semibold text-white">Nafaa kholein</a>
         </div>
       </header>
 
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[220px_minmax(0,1fr)]">
         <nav className="hidden lg:block">
-          <ul className="sticky top-20 space-y-0.5 text-[13px]">
+          <ul className="sticky top-20 space-y-0.5 text-[0.8125rem]">
             {TOC.map((t) => (
               <li key={t.id}>
                 <a href={`#${t.id}`} className={cn('block rounded-md px-2 py-1.5', active === t.id ? 'bg-emerald-50 font-semibold text-emerald-800' : 'text-slate-600 hover:bg-slate-50')}>{t.label}</a>
                 {t.sub && (
                   <ul className="ml-3 border-l border-slate-200 pl-2">
                     {t.sub.map((s) => (
-                      <li key={s.id}><a href={`#${s.id}`} className={cn('block rounded-md px-2 py-1 text-[12.5px]', active === s.id ? 'font-semibold text-emerald-800' : 'text-slate-500 hover:text-slate-800')}>{s.label}</a></li>
+                      <li key={s.id}><a href={`#${s.id}`} className={cn('block rounded-md px-2 py-1 text-[0.78125rem]', active === s.id ? 'font-semibold text-emerald-800' : 'text-slate-500 hover:text-slate-800')}>{s.label}</a></li>
                     ))}
                   </ul>
                 )}
@@ -86,11 +86,11 @@ export default function DocsPage() {
           </ul>
         </nav>
 
-        <main className="min-w-0 max-w-3xl space-y-14 pb-24 text-[14.5px] leading-relaxed">
+        <main className="min-w-0 max-w-3xl space-y-14 pb-24 text-[0.90625rem] leading-relaxed">
           {/* Mobile par upar chhota menu */}
           <details className="rounded-xl border border-slate-200 p-3 lg:hidden">
-            <summary className="cursor-pointer text-[13px] font-semibold">Is guide me kya hai</summary>
-            <ul className="mt-2 space-y-1 text-[13px]">{TOC.map((t) => <li key={t.id}><a className="text-emerald-700" href={`#${t.id}`}>{t.label}</a></li>)}</ul>
+            <summary className="cursor-pointer text-[0.8125rem] font-semibold">Is guide me kya hai</summary>
+            <ul className="mt-2 space-y-1 text-[0.8125rem]">{TOC.map((t) => <li key={t.id}><a className="text-emerald-700" href={`#${t.id}`}>{t.label}</a></li>)}</ul>
           </details>
 
           <Section id="shuru" title="Online store kaise kaam karta hai">
@@ -322,7 +322,7 @@ export default function DocsPage() {
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <section id={id} className="scroll-mt-20 space-y-4">
-      <h2 className="group flex items-center gap-2 text-[22px] font-bold tracking-tight text-slate-900">
+      <h2 className="group flex items-center gap-2 text-[1.375rem] font-bold tracking-tight text-slate-900">
         {title}
         <a href={`#${id}`} className="text-slate-300 opacity-0 transition group-hover:opacity-100" aria-label="Link">#</a>
       </h2>
@@ -332,7 +332,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
 }
 
 function H3({ id, children }: { id?: string; children: ReactNode }) {
-  return <h3 id={id} className="scroll-mt-20 pt-2 text-[16px] font-semibold text-slate-900">{children}</h3>;
+  return <h3 id={id} className="scroll-mt-20 pt-2 text-[1rem] font-semibold text-slate-900">{children}</h3>;
 }
 
 function Steps({ items }: { items: Array<[string, ReactNode]> }) {
@@ -340,7 +340,7 @@ function Steps({ items }: { items: Array<[string, ReactNode]> }) {
     <ol className="space-y-3">
       {items.map(([t, d], n) => (
         <li key={t} className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[12px] font-bold text-white">{n + 1}</span>
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[0.75rem] font-bold text-white">{n + 1}</span>
           <div className="min-w-0"><div className="font-semibold text-slate-900">{t}</div><div className="text-slate-600">{d}</div></div>
         </li>
       ))}
@@ -350,7 +350,7 @@ function Steps({ items }: { items: Array<[string, ReactNode]> }) {
 
 function Note({ children, tone = 'info' }: { children: ReactNode; tone?: 'info' | 'warning' }) {
   return (
-    <div className={cn('flex items-start gap-2 rounded-xl px-4 py-3 text-[13.5px]', tone === 'warning' ? 'bg-amber-50 text-amber-900' : 'bg-sky-50 text-sky-900')}>
+    <div className={cn('flex items-start gap-2 rounded-xl px-4 py-3 text-[0.84375rem]', tone === 'warning' ? 'bg-amber-50 text-amber-900' : 'bg-sky-50 text-sky-900')}>
       {tone === 'warning' ? <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" /> : <Info className="mt-0.5 h-4 w-4 shrink-0" />}
       <div>{children}</div>
     </div>
@@ -360,7 +360,7 @@ function Note({ children, tone = 'info' }: { children: ReactNode; tone?: 'info' 
 function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200">
-      <table className="w-full min-w-[520px] text-left text-[13px]">
+      <table className="w-full min-w-[520px] text-left text-[0.8125rem]">
         <thead className="bg-slate-50 text-slate-600"><tr>{head.map((h) => <th key={h} className="px-3 py-2 font-semibold">{h}</th>)}</tr></thead>
         <tbody className="divide-y divide-slate-100">
           {rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={cn('px-3 py-2 align-top', j === 0 && 'font-medium text-slate-900')}>{c}</td>)}</tr>)}

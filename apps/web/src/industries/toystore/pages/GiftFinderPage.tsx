@@ -88,7 +88,7 @@ export default function GiftFinderPage() {
                   years === a.years ? 'border-violet-600 bg-violet-600 text-white shadow-md scale-[1.03]'
                     : 'border-slate-200 bg-white text-slate-700 hover:border-violet-400'}`}>
                 <span className="text-xl leading-none">{a.e}</span>
-                <span className="text-[10px] font-extrabold text-center leading-tight">{a.l}</span>
+                <span className="text-[0.6875rem] font-extrabold text-center leading-tight">{a.l}</span>
               </button>
             ))}
           </div>
@@ -161,7 +161,7 @@ export default function GiftFinderPage() {
               <GraduationCap className={`h-6 w-6 ${educationalOnly ? 'text-violet-600' : 'text-slate-400'}`} />
               <div className="flex-1">
                 <div className="font-extrabold text-sm text-slate-900">Educational only</div>
-                <div className="text-[11px] text-slate-500 font-semibold">STEM, learning, Montessori</div>
+                <div className="text-[0.6875rem] text-slate-500 font-semibold">STEM, learning, Montessori</div>
               </div>
             </button>
             <button onClick={() => setSafeOnly((v) => !v)}
@@ -170,7 +170,7 @@ export default function GiftFinderPage() {
               <ShieldCheck className={`h-6 w-6 ${safeOnly ? 'text-emerald-600' : 'text-slate-400'}`} />
               <div className="flex-1">
                 <div className="font-extrabold text-sm text-slate-900">Safety filter (for under 3s)</div>
-                <div className="text-[11px] text-slate-500 font-semibold">No choking hazards, non-toxic</div>
+                <div className="text-[0.6875rem] text-slate-500 font-semibold">No choking hazards, non-toxic</div>
               </div>
             </button>
           </div>
@@ -229,17 +229,17 @@ export default function GiftFinderPage() {
                       </div>
                     )}
                     {item.isBestSeller && (
-                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow">
+                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold shadow">
                         🏆 BEST
                       </div>
                     )}
                     {item.isBirthdayGift && (
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-pink-500 text-white text-[9px] font-extrabold shadow">
+                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-pink-500 text-white text-[0.625rem] font-extrabold shadow">
                         🎂 GIFT
                       </div>
                     )}
                     {item.isEducational && (
-                      <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-violet-600 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+                      <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-violet-600 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
                         <GraduationCap className="h-2.5 w-2.5" /> EDU
                       </div>
                     )}
@@ -248,7 +248,7 @@ export default function GiftFinderPage() {
                     <div className="font-extrabold text-slate-900 text-sm leading-tight line-clamp-2 min-h-[2.5rem]">
                       {item.product?.name}
                     </div>
-                    {item.brand && <div className="text-[10px] font-bold text-slate-500 mt-0.5">{item.brand}</div>}
+                    {item.brand && <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">{item.brand}</div>}
                     <div className="mt-2 flex items-end justify-between">
                       <div className="text-lg font-extrabold text-emerald-700 tabular-nums leading-none">
                         {formatPKR(item.retailPrice || item.product?.price || 0)}

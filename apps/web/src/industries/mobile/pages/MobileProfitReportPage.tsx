@@ -216,7 +216,7 @@ export default function MobileProfitReportPage() {
         <div className="relative">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
                 <PiggyBank className="h-3.5 w-3.5 text-emerald-300" /> Mobile Profit
               </div>
               <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold">Paisa kahan se ban raha hai?</h1>
@@ -329,12 +329,12 @@ export default function MobileProfitReportPage() {
                         <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">
                           {meta.label}
                         </div>
-                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
                           {s?.units ?? 0} units · {s?.sales ?? 0} sales
                         </div>
                       </div>
                     </div>
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold tabular-nums shrink-0 ${meta.chip}`}>
+                    <span className={`px-1.5 py-0.5 rounded text-[0.6875rem] font-extrabold tabular-nums shrink-0 ${meta.chip}`}>
                       {(s?.margin ?? 0).toFixed(0)}%
                     </span>
                   </div>
@@ -362,7 +362,7 @@ export default function MobileProfitReportPage() {
 
                   {/* Share of total profit */}
                   <div className="mt-3">
-                    <div className="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                    <div className="flex justify-between text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mb-1">
                       <span>Kul munafe ka hissa</span>
                       <span className="tabular-nums">{shareOfProfit.toFixed(0)}%</span>
                     </div>
@@ -487,19 +487,19 @@ export default function MobileProfitReportPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50 dark:bg-slate-800/60">
                     <tr className="text-left">
-                      <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">#</th>
-                      <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Model</th>
-                      <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Units</th>
-                      <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Bikri</th>
-                      <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Munafa</th>
-                      <th className="px-4 py-2.5 text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Margin</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">#</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Model</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Units</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Bikri</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Munafa</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Margin</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {products.map((p, i) => (
                       <tr key={p.productId} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                         <td className="px-4 py-2.5">
-                          <span className={`inline-flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-extrabold tabular-nums ${
+                          <span className={`inline-flex h-6 w-6 items-center justify-center rounded-lg text-[0.6875rem] font-extrabold tabular-nums ${
                             i === 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
                               : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                           }`}>
@@ -509,7 +509,7 @@ export default function MobileProfitReportPage() {
                         <td className="px-4 py-2.5">
                           <div className="font-extrabold text-slate-900 dark:text-white">{p.name}</div>
                           {p.brand && (
-                            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{p.brand}</div>
+                            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{p.brand}</div>
                           )}
                         </td>
                         <td className="px-4 py-2.5 text-right font-bold text-slate-700 dark:text-slate-300 tabular-nums">{p.units}</td>
@@ -518,7 +518,7 @@ export default function MobileProfitReportPage() {
                           {hideCost ? '•••' : formatPKR(p.profit)}
                         </td>
                         <td className="px-4 py-2.5 text-right">
-                          <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-extrabold tabular-nums ${
+                          <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.6875rem] font-extrabold tabular-nums ${
                             p.margin >= 15
                               ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
                               : p.margin >= 5
@@ -537,7 +537,7 @@ export default function MobileProfitReportPage() {
             )}
           </div>
 
-          <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 text-center">
+          <p className="text-[0.6875rem] font-semibold text-slate-400 dark:text-slate-500 text-center">
             Repair ki kamai bhi isi report me shamil hai — delivery par har repair apni sale banati hai.
           </p>
         </>
@@ -555,7 +555,7 @@ function HeroStat({ label, value, icon: Icon, accent }: any) {
     <div className={`rounded-2xl backdrop-blur-md border p-3 ${
       accent ? 'bg-emerald-400/20 border-emerald-300/40' : 'bg-white/10 border-white/20'
     }`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
       <div className="mt-1 text-xl sm:text-2xl font-extrabold tabular-nums truncate">{value}</div>

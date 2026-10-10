@@ -127,18 +127,18 @@ export default function VehicleModelsPage() {
                     <div className="text-xs font-extrabold text-fuchsia-600">{model.make?.name}</div>
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    <span className="px-2 py-0.5 rounded bg-fuchsia-100 dark:bg-fuchsia-950/40 text-fuchsia-700 text-[10px] font-extrabold uppercase">
+                    <span className="px-2 py-0.5 rounded bg-fuchsia-100 dark:bg-fuchsia-950/40 text-fuchsia-700 text-[0.6875rem] font-extrabold uppercase">
                       {type?.emoji} {type?.label}
                     </span>
                     {(model.yearFrom || model.yearTo) && (
-                      <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[10px] font-extrabold inline-flex items-center gap-0.5">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-0.5">
                         <Calendar className="h-2.5 w-2.5" />
                         {model.yearFrom || '?'} - {model.yearTo || 'Present'}
                       </span>
                     )}
                   </div>
                   {model.engineOptions?.length > 0 && (
-                    <div className="text-[10px] font-bold text-slate-500">
+                    <div className="text-[0.6875rem] font-bold text-slate-500">
                       Engines: {model.engineOptions.slice(0, 3).join(', ')}
                     </div>
                   )}

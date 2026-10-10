@@ -81,7 +81,7 @@ export default function QueuePage() {
             <section className="rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white p-6 shadow-xl">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Now Serving</div>
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Now Serving</div>
                   <div className="text-6xl font-extrabold tabular-nums animate-pulse">#{inConsultation.tokenNumber || '?'}</div>
                   <div className="mt-2 flex items-center gap-2 text-sm font-extrabold">
                     <User className="h-4 w-4" />
@@ -122,24 +122,24 @@ export default function QueuePage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-sm truncate">{q.patient?.fullName}</span>
-                            {q.isEmergency && <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase">EMERGENCY</span>}
-                            {q.status === 'ARRIVED' && <span className="px-1.5 py-0.5 rounded bg-cyan-500 text-white text-[9px] font-extrabold uppercase">ARRIVED</span>}
+                            {q.isEmergency && <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase">EMERGENCY</span>}
+                            {q.status === 'ARRIVED' && <span className="px-1.5 py-0.5 rounded bg-cyan-500 text-white text-[0.625rem] font-extrabold uppercase">ARRIVED</span>}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-bold">
+                          <div className="text-[0.6875rem] text-slate-500 font-bold">
                             {age !== null && age + 'y'} {q.patient?.gender && '• ' + q.patient.gender}
                             {q.chiefComplaint && ' • ' + q.chiefComplaint.slice(0, 40)}
                           </div>
-                          <div className="text-[10px] font-mono font-bold text-blue-600">{q.patient?.mrn}</div>
+                          <div className="text-[0.6875rem] font-mono font-bold text-blue-600">{q.patient?.mrn}</div>
                         </div>
                         <div className="flex flex-col gap-1 shrink-0">
                           {q.status === 'CONFIRMED' && (
-                            <Button size="sm" onClick={() => statusMutation.mutate({ id: q.id, status: 'ARRIVED' })} className="bg-cyan-600 text-white text-[10px] px-2 py-1">
+                            <Button size="sm" onClick={() => statusMutation.mutate({ id: q.id, status: 'ARRIVED' })} className="bg-cyan-600 text-white text-[0.6875rem] px-2 py-1">
                               <User className="h-3 w-3" />
                               Arrived
                             </Button>
                           )}
                           {q.status === 'ARRIVED' && (
-                            <Button size="sm" onClick={() => statusMutation.mutate({ id: q.id, status: 'IN_CONSULTATION' })} className="bg-amber-600 text-white text-[10px] px-2 py-1">
+                            <Button size="sm" onClick={() => statusMutation.mutate({ id: q.id, status: 'IN_CONSULTATION' })} className="bg-amber-600 text-white text-[0.6875rem] px-2 py-1">
                               <Play className="h-3 w-3" />
                               Start
                             </Button>
@@ -170,7 +170,7 @@ export default function QueuePage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-sm truncate">{q.patient?.fullName}</div>
-                        <div className="text-[10px] text-slate-500 font-bold">
+                        <div className="text-[0.6875rem] text-slate-500 font-bold">
                           {q.consultationEnd && format(new Date(q.consultationEnd), 'HH:mm')}
                         </div>
                       </div>

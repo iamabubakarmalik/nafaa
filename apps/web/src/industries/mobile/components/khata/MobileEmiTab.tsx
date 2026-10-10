@@ -131,20 +131,20 @@ export default function MobileEmiTab() {
                           className="font-extrabold text-slate-900 text-sm truncate hover:text-violet-600 transition">
                           {p.customerName}
                         </Link>
-                        <span className="font-mono text-[10px] font-extrabold text-violet-700">{p.planNumber}</span>
+                        <span className="font-mono text-[0.6875rem] font-extrabold text-violet-700">{p.planNumber}</span>
                         {late && (
-                          <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[10px] font-extrabold uppercase">
+                          <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold uppercase">
                             {p.overdueCount} qist late{lateDays > 0 ? ` · ${lateDays} din` : ''}
                           </span>
                         )}
                         {p.status === 'DEFAULTED' && (
-                          <span className="px-1.5 py-0.5 rounded bg-slate-800 text-white text-[10px] font-extrabold uppercase">
+                          <span className="px-1.5 py-0.5 rounded bg-slate-800 text-white text-[0.6875rem] font-extrabold uppercase">
                             Defaulted
                           </span>
                         )}
                       </div>
 
-                      <div className="mt-1 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500">
+                      <div className="mt-1 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500">
                         {p.customerPhone && (
                           <span className="inline-flex items-center gap-1 font-mono">
                             <Phone className="h-3 w-3" /> {p.customerPhone}
@@ -169,8 +169,8 @@ export default function MobileEmiTab() {
                       <div className="text-base font-extrabold text-slate-900 tabular-nums">
                         {formatPKR(p.remainingAmount)}
                       </div>
-                      <div className="text-[10px] font-bold text-slate-400">baqi</div>
-                      <div className="text-[10px] font-bold text-emerald-600 tabular-nums">
+                      <div className="text-[0.6875rem] font-bold text-slate-400">baqi</div>
+                      <div className="text-[0.6875rem] font-bold text-emerald-600 tabular-nums">
                         {formatPKR(p.installmentAmount)}/qist
                       </div>
                     </div>
@@ -203,9 +203,9 @@ function Kpi({ label, value, sub, icon: Icon, tone, alert }: any) {
       alert ? 'bg-rose-50 border-rose-300' : 'bg-white border-slate-200'
     }`}>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
         <div className="mt-1 text-xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
-        {sub && <div className="text-[10px] font-bold text-slate-500 truncate">{sub}</div>}
+        {sub && <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{sub}</div>}
       </div>
       <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${TONES[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
         <Icon className="h-5 w-5" />

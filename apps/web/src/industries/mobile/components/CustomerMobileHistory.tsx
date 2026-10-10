@@ -95,7 +95,7 @@ export function CustomerMobileHistory({ customerId }: Props) {
                       </span>
                       <PtaStatusBadge status={imei.ptaStatus} size="sm" />
                       {imei.isUnderWarranty && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold">
                           <ShieldCheck className="h-2.5 w-2.5" /> WARRANTY
                         </span>
                       )}
@@ -131,13 +131,13 @@ export function CustomerMobileHistory({ customerId }: Props) {
                     {imei.sale && (
                       <Link
                         to={`/sales/${imei.sale.id}/receipt`}
-                        className="text-[10px] font-bold text-blue-700 hover:underline inline-flex items-center gap-1 mt-1"
+                        className="text-[0.6875rem] font-bold text-blue-700 hover:underline inline-flex items-center gap-1 mt-1"
                       >
                         {imei.sale.saleNumber} <ExternalLink className="h-2.5 w-2.5" />
                       </Link>
                     )}
                     {imei.soldAt && (
-                      <div className="text-[10px] text-slate-500 mt-0.5">
+                      <div className="text-[0.6875rem] text-slate-500 mt-0.5">
                         {formatDate(imei.soldAt)}
                       </div>
                     )}
@@ -185,7 +185,7 @@ export function CustomerMobileHistory({ customerId }: Props) {
                       <strong>Issue:</strong> {ticket.reportedIssue.slice(0, 100)}
                       {ticket.reportedIssue.length > 100 && '...'}
                     </div>
-                    <div className="mt-1 text-[10px] text-slate-500">
+                    <div className="mt-1 text-[0.6875rem] text-slate-500">
                       {formatDate(ticket.receivedAt)}
                       {ticket._count.parts > 0 && ` · ${ticket._count.parts} parts`}
                     </div>
@@ -195,7 +195,7 @@ export function CustomerMobileHistory({ customerId }: Props) {
                       {formatPKR(ticket.totalCost || 0)}
                     </div>
                     {ticket.balanceDue > 0 && (
-                      <div className="text-[10px] text-amber-700 font-bold">
+                      <div className="text-[0.6875rem] text-amber-700 font-bold">
                         Due: {formatPKR(ticket.balanceDue)}
                       </div>
                     )}
@@ -229,10 +229,10 @@ export function CustomerMobileHistory({ customerId }: Props) {
                       <span className="font-mono font-extrabold text-violet-700 text-sm">
                         {phone.usedPhoneCode}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.6875rem] font-bold">
                         {phone.condition}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-bold">
                         {phone.status}
                       </span>
                     </div>
@@ -243,12 +243,12 @@ export function CustomerMobileHistory({ customerId }: Props) {
                     <div className="text-xs text-slate-500 font-mono mt-0.5">
                       IMEI: {phone.imei1}
                     </div>
-                    <div className="mt-1 text-[10px] text-slate-500">
+                    <div className="mt-1 text-[0.6875rem] text-slate-500">
                       {formatDate(phone.receivedAt)} · {phone.source.replace('_', ' ')}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-[10px] uppercase font-bold text-slate-500">Buyback</div>
+                    <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Buyback</div>
                     <div className="font-extrabold text-violet-700">
                       {formatPKR(phone.buybackPrice || 0)}
                     </div>
@@ -290,7 +290,7 @@ export function CustomerMobileHistory({ customerId }: Props) {
                         <span className="font-mono font-extrabold text-indigo-700 text-sm">
                           {plan.planNumber}
                         </span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                        <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
                           plan.status === 'ACTIVE' ? 'bg-blue-100 text-blue-700' :
                           plan.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' :
                           plan.status === 'DEFAULTED' ? 'bg-rose-100 text-rose-700' :
@@ -299,7 +299,7 @@ export function CustomerMobileHistory({ customerId }: Props) {
                           {plan.status}
                         </span>
                         {overdue > 0 && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">
                             <AlertCircle className="h-2.5 w-2.5" /> {overdue} OVERDUE
                           </span>
                         )}
@@ -318,7 +318,7 @@ export function CustomerMobileHistory({ customerId }: Props) {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-[10px] uppercase font-bold text-amber-700">Remaining</div>
+                      <div className="text-[0.6875rem] uppercase font-bold text-amber-700">Remaining</div>
                       <div className="font-extrabold text-amber-700">
                         {formatPKR(plan.remainingAmount)}
                       </div>
@@ -353,7 +353,7 @@ function StatCard({
     <div className={`rounded-xl border-2 p-2.5 ${map[color]}`}>
       <div className="flex items-center gap-1.5">
         <Icon className="h-3.5 w-3.5" />
-        <div className="text-[9px] uppercase tracking-wider font-bold">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-bold">{label}</div>
       </div>
       <div className="text-2xl font-extrabold mt-1">{value}</div>
     </div>

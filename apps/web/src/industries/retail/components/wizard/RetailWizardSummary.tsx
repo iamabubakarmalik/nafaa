@@ -36,7 +36,7 @@ export function RetailWizardSummary({ draft, stats, allValid }: Props) {
       <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-slate-950 dark:via-sky-950 dark:to-cyan-900 text-white p-5 shadow-xl overflow-hidden relative">
         <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-sky-400/20 blur-2xl pointer-events-none" />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-extrabold border border-white/20">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold border border-white/20">
             {allValid ? (
               <><CheckCircle2 className="h-3 w-3 text-emerald-300" /> Save karne ke liye ready</>
             ) : (
@@ -46,7 +46,7 @@ export function RetailWizardSummary({ draft, stats, allValid }: Props) {
           <h3 className="mt-2 font-extrabold text-xl leading-tight line-clamp-2">
             {draft.basic.name || 'Product ka naam...'}
           </h3>
-          <div className="mt-2 flex items-center gap-2 flex-wrap text-[11px] font-bold text-white/80">
+          <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-white/80">
             {draft.basic.sku && <span className="font-mono">SKU: {draft.basic.sku}</span>}
             {draft.basic.barcode && <span className="font-mono">• {draft.basic.barcode}</span>}
           </div>
@@ -75,7 +75,7 @@ export function RetailWizardSummary({ draft, stats, allValid }: Props) {
         <div className="border-t-2 border-slate-100 dark:border-slate-800 p-4 bg-gradient-to-br from-sky-50 to-white dark:from-sky-500/10 dark:to-slate-900">
           <div className="flex items-center gap-1.5 mb-1">
             <ShoppingBag className="h-3 w-3 text-sky-700 dark:text-sky-400" />
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-sky-700 dark:text-sky-400">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-sky-700 dark:text-sky-400">
               Kul Stock ({U})
             </div>
           </div>
@@ -86,7 +86,7 @@ export function RetailWizardSummary({ draft, stats, allValid }: Props) {
       {/* Finance */}
       {stats.totalStock > 0 && hasSale && (
         <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-4 space-y-2.5">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-300 flex items-center gap-1">
             <DollarSign className="h-3 w-3" /> Paisay
           </div>
           <Row label="Kharid value" value={formatPKRFull(stats.stockCost)} tone="slate" />
@@ -101,7 +101,7 @@ export function RetailWizardSummary({ draft, stats, allValid }: Props) {
                 {formatPKRFull(stats.potentialProfit)}
               </div>
             </div>
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400">
+            <div className="flex items-center justify-between text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               <span>Margin</span>
               <span className={stats.profitMargin >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}>
                 {stats.profitMargin.toFixed(1)}%
@@ -113,7 +113,7 @@ export function RetailWizardSummary({ draft, stats, allValid }: Props) {
 
       {/* Checklist */}
       <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 space-y-1.5">
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-300 flex items-center gap-1">
           <Sparkles className="h-3 w-3" /> Checklist
         </div>
         <Chk done={hasName} label="Product ka naam" />
@@ -122,7 +122,7 @@ export function RetailWizardSummary({ draft, stats, allValid }: Props) {
         <Chk done={stats.totalStock > 0} label="Stock likha" />
       </div>
 
-      <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-2.5 text-[10px] text-emerald-800 dark:text-emerald-300 font-extrabold text-center">
+      <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-2.5 text-[0.6875rem] text-emerald-800 dark:text-emerald-300 font-extrabold text-center">
         💾 Draft khud save hota hai — safai se close karo, wapas mile ga
       </div>
     </aside>
@@ -140,10 +140,10 @@ function Cell({ icon: Icon, label, value, tone, hint }: {
     <div className="p-4">
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={['h-3 w-3', tones[tone]].join(' ')} />
-        <div className={['text-[10px] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
+        <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
       </div>
       <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-      {hint && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{hint}</div>}
+      {hint && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{hint}</div>}
     </div>
   );
 }

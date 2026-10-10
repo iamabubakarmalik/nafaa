@@ -151,22 +151,22 @@ function AlertCard({ alert }: any) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold">{p?.name || 'Product'}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + sev.color}>{sev.label}</span>
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + sev.color}>{sev.label}</span>
             </div>
             <div className="mt-1 grid grid-cols-3 gap-2 text-xs">
               <div>
-                <div className="text-[9px] uppercase font-extrabold text-slate-500">Current</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Current</div>
                 <div className={
                   'font-extrabold tabular-nums ' +
                   (alert.currentStock <= 0 ? 'text-rose-700' : 'text-slate-900')
                 }>{alert.currentStock}</div>
               </div>
               <div>
-                <div className="text-[9px] uppercase font-extrabold text-amber-700">Min Stock</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Min Stock</div>
                 <div className="font-extrabold text-amber-700 tabular-nums">{alert.minStock}</div>
               </div>
               <div>
-                <div className="text-[9px] uppercase font-extrabold text-blue-700">Reorder Qty</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Reorder Qty</div>
                 <div className="font-extrabold text-blue-700 tabular-nums">{alert.reorderQty}</div>
               </div>
             </div>
@@ -213,7 +213,7 @@ function RuleCard({ rule }: any) {
           </div>
         </div>
         <div className="text-right">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">Stock</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Stock</div>
           <div className="text-2xl font-extrabold tabular-nums">{rule.currentStock ?? 0}</div>
         </div>
       </div>

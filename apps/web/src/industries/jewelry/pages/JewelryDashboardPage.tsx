@@ -122,14 +122,14 @@ export default function JewelryDashboardPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-2xl">{METAL_EMOJI[r.metalType]}</span>
                   <div>
-                    <div className="text-[10px] uppercase font-extrabold opacity-80">{r.metalType.replace('_', ' ')}</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold opacity-80">{r.metalType.replace('_', ' ')}</div>
                     <div className="text-xs font-extrabold">{PURITY_LABEL[r.purity] ?? r.purity}</div>
                   </div>
                 </div>
                 <div className="text-xl font-extrabold tabular-nums">Rs {r.ratePerGram.toLocaleString()}</div>
-                <div className="text-[10px] font-bold opacity-70">per gram</div>
+                <div className="text-[0.6875rem] font-bold opacity-70">per gram</div>
                 {r.ratePerTola && (
-                  <div className="text-[10px] font-bold opacity-70 mt-0.5">
+                  <div className="text-[0.6875rem] font-bold opacity-70 mt-0.5">
                     Tola: Rs {r.ratePerTola.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                   </div>
                 )}
@@ -160,23 +160,23 @@ export default function JewelryDashboardPage() {
         </div>
         <div className="grid sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Revenue</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Revenue</div>
             <div className="mt-1 text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(monthly.revenue)}</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Collected</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Collected</div>
             <div className="mt-1 text-2xl font-extrabold text-cyan-300 tabular-nums">{formatPKR(monthly.collected)}</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Outstanding</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Outstanding</div>
             <div className="mt-1 text-2xl font-extrabold text-amber-300 tabular-nums">{formatPKR(monthly.outstanding)}</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase font-extrabold text-white/70 flex items-center gap-1">🥇 Gold</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 flex items-center gap-1">🥇 Gold</div>
             <div className="mt-1 text-2xl font-extrabold text-yellow-300 tabular-nums">{monthly.goldSold.toFixed(1)}g</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase font-extrabold text-white/70 flex items-center gap-1">🥈 Silver</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 flex items-center gap-1">🥈 Silver</div>
             <div className="mt-1 text-2xl font-extrabold text-slate-200 tabular-nums">{monthly.silverSold.toFixed(1)}g</div>
           </div>
         </div>
@@ -232,7 +232,7 @@ export default function JewelryDashboardPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-sm truncate">{s.customerName || s.invoiceNumber}</span>
-                      <span className="text-[9px] font-mono text-slate-400">{s.invoiceNumber}</span>
+                      <span className="text-[0.625rem] font-mono text-slate-400">{s.invoiceNumber}</span>
                     </div>
                     <div className="text-xs text-slate-500 font-semibold">
                       {s.items?.length} items • {s.netWeight?.toFixed(2)}g
@@ -240,7 +240,7 @@ export default function JewelryDashboardPage() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums text-sm">{formatPKR(s.total)}</div>
-                    <div className="text-[10px] font-bold text-slate-500">
+                    <div className="text-[0.6875rem] font-bold text-slate-500">
                       {format(new Date(s.saleDate), 'dd MMM')}
                     </div>
                   </div>
@@ -274,7 +274,7 @@ export default function JewelryDashboardPage() {
                   <div className="text-2xl">{CATEGORY_EMOJI[cat.category] || '💎'}</div>
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm">{cat.category.replace('_', ' ')}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{cat._count._all} items • {cat._sum.netWeight?.toFixed(1)}g</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{cat._count._all} items • {cat._sum.netWeight?.toFixed(1)}g</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums text-sm">{formatPKR(cat._sum.itemTotal ?? 0)}</div>
@@ -315,13 +315,13 @@ export default function JewelryDashboardPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-sm">{o.orderNumber}</span>
-                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase">{o.status}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">{o.status}</span>
                     </div>
                     <div className="text-xs text-slate-500 font-semibold truncate">{o.customerName} • {o.category}</div>
                   </div>
                   {o.promisedDate && (
                     <div className="text-right shrink-0">
-                      <div className="text-[10px] font-extrabold text-slate-600">
+                      <div className="text-[0.6875rem] font-extrabold text-slate-600">
                         {format(new Date(o.promisedDate), 'dd MMM')}
                       </div>
                     </div>
@@ -365,12 +365,12 @@ export default function JewelryDashboardPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm truncate">{k.fullName}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{k.completedOrders} orders • {k.skillLevel || 'N/A'}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{k.completedOrders} orders • {k.skillLevel || 'N/A'}</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums text-sm">{formatPKR(k.totalEarnings)}</div>
                     {k.outstandingGrams > 0 && (
-                      <div className="text-[10px] font-extrabold text-amber-700">{k.outstandingGrams.toFixed(1)}g out</div>
+                      <div className="text-[0.6875rem] font-extrabold text-amber-700">{k.outstandingGrams.toFixed(1)}g out</div>
                     )}
                   </div>
                 </Link>

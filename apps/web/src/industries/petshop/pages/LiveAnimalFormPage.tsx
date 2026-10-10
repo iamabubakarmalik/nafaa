@@ -159,7 +159,7 @@ export default function LiveAnimalFormPage() {
                 className={`p-2.5 rounded-xl border-2 transition flex flex-col items-center gap-0.5 ${
                   form.species === s.v ? 'border-rose-600 bg-rose-600 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-rose-400'}`}>
                 <span className="text-xl">{s.e}</span>
-                <span className="text-[10px] font-extrabold">{s.l}</span>
+                <span className="text-[0.6875rem] font-extrabold">{s.l}</span>
               </button>
             ))}
           </div>
@@ -305,7 +305,7 @@ export default function LiveAnimalFormPage() {
             {form.imageUrls.map((url, i) => (
               <div key={url + i} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt="" className="w-full h-full object-cover" />
-                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-rose-600 text-white text-[9px] font-extrabold">MAIN</div>}
+                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-rose-600 text-white text-[0.625rem] font-extrabold">MAIN</div>}
                 <button onClick={() => setForm({ ...form, imageUrls: form.imageUrls.filter((_, x) => x !== i) })}
                   className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-extrabold">×</button>
               </div>

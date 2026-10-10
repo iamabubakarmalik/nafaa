@@ -125,7 +125,7 @@ export function MobileWizardStep3Imeis({
               : 'Phone variants ke liye IMEI table (har unit ka 15-digit IMEI + PTA), accessory variants ke liye simple stock. Optional — skip kar ke sirf product bhi bana sakte ho.'}
           </p>
           {!allAccessory && accBuckets > 0 && (
-            <div className="mt-1.5 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400">
+            <div className="mt-1.5 text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400">
               ℹ️ {accBuckets} accessory variant{accBuckets > 1 ? 's' : ''} — unka simple stock neeche hai
             </div>
           )}
@@ -135,7 +135,7 @@ export function MobileWizardStep3Imeis({
       {/* Quick PTA set for all IMEIs */}
       {totalImeis > 0 && (
         <section className="rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border-2 border-indigo-200 dark:border-indigo-500/40 p-3 space-y-2">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-indigo-700 dark:text-indigo-300 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-indigo-700 dark:text-indigo-300 flex items-center gap-1">
             <ShieldCheck className="h-3 w-3" /> Quick Set PTA for All {totalImeis} IMEIs
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -147,7 +147,7 @@ export function MobileWizardStep3Imeis({
                   type="button"
                   onClick={() => onApplyPtaToAll(status)}
                   className={[
-                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold border-2 hover:shadow transition active:scale-95',
+                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[0.6875rem] font-bold border-2 hover:shadow transition active:scale-95',
                     colors.bg, colors.text, colors.border,
                   ].join(' ')}
                 >
@@ -188,7 +188,7 @@ export function MobileWizardStep3Imeis({
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{b.name}</div>
                   <span className={[
-                    'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold',
+                    'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold',
                     isPhone
                       ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
                       : 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
@@ -197,7 +197,7 @@ export function MobileWizardStep3Imeis({
                     {b.productType}
                   </span>
                   {b.storage && (
-                    <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/20 px-1.5 py-0.5 rounded">
+                    <span className="text-[0.6875rem] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/20 px-1.5 py-0.5 rounded">
                       {b.storage}
                     </span>
                   )}

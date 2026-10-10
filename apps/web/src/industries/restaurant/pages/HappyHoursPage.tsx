@@ -229,15 +229,15 @@ function RuleCard({ rule, isActiveNow, onEdit, onToggle, onDelete }: {
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">{rule.name}</h3>
               {isActiveNow && (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-500 text-white animate-pulse inline-flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase bg-emerald-500 text-white animate-pulse inline-flex items-center gap-1">
                   <Zap className="h-2 w-2 fill-white" />
                   Live Now
                 </span>
               )}
-              <span className="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/40 text-rose-700 text-[9px] font-extrabold uppercase">
+              <span className="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/40 text-rose-700 text-[0.625rem] font-extrabold uppercase">
                 {typeCfg?.label}
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[9px] font-extrabold">
+              <span className="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold">
                 {rule.discountType === 'PERCENTAGE' ? rule.discountValue + '% OFF' : rule.discountType === 'FIXED' ? formatPKR(rule.discountValue) + ' OFF' : 'BOGO'}
               </span>
             </div>
@@ -268,7 +268,7 @@ function RuleCard({ rule, isActiveNow, onEdit, onToggle, onDelete }: {
             {rule.orderModes?.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {rule.orderModes.map((m) => (
-                  <span key={m} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300 text-[9px] font-extrabold uppercase">
+                  <span key={m} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300 text-[0.625rem] font-extrabold uppercase">
                     {ORDER_MODES.find((om) => om.value === m)?.label || m}
                   </span>
                 ))}
@@ -278,11 +278,11 @@ function RuleCard({ rule, isActiveNow, onEdit, onToggle, onDelete }: {
             {/* Stats */}
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2">
-                <div className="text-[9px] uppercase font-extrabold text-slate-500">Total Usage</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Total Usage</div>
                 <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{rule.totalUsage}</div>
               </div>
               <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2">
-                <div className="text-[9px] uppercase font-extrabold text-emerald-700">Customer Saved</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Customer Saved</div>
                 <div className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(rule.totalSaved)}</div>
               </div>
             </div>
@@ -385,7 +385,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
       <div className="p-5 space-y-5 max-h-[80vh] overflow-y-auto">
         {/* Basic */}
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Rule Name *</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Rule Name *</label>
           <input
             autoFocus
             value={form.name}
@@ -396,7 +396,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Description</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Description</label>
           <input
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -410,7 +410,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
           <div className="text-sm font-extrabold text-slate-900 dark:text-white">Discount</div>
 
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Discount Type</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Discount Type</label>
             <div className="grid grid-cols-3 gap-2">
               {DISCOUNT_TYPES.map((t) => {
                 const Icon = t.icon;
@@ -426,7 +426,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
                     }
                   >
                     <Icon className="h-5 w-5 text-rose-600 mx-auto mb-1" />
-                    <div className="text-[10px] font-extrabold text-slate-700 dark:text-slate-300">{t.label}</div>
+                    <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300">{t.label}</div>
                   </button>
                 );
               })}
@@ -435,7 +435,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
 
           {form.discountType !== 'BUY_ONE_GET_ONE' && (
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-rose-700 mb-1 block">
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-rose-700 mb-1 block">
                 Discount Value {form.discountType === 'PERCENTAGE' ? '(%)' : '(Rs)'} *
               </label>
               <input
@@ -451,7 +451,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
 
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Min Order Amount (Rs)</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Min Order Amount (Rs)</label>
               <input
                 type="number"
                 value={form.minOrderAmount}
@@ -461,7 +461,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
               />
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Max Discount (Rs)</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Max Discount (Rs)</label>
               <input
                 type="number"
                 value={form.maxDiscount}
@@ -479,7 +479,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Start Time *</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Start Time *</label>
               <input
                 type="time"
                 value={form.startTime}
@@ -488,7 +488,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
               />
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">End Time *</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">End Time *</label>
               <input
                 type="time"
                 value={form.endTime}
@@ -499,7 +499,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Days of Week (empty = all days)</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Days of Week (empty = all days)</label>
             <div className="grid grid-cols-7 gap-1">
               {DAYS.map((day) => {
                 const active = form.daysOfWeek.includes(day.i);
@@ -523,7 +523,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
 
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Valid From (date)</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Valid From (date)</label>
               <input
                 type="date"
                 value={form.validFrom}
@@ -532,7 +532,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
               />
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Valid To (date)</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Valid To (date)</label>
               <input
                 type="date"
                 value={form.validTo}
@@ -545,7 +545,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
 
         {/* Order Modes */}
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Applicable Order Modes (empty = all modes)</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Applicable Order Modes (empty = all modes)</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {ORDER_MODES.map((mode) => {
               const active = form.orderModes.includes(mode.value);

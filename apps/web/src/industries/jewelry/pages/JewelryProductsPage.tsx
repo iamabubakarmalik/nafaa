@@ -205,20 +205,20 @@ function ProductCard({ profile, onDelete }: any) {
 
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {profile.isFeatured && (
-            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase shadow">
+            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase shadow">
               <Star className="h-2 w-2 fill-current inline" /> Featured
             </span>
           )}
           {profile.isBridalCollection && (
-            <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[9px] font-extrabold uppercase shadow">👰 Bridal</span>
+            <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase shadow">👰 Bridal</span>
           )}
           {profile.hasDiamond && (
-            <span className="px-1.5 py-0.5 rounded bg-cyan-500 text-white text-[9px] font-extrabold uppercase shadow">
+            <span className="px-1.5 py-0.5 rounded bg-cyan-500 text-white text-[0.625rem] font-extrabold uppercase shadow">
               <Diamond className="h-2 w-2 inline" /> Diamond
             </span>
           )}
           {profile.hallmarkNumber && (
-            <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-extrabold uppercase shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase shadow inline-flex items-center gap-0.5">
               <ShieldCheck className="h-2 w-2" /> Hallmark
             </span>
           )}
@@ -230,7 +230,7 @@ function ProductCard({ profile, onDelete }: any) {
           </button>
         </div>
 
-        <div className="absolute bottom-2 right-2 rounded-lg bg-slate-900/70 backdrop-blur px-2 py-1 text-white text-[10px] font-extrabold">
+        <div className="absolute bottom-2 right-2 rounded-lg bg-slate-900/70 backdrop-blur px-2 py-1 text-white text-[0.6875rem] font-extrabold">
           {metal?.emoji} {purityLabel}
         </div>
       </div>
@@ -238,32 +238,32 @@ function ProductCard({ profile, onDelete }: any) {
       <div className="p-3 space-y-2">
         <div>
           <h3 className="font-extrabold text-sm text-slate-900 dark:text-white line-clamp-1">{product?.name}</h3>
-          {profile.itemCode && <div className="text-[10px] font-mono font-bold text-slate-500">{profile.itemCode}</div>}
-          <div className="text-[10px] font-extrabold uppercase text-amber-600">{category?.label}</div>
+          {profile.itemCode && <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{profile.itemCode}</div>}
+          <div className="text-[0.6875rem] font-extrabold uppercase text-amber-600">{category?.label}</div>
         </div>
 
         <div className="grid grid-cols-2 gap-1 text-xs">
           <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-1.5 text-center">
-            <div className="text-[9px] uppercase font-extrabold text-amber-700 flex items-center justify-center gap-0.5">
+            <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 flex items-center justify-center gap-0.5">
               <Scale className="h-2.5 w-2.5" /> Gross
             </div>
             <div className="text-sm font-extrabold text-amber-900 tabular-nums">{profile.grossWeight.toFixed(2)}g</div>
           </div>
           <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-1.5 text-center">
-            <div className="text-[9px] uppercase font-extrabold text-emerald-700">Net</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Net</div>
             <div className="text-sm font-extrabold text-emerald-800 tabular-nums">{profile.netWeight.toFixed(2)}g</div>
           </div>
         </div>
 
         {(profile.makingChargePct > 0 || profile.makingChargePerGram > 0) && (
-          <div className="text-[10px] font-bold text-slate-600">
+          <div className="text-[0.6875rem] font-bold text-slate-600">
             Making: {profile.makingChargePct > 0 && profile.makingChargePct + '%'}
             {profile.makingChargePerGram > 0 && ' Rs' + profile.makingChargePerGram + '/g'}
           </div>
         )}
 
         {profile.hasStones && profile.stoneCaret && (
-          <div className="text-[10px] font-bold text-cyan-700 inline-flex items-center gap-1">
+          <div className="text-[0.6875rem] font-bold text-cyan-700 inline-flex items-center gap-1">
             <Diamond className="h-2.5 w-2.5" />
             {profile.stoneCaret}ct • {profile.stoneCount} stones
           </div>
@@ -272,11 +272,11 @@ function ProductCard({ profile, onDelete }: any) {
         <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
           <div>
             <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">{formatPKR(product?.price ?? 0)}</div>
-            <div className="text-[9px] font-bold text-slate-500 mt-0.5">Estimated</div>
+            <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">Estimated</div>
           </div>
           {profile.totalSold > 0 && (
             <div className="text-right">
-              <div className="text-[10px] font-extrabold text-slate-500">Sold</div>
+              <div className="text-[0.6875rem] font-extrabold text-slate-500">Sold</div>
               <div className="text-xs font-extrabold text-slate-700 tabular-nums">{profile.totalSold}</div>
             </div>
           )}

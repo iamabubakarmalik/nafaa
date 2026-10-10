@@ -13,7 +13,7 @@ export function GymWizardSummary({ draft, stats, allValid }: Props) {
       <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-red-900 to-orange-700 text-white p-5 shadow-xl overflow-hidden relative">
         <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-red-400/20 blur-2xl" />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-extrabold border border-white/20">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold border border-white/20">
             {allValid ? <><CheckCircle2 className="h-3 w-3 text-emerald-300" /> Ready to Save</>
               : <><AlertTriangle className="h-3 w-3 text-amber-300" /> Draft in Progress</>}
           </div>
@@ -33,7 +33,7 @@ export function GymWizardSummary({ draft, stats, allValid }: Props) {
       )}
 
       <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-2.5">
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
           <Activity className="h-3 w-3" /> Body Stats
         </div>
         {stats.bmi > 0 && (
@@ -48,7 +48,7 @@ export function GymWizardSummary({ draft, stats, allValid }: Props) {
       </div>
 
       <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-2">
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
           <Target className="h-3 w-3" /> Goals & Schedule
         </div>
         <Row label="Goals" value={stats.goalsCount + ' selected'} />
@@ -58,13 +58,13 @@ export function GymWizardSummary({ draft, stats, allValid }: Props) {
 
       {(stats.hasPhoto || stats.hasPlan) && (
         <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border-2 border-emerald-200 dark:border-emerald-800 p-3 space-y-1">
-          <div className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1">Ready</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1">Ready</div>
           {stats.hasPhoto && <div className="text-xs font-bold text-emerald-800">✓ Photo uploaded</div>}
           {stats.hasPlan && <div className="text-xs font-bold text-emerald-800">✓ Plan selected</div>}
         </div>
       )}
 
-      <div className="rounded-xl bg-slate-50 dark:bg-neutral-800/50 border border-slate-200 dark:border-neutral-700 p-2.5 text-[10px] text-slate-500 font-semibold text-center">
+      <div className="rounded-xl bg-slate-50 dark:bg-neutral-800/50 border border-slate-200 dark:border-neutral-700 p-2.5 text-[0.6875rem] text-slate-500 font-semibold text-center">
         💾 Draft auto-saves as you type
       </div>
     </aside>

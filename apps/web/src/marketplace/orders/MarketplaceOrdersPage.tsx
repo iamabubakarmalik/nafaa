@@ -82,7 +82,7 @@ export default function MarketplaceOrdersPage() {
               <ShoppingCart className="h-3.5 w-3.5" />
               Customer Orders
               {totalPending > 0 && (
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] animate-pulse">
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem] animate-pulse">
                   {totalPending} NEW
                 </span>
               )}
@@ -104,7 +104,7 @@ export default function MarketplaceOrdersPage() {
               <div key={status} className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <StatusIcon className="h-3 w-3 opacity-80" />
-                  <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">
+                  <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">
                     {status.replace(/_/g, ' ')}
                   </div>
                 </div>
@@ -133,7 +133,7 @@ export default function MarketplaceOrdersPage() {
               }`}
             >
               {tab.label}
-              <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black ${
+              <span className={`px-1.5 py-0.5 rounded-full text-[0.625rem] font-black ${
                 isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
               }`}>
                 {tabCount}
@@ -235,11 +235,11 @@ function OrderCard({ order, onAccept, onReject, isPending }: any) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-black text-slate-900">#{order.orderNumber}</span>
-            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${meta.color}`}>
+            <span className={`text-[0.6875rem] font-black px-2 py-0.5 rounded-full ${meta.color}`}>
               {meta.label}
             </span>
             {isNewOrder && (
-              <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500 text-white animate-pulse">
+              <span className="text-[0.625rem] font-black px-2 py-0.5 rounded-full bg-amber-500 text-white animate-pulse">
                 NEW
               </span>
             )}
@@ -250,7 +250,7 @@ function OrderCard({ order, onAccept, onReject, isPending }: any) {
         </div>
         <div className="text-right">
           <div className="font-black text-lg text-emerald-700 tabular-nums">Rs {formatPKR(order.total)}</div>
-          <div className={`text-[10px] font-black px-1.5 py-0.5 rounded ${payMeta.bg} ${payMeta.color}`}>
+          <div className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${payMeta.bg} ${payMeta.color}`}>
             {order.paymentMethod} · {payMeta.label}
           </div>
         </div>
@@ -302,16 +302,16 @@ function OrderCard({ order, onAccept, onReject, isPending }: any) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-slate-900 truncate">{item.productName}</div>
-                    {item.variantName && <div className="text-[10px] text-slate-500 font-medium">{item.variantName}</div>}
+                    {item.variantName && <div className="text-[0.6875rem] text-slate-500 font-medium">{item.variantName}</div>}
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-black tabular-nums">×{item.quantity}</div>
-                    <div className="text-[10px] text-slate-500 font-bold">Rs {formatPKR(item.total)}</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">Rs {formatPKR(item.total)}</div>
                   </div>
                 </div>
               ))}
               {order.items.length > 3 && (
-                <div className="text-[10px] text-slate-500 font-bold text-center pt-1">
+                <div className="text-[0.6875rem] text-slate-500 font-bold text-center pt-1">
                   +{order.items.length - 3} more items
                 </div>
               )}

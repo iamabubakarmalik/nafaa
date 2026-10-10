@@ -181,7 +181,7 @@ export default function NewOrderPage() {
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                   <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                   New Order
                 </div>
@@ -209,7 +209,7 @@ export default function NewOrderPage() {
                   }
                 >
                   <Icon className="h-4 w-4 mx-auto mb-1" />
-                  <div className="text-[10px] font-extrabold">{m.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
                 </button>
               );
             })}
@@ -258,12 +258,12 @@ export default function NewOrderPage() {
                       </div>
                     )}
                     {mi.isSpicy && (
-                      <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-red-600 text-white text-[8px] font-extrabold inline-flex items-center gap-0.5">
+                      <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-red-600 text-white text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                         <Flame className="h-2 w-2" />
                       </div>
                     )}
                     {mi.prepTimeMinutes && (
-                      <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-900/80 text-white text-[8px] font-extrabold inline-flex items-center gap-0.5">
+                      <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-900/80 text-white text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                         <Clock className="h-2 w-2" />
                         {mi.prepTimeMinutes}m
                       </div>
@@ -285,13 +285,13 @@ export default function NewOrderPage() {
         <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white shrink-0 px-5 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Order Cart</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Order Cart</div>
               <div className="text-2xl font-extrabold tabular-nums">{cart.length} items</div>
             </div>
             {cart.length > 0 && (
               <button
                 onClick={() => setCart([])}
-                className="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-rose-500/40 text-[11px] font-extrabold"
+                className="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-rose-500/40 text-[0.6875rem] font-extrabold"
               >
                 Clear
               </button>
@@ -304,7 +304,7 @@ export default function NewOrderPage() {
           {mode === 'DINE_IN' && (
             <>
               <div>
-                <label className="text-[9px] uppercase tracking-wider font-extrabold text-slate-600 block mb-1">Table *</label>
+                <label className="text-[0.625rem] uppercase tracking-wider font-extrabold text-slate-600 block mb-1">Table *</label>
                 <select
                   value={tableId}
                   onChange={(e) => setTableId(e.target.value)}
@@ -319,7 +319,7 @@ export default function NewOrderPage() {
                 </select>
               </div>
               <div>
-                <label className="text-[9px] uppercase tracking-wider font-extrabold text-slate-600 block mb-1">Number of Guests</label>
+                <label className="text-[0.625rem] uppercase tracking-wider font-extrabold text-slate-600 block mb-1">Number of Guests</label>
                 <input
                   type="number"
                   min="1"
@@ -335,7 +335,7 @@ export default function NewOrderPage() {
             <>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[9px] uppercase font-extrabold text-slate-600 block mb-1">Customer Name</label>
+                  <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 block mb-1">Customer Name</label>
                   <input
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
@@ -344,7 +344,7 @@ export default function NewOrderPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[9px] uppercase font-extrabold text-slate-600 block mb-1">Phone</label>
+                  <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 block mb-1">Phone</label>
                   <input
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
@@ -357,7 +357,7 @@ export default function NewOrderPage() {
               {mode === 'DELIVERY' && (
                 <>
                   <div>
-                    <label className="text-[9px] uppercase font-extrabold text-slate-600 block mb-1">Delivery Address *</label>
+                    <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 block mb-1">Delivery Address *</label>
                     <textarea
                       rows={2}
                       value={deliveryAddress}
@@ -367,7 +367,7 @@ export default function NewOrderPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-[9px] uppercase font-extrabold text-slate-600 block mb-1">Delivery Notes</label>
+                    <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 block mb-1">Delivery Notes</label>
                     <input
                       value={deliveryNotes}
                       onChange={(e) => setDeliveryNotes(e.target.value)}
@@ -381,7 +381,7 @@ export default function NewOrderPage() {
           )}
 
           <div>
-            <label className="text-[9px] uppercase font-extrabold text-slate-600 block mb-1">Special Requests</label>
+            <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 block mb-1">Special Requests</label>
             <input
               value={specialRequests}
               onChange={(e) => setSpecialRequests(e.target.value)}
@@ -495,7 +495,7 @@ function CartLine({ item, onQty, onRemove, onInstruction }: {
           {item.selectedModifiers.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
               {item.selectedModifiers.map((m: any, i: number) => (
-                <span key={i} className="px-1.5 py-0.5 rounded bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[9px] font-extrabold">
+                <span key={i} className="px-1.5 py-0.5 rounded bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[0.625rem] font-extrabold">
                   {m.optionName}
                   {m.priceAdjustment !== 0 && ' (' + (m.priceAdjustment > 0 ? '+' : '') + formatPKR(m.priceAdjustment) + ')'}
                 </span>
@@ -503,7 +503,7 @@ function CartLine({ item, onQty, onRemove, onInstruction }: {
             </div>
           )}
           {item.specialInstructions && (
-            <div className="mt-1 text-[10px] italic text-amber-700 dark:text-amber-400">📝 {item.specialInstructions}</div>
+            <div className="mt-1 text-[0.6875rem] italic text-amber-700 dark:text-amber-400">📝 {item.specialInstructions}</div>
           )}
         </div>
         <button onClick={onRemove} className="h-7 w-7 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
@@ -519,7 +519,7 @@ function CartLine({ item, onQty, onRemove, onInstruction }: {
         </div>
         <button
           onClick={() => setShowNote(!showNote)}
-          className="text-[10px] font-extrabold text-blue-600 hover:text-blue-700"
+          className="text-[0.6875rem] font-extrabold text-blue-600 hover:text-blue-700"
         >
           <MessageSquare className="h-3 w-3 inline mr-0.5" />
           {showNote ? 'Hide' : 'Note'}
@@ -589,7 +589,7 @@ function ModifierPicker({ menuItem, onConfirm, onClose }: {
       <div className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-gradient-to-br from-slate-950 via-orange-900 to-red-700 text-white flex items-center justify-between">
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Customize</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Customize</div>
             <h3 className="font-extrabold text-lg">{menuItem.product?.name}</h3>
           </div>
           <button onClick={onClose} className="h-9 w-9 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
@@ -605,12 +605,12 @@ function ModifierPicker({ menuItem, onConfirm, onClose }: {
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <div className="font-extrabold text-slate-900 dark:text-white text-sm">{g.name}</div>
-                    <div className="text-[10px] text-slate-500 font-bold">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">
                       {g.isRequired ? 'Required' : 'Optional'} • Choose {g.minSelections}-{g.maxSelections}
                     </div>
                   </div>
                   <span className={
-                    'px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ' +
+                    'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ' +
                     (g.isRequired ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600')
                   }>
                     {sel.length}/{g.maxSelections}

@@ -151,9 +151,9 @@ function QuotationCard({ q }: any) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{q.quotationNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
-              {q.revisionNumber > 1 && <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase">Rev {q.revisionNumber}</span>}
-              {isExpiring && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">Expires in {daysLeft}d</span>}
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
+              {q.revisionNumber > 1 && <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">Rev {q.revisionNumber}</span>}
+              {isExpiring && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">Expires in {daysLeft}d</span>}
             </div>
             <div className="mt-1 text-sm font-bold text-slate-900 dark:text-white">{q.customerName}</div>
             <div className="text-xs text-slate-500 font-semibold">
@@ -164,7 +164,7 @@ function QuotationCard({ q }: any) {
         </div>
         <div className="text-right shrink-0">
           <div className="text-xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(q.total)}</div>
-          <div className="text-[10px] font-bold text-slate-500">Valid till {format(new Date(q.validUntil), 'dd MMM')}</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500">Valid till {format(new Date(q.validUntil), 'dd MMM')}</div>
         </div>
       </div>
     </Link>

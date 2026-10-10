@@ -355,7 +355,7 @@ export default function ServiceRequestsPage() {
                   }`}
                 >
                   <Filter className="h-4 w-4" /> <span className="hidden sm:inline">Filters</span>
-                  {hasFilters && <span className="h-5 w-5 rounded-full bg-cyan-600 text-white text-[10px] font-bold flex items-center justify-center">!</span>}
+                  {hasFilters && <span className="h-5 w-5 rounded-full bg-cyan-600 text-white text-[0.6875rem] font-bold flex items-center justify-center">!</span>}
                 </button>
                 <button
                   onClick={() => { setUnpaidOnly(!unpaidOnly); setPage(1); }}
@@ -373,7 +373,7 @@ export default function ServiceRequestsPage() {
               {showFilters && (
                 <Panel className="space-y-3">
                   <div>
-                    <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Halat</div>
+                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Halat</div>
                     <ChipRow
                       options={SERVICE_STATUS_ORDER.map((s) => ({
                         value: s, label: svcStatusMeta(s).label, emoji: svcStatusMeta(s).emoji,
@@ -383,7 +383,7 @@ export default function ServiceRequestsPage() {
                     />
                   </div>
                   <div>
-                    <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Kaam ki qism</div>
+                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Kaam ki qism</div>
                     <ChipRow
                       options={SERVICE_TYPE_ORDER.map((s) => ({
                         value: s, label: svcTypeMeta(s).label, emoji: svcTypeMeta(s).emoji,
@@ -393,7 +393,7 @@ export default function ServiceRequestsPage() {
                     />
                   </div>
                   <div>
-                    <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Priority</div>
+                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Priority</div>
                     <ChipRow
                       options={PRIORITY_ORDER.map((s) => ({
                         value: s, label: prioMeta(s).label, emoji: prioMeta(s).emoji,
@@ -515,18 +515,18 @@ function ServiceCard({ r, onOpen }: { r: ServiceRequest; onOpen: () => void }) {
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-mono text-[11px] font-extrabold text-cyan-700 dark:text-cyan-400">{r.requestNumber}</span>
+              <span className="font-mono text-[0.6875rem] font-extrabold text-cyan-700 dark:text-cyan-400">{r.requestNumber}</span>
               {r.priority !== 'NORMAL' && (
-                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black border ${pr.cls}`}>{pr.emoji} {pr.label}</span>
+                <span className={`px-1.5 py-0.5 rounded-md text-[0.625rem] font-black border ${pr.cls}`}>{pr.emoji} {pr.label}</span>
               )}
               {overdue && (
-                <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white">LATE</span>
+                <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-rose-600 text-white">LATE</span>
               )}
             </div>
             <h3 className="mt-1 font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
               {r.customerName}
             </h3>
-            <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+            <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
               <Phone className="h-3 w-3" /> {r.customerPhone}
               {r.city && <><span className="opacity-40">•</span><MapPin className="h-3 w-3" />{r.city}</>}
             </div>
@@ -535,20 +535,20 @@ function ServiceCard({ r, onOpen }: { r: ServiceRequest; onOpen: () => void }) {
         </div>
 
         <div className="mt-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
-          <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-slate-700 dark:text-slate-200">
+          <div className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200">
             <Package className="h-3.5 w-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
             <span className="truncate">{r.productName}</span>
-            <span className="ml-auto shrink-0 text-[10px] text-slate-500 dark:text-slate-400">{ty.emoji} {ty.label}</span>
+            <span className="ml-auto shrink-0 text-[0.6875rem] text-slate-500 dark:text-slate-400">{ty.emoji} {ty.label}</span>
           </div>
-          <p className="mt-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300 line-clamp-2">
+          <p className="mt-1 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 line-clamp-2">
             {r.reportedIssue}
           </p>
         </div>
 
         <div className="mt-2.5 grid grid-cols-2 gap-2">
           <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 px-2.5 py-1.5">
-            <div className="text-[9px] text-blue-700 dark:text-blue-400 font-extrabold uppercase tracking-wider">Technician</div>
-            <div className="text-[11px] font-extrabold text-blue-700 dark:text-blue-300 truncate">
+            <div className="text-[0.625rem] text-blue-700 dark:text-blue-400 font-extrabold uppercase tracking-wider">Technician</div>
+            <div className="text-[0.6875rem] font-extrabold text-blue-700 dark:text-blue-300 truncate">
               {r.technicianName || 'Abhi nahi laga'}
             </div>
           </div>
@@ -556,16 +556,16 @@ function ServiceCard({ r, onOpen }: { r: ServiceRequest; onOpen: () => void }) {
             due > 0 ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30'
               : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30'
           }`}>
-            <div className={`text-[9px] font-extrabold uppercase tracking-wider ${due > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
+            <div className={`text-[0.625rem] font-extrabold uppercase tracking-wider ${due > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
               {r.status === 'COMPLETED' ? (due > 0 ? 'Baqi' : 'Wusool') : 'Bill'}
             </div>
-            <div className={`text-[11px] font-extrabold tabular-nums ${due > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
+            <div className={`text-[0.6875rem] font-extrabold tabular-nums ${due > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
               {due > 0 ? formatPKR(due) : r.totalCharge > 0 ? formatPKR(r.totalCharge) : '—'}
             </div>
           </div>
         </div>
 
-        <div className="mt-2 flex items-center gap-2 flex-wrap text-[10px] font-bold text-slate-400 dark:text-slate-500">
+        <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
           <span className="inline-flex items-center gap-1"><CalendarDays className="h-3 w-3" />{fmtDate(r.requestedAt)}</span>
           {r.scheduledDate && (
             <span className={`inline-flex items-center gap-1 ${overdue ? 'text-rose-600 dark:text-rose-400' : ''}`}>
@@ -586,13 +586,13 @@ function ServiceCard({ r, onOpen }: { r: ServiceRequest; onOpen: () => void }) {
       <div className="px-3 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between gap-2">
         <button
           onClick={(e) => { e.stopPropagation(); waMsg(); }}
-          className="h-8 px-2.5 rounded-lg bg-green-100 dark:bg-green-500/15 hover:bg-green-200 dark:hover:bg-green-500/25 text-green-700 dark:text-green-300 text-[10px] font-extrabold inline-flex items-center gap-1 transition"
+          className="h-8 px-2.5 rounded-lg bg-green-100 dark:bg-green-500/15 hover:bg-green-200 dark:hover:bg-green-500/25 text-green-700 dark:text-green-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
         >
           <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
         </button>
         <button
           onClick={onOpen}
-          className="h-8 px-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-extrabold inline-flex items-center gap-1 transition"
+          className="h-8 px-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
         >
           Kholein <ChevronRight className="h-3.5 w-3.5" />
         </button>
@@ -609,7 +609,7 @@ function TabBtn({ active, onClick, icon: Icon, label, badge }: any) {
       }`}>
       <Icon className="h-4 w-4" /> {label}
       {badge ? (
-        <span className={`px-1.5 rounded-full text-[9px] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700'}`}>{badge}</span>
+        <span className={`px-1.5 rounded-full text-[0.625rem] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700'}`}>{badge}</span>
       ) : null}
     </button>
   );
@@ -765,7 +765,7 @@ function NewServiceModal({ technicians, onClose, onCreated }: any) {
             </button>
           </div>
           {lookupNote && (
-            <div className="mt-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-2.5 text-[11px] font-bold text-slate-700 dark:text-slate-200 whitespace-pre-line">
+            <div className="mt-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-2.5 text-[0.6875rem] font-bold text-slate-700 dark:text-slate-200 whitespace-pre-line">
               {lookupNote}
             </div>
           )}
@@ -836,7 +836,7 @@ function NewServiceModal({ technicians, onClose, onCreated }: any) {
                     reportedIssue: f.reportedIssue.includes(p) ? f.reportedIssue : (f.reportedIssue ? `${f.reportedIssue}, ${p}` : p),
                     issueCategory: f.issueCategory || p,
                   }))}
-                  className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400 transition"
+                  className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400 transition"
                 >
                   + {p}
                 </button>
@@ -912,7 +912,7 @@ function ToggleRow({ on, onChange, icon, title, sub }: any) {
         {icon}
         <div className="min-w-0">
           <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{title}</div>
-          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate">{sub}</div>
+          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold truncate">{sub}</div>
         </div>
       </div>
       <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${on ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
@@ -1143,7 +1143,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
                   const nm = svcStatusMeta(n);
                   return (
                     <button key={n} onClick={() => statusMut.mutate(n)} disabled={statusMut.isPending}
-                      className={`h-10 px-3 rounded-xl border-2 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition disabled:opacity-50 ${nm.cls} hover:brightness-95`}>
+                      className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition disabled:opacity-50 ${nm.cls} hover:brightness-95`}>
                       {statusMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <span>{nm.emoji}</span>}
                       {nm.label}
                     </button>
@@ -1151,7 +1151,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
                 })}
                 {isOpen && (
                   <button onClick={() => setMode('cancel')}
-                    className="h-10 px-3 rounded-xl border-2 border-rose-200 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 text-[11px] font-extrabold inline-flex items-center gap-1.5 transition">
+                    className="h-10 px-3 rounded-xl border-2 border-rose-200 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 transition">
                     <Ban className="h-3.5 w-3.5" /> Cancel
                   </button>
                 )}
@@ -1179,12 +1179,12 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
               {(r.coveredUnderWarranty || r.coveredUnderAmc) && (
                 <div className="mt-2 flex gap-1.5 flex-wrap">
                   {r.coveredUnderWarranty && (
-                    <span className="px-2 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold inline-flex items-center gap-1">
+                    <span className="px-2 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                       <ShieldCheck className="h-3 w-3" /> Warranty me — dukaan ne bharaa
                     </span>
                   )}
                   {r.coveredUnderAmc && (
-                    <span className="px-2 py-1 rounded-lg bg-violet-100 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300 text-[10px] font-extrabold">
+                    <span className="px-2 py-1 rounded-lg bg-violet-100 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-extrabold">
                       📋 AMC {r.amcContractNumber || ''}
                     </span>
                   )}
@@ -1220,13 +1220,13 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
                 <Row label="Parts badle" value={r.partsReplaced.map((p: any) => p?.name ?? String(p)).join(', ')} />
               )}
               {r.requiresFollowUp && (
-                <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 text-[11px] font-bold text-amber-900 dark:text-amber-200">
+                <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
                   🔁 Dobara jana hai {r.followUpDate ? `— ${fmtDate(r.followUpDate)}` : ''}
                   {r.followUpReason ? <div className="font-semibold mt-0.5">{r.followUpReason}</div> : null}
                 </div>
               )}
               {r.customerRating ? (
-                <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-amber-600 dark:text-amber-400">
+                <div className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-amber-600 dark:text-amber-400">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star key={i} className={`h-3.5 w-3.5 ${i < r.customerRating! ? 'fill-current' : 'opacity-25'}`} />
                   ))}
@@ -1243,11 +1243,11 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
                   <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">{t.label}</div>
-                  <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 shrink-0">{fmtDateTime(t.at)}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 shrink-0">{fmtDateTime(t.at)}</div>
                 </div>
               ))}
               {r.completedAt && (
-                <div className="mt-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 p-2 text-[11px] font-extrabold text-emerald-700 dark:text-emerald-300 text-center">
+                <div className="mt-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 p-2 text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-300 text-center">
                   Kul waqt: {fmtDuration((new Date(r.completedAt).getTime() - new Date(r.requestedAt).getTime()) / 3_600_000)}
                 </div>
               )}
@@ -1261,15 +1261,15 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
                 {r.history.slice(0, 8).map((h) => (
                   <div key={h.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
                     <div className="min-w-0 flex-1">
-                      <div className="text-[11px] font-extrabold text-slate-800 dark:text-slate-100 truncate">
+                      <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-slate-100 truncate">
                         {h.productName} — {h.issueCategory || h.reportedIssue}
                       </div>
-                      <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                      <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
                         {h.requestNumber} • {fmtDate(h.requestedAt)}{h.technicianName ? ` • ${h.technicianName}` : ''}
                       </div>
                     </div>
                     <StatusBadge meta={svcStatusMeta(h.status)} size="xs" />
-                    <div className="text-[11px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0">
+                    <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0">
                       {formatPKR(h.totalCharge)}
                     </div>
                   </div>
@@ -1280,7 +1280,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
 
           {r.internalNotes && (
             <Panel icon={Pencil} title="Andaruni notes" hint="Customer ko nahi dikhte" tone="slate">
-              <pre className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 whitespace-pre-wrap font-sans">{r.internalNotes}</pre>
+              <pre className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 whitespace-pre-wrap font-sans">{r.internalNotes}</pre>
             </Panel>
           )}
         </div>
@@ -1307,7 +1307,7 @@ const THERMAL_CSS_INLINE = `
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</div>
       <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 whitespace-pre-wrap">{value}</div>
     </div>
   );
@@ -1322,7 +1322,7 @@ function MiniBox({ label, value, tone = 'slate' }: { label: string; value: strin
   };
   return (
     <div className={`rounded-xl border px-2.5 py-2 ${tones[tone]}`}>
-      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
       <div className="text-sm font-extrabold tabular-nums truncate">{value}</div>
     </div>
   );
@@ -1351,12 +1351,12 @@ function AssignForm({ technicians, current, defaultDate, defaultSlot, pending, o
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{t.name}</div>
-                  <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                     {t.employeeCode}{t.currentZone ? ` • ${t.currentZone}` : ''}
                     {t.avgRating ? ` • ⭐ ${Number(t.avgRating).toFixed(1)}` : ''}
                   </div>
                 </div>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold shrink-0 ${
+                <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold shrink-0 ${
                   (t.openJobs ?? 0) === 0
                     ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                     : (t.openJobs ?? 0) > 5
@@ -1457,7 +1457,7 @@ function CompleteForm({ request, pending, onCancel, onSubmit }: any) {
             <span className="tabular-nums text-cyan-300">{formatPKR(total)}</span>
           </div>
           {covered && (
-            <div className="mt-1 text-[10px] font-bold text-emerald-300">
+            <div className="mt-1 text-[0.6875rem] font-bold text-emerald-300">
               🛡️ Ye kaam {request.coveredUnderWarranty ? 'warranty' : 'AMC'} me hai — paisa 0 hi rahega
             </div>
           )}
@@ -1468,7 +1468,7 @@ function CompleteForm({ request, pending, onCancel, onSubmit }: any) {
             placeholder={String(covered ? 0 : total)}
             value={f.paidAmount} onChange={(e) => set('paidAmount', e.target.value)} />
           {due > 0 && !tooMuch && (
-            <div className="mt-1 text-[11px] font-extrabold text-rose-600 dark:text-rose-400">
+            <div className="mt-1 text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400">
               ⏳ {formatPKR(due)} udhaar reh jayega — baad me "Paisa Wusool" se darj kar sakte hain
             </div>
           )}
@@ -1503,7 +1503,7 @@ function CompleteForm({ request, pending, onCancel, onSubmit }: any) {
               </button>
             ))}
             {f.customerRating > 0 && (
-              <button type="button" onClick={() => set('customerRating', 0)} className="ml-1 text-[10px] font-extrabold text-slate-400 hover:text-rose-500">
+              <button type="button" onClick={() => set('customerRating', 0)} className="ml-1 text-[0.6875rem] font-extrabold text-slate-400 hover:text-rose-500">
                 hatao
               </button>
             )}
@@ -1566,7 +1566,7 @@ function PaymentForm({ due, pending, onCancel, onSubmit }: any) {
         <div className="flex gap-1.5 flex-wrap">
           {[due, Math.round(due / 2), 1000, 500].filter((v, i, a) => v > 0 && v <= due && a.indexOf(v) === i).map((v) => (
             <button key={v} type="button" onClick={() => setAmount(String(v))}
-              className="px-3 py-1.5 rounded-xl text-[11px] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400 transition">
+              className="px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400 transition">
               {v === due ? `Poora ${formatPKR(v)}` : formatPKR(v)}
             </button>
           ))}
@@ -1600,7 +1600,7 @@ function CancelForm({ pending, onCancel, onSubmit }: any) {
         <div className="flex gap-1.5 flex-wrap">
           {presets.map((p) => (
             <button key={p} type="button" onClick={() => setReason(p)}
-              className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-400 transition">
+              className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-400 transition">
               {p}
             </button>
           ))}
@@ -1652,10 +1652,10 @@ function ServiceAnalytics() {
     <div className="space-y-3 sm:space-y-4">
       {/* Range chips */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Arsa</span>
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Arsa</span>
         {[7, 30, 90, 365].map((d) => (
           <button key={d} onClick={() => setDays(d)}
-            className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border-2 transition ${
+            className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
               days === d ? 'bg-cyan-600 border-cyan-600 text-white shadow'
                 : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
             }`}>
@@ -1755,25 +1755,25 @@ function ServiceAnalytics() {
                           {t2.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <div className="text-[13px] font-extrabold text-slate-900 dark:text-white truncate">{t2.name}</div>
-                          <div className="text-[10px] font-bold text-slate-400">{t2.employeeCode}{t2.zone ? ` • ${t2.zone}` : ''}</div>
+                          <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate">{t2.name}</div>
+                          <div className="text-[0.6875rem] font-bold text-slate-400">{t2.employeeCode}{t2.zone ? ` • ${t2.zone}` : ''}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-3 py-2.5 text-center text-xs font-extrabold tabular-nums text-slate-700 dark:text-slate-200">{t2.totalJobs}</td>
                     <td className="px-3 py-2.5 text-center">
                       <span className="text-xs font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400">{t2.completed}</span>
-                      <div className="text-[9px] font-bold text-slate-400">{t2.completionRate.toFixed(0)}%</div>
+                      <div className="text-[0.625rem] font-bold text-slate-400">{t2.completionRate.toFixed(0)}%</div>
                     </td>
                     <td className="px-3 py-2.5 text-center">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
                         t2.open === 0 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                           : t2.open > 5 ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                           : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                       }`}>{t2.open}</span>
                     </td>
-                    <td className="px-3 py-2.5 text-center text-[11px] font-bold text-slate-600 dark:text-slate-300">{fmtDuration(t2.avgHours)}</td>
-                    <td className="px-3 py-2.5 text-center text-[11px] font-extrabold text-amber-600 dark:text-amber-400">
+                    <td className="px-3 py-2.5 text-center text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">{fmtDuration(t2.avgHours)}</td>
+                    <td className="px-3 py-2.5 text-center text-[0.6875rem] font-extrabold text-amber-600 dark:text-amber-400">
                       {t2.avgRating ? `⭐ ${t2.avgRating.toFixed(1)}` : '—'}
                     </td>
                     <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100 whitespace-nowrap">{formatPKR(t2.revenue)}</td>
@@ -1811,12 +1811,12 @@ function ServiceAnalytics() {
             <div className="space-y-1">
               {a.problemProducts.slice(0, 10).map((p, i) => (
                 <div key={p.productName} className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
-                  <span className={`h-6 w-6 rounded-lg text-[10px] font-extrabold flex items-center justify-center shrink-0 ${
+                  <span className={`h-6 w-6 rounded-lg text-[0.6875rem] font-extrabold flex items-center justify-center shrink-0 ${
                     i === 0 ? 'bg-rose-500 text-white' : i < 3 ? 'bg-orange-400 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                   }`}>{i + 1}</span>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{p.productName}</div>
-                    <div className="text-[10px] font-bold text-slate-400">
+                    <div className="text-[0.6875rem] font-bold text-slate-400">
                       {p.jobs} bar kharab{p.warrantyJobs > 0 ? ` • ${p.warrantyJobs} warranty me (dukaan ka nuqsan)` : ''}
                     </div>
                   </div>
@@ -1838,10 +1838,10 @@ function ServiceAnalytics() {
               {a.overdueJobs.map((j) => (
                 <div key={j.id} className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 px-2.5 py-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{j.customerName}</span>
-                    <span className="text-[10px] font-black text-rose-600 dark:text-rose-400 shrink-0">{j.daysLate} din late</span>
+                    <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{j.customerName}</span>
+                    <span className="text-[0.6875rem] font-black text-rose-600 dark:text-rose-400 shrink-0">{j.daysLate} din late</span>
                   </div>
-                  <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                     {j.requestNumber} • {j.productName}{j.technicianName ? ` • ${j.technicianName}` : ' • banda nahi laga'}
                   </div>
                 </div>
@@ -1861,12 +1861,12 @@ function ServiceAnalytics() {
                           : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
                 }`}>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{f.customerName}</span>
-                    <span className={`text-[10px] font-black shrink-0 ${f.isDue ? 'text-amber-700 dark:text-amber-400' : 'text-slate-400'}`}>
+                    <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{f.customerName}</span>
+                    <span className={`text-[0.6875rem] font-black shrink-0 ${f.isDue ? 'text-amber-700 dark:text-amber-400' : 'text-slate-400'}`}>
                       {fmtDate(f.followUpDate)}
                     </span>
                   </div>
-                  <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                     {f.productName}{f.followUpReason ? ` — ${f.followUpReason}` : ''}
                   </div>
                 </div>
@@ -1883,10 +1883,10 @@ function ServiceAnalytics() {
               {a.amcExpiring.map((c) => (
                 <div key={c.id} className="rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 px-2.5 py-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{c.customerName}</span>
-                    <span className="text-[10px] font-black text-violet-700 dark:text-violet-400 shrink-0">{c.daysLeft} din</span>
+                    <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{c.customerName}</span>
+                    <span className="text-[0.6875rem] font-black text-violet-700 dark:text-violet-400 shrink-0">{c.daysLeft} din</span>
                   </div>
-                  <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                     {c.contractNumber} • {c.visitsLeft} visit baqi{c.pending > 0 ? ` • ${formatPKR(c.pending)} udhaar` : ''}
                   </div>
                 </div>
@@ -1910,7 +1910,7 @@ function ServiceAnalytics() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{c.name}</div>
-                    <div className="text-[10px] font-bold text-slate-400">{c.phone} • {c.jobs} bar bulaya</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-400">{c.phone} • {c.jobs} bar bulaya</div>
                   </div>
                   <div className="text-xs font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400 shrink-0">{formatPKR(c.revenue)}</div>
                 </div>
@@ -1944,7 +1944,7 @@ function QualityBar({ label, value, hint, good }: { label: string; value: number
   return (
     <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-extrabold text-slate-600 dark:text-slate-300">{label}</span>
+        <span className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">{label}</span>
         <span className={`text-lg font-extrabold tabular-nums ${ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
           {value.toFixed(0)}%
         </span>
@@ -1955,15 +1955,15 @@ function QualityBar({ label, value, hint, good }: { label: string; value: number
           style={{ width: `${Math.min(value, 100)}%` }}
         />
       </div>
-      <div className="mt-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">{hint}</div>
-      <div className="text-[9px] font-bold text-slate-400 dark:text-slate-500">Acha: {good}% se upar</div>
+      <div className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{hint}</div>
+      <div className="text-[0.625rem] font-bold text-slate-400 dark:text-slate-500">Acha: {good}% se upar</div>
     </div>
   );
 }
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );

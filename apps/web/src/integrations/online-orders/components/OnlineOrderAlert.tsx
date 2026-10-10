@@ -152,7 +152,7 @@ export function OnlineOrderAlert() {
             <div className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 px-3 py-2 text-white">
               <BellRing className="h-4 w-4 animate-bounce" />
               <div className="flex-1 text-sm font-black">Naya online order!</div>
-              <span className="text-[11px] font-bold opacity-90">{src.emoji} {src.label}</span>
+              <span className="text-[0.6875rem] font-bold opacity-90">{src.emoji} {src.label}</span>
               <button onClick={() => dismiss(o.id)} className="rounded-md p-1 hover:bg-white/20" aria-label="Band karein">
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -193,7 +193,7 @@ export function OnlineOrderAlert() {
           </div>
         );
       })}
-      <div className="flex items-center justify-between rounded-xl bg-slate-900/90 px-3 py-1.5 text-[11px] font-bold text-white shadow-lg">
+      <div className="flex items-center justify-between rounded-xl bg-slate-900/90 px-3 py-1.5 text-[0.6875rem] font-bold text-white shadow-lg">
         <button onClick={() => { setQueue([]); navigate('/online-orders'); }} className="flex items-center gap-1 hover:underline">
           <ShoppingBag className="h-3.5 w-3.5" />
           {extra > 0 ? `+${extra} aur naye orders` : 'Sab online orders'}

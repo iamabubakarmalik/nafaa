@@ -311,7 +311,7 @@ export default function RestaurantSalesPage() {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" />Date Range</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" />Date Range</label>
             <div className="flex gap-1.5 overflow-x-auto pb-1">
               {([
                 { v: 'today', l: 'Today' }, { v: 'yesterday', l: 'Yesterday' },
@@ -327,11 +327,11 @@ export default function RestaurantSalesPage() {
             {dateFilter === 'custom' && (
               <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl bg-orange-50 border-2 border-orange-200 p-3">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-orange-700 mb-1 block">From Date</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-orange-700 mb-1 block">From Date</label>
                   <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="h-10 w-full rounded-lg border-2 border-orange-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-orange-700 mb-1 block">To Date</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-orange-700 mb-1 block">To Date</label>
                   <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="h-10 w-full rounded-lg border-2 border-orange-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
                 </div>
                 {customStart && customEnd && (
@@ -346,7 +346,7 @@ export default function RestaurantSalesPage() {
 
           {view === 'orders' && (
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Order Mode</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block">Order Mode</label>
               <div className="flex gap-1.5 overflow-x-auto pb-1">
                 <button onClick={() => setModeFilter('all')} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 ${modeFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>
                   <Sparkles className="h-3 w-3" /> All Modes
@@ -362,7 +362,7 @@ export default function RestaurantSalesPage() {
 
           {view === 'sales' && (
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Payment Method</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block">Payment Method</label>
               <div className="flex gap-1.5 overflow-x-auto pb-1">
                 <button onClick={() => setPaymentFilter('all')} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ${paymentFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>All Payments</button>
                 {Object.entries(paymentConfig).map(([k, cfg]) => (
@@ -401,10 +401,10 @@ export default function RestaurantSalesPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-mono font-extrabold text-slate-900">{order.orderNumber}</span>
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${statusColor}`}>{order.status}</span>
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${modeCfg.bg} ${modeCfg.color}`}>{modeCfg.label}</span>
-                              {order.table && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold inline-flex items-center gap-1"><TableIcon className="h-2.5 w-2.5" />Table {order.table.tableNumber}</span>}
-                              {order.kots?.length > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold">KOT: {order.kots[0].kotNumber}</span>}
+                              <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold uppercase ${statusColor}`}>{order.status}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold uppercase ${modeCfg.bg} ${modeCfg.color}`}>{modeCfg.label}</span>
+                              {order.table && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1"><TableIcon className="h-2.5 w-2.5" />Table {order.table.tableNumber}</span>}
+                              {order.kots?.length > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold">KOT: {order.kots[0].kotNumber}</span>}
                             </div>
                             <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2 flex-wrap">
                               <User className="h-3 w-3" />{order.customerName || 'Walk-in'}
@@ -412,16 +412,16 @@ export default function RestaurantSalesPage() {
                               <span>•</span><Package className="h-3 w-3" />{order.items?.length || 0} items
                               {order.numberOfGuests && <><span>•</span><Users className="h-3 w-3" />{order.numberOfGuests} guests</>}
                             </div>
-                            <div className="mt-1 text-[10px] text-slate-500 font-bold inline-flex items-center gap-1">
+                            <div className="mt-1 text-[0.6875rem] text-slate-500 font-bold inline-flex items-center gap-1">
                               <Clock className="h-2.5 w-2.5" />{formatDate(order.createdAt)}
                             </div>
-                            {order.specialRequests && <div className="mt-1.5 text-[11px] italic text-amber-700 inline-flex items-start gap-1"><MessageSquare className="h-3 w-3 mt-0.5" />{order.specialRequests}</div>}
+                            {order.specialRequests && <div className="mt-1.5 text-[0.6875rem] italic text-amber-700 inline-flex items-start gap-1"><MessageSquare className="h-3 w-3 mt-0.5" />{order.specialRequests}</div>}
                           </div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="text-2xl font-extrabold text-emerald-700 tabular-nums"><HiddenAmount value={formatPKR(order.total)} hidden={hideAmounts} /></div>
-                          {order.paidAmount < order.total && <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">Due: <HiddenAmount value={formatPKR(order.total - order.paidAmount)} hidden={hideAmounts} /></div>}
-                          <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-orange-600 group-hover:text-orange-700"><Eye className="h-3 w-3" />View Order<ArrowRight className="h-3 w-3" /></div>
+                          {order.paidAmount < order.total && <div className="text-[0.6875rem] text-amber-700 font-extrabold mt-0.5">Due: <HiddenAmount value={formatPKR(order.total - order.paidAmount)} hidden={hideAmounts} /></div>}
+                          <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-orange-600 group-hover:text-orange-700"><Eye className="h-3 w-3" />View Order<ArrowRight className="h-3 w-3" /></div>
                         </div>
                       </div>
                     </Link>
@@ -451,19 +451,19 @@ export default function RestaurantSalesPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-mono font-extrabold text-slate-900">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
-                              {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>}
+                              {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">VOIDED</span>}
                             </div>
                             <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2 flex-wrap">
                               <User className="h-3 w-3" />{sale.customer?.name || 'Walk-in'}
                               <span>•</span><Package className="h-3 w-3" />{sale.items.length} items
                             </div>
-                            <div className="mt-1 text-[10px] text-slate-500 inline-flex items-center gap-1"><Calendar className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
+                            <div className="mt-1 text-[0.6875rem] text-slate-500 inline-flex items-center gap-1"><Calendar className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="text-2xl font-extrabold text-emerald-700 tabular-nums"><HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} /></div>
-                          {sale.creditAmount > 0 && <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">Udhaar: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} /></div>}
-                          <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-orange-600 group-hover:text-orange-700"><Eye className="h-3 w-3" />Receipt<ArrowRight className="h-3 w-3" /></div>
+                          {sale.creditAmount > 0 && <div className="text-[0.6875rem] text-amber-700 font-extrabold mt-0.5">Udhaar: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} /></div>}
+                          <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-orange-600 group-hover:text-orange-700"><Eye className="h-3 w-3" />Receipt<ArrowRight className="h-3 w-3" /></div>
                         </div>
                       </div>
                     </Link>

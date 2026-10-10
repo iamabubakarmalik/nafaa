@@ -94,7 +94,7 @@ export default function ClinicCatalogPage() {
             >
               <ShoppingBag className="h-4 w-4" /> Cart
               {cart.totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
+                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
                   {cart.totalItems.toFixed(0)}
                 </span>
               )}
@@ -120,7 +120,7 @@ export default function ClinicCatalogPage() {
         </div>
 
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5">Categories</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5">Categories</div>
           <div className="flex gap-1.5 overflow-x-auto pb-1">
             <button onClick={() => setCategoryFilter('all')} className={'shrink-0 px-3 h-9 rounded-lg text-xs font-extrabold transition ' + (categoryFilter === 'all' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>
               All ({services.length})
@@ -155,7 +155,7 @@ export default function ClinicCatalogPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-amber-900 text-lg">Featured Services</h3>
-              <p className="text-[11px] text-amber-700 font-bold">Doctor's recommended</p>
+              <p className="text-[0.6875rem] text-amber-700 font-bold">Doctor's recommended</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -174,7 +174,7 @@ export default function ClinicCatalogPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-red-900 text-lg">Popular Services</h3>
-              <p className="text-[11px] text-red-700 font-bold">Most requested</p>
+              <p className="text-[0.6875rem] text-red-700 font-bold">Most requested</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -245,9 +245,9 @@ function ServiceCard({ service, compact = false, onClick, onDetail, wishlist }: 
         )}
 
         <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
-          {service.isFeatured && <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5"><Star className="h-2 w-2 fill-white" /> FT</span>}
-          {service.isPopular && <span className="px-1.5 py-0.5 rounded-md bg-red-500 text-white text-[9px] font-extrabold shadow">🔥 POP</span>}
-          {service.isDiscounted && <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold shadow">💰 SALE</span>}
+          {service.isFeatured && <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5"><Star className="h-2 w-2 fill-white" /> FT</span>}
+          {service.isPopular && <span className="px-1.5 py-0.5 rounded-md bg-red-500 text-white text-[0.625rem] font-extrabold shadow">🔥 POP</span>}
+          {service.isDiscounted && <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[0.625rem] font-extrabold shadow">💰 SALE</span>}
         </div>
 
         <div className="absolute top-1.5 right-1.5 flex flex-col gap-1">
@@ -258,7 +258,7 @@ function ServiceCard({ service, compact = false, onClick, onDetail, wishlist }: 
 
         {service.durationMin && (
           <div className="absolute bottom-1.5 right-1.5">
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
               <Clock className="h-2 w-2" /> {service.durationMin}m
             </span>
           </div>
@@ -267,7 +267,7 @@ function ServiceCard({ service, compact = false, onClick, onDetail, wishlist }: 
 
       <div className="p-2.5">
         {category && (
-          <div className="text-[9px] uppercase font-extrabold text-cyan-600 truncate">{category.emoji} {category.label}</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-cyan-600 truncate">{category.emoji} {category.label}</div>
         )}
         <h4 className={'font-extrabold text-slate-900 leading-tight ' + (compact ? 'text-xs line-clamp-2 min-h-[2rem]' : 'text-sm line-clamp-2 min-h-[2.25rem]')}>
           {p?.name}
@@ -323,10 +323,10 @@ function ServiceDetailModal({ service, onClose, onAdd, wishlist }: any) {
             )}
             <h2 className="text-2xl font-extrabold text-slate-900 mt-1">{p?.name}</h2>
             <div className="mt-2 flex flex-wrap gap-1">
-              {service.isFeatured && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold">⭐ Featured</span>}
-              {service.isPopular && <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-extrabold">🔥 Popular</span>}
-              {service.requiresAppointment && <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-extrabold">📅 Appointment</span>}
-              {service.requiresFasting && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold">🚫 Fasting</span>}
+              {service.isFeatured && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold">⭐ Featured</span>}
+              {service.isPopular && <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[0.6875rem] font-extrabold">🔥 Popular</span>}
+              {service.requiresAppointment && <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.6875rem] font-extrabold">📅 Appointment</span>}
+              {service.requiresFasting && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold">🚫 Fasting</span>}
             </div>
           </div>
 
@@ -338,7 +338,7 @@ function ServiceDetailModal({ service, onClose, onAdd, wishlist }: any) {
 
           {priceOptions.length > 1 && (
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">Pricing Tiers</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2">Pricing Tiers</div>
               <div className="grid grid-cols-2 gap-2">
                 {priceOptions.map((opt: any) => (
                   <div key={opt.key} className="p-3 rounded-xl border-2 border-slate-200 bg-white">
@@ -364,14 +364,14 @@ function ServiceDetailModal({ service, onClose, onAdd, wishlist }: any) {
 
           {service.prepInstructions && (
             <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-blue-700 mb-1">Pre-Service Instructions</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1">Pre-Service Instructions</div>
               <p className="text-sm text-slate-700 leading-relaxed">{service.prepInstructions}</p>
             </div>
           )}
 
           {service.packageIncludes && service.packageIncludes.length > 0 && (
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-violet-700 mb-2">Package Includes</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-2">Package Includes</div>
               <div className="grid grid-cols-2 gap-1.5">
                 {service.packageIncludes.map((item: string) => (
                   <div key={item} className="flex items-center gap-1.5 rounded-lg bg-violet-50 border border-violet-200 px-2 py-1.5">

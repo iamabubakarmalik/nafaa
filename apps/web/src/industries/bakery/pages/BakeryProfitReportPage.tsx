@@ -209,7 +209,7 @@ export default function BakeryProfitReportPage() {
         <div className="relative">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
                 <TrendingUp className="h-3.5 w-3.5 text-emerald-300" /> Bakery · Munafa
               </div>
               <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">💰 Kis Cheez Se Kya Bana</h1>
@@ -271,20 +271,20 @@ export default function BakeryProfitReportPage() {
             <h3 className="font-black text-amber-900 dark:text-amber-200">Ye hisab kharab kar rahe hain</h3>
           </div>
           {problems.noCost > 0 && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>{problems.noCost}</strong> cheezon ki cost 0 hai — in ka munafa poora dikh
               raha hai, jo sach nahi.
             </p>
           )}
           {problems.costGap > 0 && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>{problems.costGap}</strong> cheezon me form wali cost aur recipe ka kharcha
               alag hai. Aksar iska matlab hai maida ya makkhan mehnga ho gaya aur rate purana chal
               raha hai — ab tak <strong>{formatPKR(problems.hiddenLoss)}</strong> ka chupa nuqsaan.
             </p>
           )}
           {problems.losing > 0 && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>{problems.losing}</strong> cheezein nuqsaan par bik rahi hain.
             </p>
           )}
@@ -433,7 +433,7 @@ function ProfitRow({ r }: { r: any }) {
             className="block truncate font-extrabold text-sm text-slate-900 dark:text-white hover:text-emerald-600">
             {r.name}
           </Link>
-          <div className="text-[11px] font-bold text-slate-400 truncate">
+          <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
             {r.categoryName ? `${r.categoryName} · ` : ''}{r.quantitySold} {r.unit} bika · {r.ordersCount} bill
           </div>
         </div>
@@ -442,7 +442,7 @@ function ProfitRow({ r }: { r: any }) {
           <div className={`text-lg font-black tabular-nums ${losing ? 'text-rose-600' : 'text-emerald-600 dark:text-emerald-400'}`}>
             {formatPKR(profit)}
           </div>
-          <div className="text-[10px] font-bold text-slate-400 tabular-nums">
+          <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
             {Number(r.margin).toFixed(1)}% · bikri {formatPKR(r.revenue)}
           </div>
         </div>
@@ -451,7 +451,7 @@ function ProfitRow({ r }: { r: any }) {
       {(r.noCost || r.costGap > 0) && (
         <div className="mt-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 flex gap-2">
           <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-          <p className="text-[11px] font-bold text-amber-900 dark:text-amber-200">
+          <p className="text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
             {r.noCost
               ? 'Is ki cost bhari hi nahi — ye munafa sirf kaghazi hai.'
               : <>Recipe ka kharcha <strong>{formatPKR(r.recipeCost)}</strong> hai, magar hisab{' '}
@@ -482,9 +482,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
       }`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -553,8 +553,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             banana band karna hai.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
@@ -575,8 +575,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

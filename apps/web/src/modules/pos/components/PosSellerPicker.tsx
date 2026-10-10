@@ -58,7 +58,7 @@ export function PosSellerPicker({
 
   return (
     <div className={compact ? '' : 'mt-2'}>
-      <label className="block mb-1 text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <label className="block mb-1 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
         Bikri kis ke naam
       </label>
       <div className="relative">
@@ -91,12 +91,12 @@ export function PosSellerPicker({
         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
       </div>
       {!isMe && chosen && (
-        <p className="mt-1 text-[11px] font-black text-emerald-700 dark:text-emerald-400">
+        <p className="mt-1 text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400">
           Is bill ki commission <strong>{chosen.name}</strong> ko jayegi
         </p>
       )}
       {isMe && !meSeller && (
-        <p className="mt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
           Aap par commission chaalu nahi — is bill ki koi commission nahi banegi
         </p>
       )}

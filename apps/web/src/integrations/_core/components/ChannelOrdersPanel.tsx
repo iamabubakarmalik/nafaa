@@ -94,7 +94,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
         <button
           onClick={() => setFilterStatus(null)}
           className={cn(
-            'px-2.5 py-1 rounded-full text-[11px] font-bold transition',
+            'px-2.5 py-1 rounded-full text-[0.6875rem] font-bold transition',
             !filterStatus ? 'bg-slate-700 text-white' : 'bg-slate-100 dark:bg-neutral-800 text-slate-500',
           )}
         >
@@ -107,7 +107,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
               key={status}
               onClick={() => setFilterStatus(status)}
               className={cn(
-                'px-2.5 py-1 rounded-full text-[11px] font-bold transition flex items-center gap-1',
+                'px-2.5 py-1 rounded-full text-[0.6875rem] font-bold transition flex items-center gap-1',
                 filterStatus === status
                   ? 'bg-slate-700 text-white'
                   : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 hover:bg-slate-200',
@@ -157,7 +157,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
                       <div className="font-black text-sm text-slate-900 dark:text-white">
                         Order #{order.externalOrderNumber ?? order.externalOrderId}
                       </div>
-                      <div className="text-[10px] text-slate-500 font-bold">
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">
                         {order.integration?.displayName} · {new Date(order.receivedAt).toLocaleString('en-PK', {
                           day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
                         })}
@@ -173,18 +173,18 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
                 {/* Customer info */}
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div className="p-2 rounded-lg bg-slate-50 dark:bg-neutral-800/50">
-                    <div className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5">Customer</div>
+                    <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5">Customer</div>
                     <div className="text-xs font-bold text-slate-900 dark:text-white">{order.customerName}</div>
                     {order.customerPhone && (
-                      <div className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                      <div className="text-[0.6875rem] text-slate-500 flex items-center gap-1 mt-0.5">
                         <Phone className="h-2.5 w-2.5" /> {order.customerPhone}
                       </div>
                     )}
                   </div>
                   <div className="p-2 rounded-lg bg-slate-50 dark:bg-neutral-800/50">
-                    <div className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5">Delivery</div>
+                    <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5">Delivery</div>
                     {order.customerAddress && (
-                      <div className="text-[10px] text-slate-600 dark:text-slate-400 flex items-start gap-1">
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 flex items-start gap-1">
                         <MapPin className="h-2.5 w-2.5 shrink-0 mt-0.5" />
                         <span className="line-clamp-2">{order.customerAddress}, {order.customerCity}</span>
                       </div>
@@ -194,7 +194,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
 
                 {/* Items */}
                 <div className="mb-3">
-                  <div className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">Items</div>
+                  <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">Items</div>
                   <div className="space-y-1">
                     {(order.items as any[]).slice(0, 4).map((item, i) => (
                       <div key={i} className="flex items-center justify-between text-xs">
@@ -205,7 +205,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
                       </div>
                     ))}
                     {(order.items as any[]).length > 4 && (
-                      <div className="text-[10px] text-slate-400 font-bold">
+                      <div className="text-[0.6875rem] text-slate-400 font-bold">
                         +{(order.items as any[]).length - 4} more items
                       </div>
                     )}
@@ -217,7 +217,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
                   <div className="text-xs font-bold text-slate-500">
                     Payment: <span className="text-slate-900 dark:text-white">{order.paymentMethod ?? 'COD'}</span>
                     <span className={cn(
-                      'ml-2 px-1.5 py-0.5 rounded text-[9px] font-black',
+                      'ml-2 px-1.5 py-0.5 rounded text-[0.625rem] font-black',
                       order.paymentStatus === 'PAID' ? 'bg-success-100 text-success-700' : 'bg-amber-100 text-amber-700',
                     )}>
                       {order.paymentStatus}

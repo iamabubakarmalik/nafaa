@@ -372,29 +372,29 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
               </div>
             )}
             {!t.isActive && (
-              <div className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-slate-600 text-white text-[8px] font-black shadow">BAND</div>
+              <div className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-slate-600 text-white text-[0.625rem] font-black shadow">BAND</div>
             )}
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{t.name}</h3>
-            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
               {t.employeeCode}{t.experienceYears ? ` • ${t.experienceYears} saal tajurba` : ''}
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
+            <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
               <Phone className="h-3 w-3" /> {t.phone}
             </div>
             {t.currentZone && (
-              <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+              <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
                 <MapPin className="h-3 w-3" /> {t.currentZone}
               </div>
             )}
           </div>
           {t.avgRating ? (
             <div className="shrink-0 text-right">
-              <div className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-extrabold">
+              <div className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.6875rem] font-extrabold">
                 <Star className="h-3 w-3 fill-current" /> {t.avgRating.toFixed(1)}
               </div>
-              <div className="text-[9px] font-bold text-slate-400 mt-0.5">{t.totalReviews} raye</div>
+              <div className="text-[0.625rem] font-bold text-slate-400 mt-0.5">{t.totalReviews} raye</div>
             </div>
           ) : null}
         </div>
@@ -406,7 +406,7 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
             : 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30'
         }`}>
           <div className="flex items-center justify-between">
-            <span className={`text-[11px] font-extrabold ${
+            <span className={`text-[0.6875rem] font-extrabold ${
               load === 'free' ? 'text-emerald-700 dark:text-emerald-300'
                 : load === 'heavy' ? 'text-rose-700 dark:text-rose-300'
                 : 'text-amber-700 dark:text-amber-300'
@@ -416,7 +416,7 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
             <span className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-white">{open}</span>
           </div>
           {open > 0 && (
-            <div className="mt-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+            <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               {t.openServices ?? 0} repair • {t.openInstallations ?? 0} installation
             </div>
           )}
@@ -425,10 +425,10 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
         {(t.specializations ?? []).length > 0 && (
           <div className="mt-2 flex gap-1 flex-wrap">
             {t.specializations.slice(0, 4).map((s) => (
-              <span key={s} className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold">{s}</span>
+              <span key={s} className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold">{s}</span>
             ))}
             {t.specializations.length > 4 && (
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 text-[10px] font-extrabold">+{t.specializations.length - 4}</span>
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 text-[0.6875rem] font-extrabold">+{t.specializations.length - 4}</span>
             )}
           </div>
         )}
@@ -453,7 +453,7 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
         </div>
         <div className="flex items-center gap-1">
           <Link to={`/appliances/technicians/${t.id}`}
-            className="h-8 px-2.5 rounded-lg bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-[10px] font-extrabold inline-flex items-center gap-1 transition">
+            className="h-8 px-2.5 rounded-lg bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
             Detail <ChevronRight className="h-3 w-3" />
           </Link>
           <button onClick={(e) => { e.preventDefault(); onEdit(); }}
@@ -475,9 +475,9 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
 function MiniStat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 px-2 py-1.5">
-      <div className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
-      <div className="text-[11px] font-extrabold tabular-nums text-slate-800 dark:text-slate-100 truncate">{value}</div>
-      {sub && <div className="text-[9px] font-bold text-slate-400 truncate">{sub}</div>}
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-800 dark:text-slate-100 truncate">{value}</div>
+      {sub && <div className="text-[0.625rem] font-bold text-slate-400 truncate">{sub}</div>}
     </div>
   );
 }
@@ -516,13 +516,13 @@ function TechTable({ rows, onEdit, onRemove }: {
                         t.isActive ? 'bg-gradient-to-br from-cyan-500 to-teal-600' : 'bg-slate-400'
                       }`}>{t.name.charAt(0).toUpperCase()}</div>
                       <div className="min-w-0">
-                        <div className="text-[13px] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{t.name}</div>
-                        <div className="text-[10px] font-bold text-slate-400">{t.employeeCode}{t.currentZone ? ` • ${t.currentZone}` : ''}</div>
+                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{t.name}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-400">{t.employeeCode}{t.currentZone ? ` • ${t.currentZone}` : ''}</div>
                       </div>
                     </Link>
                   </td>
                   <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">{t.phone}</td>
-                  <td className="px-3 py-2.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 max-w-[180px] truncate">
+                  <td className="px-3 py-2.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 max-w-[180px] truncate">
                     {(t.specializations ?? []).slice(0, 3).join(', ') || '—'}
                   </td>
                   <td className="px-3 py-2.5 text-center">
@@ -534,9 +534,9 @@ function TechTable({ rows, onEdit, onRemove }: {
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     <div className="text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{t.completedJobs}</div>
-                    <div className="text-[9px] font-bold text-slate-400">{(t.completionRate ?? 0).toFixed(0)}%</div>
+                    <div className="text-[0.625rem] font-bold text-slate-400">{(t.completionRate ?? 0).toFixed(0)}%</div>
                   </td>
-                  <td className="px-3 py-2.5 text-center text-[11px] font-extrabold text-amber-600 dark:text-amber-400">
+                  <td className="px-3 py-2.5 text-center text-[0.6875rem] font-extrabold text-amber-600 dark:text-amber-400">
                     {t.avgRating ? `⭐ ${t.avgRating.toFixed(1)}` : '—'}
                   </td>
                   <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100 whitespace-nowrap">{formatPKR(t.totalRevenue)}</td>
@@ -571,7 +571,7 @@ function TechTable({ rows, onEdit, onRemove }: {
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -632,27 +632,27 @@ function TechPerformance({ summary, leaderChart }: any) {
                 {rows.map((l: any, i: number) => (
                   <tr key={l.id} className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${!l.isActive ? 'opacity-60' : ''}`}>
                     <td className="px-3 py-2.5">
-                      <span className={`h-6 w-6 rounded-lg text-[10px] font-extrabold flex items-center justify-center ${
+                      <span className={`h-6 w-6 rounded-lg text-[0.6875rem] font-extrabold flex items-center justify-center ${
                         i === 0 ? 'bg-amber-500 text-white' : i === 1 ? 'bg-slate-400 text-white' : i === 2 ? 'bg-orange-500 text-white'
                           : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                       }`}>{i + 1}</span>
                     </td>
                     <td className="px-3 py-2.5">
                       <Link to={`/appliances/technicians/${l.id}`} className="group">
-                        <div className="text-[13px] font-extrabold text-slate-900 dark:text-white group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{l.name}</div>
-                        {l.zone && <div className="text-[10px] font-bold text-slate-400">{l.zone}</div>}
+                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{l.name}</div>
+                        {l.zone && <div className="text-[0.6875rem] font-bold text-slate-400">{l.zone}</div>}
                       </Link>
                     </td>
                     <td className="px-3 py-2.5 text-center">
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold tabular-nums ${
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold tabular-nums ${
                         l.openJobs === 0 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                           : l.openJobs > 5 ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                           : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                       }`}>{l.openJobs}</span>
                     </td>
                     <td className="px-3 py-2.5 text-center text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{l.monthJobs}</td>
-                    <td className="px-3 py-2.5 text-center text-[11px] font-bold text-slate-500 dark:text-slate-400">{l.completionRate.toFixed(0)}%</td>
-                    <td className="px-3 py-2.5 text-center text-[11px] font-extrabold text-amber-600 dark:text-amber-400">
+                    <td className="px-3 py-2.5 text-center text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{l.completionRate.toFixed(0)}%</td>
+                    <td className="px-3 py-2.5 text-center text-[0.6875rem] font-extrabold text-amber-600 dark:text-amber-400">
                       {l.avgRating ? `⭐ ${l.avgRating.toFixed(1)}` : '—'}
                     </td>
                     <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100 whitespace-nowrap">{formatPKR(l.monthRevenue)}</td>
@@ -662,7 +662,7 @@ function TechPerformance({ summary, leaderChart }: any) {
               </tbody>
               <tfoot>
                 <tr className="bg-slate-900 dark:bg-slate-950 text-white">
-                  <td colSpan={6} className="px-3 py-3 text-right text-[11px] font-extrabold uppercase tracking-widest">Kul</td>
+                  <td colSpan={6} className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-widest">Kul</td>
                   <td className="px-3 py-3 text-right text-xs font-extrabold text-cyan-300 tabular-nums whitespace-nowrap">{formatPKR(summary.month.revenue)}</td>
                   <td className="px-3 py-3 pr-4 text-right text-xs font-extrabold text-violet-300 tabular-nums whitespace-nowrap">{formatPKR(summary.month.commission)}</td>
                 </tr>
@@ -827,7 +827,7 @@ function TechForm({ tech, onClose, onSaved }: { tech: Technician | null; onClose
               <div className="mt-2 flex gap-1.5 flex-wrap">
                 {f.specializations.map((s) => (
                   <button key={s} type="button" onClick={() => set('specializations', f.specializations.filter((x) => x !== s))}
-                    className="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[11px] font-extrabold inline-flex items-center gap-1 hover:bg-amber-200 transition">
+                    className="px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 hover:bg-amber-200 transition">
                     {s} <X className="h-3 w-3" />
                   </button>
                 ))}
@@ -836,7 +836,7 @@ function TechForm({ tech, onClose, onSaved }: { tech: Technician | null; onClose
             <div className="mt-2 flex gap-1.5 flex-wrap">
               {COMMON_SKILLS.filter((s) => !f.specializations.includes(s)).map((s) => (
                 <button key={s} type="button" onClick={() => addSkill(s)}
-                  className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400 transition">
+                  className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400 transition">
                   + {s}
                 </button>
               ))}
@@ -850,7 +850,7 @@ function TechForm({ tech, onClose, onSaved }: { tech: Technician | null; onClose
                   const on = f.categoriesExpertise.includes(c as any);
                   return (
                     <button key={c} type="button" onClick={() => toggleCat(c)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold border-2 transition inline-flex items-center gap-1 ${
+                      className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold border-2 transition inline-flex items-center gap-1 ${
                         on ? 'bg-cyan-600 border-cyan-600 text-white'
                           : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
                       }`}>
@@ -868,7 +868,7 @@ function TechForm({ tech, onClose, onSaved }: { tech: Technician | null; onClose
             <div className="flex gap-1.5 flex-wrap">
               {DAYS.map((d, i) => (
                 <button key={d} type="button" onClick={() => toggleDay(i)}
-                  className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border-2 transition ${
+                  className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
                     f.workingDays.includes(i) ? 'bg-violet-600 border-violet-600 text-white shadow'
                       : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-violet-400'
                   }`}>{d}</button>
@@ -903,7 +903,7 @@ function TechForm({ tech, onClose, onSaved }: { tech: Technician | null; onClose
             </Field>
           </div>
           {Number(f.commissionPct) > 0 && (
-            <div className="mt-2 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+            <div className="mt-2 text-[0.6875rem] font-bold text-emerald-700 dark:text-emerald-400">
               ✓ Agar ye 5,000 ka kaam kare to <strong>{formatPKR((5000 * Number(f.commissionPct)) / 100)}</strong> commission banegi
             </div>
           )}
@@ -923,7 +923,7 @@ function TechForm({ tech, onClose, onSaved }: { tech: Technician | null; onClose
               <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               <div>
                 <div className="text-sm font-extrabold text-slate-900 dark:text-white">Active</div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">Kaam dene ki list me nazar aayega</div>
+                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">Kaam dene ki list me nazar aayega</div>
               </div>
             </div>
             <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${f.isActive ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
@@ -953,8 +953,8 @@ function TechTeacher({ onClose }: { onClose: () => void }) {
           tone: 'emerald',
           tips: [
             <>Har card par sab se bara number uska <strong>khula kaam</strong> hai — naam nahi</>,
-            <><span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-black">🟢 Khali</span> — isay foran kaam dein</>,
-            <><span className="px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-black">🔴 Bojh ziyada</span> — 5 se ziyada kaam khula hai, aur mat dein warna sab late honge</>,
+            <><span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-black">🟢 Khali</span> — isay foran kaam dein</>,
+            <><span className="px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-black">🔴 Bojh ziyada</span> — 5 se ziyada kaam khula hai, aur mat dein warna sab late honge</>,
             <>Yehi ginti Service Requests aur Installations me technician chunte waqt bhi nazar aati hai</>,
           ],
         },

@@ -135,7 +135,7 @@ export default function HardwareCustomersPage() {
               onDelete={(id) => removeMutation.mutate(id)}
               extraBadges={
                 c.projectCount > 0 && (
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[11px] font-bold">
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.6875rem] font-bold">
                     <Building className="h-3 w-3" />
                     {c.projectCount} project{c.projectCount !== 1 ? 's' : ''}
                   </div>

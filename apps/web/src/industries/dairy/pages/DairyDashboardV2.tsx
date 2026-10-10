@@ -149,28 +149,28 @@ export default function DairyDashboardV2() {
             <div className="h-8 w-8 rounded-lg bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center mb-1">
               <Users className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-fuchsia-700">Subscribers</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700">Subscribers</div>
             <div className="text-lg font-extrabold text-slate-900 mt-0.5">{subscribersActive} active</div>
           </Link>
           <Link to="/dairy/farmers" className="rounded-2xl bg-white border-2 border-emerald-200 hover:border-emerald-400 p-3 transition">
             <div className="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center mb-1">
               <Warehouse className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Farmers</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Farmers</div>
             <div className="text-lg font-extrabold text-slate-900 mt-0.5">Suppliers</div>
           </Link>
           <Link to="/dairy/quality-tests" className="rounded-2xl bg-white border-2 border-blue-200 hover:border-blue-400 p-3 transition">
             <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center mb-1">
               <Beaker className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-blue-700">Quality Tests</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Quality Tests</div>
             <div className="text-lg font-extrabold text-slate-900 mt-0.5">Fat/SNF</div>
           </Link>
           <Link to="/dairy/bills" className="rounded-2xl bg-white border-2 border-amber-200 hover:border-amber-400 p-3 transition">
             <div className="h-8 w-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center mb-1">
               <FileText className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-amber-700">Monthly Bills</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Monthly Bills</div>
             <div className="text-lg font-extrabold text-slate-900 mt-0.5">Khata</div>
           </Link>
         </div>
@@ -199,7 +199,7 @@ export default function DairyDashboardV2() {
               <Sunrise className="h-6 w-6" />
             </div>
             <div>
-              <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-90">Morning Delivery</div>
+              <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider opacity-90">Morning Delivery</div>
               <h3 className="text-2xl font-bold mt-1">{morningLiters.toFixed(0)}L</h3>
             </div>
           </div>
@@ -215,7 +215,7 @@ export default function DairyDashboardV2() {
               <Sunset className="h-6 w-6" />
             </div>
             <div>
-              <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-90">Evening Delivery</div>
+              <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider opacity-90">Evening Delivery</div>
               <h3 className="text-2xl font-bold mt-1">{eveningLiters.toFixed(0)}L</h3>
             </div>
           </div>

@@ -268,17 +268,17 @@ function MenuItemCard({ item, onToggle, onEdit, onDelete }: {
         {/* Badges */}
         <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
           {item.chefSpecial && (
-            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <Star className="h-2 w-2 fill-current" /> Chef Special
             </span>
           )}
           {item.bestSeller && (
-            <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <TrendingUp className="h-2 w-2" /> Best Seller
             </span>
           )}
           {item.tagLine && (
-            <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white text-[9px] font-extrabold uppercase shadow">
+            <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase shadow">
               {item.tagLine}
             </span>
           )}
@@ -318,7 +318,7 @@ function MenuItemCard({ item, onToggle, onEdit, onDelete }: {
         <div>
           <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">{product?.name || 'Unknown'}</h3>
           {product?.category && (
-            <span className="inline-block mt-0.5 text-[10px] font-extrabold uppercase" style={{ color: product.category.color }}>
+            <span className="inline-block mt-0.5 text-[0.6875rem] font-extrabold uppercase" style={{ color: product.category.color }}>
               {product.category.name}
             </span>
           )}
@@ -336,7 +336,7 @@ function MenuItemCard({ item, onToggle, onEdit, onDelete }: {
             const cfg = DIETARY_CONFIG[tag];
             const Icon = cfg.icon;
             return (
-              <span key={tag} className={'inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold border ' + cfg.color}>
+              <span key={tag} className={'inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold border ' + cfg.color}>
                 <Icon className="h-2 w-2" />
                 {cfg.label}
               </span>
@@ -372,10 +372,10 @@ function MenuItemCard({ item, onToggle, onEdit, onDelete }: {
             <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">
               {formatPKR(product?.price ?? 0)}
             </div>
-            <div className="text-[10px] font-extrabold text-slate-500 uppercase mt-0.5">Menu Price</div>
+            <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase mt-0.5">Menu Price</div>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500">Ordered</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Ordered</div>
             <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{item.totalOrdered}</div>
           </div>
         </div>
@@ -483,7 +483,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
         {/* PRODUCT PICKER */}
         {!productId || showProductPicker ? (
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Select Product *</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Select Product *</label>
             <div className="relative">
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -530,7 +530,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
             {/* BASIC INFO */}
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Prep Time (minutes)</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Prep Time (minutes)</label>
                 <input
                   type="number"
                   value={form.prepTimeMinutes}
@@ -539,7 +539,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                 />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Serves People</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Serves People</label>
                 <input
                   type="number"
                   value={form.servesPeople}
@@ -551,7 +551,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
 
             <div className="grid sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Calories</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Calories</label>
                 <input
                   type="number"
                   value={form.calories}
@@ -561,7 +561,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                 />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Serving Size</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Serving Size</label>
                 <input
                   value={form.servingSize}
                   onChange={(e) => setForm({ ...form, servingSize: e.target.value })}
@@ -570,7 +570,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                 />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Tag Line</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Tag Line</label>
                 <input
                   value={form.tagLine}
                   onChange={(e) => setForm({ ...form, tagLine: e.target.value })}
@@ -629,7 +629,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                       }
                     >
                       <div>{SPICE_CONFIG[level].emoji}</div>
-                      <div className="text-[9px] mt-0.5">{SPICE_CONFIG[level].label}</div>
+                      <div className="text-[0.625rem] mt-0.5">{SPICE_CONFIG[level].label}</div>
                     </button>
                   ))}
                 </div>
@@ -638,7 +638,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
 
             {/* DIETARY TAGS */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Dietary Tags</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Dietary Tags</label>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(DIETARY_CONFIG).map(([tag, cfg]) => {
                   const active = form.dietaryTags.includes(tag as DietaryTag);
@@ -662,7 +662,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
 
             {/* ALLERGEN */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Allergen Info</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Allergen Info</label>
               <textarea
                 rows={2}
                 value={form.allergenInfo}
@@ -674,7 +674,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
 
             {/* COOKING INSTRUCTIONS */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Cooking Instructions (Kitchen)</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Cooking Instructions (Kitchen)</label>
               <textarea
                 rows={3}
                 value={form.cookingInstructions}
@@ -689,7 +689,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
               <div className="text-sm font-extrabold text-slate-900 dark:text-white">Time-based Availability (Optional)</div>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Available From</label>
+                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Available From</label>
                   <input
                     type="time"
                     value={form.availableFrom}
@@ -698,7 +698,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Available To</label>
+                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Available To</label>
                   <input
                     type="time"
                     value={form.availableTo}
@@ -708,7 +708,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                 </div>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Days of Week</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Days of Week</label>
                 <div className="grid grid-cols-7 gap-1">
                   {DAYS.map((day, idx) => {
                     const active = form.availableDays.includes(idx);
@@ -728,13 +728,13 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                     );
                   })}
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1 font-semibold">Empty = available all days</p>
+                <p className="text-[0.6875rem] text-slate-500 mt-1 font-semibold">Empty = available all days</p>
               </div>
             </div>
 
             {/* IMAGE */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Custom Menu Image</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Custom Menu Image</label>
               {form.imageUrl ? (
                 <div className="relative w-40 h-40 rounded-xl overflow-hidden border-2 border-slate-200 dark:border-neutral-700">
                   <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />

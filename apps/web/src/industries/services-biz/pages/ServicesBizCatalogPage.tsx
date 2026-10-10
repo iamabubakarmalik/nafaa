@@ -99,7 +99,7 @@ export default function ServicesBizCatalogPage() {
             <button onClick={() => setShowCart(true)} className="relative inline-flex items-center gap-2 rounded-xl bg-white text-cyan-900 px-4 py-2.5 text-sm font-extrabold shadow-lg">
               <ShoppingBag className="h-4 w-4" /> Cart
               {cart.totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
+                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
                   {cart.totalItems.toFixed(0)}
                 </span>
               )}
@@ -202,23 +202,23 @@ function SvcCard({ service, compact = false, onAdd, onDetail, wishlist, price }:
       <div className="aspect-square bg-gradient-to-br from-cyan-100 via-blue-100 to-cyan-100 relative cursor-pointer overflow-hidden" onClick={onDetail}>
         {image ? <img src={image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" /> : <div className="w-full h-full flex items-center justify-center text-5xl">🛠️</div>}
         <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
-          {service.isFeatured && <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5"><Star className="h-2 w-2 fill-white" /> FT</span>}
-          {service.isPopular && <span className="px-1.5 py-0.5 rounded-md bg-red-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5"><TrendingUp className="h-2 w-2" /> HOT</span>}
-          {service.isEmergency && <span className="px-1.5 py-0.5 rounded-md bg-red-700 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5 animate-pulse"><Zap className="h-2 w-2" /> 24/7</span>}
+          {service.isFeatured && <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5"><Star className="h-2 w-2 fill-white" /> FT</span>}
+          {service.isPopular && <span className="px-1.5 py-0.5 rounded-md bg-red-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5"><TrendingUp className="h-2 w-2" /> HOT</span>}
+          {service.isEmergency && <span className="px-1.5 py-0.5 rounded-md bg-red-700 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5 animate-pulse"><Zap className="h-2 w-2" /> 24/7</span>}
         </div>
         <button onClick={(e) => { e.stopPropagation(); wishlist.toggle(service.id); }} className={`absolute top-1.5 right-1.5 h-7 w-7 rounded-full flex items-center justify-center shadow transition ${inWishlist ? 'bg-rose-500 text-white' : 'bg-white/95 backdrop-blur text-slate-600 hover:text-rose-500'}`}>
           <Heart className={`h-3.5 w-3.5 ${inWishlist ? 'fill-current' : ''}`} />
         </button>
         {service.estimatedDurationMin && (
           <div className="absolute bottom-1.5 right-1.5">
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
               <Clock className="h-2 w-2" /> {service.estimatedDurationMin}m
             </span>
           </div>
         )}
       </div>
       <div className="p-2.5">
-        <div className="text-[9px] uppercase font-extrabold text-cyan-600 truncate">{service.category.replace('_', ' ')}</div>
+        <div className="text-[0.625rem] uppercase font-extrabold text-cyan-600 truncate">{service.category.replace('_', ' ')}</div>
         <h4 className={`font-extrabold text-slate-900 leading-tight ${compact ? 'text-xs line-clamp-2 min-h-[2rem]' : 'text-sm line-clamp-2 min-h-[2.25rem]'}`}>{service.name}</h4>
         <div className="mt-1 flex items-end justify-between">
           <div className={`font-extrabold text-emerald-700 tabular-nums ${compact ? 'text-sm' : 'text-base'}`}>{formatPKR(price)}</div>
@@ -250,10 +250,10 @@ function DetailModal({ service, onClose, onAdd, wishlist }: any) {
             <div className="text-xs uppercase font-extrabold text-cyan-600">{service.category.replace('_', ' ')}</div>
             <h2 className="text-2xl font-extrabold text-slate-900 mt-1">{service.name}</h2>
             <div className="mt-2 flex flex-wrap gap-1">
-              {service.isFeatured && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold">⭐ Featured</span>}
-              {service.isPopular && <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-extrabold">🔥 Popular</span>}
-              {service.isEmergency && <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-extrabold animate-pulse">🚨 24/7</span>}
-              {service.isRemoteAvailable && <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-extrabold">💻 Remote</span>}
+              {service.isFeatured && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold">⭐ Featured</span>}
+              {service.isPopular && <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[0.6875rem] font-extrabold">🔥 Popular</span>}
+              {service.isEmergency && <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[0.6875rem] font-extrabold animate-pulse">🚨 24/7</span>}
+              {service.isRemoteAvailable && <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.6875rem] font-extrabold">💻 Remote</span>}
             </div>
           </div>
           {service.description && <div className="rounded-xl bg-slate-50 border border-slate-200 p-3"><p className="text-sm text-slate-700 leading-relaxed">{service.description}</p></div>}
@@ -261,30 +261,30 @@ function DetailModal({ service, onClose, onAdd, wishlist }: any) {
             <div className="rounded-lg bg-cyan-50 border border-cyan-200 p-2 text-center">
               <Clock className="h-4 w-4 text-cyan-700 mx-auto mb-0.5" />
               <div className="font-extrabold text-cyan-900">{service.estimatedDurationMin}min</div>
-              <div className="text-[9px] text-cyan-700 font-bold uppercase">Duration</div>
+              <div className="text-[0.625rem] text-cyan-700 font-bold uppercase">Duration</div>
             </div>
             <div className="rounded-lg bg-violet-50 border border-violet-200 p-2 text-center">
               <Sparkles className="h-4 w-4 text-violet-700 mx-auto mb-0.5" />
-              <div className="font-extrabold text-violet-900 text-[10px]">{service.requiredSkillLevel}</div>
-              <div className="text-[9px] text-violet-700 font-bold uppercase">Skill</div>
+              <div className="font-extrabold text-violet-900 text-[0.6875rem]">{service.requiredSkillLevel}</div>
+              <div className="text-[0.625rem] text-violet-700 font-bold uppercase">Skill</div>
             </div>
             {service.warrantyDays > 0 && (
               <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-center">
                 <Shield className="h-4 w-4 text-emerald-700 mx-auto mb-0.5" />
                 <div className="font-extrabold text-emerald-900">{service.warrantyDays}d</div>
-                <div className="text-[9px] text-emerald-700 font-bold uppercase">Warranty</div>
+                <div className="text-[0.625rem] text-emerald-700 font-bold uppercase">Warranty</div>
               </div>
             )}
           </div>
           {service.warrantyTerms && (
             <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1">Warranty Terms</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1">Warranty Terms</div>
               <p className="text-xs text-slate-700 leading-relaxed">{service.warrantyTerms}</p>
             </div>
           )}
           <div className="pt-3 border-t-2 border-slate-100 flex items-center justify-between gap-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-600">{service.chargeType.replace('_', ' ')}</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">{service.chargeType.replace('_', ' ')}</div>
               <div className="text-2xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(price)}</div>
             </div>
             <button onClick={onAdd} className="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-extrabold text-sm shadow-lg inline-flex items-center gap-2">

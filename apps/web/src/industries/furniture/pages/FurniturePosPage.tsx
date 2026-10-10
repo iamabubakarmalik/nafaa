@@ -344,7 +344,7 @@ export default function FurniturePosPage() {
                     <h2 className="text-base sm:text-lg font-extrabold leading-none">🪑 Furniture POS</h2>
                     {isOnline ? <Wifi className="h-3 w-3 text-emerald-200" /> : <WifiOff className="h-3 w-3 text-amber-200" />}
                   </div>
-                  <p className="text-[11px] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                  <p className="text-[0.6875rem] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
                     <Store className="h-3 w-3 shrink-0" /><span className="truncate">{tenant?.name || 'Furniture Showroom'}</span>
                   </p>
                 </div>
@@ -367,7 +367,7 @@ export default function FurniturePosPage() {
                   className="lg:hidden relative h-10 w-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center">
                   <ShoppingCart className="h-5 w-5" />
                   {itemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">
                       {itemCount}
                     </span>
                   )}
@@ -391,7 +391,7 @@ export default function FurniturePosPage() {
               <button onClick={() => setScannerOpen(true)}
                 className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg shrink-0">
                 <Camera className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="text-[9px] font-extrabold uppercase">Scan</span>
+                <span className="text-[0.625rem] font-extrabold uppercase">Scan</span>
               </button>
             </div>
 
@@ -461,7 +461,7 @@ export default function FurniturePosPage() {
                         )}
                         {out && <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center"><span className="px-3 py-1 rounded-xl bg-rose-600 text-white text-xs font-extrabold">OUT</span></div>}
                         {profile?.isEcoFriendly && (
-                          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-green-600 text-white text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-green-600 text-white text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                             <Leaf className="h-2 w-2" /> ECO
                           </div>
                         )}
@@ -471,14 +471,14 @@ export default function FurniturePosPage() {
                           </div>
                         )}
                         {profile?.isCustomizable && (
-                          <div className="absolute bottom-1.5 left-1.5 h-6 px-1.5 rounded-md bg-violet-600 flex items-center gap-1 text-white text-[9px] font-extrabold shadow">
+                          <div className="absolute bottom-1.5 left-1.5 h-6 px-1.5 rounded-md bg-violet-600 flex items-center gap-1 text-white text-[0.625rem] font-extrabold shadow">
                             <Hammer className="h-2.5 w-2.5" /> CUSTOM
                           </div>
                         )}
                       </div>
                       <div className="p-2 sm:p-3">
                         <div className="font-extrabold text-slate-900 text-sm line-clamp-2 leading-tight min-h-[2.25rem]">{p.name}</div>
-                        {profile?.categoryType && <div className="text-[9px] font-extrabold uppercase text-amber-700 mt-0.5">{profile.categoryType.replace(/_/g, ' ')}</div>}
+                        {profile?.categoryType && <div className="text-[0.625rem] font-extrabold uppercase text-amber-700 mt-0.5">{profile.categoryType.replace(/_/g, ' ')}</div>}
                         <div className="mt-1.5 flex items-end justify-between gap-1">
                           <div className="text-lg sm:text-xl font-extrabold text-emerald-700 leading-none tabular-nums">
                             {hidePrices ? '•••' : formatPKR(p.price)}
@@ -517,10 +517,10 @@ export default function FurniturePosPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[11px] font-extrabold flex items-center justify-center">{itemCount}</span>
+                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[0.6875rem] font-extrabold flex items-center justify-center">{itemCount}</span>
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase font-extrabold text-white/80">Cart</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">Cart</div>
                 <div className="text-lg font-extrabold tabular-nums">{hidePrices ? '••••' : formatPKR(total)}</div>
               </div>
             </div>
@@ -545,7 +545,7 @@ function CartPanel({ isMobile, onCloseMobile, cart, itemCount, totalQty, subtota
       <div className="shrink-0 bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Cart • {itemCount} lines • {totalQty} qty</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Cart • {itemCount} lines • {totalQty} qty</div>
             <div className="text-3xl sm:text-4xl font-extrabold tabular-nums leading-none mt-1">{hidePrices ? '••••' : formatPKR(total)}</div>
           </div>
           <div className="flex gap-1.5 shrink-0">
@@ -599,11 +599,11 @@ function CartPanel({ isMobile, onCloseMobile, cart, itemCount, totalQty, subtota
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm sm:text-base text-slate-900 leading-tight line-clamp-2">{l.name}</div>
-                  {l.category && <div className="text-[10px] font-bold text-amber-700 mt-0.5">{l.category.replace(/_/g, ' ')}</div>}
+                  {l.category && <div className="text-[0.6875rem] font-bold text-amber-700 mt-0.5">{l.category.replace(/_/g, ' ')}</div>}
                   <div className="text-xs sm:text-sm font-bold text-blue-700 mt-0.5">{formatPKR(l.unitPrice)}</div>
                   <div className="mt-1 flex flex-wrap gap-1">
-                    {l.requiresAssembly && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold">🔨 Assembly</span>}
-                    {l.requiresLargeVehicle && <span className="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-[9px] font-extrabold">🚚 Large Vehicle</span>}
+                    {l.requiresAssembly && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold">🔨 Assembly</span>}
+                    {l.requiresLargeVehicle && <span className="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-[0.625rem] font-extrabold">🚚 Large Vehicle</span>}
                   </div>
                 </div>
                 <button onClick={() => onRemove(l.id)}
@@ -635,13 +635,13 @@ function CartPanel({ isMobile, onCloseMobile, cart, itemCount, totalQty, subtota
       {cart.length > 0 && (
         <div className="shrink-0 p-2.5 sm:p-3 border-t-4 border-slate-100 bg-white space-y-2">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-[11px] font-extrabold text-slate-600 shrink-0">
+            <div className="flex items-center gap-1 text-[0.6875rem] font-extrabold text-slate-600 shrink-0">
               <Percent className="h-3.5 w-3.5 text-amber-600" /><span className="hidden sm:inline">Discount:</span>
             </div>
             <div className="flex gap-1 flex-1">
               {[0, 5, 10, 15, 20].map((d) => (
                 <button key={d} onClick={() => setDiscountPct(d)}
-                  className={`flex-1 h-9 sm:h-10 rounded-xl text-[11px] font-extrabold ${discountPct === d ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
+                  className={`flex-1 h-9 sm:h-10 rounded-xl text-[0.6875rem] font-extrabold ${discountPct === d ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
                   {d === 0 ? 'None' : `${d}%`}
                 </button>
               ))}
@@ -652,7 +652,7 @@ function CartPanel({ isMobile, onCloseMobile, cart, itemCount, totalQty, subtota
             <div className="grid grid-cols-2 gap-2">
               {anyRequiresLargeVehicle && (
                 <div>
-                  <label className="block text-[9px] font-extrabold uppercase text-orange-700 mb-1 items-center gap-1">
+                  <label className="block text-[0.625rem] font-extrabold uppercase text-orange-700 mb-1 items-center gap-1">
                     <Truck className="h-3 w-3" /> Delivery
                   </label>
                   <input type="number" value={deliveryCharge} onChange={(e) => setDeliveryCharge(Math.max(0, Number(e.target.value)))}
@@ -662,7 +662,7 @@ function CartPanel({ isMobile, onCloseMobile, cart, itemCount, totalQty, subtota
               )}
               {anyRequiresAssembly && (
                 <div>
-                  <label className="block text-[9px] font-extrabold uppercase text-violet-700 mb-1 items-center gap-1">
+                  <label className="block text-[0.625rem] font-extrabold uppercase text-violet-700 mb-1 items-center gap-1">
                     <Hammer className="h-3 w-3" /> Assembly
                   </label>
                   <input type="number" value={assemblyCharge} onChange={(e) => setAssemblyCharge(Math.max(0, Number(e.target.value)))}
@@ -676,7 +676,7 @@ function CartPanel({ isMobile, onCloseMobile, cart, itemCount, totalQty, subtota
           <button onClick={onCheckout} disabled={!canCheckout}
             className="w-full h-[76px] sm:h-[88px] rounded-3xl font-extrabold text-white shadow-2xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-5 sm:px-6">
             <div className="text-left">
-              <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80">Checkout <span className="hidden sm:inline">(F9)</span></div>
+              <div className="text-[0.6875rem] sm:text-xs uppercase font-extrabold text-white/80">Checkout <span className="hidden sm:inline">(F9)</span></div>
               <div className="text-2xl sm:text-3xl tabular-nums leading-none mt-0.5">{formatPKR(total)}</div>
             </div>
             <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white/20 flex items-center justify-center">

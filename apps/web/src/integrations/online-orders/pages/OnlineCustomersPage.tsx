@@ -105,7 +105,7 @@ export default function OnlineCustomersPage() {
       <div className="flex gap-1 overflow-x-auto pb-1">
         {SEGMENTS.map((s) => (
           <button key={s.key} onClick={() => { setSegment(s.key); setPage(0); }} title={s.hint}
-            className={cn('shrink-0 rounded-md px-3 py-1.5 text-[13px] font-medium',
+            className={cn('shrink-0 rounded-md px-3 py-1.5 text-[0.8125rem] font-medium',
               segment === s.key ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800')}>
             {s.label}{data ? <span className="ml-1 opacity-60">{data.counts[s.key] ?? 0}</span> : null}
           </button>
@@ -141,8 +141,8 @@ export default function OnlineCustomersPage() {
             <EmptyState icon={<Users className="h-5 w-5" />} title="Is list me koi customer nahi">{debounced ? 'Is talaash se kuch nahi mila.' : seg.hint}</EmptyState>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px] text-[13px]">
-                <thead className="bg-slate-50 text-left text-[11.5px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+              <table className="w-full min-w-[760px] text-[0.8125rem]">
+                <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
                   <tr>
                     <th className="px-4 py-2 sm:px-5">Customer</th>
                     <th className="px-3 py-2 text-right">Orders</th>
@@ -164,12 +164,12 @@ export default function OnlineCustomersPage() {
                             {c.blocked && <Badge tone="critical">Blocked</Badge>}
                             {c.returned > 0 && !c.blocked && <Badge tone="warning">{c.returned} wapas</Badge>}
                           </div>
-                          <div className="text-[11.5px] text-slate-500">{c.phone}{c.city ? ` · ${c.city}` : ''}{c.channels.length ? ` · ${c.channels.join(', ')}` : ''}</div>
+                          <div className="text-[0.71875rem] text-slate-500">{c.phone}{c.city ? ` · ${c.city}` : ''}{c.channels.length ? ` · ${c.channels.join(', ')}` : ''}</div>
                         </td>
                         <td className="px-3 py-2.5 text-right tabular-nums">{c.delivered}<span className="text-slate-400"> / {c.orders}</span></td>
                         <td className="px-3 py-2.5 text-right tabular-nums">
                           <div className="font-semibold text-slate-900 dark:text-white">{rs(c.spent)}</div>
-                          {c.avgOrder > 0 && <div className="text-[11px] text-slate-400">ausat {rs(c.avgOrder)}</div>}
+                          {c.avgOrder > 0 && <div className="text-[0.6875rem] text-slate-400">ausat {rs(c.avgOrder)}</div>}
                         </td>
                         <td className="px-3 py-2.5 text-right text-slate-600 dark:text-slate-300">{c.daysSince === 0 ? 'aaj' : `${c.daysSince} din pehle`}</td>
                         <td className="px-4 py-2.5 sm:px-5">
@@ -195,7 +195,7 @@ export default function OnlineCustomersPage() {
           )}
         </div>
         {pages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5 text-[12.5px] text-slate-500 dark:border-slate-800 sm:px-5">
+          <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5 text-[0.78125rem] text-slate-500 dark:border-slate-800 sm:px-5">
             <span>{data?.total} customers</span>
             <div className="flex gap-1">
               <Btn size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Pichhe</Btn>

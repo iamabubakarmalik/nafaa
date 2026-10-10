@@ -86,7 +86,7 @@ export function ToyWizardStep2Details({ details, onChange, categoryType, ageGrou
           <GraduationCap className={['h-5 w-5', details.isEducational ? 'text-pink-600' : 'text-slate-400'].join(' ')} />
           <div className="min-w-0">
             <div className="font-extrabold text-sm text-slate-900">This is an educational toy</div>
-            <div className="text-[11px] text-slate-500 font-semibold">Teaches skills, concepts, or knowledge</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Teaches skills, concepts, or knowledge</div>
           </div>
         </label>
 
@@ -246,7 +246,7 @@ export function ToyWizardStep2Details({ details, onChange, categoryType, ageGrou
           <Battery className={['h-5 w-5', details.requiresBatteries ? 'text-amber-600' : 'text-slate-400'].join(' ')} />
           <div className="min-w-0">
             <div className="font-extrabold text-sm text-slate-900">Requires batteries</div>
-            <div className="text-[11px] text-slate-500 font-semibold">Toy needs batteries to work</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Toy needs batteries to work</div>
           </div>
         </label>
 
@@ -258,7 +258,7 @@ export function ToyWizardStep2Details({ details, onChange, categoryType, ageGrou
                 onChange={(e) => onChange({ batteriesIncluded: e.target.checked })} className="h-5 w-5 rounded" />
               <div>
                 <div className="font-extrabold text-sm text-emerald-900">Batteries included in box</div>
-                <div className="text-[11px] text-emerald-700 font-semibold">
+                <div className="text-[0.6875rem] text-emerald-700 font-semibold">
                   {details.batteriesIncluded ? 'Ready to play!' : '⚠️ Upsell opportunity — mention at checkout'}
                 </div>
               </div>
@@ -290,7 +290,7 @@ export function ToyWizardStep2Details({ details, onChange, categoryType, ageGrou
           <Radio className={['h-5 w-5', details.isRemoteControlled ? 'text-blue-600' : 'text-slate-400'].join(' ')} />
           <div className="min-w-0">
             <div className="font-extrabold text-sm text-slate-900">Remote controlled</div>
-            <div className="text-[11px] text-slate-500 font-semibold">RC car, drone, helicopter etc.</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">RC car, drone, helicopter etc.</div>
           </div>
         </label>
 
@@ -336,7 +336,7 @@ export function ToyWizardStep2Details({ details, onChange, categoryType, ageGrou
             onChange={(e) => onChange({ isCollectible: e.target.checked })} className="h-5 w-5 rounded" />
           <div>
             <div className="font-extrabold text-sm text-slate-900">💎 Collectible item</div>
-            <div className="text-[11px] text-slate-500 font-semibold">Limited edition, series, rare pieces</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Limited edition, series, rare pieces</div>
           </div>
         </label>
       </section>
@@ -369,7 +369,7 @@ export function ToyWizardStep2Details({ details, onChange, categoryType, ageGrou
           <Package className={['h-5 w-5', details.hasReplacementParts ? 'text-rose-600' : 'text-slate-400'].join(' ')} />
           <div>
             <div className="font-extrabold text-sm text-slate-900">Replacement parts available</div>
-            <div className="text-[11px] text-slate-500 font-semibold">Aftermarket support for lost/broken pieces</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Aftermarket support for lost/broken pieces</div>
           </div>
         </label>
 
@@ -412,7 +412,7 @@ function Check2({ checked, onChange, icon: Icon, label }: any) {
       checked ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-300'].join(' ')}>
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="sr-only" />
       <Icon className="h-5 w-5" />
-      <span className="text-[11px] font-extrabold">{label}</span>
+      <span className="text-[0.6875rem] font-extrabold">{label}</span>
     </label>
   );
 }

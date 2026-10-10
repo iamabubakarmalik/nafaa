@@ -166,12 +166,12 @@ export default function RestaurantMenuItemDetailPage() {
               </div>
             )}
             {menuItem?.chefSpecial && (
-              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <Star className="h-3 w-3 fill-white" /> CHEF SPECIAL
               </div>
             )}
             {menuItem?.bestSeller && (
-              <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" /> BEST SELLER
               </div>
             )}
@@ -223,7 +223,7 @@ export default function RestaurantMenuItemDetailPage() {
 
             <div className="mt-5 flex items-center gap-4 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Menu Price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Menu Price</div>
                 <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
                   {formatPKRFull(product.price)}
                   <span className="text-sm font-bold text-white/70 ml-1">/ {product.unit}</span>
@@ -231,7 +231,7 @@ export default function RestaurantMenuItemDetailPage() {
               </div>
               {product.costPrice > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
                     {formatPKRFull(product.costPrice)}
                   </div>
@@ -239,7 +239,7 @@ export default function RestaurantMenuItemDetailPage() {
               )}
               {stats.recipeCost > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Recipe Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Recipe Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1">
                     {formatPKRFull(stats.recipeCost)}
                   </div>
@@ -301,13 +301,13 @@ export default function RestaurantMenuItemDetailPage() {
                 <div key={g.id} className="rounded-xl border-2 border-slate-200 bg-slate-50 p-3">
                   <div className="flex items-center gap-2 flex-wrap mb-2">
                     <div className="font-extrabold text-slate-900 text-sm">{g.name}</div>
-                    <span className="px-1.5 py-0.5 rounded bg-pink-200 text-pink-800 text-[9px] font-extrabold uppercase">{g.type}</span>
-                    {g.isRequired && <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-extrabold uppercase">Required</span>}
-                    <span className="text-[10px] text-slate-500 font-bold">Choose {g.minSelections}–{g.maxSelections}</span>
+                    <span className="px-1.5 py-0.5 rounded bg-pink-200 text-pink-800 text-[0.625rem] font-extrabold uppercase">{g.type}</span>
+                    {g.isRequired && <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[0.625rem] font-extrabold uppercase">Required</span>}
+                    <span className="text-[0.6875rem] text-slate-500 font-bold">Choose {g.minSelections}–{g.maxSelections}</span>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {g.options?.map((o: any) => (
-                      <span key={o.id} className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[10px] font-bold text-slate-700">
+                      <span key={o.id} className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[0.6875rem] font-bold text-slate-700">
                         {o.emoji} {o.name}
                         {(o.priceAdjustment ?? 0) !== 0 && ` (${o.priceAdjustment > 0 ? '+' : ''}${formatPKR(o.priceAdjustment)})`}
                       </span>
@@ -340,11 +340,11 @@ export default function RestaurantMenuItemDetailPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Ingredient</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Qty</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Unit</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Cost</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Total</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Ingredient</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Qty</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Unit</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Cost</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -352,7 +352,7 @@ export default function RestaurantMenuItemDetailPage() {
                   <tr key={ing.id} className="hover:bg-slate-50/50">
                     <td className="px-3 py-2 font-extrabold text-slate-900">
                       {ing.ingredient?.name || 'Unknown'}
-                      {ing.isOptional && <span className="ml-2 text-[9px] font-extrabold text-slate-500 uppercase">(optional)</span>}
+                      {ing.isOptional && <span className="ml-2 text-[0.625rem] font-extrabold text-slate-500 uppercase">(optional)</span>}
                     </td>
                     <td className="px-3 py-2 text-right font-bold tabular-nums">{ing.quantity}</td>
                     <td className="px-3 py-2 text-xs font-semibold">{ing.unit}</td>
@@ -376,7 +376,7 @@ export default function RestaurantMenuItemDetailPage() {
 
           {recipe.preparationSteps && (
             <div className="p-5 border-t border-slate-100 bg-slate-50/50">
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">Preparation Steps</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2">Preparation Steps</div>
               <div className="text-sm text-slate-900 whitespace-pre-line font-semibold">{recipe.preparationSteps}</div>
             </div>
           )}
@@ -410,7 +410,7 @@ export default function RestaurantMenuItemDetailPage() {
                     <span
                       key={day}
                       className={[
-                        'px-2 py-1 rounded text-[10px] font-extrabold',
+                        'px-2 py-1 rounded text-[0.6875rem] font-extrabold',
                         active ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400',
                       ].join(' ')}
                     >
@@ -459,7 +459,7 @@ export default function RestaurantMenuItemDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <div className="font-mono font-extrabold text-sm text-slate-900">{s.saleNumber}</div>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
@@ -492,10 +492,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }

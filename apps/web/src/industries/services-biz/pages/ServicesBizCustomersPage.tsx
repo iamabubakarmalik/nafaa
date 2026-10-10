@@ -113,8 +113,8 @@ export default function ServicesBizCustomersPage() {
               onDelete={(id) => removeMutation.mutate(id)}
               extraBadges={
                 <>
-                  {c.jobCount > 0 && <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 text-[11px] font-bold"><Briefcase className="h-3 w-3" />{c.jobCount} jobs</div>}
-                  {c.amcCount > 0 && <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-bold"><Shield className="h-3 w-3" />{c.amcCount} AMC</div>}
+                  {c.jobCount > 0 && <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 text-[0.6875rem] font-bold"><Briefcase className="h-3 w-3" />{c.jobCount} jobs</div>}
+                  {c.amcCount > 0 && <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-bold"><Shield className="h-3 w-3" />{c.amcCount} AMC</div>}
                 </>
               }
             />

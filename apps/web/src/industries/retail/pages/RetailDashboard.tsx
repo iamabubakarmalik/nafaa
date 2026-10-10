@@ -231,7 +231,7 @@ export default function RetailDashboardV2() {
 
         <div className="relative flex flex-col sm:flex-row items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <ShoppingCart className="h-3.5 w-3.5 text-amber-300" /> Retail Dashboard
               {shopName && (
                 <>
@@ -360,7 +360,7 @@ export default function RetailDashboardV2() {
             subtitle={range === '30d' ? '30 din ka data' : '7 din ka data'}
             tone="sky"
             right={
-              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[11px] font-extrabold">
+              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[0.6875rem] font-extrabold">
                 {(['7d', '30d'] as Range[]).map((r) => (
                   <button
                     key={r}
@@ -428,7 +428,7 @@ export default function RetailDashboardV2() {
             subtitle={hourDays === 1 ? 'Aaj kis waqt zyada bika' : '7 din ka rozana ausat'}
             tone="violet"
             right={
-              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[11px] font-extrabold">
+              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[0.6875rem] font-extrabold">
                 {([[1, 'Aaj'], [7, '7 Din']] as const).map(([d, l]) => (
                   <button
                     key={d}
@@ -454,7 +454,7 @@ export default function RetailDashboardV2() {
                 <Flame className="h-4 w-4" />
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300">
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300">
                   Sab se masroof waqt
                 </div>
                 <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
@@ -662,7 +662,7 @@ export default function RetailDashboardV2() {
                         <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">
                           {pu.supplier?.name || 'Supplier'}
                         </div>
-                        <div className="text-[11px] text-slate-600 dark:text-slate-400 font-bold truncate font-mono">
+                        <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold truncate font-mono">
                           {pu.purchaseNumber} • {formatDate(pu.purchasedAt)}
                         </div>
                       </div>
@@ -671,7 +671,7 @@ export default function RetailDashboardV2() {
                           {formatPKR(pu.total)}
                         </div>
                         {due > 0 && (
-                          <div className="text-[10px] text-amber-700 dark:text-amber-400 font-extrabold">
+                          <div className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold">
                             Baqi: {formatPKR(due)}
                           </div>
                         )}
@@ -727,7 +727,7 @@ export default function RetailDashboardV2() {
             {/* Aaj ka apna hisaab — mahine ka bara number rozmarra ka
                 sawal nahi. */}
             <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3 flex-wrap">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 shrink-0">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 shrink-0">
                 Aaj
               </div>
               <div className="flex items-baseline gap-1.5">
@@ -904,7 +904,7 @@ export default function RetailDashboardV2() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{p.product?.name || 'Unknown'}</div>
-                      <div className="text-[11px] text-slate-600 dark:text-slate-400 font-bold">
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">
                         {p.quantitySold.toFixed(0)} {p.product?.unit} • {(p as any).orderCount ?? 0} orders
                       </div>
                     </div>
@@ -953,12 +953,12 @@ export default function RetailDashboardV2() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{p.name}</div>
-                    <div className="text-[11px] text-slate-600 dark:text-slate-400 font-bold">
+                    <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">
                       Stock: {p.stock} {p.unit} • {p.category?.name || 'No category'}
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
-                    <div className="text-[10px] font-extrabold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Discount karo</div>
+                    <div className="text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Discount karo</div>
                     <ArrowRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 ml-auto mt-0.5" />
                   </div>
                 </Link>
@@ -999,14 +999,14 @@ export default function RetailDashboardV2() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-extrabold text-slate-900 dark:text-white truncate font-mono text-xs">{sale.saleNumber}</div>
-                      <div className="text-[11px] text-slate-600 dark:text-slate-400 truncate font-bold">
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 truncate font-bold">
                         {sale.customer?.name || 'Walk-in'} • {formatDate(sale.soldAt)}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-emerald-700 dark:text-emerald-400 text-sm tabular-nums">{formatPKR(sale.total)}</div>
                       {sale.creditAmount > 0 && (
-                        <div className="text-[10px] text-amber-700 dark:text-amber-400 font-extrabold">
+                        <div className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold">
                           Udhaar: {formatPKR(sale.creditAmount)}
                         </div>
                       )}
@@ -1053,13 +1053,13 @@ export default function RetailDashboardV2() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{p.name}</div>
-                      <div className="text-[11px] text-slate-600 dark:text-slate-400 font-bold">{formatPKR(p.price)} / {p.unit}</div>
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">{formatPKR(p.price)} / {p.unit}</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className={`text-lg font-extrabold tabular-nums ${isOut ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
                         {p.stock}
                       </div>
-                      <div className={`text-[9px] font-extrabold uppercase tracking-wider ${isOut ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                      <div className={`text-[0.625rem] font-extrabold uppercase tracking-wider ${isOut ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
                         {isOut ? 'OUT' : 'LOW'}
                       </div>
                     </div>
@@ -1115,7 +1115,7 @@ function CardHeader({ icon: Icon, title, subtitle, tone, right }: any) {
         </div>
         <div className="min-w-0">
           <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h3>
-          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold">{subtitle}</p>
+          <p className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">{subtitle}</p>
         </div>
       </div>
       {right}
@@ -1127,7 +1127,7 @@ function ChartLegend({ items }: { items: { color: string; label: string }[] }) {
   return (
     <div className="mt-2 flex items-center justify-center gap-4 flex-wrap">
       {items.map((it) => (
-        <div key={it.label} className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-slate-600 dark:text-slate-300">
+        <div key={it.label} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">
           <span className="h-2.5 w-2.5 rounded-full shadow-sm" style={{ backgroundColor: it.color }} />
           {it.label}
         </div>
@@ -1152,10 +1152,10 @@ function HeroTile({ icon: Icon, label, value, sub, trend, tone, urgent }: any) {
     ].join(' ')}>
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className="h-3.5 w-3.5 text-white/90" />
-        <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/95">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/95">{label}</div>
       </div>
       <div className="text-lg sm:text-2xl font-extrabold text-white tabular-nums leading-tight truncate drop-shadow-sm">{value}</div>
-      <div className="text-[11px] font-bold text-white/85 mt-1 truncate">
+      <div className="text-[0.6875rem] font-bold text-white/85 mt-1 truncate">
         {trend !== undefined ? (
           <span className={`inline-flex items-center gap-0.5 ${trend >= 0 ? 'text-emerald-200' : 'text-rose-200'}`}>
             {trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -1225,10 +1225,10 @@ function PnLCell({ label, value, sub, tone, icon: Icon, highlight }: any) {
     ].join(' ')}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={`h-3 w-3 ${tones[tone]}`} />
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400">{label}</div>
       </div>
       <div className={`text-base sm:text-xl font-extrabold tabular-nums leading-tight ${tones[tone]}`}>{value}</div>
-      <div className="text-[10px] text-slate-600 dark:text-slate-400 font-bold mt-1 truncate">{sub}</div>
+      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-1 truncate">{sub}</div>
     </div>
   );
 }
@@ -1259,7 +1259,7 @@ function OpsCard({ to, icon: Icon, title, desc, tone, primary }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm truncate">{title}</div>
-      <div className="text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{desc}</div>
+      <div className="text-[0.6875rem] sm:text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{desc}</div>
     </Link>
   );
 }
@@ -1291,13 +1291,13 @@ function MoneyTile({ icon: Icon, label, value, sub, tone, to, urgent }: any) {
       <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shadow-md mb-2`}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className="text-[10px] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold truncate">
+      <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold truncate">
         {label}
       </div>
       <div className="mt-0.5 text-base sm:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">
         {value}
       </div>
-      <div className="text-[10px] text-slate-600 dark:text-slate-400 font-bold mt-1 leading-snug line-clamp-2">
+      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-1 leading-snug line-clamp-2">
         {sub}
       </div>
     </Link>
@@ -1336,13 +1336,13 @@ function ExpenseBars({ rows, total }: { rows: any[]; total: number }) {
                 <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">
                   {r.name}
                 </span>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 shrink-0">
                   ×{r.count}
                 </span>
               </div>
               <div className="text-xs font-extrabold text-slate-900 dark:text-white tabular-nums shrink-0">
                 {formatPKR(r.amount)}
-                <span className="ml-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                <span className="ml-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                   {pctOfTotal.toFixed(0)}%
                 </span>
               </div>
@@ -1357,7 +1357,7 @@ function ExpenseBars({ rows, total }: { rows: any[]; total: number }) {
         );
       })}
       <div className="pt-2 mt-1 border-t-2 border-slate-100 dark:border-slate-800 flex items-baseline justify-between">
-        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
           Kul kharcha
         </span>
         <span className="text-sm font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">
@@ -1391,9 +1391,9 @@ function StatCard({ title, value, icon: Icon, tone, link, alert, sub }: any) {
       )}
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold">{title}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold">{title}</div>
           <div className="mt-1 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-10 w-10 rounded-2xl bg-gradient-to-br ${tones[tone] ?? tones.cyan} text-white flex items-center justify-center shadow-md shrink-0`}>
           <Icon className="h-4 w-4 sm:h-5 sm:w-5" />

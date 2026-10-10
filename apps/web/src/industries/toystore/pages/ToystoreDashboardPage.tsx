@@ -140,7 +140,7 @@ export default function ToystoreDashboardPage() {
               <h3 className="font-extrabold text-slate-900 inline-flex items-center gap-2">
                 Upcoming Birthdays
                 {upcomingBirthdays.length > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-pink-500 text-white text-[9px] font-extrabold uppercase">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-pink-500 text-white text-[0.625rem] font-extrabold uppercase">
                     {upcomingBirthdays.length} in 30 days
                   </span>
                 )}
@@ -177,7 +177,7 @@ export default function ToystoreDashboardPage() {
                   <div className="font-extrabold text-slate-900 text-sm truncate group-hover:text-pink-700">
                     {b.childName} <span className="text-xs text-slate-500 font-bold">turning {b.turningAge}</span>
                   </div>
-                  <div className="text-[11px] text-slate-500 font-bold">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                     {b.customerName} • {b.customerPhone}
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export default function ToystoreDashboardPage() {
                     b.daysUntil <= 7 ? 'text-amber-700' : 'text-pink-700'].join(' ')}>
                     {b.daysUntil === 0 ? 'Today!' : b.daysUntil === 1 ? 'Tomorrow' : `${b.daysUntil} days`}
                   </div>
-                  {b.budgetRange && <div className="text-[10px] font-bold text-slate-500">Budget: {b.budgetRange}</div>}
+                  {b.budgetRange && <div className="text-[0.6875rem] font-bold text-slate-500">Budget: {b.budgetRange}</div>}
                 </div>
               </Link>
             ))}
@@ -288,7 +288,7 @@ export default function ToystoreDashboardPage() {
                   <div className="font-extrabold text-sm truncate text-slate-900 group-hover:text-pink-700">
                     {p.product?.name || p.brand || 'Toy'}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                     {p.totalSold ?? 0} sold • {AGE_LABELS[p.ageGroup] || p.ageGroup}
                   </div>
                 </div>
@@ -327,7 +327,7 @@ export default function ToystoreDashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm truncate text-slate-900">{g.name}</div>
-                  <div className="text-[10px] text-slate-500 font-bold">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                     {g.itemCount} items • {g.totalSold ?? 0} sold • Save {Number(g.savingsPct || 0).toFixed(0)}%
                   </div>
                 </div>
@@ -354,10 +354,10 @@ function HeroTile({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3 sm:p-4`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-lg sm:text-xl font-extrabold text-white tabular-nums leading-none truncate">{value}</div>
-      <div className="text-[10px] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
     </div>
   );
 }

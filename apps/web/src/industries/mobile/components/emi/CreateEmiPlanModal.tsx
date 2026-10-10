@@ -325,7 +325,7 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
               <CreditCard className="h-5 w-5 text-white" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-indigo-700 dark:text-indigo-300 font-bold">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-indigo-700 dark:text-indigo-300 font-bold">
                 EMI / Installments
               </div>
               <h3 className="font-bold text-slate-900 dark:text-white">New EMI Plan</h3>
@@ -413,7 +413,7 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
                 <User className="h-4 w-4" /> Customer
               </div>
               {customerId && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold inline-flex items-center gap-1">
+                <span className="text-[0.6875rem] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold inline-flex items-center gap-1">
                   <CheckCircle2 className="h-2.5 w-2.5" /> Linked
                 </span>
               )}
@@ -452,7 +452,7 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
                         {c.name}
                         {c.isVip && <Star className="h-3 w-3 text-amber-500 fill-current" />}
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
                         {c.phone && <span className="inline-flex items-center gap-0.5"><Phone className="h-2.5 w-2.5" />{c.phone}</span>}
                         {c.cnic && <span>CNIC: {c.cnic}</span>}
                         {c.balance > 0 && (
@@ -539,7 +539,7 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
             {/* Quick down payment % */}
             {total > 0 && (
               <div>
-                <div className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1.5 flex items-center gap-1">
+                <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1.5 flex items-center gap-1">
                   <Percent className="h-3 w-3" /> Quick Down Payment
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -571,20 +571,20 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
             {financed > 0 && (
               <div className="rounded-xl bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 p-3 grid grid-cols-3 gap-2 text-center">
                 <div>
-                  <div className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400">Total</div>
+                  <div className="text-[0.625rem] uppercase font-bold text-slate-500 dark:text-slate-400">Total</div>
                   <div className="font-extrabold text-slate-900 dark:text-white text-sm">{formatPKR(total)}</div>
                 </div>
                 <div>
-                  <div className="text-[9px] uppercase font-bold text-emerald-700 dark:text-emerald-400">Down</div>
+                  <div className="text-[0.625rem] uppercase font-bold text-emerald-700 dark:text-emerald-400">Down</div>
                   <div className="font-extrabold text-emerald-700 dark:text-emerald-400 text-sm">
                     {formatPKR(down)}
                   </div>
-                  <div className="text-[8px] text-emerald-600 dark:text-emerald-500">
+                  <div className="text-[0.625rem] text-emerald-600 dark:text-emerald-500">
                     {downPct.toFixed(0)}%
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] uppercase font-bold text-indigo-700 dark:text-indigo-400">Financed</div>
+                  <div className="text-[0.625rem] uppercase font-bold text-indigo-700 dark:text-indigo-400">Financed</div>
                   <div className="font-extrabold text-indigo-700 dark:text-indigo-400 text-sm">
                     {formatPKR(financed)}
                   </div>
@@ -616,7 +616,7 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
                     }`}
                   >
                     {opt}
-                    <div className="text-[8px] font-normal opacity-70">{opt <= 6 ? 'short' : opt <= 12 ? 'mid' : 'long'}</div>
+                    <div className="text-[0.625rem] font-normal opacity-70">{opt <= 6 ? 'short' : opt <= 12 ? 'mid' : 'long'}</div>
                   </button>
                 ))}
               </div>
@@ -661,7 +661,7 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
                       d.setDate(d.getDate() + q.days);
                       setStartDate(d.toISOString().slice(0, 10));
                     }}
-                    className="px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                    className="px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                   >
                     {q.label}
                   </button>
@@ -682,7 +682,7 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
                   {formatPKR(perInstallment)}
                   <span className="text-xs text-indigo-500 font-normal ml-1">/month</span>
                 </div>
-                <div className="relative text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                <div className="relative text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
                   <TrendingUp className="h-2.5 w-2.5" />
                   × {installmentCount} months = {formatPKR(financed)}
                 </div>
@@ -696,13 +696,13 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
               <div className="flex items-center justify-between mb-2">
                 <div className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5" /> Schedule Preview
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
+                  <span className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-normal">
                     ({installmentPreview.length} installments)
                   </span>
                 </div>
                 <button
                   onClick={printPreview}
-                  className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 hover:underline inline-flex items-center gap-1"
+                  className="text-[0.6875rem] font-bold text-indigo-700 dark:text-indigo-300 hover:underline inline-flex items-center gap-1"
                 >
                   <Printer className="h-3 w-3" /> Print
                 </button>
@@ -714,7 +714,7 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
                     className="flex items-center justify-between bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs hover:shadow transition"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="h-5 w-5 rounded bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-[10px]">
+                      <span className="h-5 w-5 rounded bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-[0.6875rem]">
                         {inst.num}
                       </span>
                       <span className="font-bold text-slate-700 dark:text-slate-200">
@@ -746,7 +746,7 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
 
         {/* Footer */}
         <div className="px-5 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-2 flex-wrap">
-          <div className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 flex items-center gap-1">
             <Info className="h-3 w-3" />
             Draft auto-save · <kbd className="px-1 py-0 rounded bg-slate-200 dark:bg-slate-700 font-mono">Ctrl+Enter</kbd> to save
           </div>
@@ -784,7 +784,7 @@ ${installmentPreview.map((i) => `<tr><td>${i.num}</td><td>${i.dueDate.toLocaleDa
                 ].map(([k, d]) => (
                   <div key={k} className="flex justify-between">
                     <span className="text-slate-700 dark:text-slate-300">{d}</span>
-                    <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[10px]">
+                    <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[0.6875rem]">
                       {k}
                     </kbd>
                   </div>

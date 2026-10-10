@@ -377,7 +377,7 @@ export default function FloristPosPage() {
                       {online ? <Wifi className="h-3 w-3 text-emerald-200" /> : <WifiOff className="h-3 w-3 text-amber-200" />}
                     </div>
                   </div>
-                  <p className="text-[11px] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                  <p className="text-[0.6875rem] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
                     <Store className="h-3 w-3 shrink-0" /><span className="truncate">{tenant?.name || 'Flower Shop'}</span>
                   </p>
                 </div>
@@ -397,7 +397,7 @@ export default function FloristPosPage() {
                   className="lg:hidden relative h-10 w-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center">
                   <ShoppingCart className="h-5 w-5" />
                   {cart.length > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">{cart.length}</span>
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">{cart.length}</span>
                   )}
                 </button>
               </div>
@@ -420,7 +420,7 @@ export default function FloristPosPage() {
               <button onClick={() => setScanner(true)}
                 className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg shrink-0">
                 <Camera className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="text-[9px] font-extrabold uppercase">Scan</span>
+                <span className="text-[0.625rem] font-extrabold uppercase">Scan</span>
               </button>
             </div>
 
@@ -442,10 +442,10 @@ export default function FloristPosPage() {
             </div>
 
             <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
-              <span className="shrink-0 text-[10px] uppercase font-extrabold text-slate-500 self-center pr-1">Occasion:</span>
+              <span className="shrink-0 text-[0.6875rem] uppercase font-extrabold text-slate-500 self-center pr-1">Occasion:</span>
               {OCCASIONS.map((o) => (
                 <button key={o} onClick={() => setOccFilter(occFilter === o ? '' : o)}
-                  className={`shrink-0 h-8 px-2.5 rounded-lg text-[11px] font-extrabold border-2 transition ${
+                  className={`shrink-0 h-8 px-2.5 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${
                     occFilter === o ? 'bg-rose-500 text-white border-rose-500' : 'bg-white text-slate-600 border-slate-200 hover:border-rose-300'}`}>
                   {o}
                 </button>
@@ -495,15 +495,15 @@ export default function FloristPosPage() {
                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-50 to-rose-50"><Flower2 className="h-12 w-12 text-pink-300" /></div>
                           )}
                           {out && <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center"><span className="px-3 py-1 rounded-xl bg-rose-600 text-white text-xs font-extrabold shadow-lg">OUT</span></div>}
-                          {low && !out && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-extrabold shadow-lg animate-pulse">LOW</div>}
+                          {low && !out && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg animate-pulse">LOW</div>}
                           {p.isFeatured && !out && <div className="absolute top-1.5 left-1.5 h-7 w-7 rounded-full bg-amber-500 flex items-center justify-center shadow-lg"><Star className="h-3.5 w-3.5 fill-white text-white" /></div>}
                           {freshDays !== null && freshDays <= 2 && !out && (
-                            <div className={`absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-white text-[9px] font-extrabold shadow ${freshDays <= 0 ? 'bg-rose-600' : 'bg-amber-500'}`}>
+                            <div className={`absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-white text-[0.625rem] font-extrabold shadow ${freshDays <= 0 ? 'bg-rose-600' : 'bg-amber-500'}`}>
                               {freshDays <= 0 ? '🥀' : `${freshDays}D`}
                             </div>
                           )}
                           {pr?.isCustomizable && !out && (
-                            <div className="absolute bottom-1.5 left-1.5 h-6 px-1.5 rounded-md bg-violet-600 flex items-center gap-1 text-white text-[9px] font-extrabold shadow">
+                            <div className="absolute bottom-1.5 left-1.5 h-6 px-1.5 rounded-md bg-violet-600 flex items-center gap-1 text-white text-[0.625rem] font-extrabold shadow">
                               <Wand2 className="h-2.5 w-2.5" /> CUSTOM
                             </div>
                           )}
@@ -512,7 +512,7 @@ export default function FloristPosPage() {
                           <div className="font-extrabold text-slate-900 text-sm sm:text-base line-clamp-2 leading-tight min-h-[2.25rem]">{p.name}</div>
                           <div className="flex items-center gap-1.5 mt-0.5">
                             {pr?.color && <span className="h-3 w-3 rounded-full border border-slate-300 shrink-0" style={{ backgroundColor: pr.colorHex || '#ec4899' }} />}
-                            {pr?.flowerType && <span className="text-[9px] font-extrabold uppercase text-pink-700 truncate">{pr.flowerType}</span>}
+                            {pr?.flowerType && <span className="text-[0.625rem] font-extrabold uppercase text-pink-700 truncate">{pr.flowerType}</span>}
                           </div>
                           <div className="mt-1.5 flex items-end justify-between gap-1">
                             <div className="text-lg sm:text-2xl font-extrabold text-emerald-700 leading-none tabular-nums">{hidePrices ? '•••' : formatPKR(p.price)}</div>
@@ -562,10 +562,10 @@ export default function FloristPosPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[11px] font-extrabold flex items-center justify-center">{cart.length}</span>
+                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[0.6875rem] font-extrabold flex items-center justify-center">{cart.length}</span>
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
                 <div className="text-lg font-extrabold tabular-nums leading-none">{hidePrices ? '••••' : formatPKR(total)}</div>
               </div>
             </div>

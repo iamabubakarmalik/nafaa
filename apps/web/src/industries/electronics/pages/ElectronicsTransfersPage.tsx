@@ -267,7 +267,7 @@ export default function ElectronicsTransfersPage() {
                   : 'bg-white border-slate-200 text-slate-600 hover:border-violet-300'
               }`}>
               <k.icon className="h-3.5 w-3.5" /> {k.label}
-              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
             </button>
           ))}
         </div>
@@ -317,14 +317,14 @@ export default function ElectronicsTransfersPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-slate-900 text-sm font-mono">{t.transferNumber}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${sm.chip}`}>{sm.label}</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${sm.chip}`}>{sm.label}</span>
                       {serialCount > 0 && (
-                        <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                        <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                           <Barcode className="h-2.5 w-2.5" /> {serialCount} serial
                         </span>
                       )}
                     </div>
-                    <div className="mt-0.5 flex items-center gap-1.5 flex-wrap text-[11px] font-bold text-slate-500">
+                    <div className="mt-0.5 flex items-center gap-1.5 flex-wrap text-[0.6875rem] font-bold text-slate-500">
                       <Store className="h-3 w-3" /> {t.fromShop.name}
                       <ArrowRight className="h-3 w-3 text-slate-400" />
                       <Store className="h-3 w-3" /> {t.toShop.name}
@@ -335,7 +335,7 @@ export default function ElectronicsTransfersPage() {
 
                   <div className="text-right shrink-0 hidden sm:block">
                     <div className="text-sm font-extrabold text-slate-900 tabular-nums">{t.items.length}</div>
-                    <div className="text-[10px] font-bold text-slate-400">
+                    <div className="text-[0.6875rem] font-bold text-slate-400">
                       {serialCount > 0 && normalQty > 0 ? 'mixed' : serialCount > 0 ? 'serial' : `${normalQty} pcs`}
                     </div>
                   </div>
@@ -359,7 +359,7 @@ export default function ElectronicsTransfersPage() {
                                 <div className="font-extrabold text-slate-900 text-sm truncate">
                                   {it.product?.name ?? 'Item'}
                                 </div>
-                                {it.notes && <div className="text-[11px] font-semibold text-slate-500 italic truncate">{it.notes}</div>}
+                                {it.notes && <div className="text-[0.6875rem] font-semibold text-slate-500 italic truncate">{it.notes}</div>}
                               </div>
                               <div className="font-extrabold text-slate-900 tabular-nums text-sm shrink-0">
                                 {it.serialId ? '1 unit' : `${it.quantity} ${it.product?.unit ?? 'pcs'}`}
@@ -368,14 +368,14 @@ export default function ElectronicsTransfersPage() {
 
                             {it.serial && (
                               <div className="mt-2 rounded-lg bg-violet-50 border border-violet-200 px-2.5 py-1.5 flex items-center gap-2 flex-wrap">
-                                <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-violet-800 font-mono">
+                                <span className="inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-violet-800 font-mono">
                                   <Hash className="h-3 w-3" /> {it.serial.serialNumber}
                                 </span>
                                 {it.serial.imei && (
-                                  <span className="text-[10px] font-bold text-violet-700 font-mono">IMEI {it.serial.imei}</span>
+                                  <span className="text-[0.6875rem] font-bold text-violet-700 font-mono">IMEI {it.serial.imei}</span>
                                 )}
                                 {left != null && (
-                                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold inline-flex items-center gap-0.5 ${
+                                  <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold inline-flex items-center gap-0.5 ${
                                     left < 0 ? 'bg-slate-200 text-slate-600'
                                       : left <= 30 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
                                   }`}>
@@ -383,7 +383,7 @@ export default function ElectronicsTransfersPage() {
                                     {left < 0 ? 'Warranty khatam' : `Warranty ${left} din`}
                                   </span>
                                 )}
-                                <span className="px-1.5 py-0.5 rounded bg-white text-slate-600 text-[9px] font-extrabold border border-slate-200">
+                                <span className="px-1.5 py-0.5 rounded bg-white text-slate-600 text-[0.625rem] font-extrabold border border-slate-200">
                                   {it.serial.status}
                                 </span>
                               </div>
@@ -547,7 +547,7 @@ function NewTransferModal({ onClose, currentShopId }: { onClose: () => void; cur
               <ArrowLeftRight className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Naya Transfer</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Naya Transfer</div>
               <h3 className="font-extrabold">Maal Dusri Dukan Bhejein</h3>
             </div>
           </div>
@@ -639,7 +639,7 @@ function NewTransferModal({ onClose, currentShopId }: { onClose: () => void; cur
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-extrabold text-slate-900 text-sm truncate">{s.product?.name ?? 'Serial unit'}</div>
-                            <div className="text-[11px] font-bold text-slate-500 font-mono truncate">
+                            <div className="text-[0.6875rem] font-bold text-slate-500 font-mono truncate">
                               {s.serialNumber}{s.imei ? ` · IMEI ${s.imei}` : ''}
                             </div>
                           </div>
@@ -668,7 +668,7 @@ function NewTransferModal({ onClose, currentShopId }: { onClose: () => void; cur
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="font-extrabold text-slate-900 text-sm truncate">{p.name}</div>
-                              <div className="text-[11px] font-bold text-slate-500 truncate">
+                              <div className="text-[0.6875rem] font-bold text-slate-500 truncate">
                                 {p.stock} {p.unit} maujood{p.brand ? ` · ${p.brand}` : ''}
                               </div>
                             </div>
@@ -703,7 +703,7 @@ function NewTransferModal({ onClose, currentShopId }: { onClose: () => void; cur
                         <div className="flex-1 min-w-0">
                           <div className="font-extrabold text-slate-900 text-sm truncate">{l.label}</div>
                           {l.serialNumber && (
-                            <div className="text-[11px] font-bold text-slate-500 font-mono truncate">{l.serialNumber}</div>
+                            <div className="text-[0.6875rem] font-bold text-slate-500 font-mono truncate">{l.serialNumber}</div>
                           )}
                         </div>
                         {l.serialId ? (
@@ -771,11 +771,11 @@ function HeroStat({ label, value, sub, icon: Icon, highlight }: any) {
     <div className={`rounded-2xl backdrop-blur border p-4 ${
       highlight ? 'bg-white/25 border-white/40 shadow-lg' : 'bg-white/10 border-white/20'
     }`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
       <div className="mt-1 text-2xl font-extrabold tabular-nums">{value}</div>
-      {sub && <div className="mt-0.5 text-[11px] font-bold text-white/70">{sub}</div>}
+      {sub && <div className="mt-0.5 text-[0.6875rem] font-bold text-white/70">{sub}</div>}
     </div>
   );
 }
@@ -814,7 +814,7 @@ function TransfersTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Transfer Kaise Karein?</h3>
             </div>
           </div>
@@ -833,7 +833,7 @@ function TransfersTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

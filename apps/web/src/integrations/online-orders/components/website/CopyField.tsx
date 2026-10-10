@@ -20,11 +20,11 @@ export function CopyField({ label, value, secret, hint }: { label: string; value
 
   return (
     <div>
-      <div className="mb-1 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="mb-1 text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
       <div className="flex items-center gap-1.5">
         <code
           className={cn(
-            'min-w-0 flex-1 truncate rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[12.5px] font-semibold text-slate-800',
+            'min-w-0 flex-1 truncate rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[0.78125rem] font-semibold text-slate-800',
             'dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100',
           )}
           title={shown ? value : undefined}
@@ -40,7 +40,7 @@ export function CopyField({ label, value, secret, hint }: { label: string; value
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
         </button>
       </div>
-      {hint && <div className="mt-1 text-[11px] text-slate-500">{hint}</div>}
+      {hint && <div className="mt-1 text-[0.6875rem] text-slate-500">{hint}</div>}
     </div>
   );
 }

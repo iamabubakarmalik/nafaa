@@ -29,7 +29,7 @@ export function ManualKeysForm({ channelId, site, onDone }: { channelId: string;
   });
   return (
     <div className="mt-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 p-4 space-y-3">
-      <div className="text-[12px] font-bold text-slate-600 dark:text-slate-300">
+      <div className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
         WordPress → <b>WooCommerce → Settings → Advanced → REST API → Add key</b> · Permissions: <b>Read/Write</b> → Generate
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
@@ -49,16 +49,16 @@ export function HttpsNotice({ reason, fix, compact }: { reason?: string | null; 
   return (
     <div className={cn('rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10', compact ? 'p-3' : 'p-4')}>
       <div className="text-sm font-black text-amber-900 dark:text-amber-200">🔒 Ek-click ke liye Nafaa ka API https par chahiye</div>
-      <p className="mt-1 text-[12px] font-bold text-amber-800 dark:text-amber-300">
+      <p className="mt-1 text-[0.75rem] font-bold text-amber-800 dark:text-amber-300">
         {reason ?? 'WooCommerce keys aur orders sirf https address par bhejta hai.'} Live (api.nafaa.pk) par ye khud theek hai.
       </p>
       {fix && (
-        <p className="mt-2 rounded-xl bg-white/70 dark:bg-slate-900/60 px-3 py-2 font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-200">
+        <p className="mt-2 rounded-xl bg-white/70 dark:bg-slate-900/60 px-3 py-2 font-mono text-[0.6875rem] font-semibold text-slate-700 dark:text-slate-200">
           {fix.replace(/`/g, '')}
         </p>
       )}
       {!compact && (
-        <p className="mt-2 text-[12px] font-bold text-amber-800 dark:text-amber-300">
+        <p className="mt-2 text-[0.75rem] font-bold text-amber-800 dark:text-amber-300">
           Tab tak neeche WooCommerce ki REST API keys daal kar jor sakte hain.
         </p>
       )}

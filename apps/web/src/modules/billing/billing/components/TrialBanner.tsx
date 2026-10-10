@@ -52,10 +52,10 @@ export function TrialBanner() {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-[9px] font-extrabold uppercase tracking-wider text-white/90 px-1.5 py-0.5 rounded-md bg-white/10 backdrop-blur">
+            <span className="text-[0.625rem] font-extrabold uppercase tracking-wider text-white/90 px-1.5 py-0.5 rounded-md bg-white/10 backdrop-blur">
               Free Trial
             </span>
-            <span className="text-[10px] font-extrabold text-white inline-flex items-center gap-0.5">
+            <span className="text-[0.6875rem] font-extrabold text-white inline-flex items-center gap-0.5">
               <Zap className="h-2.5 w-2.5" />
               {trialDaysLeft > 0 ? `${trialDaysLeft} din baqi` : 'Aaj khatam'}
             </span>

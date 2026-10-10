@@ -150,22 +150,22 @@ function AppointmentCard({ apt }: any) {
             'shrink-0 rounded-2xl px-3 py-2 text-center min-w-[80px] ' +
             (isSoon ? 'bg-amber-100' : 'bg-blue-100 dark:bg-blue-950/40')
           }>
-            <div className="text-[10px] uppercase font-extrabold text-blue-700">Token</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Token</div>
             <div className="text-2xl font-extrabold text-blue-900">#{apt.tokenNumber || '?'}</div>
-            <div className="text-[10px] font-bold text-blue-700 mt-1">{format(startDate, 'HH:mm')}</div>
+            <div className="text-[0.6875rem] font-bold text-blue-700 mt-1">{format(startDate, 'HH:mm')}</div>
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{apt.appointmentNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white inline-flex items-center gap-1 ' + statusCfg.color}>
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white inline-flex items-center gap-1 ' + statusCfg.color}>
                 <StatusIcon className="h-2.5 w-2.5" />
                 {statusCfg.label}
               </span>
-              {isSoon && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">SOON</span>}
-              {apt.isEmergency && <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><Zap className="h-2 w-2" />EMERGENCY</span>}
-              {apt.isTelemedicine && <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><Video className="h-2 w-2" />TELE</span>}
-              {apt.isHomeVisit && <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><Home className="h-2 w-2" />HOME</span>}
-              {apt.paymentStatus === 'PAID' && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase">PAID</span>}
+              {isSoon && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">SOON</span>}
+              {apt.isEmergency && <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Zap className="h-2 w-2" />EMERGENCY</span>}
+              {apt.isTelemedicine && <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Video className="h-2 w-2" />TELE</span>}
+              {apt.isHomeVisit && <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Home className="h-2 w-2" />HOME</span>}
+              {apt.paymentStatus === 'PAID' && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase">PAID</span>}
             </div>
 
             {apt.chiefComplaint && (
@@ -181,7 +181,7 @@ function AppointmentCard({ apt }: any) {
         <div className="text-right shrink-0">
           <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(apt.total)}</div>
           {remaining > 0 && apt.paymentStatus !== 'PAID' && (
-            <div className="text-[10px] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
+            <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
           )}
           <div className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-blue-600">
             View <ArrowRight className="h-3 w-3" />

@@ -27,7 +27,7 @@ export function OpticalWizardSummary({ draft, stats, allValid }: Props) {
       <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-sky-700 text-white p-5 shadow-xl overflow-hidden relative">
         <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-cyan-400/20 blur-2xl" />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-extrabold border border-white/20">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold border border-white/20">
             {allValid ? (
               <><CheckCircle2 className="h-3 w-3 text-emerald-300" /> Ready to save</>
             ) : (
@@ -37,7 +37,7 @@ export function OpticalWizardSummary({ draft, stats, allValid }: Props) {
           <h3 className="mt-2 font-extrabold text-xl leading-tight line-clamp-2">
             {draft.basic.name || 'Product name...'}
           </h3>
-          <div className="mt-2 flex items-center gap-2 flex-wrap text-[11px] font-bold text-white/80">
+          <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-white/80">
             {draft.basic.brand && <span>{draft.basic.brand}</span>}
             {draft.basic.modelNumber && <span className="font-mono">• {draft.basic.modelNumber}</span>}
           </div>
@@ -51,12 +51,12 @@ export function OpticalWizardSummary({ draft, stats, allValid }: Props) {
           )}
           <div className="mt-3 flex flex-wrap gap-1.5">
             {draft.basic.categoryType && (
-              <span className="inline-flex items-center gap-1 rounded-lg bg-white/15 backdrop-blur px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-white/15 backdrop-blur px-2 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wider">
                 <Glasses className="h-3 w-3" /> {draft.basic.categoryType.replace(/_/g, ' ')}
               </span>
             )}
             {draft.basic.gender && (
-              <span className="inline-flex items-center gap-1 rounded-lg bg-white/15 backdrop-blur px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-white/15 backdrop-blur px-2 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wider">
                 <Users className="h-3 w-3" /> {draft.basic.gender}
               </span>
             )}
@@ -67,7 +67,7 @@ export function OpticalWizardSummary({ draft, stats, allValid }: Props) {
       {/* Frame preview */}
       {(draft.frame.frameShape || draft.frame.frameMaterial || draft.frame.colorName) && (
         <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 flex items-center gap-1">
             <Sparkles className="h-3 w-3" /> Frame specs
           </div>
           <div className="space-y-1.5 text-xs">
@@ -91,7 +91,7 @@ export function OpticalWizardSummary({ draft, stats, allValid }: Props) {
       {/* Lens preview */}
       {(draft.lens.lensType || draft.lens.hasBlueCut || draft.lens.isPolarized || (draft.lens.lensCoatings ?? []).length > 0) && (
         <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 flex items-center gap-1">
             <Eye className="h-3 w-3" /> Lens features
           </div>
           <div className="flex flex-wrap gap-1">
@@ -126,19 +126,19 @@ export function OpticalWizardSummary({ draft, stats, allValid }: Props) {
           <div className="border-t border-slate-100 p-4 bg-gradient-to-br from-blue-50 to-white">
             <div className="flex items-center gap-1.5 mb-1">
               <Shield className="h-3 w-3 text-blue-700" />
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-blue-700">Warranty</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700">Warranty</div>
             </div>
             <div className="text-2xl font-extrabold text-blue-900 tabular-nums">
               {draft.warranty.warrantyMonths} <span className="text-sm">months</span>
             </div>
-            <div className="text-[10px] text-blue-700 font-bold">{draft.warranty.warrantyType}</div>
+            <div className="text-[0.6875rem] text-blue-700 font-bold">{draft.warranty.warrantyType}</div>
           </div>
         ) : null}
       </div>
 
       {stats.totalStock > 0 && hasPrice && (
         <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-2.5">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
             <DollarSign className="h-3 w-3" /> Financial preview
           </div>
           <Row2 label="Cost value" value={formatPKRFull(stats.stockCost)} tone="slate" />
@@ -153,7 +153,7 @@ export function OpticalWizardSummary({ draft, stats, allValid }: Props) {
                 {formatPKRFull(stats.potentialProfit)}
               </div>
             </div>
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 mt-1">
+            <div className="flex items-center justify-between text-[0.6875rem] font-bold text-slate-500 mt-1">
               <span>Margin</span>
               <span className={stats.profitMargin >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
                 {stats.profitMargin.toFixed(1)}%
@@ -165,7 +165,7 @@ export function OpticalWizardSummary({ draft, stats, allValid }: Props) {
 
       {(draft.basic.isFeatured || draft.basic.isBestSeller || draft.basic.isNewArrival || draft.basic.isDesigner) && (
         <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-3">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 flex items-center gap-1">
             <Sparkles className="h-3 w-3" /> Marketing flags
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -178,7 +178,7 @@ export function OpticalWizardSummary({ draft, stats, allValid }: Props) {
       )}
 
       <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 space-y-1.5">
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
           <CheckCircle2 className="h-3 w-3" /> Checklist
         </div>
         <Chk done={hasName} label="Product name" />
@@ -188,7 +188,7 @@ export function OpticalWizardSummary({ draft, stats, allValid }: Props) {
         <Chk done={stats.totalStock > 0} label="Stock added" />
       </div>
 
-      <div className="rounded-xl bg-cyan-50 border-2 border-cyan-200 p-2.5 text-[10px] text-cyan-800 font-extrabold text-center">
+      <div className="rounded-xl bg-cyan-50 border-2 border-cyan-200 p-2.5 text-[0.6875rem] text-cyan-800 font-extrabold text-center">
         💾 Draft auto-saved — safe to close and come back later
       </div>
     </aside>
@@ -201,10 +201,10 @@ function Cell({ icon: Icon, label, value, tone, hint }: any) {
     <div className="p-4">
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={['h-3 w-3', tones[tone]].join(' ')} />
-        <div className={['text-[10px] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
+        <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
       </div>
       <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{value}</div>
-      {hint && <div className="text-[10px] text-slate-500 font-bold mt-0.5">{hint}</div>}
+      {hint && <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{hint}</div>}
     </div>
   );
 }
@@ -247,7 +247,7 @@ function Chip({ label, tone }: any) {
     slate: 'bg-slate-100 text-slate-800 border-slate-300',
   };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[10px] font-extrabold ${tones[tone]}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[0.6875rem] font-extrabold ${tones[tone]}`}>
       {label}
     </span>
   );
@@ -260,7 +260,7 @@ function Flag({ icon, label, tone }: any) {
     fuchsia: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-300',
   };
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-extrabold ${tones[tone]}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[0.6875rem] font-extrabold ${tones[tone]}`}>
       {icon} {label}
     </span>
   );

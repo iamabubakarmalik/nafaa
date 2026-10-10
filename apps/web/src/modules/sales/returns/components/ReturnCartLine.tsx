@@ -45,14 +45,14 @@ export function ReturnCartLine({
           <div className="flex items-center gap-2 flex-wrap">
             <div className="font-bold text-slate-900 text-sm truncate">{line.productName}</div>
             {line.isCarpet && (
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700">
                 <Layers className="h-2.5 w-2.5" /> CARPET
               </span>
             )}
           </div>
 
           {line.variantName && (
-            <div className="text-[11px] font-bold text-violet-700 flex items-center gap-1 mt-0.5">
+            <div className="text-[0.6875rem] font-bold text-violet-700 flex items-center gap-1 mt-0.5">
               {line.variantColorHex && (
                 <span
                   className="h-2 w-2 rounded-full border border-slate-300"
@@ -63,20 +63,20 @@ export function ReturnCartLine({
             </div>
           )}
 
-          <div className="text-[11px] text-slate-600 mt-0.5">
+          <div className="text-[0.6875rem] text-slate-600 mt-0.5">
             {formatPKR(line.price)} × {line.quantity.toFixed(line.quantity % 1 === 0 ? 0 : 2)} ={' '}
             <span className="font-extrabold text-rose-700">
               {formatPKR(line.price * line.quantity)}
             </span>
           </div>
-          <div className="text-[10px] text-slate-500 mt-0.5">
+          <div className="text-[0.6875rem] text-slate-500 mt-0.5">
             Max returnable: {line.maxQty.toFixed(2)} {line.unit}
           </div>
 
           {/* Carpet action summary */}
           {line.isCarpet && carpetMode && (
             <div
-              className={`mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold ${
+              className={`mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.6875rem] font-extrabold ${
                 isDamaged
                   ? 'bg-rose-100 text-rose-700'
                   : willCreatePiece
@@ -103,7 +103,7 @@ export function ReturnCartLine({
 
           {/* Warning if carpet but no options set */}
           {line.isCarpet && !carpetMode && (
-            <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-extrabold">
+            <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[0.6875rem] font-extrabold">
               <AlertTriangle className="h-2.5 w-2.5" /> Configure cut piece options first
             </div>
           )}
@@ -113,7 +113,7 @@ export function ReturnCartLine({
           {line.isCarpet && onConfigureCarpet && (
             <button
               onClick={onConfigureCarpet}
-              className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold inline-flex items-center gap-1"
+              className="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-bold inline-flex items-center gap-1"
               title="Configure carpet return options"
             >
               <Settings className="h-3 w-3" />
@@ -155,7 +155,7 @@ export function ReturnCartLine({
         </button>
         <button
           onClick={() => onQuantityChange(line.maxQty)}
-          className="px-2.5 h-8 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 text-[10px] font-bold"
+          className="px-2.5 h-8 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 text-[0.6875rem] font-bold"
         >
           Max
         </button>

@@ -191,16 +191,16 @@ function TaskCard({ task, onStart, onComplete }: any) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-2xl font-extrabold">Room {task.roomNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + cfg.color}>
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>
                 {cfg.label}
               </span>
               {priority && (
-                <span className={'px-2 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' + priority.color}>
+                <span className={'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' + priority.color}>
                   {priority.label}
                 </span>
               )}
             </div>
-            <div className="text-[10px] font-mono font-bold text-slate-500">{task.taskNumber}</div>
+            <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{task.taskNumber}</div>
             <div className="mt-1 text-xs font-bold text-slate-600">{task.taskType}</div>
             {task.assignedName && (
               <div className="flex items-center gap-1 text-xs text-slate-600 font-bold mt-1">
@@ -292,7 +292,7 @@ function TaskForm({ onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-3">
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Room *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Room *</label>
           <select value={form.roomId} onChange={(e) => {
             const r = rooms.find((x) => x.id === e.target.value);
             setForm({ ...form, roomId: e.target.value, roomNumber: r?.roomNumber || '' });
@@ -307,11 +307,11 @@ function TaskForm({ onClose, onSaved }: any) {
             {TASK_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1">Priority</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Priority</div>
             <div className="grid grid-cols-4 gap-1">
               {PRIORITIES.map((p) => (
                 <button key={p.value} onClick={() => setForm({ ...form, priority: p.value })} className={
-                  'p-2 rounded-lg text-[10px] font-extrabold uppercase text-white ' + p.color +
+                  'p-2 rounded-lg text-[0.6875rem] font-extrabold uppercase text-white ' + p.color +
                   (form.priority === p.value ? ' ring-2 ring-slate-900' : ' opacity-70 hover:opacity-100')
                 }>{p.label}</button>
               ))}

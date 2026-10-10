@@ -276,7 +276,7 @@ export default function CarpetProductDetailPage() {
               </div>
             )}
             {product.isFeatured && (
-              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <Star className="h-3 w-3 fill-white" /> FEATURED
               </div>
             )}
@@ -335,7 +335,7 @@ export default function CarpetProductDetailPage() {
             {/* Prices */}
             <div className="mt-5 flex items-center gap-4 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Sale price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Sale price</div>
                 <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
                   {formatPKRFull(product.price)}
                   <span className="text-sm font-bold text-white/70 ml-1">/ {product.unit}</span>
@@ -343,7 +343,7 @@ export default function CarpetProductDetailPage() {
               </div>
               {product.costPrice > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
                     {formatPKRFull(product.costPrice)}
                   </div>
@@ -351,7 +351,7 @@ export default function CarpetProductDetailPage() {
               )}
               {product.wholesalePrice && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1">
                     {formatPKRFull(product.wholesalePrice)}
                   </div>
@@ -377,7 +377,7 @@ export default function CarpetProductDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Cut Pieces</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Leftover / centre pieces</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Leftover / centre pieces</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -387,7 +387,7 @@ export default function CarpetProductDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">All Rolls</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Filter by this product</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Filter by this product</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -397,7 +397,7 @@ export default function CarpetProductDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Go to POS</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Sell this product</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Sell this product</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -449,7 +449,7 @@ export default function CarpetProductDetailPage() {
                       {b.variantName}
                     </div>
                     {b.designCode && (
-                      <div className="text-[10px] font-mono text-slate-500">{b.designCode}</div>
+                      <div className="text-[0.6875rem] font-mono text-slate-500">{b.designCode}</div>
                     )}
                   </div>
                   {b.variantId && (
@@ -468,27 +468,27 @@ export default function CarpetProductDetailPage() {
 
                 <div className="grid grid-cols-2 gap-2 mt-3">
                   <div className="rounded-lg bg-white border border-slate-200 p-2">
-                    <div className="text-[9px] uppercase font-extrabold text-emerald-700 flex items-center gap-0.5">
+                    <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 flex items-center gap-0.5">
                       <Layers className="h-2.5 w-2.5" /> Rolls
                     </div>
                     <div className="text-base font-extrabold text-slate-900 tabular-nums">
                       {b.rollCount}
                     </div>
                     {b.rollSqft > 0 && (
-                      <div className="text-[10px] text-emerald-700 font-bold">
+                      <div className="text-[0.6875rem] text-emerald-700 font-bold">
                         {b.rollSqft.toFixed(0)} sqft
                       </div>
                     )}
                   </div>
                   <div className="rounded-lg bg-white border border-slate-200 p-2">
-                    <div className="text-[9px] uppercase font-extrabold text-violet-700 flex items-center gap-0.5">
+                    <div className="text-[0.625rem] uppercase font-extrabold text-violet-700 flex items-center gap-0.5">
                       <Scissors className="h-2.5 w-2.5" /> Pieces
                     </div>
                     <div className="text-base font-extrabold text-slate-900 tabular-nums">
                       {b.pieceCount}
                     </div>
                     {b.pieceSqft > 0 && (
-                      <div className="text-[10px] text-violet-700 font-bold">
+                      <div className="text-[0.6875rem] text-violet-700 font-bold">
                         {b.pieceSqft.toFixed(0)} sqft
                       </div>
                     )}
@@ -497,7 +497,7 @@ export default function CarpetProductDetailPage() {
 
                 {b.totalSqft > 0 && (
                   <div className="mt-3 pt-2 border-t border-slate-200 flex items-baseline justify-between">
-                    <div className="text-[10px] uppercase font-extrabold text-slate-600">Value</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Value</div>
                     <div className="text-sm font-extrabold text-emerald-700 tabular-nums">
                       {formatPKRFull(b.stockValue)}
                     </div>
@@ -544,13 +544,13 @@ export default function CarpetProductDetailPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Roll #</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Variant</th>
-                  <th className="px-3 py-2 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Size</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Remaining</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Sale/sqft</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Rack</th>
-                  <th className="px-3 py-2 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Status</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Roll #</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Variant</th>
+                  <th className="px-3 py-2 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Size</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Remaining</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Sale/sqft</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Rack</th>
+                  <th className="px-3 py-2 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Status</th>
                   <th className="px-3 py-2"></th>
                 </tr>
               </thead>
@@ -572,7 +572,7 @@ export default function CarpetProductDetailPage() {
                         <span className="text-slate-400">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-center text-[11px] font-bold text-slate-700">
+                    <td className="px-3 py-2 text-center text-[0.6875rem] font-bold text-slate-700">
                       {Number(r.widthFt)}ft × {Number(r.remainingLengthFt)}ft
                     </td>
                     <td className="px-3 py-2 text-right">
@@ -583,12 +583,12 @@ export default function CarpetProductDetailPage() {
                     <td className="px-3 py-2 text-right text-xs font-extrabold text-emerald-700">
                       {formatPKR(r.salePricePerSqft)}
                     </td>
-                    <td className="px-3 py-2 text-[10px] text-slate-600 font-bold">
+                    <td className="px-3 py-2 text-[0.6875rem] text-slate-600 font-bold">
                       {r.rackNumber || '—'}
                     </td>
                     <td className="px-3 py-2 text-center">
                       <span className={[
-                        'px-1.5 py-0.5 rounded-full text-[9px] font-extrabold',
+                        'px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold',
                         r.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
                         r.status === 'FINISHED' ? 'bg-slate-100 text-slate-600' :
                         r.status === 'DAMAGED' ? 'bg-rose-100 text-rose-700' :
@@ -600,7 +600,7 @@ export default function CarpetProductDetailPage() {
                     <td className="px-3 py-2 text-right">
                       <Link
                         to={`/carpet-rolls/${r.id}`}
-                        className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 hover:underline"
+                        className="inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-emerald-700 hover:underline"
                       >
                         View <ChevronRight className="h-3 w-3" />
                       </Link>
@@ -634,7 +634,7 @@ export default function CarpetProductDetailPage() {
                 <div className="flex items-center justify-between">
                   <div className="font-mono font-extrabold text-sm text-violet-700">{p.pieceCode}</div>
                   <span className={[
-                    'px-1.5 py-0.5 rounded-full text-[9px] font-extrabold',
+                    'px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold',
                     p.status === 'AVAILABLE' ? 'bg-emerald-100 text-emerald-700' :
                     p.status === 'SOLD' ? 'bg-violet-100 text-violet-700' :
                     'bg-slate-100 text-slate-600',
@@ -642,7 +642,7 @@ export default function CarpetProductDetailPage() {
                     {p.status}
                   </span>
                 </div>
-                <div className="mt-2 text-[11px] text-slate-600 font-bold">
+                <div className="mt-2 text-[0.6875rem] text-slate-600 font-bold">
                   {p.widthFt}ft × {p.lengthFt}ft = {Number(p.totalSqft).toFixed(1)} sqft
                 </div>
                 <div className="mt-1.5 flex items-baseline justify-between">
@@ -650,7 +650,7 @@ export default function CarpetProductDetailPage() {
                     {formatPKRFull(p.salePrice)}
                   </div>
                   {p.variant && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-violet-700">
+                    <span className="inline-flex items-center gap-1 text-[0.6875rem] font-bold text-violet-700">
                       {p.variant.colorHex && (
                         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.variant.colorHex }} />
                       )}
@@ -690,7 +690,7 @@ export default function CarpetProductDetailPage() {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500">Revenue</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Revenue</div>
             <div className="text-lg font-extrabold text-emerald-700 tabular-nums">
               {formatPKRFull(stats.totalRevenue)}
             </div>
@@ -721,7 +721,7 @@ export default function CarpetProductDetailPage() {
                         <div className="font-mono font-extrabold text-sm text-slate-900">
                           {s.saleNumber}
                         </div>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', {
                             day: '2-digit', month: 'short', year: 'numeric',
                           })}
@@ -736,7 +736,7 @@ export default function CarpetProductDetailPage() {
                         {formatPKRFull(revenueForProduct)}
                       </div>
                       {s.creditAmount > 0 && (
-                        <div className="text-[10px] text-amber-700 font-extrabold">
+                        <div className="text-[0.6875rem] text-amber-700 font-extrabold">
                           Udhaar: {formatPKR(s.creditAmount)}
                         </div>
                       )}
@@ -767,10 +767,10 @@ function HeroStat({
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -791,7 +791,7 @@ function QuickAction({
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-extrabold text-slate-900 text-sm">{title}</div>
-        <div className="text-[10px] text-slate-500 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-semibold">{desc}</div>
       </div>
       <ChevronRight className="h-4 w-4 text-slate-400" />
     </button>

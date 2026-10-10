@@ -25,7 +25,7 @@ export const APPLIANCE_GRADIENT =
 export function Kbd({ children, dark }: { children: ReactNode; dark?: boolean }) {
   return (
     <span
-      className={`inline-block px-1.5 py-0.5 rounded font-mono font-bold shadow-sm text-[10px] ${
+      className={`inline-block px-1.5 py-0.5 rounded font-mono font-bold shadow-sm text-[0.6875rem] ${
         dark
           ? 'bg-slate-700 text-slate-100 border border-slate-600'
           : 'bg-white/15 border border-white/25 text-white'
@@ -71,7 +71,7 @@ export function ApplianceHero({
 
       <div className="relative flex items-start justify-between flex-wrap gap-4">
         <div className="min-w-0 flex-1">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
             {badgeIcon}
             {badge}
           </div>
@@ -113,7 +113,7 @@ export function ApplianceHero({
       </div>
 
       {shortcuts.length > 0 && (
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           {shortcuts.map((s, i) => (
             <span key={s.keys} className="inline-flex items-center gap-1.5">
               {i > 0 && <span className="text-white/30 mx-1">•</span>}
@@ -173,9 +173,9 @@ export function Kpi({
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${KPI_TONES[tone]} text-white flex items-center justify-center shadow-lg shrink-0 group-hover:scale-110 transition`}>
           <Icon className="h-5 w-5" />
@@ -192,7 +192,7 @@ export function StatusBadge({
   meta: { label: string; emoji: string; cls: string };
   size?: 'xs' | 'sm' | 'md';
 }) {
-  const pad = size === 'xs' ? 'px-1.5 py-0.5 text-[9px]' : size === 'md' ? 'px-3 py-1 text-xs' : 'px-2 py-0.5 text-[10px]';
+  const pad = size === 'xs' ? 'px-1.5 py-0.5 text-[0.625rem]' : size === 'md' ? 'px-3 py-1 text-xs' : 'px-2 py-0.5 text-[0.6875rem]';
   return (
     <span className={`inline-flex items-center gap-1 rounded-full border font-extrabold whitespace-nowrap ${pad} ${meta.cls}`}>
       <span>{meta.emoji}</span>{meta.label}
@@ -224,7 +224,7 @@ export function Panel({
             )}
             <div className="min-w-0">
               {title && <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">{title}</h3>}
-              {hint && <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{hint}</p>}
+              {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{hint}</p>}
             </div>
           </div>
           {right && <div className="shrink-0">{right}</div>}
@@ -294,7 +294,7 @@ export function Teacher({
 
           {blocks.map((b) => (
             <div key={b.title} className={`rounded-2xl border-2 p-4 space-y-2 text-xs font-semibold ${BLOCK_TONES[b.tone ?? 'cyan']}`}>
-              <div className="text-[10px] uppercase tracking-widest font-black mb-1">{b.title}</div>
+              <div className="text-[0.6875rem] uppercase tracking-widest font-black mb-1">{b.title}</div>
               <div className="space-y-2 text-slate-700 dark:text-slate-200">
                 {b.tips.map((t, i) => <TipRow key={i}>{t}</TipRow>)}
               </div>
@@ -303,8 +303,8 @@ export function Teacher({
 
           {shortcuts && shortcuts.length > 0 && (
             <div className="rounded-xl bg-slate-900 dark:bg-slate-950 border border-slate-700 p-3 text-xs font-semibold text-slate-200">
-              <div className="text-[10px] uppercase tracking-widest font-black text-cyan-300 mb-2">⌨️ Shortcuts</div>
-              <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+              <div className="text-[0.6875rem] uppercase tracking-widest font-black text-cyan-300 mb-2">⌨️ Shortcuts</div>
+              <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem]">
                 {shortcuts.map((s) => (
                   <div key={s.keys}><Kbd dark>{s.keys}</Kbd> {s.label}</div>
                 ))}
@@ -376,7 +376,7 @@ export function Sheet({
           <div className="relative flex items-start justify-between gap-3">
             <div className="min-w-0">
               {badge && (
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
                   {icon} {badge}
                 </div>
               )}
@@ -409,13 +409,13 @@ export function Field({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
         {label}
         {required && <span className="text-rose-500 ml-0.5">*</span>}
         {hint && <span className="text-slate-400 dark:text-slate-500 normal-case font-bold ml-1">({hint})</span>}
       </label>
       {children}
-      {error && <div className="mt-1 text-[11px] font-extrabold text-rose-600 dark:text-rose-400">{error}</div>}
+      {error && <div className="mt-1 text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400">{error}</div>}
     </div>
   );
 }
@@ -445,7 +445,7 @@ export function ChipRow<T extends string>({
     <div className="flex gap-1.5 flex-wrap">
       <button
         onClick={() => onChange(null)}
-        className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border-2 transition ${
+        className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
           value === null
             ? 'bg-cyan-600 border-cyan-600 text-white shadow'
             : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
@@ -457,7 +457,7 @@ export function ChipRow<T extends string>({
         <button
           key={o.value}
           onClick={() => onChange(value === o.value ? null : o.value)}
-          className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border-2 transition inline-flex items-center gap-1 ${
+          className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition inline-flex items-center gap-1 ${
             value === o.value
               ? 'bg-cyan-600 border-cyan-600 text-white shadow'
               : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'

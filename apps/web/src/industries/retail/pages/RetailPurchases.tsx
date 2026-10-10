@@ -368,7 +368,7 @@ export default function RetailPurchasesV2() {
                   </p>
                 </div>
               </div>
-              <div className="hidden lg:flex items-center gap-1.5 text-[10px] font-extrabold text-slate-400 dark:text-slate-500 shrink-0">
+              <div className="hidden lg:flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-400 dark:text-slate-500 shrink-0">
                 <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">/</kbd> search
                 <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">Ctrl+↵</kbd> save
               </div>
@@ -389,7 +389,7 @@ export default function RetailPurchasesV2() {
                   {suppliers.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
                 </select>
                 {selectedSupplier && (selectedSupplier as any).currentBalance > 0 && (
-                  <div className="mt-1.5 text-[11px] font-extrabold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                  <div className="mt-1.5 text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 flex items-center gap-1">
                     <AlertTriangle className="h-3 w-3" />
                     Pehle se udhaar: {formatPKR((selectedSupplier as any).currentBalance)}
                   </div>
@@ -415,7 +415,7 @@ export default function RetailPurchasesV2() {
                         }`}
                       >
                         <span className="text-base leading-none">{m.emoji}</span>
-                        <span className={`text-[8px] font-extrabold ${active ? 'text-sky-700 dark:text-sky-300' : 'text-slate-500 dark:text-slate-400'}`}>
+                        <span className={`text-[0.625rem] font-extrabold ${active ? 'text-sky-700 dark:text-sky-300' : 'text-slate-500 dark:text-slate-400'}`}>
                           {m.label}
                         </span>
                       </button>
@@ -428,7 +428,7 @@ export default function RetailPurchasesV2() {
             {/* ② Product picker */}
             <div className="rounded-2xl border-2 border-sky-200 dark:border-sky-500/40 bg-sky-50/40 dark:bg-sky-500/5 p-3 sm:p-4 space-y-3">
               <div>
-                <label className="block text-[10px] sm:text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
+                <label className="block text-[0.6875rem] sm:text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
                   ② Product Add Karo <span className="normal-case font-bold text-slate-400 dark:text-slate-500">(/ dabao)</span>
                 </label>
                 <div className="relative">
@@ -476,15 +476,15 @@ export default function RetailPurchasesV2() {
                           <div className="flex items-center gap-2">
                             <div className="font-bold text-sm text-slate-900 dark:text-white truncate flex-1">{p.name}</div>
                             {idx === 0 && (
-                              <span className="hidden sm:inline px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 shrink-0">↵ Enter</span>
+                              <span className="hidden sm:inline px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 shrink-0">↵ Enter</span>
                             )}
                             {isLow && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 shrink-0">
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 shrink-0">
                                 <AlertTriangle className="h-2.5 w-2.5" /> LOW
                               </span>
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
                             Stock: <span className={`font-bold ${isLow ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}`}>{formatQty(p.stock)} {p.unit}</span>
                             {p.costPrice > 0 && <> • Last cost: <span className="font-bold">{formatPKR(p.costPrice)}</span></>}
                           </div>
@@ -516,7 +516,7 @@ export default function RetailPurchasesV2() {
                   </div>
                   <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-400 mb-1 uppercase">Qty ({selectedProduct.unit}) *</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 mb-1 uppercase">Qty ({selectedProduct.unit}) *</label>
                       <input
                         ref={qtyRef}
                         type="number" step="0.01" inputMode="decimal" value={qty}
@@ -532,7 +532,7 @@ export default function RetailPurchasesV2() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-400 mb-1 uppercase">Cost/pc *</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 mb-1 uppercase">Cost/pc *</label>
                       <input
                         type="number" step="0.01" inputMode="decimal" value={cost}
                         onChange={(e) => setCost(e.target.value)}
@@ -581,7 +581,7 @@ export default function RetailPurchasesV2() {
                     </div>
                     <button
                       onClick={() => setCart([])}
-                      className="text-[11px] font-extrabold text-rose-600 dark:text-rose-400 hover:underline"
+                      className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 hover:underline"
                     >
                       Sab hatao
                     </button>
@@ -663,7 +663,7 @@ export default function RetailPurchasesV2() {
               <CheckCircle2 className="h-4 w-4" /> Save Purchase • {formatPKR(total)}
             </Button>
             {!supplierId && cart.length > 0 && (
-              <p className="hidden sm:block text-center text-[11px] font-extrabold text-amber-600 dark:text-amber-400">
+              <p className="hidden sm:block text-center text-[0.6875rem] font-extrabold text-amber-600 dark:text-amber-400">
                 ⚠️ Save karne ke liye supplier select karo
               </p>
             )}
@@ -675,7 +675,7 @@ export default function RetailPurchasesV2() {
               <div className="px-4 sm:px-5 py-3 sm:py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">Recent Purchases</h3>
-                  <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-bold">Latest 5</p>
+                  <p className="text-[0.6875rem] sm:text-xs text-slate-500 dark:text-slate-400 font-bold">Latest 5</p>
                 </div>
                 <button onClick={() => setTab('history')} className="text-xs font-extrabold text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1">
                   Sab <ArrowRight className="h-3 w-3" />
@@ -688,11 +688,11 @@ export default function RetailPurchasesV2() {
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <div className="font-extrabold text-slate-900 dark:text-white font-mono text-xs">{p.purchaseNumber}</div>
-                          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold truncate">{p.supplierName}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold truncate">{p.supplierName}</div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="font-extrabold text-sky-700 dark:text-sky-300 text-sm tabular-nums">{formatPKR(p.total)}</div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{formatDate(p.purchasedAt)}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{formatDate(p.purchasedAt)}</div>
                         </div>
                       </div>
                     </Link>
@@ -713,7 +713,7 @@ export default function RetailPurchasesV2() {
                     <AlertTriangle className="h-6 w-6" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/80">Smart Reorder</div>
+                    <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/80">Smart Reorder</div>
                     <h3 className="text-base sm:text-lg font-extrabold">{lowStockProducts.length} items low</h3>
                   </div>
                 </div>
@@ -784,31 +784,31 @@ export default function RetailPurchasesV2() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{p.name}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{p.sku || '—'}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">{p.sku || '—'}</div>
                       </div>
                       {isOut ? (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-rose-600 text-white shrink-0">KHATAM</span>
+                        <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-rose-600 text-white shrink-0">KHATAM</span>
                       ) : (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-500 text-white shrink-0">LOW</span>
+                        <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-amber-500 text-white shrink-0">LOW</span>
                       )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
                       <div className="rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2">
-                        <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400">Abhi Hai</div>
+                        <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">Abhi Hai</div>
                         <div className={`text-lg font-extrabold tabular-nums ${isOut ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
                           {formatQty(p.stock)}
                         </div>
                       </div>
                       <div className="rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 p-2">
-                        <div className="text-[9px] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Mangwao</div>
+                        <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Mangwao</div>
                         <div className="text-lg font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400">
                           {formatQty(suggestedQty)}
                         </div>
                       </div>
                     </div>
 
-                    <div className="text-[10px] text-slate-600 dark:text-slate-300 font-semibold mb-2 tabular-nums">
+                    <div className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold mb-2 tabular-nums">
                       {formatPKR(unitCost)}/{p.unit} • Total ≈ <span className="font-extrabold text-slate-900 dark:text-white">{formatPKR(unitCost * suggestedQty)}</span>
                     </div>
 
@@ -925,7 +925,7 @@ export default function RetailPurchasesV2() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{ts.supplier?.name}</div>
-                          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">{ts.orderCount} orders</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{ts.orderCount} orders</div>
                         </div>
                         <div className="font-extrabold text-sky-700 dark:text-sky-300 text-sm tabular-nums">{formatPKR(ts.totalSpent)}</div>
                       </Link>
@@ -953,7 +953,7 @@ export default function RetailPurchasesV2() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{tp.product?.name}</div>
-                          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold tabular-nums">
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold tabular-nums">
                             {formatQty(tp.quantityPurchased)} {tp.product?.unit} • {tp.orderCount} orders
                           </div>
                         </div>
@@ -1061,7 +1061,7 @@ export default function RetailPurchasesV2() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm">{p.purchaseNumber}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${
+                            <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${
                               p.status === 'RECEIVED'
                                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
                                 : p.status === 'PENDING'
@@ -1069,7 +1069,7 @@ export default function RetailPurchasesV2() {
                                 : 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300'
                             }`}>{p.status}</span>
                             {balance > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 text-[9px] font-extrabold tabular-nums">
+                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300 text-[0.625rem] font-extrabold tabular-nums">
                                 Udhaar {formatPKR(balance)}
                               </span>
                             )}
@@ -1078,7 +1078,7 @@ export default function RetailPurchasesV2() {
                             <Building2 className="h-3 w-3 text-slate-400 shrink-0" />
                             <span className="font-bold text-slate-700 dark:text-slate-200 truncate">{p.supplier?.name || '—'}</span>
                           </div>
-                          <div className="flex items-center gap-3 mt-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-bold flex-wrap">
+                          <div className="flex items-center gap-3 mt-1.5 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold flex-wrap">
                             <span className="inline-flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               {formatDate(p.purchasedAt)}
@@ -1090,13 +1090,13 @@ export default function RetailPurchasesV2() {
                           </div>
                           <div className="mt-2 flex flex-wrap gap-1">
                             {p.items?.slice(0, 3).map((it: any) => (
-                              <span key={it.id} className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[180px] truncate inline-flex items-center gap-1">
+                              <span key={it.id} className="px-2 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[180px] truncate inline-flex items-center gap-1">
                                 <Boxes className="h-2.5 w-2.5 text-sky-600 dark:text-sky-400 shrink-0" />
                                 {it.product.name} × {formatQty(it.quantity)}
                               </span>
                             ))}
                             {(p.items?.length || 0) > 3 && (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                              <span className="px-2 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                                 +{(p.items?.length || 0) - 3} aur
                               </span>
                             )}
@@ -1105,10 +1105,10 @@ export default function RetailPurchasesV2() {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-lg sm:text-2xl font-extrabold text-sky-700 dark:text-sky-300 tabular-nums">{formatPKR(p.total)}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-bold tabular-nums">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-1 font-bold tabular-nums">
                           Paid: <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">{formatPKR(p.paidAmount)}</span>
                         </div>
-                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-sky-600 dark:text-sky-400 group-hover:text-sky-700 print:hidden">
+                        <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-sky-600 dark:text-sky-400 group-hover:text-sky-700 print:hidden">
                           <Eye className="h-3 w-3" />
                           Dekho
                           <ArrowRight className="h-3 w-3" />
@@ -1188,7 +1188,7 @@ function PurchasesTeacher({ onClose }: { onClose: () => void }) {
           </p>
 
           <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3.5">
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">4 Asaan Steps</div>
+            <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">4 Asaan Steps</div>
             <div className="space-y-2">
               <FlowRow num="①" title="Supplier" desc="Kis se maal aaya — pehle se udhaar bhi dikhta hai" />
               <FlowRow num="②" title="Products" desc="Search karo, qty + cost likho, Add dabao" />
@@ -1243,7 +1243,7 @@ function FlowRow({ num, title, desc }: { num: string; title: string; desc: strin
       </div>
       <div className="min-w-0">
         <div className="text-xs font-extrabold text-slate-900 dark:text-white">{title}</div>
-        <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{desc}</div>
+        <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">{desc}</div>
       </div>
     </div>
   );

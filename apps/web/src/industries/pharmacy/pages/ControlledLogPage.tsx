@@ -73,7 +73,7 @@ export default function ControlledLogPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm text-slate-900 dark:text-white font-mono">{log.logNumber}</span>
                         <span className={
-                          'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' +
+                          'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                           (log.logType === 'SALE' ? 'bg-rose-500' : log.logType === 'PURCHASE' ? 'bg-emerald-500' : 'bg-amber-500')
                         }>
                           {log.logType}
@@ -91,7 +91,7 @@ export default function ControlledLogPage() {
                           </span>
                         )}
                         {log.patientCnic && (
-                          <span className="font-mono text-[10px]">CNIC: {log.patientCnic}</span>
+                          <span className="font-mono text-[0.6875rem]">CNIC: {log.patientCnic}</span>
                         )}
                       </div>
                       {log.doctorName && (
@@ -106,11 +106,11 @@ export default function ControlledLogPage() {
                     <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">
                       {log.logType === 'SALE' || log.logType === 'DAMAGE' ? '−' : '+'}{log.quantity} {log.unit}
                     </div>
-                    <div className="text-[10px] font-bold text-slate-500">
+                    <div className="text-[0.6875rem] font-bold text-slate-500">
                       {log.openingBalance} → {log.closingBalance}
                     </div>
                     {log.dispensedBy && (
-                      <div className="text-[10px] font-bold text-blue-700">By: {log.dispensedBy}</div>
+                      <div className="text-[0.6875rem] font-bold text-blue-700">By: {log.dispensedBy}</div>
                     )}
                   </div>
                 </div>

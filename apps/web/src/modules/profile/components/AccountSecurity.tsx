@@ -59,12 +59,12 @@ export default function AccountSecurity() {
             <Shield className="h-6 w-6 text-white" />
           </div>
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider mb-1 border border-white/20">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.625rem] font-extrabold uppercase tracking-wider mb-1 border border-white/20">
               <Sparkles className="h-2.5 w-2.5 text-amber-300" />
               Security Center
             </div>
             <h3 className="font-extrabold text-lg leading-tight">Account & Security</h3>
-            <p className="text-[11px] text-white/80 font-semibold mt-0.5">
+            <p className="text-[0.6875rem] text-white/80 font-semibold mt-0.5">
               Apne login methods aur security manage karein
             </p>
           </div>
@@ -157,7 +157,7 @@ export default function AccountSecurity() {
                     {c.label}
                   </span>
                   <span
-                    className={`text-[10px] font-extrabold tabular-nums ${
+                    className={`text-[0.6875rem] font-extrabold tabular-nums ${
                       c.done ? 'text-emerald-700' : 'text-slate-400'
                     }`}
                   >
@@ -226,7 +226,7 @@ export default function AccountSecurity() {
             <div className="font-extrabold text-slate-900 flex items-center gap-1.5 flex-wrap">
               Email & Password
               {hasPassword && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">
                   <CheckCircle2 className="h-2.5 w-2.5" />
                   ACTIVE
                 </span>
@@ -265,7 +265,7 @@ export default function AccountSecurity() {
             <div className="font-extrabold text-slate-900 flex items-center gap-1.5 flex-wrap">
               Google Account
               {hasGoogle && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">
                   <CheckCircle2 className="h-2.5 w-2.5" />
                   CONNECTED
                 </span>
@@ -314,7 +314,7 @@ export default function AccountSecurity() {
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 flex items-center gap-1.5 flex-wrap">
               2-Factor Authentication
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-extrabold">
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">
                 <Star className="h-2.5 w-2.5" />
                 COMING SOON
               </span>
@@ -449,7 +449,7 @@ function SetPasswordModal({ onClose }: { onClose: () => void }) {
                   />
                 </div>
                 <p
-                  className={`text-[10px] font-extrabold mt-1 ${
+                  className={`text-[0.6875rem] font-extrabold mt-1 ${
                     strength.color === 'rose'
                       ? 'text-rose-600'
                       : strength.color === 'orange'

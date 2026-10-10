@@ -138,7 +138,7 @@ function ProjectCard({ project }: { project: HardwareProject }) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{project.projectNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
                 <StatusIcon className="h-2.5 w-2.5" />
                 {statusCfg.label}
               </span>
@@ -173,16 +173,16 @@ function ProjectCard({ project }: { project: HardwareProject }) {
 
         <div className="text-right shrink-0">
           <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(project.totalDelivered)}</div>
-          <div className="text-[10px] font-bold text-slate-500">delivered</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500">delivered</div>
           {project.estimatedBudget && (
-            <div className="text-[10px] font-extrabold text-slate-700">Budget: {formatPKR(project.estimatedBudget)}</div>
+            <div className="text-[0.6875rem] font-extrabold text-slate-700">Budget: {formatPKR(project.estimatedBudget)}</div>
           )}
         </div>
       </div>
 
       {project.totalOrdered > 0 && (
         <div className="mt-3">
-          <div className="flex items-center justify-between text-[10px] font-extrabold text-slate-500 mb-1">
+          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold text-slate-500 mb-1">
             <span>Delivery Progress</span>
             <span>{progressPct.toFixed(0)}% ({formatPKR(project.totalDelivered)} / {formatPKR(project.totalOrdered)})</span>
           </div>
@@ -287,7 +287,7 @@ function ProjectForm({ editing, onClose, onSaved }: any) {
                     <button key={c.id} onClick={() => { setForm({ ...form, customerId: c.id, customerName: c.name, customerPhone: c.phone || '' }); setShowPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
                       <User className="h-3.5 w-3.5 text-slate-400" />
                       <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                      <span className="text-[10px] text-slate-500 font-bold">{c.phone}</span>
+                      <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
                     </button>
                   ))}
                 </div>
@@ -339,11 +339,11 @@ function ProjectForm({ editing, onClose, onSaved }: any) {
         {/* Dates */}
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
             <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Expected End Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Expected End Date</label>
             <input type="date" value={form.expectedEndDate} onChange={(e) => setForm({ ...form, expectedEndDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
           </div>
         </div>
@@ -355,16 +355,16 @@ function ProjectForm({ editing, onClose, onSaved }: any) {
             Budget & Credit
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Estimated Budget</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Estimated Budget</label>
             <input type="number" value={form.estimatedBudget} onChange={(e) => setForm({ ...form, estimatedBudget: e.target.value })} placeholder="0" className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Credit Limit</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Credit Limit</label>
               <input type="number" value={form.creditLimit} onChange={(e) => setForm({ ...form, creditLimit: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Credit Days</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Credit Days</label>
               <input type="number" value={form.creditDays} onChange={(e) => setForm({ ...form, creditDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white dark:bg-amber-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
           </div>
@@ -372,7 +372,7 @@ function ProjectForm({ editing, onClose, onSaved }: any) {
 
         {/* Photos */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Site Photos</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Site Photos</label>
           {form.imageUrls.length > 0 && (
             <div className="grid grid-cols-4 gap-1 mb-2">
               {form.imageUrls.map((url: string, i: number) => (

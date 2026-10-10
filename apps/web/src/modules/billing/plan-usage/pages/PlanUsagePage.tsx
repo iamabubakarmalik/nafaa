@@ -86,7 +86,7 @@ const UsageCard = ({ label, current, limit, icon: Icon, color }: UsageCardProps)
               <Icon className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">
                 {isUnlimited ? 'Unlimited' : danger ? 'Critical' : warning ? 'Warning' : 'Healthy'}
               </div>
               <div className="font-extrabold text-slate-900 dark:text-white text-sm">{label}</div>
@@ -94,22 +94,22 @@ const UsageCard = ({ label, current, limit, icon: Icon, color }: UsageCardProps)
           </div>
 
           {isUnlimited ? (
-            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] font-extrabold uppercase tracking-widest">
+            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.625rem] font-extrabold uppercase tracking-widest">
               <InfinityIcon className="h-2.5 w-2.5" />
               Unlimited
             </div>
           ) : danger ? (
-            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[9px] font-extrabold uppercase tracking-widest animate-pulse">
+            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[0.625rem] font-extrabold uppercase tracking-widest animate-pulse">
               <AlertTriangle className="h-2.5 w-2.5" />
               Limit!
             </div>
           ) : warning ? (
-            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[9px] font-extrabold uppercase tracking-widest">
+            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.625rem] font-extrabold uppercase tracking-widest">
               <AlertTriangle className="h-2.5 w-2.5" />
               {percentage.toFixed(0)}%
             </div>
           ) : (
-            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] font-extrabold uppercase tracking-widest">
+            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.625rem] font-extrabold uppercase tracking-widest">
               <CheckCircle2 className="h-2.5 w-2.5" />
               {percentage.toFixed(0)}%
             </div>
@@ -130,7 +130,7 @@ const UsageCard = ({ label, current, limit, icon: Icon, color }: UsageCardProps)
             )}
           </div>
           {!isUnlimited && (
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
+            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
               {formatNum(Math.max(0, limit - current))} remaining
             </div>
           )}
@@ -150,13 +150,13 @@ const UsageCard = ({ label, current, limit, icon: Icon, color }: UsageCardProps)
             </div>
 
             {danger && (
-              <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-rose-700 dark:text-rose-400">
+              <div className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-400">
                 <AlertTriangle className="h-3 w-3" />
                 Upgrade karo warna add nahi hoga
               </div>
             )}
             {warning && (
-              <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-amber-700 dark:text-amber-400">
+              <div className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-400">
                 <TrendingUp className="h-3 w-3" />
                 Limit ke kareeb pohanch rahay hain
               </div>
@@ -165,7 +165,7 @@ const UsageCard = ({ label, current, limit, icon: Icon, color }: UsageCardProps)
         )}
 
         {isUnlimited && (
-          <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400">
+          <div className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400">
             <Sparkles className="h-3 w-3" />
             No limits — grow freely
           </div>
@@ -204,7 +204,7 @@ const FeatureItem = ({ enabled, label, icon: Icon, description }: FeatureItemPro
           {enabled && <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" strokeWidth={3} />}
         </div>
         {description && (
-          <div className={`text-[10px] mt-0.5 font-semibold ${enabled ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400 dark:text-slate-500'}`}>
+          <div className={`text-[0.6875rem] mt-0.5 font-semibold ${enabled ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400 dark:text-slate-500'}`}>
             {description}
           </div>
         )}
@@ -361,7 +361,7 @@ export default function PlanUsagePage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Award className="h-3.5 w-3.5 text-amber-300" />
               Plan Usage Dashboard
             </div>
@@ -381,31 +381,31 @@ export default function PlanUsagePage() {
             <div className="mt-4 flex items-center gap-2 flex-wrap">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 backdrop-blur-md border border-white/25">
                 <Sparkles className="h-3 w-3 text-emerald-300" />
-                <span className="text-[10px] font-extrabold uppercase tracking-widest">
+                <span className="text-[0.6875rem] font-extrabold uppercase tracking-widest">
                   {summary.enabledCount}/{summary.totalFeatures} Features
                 </span>
               </div>
               {summary.critical > 0 && (
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/30 backdrop-blur-md border border-rose-300/40 animate-pulse">
                   <AlertTriangle className="h-3 w-3 text-rose-200" />
-                  <span className="text-[10px] font-extrabold">{summary.critical} at limit</span>
+                  <span className="text-[0.6875rem] font-extrabold">{summary.critical} at limit</span>
                 </div>
               )}
               {summary.warning > 0 && (
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/30 backdrop-blur-md border border-amber-300/40">
                   <TrendingUp className="h-3 w-3 text-amber-200" />
-                  <span className="text-[10px] font-extrabold">{summary.warning} warning</span>
+                  <span className="text-[0.6875rem] font-extrabold">{summary.warning} warning</span>
                 </div>
               )}
               {summary.unlimited > 0 && (
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/30 backdrop-blur-md border border-emerald-300/40">
                   <InfinityIcon className="h-3 w-3 text-emerald-200" />
-                  <span className="text-[10px] font-extrabold">{summary.unlimited} unlimited</span>
+                  <span className="text-[0.6875rem] font-extrabold">{summary.unlimited} unlimited</span>
                 </div>
               )}
             </div>
 
-            <div className="mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+            <div className="mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
               <Kbd>R</Kbd><span className="text-white/60">Refresh</span>
               <span className="text-white/30 mx-1">•</span>
               <Kbd>U</Kbd><span className="text-white/60">Upgrade</span>
@@ -434,7 +434,7 @@ export default function PlanUsagePage() {
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <div className="text-2xl sm:text-3xl font-extrabold tabular-nums">{summary.healthScore}</div>
-                <div className="text-[8px] uppercase tracking-widest font-extrabold text-white/70">Health</div>
+                <div className="text-[0.625rem] uppercase tracking-widest font-extrabold text-white/70">Health</div>
               </div>
             </div>
 
@@ -470,7 +470,7 @@ export default function PlanUsagePage() {
             <AlertTriangle className="h-6 w-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-400 mb-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-400 mb-1">
               Critical — Limit Reached
             </div>
             <h3 className="font-extrabold text-rose-900 dark:text-rose-200 text-lg">
@@ -582,7 +582,7 @@ export default function PlanUsagePage() {
                 {summary.critical > 0 ? <AlertTriangle className="h-8 w-8" /> : <Rocket className="h-8 w-8" />}
               </div>
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/25 backdrop-blur-md px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest border border-amber-300/40 mb-1">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/25 backdrop-blur-md px-2 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-widest border border-amber-300/40 mb-1">
                   <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                   Smart Recommendation
                 </div>
@@ -671,12 +671,12 @@ function FeatureGroup({ title, icon: Icon, tone, items, features, proBadge }: an
           <Icon className={`h-4 w-4 ${t.iconBg}`} />
           <h4 className={`font-extrabold ${t.text} text-sm`}>{title}</h4>
           {proBadge && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-md bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[9px] font-extrabold uppercase tracking-widest">
+            <span className="ml-1 px-1.5 py-0.5 rounded-md bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.625rem] font-extrabold uppercase tracking-widest">
               Pro+
             </span>
           )}
         </div>
-        <span className={`text-[10px] font-extrabold ${t.iconBg} tabular-nums`}>
+        <span className={`text-[0.6875rem] font-extrabold ${t.iconBg} tabular-nums`}>
           {enabledInGroup}/{items.length}
         </span>
       </div>
@@ -724,7 +724,7 @@ function UsageTeacher({ onClose, summary, planName }: { onClose: () => void; sum
                 ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-300 dark:border-amber-500/40'
                 : 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/40'
           }`}>
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 flex items-center gap-1 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 flex items-center gap-1 mb-2">
               <Gauge className="h-3 w-3" /> Aap Ka Health Score
             </div>
             <div className="flex items-center justify-between">
@@ -751,7 +751,7 @@ function UsageTeacher({ onClose, summary, planName }: { onClose: () => void; sum
 
           {/* 4 usage metrics explained */}
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
               <Package className="h-3 w-3" /> 4 Main Limits
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -772,7 +772,7 @@ function UsageTeacher({ onClose, summary, planName }: { onClose: () => void; sum
 
           {/* Color coding */}
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <Target className="h-3 w-3" /> Color Coding
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -793,7 +793,7 @@ function UsageTeacher({ onClose, summary, planName }: { onClose: () => void; sum
 
           {/* Optimization tips */}
           <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
               <Sparkles className="h-3 w-3" /> Optimization Tips
             </div>
             <TipRow><strong>🧹 Cleanup regularly:</strong> Purane inactive products/customers delete karo. Space free ho jayega.</TipRow>

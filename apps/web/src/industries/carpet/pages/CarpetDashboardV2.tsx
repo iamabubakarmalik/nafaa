@@ -216,20 +216,20 @@ export default function CarpetDashboardV2() {
               <div className={`text-4xl font-extrabold tabular-nums ${inventoryScore > 70 ? 'text-emerald-700' : inventoryScore > 40 ? 'text-amber-700' : 'text-rose-700'}`}>
                 {inventoryScore}%
               </div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 tracking-wider">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 tracking-wider">
                 {inventoryScore > 70 ? 'Excellent' : inventoryScore > 40 ? 'Warning' : 'Critical'}
               </div>
             </div>
           </div>
           <div className="mt-2 grid grid-cols-2 gap-2 text-center">
             <div className="rounded-lg bg-emerald-50 border border-emerald-200 py-1.5">
-              <div className="text-[10px] font-extrabold text-emerald-700 uppercase">Healthy</div>
+              <div className="text-[0.6875rem] font-extrabold text-emerald-700 uppercase">Healthy</div>
               <div className="text-sm font-extrabold text-emerald-900 tabular-nums">
                 {(carpetStats?.totalActiveRolls ?? 0) - (carpetStats?.lowStockRolls?.length ?? 0)}
               </div>
             </div>
             <div className="rounded-lg bg-amber-50 border border-amber-200 py-1.5">
-              <div className="text-[10px] font-extrabold text-amber-700 uppercase">Low</div>
+              <div className="text-[0.6875rem] font-extrabold text-amber-700 uppercase">Low</div>
               <div className="text-sm font-extrabold text-amber-900 tabular-nums">{carpetStats?.lowStockRolls?.length ?? 0}</div>
             </div>
           </div>
@@ -463,7 +463,7 @@ export default function CarpetDashboardV2() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="font-extrabold text-slate-900 truncate text-sm">{p.product?.name}</div>
-                        <div className="text-[10px] text-slate-500 font-bold">
+                        <div className="text-[0.6875rem] text-slate-500 font-bold">
                           {p.quantitySold.toFixed(0)} {p.product?.unit} • {p.orderCount} orders
                         </div>
                       </div>
@@ -518,10 +518,10 @@ function HeroTile({ icon: Icon, label, value, sub, trend, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-2.5 sm:p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-base sm:text-xl font-extrabold text-white tabular-nums leading-none truncate">{value}</div>
-      <div className="text-[10px] font-bold text-white/70 mt-0.5 truncate">
+      <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5 truncate">
         {trend !== undefined ? (
           <span className={`inline-flex items-center gap-0.5 ${trend >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
             {trend >= 0 ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
@@ -572,9 +572,9 @@ function InvCard({ icon: Icon, label, value, sub, tone, highlight }: any) {
       <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${parts[0]} ${parts[1]} text-white flex items-center justify-center shadow mb-2`}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600">{label}</div>
       <div className="text-lg sm:text-xl font-extrabold text-slate-900 tabular-nums mt-0.5 truncate">{value}</div>
-      <div className="text-[10px] font-bold text-slate-500 mt-0.5 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5 truncate">{sub}</div>
     </div>
   );
 }
@@ -591,9 +591,9 @@ function PnLCell({ label, value, sub, tone, highlight }: any) {
       'rounded-xl p-3 border-2',
       highlight ? 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-300 ring-2 ring-blue-100' : 'bg-slate-50 border-slate-200',
     ].join(' ')}>
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600">{label}</div>
       <div className={`text-lg sm:text-xl font-extrabold tabular-nums mt-1 ${tones[tone]}`}>{value}</div>
-      <div className="text-[10px] text-slate-500 font-bold mt-0.5">{sub}</div>
+      <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{sub}</div>
     </div>
   );
 }
@@ -619,7 +619,7 @@ function QuickStat({ icon: Icon, label, value, tone, link, alert }: any) {
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider truncate">{label}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider truncate">{label}</div>
         <div className="text-base sm:text-lg font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
       </div>
     </Link>

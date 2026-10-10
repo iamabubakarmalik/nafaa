@@ -37,10 +37,10 @@ export function ApplianceProductTile({ product: p, profile, cart, hidePrices, on
           </div>
         )}
         {out && <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center"><span className="px-3 py-1 rounded-xl bg-rose-600 text-white text-xs sm:text-sm font-extrabold shadow-lg">OUT</span></div>}
-        {low && !out && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-extrabold shadow-lg animate-pulse">LOW</div>}
+        {low && !out && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg animate-pulse">LOW</div>}
         {p.isFeatured && !out && <div className="absolute top-1.5 left-1.5 h-7 w-7 rounded-full bg-amber-500 flex items-center justify-center shadow-lg"><Star className="h-3.5 w-3.5 fill-white text-white" /></div>}
         {profile?.isInverter && !out && (
-          <div className="absolute bottom-1.5 left-1.5 h-6 px-1.5 rounded-md bg-blue-600 flex items-center gap-1 text-white text-[9px] font-extrabold shadow-lg">
+          <div className="absolute bottom-1.5 left-1.5 h-6 px-1.5 rounded-md bg-blue-600 flex items-center gap-1 text-white text-[0.625rem] font-extrabold shadow-lg">
             <Zap className="h-2.5 w-2.5" /> INVERTER
           </div>
         )}
@@ -53,13 +53,13 @@ export function ApplianceProductTile({ product: p, profile, cart, hidePrices, on
       <div className="p-2 sm:p-3">
         <div className="font-extrabold text-slate-900 text-sm sm:text-base line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem]">{p.name}</div>
         {profile?.capacity && (
-          <div className="text-[10px] font-mono text-cyan-700 font-extrabold truncate mt-0.5">{profile.capacity}</div>
+          <div className="text-[0.6875rem] font-mono text-cyan-700 font-extrabold truncate mt-0.5">{profile.capacity}</div>
         )}
         <div className="mt-1.5 sm:mt-2 flex items-end justify-between gap-1">
           <div>
             <div className="text-lg sm:text-2xl font-extrabold text-emerald-700 leading-none tabular-nums">{hidePrices ? '•••' : formatPKR(p.price)}</div>
             {profile?.warrantyMonths ? (
-              <div className="text-[9px] font-extrabold text-cyan-700 mt-0.5 inline-flex items-center gap-0.5">
+              <div className="text-[0.625rem] font-extrabold text-cyan-700 mt-0.5 inline-flex items-center gap-0.5">
                 <Shield className="h-2 w-2" /> {profile.warrantyMonths}m
               </div>
             ) : null}
@@ -69,7 +69,7 @@ export function ApplianceProductTile({ product: p, profile, cart, hidePrices, on
           </div>
         </div>
         {profile?.freeDelivery && (
-          <div className="mt-1 text-[9px] font-extrabold text-blue-700 inline-flex items-center gap-0.5">
+          <div className="mt-1 text-[0.625rem] font-extrabold text-blue-700 inline-flex items-center gap-0.5">
             <Truck className="h-2.5 w-2.5" /> Free Delivery
           </div>
         )}

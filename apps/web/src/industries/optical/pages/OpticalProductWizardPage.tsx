@@ -325,7 +325,7 @@ export default function OpticalProductWizardPage() {
 function SuccessStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-xl bg-white border-2 border-cyan-200 p-3">
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-cyan-700">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-cyan-700">{label}</div>
       <div className="text-2xl font-extrabold text-cyan-900 tabular-nums mt-0.5">{value}</div>
     </div>
   );

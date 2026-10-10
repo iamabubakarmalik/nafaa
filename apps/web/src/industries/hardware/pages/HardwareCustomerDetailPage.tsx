@@ -35,7 +35,7 @@ export default function HardwareCustomerDetailPage() {
                     <div className="font-bold text-slate-900">{p.name}</div>
                     {p.city && <div className="text-xs text-slate-500">{p.city}</div>}
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ${
+                  <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ${
                     p.status === 'COMPLETED' ? 'bg-emerald-500' :
                     p.status === 'IN_PROGRESS' ? 'bg-amber-500' :
                     p.status === 'ON_HOLD' ? 'bg-orange-500' :
@@ -45,7 +45,7 @@ export default function HardwareCustomerDetailPage() {
                 </div>
                 {p.totalOrdered > 0 && (
                   <div>
-                    <div className="flex justify-between text-[10px] font-extrabold text-slate-500 mb-1">
+                    <div className="flex justify-between text-[0.6875rem] font-extrabold text-slate-500 mb-1">
                       <span>Delivery Progress</span>
                       <span>{((p.totalDelivered / p.totalOrdered) * 100).toFixed(0)}%</span>
                     </div>

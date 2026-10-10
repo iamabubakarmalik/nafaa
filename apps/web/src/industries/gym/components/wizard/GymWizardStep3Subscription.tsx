@@ -35,7 +35,7 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Member Photo</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">For membership card & identification</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">For membership card & identification</p>
           </div>
         </div>
         {subscription.photoUrl ? (
@@ -62,7 +62,7 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
             </div>
             <div>
               <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Choose Membership Plan</h3>
-              <p className="text-[11px] text-slate-500 font-semibold">Optional — can be added later</p>
+              <p className="text-[0.6875rem] text-slate-500 font-semibold">Optional — can be added later</p>
             </div>
           </div>
           {plans.length === 0 ? (
@@ -80,7 +80,7 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
                 ].join(' ')}>
                   <div className="text-2xl mb-1">⏭️</div>
                   <div className="font-extrabold text-sm">Skip for now</div>
-                  <div className="text-[10px] text-slate-500 font-semibold mt-1">Add subscription later</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-semibold mt-1">Add subscription later</div>
                 </button>
                 {plans.map((plan: any) => {
                   const active = subscription.planId === plan.id;
@@ -90,17 +90,17 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
                       active ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow-md ring-2 ring-fuchsia-200' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-fuchsia-300',
                     ].join(' ')}>
                       {plan.isFeatured && (
-                        <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                        <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                           <Star className="h-2 w-2 fill-white" /> FT
                         </div>
                       )}
                       <div className="font-extrabold text-sm">{plan.name}</div>
-                      <div className="text-[10px] uppercase font-extrabold text-fuchsia-600 mt-0.5">{plan.planType.replace('_', ' ')}</div>
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-600 mt-0.5">{plan.planType.replace('_', ' ')}</div>
                       <div className="mt-2 flex items-baseline gap-1">
                         <span className={'text-2xl font-extrabold tabular-nums ' + (active ? 'text-fuchsia-700' : 'text-emerald-700')}>{formatPKR(plan.price)}</span>
-                        <span className="text-[10px] font-bold text-slate-500">/ {plan.durationDays}d</span>
+                        <span className="text-[0.6875rem] font-bold text-slate-500">/ {plan.durationDays}d</span>
                       </div>
-                      {plan.registrationFee > 0 && <div className="text-[10px] font-bold text-amber-700 mt-0.5">+ {formatPKR(plan.registrationFee)} reg</div>}
+                      {plan.registrationFee > 0 && <div className="text-[0.6875rem] font-bold text-amber-700 mt-0.5">+ {formatPKR(plan.registrationFee)} reg</div>}
                     </button>
                   );
                 })}
@@ -114,15 +114,15 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
                   </div>
                   <div className="grid sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[10px] uppercase font-extrabold text-fuchsia-700 mb-1">Total Price</label>
+                      <label className="block text-[0.6875rem] uppercase font-extrabold text-fuchsia-700 mb-1">Total Price</label>
                       <input type="number" value={subscription.totalPrice} onChange={(e) => onChange({ totalPrice: e.target.value === '' ? '' : Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-fuchsia-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
                     </div>
                     <div>
-                      <label className="block text-[10px] uppercase font-extrabold text-emerald-700 mb-1">Paid Amount</label>
+                      <label className="block text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1">Paid Amount</label>
                       <input type="number" value={subscription.paidAmount} onChange={(e) => onChange({ paidAmount: e.target.value === '' ? '' : Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                     </div>
                     <div>
-                      <label className="block text-[10px] uppercase font-extrabold text-amber-700 mb-1">Balance</label>
+                      <label className="block text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1">Balance</label>
                       <div className="h-11 rounded-xl border-2 border-amber-300 bg-amber-50 px-3 flex items-center text-sm font-extrabold tabular-nums text-amber-900">
                         {formatPKR(balance)}
                       </div>
@@ -130,7 +130,7 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
                   </div>
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] uppercase font-extrabold text-slate-600 mb-1">Start Date</label>
+                      <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Start Date</label>
                       <input type="date" value={subscription.startDate} onChange={(e) => onChange({ startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
                     </div>
                     <label className="flex items-center gap-2 p-3 rounded-xl border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 cursor-pointer">

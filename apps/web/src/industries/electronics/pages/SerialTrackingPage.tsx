@@ -279,7 +279,7 @@ export default function SerialTrackingPage() {
           <div className="mt-5 rounded-2xl bg-white/15 backdrop-blur border border-white/25 p-4">
             <div className="flex items-center gap-2 mb-2">
               <ScanLine className="h-4 w-4 text-amber-300" />
-              <span className="text-[11px] uppercase font-extrabold tracking-wider text-white/80">
+              <span className="text-[0.6875rem] uppercase font-extrabold tracking-wider text-white/80">
                 Serial Ya IMEI Se Talash — customer ke saamne foran jawab
               </span>
             </div>
@@ -344,7 +344,7 @@ export default function SerialTrackingPage() {
                   : 'bg-white border-slate-200 text-slate-600 hover:border-violet-300'
               }`}>
               <k.icon className="h-3.5 w-3.5" /> {k.label}
-              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
             </button>
           ))}
         </div>
@@ -404,11 +404,11 @@ export default function SerialTrackingPage() {
                     <span className="font-extrabold text-slate-900 text-sm truncate">
                       {s.product?.name ?? 'Serial unit'}
                     </span>
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${meta.chip}`}>
+                    <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${meta.chip}`}>
                       {meta.label}
                     </span>
                     {d != null && (
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold inline-flex items-center gap-0.5 ${
+                      <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold inline-flex items-center gap-0.5 ${
                         d < 0 ? 'bg-slate-200 text-slate-600'
                           : d <= 30 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
                       }`}>
@@ -417,7 +417,7 @@ export default function SerialTrackingPage() {
                       </span>
                     )}
                   </div>
-                  <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500">
+                  <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500">
                     <span className="font-mono inline-flex items-center gap-1">
                       <Hash className="h-3 w-3" />{s.serialNumber}
                     </span>
@@ -430,14 +430,14 @@ export default function SerialTrackingPage() {
                   {s.status === 'SOLD' && (s.soldPrice ?? 0) > 0 ? (
                     <>
                       <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(s.soldPrice!)}</div>
-                      <div className="text-[10px] font-bold text-slate-400">bika</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-400">bika</div>
                     </>
                   ) : (s.purchasePrice ?? 0) > 0 ? (
                     <>
                       <div className="text-sm font-extrabold text-slate-900 tabular-nums">
                         {hideCost ? '•••' : formatPKR(s.purchasePrice!)}
                       </div>
-                      <div className="text-[10px] font-bold text-slate-400">lagat</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-400">lagat</div>
                     </>
                   ) : null}
                 </div>
@@ -457,7 +457,7 @@ export default function SerialTrackingPage() {
             );
           })}
           {serials.length > 300 && (
-            <div className="p-3 text-center text-[11px] font-bold text-slate-500">
+            <div className="p-3 text-center text-[0.6875rem] font-bold text-slate-500">
               Pehle 300 dikhaye — poori list CSV me download karein
             </div>
           )}
@@ -503,9 +503,9 @@ function LookupModal({ serial, onClose, hideCost }: {
               <Icon className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">{meta.urdu}</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">{meta.urdu}</div>
               <h3 className="text-lg font-extrabold truncate">{serial.product?.name ?? 'Serial unit'}</h3>
-              <div className="text-[11px] font-mono font-bold text-white/80 truncate">{serial.serialNumber}</div>
+              <div className="text-[0.6875rem] font-mono font-bold text-white/80 truncate">{serial.serialNumber}</div>
             </div>
           </div>
           <button onClick={onClose} className="h-10 w-10 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition shrink-0">
@@ -530,17 +530,17 @@ function LookupModal({ serial, onClose, hideCost }: {
                 {d != null && d >= 0 ? <ShieldCheck className="h-6 w-6" /> : <ShieldOff className="h-6 w-6" />}
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider">Warranty</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider">Warranty</div>
                 <div className="text-lg font-extrabold text-slate-900">
                   {d == null ? 'Is unit par warranty nahi'
                     : d < 0 ? 'Warranty khatam ho chuki'
                     : `${d} din baqi hain`}
                 </div>
                 {serial.warrantyEndDate && (
-                  <div className="text-[11px] font-bold text-slate-600">
+                  <div className="text-[0.6875rem] font-bold text-slate-600">
                     {new Date(serial.warrantyEndDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })} tak
                     {serial.warrantyStatus && (
-                      <span className={`ml-2 px-1.5 py-0.5 rounded text-[9px] font-extrabold ${WARRANTY_CHIP[serial.warrantyStatus] ?? 'bg-slate-200 text-slate-600'}`}>
+                      <span className={`ml-2 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${WARRANTY_CHIP[serial.warrantyStatus] ?? 'bg-slate-200 text-slate-600'}`}>
                         {serial.warrantyStatus}
                       </span>
                     )}
@@ -552,7 +552,7 @@ function LookupModal({ serial, onClose, hideCost }: {
 
           {/* Safar */}
           <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-4">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider mb-3">Is Unit Ka Safar</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider mb-3">Is Unit Ka Safar</div>
             <div className="flex items-start gap-1 overflow-x-auto pb-1">
               {steps.map((st, i) => (
                 <div key={i} className="flex items-start gap-1 shrink-0">
@@ -562,11 +562,11 @@ function LookupModal({ serial, onClose, hideCost }: {
                     }`}>
                       <st.icon className="h-4 w-4" />
                     </div>
-                    <div className={`text-[9px] font-extrabold text-center leading-tight ${st.done ? 'text-slate-800' : 'text-slate-400'}`}>
+                    <div className={`text-[0.625rem] font-extrabold text-center leading-tight ${st.done ? 'text-slate-800' : 'text-slate-400'}`}>
                       {st.label}
                     </div>
                     {st.at && (
-                      <div className="text-[8px] font-bold text-slate-400 tabular-nums">
+                      <div className="text-[0.625rem] font-bold text-slate-400 tabular-nums">
                         {new Date(st.at).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: '2-digit' })}
                       </div>
                     )}
@@ -675,11 +675,11 @@ function HeroStat({ label, value, sub, icon: Icon, highlight }: any) {
     <div className={`rounded-2xl backdrop-blur border p-4 ${
       highlight ? 'bg-white/25 border-white/40 shadow-lg' : 'bg-white/10 border-white/20'
     }`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> <span className="truncate">{label}</span>
       </div>
       <div className="mt-1 text-2xl font-extrabold tabular-nums">{value}</div>
-      {sub && <div className="mt-0.5 text-[11px] font-bold text-white/70 truncate">{sub}</div>}
+      {sub && <div className="mt-0.5 text-[0.6875rem] font-bold text-white/70 truncate">{sub}</div>}
     </div>
   );
 }
@@ -691,7 +691,7 @@ const BOX_TONES: Record<string, string> = {
 function Box({ label, value, icon: Icon, tone = 'slate', mono }: any) {
   return (
     <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-2.5">
-      <div className="text-[9px] uppercase font-extrabold text-slate-500 tracking-wider inline-flex items-center gap-1">
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 tracking-wider inline-flex items-center gap-1">
         {Icon && <Icon className="h-2.5 w-2.5" />} {label}
       </div>
       <div className={`text-sm font-extrabold mt-0.5 truncate tabular-nums ${mono ? 'font-mono' : ''} ${BOX_TONES[tone]}`}>
@@ -705,7 +705,7 @@ function CopyBox({ label, value, onCopy }: { label: string; value: string; onCop
   return (
     <button onClick={() => onCopy(value)}
       className="rounded-xl bg-violet-50 border-2 border-violet-200 p-2.5 text-left hover:border-violet-400 transition group">
-      <div className="text-[9px] uppercase font-extrabold text-violet-600 tracking-wider">{label} — copy ke liye click</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-violet-600 tracking-wider">{label} — copy ke liye click</div>
       <div className="text-sm font-extrabold font-mono text-violet-950 mt-0.5 truncate">{value}</div>
     </button>
   );
@@ -745,7 +745,7 @@ function SerialTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Serial Tracking</h3>
             </div>
           </div>
@@ -764,7 +764,7 @@ function SerialTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

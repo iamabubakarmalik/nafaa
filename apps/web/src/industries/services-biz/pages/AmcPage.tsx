@@ -116,11 +116,11 @@ function ContractCard({ contract }: { contract: AmcContract }) {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-2xl">{tier?.emoji}</span>
               <span className="font-extrabold">{contract.amcNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + STATUS_COLORS[contract.status]}>
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[contract.status]}>
                 {contract.status.replace('_', ' ')}
               </span>
               {isExpiring && (
-                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">
+                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">
                   Expires in {daysLeft}d
                 </span>
               )}
@@ -133,14 +133,14 @@ function ContractCard({ contract }: { contract: AmcContract }) {
           </div>
           <div className="text-right shrink-0">
             <div className="text-2xl font-extrabold tabular-nums">{formatPKR(contract.contractValue)}</div>
-            <div className="text-[10px] font-extrabold text-white/70">{tier?.label} • {contract.numberOfVisits} visits/yr</div>
+            <div className="text-[0.6875rem] font-extrabold text-white/70">{tier?.label} • {contract.numberOfVisits} visits/yr</div>
           </div>
         </div>
       </div>
 
       <div className="p-5 space-y-3">
         <div>
-          <div className="flex items-center justify-between text-[10px] font-extrabold mb-1">
+          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold mb-1">
             <span className="text-slate-600">Visit Progress</span>
             <span>{contract.visitsUsed} / {contract.numberOfVisits} used</span>
           </div>
@@ -151,20 +151,20 @@ function ContractCard({ contract }: { contract: AmcContract }) {
 
         <div className="grid grid-cols-3 gap-2 text-xs">
           <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
-            <div className="text-[9px] uppercase font-extrabold text-slate-500">Start</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Start</div>
             <div className="text-xs font-extrabold">{format(new Date(contract.startDate), 'dd MMM yyyy')}</div>
           </div>
           <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
-            <div className="text-[9px] uppercase font-extrabold text-slate-500">End</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">End</div>
             <div className="text-xs font-extrabold">{format(new Date(contract.endDate), 'dd MMM yyyy')}</div>
           </div>
           <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2 text-center">
-            <div className="text-[9px] uppercase font-extrabold text-emerald-700">Paid</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Paid</div>
             <div className="text-xs font-extrabold text-emerald-800">{formatPKR(contract.amountPaid)}</div>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1 text-[10px]">
+        <div className="flex flex-wrap gap-1 text-[0.6875rem]">
           {contract.includesLabour && <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-extrabold">✅ Labour</span>}
           {contract.includesParts && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-extrabold">✅ Parts</span>}
           {contract.emergencyIncluded && <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 font-extrabold">🚨 Emergency</span>}
@@ -173,7 +173,7 @@ function ContractCard({ contract }: { contract: AmcContract }) {
 
         {contract.visits && contract.visits.length > 0 && (
           <div className="pt-2 border-t">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-2">Scheduled Visits</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-2">Scheduled Visits</div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
               {contract.visits.map((v: any) => (
                 <div key={v.id} className={
@@ -182,11 +182,11 @@ function ContractCard({ contract }: { contract: AmcContract }) {
                    'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900')
                 }>
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-extrabold text-slate-500">Visit #{v.visitNumber}</span>
+                    <span className="text-[0.625rem] font-extrabold text-slate-500">Visit #{v.visitNumber}</span>
                     {v.status === 'COMPLETED' && <CheckCircle2 className="h-3 w-3 text-emerald-600" />}
                   </div>
                   <div className="text-xs font-extrabold text-slate-900 dark:text-white">{format(new Date(v.scheduledDate), 'dd MMM')}</div>
-                  <div className="text-[9px] font-bold text-slate-500 uppercase">{v.status}</div>
+                  <div className="text-[0.625rem] font-bold text-slate-500 uppercase">{v.status}</div>
                 </div>
               ))}
             </div>
@@ -256,7 +256,7 @@ function AmcForm({ onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Contract Type *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Contract Type *</label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {TIERS.map((t) => (
               <button key={t.value} onClick={() => setForm({ ...form, type: t.value })} className={
@@ -272,26 +272,26 @@ function AmcForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Visits per year *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Visits per year *</label>
             <input type="number" min="1" value={form.numberOfVisits} onChange={(e) => setForm({ ...form, numberOfVisits: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
             <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">End Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">End Date</label>
             <input type="date" value={form.endDate || computedEndDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Contract Value *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Contract Value *</label>
             <input type="number" value={form.contractValue} onChange={(e) => setForm({ ...form, contractValue: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Amount Paid</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Amount Paid</label>
             <input type="number" value={form.amountPaid} onChange={(e) => setForm({ ...form, amountPaid: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         </div>

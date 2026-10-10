@@ -40,7 +40,7 @@ export function ImeiDetailTable({ imeis }: Props) {
             <h4 className="font-extrabold text-blue-900 text-sm">
               {imeis.length} IMEI{imeis.length !== 1 ? 's' : ''} in stock
             </h4>
-            <p className="text-[10px] text-blue-700 font-bold">
+            <p className="text-[0.6875rem] text-blue-700 font-bold">
               Total Cost: {formatPKR(totalValue)}
             </p>
           </div>
@@ -68,46 +68,46 @@ export function ImeiDetailTable({ imeis }: Props) {
 
               return (
                 <tr key={i.id} className="hover:bg-blue-50/30 transition">
-                  <td className="px-3 py-2 text-blue-500 font-mono text-[10px]">
+                  <td className="px-3 py-2 text-blue-500 font-mono text-[0.6875rem]">
                     {idx + 1}
                   </td>
                   <td className="px-3 py-2">
-                    <div className="font-mono font-extrabold text-blue-900 text-[11px]">
+                    <div className="font-mono font-extrabold text-blue-900 text-[0.6875rem]">
                       {i.imei1}
                     </div>
                     {i.imei2 && (
-                      <div className="font-mono text-[9px] text-slate-500 mt-0.5">
+                      <div className="font-mono text-[0.625rem] text-slate-500 mt-0.5">
                         2: {i.imei2}
                       </div>
                     )}
                   </td>
                   <td className="px-3 py-2">
                     {i.variantName && (
-                      <div className="text-[10px] font-bold text-violet-700">
+                      <div className="text-[0.6875rem] font-bold text-violet-700">
                         {i.variantName}
                       </div>
                     )}
                     {i.color && (
-                      <div className="text-[10px] text-slate-600 font-bold">
+                      <div className="text-[0.6875rem] text-slate-600 font-bold">
                         {i.color}
                       </div>
                     )}
                     {!i.variantName && !i.color && (
-                      <span className="text-slate-400 text-[10px]">—</span>
+                      <span className="text-slate-400 text-[0.6875rem]">—</span>
                     )}
                   </td>
                   <td className="px-3 py-2 text-center">
                     <span
-                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold ${pta.color}`}
+                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold ${pta.color}`}
                     >
                       <PtaIcon className="h-2.5 w-2.5" />
                       {pta.label}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-right text-[11px] font-bold text-slate-700 tabular-nums">
+                  <td className="px-3 py-2 text-right text-[0.6875rem] font-bold text-slate-700 tabular-nums">
                     {formatPKR(i.costPrice)}
                   </td>
-                  <td className="px-3 py-2 text-[10px]">
+                  <td className="px-3 py-2 text-[0.6875rem]">
                     {warrantyDate ? (
                       <div
                         className={`font-bold ${
@@ -120,7 +120,7 @@ export function ImeiDetailTable({ imeis }: Props) {
                           day: 'numeric',
                         })}
                         {isWarrantyExpired && (
-                          <div className="text-[9px] text-rose-600">EXPIRED</div>
+                          <div className="text-[0.625rem] text-rose-600">EXPIRED</div>
                         )}
                       </div>
                     ) : (

@@ -431,7 +431,7 @@ export default function ReturnsPage() {
               </p>
             </div>
             <div className="text-right">
-              <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+              <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
               <div className="text-xs font-bold text-slate-900">{new Date().toLocaleString('en-PK')}</div>
             </div>
           </div>
@@ -444,7 +444,7 @@ export default function ReturnsPage() {
 
           <div className="relative flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
             <div className="min-w-0 flex-1">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
                 <RotateCcw className="h-3.5 w-3.5 text-amber-300" /> Returns & Refunds
                 {shopName && (
                   <>
@@ -485,7 +485,7 @@ export default function ReturnsPage() {
             </div>
           </div>
 
-          <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+          <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
             <Kbd>/</Kbd><span className="text-white/60">Search sales</span>
             <span className="text-white/30 mx-1">•</span>
             <Kbd>↑</Kbd><Kbd>↓</Kbd><Kbd>Enter</Kbd><span className="text-white/60">Sale nav</span>
@@ -608,7 +608,7 @@ export default function ReturnsPage() {
                             {s.saleNumber}
                           </span>
                           {s.status === 'PARTIALLY_RETURNED' && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[9px] font-extrabold border border-amber-300 dark:border-amber-500/40">
+                            <span className="px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.625rem] font-extrabold border border-amber-300 dark:border-amber-500/40">
                               PARTIAL
                             </span>
                           )}
@@ -616,7 +616,7 @@ export default function ReturnsPage() {
                         <div className="text-xs text-slate-600 dark:text-slate-400 truncate font-semibold">
                           {s.customer?.name || 'Walk-in'}
                         </div>
-                        <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-bold">
+                        <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-0.5 font-bold">
                           {formatDate(s.soldAt)} • {s.items.length} items
                         </div>
                       </div>
@@ -645,11 +645,11 @@ export default function ReturnsPage() {
                     Sale Items
                   </h4>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold">
+                    <span className="text-[0.6875rem] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold">
                       {selectedSale.items.length} items
                     </span>
                     {returnLines.length > 0 && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 font-extrabold">
+                      <span className="text-[0.6875rem] px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 font-extrabold">
                         {returnLines.length} in cart
                       </span>
                     )}
@@ -677,13 +677,13 @@ export default function ReturnsPage() {
                       <RotateCcw className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="text-[10px] uppercase font-extrabold text-orange-700 dark:text-orange-300">
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-orange-700 dark:text-orange-300">
                         Return cart me
                       </div>
                       <div className="text-sm font-extrabold text-slate-900 dark:text-white">
                         {returnLines.length} item{returnLines.length !== 1 ? 's' : ''} · {formatPKR(cartTotal)}
                         {damagedCount > 0 && (
-                          <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-rose-500 text-white font-extrabold inline-flex items-center gap-1">
+                          <span className="ml-2 text-[0.6875rem] px-1.5 py-0.5 rounded bg-rose-500 text-white font-extrabold inline-flex items-center gap-1">
                             <AlertTriangle className="h-2.5 w-2.5" /> {damagedCount} damaged
                           </span>
                         )}
@@ -740,7 +740,7 @@ export default function ReturnsPage() {
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[9px]">
+    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[0.625rem]">
       {children}
     </kbd>
   );
@@ -791,9 +791,9 @@ function StatCard({ label, value, sub, color, icon: Icon }: StatCardProps) {
     <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold truncate">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold truncate">{label}</div>
           <div className={`mt-1.5 text-xl sm:text-2xl font-extrabold ${c.text} ${c.darkText} tabular-nums truncate`}>{value}</div>
-          <div className={`text-[10px] ${c.subText} ${c.darkSub} font-bold mt-0.5 truncate`}>{sub}</div>
+          <div className={`text-[0.6875rem] ${c.subText} ${c.darkSub} font-bold mt-0.5 truncate`}>{sub}</div>
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${c.iconBg} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -830,7 +830,7 @@ function ReturnsTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Live misal */}
           <div className="rounded-2xl border-2 border-orange-200 dark:border-orange-500/30 bg-orange-50/60 dark:bg-orange-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-orange-700 dark:text-orange-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-orange-700 dark:text-orange-300">
               📱 Misal: Mobile shop
             </div>
             <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -848,7 +848,7 @@ function ReturnsTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Carpet special */}
           <div className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/30 bg-violet-50/60 dark:bg-violet-500/5 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300 mb-2">
               🧶 Carpet ki special handling
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -860,10 +860,10 @@ function ReturnsTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Statuses */}
           <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-2">
               📊 Sale statuses returns me
             </div>
-            <div className="space-y-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-slate-200">
               <div>✅ <strong>COMPLETED</strong> — full return possible</div>
               <div>🟡 <strong>PARTIAL</strong> — kuch items return ho gaye, baaki ho sakte hain</div>
               <div>❌ <strong>FULLY_RETURNED</strong> — sab wapis, list me nahi aayegi</div>

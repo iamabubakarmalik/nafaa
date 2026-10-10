@@ -113,7 +113,7 @@ export default function NewAppointmentPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 New Booking
               </div>
@@ -165,9 +165,9 @@ export default function NewAppointmentPage() {
                           <User className="h-3.5 w-3.5 text-slate-400" />
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-extrabold truncate">{p.fullName}</div>
-                            <div className="text-[10px] font-mono font-bold text-blue-600">{p.mrn}</div>
+                            <div className="text-[0.6875rem] font-mono font-bold text-blue-600">{p.mrn}</div>
                           </div>
-                          <span className="text-[10px] text-slate-500 font-bold">{p.phonePrimary}</span>
+                          <span className="text-[0.6875rem] text-slate-500 font-bold">{p.phonePrimary}</span>
                         </button>
                       ))}
                     </div>
@@ -221,7 +221,7 @@ export default function NewAppointmentPage() {
                   (form.visitType === v.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-blue-300')
                 }>
                   <div className="text-lg">{v.emoji}</div>
-                  <div className="text-[10px] mt-0.5">{v.label}</div>
+                  <div className="text-[0.6875rem] mt-0.5">{v.label}</div>
                 </button>
               ))}
             </div>
@@ -275,7 +275,7 @@ export default function NewAppointmentPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Fee Summary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Fee Summary</div>
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Consultation</span><span className="font-bold tabular-nums">{formatPKR(consultationFee)}</span></div>
                 {form.isEmergency && <div className="flex justify-between text-red-300"><span>Emergency</span><span className="font-bold">Applied</span></div>}
@@ -284,15 +284,15 @@ export default function NewAppointmentPage() {
               </div>
               <div className="mt-3 space-y-2">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Other Charges</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Other Charges</label>
                   <input type="number" value={form.otherCharges} onChange={(e) => setForm({ ...form, otherCharges: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
                   <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
                   <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
               </div>

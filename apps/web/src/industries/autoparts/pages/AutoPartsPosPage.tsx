@@ -249,7 +249,7 @@ export default function AutoPartsPosPage() {
               <div className="rounded-xl bg-fuchsia-50 border-2 border-fuchsia-200 p-2.5">
                 <div className="flex items-center gap-2 mb-1.5">
                   <Car className="h-3.5 w-3.5 text-fuchsia-700" />
-                  <label className="text-[10px] uppercase font-extrabold text-fuchsia-700">Customer's Vehicle (Fitment Filter)</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700">Customer's Vehicle (Fitment Filter)</label>
                 </div>
                 <select value={selectedVehicleId} onChange={(e) => setSelectedVehicleId(e.target.value)}
                   className="h-10 w-full rounded-lg border-2 border-fuchsia-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
@@ -310,38 +310,38 @@ export default function AutoPartsPosPage() {
                         )}
                         <div className="absolute top-1 left-1 flex flex-wrap gap-1">
                           {part.isFastMoving && (
-                            <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+                            <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
                               <Zap className="h-2 w-2" /> FAST
                             </span>
                           )}
                           {part.isCritical && (
-                            <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+                            <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
                               <AlertCircle className="h-2 w-2" /> CRIT
                             </span>
                           )}
                           {part.condition === 'GENUINE' && (
-                            <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold uppercase shadow">
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase shadow">
                               GEN
                             </span>
                           )}
                         </div>
                         {outOfStock && (
-                          <div className="absolute inset-x-0 bottom-0 py-1 bg-rose-600 text-white text-center text-[10px] font-extrabold">OUT</div>
+                          <div className="absolute inset-x-0 bottom-0 py-1 bg-rose-600 text-white text-center text-[0.6875rem] font-extrabold">OUT</div>
                         )}
                       </div>
                       <div className="p-2">
                         <div className="font-extrabold text-slate-900 text-xs line-clamp-2 min-h-[2rem] leading-tight">{p.name}</div>
                         {(part.partNumber || part.oemNumber) && (
-                          <div className="text-[9px] font-mono text-slate-500 mt-0.5 truncate">
+                          <div className="text-[0.625rem] font-mono text-slate-500 mt-0.5 truncate">
                             {part.partNumber && <span>P: {part.partNumber}</span>}
                           </div>
                         )}
                         <div className="mt-1 flex items-baseline justify-between">
                           <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.price)}</div>
-                          <div className="text-[9px] font-bold text-slate-500">{p.stock} {p.unit}</div>
+                          <div className="text-[0.625rem] font-bold text-slate-500">{p.stock} {p.unit}</div>
                         </div>
                         {part.warrantyMonths > 0 && (
-                          <div className="mt-0.5 text-[9px] font-bold text-teal-700 inline-flex items-center gap-0.5">
+                          <div className="mt-0.5 text-[0.625rem] font-bold text-teal-700 inline-flex items-center gap-0.5">
                             <ShieldCheck className="h-2.5 w-2.5" /> {part.warrantyMonths}m
                           </div>
                         )}
@@ -359,7 +359,7 @@ export default function AutoPartsPosPage() {
           <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-800 to-slate-700 text-white px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                   <Wrench className="h-2.5 w-2.5" />
                   Parts Cart
                 </div>
@@ -397,7 +397,7 @@ export default function AutoPartsPosPage() {
               </select>
 
               {selectedVehicleId && customerId && (
-                <div className="text-[10px] font-bold text-fuchsia-700 bg-fuchsia-50 border border-fuchsia-200 rounded-lg px-2 py-1.5 inline-flex items-center gap-1">
+                <div className="text-[0.6875rem] font-bold text-fuchsia-700 bg-fuchsia-50 border border-fuchsia-200 rounded-lg px-2 py-1.5 inline-flex items-center gap-1">
                   <Car className="h-3 w-3" />
                   Filtering by selected vehicle
                   <button onClick={() => setSelectedVehicleId('')} className="ml-1"><X className="h-3 w-3" /></button>
@@ -420,7 +420,7 @@ export default function AutoPartsPosPage() {
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-sm text-slate-900 truncate">{item.name}</div>
                         {item.note && (
-                          <div className="text-[10px] font-mono text-slate-600 bg-slate-100 rounded px-1.5 py-0.5 mt-1 inline-block">
+                          <div className="text-[0.6875rem] font-mono text-slate-600 bg-slate-100 rounded px-1.5 py-0.5 mt-1 inline-block">
                             {item.note}
                           </div>
                         )}
@@ -467,7 +467,7 @@ export default function AutoPartsPosPage() {
                 {(['FULL_PAYMENT', 'PARTIAL_CREDIT', 'FULL_CREDIT'] as const).map((m) => (
                   <button key={m} onClick={() => setSaleMode(m)}
                     className={[
-                      'py-2 rounded-lg text-[10px] font-extrabold transition',
+                      'py-2 rounded-lg text-[0.6875rem] font-extrabold transition',
                       saleMode === m ? 'bg-slate-800 text-white shadow' : 'bg-white border border-slate-200 text-slate-700',
                     ].join(' ')}>
                     {m === 'FULL_PAYMENT' ? 'Full Pay' : m === 'PARTIAL_CREDIT' ? 'Partial' : 'Udhaar'}
@@ -506,7 +506,7 @@ export default function AutoPartsPosPage() {
                   <CheckCircle2 className="h-5 w-5" /> Sale
                 </Button>
               </div>
-              <p className="text-[10px] text-slate-500 font-semibold text-center">
+              <p className="text-[0.6875rem] text-slate-500 font-semibold text-center">
                 "Sale" — quick parts sale • "Job Card" — full workshop job with labor + parts
               </p>
             </div>

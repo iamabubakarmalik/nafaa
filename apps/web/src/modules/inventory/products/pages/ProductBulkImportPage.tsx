@@ -514,7 +514,7 @@ export default function ProductBulkImportPage() {
                         <div className="flex items-center gap-1">
                           <span className="font-mono font-bold text-blue-900 text-xs">{col.name}</span>
                           {col.required && (
-                            <span className="text-[9px] font-bold text-rose-600 bg-rose-100 px-1 rounded">REQ</span>
+                            <span className="text-[0.625rem] font-bold text-rose-600 bg-rose-100 px-1 rounded">REQ</span>
                           )}
                         </div>
                         <div className="text-blue-700 mt-0.5">{col.desc}</div>
@@ -641,7 +641,7 @@ export default function ProductBulkImportPage() {
                 previewFilter === 'all' ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
-              All <span className={`px-1.5 py-0.5 rounded text-[9px] ${previewFilter === 'all' ? 'bg-white/20' : 'bg-slate-200'}`}>{preview.totalRows}</span>
+              All <span className={`px-1.5 py-0.5 rounded text-[0.625rem] ${previewFilter === 'all' ? 'bg-white/20' : 'bg-slate-200'}`}>{preview.totalRows}</span>
             </button>
             <button
               onClick={() => setPreviewFilter('valid')}
@@ -651,7 +651,7 @@ export default function ProductBulkImportPage() {
                   : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-transparent'
               }`}
             >
-              <CheckCircle2 className="h-3 w-3" /> Valid <span className={`px-1.5 py-0.5 rounded text-[9px] ${previewFilter === 'valid' ? 'bg-white/30' : 'bg-emerald-200'}`}>{preview.validCount}</span>
+              <CheckCircle2 className="h-3 w-3" /> Valid <span className={`px-1.5 py-0.5 rounded text-[0.625rem] ${previewFilter === 'valid' ? 'bg-white/30' : 'bg-emerald-200'}`}>{preview.validCount}</span>
             </button>
             <button
               onClick={() => setPreviewFilter('invalid')}
@@ -661,7 +661,7 @@ export default function ProductBulkImportPage() {
                   : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border-transparent'
               }`}
             >
-              <FileWarning className="h-3 w-3" /> Invalid <span className={`px-1.5 py-0.5 rounded text-[9px] ${previewFilter === 'invalid' ? 'bg-white/30' : 'bg-rose-200'}`}>{preview.invalidCount}</span>
+              <FileWarning className="h-3 w-3" /> Invalid <span className={`px-1.5 py-0.5 rounded text-[0.625rem] ${previewFilter === 'invalid' ? 'bg-white/30' : 'bg-rose-200'}`}>{preview.invalidCount}</span>
             </button>
           </div>
 
@@ -673,7 +673,7 @@ export default function ProductBulkImportPage() {
                 <p className="text-xs text-slate-500 font-semibold">{filteredPreviewRows.length} rows shown</p>
               </div>
               {preview.invalidCount > 0 && (
-                <div className="text-[10px] text-amber-700 font-bold inline-flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200">
+                <div className="text-[0.6875rem] text-amber-700 font-bold inline-flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200">
                   <Info className="h-3 w-3" /> Only valid rows will be imported
                 </div>
               )}
@@ -682,14 +682,14 @@ export default function ProductBulkImportPage() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 border-b-2 border-slate-200 sticky top-0">
                   <tr>
-                    <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">#</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Status</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Name</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Cat / Brand</th>
-                    <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Price</th>
-                    <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Stock</th>
-                    <th className="px-3 py-2 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Variants</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Issues</th>
+                    <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">#</th>
+                    <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Status</th>
+                    <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Name</th>
+                    <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Cat / Brand</th>
+                    <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Price</th>
+                    <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Stock</th>
+                    <th className="px-3 py-2 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Variants</th>
+                    <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Issues</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -698,25 +698,25 @@ export default function ProductBulkImportPage() {
                       <td className="px-3 py-2.5 text-xs text-slate-500 font-mono">{row.index}</td>
                       <td className="px-3 py-2.5">
                         {row.valid ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold">
                             <CheckCircle2 className="h-2.5 w-2.5" /> VALID
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">
                             <X className="h-2.5 w-2.5" /> INVALID
                           </span>
                         )}
                       </td>
                       <td className="px-3 py-2.5">
                         <div className="font-bold text-slate-900 text-xs">{row.name}</div>
-                        {row.sku && <div className="text-[10px] font-mono text-slate-500">{row.sku}</div>}
+                        {row.sku && <div className="text-[0.6875rem] font-mono text-slate-500">{row.sku}</div>}
                       </td>
                       <td className="px-3 py-2.5 text-xs">
                         {row.categoryName && (
                           <div className="flex items-center gap-1">
                             <span className="text-slate-700 font-semibold">{row.categoryName}</span>
                             {row.willCreateCategory && (
-                              <span className="text-[9px] font-extrabold text-blue-700 bg-blue-100 px-1 rounded">NEW</span>
+                              <span className="text-[0.625rem] font-extrabold text-blue-700 bg-blue-100 px-1 rounded">NEW</span>
                             )}
                           </div>
                         )}
@@ -724,7 +724,7 @@ export default function ProductBulkImportPage() {
                           <div className="flex items-center gap-1 mt-0.5">
                             <span className="text-violet-700 font-bold">{row.brandName}</span>
                             {row.willCreateBrand && (
-                              <span className="text-[9px] font-extrabold text-blue-700 bg-blue-100 px-1 rounded">NEW</span>
+                              <span className="text-[0.625rem] font-extrabold text-blue-700 bg-blue-100 px-1 rounded">NEW</span>
                             )}
                           </div>
                         )}
@@ -735,14 +735,14 @@ export default function ProductBulkImportPage() {
                       <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums">{row.stock}</td>
                       <td className="px-3 py-2.5 text-center">
                         {row.variantNames.length > 0 ? (
-                          <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-extrabold">
+                          <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.6875rem] font-extrabold">
                             <Layers className="h-2.5 w-2.5" /> {row.variantNames.length}
                           </span>
                         ) : (
                           <span className="text-slate-400 text-xs">—</span>
                         )}
                       </td>
-                      <td className="px-3 py-2.5 text-[10px]">
+                      <td className="px-3 py-2.5 text-[0.6875rem]">
                         {row.errors.map((e: string, i: number) => (
                           <div key={`e-${i}`} className="text-rose-700 font-bold inline-flex items-center gap-1">
                             <X className="h-2.5 w-2.5" /> {e}
@@ -874,7 +874,7 @@ function StepIndicator({
         <div className={`text-sm font-extrabold ${active || done ? 'text-slate-900' : 'text-slate-500'}`}>
           {label}
         </div>
-        <div className="text-[10px] text-slate-500 font-bold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-bold">{desc}</div>
       </div>
     </div>
   );
@@ -920,7 +920,7 @@ function PreviewKpi({ label, value, icon: Icon, tone }: { label: string; value: 
       <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${iconTones[tone]} text-white flex items-center justify-center shadow-md mb-2`}>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-75">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-75">{label}</div>
       <div className="text-2xl font-extrabold tabular-nums mt-1 leading-none">{value}</div>
     </div>
   );
@@ -943,10 +943,10 @@ function ValueCard({ label, value, color, icon: Icon, sub }: { label: string; va
         <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${iconTones[color]} text-white flex items-center justify-center shadow-md`}>
           <Icon className="h-4 w-4" />
         </div>
-        <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-75">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-75">{label}</div>
       </div>
       <div className="text-2xl font-extrabold tabular-nums">{value}</div>
-      {sub && <div className="text-[10px] font-bold opacity-70 mt-1">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold opacity-70 mt-1">{sub}</div>}
     </div>
   );
 }
@@ -960,7 +960,7 @@ function ResultCard({ label, value, icon: Icon, tone }: { label: string; value: 
   return (
     <div className={`rounded-2xl border-2 p-4 shadow-sm ${tones[tone]}`}>
       <Icon className="h-5 w-5 mx-auto mb-2 opacity-70" />
-      <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-75">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-75">{label}</div>
       <div className="text-3xl font-extrabold tabular-nums mt-1">{value}</div>
     </div>
   );
@@ -969,7 +969,7 @@ function ResultCard({ label, value, icon: Icon, tone }: { label: string; value: 
 function MiniResult({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-lg bg-white border border-slate-200 p-2">
-      <div className="text-[9px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="font-extrabold text-slate-900 tabular-nums">{value}</div>
     </div>
   );

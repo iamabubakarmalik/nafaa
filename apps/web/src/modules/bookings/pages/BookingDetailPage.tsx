@@ -257,13 +257,13 @@ export default function BookingDetailPage() {
                 <div className="mt-1.5 flex gap-1 flex-wrap">
                   <button
                     onClick={() => setPaymentAmount(String(booking.balanceDue))}
-                    className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-500/30"
+                    className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-500/30"
                   >
                     Full ({formatPKR(booking.balanceDue)})
                   </button>
                   <button
                     onClick={() => setPaymentAmount(String(Math.floor(booking.balanceDue / 2)))}
-                    className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+                    className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
                   >
                     ½ Half
                   </button>
@@ -271,7 +271,7 @@ export default function BookingDetailPage() {
                     <button
                       key={p}
                       onClick={() => setPaymentAmount(String(Math.round(booking.balanceDue * p)))}
-                      className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 inline-flex items-center gap-0.5"
+                      className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 inline-flex items-center gap-0.5"
                     >
                       <Percent className="h-2 w-2" />{(p * 100).toFixed(0)}
                     </button>
@@ -365,7 +365,7 @@ export default function BookingDetailPage() {
                     <div className="text-sm font-extrabold text-emerald-900 dark:text-emerald-200">
                       Refund advance ({formatPKR(booking.totalPaid)})
                     </div>
-                    <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">
+                    <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-bold">
                       Customer ka paisa wapis
                     </div>
                   </div>
@@ -413,15 +413,15 @@ export default function BookingDetailPage() {
               </div>
               <div className="grid grid-cols-3 gap-2 text-center rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3">
                 <div>
-                  <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400">Total</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">Total</div>
                   <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(booking.total)}</div>
                 </div>
                 <div>
-                  <div className="text-[9px] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Paid</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Paid</div>
                   <div className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(booking.totalPaid)}</div>
                 </div>
                 <div>
-                  <div className="text-[9px] uppercase font-extrabold text-amber-700 dark:text-amber-400">Balance</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 dark:text-amber-400">Balance</div>
                   <div className="text-sm font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">{formatPKR(booking.balanceDue)}</div>
                 </div>
               </div>
@@ -443,13 +443,13 @@ export default function BookingDetailPage() {
                   <div className="mt-1.5 flex gap-1 flex-wrap">
                     <button
                       onClick={() => setAdditionalPayment(String(booking.balanceDue))}
-                      className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-500/30"
+                      className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-500/30"
                     >
                       Pay Full
                     </button>
                     <button
                       onClick={() => setAdditionalPayment('')}
-                      className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
+                      className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
                     >
                       Skip (add to khata)
                     </button>
@@ -487,7 +487,7 @@ export default function BookingDetailPage() {
               </p>
             </div>
             <div className="text-right">
-              <div className="text-[10px] uppercase font-bold text-slate-500">Printed</div>
+              <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Printed</div>
               <div className="text-xs font-bold text-slate-900">{new Date().toLocaleString('en-PK')}</div>
             </div>
           </div>
@@ -543,7 +543,7 @@ export default function BookingDetailPage() {
             {booking.customer?.phone && (
               <button
                 onClick={shareWhatsApp}
-                className="h-8 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-extrabold inline-flex items-center gap-1 transition"
+                className="h-8 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
               >
                 <Phone className="h-3 w-3" /> Call
               </button>
@@ -633,7 +633,7 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Shortcuts hint */}
-          <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center print:hidden">
+          <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center print:hidden">
             {canPay && (<><Kbd>P</Kbd><span className="text-white/60">Pay</span><span className="text-white/30 mx-1">•</span></>)}
             {canConvert && (<><Kbd>C</Kbd><span className="text-white/60">Convert</span><span className="text-white/30 mx-1">•</span></>)}
             {canCancel && (<><Kbd>X</Kbd><span className="text-white/60">Cancel</span><span className="text-white/30 mx-1">•</span></>)}
@@ -719,21 +719,21 @@ export default function BookingDetailPage() {
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-slate-900 dark:text-white text-sm">{item.product?.name}</div>
                       {item.variant?.name && (
-                        <div className="text-[10px] font-extrabold text-violet-700 dark:text-violet-300">{item.variant.name}</div>
+                        <div className="text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-300">{item.variant.name}</div>
                       )}
                       <div className="flex flex-wrap gap-1 mt-1">
                         {item.imei && (
-                          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 text-[9px] font-mono font-extrabold">
+                          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 text-[0.625rem] font-mono font-extrabold">
                             <Smartphone className="h-2 w-2" /> {item.imei.imei1}
                           </div>
                         )}
                         {item.roll && (
-                          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[9px] font-extrabold">
+                          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[0.625rem] font-extrabold">
                             <Layers className="h-2 w-2" /> {item.roll.rollNumber}
                           </div>
                         )}
                         {item.cutPiece && (
-                          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-800 dark:text-violet-300 text-[9px] font-extrabold">
+                          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-800 dark:text-violet-300 text-[0.625rem] font-extrabold">
                             <Scissors className="h-2 w-2" /> {item.cutPiece.pieceCode}
                           </div>
                         )}
@@ -743,12 +743,12 @@ export default function BookingDetailPage() {
                         {item.lineDiscount > 0 && <span className="text-rose-700 dark:text-rose-400 ml-2">-{formatPKR(item.lineDiscount)}</span>}
                       </div>
                       {item.note && (
-                        <div className="mt-1.5 inline-flex items-start gap-1 rounded bg-amber-100 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-500/40 px-1.5 py-0.5 text-[10px] font-bold text-amber-900 dark:text-amber-200">
+                        <div className="mt-1.5 inline-flex items-start gap-1 rounded bg-amber-100 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-500/40 px-1.5 py-0.5 text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
                           <MessageSquare className="h-2.5 w-2.5 mt-0.5" /> {item.note}
                         </div>
                       )}
                       {item.internalNote && (
-                        <div className="mt-1 inline-flex items-start gap-1 rounded bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-1.5 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300 italic print:hidden">
+                        <div className="mt-1 inline-flex items-start gap-1 rounded bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-1.5 py-0.5 text-[0.6875rem] font-bold text-slate-700 dark:text-slate-300 italic print:hidden">
                           <EyeOff className="h-2.5 w-2.5 mt-0.5" /> {item.internalNote}
                         </div>
                       )}
@@ -783,7 +783,7 @@ export default function BookingDetailPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${
+                            <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${
                               pay.type === 'ADVANCE' ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' :
                               pay.type === 'ADDITIONAL' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
                               'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
@@ -792,8 +792,8 @@ export default function BookingDetailPage() {
                             </span>
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{pay.paymentMethod}</span>
                           </div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{formatDate(pay.paidAt)}</div>
-                          {pay.notes && <div className="text-[10px] text-slate-600 dark:text-slate-400 italic mt-0.5">{pay.notes}</div>}
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5">{formatDate(pay.paidAt)}</div>
+                          {pay.notes && <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 italic mt-0.5">{pay.notes}</div>}
                         </div>
                         <div className={`text-right font-extrabold tabular-nums ${isRefund ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
                           {isRefund ? '-' : '+'}{formatPKR(pay.amount)}
@@ -852,7 +852,7 @@ export default function BookingDetailPage() {
               </div>
               {booking.cancelReason && (
                 <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-                  <div className="text-[9px] uppercase font-extrabold text-rose-700 dark:text-rose-400 mb-1">Cancel Reason</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-rose-700 dark:text-rose-400 mb-1">Cancel Reason</div>
                   <div className="text-xs text-slate-700 dark:text-slate-300 italic">"{booking.cancelReason}"</div>
                 </div>
               )}
@@ -888,7 +888,7 @@ export default function BookingDetailPage() {
                 <h3 className="font-extrabold text-slate-900 dark:text-white">Notes</h3>
                 {booking.notes && (
                   <div className="rounded-lg bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-300 dark:border-amber-500/40 p-3">
-                    <div className="text-[9px] uppercase font-extrabold text-amber-800 dark:text-amber-300 mb-1 inline-flex items-center gap-1">
+                    <div className="text-[0.625rem] uppercase font-extrabold text-amber-800 dark:text-amber-300 mb-1 inline-flex items-center gap-1">
                       <MessageSquare className="h-2.5 w-2.5" /> Customer Note
                     </div>
                     <div className="text-xs font-bold text-amber-900 dark:text-amber-200">{booking.notes}</div>
@@ -896,7 +896,7 @@ export default function BookingDetailPage() {
                 )}
                 {booking.internalNotes && (
                   <div className="rounded-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 p-3 print:hidden">
-                    <div className="text-[9px] uppercase font-extrabold text-slate-700 dark:text-slate-300 mb-1 inline-flex items-center gap-1">
+                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-700 dark:text-slate-300 mb-1 inline-flex items-center gap-1">
                       <EyeOff className="h-2.5 w-2.5" /> Internal Note
                     </div>
                     <div className="text-xs font-bold text-slate-800 dark:text-slate-200 italic">{booking.internalNotes}</div>
@@ -943,7 +943,7 @@ function MiniKpi({ label, value, icon: Icon, color }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
         <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
       </div>
     </div>
@@ -970,9 +970,9 @@ function TimelineRow({ label, value, icon: Icon, color, badge }: any) {
       <Icon className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${colors[color]}`} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
           {badge && (
-            <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${badgeColors[color]}`}>
+            <span className={`text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded ${badgeColors[color]}`}>
               {badge}
             </span>
           )}
@@ -1001,7 +1001,7 @@ function RowLine({ label, value, highlight, bold, big }: any) {
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[9px]">
+    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[0.625rem]">
       {children}
     </kbd>
   );
@@ -1028,7 +1028,7 @@ function BookingDetailTeacher({ onClose, status }: { onClose: () => void; status
 
         <div className="p-5 space-y-4">
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-2">
               🎯 Current Status: {statusConfig[status].label}
             </div>
             <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
@@ -1037,7 +1037,7 @@ function BookingDetailTeacher({ onClose, status }: { onClose: () => void; status
           </div>
 
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-2">
               🎬 3 Main Actions
             </div>
             <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -1054,14 +1054,14 @@ function BookingDetailTeacher({ onClose, status }: { onClose: () => void; status
           </div>
 
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-2">
               ⌨️ Shortcuts
             </div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-200">
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[9px]">P</kbd> — Pay</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[9px]">C</kbd> — Convert</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[9px]">X</kbd> — Cancel</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[9px]">G</kbd> — Guide</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-slate-200">
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">P</kbd> — Pay</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">C</kbd> — Convert</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">X</kbd> — Cancel</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">G</kbd> — Guide</div>
             </div>
           </div>
 

@@ -235,7 +235,7 @@ export default function CosmeticsDashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-mono font-extrabold text-slate-900 text-sm truncate">{b.batchNumber}</div>
-                    <div className="text-[10px] text-slate-500 font-bold">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">
                       {b.currentStock} units in stock
                     </div>
                   </div>
@@ -243,7 +243,7 @@ export default function CosmeticsDashboardPage() {
                     <div className={`text-sm font-extrabold tabular-nums ${days <= 7 ? 'text-rose-700' : days <= 15 ? 'text-orange-700' : 'text-amber-700'}`}>
                       {days} days
                     </div>
-                    <div className="text-[10px] font-bold text-slate-500">
+                    <div className="text-[0.6875rem] font-bold text-slate-500">
                       {new Date(b.expiryDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                     </div>
                   </div>
@@ -286,7 +286,7 @@ export default function CosmeticsDashboardPage() {
                   <div className="font-extrabold text-sm truncate text-slate-900 group-hover:text-pink-700">
                     {p.shadeName || p.categoryType?.replace(/_/g, ' ') || 'Product'}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                     {p.totalSold ?? 0} sold
                   </div>
                 </div>
@@ -326,12 +326,12 @@ export default function CosmeticsDashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm truncate text-slate-900">{m.name}</div>
-                  <div className="text-[10px] text-slate-500 font-bold">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                     {m.phone} • {m.tier}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-[10px] uppercase font-extrabold text-pink-600">Birthday</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-pink-600">Birthday</div>
                   <div className="font-extrabold text-pink-700 text-sm">
                     {m.dateOfBirth && new Date(m.dateOfBirth).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                   </div>
@@ -357,10 +357,10 @@ function HeroTile({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3 sm:p-4`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-lg sm:text-xl font-extrabold text-white tabular-nums leading-none truncate">{value}</div>
-      <div className="text-[10px] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
     </div>
   );
 }
@@ -416,9 +416,9 @@ function CertStat({ icon, label, value, tone }: any) {
     <div className={`rounded-2xl bg-gradient-to-br ${tones[tone]} border-2 p-4 flex items-center gap-3`}>
       <div className="text-4xl shrink-0">{icon}</div>
       <div>
-        <div className="text-[10px] uppercase font-extrabold opacity-75">{label}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold opacity-75">{label}</div>
         <div className="text-2xl font-extrabold tabular-nums">{value}</div>
-        <div className="text-[10px] font-bold opacity-75">products</div>
+        <div className="text-[0.6875rem] font-bold opacity-75">products</div>
       </div>
     </div>
   );

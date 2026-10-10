@@ -345,7 +345,7 @@ export default function NewBulkOrderPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5 text-[10px] font-black border border-white/25 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
                 <Tractor className="h-2.5 w-2.5 text-lime-300" /> Bara order
               </div>
               <h1 className="mt-1 text-2xl font-black">📦 Naya Order</h1>
@@ -376,7 +376,7 @@ export default function NewBulkOrderPage() {
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-slate-900 dark:text-white truncate">{farmer.fullName}</div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                       {farmer.farmerNumber}{farmer.phone ? ` · ${farmer.phone}` : ''}
                       {farmer.village ? ` · ${farmer.village}` : ''}
                     </div>
@@ -387,13 +387,13 @@ export default function NewBulkOrderPage() {
                   }} className="text-xs font-extrabold text-emerald-600 hover:underline shrink-0">Badlein</button>
                 </div>
                 {Number(farmer.currentBalance) > 0 && (
-                  <div className="mt-2 rounded-xl bg-white dark:bg-slate-800 px-2.5 py-1.5 text-[11px] font-extrabold text-amber-700 dark:text-amber-400">
+                  <div className="mt-2 rounded-xl bg-white dark:bg-slate-800 px-2.5 py-1.5 text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-400">
                     Purana udhaar {formatPKR(farmer.currentBalance)}
                     {Number(farmer.creditLimit) > 0 && ` · hadd ${formatPKR(farmer.creditLimit)}`}
                   </div>
                 )}
                 {!farmer.customerId && (
-                  <div className="mt-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 px-2.5 py-1.5 text-[11px] font-bold text-amber-900 dark:text-amber-200">
+                  <div className="mt-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 px-2.5 py-1.5 text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
                     Is farmer ka khata jura hua nahi — udhaar theek se darj nahi hoga.{' '}
                     <Link to="/agri/farmers" className="underline font-black">Farmers safhe se jorein</Link>
                   </div>
@@ -427,13 +427,13 @@ export default function NewBulkOrderPage() {
                           <Tractor className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                           <span className="flex-1 min-w-0">
                             <span className="block text-sm font-extrabold text-slate-900 dark:text-white truncate">{f.fullName}</span>
-                            <span className="block text-[10px] font-bold text-slate-500 truncate">
+                            <span className="block text-[0.6875rem] font-bold text-slate-500 truncate">
                               {f.farmerNumber} · {f.village || f.district || 'Gaon nahi'}
                               {f.landAreaAcres ? ` · ${f.landAreaAcres} acre` : ''}
                             </span>
                           </span>
                           {Number(f.currentBalance) > 0 && (
-                            <span className="text-[10px] font-black text-amber-600 shrink-0">
+                            <span className="text-[0.6875rem] font-black text-amber-600 shrink-0">
                               {formatPKR(f.currentBalance)}
                             </span>
                           )}
@@ -491,7 +491,7 @@ export default function NewBulkOrderPage() {
             {acres > 0 && (
               <div className="rounded-2xl bg-lime-50 dark:bg-lime-500/10 border-2 border-lime-200 dark:border-lime-500/30 p-3 flex items-center gap-3 flex-wrap">
                 <Calculator className="h-4 w-4 text-lime-600 shrink-0" />
-                <p className="flex-1 min-w-[200px] text-[12px] font-bold text-lime-900 dark:text-lime-200">
+                <p className="flex-1 min-w-[200px] text-[0.75rem] font-bold text-lime-900 dark:text-lime-200">
                   <strong>{acres} acre</strong> likha hua hai. Jin cheezon par "kitni miqdar per acre"
                   bhari hai, un ki tadaad khud lag sakti hai.
                 </p>
@@ -512,7 +512,7 @@ export default function NewBulkOrderPage() {
                 </Button>
                 <Button size="sm" onClick={() => setShowPicker(true)}
                   className="bg-gradient-to-r from-emerald-600 to-lime-700">
-                  <Package className="h-3.5 w-3.5" /> Maal se <kbd className="hidden sm:inline text-[9px] opacity-70 ml-1">A</kbd>
+                  <Package className="h-3.5 w-3.5" /> Maal se <kbd className="hidden sm:inline text-[0.625rem] opacity-70 ml-1">A</kbd>
                 </Button>
               </div>
             }>
@@ -537,12 +537,12 @@ export default function NewBulkOrderPage() {
             {shortItems.length > 0 && (
               <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                <div className="min-w-0 text-[12px] font-bold text-amber-900 dark:text-amber-200">
+                <div className="min-w-0 text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
                   <strong>{shortItems.length} cheezein</strong> gudaam me itni nahi hain. Order to ban
                   jayega, magar delivery se pehle mangwani parengi:
                   <div className="mt-1 flex flex-wrap gap-1">
                     {shortItems.map((it, n) => (
-                      <span key={n} className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[11px] font-extrabold">
+                      <span key={n} className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[0.6875rem] font-extrabold">
                         {it.productName} — chahiye {fmtQty(it.quantity)}, hai {fmtQty(it.stock ?? 0)}
                       </span>
                     ))}
@@ -616,13 +616,13 @@ export default function NewBulkOrderPage() {
                   <input type="date" value={form.creditDueDate}
                     onChange={(e) => setForm({ ...form, creditDueDate: e.target.value })}
                     className="h-11 w-full rounded-xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
-                  <p className="mt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                     Katai ki tareekh rakhein — usi waqt farmer ke paas paisa aata hai
                   </p>
                 </Field>
 
                 {!form.farmerId && (
-                  <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 text-[11px] font-bold text-rose-800 dark:text-rose-300">
+                  <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 text-[0.6875rem] font-bold text-rose-800 dark:text-rose-300">
                     Udhaar ke liye register shuda farmer chunna zaroori hai — warna baad me pata
                     nahi chalega ke kis se lena hai.
                   </div>
@@ -631,7 +631,7 @@ export default function NewBulkOrderPage() {
                 {creditWarn && (
                   <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-300 dark:border-rose-500/40 p-2.5 flex items-start gap-2">
                     <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-                    <span className="text-[11px] font-bold text-rose-800 dark:text-rose-300">
+                    <span className="text-[0.6875rem] font-bold text-rose-800 dark:text-rose-300">
                       Udhaar ki hadd tut rahi hai: purana {formatPKR(creditWarn.already)} + ye order{' '}
                       {formatPKR(total)} = <strong>{formatPKR(creditWarn.after)}</strong>, hadd{' '}
                       {formatPKR(creditWarn.limit)} hai ({formatPKR(creditWarn.over)} zyada).
@@ -662,7 +662,7 @@ export default function NewBulkOrderPage() {
         <aside className="space-y-4">
           <div className="lg:sticky lg:top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-emerald-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-widest font-black text-white/70 mb-3">💰 Hisab</div>
+              <div className="text-[0.6875rem] uppercase tracking-widest font-black text-white/70 mb-3">💰 Hisab</div>
               <div className="space-y-1.5 text-sm">
                 <Line label="Cheezein" value={String(items.length)} />
                 <Line label="Bina kiraye" value={formatPKR(subtotal)} />
@@ -691,7 +691,7 @@ export default function NewBulkOrderPage() {
               </div>
 
               {form.isCredit && total > 0 && (
-                <div className="mt-2 rounded-xl bg-amber-400/20 border border-amber-300/40 px-2.5 py-1.5 text-[11px] font-black text-amber-200">
+                <div className="mt-2 rounded-xl bg-amber-400/20 border border-amber-300/40 px-2.5 py-1.5 text-[0.6875rem] font-black text-amber-200">
                   Poora {formatPKR(total)} udhaar jayega
                 </div>
               )}
@@ -699,12 +699,12 @@ export default function NewBulkOrderPage() {
 
             {!valid && (
               <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3">
-                <div className="text-[11px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300 mb-1">
+                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300 mb-1">
                   Ye reh gaya hai
                 </div>
                 <ul className="space-y-0.5">
                   {errors.map((e) => (
-                    <li key={e} className="text-[12px] font-bold text-rose-800 dark:text-rose-300">• {e}</li>
+                    <li key={e} className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">• {e}</li>
                   ))}
                 </ul>
               </div>
@@ -758,7 +758,7 @@ function Card({ icon: Icon, title, action, tone = 'emerald', children }: any) {
 function Field({ label, opt, children }: any) {
   return (
     <label className="block">
-      <span className="block mb-1 text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <span className="block mb-1 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {label} {opt && <span className="text-slate-400 normal-case font-bold">(marzi)</span>}
       </span>
       {children}
@@ -779,7 +779,7 @@ function Line({ label, value, tone }: any) {
 function MiniField({ label, value, onChange }: any) {
   return (
     <label className="flex items-center gap-2">
-      <span className="flex-1 text-[11px] font-bold text-white/70">{label}</span>
+      <span className="flex-1 text-[0.6875rem] font-bold text-white/70">{label}</span>
       <input type="number" min={0} value={value} onChange={(e) => onChange(e.target.value)}
         placeholder="0"
         className="h-8 w-24 rounded-lg bg-white/10 border border-white/20 px-2 text-right text-xs font-black text-white tabular-nums placeholder:text-white/40 focus:outline-none focus:border-emerald-400 transition" />
@@ -812,7 +812,7 @@ function ItemRow({ item, index, onChange, onRemove }: any) {
             <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
               {item.kind ? `${AGRI_KIND_EMOJI[item.kind as AgriKind]} ` : ''}{item.productName}
             </div>
-            <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
               {item.kind ? prettyAgriKind(item.kind as AgriKind) : ''}
               {item.stock !== undefined && ` · gudaam me ${fmtQty(item.stock)} ${agriUnitLabel(item.unit)}`}
             </div>
@@ -829,7 +829,7 @@ function ItemRow({ item, index, onChange, onRemove }: any) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div>
-          <span className="block mb-0.5 text-[9px] font-black uppercase text-slate-400">Tadaad</span>
+          <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Tadaad</span>
           <div className="flex items-center rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
             <button onClick={() => onChange({ quantity: Math.max(0.5, item.quantity - 1) })}
               className="h-9 w-8 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center shrink-0 transition">
@@ -845,7 +845,7 @@ function ItemRow({ item, index, onChange, onRemove }: any) {
           </div>
         </div>
         <div>
-          <span className="block mb-0.5 text-[9px] font-black uppercase text-slate-400">Kis hisab se</span>
+          <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Kis hisab se</span>
           {item.productId ? (
             <div className="h-9 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2.5 flex items-center text-xs font-black text-slate-600 dark:text-slate-300 truncate">
               {agriUnitLabel(item.unit)}
@@ -857,13 +857,13 @@ function ItemRow({ item, index, onChange, onRemove }: any) {
           )}
         </div>
         <div>
-          <span className="block mb-0.5 text-[9px] font-black uppercase text-slate-400">Rate</span>
+          <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Rate</span>
           <input type="number" min={0} value={item.pricePerUnit}
             onChange={(e) => onChange({ pricePerUnit: Number(e.target.value) })}
             className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-sm font-black text-slate-900 dark:text-white tabular-nums focus:outline-none focus:border-emerald-500 transition" />
         </div>
         <div>
-          <span className="block mb-0.5 text-[9px] font-black uppercase text-slate-400">Chhoot</span>
+          <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Chhoot</span>
           <input type="number" min={0} value={item.discount}
             onChange={(e) => onChange({ discount: Number(e.target.value) })}
             className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-sm font-black text-amber-600 tabular-nums focus:outline-none focus:border-amber-500 transition" />
@@ -873,18 +873,18 @@ function ItemRow({ item, index, onChange, onRemove }: any) {
       <div className="flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-slate-200 dark:border-slate-700">
         <div className="flex items-center gap-1.5 flex-wrap min-w-0">
           {packSize > 0 && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-500/15 text-[10px] font-black text-sky-700 dark:text-sky-300">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-500/15 text-[0.6875rem] font-black text-sky-700 dark:text-sky-300">
               <Scale className="h-2.5 w-2.5" />
               1 {agriUnitLabel(item.unit)} = {packSize} {item.packUnit} · kul {fmtQty(totalLoose)} {item.packUnit}
             </span>
           )}
           {perAcre && (
-            <span className="px-2 py-0.5 rounded-md bg-lime-100 dark:bg-lime-500/15 text-[10px] font-black text-lime-700 dark:text-lime-300">
+            <span className="px-2 py-0.5 rounded-md bg-lime-100 dark:bg-lime-500/15 text-[0.6875rem] font-black text-lime-700 dark:text-lime-300">
               📐 {item.rate}
             </span>
           )}
           {short && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-500/15 text-[10px] font-black text-amber-700 dark:text-amber-300">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-500/15 text-[0.6875rem] font-black text-amber-700 dark:text-amber-300">
               <AlertTriangle className="h-2.5 w-2.5" /> Stock kam — mangwana parega
             </span>
           )}
@@ -920,7 +920,7 @@ function PickerModal({ list, search, setSearch, searchRef, acres, crop, onPick, 
               className="h-11 w-full rounded-xl bg-white/15 border-2 border-white/25 pl-10 pr-3 text-sm font-bold text-white placeholder:text-white/50 focus:outline-none focus:border-white/60 transition" />
           </div>
           {(crop || acres > 0) && (
-            <p className="mt-2 text-[11px] font-bold text-white/80">
+            <p className="mt-2 text-[0.6875rem] font-bold text-white/80">
               {crop && <>🌾 <strong>{crop}</strong> ka maal upar hai. </>}
               {acres > 0 && <>📐 {acres} acre ke hisab se tadaad khud bharegi.</>}
             </p>
@@ -945,35 +945,35 @@ function PickerModal({ list, search, setSearch, searchRef, acres, crop, onPick, 
               </span>
               <span className="flex-1 min-w-0">
                 <span className="block text-sm font-extrabold text-slate-900 dark:text-white truncate">{p.name}</span>
-                <span className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                   {p.categoryName || prettyAgriKind(p.kind)}
                   {p.packSize > 0 && ` · 1 ${agriUnitLabel(p.unit)} = ${p.packSize} ${p.packUnit}`}
                   {p.crops.length > 0 && ` · ${p.crops.slice(0, 3).join(', ')}`}
                 </span>
                 <span className="mt-1 flex flex-wrap gap-1">
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-black ${
+                  <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-black ${
                     p.stock <= 0 ? 'bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
                       : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                   }`}>
                     Stock {fmtQty(p.stock)}
                   </span>
                   {p.blocked && (
-                    <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black">
+                    <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-black">
                       🚫 Registration khatam
                     </span>
                   )}
                   {p.certSoon && (
-                    <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[9px] font-black">
+                    <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[0.625rem] font-black">
                       ⏳ {p.cert.days} din
                     </span>
                   )}
                   {p.restricted && (
-                    <span className="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-500/15 text-orange-700 dark:text-orange-300 text-[9px] font-black">
+                    <span className="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-500/15 text-orange-700 dark:text-orange-300 text-[0.625rem] font-black">
                       🪪 License
                     </span>
                   )}
                   {p.rate && (
-                    <span className="px-1.5 py-0.5 rounded bg-lime-100 dark:bg-lime-500/15 text-lime-700 dark:text-lime-300 text-[9px] font-black">
+                    <span className="px-1.5 py-0.5 rounded bg-lime-100 dark:bg-lime-500/15 text-lime-700 dark:text-lime-300 text-[0.625rem] font-black">
                       📐 {p.rate}
                     </span>
                   )}
@@ -1003,9 +1003,9 @@ function BlockedModal({ p, onClose }: any) {
         <div className="p-5 space-y-3">
           <p className="text-sm font-extrabold text-slate-900 dark:text-white text-center">{p.name}</p>
           <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3">
-            <p className="text-[12px] font-bold text-rose-800 dark:text-rose-300">{p.cert.text}</p>
+            <p className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">{p.cert.text}</p>
           </div>
-          <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400">
+          <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400">
             {p.kind === 'FERTILIZER' || String(p.kind).includes('SEED')
               ? 'Seed Act ke tehat meyaad khatam hone ke baad bechna ghair-qanooni hai.'
               : 'Agricultural Pesticides Ordinance ke tehat meyaad khatam hone ke baad bechna ghair-qanooni hai.'}
@@ -1061,15 +1061,15 @@ function Teacher({ onClose }: any) {
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-black text-slate-900 dark:text-white">{s.t}</p>
-                <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
               </div>
             </div>
           ))}
           <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
+            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['A', 'Maal chunein'], ['G', 'Ye safha'], ['Esc', 'Band karein']].map(([k, l]) => (
-                <span key={k} className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/80">
+                <span key={k} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/80">
                   <kbd className="px-1.5 py-0.5 rounded bg-white/15 font-black">{k}</kbd> {l}
                 </span>
               ))}

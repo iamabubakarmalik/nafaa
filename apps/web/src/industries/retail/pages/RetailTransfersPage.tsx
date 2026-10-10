@@ -328,7 +328,7 @@ export default function RetailTransfersPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <ArrowLeftRight className="h-3.5 w-3.5 text-amber-300" /> Multi-Shop
               {shopName && (
                 <>
@@ -439,7 +439,7 @@ export default function RetailTransfersPage() {
           {hasFilters && (
             <button
               onClick={() => { setSearch(''); setStatusFilter('all'); }}
-              className="text-[11px] font-extrabold text-rose-600 dark:text-rose-400 inline-flex items-center gap-1 transition"
+              className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 inline-flex items-center gap-1 transition"
             >
               <X className="h-3 w-3" /> Clear
             </button>
@@ -500,7 +500,7 @@ export default function RetailTransfersPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-extrabold text-slate-900 dark:text-white font-mono text-sm">{t.transferNumber}</span>
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${cfg?.light} ${cfg?.dark}`}>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold border ${cfg?.light} ${cfg?.dark}`}>
                             <Icon className="h-2.5 w-2.5" /> {cfg?.label}
                           </span>
                         </div>
@@ -510,7 +510,7 @@ export default function RetailTransfersPage() {
                           <ArrowRight className="h-3 w-3 text-slate-400 shrink-0" />
                           <span className="truncate">{t.toShop?.name || '—'}</span>
                         </div>
-                        <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
+                        <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
                           <span className="inline-flex items-center gap-0.5">
                             <Package className="h-2.5 w-2.5" /> {t.items?.length || 0} items
                           </span>
@@ -644,7 +644,7 @@ export default function RetailTransfersPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="font-bold text-sm text-slate-900 dark:text-white truncate">{p.name}</div>
-                            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">
                               {p.sku || '—'} • Stock: <span className={`font-bold tabular-nums ${Number(p.stock) > 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{formatQty(Number(p.stock || 0))} {p.unit}</span>
                             </div>
                           </div>
@@ -687,7 +687,7 @@ export default function RetailTransfersPage() {
                         <div className="flex items-center gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{line.productName}</div>
-                            <div className="text-[11px] font-bold mt-0.5 tabular-nums">
+                            <div className="text-[0.6875rem] font-bold mt-0.5 tabular-nums">
                               <span className="text-slate-500 dark:text-slate-400">Stock: {formatQty(line.available)} {line.unit}</span>
                               {line.available > 0 && (
                                 <span className={`ml-2 ${over ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
@@ -730,7 +730,7 @@ export default function RetailTransfersPage() {
                           </div>
                         </div>
                         {over && (
-                          <div className="mt-2 text-[11px] font-extrabold text-rose-700 dark:text-rose-300 flex items-center gap-1">
+                          <div className="mt-2 text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-300 flex items-center gap-1">
                             <AlertCircle className="h-3.5 w-3.5" /> Stock se zyada nahi bhej sakte!
                           </div>
                         )}
@@ -754,7 +754,7 @@ export default function RetailTransfersPage() {
                         key={p.name}
                         type="button"
                         onClick={() => setNotes(active ? '' : label)}
-                        className={`px-2.5 py-1.5 rounded-lg border-2 text-[11px] font-extrabold transition ${
+                        className={`px-2.5 py-1.5 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                           active
                             ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
                             : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-cyan-300 dark:hover:border-cyan-500/50'
@@ -830,7 +830,7 @@ export default function RetailTransfersPage() {
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3">
-                  <div className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</div>
                   <div className="mt-1.5">
                     {(() => {
                       const cfg = statusConfig[viewTransfer.status];
@@ -844,18 +844,18 @@ export default function RetailTransfersPage() {
                   </div>
                 </div>
                 <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3">
-                  <div className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bheja Gaya</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bheja Gaya</div>
                   <div className="mt-1.5 font-extrabold text-slate-900 dark:text-white text-xs">{formatDate(viewTransfer.createdAt)}</div>
                 </div>
                 {viewTransfer.receivedAt && (
                   <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/40 p-3">
-                    <div className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Mila</div>
+                    <div className="text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Mila</div>
                     <div className="mt-1.5 font-extrabold text-emerald-900 dark:text-emerald-200 text-xs">{formatDate(viewTransfer.receivedAt)}</div>
                   </div>
                 )}
                 {viewTransfer.createdBy && (
                   <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Banaya</div>
+                    <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Banaya</div>
                     <div className="mt-1.5 font-extrabold text-slate-900 dark:text-white text-xs truncate">{viewTransfer.createdBy.fullName}</div>
                   </div>
                 )}
@@ -877,7 +877,7 @@ export default function RetailTransfersPage() {
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{it.product.name}</div>
                         {it.notes && (
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 italic mt-0.5">{it.notes}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 italic mt-0.5">{it.notes}</div>
                         )}
                       </div>
                       <div className="font-extrabold text-cyan-700 dark:text-cyan-300 tabular-nums shrink-0">
@@ -890,7 +890,7 @@ export default function RetailTransfersPage() {
 
               {viewTransfer.notes && (
                 <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-3">
-                  <div className="text-[10px] font-extrabold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-1">Wajah / Note</div>
+                  <div className="text-[0.6875rem] font-extrabold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-1">Wajah / Note</div>
                   <div className="text-sm font-semibold text-amber-900 dark:text-amber-200">{viewTransfer.notes}</div>
                 </div>
               )}
@@ -992,7 +992,7 @@ function TransferTeacher({ onClose }: { onClose: () => void }) {
           </p>
 
           <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3.5">
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Kaise Kaam Karta Hai</div>
+            <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Kaise Kaam Karta Hai</div>
             <div className="flex items-center justify-between gap-2 text-center">
               <FlowStep emoji="📝" label="Banao" />
               <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
@@ -1000,7 +1000,7 @@ function TransferTeacher({ onClose }: { onClose: () => void }) {
               <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
               <FlowStep emoji="✅" label="Mil Gaya" />
             </div>
-            <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 mt-2.5 leading-relaxed">
+            <p className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 mt-2.5 leading-relaxed">
               "Mil Gaya ✓" dabate hi stock destination shop me <strong>apne aap</strong> add ho jata hai.
               Cancel karne par stock source shop ko wapas chala jata hai.
             </p>
@@ -1048,7 +1048,7 @@ function FlowStep({ emoji, label }: { emoji: string; label: string }) {
   return (
     <div className="flex-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 py-2 px-1">
       <div className="text-lg">{emoji}</div>
-      <div className="text-[10px] font-extrabold text-slate-700 dark:text-slate-200 mt-0.5">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -1104,13 +1104,13 @@ function Kpi({
     <div className={`rounded-2xl border-2 p-3 sm:p-4 ${c.wrap}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <div className="text-[0.6875rem] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             {label}
           </div>
           <div className={`mt-1 text-xl sm:text-2xl font-extrabold tabular-nums ${c.text}`}>
             {value}
           </div>
-          <div className="text-[10px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+          <div className="text-[0.6875rem] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
             {sub}
           </div>
         </div>

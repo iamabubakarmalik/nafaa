@@ -162,11 +162,11 @@ function RouteCard({ route, onEdit, onDelete, onRecalc }: any) {
 
         <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
           <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2 text-center">
-            <div className="text-[9px] uppercase font-extrabold text-blue-700 inline-flex items-center gap-0.5"><Users className="h-2.5 w-2.5" />Customers</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-blue-700 inline-flex items-center gap-0.5"><Users className="h-2.5 w-2.5" />Customers</div>
             <div className="text-lg font-extrabold text-blue-900 tabular-nums">{route.totalCustomers}</div>
           </div>
           <div className="rounded-lg bg-cyan-50 dark:bg-cyan-950/30 p-2 text-center">
-            <div className="text-[9px] uppercase font-extrabold text-cyan-700 inline-flex items-center gap-0.5"><Milk className="h-2.5 w-2.5" />Daily/L</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-cyan-700 inline-flex items-center gap-0.5"><Milk className="h-2.5 w-2.5" />Daily/L</div>
             <div className="text-lg font-extrabold text-cyan-900 tabular-nums">{route.totalDailyLiters.toFixed(0)}</div>
           </div>
         </div>
@@ -231,7 +231,7 @@ function RouteForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Delivery Slot *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Delivery Slot *</label>
           <div className="grid grid-cols-4 gap-2">
             {SLOTS.map((s) => (
               <button key={s.value} onClick={() => setForm({ ...form, slot: s.value })} className={
@@ -239,7 +239,7 @@ function RouteForm({ editing, onClose, onSaved }: any) {
                 (form.slot === s.value ? 'border-violet-500 bg-violet-50 shadow' : 'border-slate-200 bg-white hover:border-violet-300')
               }>
                 <div className="text-2xl mb-1">{s.emoji}</div>
-                <div className="text-[10px] font-extrabold">{s.label}</div>
+                <div className="text-[0.6875rem] font-extrabold">{s.label}</div>
               </button>
             ))}
           </div>
@@ -247,11 +247,11 @@ function RouteForm({ editing, onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Start Time</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Start Time</label>
             <input type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Duration (min)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Duration (min)</label>
             <input type="number" value={form.estimatedDurationMin} onChange={(e) => setForm({ ...form, estimatedDurationMin: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
         </div>
@@ -262,7 +262,7 @@ function RouteForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Assigned Staff (Dodhi)</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Assigned Staff (Dodhi)</label>
           <select value={form.assignedStaffId} onChange={(e) => setForm({ ...form, assignedStaffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
             <option value="">-- Unassigned --</option>
             {(staffList ?? []).map((s: any) => {
@@ -273,7 +273,7 @@ function RouteForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Color Marker</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Color Marker</label>
           <div className="flex flex-wrap gap-2">
             {COLORS.map((c) => (
               <button key={c} onClick={() => setForm({ ...form, color: c })} className={

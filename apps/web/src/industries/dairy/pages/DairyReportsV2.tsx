@@ -202,12 +202,12 @@ export default function DairyReportsV2() {
                       </div>
                       <div className="min-w-0">
                         <div className="font-bold text-slate-900 truncate">{dc.name}</div>
-                        <div className="text-[10px] text-slate-500 font-bold">{dc.customerNumber}</div>
+                        <div className="text-[0.6875rem] text-slate-500 font-bold">{dc.customerNumber}</div>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-fuchsia-700 tabular-nums">{(dc.morningQuantity + dc.eveningQuantity).toFixed(1)}L/day</div>
-                      <div className="text-[10px] text-slate-500 font-bold">🌅 {dc.morningQuantity} 🌆 {dc.eveningQuantity}</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">🌅 {dc.morningQuantity} 🌆 {dc.eveningQuantity}</div>
                     </div>
                   </div>
                 ))}
@@ -225,13 +225,13 @@ export default function DairyReportsV2() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-slate-600">
                 <tr>
-                  <th className="text-center px-3 py-3 font-bold text-[10px] uppercase w-12">#</th>
-                  <th className="text-left px-3 py-3 font-bold text-[10px] uppercase">Product</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Sold</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Orders</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Revenue</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Profit</th>
-                  <th className="text-center px-3 py-3 font-bold text-[10px] uppercase">Margin</th>
+                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase w-12">#</th>
+                  <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase">Product</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Sold</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Orders</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Revenue</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Profit</th>
+                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase">Margin</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

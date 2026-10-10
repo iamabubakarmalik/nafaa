@@ -161,7 +161,7 @@ export default function FloristDashboardPage() {
               <h3 className="font-extrabold text-slate-900 inline-flex items-center gap-2">
                 Today's Deliveries
                 {todayDeliveries.length > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-extrabold uppercase">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase">
                     <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> {todayDeliveries.length} pending
                   </span>
                 )}
@@ -189,23 +189,23 @@ export default function FloristDashboardPage() {
                   className="rounded-2xl border-2 border-slate-200 hover:border-amber-400 hover:shadow-md p-3 transition">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-mono font-extrabold text-slate-900 text-xs">{o.orderNumber}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${slot.color}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${slot.color}`}>
                       {slot.emoji} {slot.label}
                     </span>
                   </div>
                   <div className="mt-1.5 font-extrabold text-sm text-slate-900 truncate">
                     {o.recipientName || o.customerName}
                   </div>
-                  <div className="text-[11px] font-bold text-slate-500 truncate flex items-center gap-1 mt-0.5">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 truncate flex items-center gap-1 mt-0.5">
                     <Phone className="h-2.5 w-2.5" /> {o.recipientPhone || o.customerPhone}
                   </div>
                   {o.deliveryAddress && (
-                    <div className="text-[11px] font-semibold text-slate-500 truncate flex items-center gap-1 mt-0.5">
+                    <div className="text-[0.6875rem] font-semibold text-slate-500 truncate flex items-center gap-1 mt-0.5">
                       <MapPin className="h-2.5 w-2.5 shrink-0" /> {o.area || o.deliveryAddress}
                     </div>
                   )}
                   <div className="mt-2 flex items-end justify-between">
-                    <span className="text-[10px] uppercase font-extrabold text-slate-500">{o.status.replace(/_/g, ' ')}</span>
+                    <span className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{o.status.replace(/_/g, ' ')}</span>
                     <span className="text-base font-extrabold text-emerald-700 tabular-nums">{formatPKR(o.totalAmount)}</span>
                   </div>
                 </Link>
@@ -332,7 +332,7 @@ export default function FloristDashboardPage() {
                     <div className="font-extrabold text-sm truncate text-slate-900">
                       {p.flowerType || p.categoryType?.replace(/_/g, ' ') || 'Product'}
                     </div>
-                    <div className="text-[10px] text-slate-500 font-bold">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">
                       {p.color ? `${p.color} • ` : ''}{p.freshnessGrade?.replace(/_/g, ' ')}
                     </div>
                   </div>
@@ -379,14 +379,14 @@ export default function FloristDashboardPage() {
                     <div className="font-extrabold text-sm truncate text-slate-900">
                       {w.brideName} & {w.groomName}
                     </div>
-                    <div className="text-[10px] text-slate-500 font-bold">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">
                       {new Date(w.weddingDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                       {days >= 0 && ` • ${days}d to go`}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-pink-700 text-sm tabular-nums">{formatPKR(w.quotedAmount)}</div>
-                    <div className="text-[9px] font-bold text-slate-500">{w.status}</div>
+                    <div className="text-[0.625rem] font-bold text-slate-500">{w.status}</div>
                   </div>
                 </Link>
               );
@@ -418,7 +418,7 @@ export default function FloristDashboardPage() {
                   <div className="font-extrabold text-sm truncate text-slate-900">
                     {p.flowerType || p.categoryType?.replace(/_/g, ' ') || 'Product'}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold">{p.totalSold ?? 0} sold</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">{p.totalSold ?? 0} sold</div>
                 </div>
                 {p.color && (
                   <span className="h-4 w-4 rounded-full border border-slate-300 shrink-0"
@@ -444,10 +444,10 @@ function HeroTile({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3 sm:p-4`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-lg sm:text-xl font-extrabold text-white tabular-nums leading-none truncate">{value}</div>
-      <div className="text-[10px] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
     </div>
   );
 }
@@ -500,22 +500,22 @@ function StreamCard({ label, icon: Icon, tone, count, revenue, extra }: any) {
   const parts = tones[tone].split(' ');
   return (
     <div className={`rounded-3xl bg-gradient-to-br from-white to-slate-50 border-2 ${parts[2]} p-4 shadow-sm`}>
-      <div className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white bg-gradient-to-r ${parts[0]} ${parts[1]}`}>
+      <div className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-wider text-white bg-gradient-to-r ${parts[0]} ${parts[1]}`}>
         <Icon className="h-3 w-3" /> {label}
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">This month</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">This month</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums leading-none mt-1">{count}</div>
         </div>
         {revenue > 0 && (
           <div>
-            <div className="text-[9px] uppercase font-extrabold text-slate-500">Revenue</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
             <div className="text-base font-extrabold text-emerald-700 tabular-nums leading-none mt-1">{formatPKR(revenue)}</div>
           </div>
         )}
       </div>
-      <div className="mt-2 text-[10px] font-bold text-slate-500">{extra}</div>
+      <div className="mt-2 text-[0.6875rem] font-bold text-slate-500">{extra}</div>
     </div>
   );
 }

@@ -134,15 +134,15 @@ export default function WorkshopJobsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-slate-900 dark:text-white">{job.jobNumber}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
+                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
                         <span className={
-                          'px-2 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' +
+                          'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +
                           (job.priority === 'EMERGENCY' ? 'bg-red-700 animate-pulse' :
                            job.priority === 'URGENT' ? 'bg-red-600' :
                            job.priority === 'HIGH' ? 'bg-amber-500' : 'bg-slate-500')
                         }>{job.priority}</span>
-                        {isOverdue && <span className="px-2 py-0.5 rounded bg-rose-500 text-white text-[9px] font-extrabold uppercase animate-pulse">OVERDUE</span>}
-                        {job.paymentStatus === 'PAID' && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase">PAID</span>}
+                        {isOverdue && <span className="px-2 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">OVERDUE</span>}
+                        {job.paymentStatus === 'PAID' && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase">PAID</span>}
                       </div>
                       <div className="mt-1 flex items-center gap-3 text-xs text-slate-600 font-bold flex-wrap">
                         <span className="inline-flex items-center gap-1"><Car className="h-3 w-3" />{job.registrationNumber} • {job.makeName} {job.modelName}</span>
@@ -160,7 +160,7 @@ export default function WorkshopJobsPage() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(job.total)}</div>
-                    {remaining > 0 && <div className="text-[10px] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>}
+                    {remaining > 0 && <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>}
                     <div className="mt-1 inline-flex items-center gap-1 text-xs font-extrabold text-orange-600">
                       View <ArrowRight className="h-3 w-3" />
                     </div>

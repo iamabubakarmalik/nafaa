@@ -160,7 +160,7 @@ export default function ServicesBizServiceDetailPage() {
               )}
 
               <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/20 p-4">
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">
                   {service.chargeType.replace('_', ' ')} • Starting At
                 </div>
                 <div className="text-4xl font-extrabold tabular-nums text-emerald-300 mt-1">
@@ -172,25 +172,25 @@ export default function ServicesBizServiceDetailPage() {
                 <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
                   <Clock className="h-4 w-4 text-cyan-300 mx-auto mb-1" />
                   <div className="font-extrabold">{service.estimatedDurationMin}min</div>
-                  <div className="text-[9px] font-bold text-white/70 uppercase">Duration</div>
+                  <div className="text-[0.625rem] font-bold text-white/70 uppercase">Duration</div>
                 </div>
                 <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
                   <GraduationCap className="h-4 w-4 text-violet-300 mx-auto mb-1" />
                   <div className="font-extrabold">{service.requiredSkillLevel}</div>
-                  <div className="text-[9px] font-bold text-white/70 uppercase">Skill</div>
+                  <div className="text-[0.625rem] font-bold text-white/70 uppercase">Skill</div>
                 </div>
                 <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
                   <Shield className="h-4 w-4 text-emerald-300 mx-auto mb-1" />
                   <div className="font-extrabold">{service.warrantyDays}d</div>
-                  <div className="text-[9px] font-bold text-white/70 uppercase">Warranty</div>
+                  <div className="text-[0.625rem] font-bold text-white/70 uppercase">Warranty</div>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-1.5">
-                {service.isRemoteAvailable && <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/25 backdrop-blur border border-blue-300/50 px-2.5 py-1 text-[11px] font-extrabold">💻 Remote OK</span>}
-                {service.requiresLicense && <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/25 backdrop-blur border border-amber-300/50 px-2.5 py-1 text-[11px] font-extrabold">🎓 License</span>}
-                {service.requiresQuote && <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/25 backdrop-blur border border-violet-300/50 px-2.5 py-1 text-[11px] font-extrabold">📝 Quote-based</span>}
-                {service.requiresAdvance && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/25 backdrop-blur border border-emerald-300/50 px-2.5 py-1 text-[11px] font-extrabold">💰 {service.advancePct}% Advance</span>}
+                {service.isRemoteAvailable && <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/25 backdrop-blur border border-blue-300/50 px-2.5 py-1 text-[0.6875rem] font-extrabold">💻 Remote OK</span>}
+                {service.requiresLicense && <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/25 backdrop-blur border border-amber-300/50 px-2.5 py-1 text-[0.6875rem] font-extrabold">🎓 License</span>}
+                {service.requiresQuote && <span className="inline-flex items-center gap-1 rounded-full bg-violet-500/25 backdrop-blur border border-violet-300/50 px-2.5 py-1 text-[0.6875rem] font-extrabold">📝 Quote-based</span>}
+                {service.requiresAdvance && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/25 backdrop-blur border border-emerald-300/50 px-2.5 py-1 text-[0.6875rem] font-extrabold">💰 {service.advancePct}% Advance</span>}
               </div>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function ServicesBizServiceDetailPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-lg text-slate-900">Pricing Details</h3>
-              <p className="text-[11px] text-slate-500 font-semibold">All charge tiers and surcharges</p>
+              <p className="text-[0.6875rem] text-slate-500 font-semibold">All charge tiers and surcharges</p>
             </div>
           </div>
 
@@ -228,7 +228,7 @@ export default function ServicesBizServiceDetailPage() {
               </div>
               <div>
                 <h3 className="font-extrabold text-lg text-slate-900">Required Tools ({service.requiredTools.length})</h3>
-                <p className="text-[11px] text-slate-500 font-semibold">Tools needed for this service</p>
+                <p className="text-[0.6875rem] text-slate-500 font-semibold">Tools needed for this service</p>
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-1.5">
@@ -249,7 +249,7 @@ export default function ServicesBizServiceDetailPage() {
               </div>
               <div>
                 <h3 className="font-extrabold text-lg text-slate-900">Common Parts ({service.requiredParts.length})</h3>
-                <p className="text-[11px] text-slate-500 font-semibold">Typical parts/materials used</p>
+                <p className="text-[0.6875rem] text-slate-500 font-semibold">Typical parts/materials used</p>
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-1.5">
@@ -269,7 +269,7 @@ export default function ServicesBizServiceDetailPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-lg text-slate-900">Warranty & Guarantee</h3>
-              <p className="text-[11px] text-slate-500 font-semibold">Service coverage terms</p>
+              <p className="text-[0.6875rem] text-slate-500 font-semibold">Service coverage terms</p>
             </div>
           </div>
           <div className="mt-4 grid sm:grid-cols-3 gap-3">
@@ -279,7 +279,7 @@ export default function ServicesBizServiceDetailPage() {
           </div>
           {service.warrantyTerms && (
             <div className="mt-4 pt-4 border-t border-emerald-200">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 mb-1">Warranty Terms</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700 mb-1">Warranty Terms</div>
               <p className="text-sm text-slate-700 leading-relaxed">{service.warrantyTerms}</p>
             </div>
           )}
@@ -342,7 +342,7 @@ function InfoTile({ icon: Icon, label, value, tone }: any) {
     <div className={'rounded-2xl border-2 p-3 ' + bg + ' ' + border}>
       <div className={'inline-flex items-center gap-1.5 ' + text}>
         <Icon className="h-3.5 w-3.5" />
-        <span className="text-[10px] uppercase tracking-wider font-extrabold">{label}</span>
+        <span className="text-[0.6875rem] uppercase tracking-wider font-extrabold">{label}</span>
       </div>
       <div className={'mt-1 text-lg font-extrabold ' + text}>{value}</div>
     </div>
@@ -352,7 +352,7 @@ function InfoTile({ icon: Icon, label, value, tone }: any) {
 function MetaRow({ label, value, mono }: any) {
   return (
     <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
       <div className={'mt-1 text-sm font-extrabold text-slate-900 ' + (mono ? 'font-mono' : '')}>{value}</div>
     </div>
   );

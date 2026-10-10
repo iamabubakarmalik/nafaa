@@ -171,7 +171,7 @@ export default function RestaurantStockReportPage() {
         <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-amber-400/25 blur-3xl pointer-events-none" />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Boxes className="h-3.5 w-3.5 text-amber-300" /> Hotel · Gudaam
             </div>
             <h1 className="mt-2.5 text-2xl sm:text-3xl font-black">📦 Stock report</h1>
@@ -213,7 +213,7 @@ export default function RestaurantStockReportPage() {
       {stats.blockedDishes > 0 && (
         <Link to="/low-stock"
           className="block rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3 hover:border-rose-400 transition print:hidden">
-          <p className="text-[12px] font-bold text-rose-900 dark:text-rose-200 inline-flex items-center gap-2">
+          <p className="text-[0.75rem] font-bold text-rose-900 dark:text-rose-200 inline-flex items-center gap-2">
             <Flame className="h-4 w-4 shrink-0" />
             <span>
               <strong>{stats.blockedDishes} dish</strong> saamaan khatam hone ki wajah se ab nahi ban sakti —
@@ -243,9 +243,9 @@ export default function RestaurantStockReportPage() {
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className="text-base sm:text-lg font-black truncate">{t.l}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${on ? 'bg-black/25' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black ${on ? 'bg-black/25' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
                   </span>
-                  <span className={`block text-[11px] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.h}</span>
+                  <span className={`block text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.h}</span>
                 </span>
               </div>
             </button>
@@ -294,32 +294,32 @@ export default function RestaurantStockReportPage() {
                     <tr key={r.id} className={`transition ${r._out ? 'bg-rose-50/40 dark:bg-rose-500/5' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}>
                       <td className="px-3 py-2.5">
                         <Link to={`/products/${r.id}`} className="min-w-0 block group">
-                          <span className="block text-[13px] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-orange-600 transition">
+                          <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-orange-600 transition">
                             {r.name}
                           </span>
                           {blocks.length > 0 && (
-                            <span className="block text-[10px] font-black text-rose-600 dark:text-rose-400 truncate">
+                            <span className="block text-[0.6875rem] font-black text-rose-600 dark:text-rose-400 truncate">
                               {blocks.length} dish ruki: {blocks.slice(0, 3).join(', ')}
                             </span>
                           )}
                         </Link>
                       </td>
                       <td className="px-3 py-2.5 text-right">
-                        <span className={`text-[13px] font-black tabular-nums ${
+                        <span className={`text-[0.8125rem] font-black tabular-nums ${
                           r._out ? 'text-rose-600 dark:text-rose-400'
                             : r._low ? 'text-amber-600 dark:text-amber-400'
                               : 'text-slate-900 dark:text-white'
                         }`}>{Number(r._stock.toFixed(2))}</span>
-                        <span className="text-[10px] font-bold text-slate-400 ml-1">{r.unit}</span>
+                        <span className="text-[0.6875rem] font-bold text-slate-400 ml-1">{r.unit}</span>
                       </td>
-                      <td className="px-3 py-2.5 text-right text-[12px] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                      <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
                         {money(r._cost)}
                       </td>
-                      <td className="px-3 py-2.5 text-right text-[13px] font-black text-slate-900 dark:text-white tabular-nums">
+                      <td className="px-3 py-2.5 text-right text-[0.8125rem] font-black text-slate-900 dark:text-white tabular-nums">
                         {money(r._value)}
                       </td>
                       <td className="px-3 py-2.5">
-                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${
+                        <span className={`px-2 py-0.5 rounded-lg text-[0.6875rem] font-black ${
                           r._out ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                             : r._low ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
                               : 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
@@ -333,7 +333,7 @@ export default function RestaurantStockReportPage() {
               </tbody>
               <tfoot className="bg-slate-50 dark:bg-slate-800/60 border-t-2 border-slate-200 dark:border-slate-700">
                 <tr>
-                  <td className="px-3 py-3 text-[11px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300" colSpan={3}>
+                  <td className="px-3 py-3 text-[0.6875rem] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300" colSpan={3}>
                     Kul
                   </td>
                   <td className="px-3 py-3 text-right text-base font-black text-orange-700 dark:text-orange-400 tabular-nums">
@@ -356,7 +356,7 @@ const heroBtn = 'h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border borde
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-2.5 text-left text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -369,12 +369,12 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
       </div>
       <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none truncate">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
-      {sub && <p className="mt-0.5 text-[10px] font-bold text-slate-400 truncate">{sub}</p>}
+      {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
     </div>
   );
 }
@@ -409,7 +409,7 @@ function Teacher({ onClose }: any) {
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-black text-slate-900 dark:text-white">{x.t}</p>
-                <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
               </div>
             </div>
           ))}

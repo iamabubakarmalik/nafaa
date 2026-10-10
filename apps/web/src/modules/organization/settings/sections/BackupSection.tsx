@@ -110,7 +110,7 @@ export function BackupSection() {
                     <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums leading-none">
                       {typeof value === 'number' ? value.toLocaleString() : value}
                     </div>
-                    <div className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">
+                    <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">
                       {e.label}
                     </div>
                   </div>
@@ -155,13 +155,13 @@ export function BackupSection() {
           <div className="flex gap-1.5">
             <button
               onClick={selectAll}
-              className="h-8 px-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[11px] font-extrabold transition"
+              className="h-8 px-3 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold transition"
             >
               Select All
             </button>
             <button
               onClick={selectNone}
-              className="h-8 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-extrabold transition"
+              className="h-8 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-extrabold transition"
             >
               None
             </button>
@@ -197,7 +197,7 @@ export function BackupSection() {
                 <div className={`text-sm font-extrabold ${active ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-900 dark:text-white'}`}>
                   {e.label}
                 </div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{e.desc}</div>
+                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{e.desc}</div>
               </button>
             );
           })}

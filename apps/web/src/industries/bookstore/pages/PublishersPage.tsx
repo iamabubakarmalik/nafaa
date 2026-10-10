@@ -102,7 +102,7 @@ export default function PublishersPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="font-extrabold text-slate-900 dark:text-white truncate">{p.name}</h3>
-                    {p.code && <div className="text-[10px] font-mono font-bold text-slate-500">{p.code}</div>}
+                    {p.code && <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{p.code}</div>}
                     {(p.country || p.city) && (
                       <div className="flex items-center gap-1 text-xs text-slate-500 font-bold">
                         <MapPin className="h-3 w-3" />
@@ -134,7 +134,7 @@ export default function PublishersPage() {
                   {p._count?.books || 0} books
                 </span>
                 {p.defaultDiscountPct > 0 && (
-                  <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase">
+                  <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">
                     {p.defaultDiscountPct}% discount
                   </span>
                 )}
@@ -198,22 +198,22 @@ function PublisherForm({ editing, onClose, onSaved }: any) {
           <div className="text-sm font-extrabold text-amber-900">💼 Business Terms</div>
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Default Discount %</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Default Discount %</label>
               <input type="number" value={form.defaultDiscountPct} onChange={(e) => setForm({ ...form, defaultDiscountPct: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Credit Days</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Credit Days</label>
               <input type="number" value={form.creditDays} onChange={(e) => setForm({ ...form, creditDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Payment Terms</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Payment Terms</label>
               <input value={form.paymentTerms} onChange={(e) => setForm({ ...form, paymentTerms: e.target.value })} placeholder="Net 30" className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
             </div>
           </div>
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Logo</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Logo</label>
           {form.logoUrl ? (
             <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-slate-200">
               <img src={form.logoUrl} alt="" className="w-full h-full object-cover" />

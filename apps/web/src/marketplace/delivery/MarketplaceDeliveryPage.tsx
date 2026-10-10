@@ -104,7 +104,7 @@ export default function MarketplaceDeliveryPage() {
           <Package className="h-3.5 w-3.5 inline mr-1" />
           Active Deliveries
           {stats && stats.activeDeliveries > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[9px]">{stats.activeDeliveries}</span>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem]">{stats.activeDeliveries}</span>
           )}
         </button>
       </div>
@@ -190,7 +190,7 @@ function StatCard({ label, value, icon: Icon, isText }: any) {
     <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-2.5">
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
       </div>
       <div className={`font-black leading-none tabular-nums ${isText ? 'text-sm' : 'text-xl'}`}>{value}</div>
     </div>
@@ -213,13 +213,13 @@ function RiderCard({ rider: r }: { rider: Rider }) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-black text-slate-900 truncate">{r.fullName}</span>
             {r.isVerified && (
-              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 inline-flex items-center gap-0.5">
+              <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 inline-flex items-center gap-0.5">
                 <CheckCircle2 className="h-2.5 w-2.5" />
                 Verified
               </span>
             )}
           </div>
-          <div className={`text-[10px] font-black inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded ${meta.bg} ${meta.color}`}>
+          <div className={`text-[0.6875rem] font-black inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded ${meta.bg} ${meta.color}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
             {meta.label}
           </div>
@@ -240,22 +240,22 @@ function RiderCard({ rider: r }: { rider: Rider }) {
       <div className="mt-3 grid grid-cols-3 gap-1 text-xs">
         <div className="text-center">
           <div className="font-black text-slate-900 tabular-nums">{r.totalDeliveries}</div>
-          <div className="text-[9px] text-slate-500 font-black uppercase">Total</div>
+          <div className="text-[0.625rem] text-slate-500 font-black uppercase">Total</div>
         </div>
         <div className="text-center border-l border-r border-slate-100">
           <div className="font-black text-emerald-700 tabular-nums">{r.completedDeliveries}</div>
-          <div className="text-[9px] text-slate-500 font-black uppercase">Done</div>
+          <div className="text-[0.625rem] text-slate-500 font-black uppercase">Done</div>
         </div>
         <div className="text-center">
           <div className="font-black text-amber-700 tabular-nums inline-flex items-center gap-0.5">
             <Star className="h-2.5 w-2.5 fill-current" />
             {r.ratingAverage.toFixed(1)}
           </div>
-          <div className="text-[9px] text-slate-500 font-black uppercase">Rating</div>
+          <div className="text-[0.625rem] text-slate-500 font-black uppercase">Rating</div>
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold">
+      <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[0.6875rem] font-bold">
         <span className="text-slate-500">Earned: <span className="text-emerald-700 font-black">Rs {formatPKR(r.totalEarnings)}</span></span>
         <span className="text-slate-500">{relativeTime(r.createdAt)}</span>
       </div>
@@ -275,11 +275,11 @@ function ActiveDeliveryCard({ delivery: d }: any) {
           <div className="text-xs text-slate-500 font-bold">Order #{d.orderId?.slice(-8)}</div>
         </div>
         <div className="text-right">
-          <div className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+          <div className="text-[0.6875rem] font-black px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
             {d.status}
           </div>
           {d.distanceKm && (
-            <div className="text-[10px] text-slate-500 font-bold mt-1">{d.distanceKm.toFixed(1)} km</div>
+            <div className="text-[0.6875rem] text-slate-500 font-bold mt-1">{d.distanceKm.toFixed(1)} km</div>
           )}
         </div>
       </div>
@@ -366,7 +366,7 @@ function CreateRiderModal({ onClose, onSuccess }: any) {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               className="w-full h-11 px-3 rounded-xl border-2 border-slate-200 text-sm font-bold outline-none focus:border-orange-500"
             />
-            <p className="text-[10px] text-slate-500 font-medium mt-1">Rider isse app mein login karega</p>
+            <p className="text-[0.6875rem] text-slate-500 font-medium mt-1">Rider isse app mein login karega</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

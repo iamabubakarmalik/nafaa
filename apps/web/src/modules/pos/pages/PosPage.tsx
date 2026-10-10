@@ -935,10 +935,10 @@ export default function PosPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h2 className="text-lg font-extrabold leading-none">POS Counter</h2>
                       {isCarpetBusiness && (
-                        <span className="px-2 py-0.5 rounded-md bg-emerald-500/30 text-[10px] font-extrabold uppercase border border-emerald-300/40">🧶 Carpet</span>
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-500/30 text-[0.6875rem] font-extrabold uppercase border border-emerald-300/40">🧶 Carpet</span>
                       )}
                       {isMobileBusiness && (
-                        <span className="px-2 py-0.5 rounded-md bg-blue-500/30 text-[10px] font-extrabold uppercase border border-blue-300/40">📱 Mobile</span>
+                        <span className="px-2 py-0.5 rounded-md bg-blue-500/30 text-[0.6875rem] font-extrabold uppercase border border-blue-300/40">📱 Mobile</span>
                       )}
                     </div>
                     <p className="text-xs text-white/80 flex items-center gap-1.5 mt-1 font-semibold">
@@ -973,7 +973,7 @@ export default function PosPage() {
                     >
                       <Pause className="h-3.5 w-3.5" />
                       Held
-                      <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-amber-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-emerald-900">
+                      <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-amber-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-emerald-900">
                         {heldCarts.length}
                       </span>
                     </button>
@@ -1000,19 +1000,19 @@ export default function PosPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 border border-white/15">
                   <Store className="h-3 w-3 text-emerald-300" />
-                  <span className="text-[10px] font-extrabold uppercase">
+                  <span className="text-[0.6875rem] font-extrabold uppercase">
                     {currentShopId ? 'Shop Active' : 'Select Shop'}
                   </span>
                 </div>
                 {outOfStockCount > 0 && (
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/30 border border-rose-300/40">
                     <AlertTriangle className="h-3 w-3 text-rose-200" />
-                    <span className="text-[10px] font-extrabold text-white">{outOfStockCount} out</span>
+                    <span className="text-[0.6875rem] font-extrabold text-white">{outOfStockCount} out</span>
                   </div>
                 )}
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 border border-white/15">
                   <Zap className="h-3 w-3 text-yellow-300" />
-                  <span className="text-[10px] font-extrabold uppercase">Fast Search</span>
+                  <span className="text-[0.6875rem] font-extrabold uppercase">Fast Search</span>
                 </div>
               </div>
             </div>
@@ -1110,7 +1110,7 @@ export default function PosPage() {
                 >
                   <Sparkles className="h-3 w-3" />
                   All
-                  <span className={`px-1 py-0 rounded text-[10px] ${!selectedCategoryId ? 'bg-white/20' : 'bg-slate-200'}`}>
+                  <span className={`px-1 py-0 rounded text-[0.6875rem] ${!selectedCategoryId ? 'bg-white/20' : 'bg-slate-200'}`}>
                     {products.length}
                   </span>
                 </button>
@@ -1133,7 +1133,7 @@ export default function PosPage() {
                     >
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: active ? '#fff' : cat.color }} />
                       {cat.name}
-                      <span className={`px-1 py-0 rounded text-[10px] ${active ? 'bg-white/20' : 'bg-slate-100 text-slate-600'}`}>
+                      <span className={`px-1 py-0 rounded text-[0.6875rem] ${active ? 'bg-white/20' : 'bg-slate-100 text-slate-600'}`}>
                         {count}
                       </span>
                     </button>
@@ -1212,27 +1212,27 @@ export default function PosPage() {
                             )}
 
                             {prefs.showLowStockBadge && (outOfStock ? (
-                              <div className="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-600 text-white shadow-lg ring-2 ring-white">OUT</div>
+                              <div className="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold bg-rose-600 text-white shadow-lg ring-2 ring-white">OUT</div>
                             ) : lowStock ? (
-                              <div className="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500 text-white shadow-lg ring-2 ring-white animate-pulse">LOW</div>
+                              <div className="absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold bg-amber-500 text-white shadow-lg ring-2 ring-white animate-pulse">LOW</div>
                             ) : null)}
 
                             <div className="absolute bottom-1 left-1 flex gap-1 flex-wrap">
                               {isCarpet && (
-                                <div className="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-emerald-600 text-white shadow-md inline-flex items-center gap-0.5">
+                                <div className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-extrabold bg-emerald-600 text-white shadow-md inline-flex items-center gap-0.5">
                                   <Layers className="h-2 w-2" /> ROLLS
                                 </div>
                               )}
                               {product.hasVariants && !isCarpet && (
-                                <div className="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-violet-600 text-white shadow-md">VAR</div>
+                                <div className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-extrabold bg-violet-600 text-white shadow-md">VAR</div>
                               )}
                               {needsImei && (
-                                <div className="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-blue-600 text-white shadow-md inline-flex items-center gap-0.5">
+                                <div className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-extrabold bg-blue-600 text-white shadow-md inline-flex items-center gap-0.5">
                                   <Smartphone className="h-2 w-2" /> IMEI
                                 </div>
                               )}
                               {product.isFeatured && prefs.showFeaturedBadge && (
-                                <div className="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-amber-500 text-white shadow-md">
+                                <div className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-extrabold bg-amber-500 text-white shadow-md">
                                   <Star className="h-2 w-2 fill-white" />
                                 </div>
                               )}
@@ -1254,7 +1254,7 @@ export default function PosPage() {
                           </div>
                           {product.category && (
                             <span
-                              className="mt-1 inline-flex px-1.5 py-0.5 rounded text-[9px] font-extrabold text-white tracking-wide"
+                              className="mt-1 inline-flex px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold text-white tracking-wide"
                               style={{ backgroundColor: product.category.color }}
                             >
                               {product.category.name}
@@ -1264,22 +1264,22 @@ export default function PosPage() {
                             <div>
                               <div className="text-base font-extrabold text-emerald-700 leading-none tabular-nums">
                                 {hidePrices ? '••••' : formatPKR(product.price)}
-                                {isCarpet && <span className="text-[10px] text-slate-500 ml-0.5 font-bold">/{product.unit}</span>}
+                                {isCarpet && <span className="text-[0.6875rem] text-slate-500 ml-0.5 font-bold">/{product.unit}</span>}
                               </div>
                               {!isCarpet && product.wholesalePrice && product.wholesalePrice < product.price && !hidePrices && prefs.showWholesaleBadge && (
-                                <div className="text-[10px] text-violet-700 font-bold mt-0.5">
+                                <div className="text-[0.6875rem] text-violet-700 font-bold mt-0.5">
                                   W: {formatPKR(product.wholesalePrice)}
                                 </div>
                               )}
                             </div>
                             {prefs.showStockCount && (
-                              <div className="text-[10px] text-right shrink-0">
+                              <div className="text-[0.6875rem] text-right shrink-0">
                                 {isCarpet ? (
                                   <div>
                                     <div className="text-emerald-700 font-extrabold tabular-nums">
                                       {carpetSqft.toFixed(0)} {product.unit}
                                     </div>
-                                    <div className="text-[9px] text-slate-500 font-bold">
+                                    <div className="text-[0.625rem] text-slate-500 font-bold">
                                       {carpetRollCount} roll{carpetRollCount !== 1 ? 's' : ''}
                                     </div>
                                   </div>
@@ -1320,7 +1320,7 @@ export default function PosPage() {
             <div className="relative px-5 py-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-extrabold uppercase border border-white/20">
+                  <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-0.5 text-[0.6875rem] font-extrabold uppercase border border-white/20">
                     <Receipt className="h-2.5 w-2.5 text-amber-300" />
                     Cart
                   </div>
@@ -1344,14 +1344,14 @@ export default function PosPage() {
                     <>
                       <button
                         onClick={holdCurrentCart}
-                        className="px-3 py-2 rounded-xl bg-amber-500/30 hover:bg-amber-500/50 text-white text-[11px] font-extrabold inline-flex items-center gap-1.5 border border-amber-300/40 shadow-md"
+                        className="px-3 py-2 rounded-xl bg-amber-500/30 hover:bg-amber-500/50 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 border border-amber-300/40 shadow-md"
                       >
                         <Pause className="h-3 w-3" />
                         Hold
                       </button>
                       <button
                         onClick={() => { if (confirm('Clear cart?')) resetCart(); }}
-                        className="px-3 py-2 rounded-xl bg-white/15 hover:bg-rose-500/40 text-white text-[11px] font-extrabold border border-white/20"
+                        className="px-3 py-2 rounded-xl bg-white/15 hover:bg-rose-500/40 text-white text-[0.6875rem] font-extrabold border border-white/20"
                       >
                         Clear
                       </button>
@@ -1410,7 +1410,7 @@ export default function PosPage() {
                           {selectedCustomer.isVip && <Crown className="h-3 w-3 text-amber-300 fill-amber-300" />}
                         </div>
                         {selectedCustomer.phone && (
-                          <div className="text-[11px] text-white/85 flex items-center gap-1 font-semibold">
+                          <div className="text-[0.6875rem] text-white/85 flex items-center gap-1 font-semibold">
                             <Phone className="h-2 w-2" />
                             {selectedCustomer.phone}
                           </div>
@@ -1418,7 +1418,7 @@ export default function PosPage() {
                       </div>
                       {customerCreditSummary.currentBalance > 0 && (
                         <div className="text-right shrink-0">
-                          <div className="text-[9px] text-white/70 font-extrabold uppercase">Udhaar</div>
+                          <div className="text-[0.625rem] text-white/70 font-extrabold uppercase">Udhaar</div>
                           <div className="text-sm font-extrabold text-amber-300 tabular-nums">
                             {formatPKR(customerCreditSummary.currentBalance)}
                           </div>
@@ -1428,18 +1428,18 @@ export default function PosPage() {
                   </div>
                   <div className="grid grid-cols-3 divide-x divide-violet-100">
                     <div className="p-2 text-center">
-                      <div className="text-[9px] text-slate-500 font-extrabold uppercase">Aaj</div>
+                      <div className="text-[0.625rem] text-slate-500 font-extrabold uppercase">Aaj</div>
                       <div className="text-sm font-extrabold text-slate-900 tabular-nums">{customerCreditSummary.todaySalesCount}</div>
                     </div>
                     <div className="p-2 text-center bg-emerald-50/50">
-                      <div className="text-[9px] text-emerald-700 font-extrabold uppercase inline-flex items-center gap-0.5">
+                      <div className="text-[0.625rem] text-emerald-700 font-extrabold uppercase inline-flex items-center gap-0.5">
                         <ArrowDownCircle className="h-2 w-2" />
                         Paid
                       </div>
                       <div className="text-xs font-extrabold text-emerald-700 tabular-nums">{formatPKR(customerCreditSummary.todayPaid)}</div>
                     </div>
                     <div className="p-2 text-center bg-amber-50/50">
-                      <div className="text-[9px] text-amber-700 font-extrabold uppercase inline-flex items-center gap-0.5">
+                      <div className="text-[0.625rem] text-amber-700 font-extrabold uppercase inline-flex items-center gap-0.5">
                         <ArrowUpCircle className="h-2 w-2" />
                         Udhaar
                       </div>

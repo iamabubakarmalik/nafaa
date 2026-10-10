@@ -166,12 +166,12 @@ function DeliveryCard({ delivery: d, onAssignVehicle, onConfirm, onStatusChange 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono font-extrabold text-slate-900 text-sm">{d.deliveryNumber}</span>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
                 <StatusIcon className="h-2.5 w-2.5" /> {meta.label}
               </span>
-              {isToday && <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-extrabold">TODAY</span>}
+              {isToday && <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem] font-extrabold">TODAY</span>}
               {d.requiresAssembly && (
-                <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[9px] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold uppercase">
                   Assembly Required
                 </span>
               )}
@@ -187,7 +187,7 @@ function DeliveryCard({ delivery: d, onAssignVehicle, onConfirm, onStatusChange 
             </div>
 
             {d.deliveryAddress && (
-              <div className="mt-1 text-[11px] text-slate-500 font-bold inline-flex items-start gap-1">
+              <div className="mt-1 text-[0.6875rem] text-slate-500 font-bold inline-flex items-start gap-1">
                 <MapPin className="h-2.5 w-2.5 mt-0.5 shrink-0" />
                 <span className="truncate">
                   {d.deliveryAddress}
@@ -199,7 +199,7 @@ function DeliveryCard({ delivery: d, onAssignVehicle, onConfirm, onStatusChange 
             )}
 
             {d.scheduledDate && (
-              <div className="mt-1 text-[11px] font-bold text-blue-700 inline-flex items-center gap-1">
+              <div className="mt-1 text-[0.6875rem] font-bold text-blue-700 inline-flex items-center gap-1">
                 <Calendar className="h-2.5 w-2.5" />
                 {new Date(d.scheduledDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
                 {d.scheduledSlot && ` • ${d.scheduledSlot}`}
@@ -207,7 +207,7 @@ function DeliveryCard({ delivery: d, onAssignVehicle, onConfirm, onStatusChange 
             )}
 
             {d.vehicleNumber && (
-              <div className="mt-2 flex items-center gap-2 flex-wrap text-[10px]">
+              <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem]">
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 font-extrabold">
                   <Truck className="h-2.5 w-2.5" /> {d.vehicleType || 'Vehicle'}: {d.vehicleNumber}
                 </span>
@@ -221,10 +221,10 @@ function DeliveryCard({ delivery: d, onAssignVehicle, onConfirm, onStatusChange 
           </div>
 
           <div className="text-right shrink-0 min-w-[120px]">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500">Total Charge</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total Charge</div>
             <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(d.totalCharge || 0)}</div>
             {d.customerRating && (
-              <div className="mt-1 inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600">
+              <div className="mt-1 inline-flex items-center gap-0.5 text-[0.6875rem] font-bold text-amber-600">
                 {'★'.repeat(d.customerRating)}{'☆'.repeat(5 - d.customerRating)}
               </div>
             )}
@@ -233,7 +233,7 @@ function DeliveryCard({ delivery: d, onAssignVehicle, onConfirm, onStatusChange 
 
         {/* Charges breakdown */}
         {(d.deliveryCharge > 0 || d.loadingCharge > 0 || d.floorCharge > 0 || d.assemblyCharge > 0) && (
-          <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-2 text-[10px] font-bold">
+          <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap gap-2 text-[0.6875rem] font-bold">
             {d.deliveryCharge > 0 && <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700">🚚 Delivery: {formatPKR(d.deliveryCharge)}</span>}
             {d.loadingCharge > 0 && <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700">📦 Loading: {formatPKR(d.loadingCharge)}</span>}
             {d.floorCharge > 0 && <span className="px-2 py-0.5 rounded bg-orange-50 text-orange-700">🏢 Floor: {formatPKR(d.floorCharge)}</span>}
@@ -504,7 +504,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
       className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-blue-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

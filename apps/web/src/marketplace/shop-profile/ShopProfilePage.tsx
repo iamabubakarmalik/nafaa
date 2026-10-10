@@ -157,12 +157,12 @@ export default function ShopProfilePage() {
             <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-black border border-white/20">
               <span>{industryTheme.emoji}</span> Shop Profile
               {isPublished ? (
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px]">LIVE</span>
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[0.625rem]">LIVE</span>
               ) : (
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-500 text-white text-[9px]">DRAFT</span>
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-500 text-white text-[0.625rem]">DRAFT</span>
               )}
               {isPaused && (
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px]">PAUSED</span>
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem]">PAUSED</span>
               )}
             </div>
             <h1 className="mt-3 text-3xl md:text-4xl font-black">Marketplace Profile</h1>
@@ -308,7 +308,7 @@ export default function ShopProfilePage() {
             ) : (
               groups.map((group) => (
                 <div key={group} className="mb-3 last:mb-0">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-3 py-1.5">{group}</div>
+                  <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-400 px-3 py-1.5">{group}</div>
                   {sections.filter((s) => s.group === group).map((s) => {
                     const Icon = s.icon;
                     const isActive = active === s.id;
@@ -328,7 +328,7 @@ export default function ShopProfilePage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-black truncate">{s.label}</div>
-                          <div className="text-[10px] text-slate-500 truncate font-medium">{s.desc}</div>
+                          <div className="text-[0.6875rem] text-slate-500 truncate font-medium">{s.desc}</div>
                         </div>
                         {isActive && <ChevronRight className="h-4 w-4 shrink-0" />}
                       </button>
@@ -372,12 +372,12 @@ export default function ShopProfilePage() {
               <div className="px-4 py-3 bg-slate-900 text-white flex items-center gap-2">
                 <Eye className="h-4 w-4" />
                 <span className="text-xs font-black uppercase tracking-wider">Live Preview</span>
-                <span className="ml-auto text-[9px] font-black bg-emerald-500 px-1.5 py-0.5 rounded">Customer View</span>
+                <span className="ml-auto text-[0.625rem] font-black bg-emerald-500 px-1.5 py-0.5 rounded">Customer View</span>
               </div>
               <div className="p-4">
                 <ShopPreviewCard s={merged} theme={industryTheme} />
               </div>
-              <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 text-[10px] font-bold text-slate-500 text-center">
+              <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 text-[0.6875rem] font-bold text-slate-500 text-center">
                 Ye customers ko marketplace pe dikhega
               </div>
             </div>

@@ -52,7 +52,7 @@ export default function BasicInfoSection({ s, set, industry }: Props) {
           {completionChecks.map((c) => (
             <span
               key={c.label}
-              className={`text-[10px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
+              className={`text-[0.6875rem] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
                 c.done ? 'bg-emerald-600 text-white' : 'bg-white text-slate-500 border border-slate-200'
               }`}
             >
@@ -74,7 +74,7 @@ export default function BasicInfoSection({ s, set, industry }: Props) {
             maxLength={60}
             className="w-full h-12 pl-10 pr-16 rounded-xl border-2 border-slate-200 text-sm font-bold outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[0.6875rem] font-bold text-slate-400">
             {(s.publicName || '').length}/60
           </span>
         </div>
@@ -91,7 +91,7 @@ export default function BasicInfoSection({ s, set, industry }: Props) {
             maxLength={100}
             className="w-full h-12 pl-10 pr-16 rounded-xl border-2 border-slate-200 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[0.6875rem] font-bold text-slate-400">
             {(s.tagline || '').length}/100
           </span>
         </div>
@@ -113,7 +113,7 @@ export default function BasicInfoSection({ s, set, industry }: Props) {
             {(s.description || '').length >= 20 && (
               <CheckCircle2 className="h-3 w-3 text-emerald-500" />
             )}
-            <span className="text-[10px] font-bold text-slate-400">
+            <span className="text-[0.6875rem] font-bold text-slate-400">
               {(s.description || '').length}/1000
             </span>
           </div>
@@ -255,12 +255,12 @@ function MediaBlock({
                 className="h-32 w-32 rounded-2xl object-cover border-2 border-white shadow-md shrink-0"
               />
               <div className="flex-1 min-w-0 space-y-1">
-                <div className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">
+                <div className="inline-flex items-center gap-1 text-[0.6875rem] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white">
                   <CheckCircle2 className="h-2.5 w-2.5" />
                   UPLOADED
                 </div>
                 <div className="font-black text-emerald-900 text-sm">Logo added successfully</div>
-                <p className="text-[10px] text-emerald-700 font-medium truncate font-mono">{currentUrl}</p>
+                <p className="text-[0.6875rem] text-emerald-700 font-medium truncate font-mono">{currentUrl}</p>
               </div>
               <button
                 onClick={onRemove}
@@ -283,14 +283,14 @@ function MediaBlock({
                   </button>
                 </div>
                 <div className="absolute top-2 left-2">
-                  <div className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-lg">
+                  <div className="inline-flex items-center gap-1 text-[0.6875rem] font-black px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-lg">
                     <CheckCircle2 className="h-2.5 w-2.5" />
                     UPLOADED
                   </div>
                 </div>
               </div>
               <div className="px-3 py-2 shrink-0 border-t border-emerald-200 bg-emerald-100/50">
-                <p className="text-[10px] text-emerald-800 font-mono truncate">{currentUrl}</p>
+                <p className="text-[0.6875rem] text-emerald-800 font-mono truncate">{currentUrl}</p>
               </div>
             </div>
           )
@@ -339,7 +339,7 @@ function MediaBlock({
                 Add
               </button>
             </div>
-            <p className="text-[10px] text-slate-500 font-medium mt-2">
+            <p className="text-[0.6875rem] text-slate-500 font-medium mt-2">
               Paste image URL from any hosting service (Cloudinary, imgur, Unsplash direct link, etc.)
             </p>
             {/* Live preview - takes remaining space, hidden if empty */}

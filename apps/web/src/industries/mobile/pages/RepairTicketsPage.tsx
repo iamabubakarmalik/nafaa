@@ -220,7 +220,7 @@ export default function RepairTicketsPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
             <div className="text-xs font-bold text-slate-900">{printDate}</div>
           </div>
         </div>
@@ -233,7 +233,7 @@ export default function RepairTicketsPage() {
 
         <div className="relative flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Wrench className="h-3.5 w-3.5 text-amber-300" /> Mobile Industry
               {shopName && (
                 <>
@@ -374,14 +374,14 @@ export default function RepairTicketsPage() {
                   <button
                     key={t.id}
                     onClick={() => { setSearch(t.ticketNumber); }}
-                    className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-rose-300 dark:border-rose-500/40 px-2 py-1 text-[11px] font-extrabold text-rose-800 dark:text-rose-300 hover:border-rose-500 transition"
+                    className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-rose-300 dark:border-rose-500/40 px-2 py-1 text-[0.6875rem] font-extrabold text-rose-800 dark:text-rose-300 hover:border-rose-500 transition"
                   >
                     {t.deviceBrand} {t.deviceModel}
                     <span className="text-rose-500 dark:text-rose-400 font-mono">{t.ticketNumber}</span>
                   </button>
                 ))}
                 {overdueTickets.length > 8 && (
-                  <span className="text-[11px] font-bold text-rose-700 dark:text-rose-400 px-2 py-1">
+                  <span className="text-[0.6875rem] font-bold text-rose-700 dark:text-rose-400 px-2 py-1">
                     +{overdueTickets.length - 8} more
                   </span>
                 )}
@@ -548,7 +548,7 @@ export default function RepairTicketsPage() {
                           <RepairPriorityBadge priority={ticket.priority} size="sm" />
                         )}
                         {isOverdue && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-extrabold uppercase tracking-wider animate-pulse">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-600 text-white text-[0.6875rem] font-extrabold uppercase tracking-wider animate-pulse">
                             <Timer className="h-2.5 w-2.5" /> OVERDUE
                           </span>
                         )}
@@ -601,7 +601,7 @@ export default function RepairTicketsPage() {
                       </div>
 
                       {OPEN_STATUSES.includes(ticket.status) && (
-                        <div className="mt-1.5 text-[10px] text-orange-700 dark:text-orange-400 font-extrabold flex items-center gap-1">
+                        <div className="mt-1.5 text-[0.6875rem] text-orange-700 dark:text-orange-400 font-extrabold flex items-center gap-1">
                           <ArrowRight className="h-3 w-3" />
                           Next: {STATUS_NEXT_ACTIONS[ticket.status]}
                         </div>
@@ -709,7 +709,7 @@ function RepairTeacher({ hasTickets, onClose, onStart }: {
 
           {/* Live misal */}
           <div className="rounded-2xl border-2 border-orange-200 dark:border-orange-500/30 bg-orange-50/60 dark:bg-orange-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-orange-700 dark:text-orange-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-orange-700 dark:text-orange-300">
               🔧 Misal: iPhone Screen Replace
             </div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -728,10 +728,10 @@ function RepairTeacher({ hasTickets, onClose, onStart }: {
 
           {/* 9 statuses */}
           <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-700 dark:text-slate-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-700 dark:text-slate-300">
               📋 9 Status — Har Ticket Ka Safar
             </div>
-            <div className="grid grid-cols-3 gap-1.5 text-[10px] font-extrabold">
+            <div className="grid grid-cols-3 gap-1.5 text-[0.6875rem] font-extrabold">
               <StatusChip emoji="📥" label="Received" color="blue" />
               <StatusChip emoji="🔍" label="Diagnosed" color="indigo" />
               <StatusChip emoji="⏳" label="Approval" color="amber" />
@@ -806,9 +806,9 @@ function FlowBox({ emoji, label, value, sub, highlight }: {
         : 'border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/60',
     ].join(' ')}>
       <div className="text-xl">{emoji}</div>
-      <div className="text-[10px] font-extrabold text-slate-900 dark:text-white uppercase">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white uppercase">{label}</div>
       <div className={`text-xs font-extrabold tabular-nums ${highlight ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>{value}</div>
-      <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400">{sub}</div>
+      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">{sub}</div>
     </div>
   );
 }
@@ -817,8 +817,8 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
   return (
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -838,7 +838,7 @@ function TeacherTip({ children }: { children: React.ReactNode }) {
 function StepPill({ n, label, state }: { n: number; label: string; state: 'done' | 'active' | 'todo' }) {
   return (
     <div className={[
-      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-extrabold border backdrop-blur-md transition',
+      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.6875rem] font-extrabold border backdrop-blur-md transition',
       state === 'done'
         ? 'bg-emerald-400/25 border-emerald-300/50 text-emerald-200'
         : state === 'active'
@@ -849,7 +849,7 @@ function StepPill({ n, label, state }: { n: number; label: string; state: 'done'
         <CheckCircle2 className="h-3.5 w-3.5" />
       ) : (
         <span className={[
-          'h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-black',
+          'h-4 w-4 rounded-full flex items-center justify-center text-[0.625rem] font-black',
           state === 'active' ? 'bg-slate-900 text-amber-300' : 'bg-white/20 text-white/60',
         ].join(' ')}>
           {n}
@@ -874,14 +874,14 @@ function Kpi({ label, value, sub, icon: Icon, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm dark:shadow-black/20 hover:shadow-md dark:hover:shadow-lg transition-all hover:-translate-y-0.5">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
             {label}
           </div>
           <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">
             {value}
           </div>
           {sub && (
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
+            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
               {sub}
             </div>
           )}

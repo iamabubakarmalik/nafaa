@@ -77,7 +77,7 @@ export function RestaurantModifierPicker({ productId, onConfirm, onClose }: Prop
         {/* Header */}
         <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-gradient-to-br from-slate-950 via-orange-900 to-red-700 text-white flex items-center justify-between shrink-0">
           <div className="min-w-0 flex-1">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Customize</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Customize</div>
             <h3 className="font-extrabold text-lg truncate">{menuItem?.product?.name || 'Item'}</h3>
           </div>
           <button onClick={onClose} className="h-9 w-9 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center shrink-0">
@@ -123,12 +123,12 @@ export function RestaurantModifierPicker({ productId, onConfirm, onClose }: Prop
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <div className="font-extrabold text-slate-900 dark:text-white text-sm">{g.name}</div>
-                      <div className="text-[10px] text-slate-500 font-bold">
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">
                         {g.isRequired ? 'Required' : 'Optional'} • Choose {g.minSelections}–{g.maxSelections}
                       </div>
                     </div>
                     <span className={
-                      'px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ' +
+                      'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ' +
                       (g.isRequired
                         ? (sel.length >= g.minSelections ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700')
                         : 'bg-slate-100 text-slate-600')

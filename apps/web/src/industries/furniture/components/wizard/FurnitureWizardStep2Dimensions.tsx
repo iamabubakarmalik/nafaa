@@ -52,7 +52,7 @@ export function FurnitureWizardStep2Dimensions({ dimensions, onChange, categoryT
               onChange={(e) => onChange({ lengthCm: e.target.value === '' ? '' : Number(e.target.value) })}
               placeholder="200"
               className="h-14 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-200" />
-            {inchesL && <div className="text-[10px] text-slate-500 font-bold mt-1">≈ {inchesL} inches</div>}
+            {inchesL && <div className="text-[0.6875rem] text-slate-500 font-bold mt-1">≈ {inchesL} inches</div>}
           </div>
           <div>
             <Lbl><MoveDiagonal className="h-3 w-3 inline mr-1" /> Width (cm) *</Lbl>
@@ -60,7 +60,7 @@ export function FurnitureWizardStep2Dimensions({ dimensions, onChange, categoryT
               onChange={(e) => onChange({ widthCm: e.target.value === '' ? '' : Number(e.target.value) })}
               placeholder="90"
               className="h-14 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-200" />
-            {inchesW && <div className="text-[10px] text-slate-500 font-bold mt-1">≈ {inchesW} inches</div>}
+            {inchesW && <div className="text-[0.6875rem] text-slate-500 font-bold mt-1">≈ {inchesW} inches</div>}
           </div>
           <div>
             <Lbl><ArrowUpDown className="h-3 w-3 inline mr-1" /> Height (cm) *</Lbl>
@@ -68,7 +68,7 @@ export function FurnitureWizardStep2Dimensions({ dimensions, onChange, categoryT
               onChange={(e) => onChange({ heightCm: e.target.value === '' ? '' : Number(e.target.value) })}
               placeholder="85"
               className="h-14 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-amber-600 focus:ring-4 focus:ring-amber-200" />
-            {inchesH && <div className="text-[10px] text-slate-500 font-bold mt-1">≈ {inchesH} inches</div>}
+            {inchesH && <div className="text-[0.6875rem] text-slate-500 font-bold mt-1">≈ {inchesH} inches</div>}
           </div>
         </div>
 
@@ -111,7 +111,7 @@ export function FurnitureWizardStep2Dimensions({ dimensions, onChange, categoryT
                   onChange={(e) => onChange({ seatingCapacity: e.target.value === '' ? '' : Number(e.target.value) })}
                   placeholder="e.g. 5, 7"
                   className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-                <div className="text-[10px] text-slate-500 font-bold mt-1">How many people can sit</div>
+                <div className="text-[0.6875rem] text-slate-500 font-bold mt-1">How many people can sit</div>
               </div>
             )}
             {showSeatHeight && (
@@ -121,7 +121,7 @@ export function FurnitureWizardStep2Dimensions({ dimensions, onChange, categoryT
                   onChange={(e) => onChange({ seatHeightCm: e.target.value === '' ? '' : Number(e.target.value) })}
                   placeholder="45"
                   className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
-                <div className="text-[10px] text-slate-500 font-bold mt-1">Floor to seat surface</div>
+                <div className="text-[0.6875rem] text-slate-500 font-bold mt-1">Floor to seat surface</div>
               </div>
             )}
           </div>
@@ -163,23 +163,23 @@ export function FurnitureWizardStep2Dimensions({ dimensions, onChange, categoryT
         <section className="rounded-2xl bg-gradient-to-br from-slate-950 via-amber-900 to-orange-800 text-white p-5 shadow-xl">
           <div className="flex items-center gap-2 mb-3">
             <Ruler className="h-4 w-4 text-amber-300" />
-            <span className="text-[10px] uppercase font-extrabold tracking-wider text-amber-300">Dimension Preview</span>
+            <span className="text-[0.6875rem] uppercase font-extrabold tracking-wider text-amber-300">Dimension Preview</span>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Length</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Length</div>
               <div className="text-2xl font-extrabold tabular-nums text-white leading-none mt-1">
                 {dimensions.lengthCm || '—'} <span className="text-xs text-white/60">cm</span>
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Width</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Width</div>
               <div className="text-2xl font-extrabold tabular-nums text-white leading-none mt-1">
                 {dimensions.widthCm || '—'} <span className="text-xs text-white/60">cm</span>
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/60">Height</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Height</div>
               <div className="text-2xl font-extrabold tabular-nums text-white leading-none mt-1">
                 {dimensions.heightCm || '—'} <span className="text-xs text-white/60">cm</span>
               </div>

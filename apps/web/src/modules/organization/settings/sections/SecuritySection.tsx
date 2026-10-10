@@ -67,7 +67,7 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className={[
-                    'text-[10px] uppercase tracking-widest font-extrabold',
+                    'text-[0.6875rem] uppercase tracking-widest font-extrabold',
                     scoreColor === 'emerald' ? 'text-emerald-700 dark:text-emerald-300' :
                     scoreColor === 'amber' ? 'text-amber-700 dark:text-amber-300' :
                     'text-rose-700 dark:text-rose-300',
@@ -111,7 +111,7 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
                       {c.label}
                     </span>
                     <span className={[
-                      'text-[10px] font-extrabold',
+                      'text-[0.6875rem] font-extrabold',
                       c.done ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500',
                     ].join(' ')}>
                       +{c.weight}%
@@ -201,7 +201,7 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
                       {sess.user?.fullName || 'User'} · {sess.location || sess.ipAddress || 'Unknown location'}
                     </div>
                     {sess.lastActiveAt && (
-                      <div className="text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-0.5">
+                      <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold mt-0.5">
                         Last active: {new Date(sess.lastActiveAt).toLocaleString()}
                       </div>
                     )}
@@ -240,7 +240,7 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
                     {a.description && (
                       <div className="text-slate-500 dark:text-slate-400 truncate font-semibold">{a.description}</div>
                     )}
-                    <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-bold">
+                    <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-0.5 font-bold">
                       {a.user?.fullName || 'System'} · {new Date(a.createdAt).toLocaleString()}
                     </div>
                   </div>

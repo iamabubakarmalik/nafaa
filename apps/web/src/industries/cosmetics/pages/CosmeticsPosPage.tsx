@@ -375,7 +375,7 @@ export default function CosmeticsPosPage() {
               <button onClick={() => setScannerOpen(true)}
                 className="h-16 w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg">
                 <Camera className="h-6 w-6" />
-                <span className="text-[10px] font-extrabold">SCAN</span>
+                <span className="text-[0.6875rem] font-extrabold">SCAN</span>
               </button>
             </div>
             <form onSubmit={(e) => { e.preventDefault(); if (barcodeInput.trim()) { handleBarcode(barcodeInput); setBarcodeInput(''); } }} className="relative">
@@ -424,7 +424,7 @@ export default function CosmeticsPosPage() {
                             <div className="absolute bottom-1.5 right-1.5 h-8 w-8 rounded-full border-2 border-white shadow" style={{ backgroundColor: profile.shadeHex }} />
                           )}
                           {profile?.isViral && (
-                            <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[10px] font-extrabold shadow">🔥</div>
+                            <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[0.6875rem] font-extrabold shadow">🔥</div>
                           )}
                           {profile?.isHalalCertified && !profile?.isViral && (
                             <div className="absolute top-1.5 left-1.5 h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center shadow text-xs">🕌</div>
@@ -433,7 +433,7 @@ export default function CosmeticsPosPage() {
                         <div className="p-2.5">
                           <div className="font-extrabold text-slate-900 text-sm line-clamp-2 leading-tight min-h-[2.5rem]">{p.name}</div>
                           {profile?.shadeName && (
-                            <div className="mt-0.5 text-[10px] font-bold text-slate-500 truncate">{profile.shadeName}</div>
+                            <div className="mt-0.5 text-[0.6875rem] font-bold text-slate-500 truncate">{profile.shadeName}</div>
                           )}
                           <div className="mt-1.5 flex items-end justify-between">
                             <div className="text-xl font-extrabold text-emerald-700 tabular-nums leading-none">{hidePrices ? '•••' : formatPKR(p.price)}</div>
@@ -464,22 +464,22 @@ export default function CosmeticsPosPage() {
                             <Gift className="h-16 w-16 text-fuchsia-400" />
                           </div>
                         )}
-                        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-fuchsia-600 text-white text-[9px] font-extrabold uppercase">BUNDLE</div>
+                        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-fuchsia-600 text-white text-[0.625rem] font-extrabold uppercase">BUNDLE</div>
                         {b.savings > 0 && (
                           <div className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-emerald-500 text-white text-xs font-extrabold">Save {formatPKR(b.savings)}</div>
                         )}
                       </div>
                       <div className="p-2.5">
                         <div className="font-extrabold text-slate-900 text-sm line-clamp-2 leading-tight min-h-[2.5rem]">{b.name}</div>
-                        {b.occasion && <div className="text-[10px] font-bold text-fuchsia-700 uppercase mt-0.5">{b.occasion}</div>}
+                        {b.occasion && <div className="text-[0.6875rem] font-bold text-fuchsia-700 uppercase mt-0.5">{b.occasion}</div>}
                         <div className="mt-1.5 flex items-end justify-between">
                           <div>
                             {b.originalPrice > b.bundlePrice && (
-                              <div className="text-[10px] text-slate-500 line-through font-bold">{formatPKR(b.originalPrice)}</div>
+                              <div className="text-[0.6875rem] text-slate-500 line-through font-bold">{formatPKR(b.originalPrice)}</div>
                             )}
                             <div className="text-xl font-extrabold text-emerald-700 tabular-nums leading-none">{hidePrices ? '•••' : formatPKR(b.bundlePrice)}</div>
                           </div>
-                          <div className="text-[10px] font-extrabold text-fuchsia-700">{b.items?.length} items</div>
+                          <div className="text-[0.6875rem] font-extrabold text-fuchsia-700">{b.items?.length} items</div>
                         </div>
                       </div>
                     </button>
@@ -495,7 +495,7 @@ export default function CosmeticsPosPage() {
           <div className="shrink-0 bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white px-4 py-4">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <div className="text-[11px] uppercase font-extrabold text-white/70 tracking-wider">Cart • {itemCount} items</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cart • {itemCount} items</div>
                 <div className="text-4xl font-extrabold tabular-nums leading-none mt-1">{hidePrices ? '••••' : formatPKR(total)}</div>
               </div>
               {cart.length > 0 && (
@@ -526,7 +526,7 @@ export default function CosmeticsPosPage() {
                     <Award className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase font-extrabold text-white/80">{loyaltyMember.tier} member</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">{loyaltyMember.tier} member</div>
                     <div className="text-sm font-extrabold">{loyaltyMember.pointsBalance} pts available</div>
                   </div>
                 </div>
@@ -558,7 +558,7 @@ export default function CosmeticsPosPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-slate-900 text-sm line-clamp-2 leading-tight">{l.name}</div>
-                      {l.type === 'bundle' && <span className="mt-0.5 inline-block px-1.5 py-0.5 rounded bg-fuchsia-600 text-white text-[9px] font-extrabold uppercase">Bundle</span>}
+                      {l.type === 'bundle' && <span className="mt-0.5 inline-block px-1.5 py-0.5 rounded bg-fuchsia-600 text-white text-[0.625rem] font-extrabold uppercase">Bundle</span>}
                       <div className="text-xs font-bold text-pink-700 mt-0.5">{formatPKR(l.unitPrice)}</div>
                     </div>
                     <button onClick={() => removeLine(l.id)} className="h-10 w-10 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">

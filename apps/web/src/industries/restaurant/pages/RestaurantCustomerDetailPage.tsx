@@ -63,19 +63,19 @@ export default function RestaurantCustomerDetailPage() {
 
           <div className="grid sm:grid-cols-4 gap-3">
             <div className="rounded-xl bg-white border-2 border-orange-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-orange-700">Total Orders</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-orange-700">Total Orders</div>
               <div className="text-2xl font-extrabold text-slate-900 mt-1">{customerOrders.length}</div>
             </div>
             <div className="rounded-xl bg-white border-2 border-emerald-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-emerald-700">Dine-in</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Dine-in</div>
               <div className="text-2xl font-extrabold text-emerald-900 mt-1">{dineInCount}</div>
             </div>
             <div className="rounded-xl bg-white border-2 border-violet-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-violet-700">Delivery</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700">Delivery</div>
               <div className="text-2xl font-extrabold text-violet-900 mt-1">{deliveryCount}</div>
             </div>
             <div className="rounded-xl bg-white border-2 border-blue-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-blue-700">Takeaway</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Takeaway</div>
               <div className="text-2xl font-extrabold text-blue-900 mt-1">{takeawayCount}</div>
             </div>
           </div>
@@ -99,7 +99,7 @@ export default function RestaurantCustomerDetailPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-sm font-extrabold text-emerald-700">{item.qty} times</div>
-                      <div className="text-[10px] text-slate-500 font-semibold">{formatPKR(item.revenue)}</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-semibold">{formatPKR(item.revenue)}</div>
                     </div>
                   </div>
                 ))}
@@ -123,7 +123,7 @@ export default function RestaurantCustomerDetailPage() {
                           <ModeIcon className="h-4 w-4 text-orange-600 shrink-0" />
                           <div className="min-w-0">
                             <div className="font-mono font-extrabold text-sm text-slate-900">{order.orderNumber}</div>
-                            <div className="text-[11px] text-slate-500 truncate">
+                            <div className="text-[0.6875rem] text-slate-500 truncate">
                               {order.mode.replace('_', ' ')}
                               {order.table && ` • Table ${order.table.tableNumber}`}
                               • {order.items?.length || 0} items
@@ -132,7 +132,7 @@ export default function RestaurantCustomerDetailPage() {
                         </div>
                         <div className="text-right shrink-0">
                           <div className="font-extrabold text-emerald-700 text-sm">{formatPKR(order.total)}</div>
-                          <div className="text-[10px] text-slate-500">{formatDateTime(order.createdAt)}</div>
+                          <div className="text-[0.6875rem] text-slate-500">{formatDateTime(order.createdAt)}</div>
                         </div>
                       </div>
                     </Link>

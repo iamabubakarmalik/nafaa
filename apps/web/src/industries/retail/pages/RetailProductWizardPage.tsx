@@ -185,7 +185,7 @@ export default function RetailProductWizardPage() {
           >
             <Plus className="h-6 w-6" />
             <div className="font-extrabold">Add Another Product</div>
-            <div className="text-[10px] font-bold text-white/70">Agla product daalo</div>
+            <div className="text-[0.6875rem] font-bold text-white/70">Agla product daalo</div>
           </button>
           <button
             onClick={() => navigate(`/retail-products/${savedResult.productId}`)}
@@ -193,7 +193,7 @@ export default function RetailProductWizardPage() {
           >
             <Eye className="h-6 w-6 text-sky-600 dark:text-sky-400" />
             <div className="font-extrabold text-slate-900 dark:text-white">View Product</div>
-            <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">Details dekho</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">Details dekho</div>
           </button>
           <button
             onClick={() => navigate('/products')}
@@ -201,7 +201,7 @@ export default function RetailProductWizardPage() {
           >
             <ShoppingBag className="h-6 w-6 text-sky-600 dark:text-sky-400" />
             <div className="font-extrabold text-slate-900 dark:text-white">All Products</div>
-            <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">List pe wapas</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">List pe wapas</div>
           </button>
         </div>
       </div>
@@ -255,7 +255,7 @@ export default function RetailProductWizardPage() {
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
         <div className="relative flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <ShoppingBag className="h-3.5 w-3.5 text-amber-300" />
               {isEdit ? 'Editing Retail Product' : 'Retail Product Wizard'}
             </div>
@@ -501,10 +501,10 @@ function TeacherRow({ n, icon: Icon, tone, title, desc, chips }: {
         <div className="text-xs font-extrabold text-slate-900 dark:text-white">
           <span className="text-slate-400 dark:text-slate-500">Step {n}:</span> {title}
         </div>
-        <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{desc}</div>
+        <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{desc}</div>
         <div className="flex flex-wrap gap-1 mt-1.5">
           {chips.map((c) => (
-            <span key={c} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-[9px] font-extrabold text-slate-600 dark:text-slate-300">
+            <span key={c} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-[0.625rem] font-extrabold text-slate-600 dark:text-slate-300">
               {c}
             </span>
           ))}
@@ -517,7 +517,7 @@ function TeacherRow({ n, icon: Icon, tone, title, desc, chips }: {
 function SuccessStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-xl bg-white dark:bg-slate-800/80 border-2 border-sky-200 dark:border-sky-500/30 p-3">
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-sky-700 dark:text-sky-400">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-sky-700 dark:text-sky-400">{label}</div>
       <div className="text-2xl font-extrabold text-sky-900 dark:text-sky-200 tabular-nums mt-0.5">{value}</div>
     </div>
   );

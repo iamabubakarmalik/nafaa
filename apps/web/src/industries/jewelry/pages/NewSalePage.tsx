@@ -193,7 +193,7 @@ export default function NewSalePage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 New Jewelry Sale
               </div>
@@ -257,7 +257,7 @@ export default function NewSalePage() {
                         <button key={c.id} onClick={() => { setForm({ ...form, customerId: c.id, customerName: c.name, customerPhone: c.phone || '' }); setShowCustomerPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
                           <User className="h-3.5 w-3.5 text-slate-400" />
                           <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                          <span className="text-[10px] text-slate-500 font-bold">{c.phone}</span>
+                          <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
                         </button>
                       ))}
                     </div>
@@ -303,7 +303,7 @@ export default function NewSalePage() {
                   return (
                     <div key={i} className="rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 p-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] uppercase font-extrabold text-amber-700">Item #{i + 1}</span>
+                        <span className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Item #{i + 1}</span>
                         <button onClick={() => removeItem(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -325,34 +325,34 @@ export default function NewSalePage() {
 
                       <div className="grid grid-cols-4 gap-2">
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-blue-700 mb-0.5 block">Rate/g</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-blue-700 mb-0.5 block">Rate/g</label>
                           <input type="number" value={item.ratePerGram} onChange={(e) => updateItem(i, { ratePerGram: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
                         </div>
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-slate-600 mb-0.5 block">Gross (g)</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Gross (g)</label>
                           <input type="number" step="0.01" value={item.grossWeight} onChange={(e) => updateItem(i, { grossWeight: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-amber-500" />
                         </div>
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-emerald-700 mb-0.5 block">Net (g)</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-emerald-700 mb-0.5 block">Net (g)</label>
                           <input type="number" step="0.01" value={item.netWeight} onChange={(e) => updateItem(i, { netWeight: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
                         </div>
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-slate-600 mb-0.5 block">Qty</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Qty</label>
                           <input type="number" min="1" value={item.quantity} onChange={(e) => updateItem(i, { quantity: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-amber-500" />
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2">
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-purple-700 mb-0.5 block">Making/g</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-purple-700 mb-0.5 block">Making/g</label>
                           <input type="number" value={item.makingChargePerGram} onChange={(e) => updateItem(i, { makingChargePerGram: Number(e.target.value) })} placeholder="0" className="h-9 w-full rounded-lg border-2 border-purple-200 bg-purple-50 dark:bg-purple-950/30 px-2 text-xs font-extrabold tabular-nums text-center focus:outline-none focus:border-purple-500" />
                         </div>
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-purple-700 mb-0.5 block">Making %</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-purple-700 mb-0.5 block">Making %</label>
                           <input type="number" step="0.1" value={item.makingChargePct} onChange={(e) => updateItem(i, { makingChargePct: Number(e.target.value) })} placeholder="0" className="h-9 w-full rounded-lg border-2 border-purple-200 bg-purple-50 dark:bg-purple-950/30 px-2 text-xs font-extrabold tabular-nums text-center focus:outline-none focus:border-purple-500" />
                         </div>
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-orange-700 mb-0.5 block">Wastage %</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-orange-700 mb-0.5 block">Wastage %</label>
                           <input type="number" step="0.1" value={item.wastagePct} onChange={(e) => updateItem(i, { wastagePct: Number(e.target.value) })} placeholder="0" className="h-9 w-full rounded-lg border-2 border-orange-200 bg-orange-50 dark:bg-orange-950/30 px-2 text-xs font-extrabold tabular-nums text-center focus:outline-none focus:border-orange-500" />
                         </div>
                       </div>
@@ -387,18 +387,18 @@ export default function NewSalePage() {
             </h3>
             <div className="grid sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-violet-700 mb-1 block">Grams</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1 block">Grams</label>
                 <input type="number" step="0.01" value={form.exchangeMetalGrams} onChange={(e) => setForm({ ...form, exchangeMetalGrams: e.target.value })} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-violet-700 mb-1 block">Purity</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1 block">Purity</label>
                 <select value={form.exchangeMetalPurity} onChange={(e) => setForm({ ...form, exchangeMetalPurity: e.target.value })} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
                   <option value="">-- Select --</option>
                   {PURITIES.map((p) => <option key={p} value={p}>{p.replace('KARAT_', '').replace('SILVER_', 'S')}K</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Exchange Value (Rs)</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Exchange Value (Rs)</label>
                 <input type="number" value={form.exchangeValue} onChange={(e) => setForm({ ...form, exchangeValue: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
               </div>
             </div>
@@ -425,7 +425,7 @@ export default function NewSalePage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-amber-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3 flex items-center gap-1">
                 <Calculator className="h-3 w-3" />
                 Live Calculation
               </div>
@@ -436,15 +436,15 @@ export default function NewSalePage() {
               </div>
               <div className="mt-3 space-y-2">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">GST</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">GST</label>
                   <input type="number" value={form.gstAmount} onChange={(e) => setForm({ ...form, gstAmount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Other Charges</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Other Charges</label>
                   <input type="number" value={form.otherCharges} onChange={(e) => setForm({ ...form, otherCharges: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
                   <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 {Number(form.exchangeValue) > 0 && (
@@ -460,11 +460,11 @@ export default function NewSalePage() {
               </div>
               <div className="mt-3 space-y-2">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Paid Now</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Paid Now</label>
                   <input type="number" value={form.paidAmount} onChange={(e) => setForm({ ...form, paidAmount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-emerald-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Payment Method</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Payment Method</label>
                   <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })} className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-bold text-white focus:outline-none focus:border-emerald-400">
                     <option value="CASH">CASH</option>
                     <option value="CARD">CARD</option>
@@ -495,7 +495,7 @@ export default function NewSalePage() {
               {jewelryProducts.map((p) => (
                 <button key={p.id} onClick={() => addProduct(p)} className="p-3 rounded-xl border-2 border-slate-200 dark:border-neutral-700 hover:border-amber-500 hover:shadow-lg text-left">
                   <div className="font-extrabold text-sm truncate">{p.product?.name}</div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase">{p.metalType} • {p.purity.replace('KARAT_', '').replace('SILVER_', 'S')}K</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{p.metalType} • {p.purity.replace('KARAT_', '').replace('SILVER_', 'S')}K</div>
                   <div className="mt-1 text-xs font-extrabold text-slate-700">Net: {p.netWeight.toFixed(2)}g</div>
                 </button>
               ))}

@@ -135,7 +135,7 @@ function PlanCard({ plan, onEdit, onDelete }: any) {
         </div>
 
         {plan.isFeatured && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
             <Star className="h-2 w-2 fill-current" /> Featured
           </div>
         )}
@@ -143,7 +143,7 @@ function PlanCard({ plan, onEdit, onDelete }: any) {
         <div className="text-5xl mb-2">{typeCfg?.emoji}</div>
         <div className="text-xs uppercase tracking-wider font-extrabold text-white/80">{typeCfg?.label}</div>
         <h3 className="text-2xl font-extrabold mt-1">{plan.name}</h3>
-        {plan.code && <div className="text-[10px] font-mono text-white/70">{plan.code}</div>}
+        {plan.code && <div className="text-[0.6875rem] font-mono text-white/70">{plan.code}</div>}
 
         <div className="mt-3 flex items-baseline gap-2">
           <span className="text-4xl font-extrabold tabular-nums">{formatPKR(plan.price)}</span>
@@ -161,13 +161,13 @@ function PlanCard({ plan, onEdit, onDelete }: any) {
 
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2">
-            <div className="text-[9px] uppercase font-extrabold text-blue-700">Access</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Access</div>
             <div className="font-extrabold text-blue-800">
               {plan.accessAllHours ? '24/7' : plan.accessTimeStart + '-' + plan.accessTimeEnd}
             </div>
           </div>
           <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2">
-            <div className="text-[9px] uppercase font-extrabold text-emerald-700">Visits</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Visits</div>
             <div className="font-extrabold text-emerald-800">
               {plan.isUnlimited ? 'Unlimited' : plan.visitLimit + ' visits'}
             </div>
@@ -325,19 +325,19 @@ function PlanForm({ editing, onClose, onSaved }: any) {
           </div>
           <div className="grid sm:grid-cols-4 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Price *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Price *</label>
               <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-lg font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Registration Fee</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Registration Fee</label>
               <input type="number" value={form.registrationFee} onChange={(e) => setForm({ ...form, registrationFee: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Security Deposit</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Security Deposit</label>
               <input type="number" value={form.securityDeposit} onChange={(e) => setForm({ ...form, securityDeposit: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Duration (days) *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Duration (days) *</label>
               <input type="number" value={form.durationDays} onChange={(e) => setForm({ ...form, durationDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
           </div>

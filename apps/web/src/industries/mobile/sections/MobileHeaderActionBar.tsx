@@ -44,7 +44,7 @@ export function MobileHeaderActionBar({
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur">
             <Smartphone className="h-3.5 w-3.5 text-blue-200" />
             <div>
-              <div className="text-[9px] uppercase tracking-wider text-white/70 font-bold">IMEI Stock</div>
+              <div className="text-[0.625rem] uppercase tracking-wider text-white/70 font-bold">IMEI Stock</div>
               <div className="text-sm font-extrabold text-white">
                 {inStock} <span className="text-white/60 text-xs font-bold">/ {total}</span>
               </div>
@@ -55,7 +55,7 @@ export function MobileHeaderActionBar({
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/20 backdrop-blur border border-emerald-400/30">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-200" />
               <div>
-                <div className="text-[9px] uppercase tracking-wider text-emerald-200 font-bold">PTA Approved</div>
+                <div className="text-[0.625rem] uppercase tracking-wider text-emerald-200 font-bold">PTA Approved</div>
                 <div className="text-sm font-extrabold text-white">
                   {ptaApproved}
                   <span className="text-white/60 text-xs font-bold">

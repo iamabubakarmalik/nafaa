@@ -174,7 +174,7 @@ export default function GymSalesPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="font-mono font-extrabold">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
-                            {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>}
+                            {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">VOIDED</span>}
                           </div>
                           <div className="mt-1 text-xs text-slate-600 font-semibold flex items-center gap-2">
                             <User className="h-3 w-3" />{sale.customer?.name || 'Walk-in'}
@@ -185,7 +185,7 @@ export default function GymSalesPage() {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-2xl font-extrabold text-red-700 tabular-nums"><HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} /></div>
-                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-red-600"><Eye className="h-3 w-3" /> View <ArrowRight className="h-3 w-3" /></div>
+                        <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-red-600"><Eye className="h-3 w-3" /> View <ArrowRight className="h-3 w-3" /></div>
                       </div>
                     </div>
                   </Link>

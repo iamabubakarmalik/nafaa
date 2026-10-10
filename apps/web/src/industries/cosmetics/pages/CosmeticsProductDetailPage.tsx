@@ -193,12 +193,12 @@ export default function CosmeticsProductDetailPage() {
                 </div>
               )}
               {profile?.isLimitedEdition && (
-                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-purple-600 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-purple-600 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Crown className="h-3 w-3" /> LIMITED
                 </div>
               )}
               {profile?.isViral && (
-                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-rose-500 text-white text-[10px] font-extrabold shadow-lg">
+                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-rose-500 text-white text-[0.6875rem] font-extrabold shadow-lg">
                   🔥 VIRAL
                 </div>
               )}
@@ -244,24 +244,24 @@ export default function CosmeticsProductDetailPage() {
 
             <div className="mt-5 flex items-end gap-5 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Retail Price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Retail Price</div>
                 <div className="text-4xl font-extrabold tabular-nums leading-none mt-1">{formatPKRFull(product.price)}</div>
               </div>
               {!hideCost && Number(product.costPrice || 0) > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">{formatPKRFull(product.costPrice)}</div>
                 </div>
               )}
               {profile?.mrp ? (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">MRP</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">MRP</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 line-through leading-none mt-1">{formatPKRFull(profile.mrp)}</div>
                 </div>
               ) : null}
               {!hideCost && stats.profitPerUnit !== 0 && (
                 <div className={`rounded-xl px-3 py-2 backdrop-blur border ${stats.profitPerUnit >= 0 ? 'bg-emerald-400/20 border-emerald-300/40' : 'bg-rose-400/20 border-rose-300/40'}`}>
-                  <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Profit / unit</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Profit / unit</div>
                   <div className="text-lg font-extrabold tabular-nums leading-none mt-0.5">
                     {formatPKRFull(stats.profitPerUnit)} <span className="text-xs opacity-80">({stats.margin.toFixed(0)}%)</span>
                   </div>
@@ -308,7 +308,7 @@ export default function CosmeticsProductDetailPage() {
                 <Icon className="h-4 w-4" />
                 {t.label}
                 {t.count !== undefined && (
-                  <span className={`px-1.5 rounded-full text-[10px] font-extrabold ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>
+                  <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>
                     {t.count}
                   </span>
                 )}
@@ -464,7 +464,7 @@ export default function CosmeticsProductDetailPage() {
           <div className="p-5 space-y-4">
             {profile.fragranceFamily && (
               <div className="rounded-2xl bg-violet-50 border-2 border-violet-200 p-4 text-center">
-                <div className="text-[10px] uppercase font-extrabold text-violet-700">Family</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700">Family</div>
                 <div className="text-2xl font-extrabold text-violet-900">{profile.fragranceFamily}</div>
               </div>
             )}
@@ -475,7 +475,7 @@ export default function CosmeticsProductDetailPage() {
                   <span className="text-2xl">☀️</span>
                   <div>
                     <h4 className="font-extrabold text-amber-900">Top Notes</h4>
-                    <p className="text-[10px] font-bold text-amber-700">First 15 minutes</p>
+                    <p className="text-[0.6875rem] font-bold text-amber-700">First 15 minutes</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -492,7 +492,7 @@ export default function CosmeticsProductDetailPage() {
                   <span className="text-2xl">🌸</span>
                   <div>
                     <h4 className="font-extrabold text-pink-900">Middle / Heart Notes</h4>
-                    <p className="text-[10px] font-bold text-pink-700">1 to 4 hours</p>
+                    <p className="text-[0.6875rem] font-bold text-pink-700">1 to 4 hours</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -509,7 +509,7 @@ export default function CosmeticsProductDetailPage() {
                   <span className="text-2xl">🌳</span>
                   <div>
                     <h4 className="font-extrabold text-orange-900">Base Notes</h4>
-                    <p className="text-[10px] font-bold text-orange-700">4+ hours, dry-down</p>
+                    <p className="text-[0.6875rem] font-bold text-orange-700">4+ hours, dry-down</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -523,13 +523,13 @@ export default function CosmeticsProductDetailPage() {
             <div className="grid sm:grid-cols-2 gap-3">
               {profile.longevityHours && (
                 <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-                  <div className="text-[10px] uppercase font-extrabold text-slate-600 flex items-center gap-1"><Clock className="h-3 w-3" /> Longevity</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 flex items-center gap-1"><Clock className="h-3 w-3" /> Longevity</div>
                   <div className="text-lg font-extrabold text-slate-900">{profile.longevityHours}</div>
                 </div>
               )}
               {profile.sillage && (
                 <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-                  <div className="text-[10px] uppercase font-extrabold text-slate-600">Sillage / Projection</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Sillage / Projection</div>
                   <div className="text-lg font-extrabold text-slate-900">{profile.sillage}</div>
                 </div>
               )}
@@ -596,7 +596,7 @@ export default function CosmeticsProductDetailPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-mono font-extrabold text-slate-900">{b.batchNumber}</div>
-                    <div className="text-[10px] text-slate-500 font-bold">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">
                       {b.currentStock} / {b.quantity} units
                       {b.manufactureDate && ` • Mfg ${new Date(b.manufactureDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: '2-digit' })}`}
                     </div>
@@ -607,7 +607,7 @@ export default function CosmeticsProductDetailPage() {
                         <div className={`text-sm font-extrabold tabular-nums ${isExpired ? 'text-rose-700' : daysToExpiry! <= 30 ? 'text-amber-700' : 'text-slate-700'}`}>
                           {isExpired ? 'EXPIRED' : `${daysToExpiry} days`}
                         </div>
-                        <div className="text-[10px] font-bold text-slate-500">
+                        <div className="text-[0.6875rem] font-bold text-slate-500">
                           {expDate.toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: '2-digit' })}
                         </div>
                       </>
@@ -642,7 +642,7 @@ export default function CosmeticsProductDetailPage() {
                   <div className="mt-2 flex items-end justify-between">
                     <div className="text-base font-extrabold text-emerald-700 tabular-nums">{formatPKRFull(v.price)}</div>
                     <div className={`text-sm font-extrabold tabular-nums ${vStock <= 0 ? 'text-rose-700' : vLow ? 'text-amber-700' : 'text-slate-700'}`}>
-                      {vStock} <span className="text-[10px] font-bold text-slate-500">units</span>
+                      {vStock} <span className="text-[0.6875rem] font-bold text-slate-500">units</span>
                     </div>
                   </div>
                 </div>
@@ -663,7 +663,7 @@ export default function CosmeticsProductDetailPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-extrabold text-sm">{it.sale.saleNumber}</span>
-                      <span className="text-[10px] text-slate-500 font-bold">
+                      <span className="text-[0.6875rem] text-slate-500 font-bold">
                         {new Date(it.sale.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}
                       </span>
                     </div>
@@ -697,17 +697,17 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
 
 function CertBadge({ emoji, label }: { emoji: string; label: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/30 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-emerald-300/40">
+    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/30 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-emerald-300/40">
       {emoji} {label}
     </span>
   );
@@ -719,7 +719,7 @@ function CertRow({ active, emoji, label, desc }: any) {
       <span className="text-2xl shrink-0">{emoji}</span>
       <div className="flex-1 min-w-0">
         <div className={`font-extrabold text-sm ${active ? 'text-emerald-900' : 'text-slate-500'}`}>{label}</div>
-        <div className={`text-[10px] font-bold ${active ? 'text-emerald-700' : 'text-slate-400'}`}>{desc}</div>
+        <div className={`text-[0.6875rem] font-bold ${active ? 'text-emerald-700' : 'text-slate-400'}`}>{desc}</div>
       </div>
       {active ? <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" /> : <XCircle className="h-5 w-5 text-slate-300 shrink-0" />}
     </div>

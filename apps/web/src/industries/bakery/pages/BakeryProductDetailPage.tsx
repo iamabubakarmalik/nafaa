@@ -488,12 +488,12 @@ export default function BakeryProductDetailPage() {
               )}
               <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
                 {product.isFeatured && (
-                  <span className="px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                  <span className="px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                     <Star className="h-3 w-3 fill-white" /> FEATURED
                   </span>
                 )}
                 {profile?.requiresRefrigeration && (
-                  <span className="px-2 py-1 rounded-lg bg-sky-600 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                  <span className="px-2 py-1 rounded-lg bg-sky-600 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                     <Snowflake className="h-3 w-3" /> FRIDGE
                   </span>
                 )}
@@ -516,14 +516,14 @@ export default function BakeryProductDetailPage() {
 
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-black border border-white/25 uppercase tracking-widest">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
                 {isMade ? <ChefHat className="h-3 w-3" /> : <ShoppingBag className="h-3 w-3" />}
                 {isMade ? 'Khud banate hain' : 'Bahar se laya'}
               </span>
               {product.category && (
-                <span className="rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-black border border-white/25">{product.category.name}</span>
+                <span className="rounded-full bg-white/15 px-2.5 py-1 text-[0.6875rem] font-black border border-white/25">{product.category.name}</span>
               )}
-              <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-black border border-white/20">{prettyCategory(derived)}</span>
+              <span className="rounded-full bg-white/10 px-2.5 py-1 text-[0.6875rem] font-black border border-white/20">{prettyCategory(derived)}</span>
             </div>
 
             <h1 className="mt-2.5 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight break-words">{product.name}</h1>
@@ -545,7 +545,7 @@ export default function BakeryProductDetailPage() {
                   if (!t?.name) return null;
                   return (
                     <Link key={t.id} to={`${ROUTES.list}?tag=${t.id}`}
-                      className="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-xl border-2 border-white/25 bg-white/15 hover:bg-white/25 backdrop-blur transition text-white">
+                      className="inline-flex items-center gap-1 text-[0.6875rem] font-black px-2.5 py-1 rounded-xl border-2 border-white/25 bg-white/15 hover:bg-white/25 backdrop-blur transition text-white">
                       <span className="h-2 w-2 rounded-full shrink-0" style={{ background: t.color || '#f472b6' }} />
                       #{t.name}
                     </Link>
@@ -557,20 +557,20 @@ export default function BakeryProductDetailPage() {
             {/* Rate */}
             <div className="mt-5 flex items-end gap-5 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Bechne ka rate</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Bechne ka rate</div>
                 <div className="text-3xl sm:text-4xl font-black tabular-nums leading-none mt-1">
                   {formatPKRFull(price)} <span className="text-sm font-bold text-white/70">/ {unit}</span>
                 </div>
               </div>
               {!hideCost && cost > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">{isMade ? 'Banane ki cost' : 'Cost'}</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">{isMade ? 'Banane ki cost' : 'Cost'}</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">{formatPKRFull(cost)}</div>
                 </div>
               )}
               {!hideCost && cost > 0 && (
                 <div className={`rounded-xl px-3 py-2 backdrop-blur border ${profit >= 0 ? 'bg-emerald-400/20 border-emerald-300/40' : 'bg-rose-400/20 border-rose-300/40'}`}>
-                  <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Munafa / {unit}</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Munafa / {unit}</div>
                   <div className="text-lg font-extrabold tabular-nums leading-none mt-0.5">
                     {formatPKRFull(profit)} <span className="text-xs opacity-80">({margin.toFixed(0)}%)</span>
                   </div>
@@ -578,7 +578,7 @@ export default function BakeryProductDetailPage() {
               )}
               {otherRates.slice(0, 2).map((r) => (
                 <div key={r.key}>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">{r.emoji} Per {r.label}</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">{r.emoji} Per {r.label}</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1">{formatPKRFull(r.price)}</div>
                 </div>
               ))}
@@ -596,7 +596,7 @@ export default function BakeryProductDetailPage() {
                 sub={profile?.requiresRefrigeration ? 'Fridge me' : 'Aam jagah'} tone={isMade && noShelf ? 'amber' : 'pink'} />
             </div>
 
-            <div className="mt-4 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center print:hidden">
+            <div className="mt-4 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center print:hidden">
               <Kbd>E</Kbd><span className="text-white/60">Edit</span>
               <span className="text-white/30 mx-1">•</span>
               <Kbd>S</Kbd><span className="text-white/60">Stock</span>
@@ -653,18 +653,18 @@ export default function BakeryProductDetailPage() {
             <h3 className="font-black text-amber-900 dark:text-amber-200">Ye theek kar lein</h3>
           </div>
           {warnings.includes('cost') && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>Cost bhari hi nahi.</strong> Munafa poora rate dikh raha hai, jo sach nahi — har report ghalat jayegi.
               {recipe.length > 0 && ' Recipe se cost nikal kar laga sakte hain (Recipe tab).'}
             </p>
           )}
           {warnings.includes('shelf') && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>"Kitni der theek rehti hai" likha nahi.</strong> Expiry ki warning kabhi nahi aayegi.
             </p>
           )}
           {warnings.includes('recipe') && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>Cost aur recipe me farq hai.</strong>{' '}
               {hideCost ? 'Saamaan ke rate badal gaye hain.' : <>Likhi hui {formatPKR(cost)}, aaj ke rate se {formatPKR(recipe$.livePerUnit)} banti hai.</>}
               {' '}<button onClick={() => setTab('recipe')} className="underline font-black">Recipe dekho</button>
@@ -687,10 +687,10 @@ export default function BakeryProductDetailPage() {
                 }`}>
                 <Icon className="h-4 w-4" /> {t.label}
                 {t.count !== undefined && (
-                  <span className={`px-1.5 rounded-full text-[10px] font-extrabold tabular-nums ${on ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>{t.count}</span>
+                  <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold tabular-nums ${on ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>{t.count}</span>
                 )}
                 {t.dot && <span className="h-2 w-2 rounded-full bg-amber-500" />}
-                <span className={`hidden lg:inline text-[9px] font-mono font-bold ${on ? 'text-white/60' : 'text-slate-400'}`}>{i + 1}</span>
+                <span className={`hidden lg:inline text-[0.625rem] font-mono font-bold ${on ? 'text-white/60' : 'text-slate-400'}`}>{i + 1}</span>
               </button>
             );
           })}
@@ -753,7 +753,7 @@ export default function BakeryProductDetailPage() {
                   {recipe.length > 0 && (
                     <Bar2 label="Recipe se (aaj ke rate)" value={recipe$.livePerUnit} max={price} tone="violet" />
                   )}
-                  {cost <= 0 && <p className="text-[11px] font-bold text-amber-600 pt-1">Cost bhare bagair ye hisab sirf andaza hai.</p>}
+                  {cost <= 0 && <p className="text-[0.6875rem] font-bold text-amber-600 pt-1">Cost bhare bagair ye hisab sirf andaza hai.</p>}
                 </div>
               )}
             </ChartCard>
@@ -778,13 +778,13 @@ export default function BakeryProductDetailPage() {
             <PanelHead icon={ArrowRightLeft} tone="pink" title="Naap ka calculator" desc={'"3 slice kitne ke?" — aur stock se kitna ghatega'} />
             <div className="grid sm:grid-cols-[120px_1fr] gap-3">
               <div>
-                <label className="block text-[10px] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1">Kitne</label>
+                <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1">Kitne</label>
                 <input type="number" min={0} step="any" value={convQty}
                   onChange={(e) => setConvQty(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
                   className="h-12 w-full rounded-xl border-2 border-pink-300 dark:border-pink-500/40 bg-white dark:bg-slate-800 px-3 text-center text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-pink-600 transition" />
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1">Naap</label>
+                <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1">Naap</label>
                 <div className="flex flex-wrap gap-1.5">
                   {unitOptions.map((u) => (
                     <button key={u.key} onClick={() => setConvFrom(u.key)}
@@ -809,7 +809,7 @@ export default function BakeryProductDetailPage() {
               </div>
             )}
             {otherRates.length === 0 && (
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                 Abhi sirf ek naap ({unit}) me bikti hai. Slice, pound ya dozen ka rate{' '}
                 <Link to={ROUTES.edit(product.id)} className="text-pink-600 underline">Edit</Link> me daal dein — yahan khud aa jayega.
               </p>
@@ -836,7 +836,7 @@ export default function BakeryProductDetailPage() {
                       )}
                     </div>
                     <div className="p-2">
-                      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white line-clamp-2 leading-tight min-h-[1.8rem]">{r.name}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white line-clamp-2 leading-tight min-h-[1.8rem]">{r.name}</div>
                       <div className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums mt-0.5">{formatPKR(r.price)}</div>
                     </div>
                   </Link>
@@ -877,7 +877,7 @@ export default function BakeryProductDetailPage() {
               {costMismatch && !hideCost && (
                 <section className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-300 dark:border-amber-500/40 p-4 flex items-center gap-3 flex-wrap">
                   <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
-                  <p className="flex-1 min-w-[200px] text-[12px] font-bold text-amber-900 dark:text-amber-200">
+                  <p className="flex-1 min-w-[200px] text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
                     Likhi hui cost <strong>{formatPKR(cost)}</strong> hai, aaj ke rate se <strong>{formatPKR(recipe$.livePerUnit)}</strong> banti hai.
                     {recipe$.livePerUnit > price && <> <span className="text-rose-600">Ye rate {formatPKR(price)} se bhi zyada hai — har cheez par nuqsaan!</span></>}
                   </p>
@@ -909,21 +909,21 @@ export default function BakeryProductDetailPage() {
                           <div className="min-w-0 flex-1">
                             <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate flex items-center gap-1.5">
                               {r.name}
-                              {!hideCost && up && <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300">▲ Mehnga</span>}
-                              {!hideCost && down && <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">▼ Sasta</span>}
+                              {!hideCost && up && <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300">▲ Mehnga</span>}
+                              {!hideCost && down && <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">▼ Sasta</span>}
                             </div>
-                            <div className="text-[11px] font-bold text-slate-400 tabular-nums">
+                            <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                               {fmtQty(r.qty)} {r.unit}{!hideCost && <> × {formatPKR(r.nowRate)}</>}
                               {!hideCost && (up || down) && <span className="line-through ml-1">{formatPKR(r.savedRate)}</span>}
                             </div>
-                            <div className={`text-[10px] font-black ${r.missing ? 'text-rose-600' : short ? 'text-rose-600' : 'text-slate-400'}`}>
+                            <div className={`text-[0.6875rem] font-black ${r.missing ? 'text-rose-600' : short ? 'text-rose-600' : 'text-slate-400'}`}>
                               {r.missing ? 'Ye saamaan gudaam se hat chuka hai'
                                 : `Gudaam me ${fmtQty(r.have ?? 0)} ${r.unit}${short ? ' — ek batch ke liye kam hai' : ''}`}
                             </div>
                           </div>
                           <div className="text-right shrink-0">
                             <div className="font-black text-sm text-slate-900 dark:text-white tabular-nums">{money(r.lineCost)}</div>
-                            <div className="text-[10px] font-bold text-slate-400">{share.toFixed(0)}%</div>
+                            <div className="text-[0.6875rem] font-bold text-slate-400">{share.toFixed(0)}%</div>
                           </div>
                         </div>
                       );
@@ -988,7 +988,7 @@ export default function BakeryProductDetailPage() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="font-extrabold text-sm text-slate-900 dark:text-white">{f.batchNumber ? `Batch ${f.batchNumber}` : 'Batch'}</div>
-                        <div className={`text-[11px] font-black ${gone ? 'text-rose-600' : soon ? 'text-amber-600' : 'text-slate-500'}`}>
+                        <div className={`text-[0.6875rem] font-black ${gone ? 'text-rose-600' : soon ? 'text-amber-600' : 'text-slate-500'}`}>
                           {f.left !== null ? hoursPhrase(f.left) : 'Expiry likhi nahi'}
                         </div>
                         <div className="mt-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden max-w-[200px]">
@@ -997,7 +997,7 @@ export default function BakeryProductDetailPage() {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{fmtQty(Number(f.currentQty))}</div>
-                        <div className="text-[10px] font-bold text-slate-400">{fmtQty(Number(f.initialQty))} me se</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-400">{fmtQty(Number(f.initialQty))} me se</div>
                       </div>
                     </div>
                   );
@@ -1024,7 +1024,7 @@ export default function BakeryProductDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-white">{s.saleNumber}</span>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
                           {new Date(s.soldAt).toLocaleString('en-PK', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </span>
                         {Number(s.creditAmount) > 0 && <Pill tone="amber">Udhaar</Pill>}
@@ -1035,7 +1035,7 @@ export default function BakeryProductDetailPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKRFull(rev)}</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">kul {formatPKR(s.total)}</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">kul {formatPKR(s.total)}</div>
                     </div>
                     <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600 shrink-0" />
                   </div>
@@ -1064,13 +1064,13 @@ export default function BakeryProductDetailPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold text-slate-900 dark:text-white text-sm">{(type || 'MOVEMENT').replace(/_/g, ' ')}</div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold truncate">
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold truncate">
                       {m.note || m.reason || m.reference || '—'}
                       {m.createdAt && ` • ${new Date(m.createdAt).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}`}
                     </div>
                   </div>
                   <div className={`font-extrabold tabular-nums shrink-0 ${isIn ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-                    {isIn && qty > 0 ? '+' : ''}{fmtQty(qty)} <span className="text-[10px] font-bold text-slate-500">{unit}</span>
+                    {isIn && qty > 0 ? '+' : ''}{fmtQty(qty)} <span className="text-[0.6875rem] font-bold text-slate-500">{unit}</span>
                   </div>
                 </div>
               );
@@ -1108,10 +1108,10 @@ export default function BakeryProductDetailPage() {
             <InfoCard icon={Scale} title="Aur kis tarah bikti hai">
               {otherRates.map((r) => (
                 <div key={r.key} className="flex items-center justify-between gap-3 py-1.5 border-b border-slate-50 dark:border-slate-800/60 last:border-0">
-                  <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400 shrink-0">{r.emoji} Per {r.label}</span>
+                  <span className="text-[0.75rem] font-bold text-slate-500 dark:text-slate-400 shrink-0">{r.emoji} Per {r.label}</span>
                   <span className="min-w-0 text-right">
-                    <span className="block text-[13px] font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(r.price)}</span>
-                    <span className="block text-[10px] font-bold text-slate-400 tabular-nums">stock se {r.rate.toFixed(r.rate < 1 ? 3 : 2)} {unit}</span>
+                    <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(r.price)}</span>
+                    <span className="block text-[0.6875rem] font-bold text-slate-400 tabular-nums">stock se {r.rate.toFixed(r.rate < 1 ? 3 : 2)} {unit}</span>
                   </span>
                 </div>
               ))}
@@ -1269,7 +1269,7 @@ function BakeryQuickStock({ product, stock, isMade, shelfDays, fridge, hideCost,
         onClick={(e) => e.stopPropagation()}>
         <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-pink-600 to-fuchsia-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <Boxes className="h-3 w-3" /> Quick Stock • {isMade ? 'Khud banaya' : 'Bahar se'}
             </div>
             <h3 className="font-extrabold text-lg mt-1.5 truncate">{product.name}</h3>
@@ -1338,7 +1338,7 @@ function BakeryQuickStock({ product, stock, isMade, shelfDays, fridge, hideCost,
 
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between gap-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Naya stock</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Naya stock</div>
               <div className={`text-2xl font-extrabold tabular-nums ${finalStock < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}>
                 {fmtQty(finalStock)} <span className="text-sm font-bold text-slate-500">{unit}</span>
               </div>
@@ -1349,7 +1349,7 @@ function BakeryQuickStock({ product, stock, isMade, shelfDays, fridge, hideCost,
               }`}>{diff > 0 ? '+' : ''}{fmtQty(diff)}</div>
             )}
             <div className="text-right">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Bikri qeemat</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Bikri qeemat</div>
               <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                 {hideCost ? '••••' : formatPKRFull(Math.max(finalStock, 0) * Number(product.price || 0))}
               </div>
@@ -1362,7 +1362,7 @@ function BakeryQuickStock({ product, stock, isMade, shelfDays, fridge, hideCost,
             </div>
           )}
           {isMade && mode === 'add' && shelfDays != null && (
-            <div className="rounded-xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-2.5 flex items-center gap-2 text-[11px] font-bold text-violet-900 dark:text-violet-200">
+            <div className="rounded-xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-2.5 flex items-center gap-2 text-[0.6875rem] font-bold text-violet-900 dark:text-violet-200">
               <Timer className="h-4 w-4 shrink-0" /> Ye maal {shelfDays} din theek rahega{fridge ? ' — fridge me rakhein' : ''}.
             </div>
           )}
@@ -1389,7 +1389,7 @@ function ModeBtn({ active, onClick, activeCls, title, sub }: {
         active ? activeCls : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
       }`}>
       {title}
-      <div className="text-[10px] font-bold opacity-70">{sub}</div>
+      <div className="text-[0.6875rem] font-bold opacity-70">{sub}</div>
     </button>
   );
 }
@@ -1412,7 +1412,7 @@ function TopBtn({ children, onClick, tone }: any) {
 
 function Kbd({ children, light }: { children: any; light?: boolean }) {
   return (
-    <kbd className={`px-1.5 py-0.5 rounded font-mono font-bold text-[9px] shadow-sm ${
+    <kbd className={`px-1.5 py-0.5 rounded font-mono font-bold text-[0.625rem] shadow-sm ${
       light ? 'bg-pink-200/60 dark:bg-pink-500/30 border border-pink-300 dark:border-pink-500/40 text-pink-800 dark:text-pink-200'
         : 'bg-white/15 border border-white/25 text-white'
     }`}>{children}</kbd>
@@ -1448,10 +1448,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone, onClick }: any) {
       className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3 text-left ${onClick ? 'hover:brightness-110 transition active:scale-[0.98]' : ''}`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none break-words">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </Comp>
   );
 }
@@ -1525,9 +1525,9 @@ function Stat({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-1.5 text-lg sm:text-xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${TONE_GRAD[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-4 w-4" />
@@ -1553,7 +1553,7 @@ function Bar2({ label, value, max, tone }: any) {
   const tones: Record<string, string> = { emerald: 'bg-emerald-500', rose: 'bg-rose-500', pink: 'bg-pink-500', violet: 'bg-violet-500' };
   return (
     <div>
-      <div className="flex items-center justify-between text-[11px] font-black">
+      <div className="flex items-center justify-between text-[0.6875rem] font-black">
         <span className="text-slate-600 dark:text-slate-300">{label}</span>
         <span className="text-slate-900 dark:text-white tabular-nums">{formatPKR(value)}</span>
       </div>
@@ -1571,7 +1571,7 @@ function ConvCell({ label, value, tone }: any) {
   };
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
       <div className={`text-xl font-extrabold tabular-nums mt-0.5 ${tones[tone]}`}>{value}</div>
     </div>
   );
@@ -1592,8 +1592,8 @@ function InfoCard({ icon: Icon, title, children }: any) {
 function Row({ label, value, warn }: any) {
   return (
     <div className="flex items-center justify-between gap-3 py-1 border-b border-slate-50 dark:border-slate-800/60 last:border-0">
-      <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400 shrink-0">{label}</span>
-      <span className={`text-[13px] font-extrabold text-right break-words ${warn ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'}`}>{value}</span>
+      <span className="text-[0.75rem] font-bold text-slate-500 dark:text-slate-400 shrink-0">{label}</span>
+      <span className={`text-[0.8125rem] font-extrabold text-right break-words ${warn ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'}`}>{value}</span>
     </div>
   );
 }
@@ -1605,7 +1605,7 @@ function Pill({ tone, children }: any) {
     rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
     pink: 'bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${tones[tone]}`}>{children}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${tones[tone]}`}>{children}</span>;
 }
 
 function EmptyBox({ text }: { text: string }) {
@@ -1663,8 +1663,8 @@ function Teacher({ onClose, isMade, name }: { onClose: () => void; isMade: boole
               : 'Pichli bikri se 1 mahine ka hisab.'}
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-6</kbd> tab badlo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">S</kbd> stock</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">E</kbd> edit</div>
@@ -1687,8 +1687,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

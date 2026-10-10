@@ -104,7 +104,7 @@ export function RecordEmiPaymentModal({
               <Banknote className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-emerald-700 dark:text-emerald-300 font-extrabold">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-emerald-700 dark:text-emerald-300 font-extrabold">
                 Installment #{installmentNumber} — Payment
               </div>
               <h3 className="font-extrabold text-slate-900 dark:text-white font-mono truncate">{planNumber}</h3>
@@ -118,15 +118,15 @@ export function RecordEmiPaymentModal({
         <div className="p-5 space-y-4">
           <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-blue-50 dark:from-emerald-500/10 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 grid grid-cols-3 gap-2 text-center">
             <div>
-              <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400">Amount</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">Amount</div>
               <div className="font-extrabold text-slate-900 dark:text-white text-sm tabular-nums">{formatPKR(installmentAmount)}</div>
             </div>
             <div>
-              <div className="text-[9px] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Paid</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Paid</div>
               <div className="font-extrabold text-emerald-700 dark:text-emerald-400 text-sm tabular-nums">{formatPKR(alreadyPaid)}</div>
             </div>
             <div>
-              <div className="text-[9px] uppercase font-extrabold text-amber-700 dark:text-amber-400">Balance</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 dark:text-amber-400">Balance</div>
               <div className="font-extrabold text-amber-700 dark:text-amber-400 text-sm tabular-nums">{formatPKR(balance)}</div>
             </div>
           </div>
@@ -150,7 +150,7 @@ export function RecordEmiPaymentModal({
               <button
                 type="button"
                 onClick={() => setAmount(String(balance))}
-                className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-[10px] font-extrabold hover:bg-emerald-200 dark:hover:bg-emerald-500/25 transition"
+                className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-[0.6875rem] font-extrabold hover:bg-emerald-200 dark:hover:bg-emerald-500/25 transition"
               >
                 Full ({formatPKR(balance)})
               </button>
@@ -158,7 +158,7 @@ export function RecordEmiPaymentModal({
                 <button
                   type="button"
                   onClick={() => setAmount(String(Math.round(balance / 2)))}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-extrabold hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[0.6875rem] font-extrabold hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                 >
                   Half
                 </button>
@@ -175,7 +175,7 @@ export function RecordEmiPaymentModal({
                   key={m.val}
                   type="button"
                   onClick={() => setMethod(m.val)}
-                  className={`p-2 rounded-xl border-2 text-[9px] font-extrabold transition ${
+                  className={`p-2 rounded-xl border-2 text-[0.625rem] font-extrabold transition ${
                     active
                       ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-400 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-200 shadow-md'
                       : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'

@@ -66,7 +66,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
                 >
                   <span className="text-xl group-hover:scale-110 transition-transform">{c.emoji}</span>
                   <span className={[
-                    'text-[9px] font-extrabold text-center leading-tight',
+                    'text-[0.625rem] font-extrabold text-center leading-tight',
                     active ? 'text-cyan-800' : 'text-slate-700 dark:text-slate-300',
                   ].join(' ')}>
                     {c.label}
@@ -210,7 +210,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
               <div key={idx} className="group relative aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt="" className="w-full h-full object-cover" />
                 {idx === 0 && (
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-cyan-600 text-white text-[9px] font-extrabold">PRIMARY</div>
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-cyan-600 text-white text-[0.625rem] font-extrabold">PRIMARY</div>
                 )}
                 <button
                   onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, i) => i !== idx) })}
@@ -279,7 +279,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
           <Info className="h-5 w-5 text-cyan-700 shrink-0" />
           <div className="text-sm text-cyan-900">
             <div className="font-extrabold">Step 1 ready?</div>
-            <div className="text-[11px] text-cyan-700 font-semibold">Next: prep instructions, requirements, package details</div>
+            <div className="text-[0.6875rem] text-cyan-700 font-semibold">Next: prep instructions, requirements, package details</div>
           </div>
         </div>
         <Button onClick={onNext} disabled={!validation.valid} className="bg-gradient-to-r from-cyan-600 to-blue-700 shadow-md">
@@ -298,7 +298,7 @@ function SectionHeader({ icon: Icon, title, desc }: any) {
       </div>
       <div>
         <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">{title}</h3>
-        <p className="text-[11px] text-slate-500 font-semibold">{desc}</p>
+        <p className="text-[0.6875rem] text-slate-500 font-semibold">{desc}</p>
       </div>
     </div>
   );
@@ -315,7 +315,7 @@ function PriceInput({ label, emoji, value, onChange, tone, required }: any) {
   };
   return (
     <div>
-      <label className="block text-[11px] font-extrabold text-slate-700 mb-1.5 uppercase tracking-wider">
+      <label className="block text-[0.6875rem] font-extrabold text-slate-700 mb-1.5 uppercase tracking-wider">
         {emoji} {label}
       </label>
       <div className="relative">
@@ -355,7 +355,7 @@ function FlagCard({ active, onToggle, icon: Icon, label, desc, tone }: any) {
         <Icon className={'h-4 w-4 ' + (active ? 'text-white' : 'text-slate-500')} />
         <div className={'font-extrabold text-sm ' + (active ? 'text-white' : 'text-slate-900')}>{label}</div>
       </div>
-      <div className={'text-[10px] font-semibold mt-0.5 ' + (active ? 'text-white/85' : 'text-slate-500')}>{desc}</div>
+      <div className={'text-[0.6875rem] font-semibold mt-0.5 ' + (active ? 'text-white/85' : 'text-slate-500')}>{desc}</div>
     </button>
   );
 }

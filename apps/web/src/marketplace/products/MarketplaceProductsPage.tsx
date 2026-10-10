@@ -228,7 +228,7 @@ export default function MarketplaceProductsPage() {
             </div>
             <div className="text-white">
               <div className="font-black text-sm">{selected.size} selected</div>
-              <button onClick={toggleSelectAll} className="text-[10px] font-bold underline hover:text-amber-100">
+              <button onClick={toggleSelectAll} className="text-[0.6875rem] font-bold underline hover:text-amber-100">
                 {selected.size === items.length ? 'Deselect all' : `Select all ${items.length}`}
               </button>
             </div>
@@ -366,10 +366,10 @@ function HeroKpi({ label, value, sub, icon: Icon, highlight }: any) {
     }`}>
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-black opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90">{label}</div>
       </div>
       <div className="text-xl font-black leading-none tabular-nums">{value}</div>
-      {sub && <div className="text-[10px] font-bold opacity-75 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold opacity-75 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -390,7 +390,7 @@ function FilterTab({ active, onClick, theme, count, color = 'slate', children }:
       style={active && color !== 'emerald' && color !== 'slate' ? { backgroundColor: theme.accentHex, borderColor: theme.accentHex } : undefined}
     >
       {children}
-      <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black ${
+      <span className={`px-1.5 py-0.5 rounded-full text-[0.625rem] font-black ${
         active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
       }`}>
         {count}
@@ -410,7 +410,7 @@ function ProductGridCard({ product: p, theme, isSelected, onSelect, onPublish, o
       }`}
     >
       {/* Industry ribbon */}
-      <div className={`absolute top-0 left-0 z-10 px-2 py-0.5 rounded-br-lg bg-gradient-to-r ${theme.ribbon} text-white text-[9px] font-black uppercase tracking-wider shadow`}>
+      <div className={`absolute top-0 left-0 z-10 px-2 py-0.5 rounded-br-lg bg-gradient-to-r ${theme.ribbon} text-white text-[0.625rem] font-black uppercase tracking-wider shadow`}>
         <span className="mr-1">{theme.emoji}</span>{theme.label}
       </div>
 
@@ -432,7 +432,7 @@ function ProductGridCard({ product: p, theme, isSelected, onSelect, onPublish, o
       {isListed && (
         <div className="absolute top-9 right-2 z-10 h-6 px-1.5 rounded-full bg-emerald-500 text-white flex items-center gap-1 shadow-md">
           <Globe className="h-2.5 w-2.5" />
-          <span className="text-[9px] font-black">LIVE</span>
+          <span className="text-[0.625rem] font-black">LIVE</span>
         </div>
       )}
 
@@ -447,7 +447,7 @@ function ProductGridCard({ product: p, theme, isSelected, onSelect, onPublish, o
         )}
         {!isListed && (
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center">
-            <span className="px-2 py-1 rounded-md bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider">
+            <span className="px-2 py-1 rounded-md bg-slate-900 text-white text-[0.6875rem] font-black uppercase tracking-wider">
               Not Listed
             </span>
           </div>
@@ -460,7 +460,7 @@ function ProductGridCard({ product: p, theme, isSelected, onSelect, onPublish, o
 
         {/* Category */}
         {p.marketplaceCategory && (
-          <div className="text-[10px] font-bold text-slate-500">{p.marketplaceCategory}</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500">{p.marketplaceCategory}</div>
         )}
 
         {/* Price */}
@@ -469,7 +469,7 @@ function ProductGridCard({ product: p, theme, isSelected, onSelect, onPublish, o
             Rs {formatPKR(p.publicPrice)}
           </div>
           {p.compareAtPrice && p.compareAtPrice > p.publicPrice && (
-            <div className="text-[10px] font-bold text-slate-400 line-through">
+            <div className="text-[0.6875rem] font-bold text-slate-400 line-through">
               Rs {formatPKR(p.compareAtPrice)}
             </div>
           )}
@@ -478,13 +478,13 @@ function ProductGridCard({ product: p, theme, isSelected, onSelect, onPublish, o
         {/* Stats */}
         <div className="flex items-center gap-2 flex-wrap pt-1">
           {p.ratingCount > 0 && (
-            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+            <span className="inline-flex items-center gap-0.5 text-[0.6875rem] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
               <Star className="h-2.5 w-2.5 fill-current" />
               {p.ratingAverage.toFixed(1)} ({p.ratingCount})
             </span>
           )}
           {p.totalSold > 0 && (
-            <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+            <span className="inline-flex items-center gap-0.5 text-[0.6875rem] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
               <TrendingUp className="h-2.5 w-2.5" />
               {p.totalSold} sold
             </span>
@@ -494,10 +494,10 @@ function ProductGridCard({ product: p, theme, isSelected, onSelect, onPublish, o
         {/* Special features */}
         <div className="flex gap-1 flex-wrap">
           {p.bargainEnabled && (
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">💰</span>
+            <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">💰</span>
           )}
           {p.groupBuyEnabled && (
-            <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">👥</span>
+            <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">👥</span>
           )}
         </div>
 
@@ -507,7 +507,7 @@ function ProductGridCard({ product: p, theme, isSelected, onSelect, onPublish, o
             <button
               onClick={onUnpublish}
               disabled={isPending}
-              className="flex-1 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-black inline-flex items-center justify-center gap-1 transition"
+              className="flex-1 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition"
             >
               <EyeOff className="h-3 w-3" /> Unpublish
             </button>
@@ -515,7 +515,7 @@ function ProductGridCard({ product: p, theme, isSelected, onSelect, onPublish, o
             <button
               onClick={onPublish}
               disabled={isPending}
-              className="flex-1 h-8 rounded-lg text-white text-[10px] font-black inline-flex items-center justify-center gap-1 shadow-sm transition"
+              className="flex-1 h-8 rounded-lg text-white text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 shadow-sm transition"
               style={{ backgroundColor: theme.accentHex }}
             >
               <Globe className="h-3 w-3" /> Publish
@@ -524,7 +524,7 @@ function ProductGridCard({ product: p, theme, isSelected, onSelect, onPublish, o
           <Link
             to={`/marketplace/products/${p.productId}`}
             title="View & edit details"
-            className="px-2 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 inline-flex items-center justify-center gap-1 transition text-[10px] font-black"
+            className="px-2 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 inline-flex items-center justify-center gap-1 transition text-[0.6875rem] font-black"
           >
             <Info className="h-3 w-3" />
             Details
@@ -550,13 +550,13 @@ function ProductListView({ items, selected, onToggleSelect, onToggleSelectAll, o
                   className="h-4 w-4 rounded border-2 border-slate-300"
                 />
               </th>
-              <th className="px-3 py-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-700">Product</th>
-              <th className="px-3 py-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-700">Category</th>
-              <th className="px-3 py-3 text-right text-[10px] font-black uppercase tracking-wider text-slate-700">Price</th>
-              <th className="px-3 py-3 text-center text-[10px] font-black uppercase tracking-wider text-slate-700">Sold</th>
-              <th className="px-3 py-3 text-center text-[10px] font-black uppercase tracking-wider text-slate-700">Rating</th>
-              <th className="px-3 py-3 text-center text-[10px] font-black uppercase tracking-wider text-slate-700">Status</th>
-              <th className="px-3 py-3 text-right text-[10px] font-black uppercase tracking-wider text-slate-700">Actions</th>
+              <th className="px-3 py-3 text-left text-[0.6875rem] font-black uppercase tracking-wider text-slate-700">Product</th>
+              <th className="px-3 py-3 text-left text-[0.6875rem] font-black uppercase tracking-wider text-slate-700">Category</th>
+              <th className="px-3 py-3 text-right text-[0.6875rem] font-black uppercase tracking-wider text-slate-700">Price</th>
+              <th className="px-3 py-3 text-center text-[0.6875rem] font-black uppercase tracking-wider text-slate-700">Sold</th>
+              <th className="px-3 py-3 text-center text-[0.6875rem] font-black uppercase tracking-wider text-slate-700">Rating</th>
+              <th className="px-3 py-3 text-center text-[0.6875rem] font-black uppercase tracking-wider text-slate-700">Status</th>
+              <th className="px-3 py-3 text-right text-[0.6875rem] font-black uppercase tracking-wider text-slate-700">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -609,11 +609,11 @@ function ProductListView({ items, selected, onToggleSelect, onToggleSelectAll, o
                 </td>
                 <td className="px-3 py-3 text-center">
                   {p.isListedOnMarketplace ? (
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-black inline-flex items-center gap-1">
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-black inline-flex items-center gap-1">
                       <Globe className="h-2.5 w-2.5" /> LIVE
                     </span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[9px] font-black">
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.625rem] font-black">
                       NOT LISTED
                     </span>
                   )}
@@ -623,14 +623,14 @@ function ProductListView({ items, selected, onToggleSelect, onToggleSelectAll, o
                     {p.isListedOnMarketplace ? (
                       <button
                         onClick={() => onUnpublish(p.productId)}
-                        className="px-2 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-black"
+                        className="px-2 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[0.6875rem] font-black"
                       >
                         Unpublish
                       </button>
                     ) : (
                       <button
                         onClick={() => onPublish(p.productId)}
-                        className="px-2 h-7 rounded-lg text-white text-[10px] font-black"
+                        className="px-2 h-7 rounded-lg text-white text-[0.6875rem] font-black"
                         style={{ backgroundColor: theme.accentHex }}
                       >
                         Publish
@@ -639,7 +639,7 @@ function ProductListView({ items, selected, onToggleSelect, onToggleSelectAll, o
                     <Link
                       to={`/marketplace/products/${p.productId}`}
                       title="View details & edit"
-                      className="h-7 px-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 inline-flex items-center gap-1 text-[10px] font-black"
+                      className="h-7 px-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 inline-flex items-center gap-1 text-[0.6875rem] font-black"
                     >
                       <Info className="h-3 w-3" />
                       Details

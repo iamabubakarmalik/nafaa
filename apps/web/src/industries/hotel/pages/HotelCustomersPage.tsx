@@ -149,19 +149,19 @@ export default function HotelCustomersPage() {
               extraBadges={
                 <>
                   {c.bookingCount > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[0.6875rem] font-bold">
                       <Bed className="h-3 w-3" />
                       {c.bookingCount} booking{c.bookingCount !== 1 ? 's' : ''}
                     </div>
                   )}
                   {c.totalNights > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[0.6875rem] font-bold">
                       <Calendar className="h-3 w-3" />
                       {c.totalNights} nights
                     </div>
                   )}
                   {c.activeBookings > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-bold">
                       <Home className="h-3 w-3" />
                       Active
                     </div>

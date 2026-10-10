@@ -193,7 +193,7 @@ function BundleCard({ bundle: b, onDuplicate, onDelete }: any) {
           </div>
         )}
         {b.occasion && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-fuchsia-600 text-white text-[9px] font-extrabold uppercase shadow">
+          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-fuchsia-600 text-white text-[0.625rem] font-extrabold uppercase shadow">
             {b.occasion}
           </div>
         )}
@@ -209,27 +209,27 @@ function BundleCard({ bundle: b, onDuplicate, onDelete }: any) {
         {b.description && <p className="text-xs text-slate-500 font-semibold line-clamp-2">{b.description}</p>}
 
         <div className="rounded-xl bg-slate-50 border border-slate-100 p-2">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1">
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">
             {b.items?.length || 0} items
           </div>
           <div className="space-y-0.5">
             {(b.items ?? []).slice(0, 2).map((item: any, i: number) => (
-              <div key={i} className="flex items-center gap-1.5 text-[11px]">
+              <div key={i} className="flex items-center gap-1.5 text-[0.6875rem]">
                 <Sparkles className="h-2.5 w-2.5 text-slate-400 shrink-0" />
                 <span className="font-bold text-slate-700 truncate flex-1">{item.product?.name || 'Product'}</span>
                 <span className="text-slate-500 font-bold shrink-0">× {item.quantity}</span>
               </div>
             ))}
             {(b.items?.length || 0) > 2 && (
-              <div className="text-[10px] font-extrabold text-fuchsia-700">+ {b.items.length - 2} more</div>
+              <div className="text-[0.6875rem] font-extrabold text-fuchsia-700">+ {b.items.length - 2} more</div>
             )}
           </div>
         </div>
 
         {(b.hasGiftWrap || b.includesGreetingCard) && (
           <div className="flex flex-wrap gap-1">
-            {b.hasGiftWrap && <span className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 text-[9px] font-extrabold">🎀 Gift Wrap</span>}
-            {b.includesGreetingCard && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold">💌 Card</span>}
+            {b.hasGiftWrap && <span className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 text-[0.625rem] font-extrabold">🎀 Gift Wrap</span>}
+            {b.includesGreetingCard && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold">💌 Card</span>}
           </div>
         )}
 
@@ -243,7 +243,7 @@ function BundleCard({ bundle: b, onDuplicate, onDelete }: any) {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500">Sold</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Sold</div>
             <div className="text-lg font-extrabold text-slate-900 tabular-nums">{b.totalSold || 0}</div>
           </div>
         </div>
@@ -278,9 +278,9 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

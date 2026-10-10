@@ -33,7 +33,7 @@ export function BookstoreWizardSummary({ draft, stats, allValid }: Props) {
       <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-orange-700 text-white p-5 shadow-xl overflow-hidden relative">
         <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-amber-400/20 blur-2xl" />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-extrabold border border-white/20">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold border border-white/20">
             {allValid ? (
               <><CheckCircle2 className="h-3 w-3 text-emerald-300" /> Ready to Save</>
             ) : (
@@ -42,7 +42,7 @@ export function BookstoreWizardSummary({ draft, stats, allValid }: Props) {
           </div>
           <div className="mt-2 flex items-center gap-2">
             <span className="text-2xl">{typeCfg.emoji}</span>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-amber-200">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-200">
               {typeCfg.label}
             </div>
           </div>
@@ -55,7 +55,7 @@ export function BookstoreWizardSummary({ draft, stats, allValid }: Props) {
             </div>
           )}
           {draft.basic.productType === 'BOOK' && (draft.book.isbn10 || draft.book.isbn13) && (
-            <div className="mt-1 text-[10px] text-white/60 font-mono">
+            <div className="mt-1 text-[0.6875rem] text-white/60 font-mono">
               ISBN: {draft.book.isbn13 || draft.book.isbn10}
             </div>
           )}
@@ -86,7 +86,7 @@ export function BookstoreWizardSummary({ draft, stats, allValid }: Props) {
         <div className="border-t-2 border-slate-100 p-4 bg-gradient-to-br from-amber-50 to-white">
           <div className="flex items-center gap-1.5 mb-1">
             <Package className="h-3 w-3 text-amber-700" />
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-amber-700">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-700">
               Stock
             </div>
           </div>
@@ -98,7 +98,7 @@ export function BookstoreWizardSummary({ draft, stats, allValid }: Props) {
 
       {Number(draft.basic.salePrice || 0) > 0 && (
         <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-2.5">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
             <DollarSign className="h-3 w-3" /> Finance
           </div>
           {Number(draft.basic.mrp || 0) > 0 && (
@@ -122,7 +122,7 @@ export function BookstoreWizardSummary({ draft, stats, allValid }: Props) {
                 {formatPKRFull(stats.profit)}
               </div>
             </div>
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
+            <div className="flex items-center justify-between text-[0.6875rem] font-bold text-slate-500">
               <span>Margin</span>
               <span className={stats.margin >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
                 {stats.margin.toFixed(1)}%
@@ -137,7 +137,7 @@ export function BookstoreWizardSummary({ draft, stats, allValid }: Props) {
         </div>
       )}
 
-      <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-[10px] text-slate-500 font-semibold text-center">
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-[0.6875rem] text-slate-500 font-semibold text-center">
         💾 Draft auto-saves — safai se close karo, wapas mile ga
       </div>
     </aside>
@@ -155,7 +155,7 @@ function StatCell({ icon: Icon, label, value, tone, small }: any) {
     <div className="p-4">
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={['h-3 w-3', tones[tone]].join(' ')} />
-        <div className={['text-[10px] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
+        <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
       </div>
       <div className={['font-extrabold text-slate-900 tabular-nums', small ? 'text-sm' : 'text-2xl'].join(' ')}>
         {value}

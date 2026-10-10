@@ -180,7 +180,7 @@ export default function PharmacyMedicineDetailPage() {
               </div>
             )}
             {product.isFeatured && (
-              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <Star className="h-3 w-3 fill-white" /> FEATURED
               </div>
             )}
@@ -264,7 +264,7 @@ export default function PharmacyMedicineDetailPage() {
 
             <div className="mt-5 flex items-center gap-4 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Sale price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Sale price</div>
                 <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
                   {formatPKRFull(product.price)}
                   <span className="text-sm font-bold text-white/70 ml-1">/ {product.unit}</span>
@@ -272,7 +272,7 @@ export default function PharmacyMedicineDetailPage() {
               </div>
               {product.costPrice > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
                     {formatPKRFull(product.costPrice)}
                   </div>
@@ -280,7 +280,7 @@ export default function PharmacyMedicineDetailPage() {
               )}
               {product.wholesalePrice && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1">
                     {formatPKRFull(product.wholesalePrice)}
                   </div>
@@ -321,7 +321,7 @@ export default function PharmacyMedicineDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">New Prescription</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Rx dispense</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Rx dispense</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -331,7 +331,7 @@ export default function PharmacyMedicineDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Expiring Report</div>
-            <div className="text-[10px] text-slate-500 font-semibold">All expiring meds</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">All expiring meds</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -341,7 +341,7 @@ export default function PharmacyMedicineDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Temperature Log</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Cold chain</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Cold chain</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -351,7 +351,7 @@ export default function PharmacyMedicineDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Go to POS</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Sell this medicine</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Sell this medicine</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -379,12 +379,12 @@ export default function PharmacyMedicineDetailPage() {
                   {ps.isMainSalt && <Star className="h-3.5 w-3.5 text-emerald-600 fill-emerald-600" />}
                   <div className="font-extrabold text-slate-900">{ps.salt?.name}</div>
                   {ps.isMainSalt && (
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold">MAIN</span>
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold">MAIN</span>
                   )}
                 </div>
                 <div className="text-sm font-bold text-cyan-700">{ps.strength}</div>
                 {ps.salt?.category && (
-                  <div className="text-[10px] text-slate-500 font-semibold mt-1">{ps.salt.category}</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-semibold mt-1">{ps.salt.category}</div>
                 )}
               </div>
             ))}
@@ -442,11 +442,11 @@ export default function PharmacyMedicineDetailPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Batch #</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Mfg</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Expiry</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Qty</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Cost</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Batch #</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Mfg</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Expiry</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Qty</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Cost</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -504,7 +504,7 @@ export default function PharmacyMedicineDetailPage() {
                     {sub.substitute?.product?.name || sub.main?.product?.name}
                   </div>
                   {sub.similarity && (
-                    <div className="text-[10px] text-emerald-700 font-bold">{sub.similarity}% match</div>
+                    <div className="text-[0.6875rem] text-emerald-700 font-bold">{sub.similarity}% match</div>
                   )}
                 </div>
               </div>
@@ -548,7 +548,7 @@ export default function PharmacyMedicineDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <div className="font-mono font-extrabold text-sm text-slate-900">{s.saleNumber}</div>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
@@ -581,10 +581,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }

@@ -114,7 +114,7 @@ export function CarpetFtStockCard({ basic, bucketName, ftStock, onChange }: Prop
             <div>
               <div
                 className={[
-                  'text-[10px] uppercase tracking-wider font-extrabold',
+                  'text-[0.6875rem] uppercase tracking-wider font-extrabold',
                   isLow ? 'text-amber-700' : 'text-emerald-700',
                 ].join(' ')}
               >
@@ -126,7 +126,7 @@ export function CarpetFtStockCard({ basic, bucketName, ftStock, onChange }: Prop
             </div>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">Stock</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">Stock</div>
             <div
               className={[
                 'text-lg font-extrabold tabular-nums',

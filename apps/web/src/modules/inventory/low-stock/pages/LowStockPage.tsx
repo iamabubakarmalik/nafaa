@@ -219,7 +219,7 @@ export default function LowStockPage() {
               <h3 className="font-extrabold text-amber-900">
                 {industryStock.industryEmoji} {industryStock.industryName} Restock Priority Rules
               </h3>
-              <p className="text-[11px] text-amber-800 font-bold">
+              <p className="text-[0.6875rem] text-amber-800 font-bold">
                 {industryStock.restockRules.length} urgency levels for your industry
               </p>
             </div>
@@ -231,7 +231,7 @@ export default function LowStockPage() {
                   <span className="text-2xl">{rule.emoji}</span>
                   <div className="min-w-0">
                     <div className="text-xs font-extrabold" style={{ color: rule.color }}>{rule.label}</div>
-                    <div className="text-[9px] text-slate-600 font-semibold line-clamp-2">{rule.description}</div>
+                    <div className="text-[0.625rem] text-slate-600 font-semibold line-clamp-2">{rule.description}</div>
                   </div>
                 </div>
               </div>
@@ -310,7 +310,7 @@ export default function LowStockPage() {
 
         <div className="space-y-2">
           <div className="flex gap-1 flex-wrap items-center">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mr-2">Status:</span>
+            <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold mr-2">Status:</span>
             {[
               { v: 'all' as Filter, l: 'All', c: 'bg-slate-900', count: stats.total },
               { v: 'critical' as Filter, l: 'Out of Stock', c: 'bg-rose-600', count: stats.critical },
@@ -321,13 +321,13 @@ export default function LowStockPage() {
                   filter === opt.v ? `${opt.c} text-white shadow-sm` : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 }`}>
                 {opt.l}
-                <span className={`px-1.5 rounded-full text-[10px] ${filter === opt.v ? 'bg-white/20' : 'bg-slate-200'}`}>{opt.count}</span>
+                <span className={`px-1.5 rounded-full text-[0.6875rem] ${filter === opt.v ? 'bg-white/20' : 'bg-slate-200'}`}>{opt.count}</span>
               </button>
             ))}
           </div>
 
           <div className="flex gap-1 flex-wrap items-center">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mr-2">Industry:</span>
+            <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold mr-2">Industry:</span>
             <button onClick={() => setIndustryFilter('all')}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                 industryFilter === 'all' ? 'bg-violet-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -375,13 +375,13 @@ export default function LowStockPage() {
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50 text-slate-700 border-b-2 border-slate-200">
                 <tr>
-                  <th className="text-left px-4 py-3 font-extrabold text-[10px] uppercase tracking-wider">Product</th>
-                  <th className="text-left px-4 py-3 font-extrabold text-[10px] uppercase tracking-wider">Category / Brand</th>
-                  <th className="text-center px-4 py-3 font-extrabold text-[10px] uppercase tracking-wider">Industry</th>
-                  <th className="text-right px-4 py-3 font-extrabold text-[10px] uppercase tracking-wider">Current</th>
-                  <th className="text-right px-4 py-3 font-extrabold text-[10px] uppercase tracking-wider">Alert</th>
-                  <th className="text-center px-4 py-3 font-extrabold text-[10px] uppercase tracking-wider">Status</th>
-                  <th className="text-right px-4 py-3 font-extrabold text-[10px] uppercase tracking-wider print:hidden">Actions</th>
+                  <th className="text-left px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Product</th>
+                  <th className="text-left px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Category / Brand</th>
+                  <th className="text-center px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Industry</th>
+                  <th className="text-right px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Current</th>
+                  <th className="text-right px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Alert</th>
+                  <th className="text-center px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Status</th>
+                  <th className="text-right px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider print:hidden">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -399,7 +399,7 @@ export default function LowStockPage() {
                           </div>
                           <div>
                             <div className="font-bold text-slate-900 line-clamp-1">{p.productName}</div>
-                            <div className="text-[10px] text-slate-500 font-mono">{p.sku || p.barcode || '—'}</div>
+                            <div className="text-[0.6875rem] text-slate-500 font-mono">{p.sku || p.barcode || '—'}</div>
                           </div>
                         </div>
                       </td>
@@ -410,21 +410,21 @@ export default function LowStockPage() {
                             {p.category}
                           </div>
                         )}
-                        {p.brand && (<div className="text-[10px] font-bold text-violet-700 mt-0.5">{p.brand}</div>)}
+                        {p.brand && (<div className="text-[0.6875rem] font-bold text-violet-700 mt-0.5">{p.brand}</div>)}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold ${indCfg?.bg}`}>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold ${indCfg?.bg}`}>
                           <IndIcon className="h-2.5 w-2.5" />
                           {indCfg?.label?.toUpperCase()}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className={`font-extrabold text-lg ${isCritical ? 'text-rose-700' : 'text-amber-700'}`}>{formatQty(p.stock)}</div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase">{p.unit}</div>
+                        <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">{p.unit}</div>
                       </td>
                       <td className="px-4 py-3 text-right text-slate-700 font-bold">{formatQty(p.lowStockAlert)} {p.unit}</td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
                           isCritical ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
                         }`}>
                           {isCritical ? <XCircle className="h-2.5 w-2.5" /> : <AlertTriangle className="h-2.5 w-2.5" />}

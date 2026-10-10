@@ -332,7 +332,7 @@ export default function CarpetRollsPage() {
               </button>
             )}
             {searchText && (
-              <div className="absolute -bottom-6 left-2 text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+              <div className="absolute -bottom-6 left-2 text-[0.6875rem] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                 {rolls.length} match{rolls.length !== 1 ? 'es' : ''}
               </div>
             )}
@@ -444,7 +444,7 @@ export default function CarpetRollsPage() {
         {showFilters && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t-2 border-slate-100">
             <div>
-              <label className="block text-[11px] font-extrabold text-slate-600 uppercase mb-1.5">Product</label>
+              <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1.5">Product</label>
               <select
                 className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
                 value={params.productId ?? ''}
@@ -457,7 +457,7 @@ export default function CarpetRollsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-extrabold text-slate-600 uppercase mb-1.5">Status</label>
+              <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1.5">Status</label>
               <select
                 className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
                 value={params.status ?? ''}
@@ -759,7 +759,7 @@ function RollRowCompact({
         <div className="font-mono font-extrabold text-emerald-700 text-base leading-tight">
           {roll.rollNumber}
         </div>
-        <span className={`inline-flex items-center gap-0.5 mt-0.5 px-1.5 py-0.5 rounded-full border text-[9px] font-extrabold ${status.color}`}>
+        <span className={`inline-flex items-center gap-0.5 mt-0.5 px-1.5 py-0.5 rounded-full border text-[0.625rem] font-extrabold ${status.color}`}>
           <StatusIcon className="h-2.5 w-2.5" />
           {status.label}
         </span>
@@ -767,7 +767,7 @@ function RollRowCompact({
 
       {/* Dimensions */}
       <div className="text-sm shrink-0">
-        <div className="text-[10px] uppercase font-extrabold text-slate-500">Size</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Size</div>
         <div className="font-extrabold text-slate-900 tabular-nums">
           {Number(roll.widthFt)}ft{Number(roll.widthInch || 0) > 0 ? ` ${roll.widthInch}in` : ''}
           {' × '}
@@ -782,7 +782,7 @@ function RollRowCompact({
             {Number(roll.remainingSqft).toFixed(1)}
           </div>
           <div className="text-xs font-extrabold text-emerald-700">sqft</div>
-          <div className="text-[10px] text-slate-500 font-bold ml-1">({percent.toFixed(0)}% left)</div>
+          <div className="text-[0.6875rem] text-slate-500 font-bold ml-1">({percent.toFixed(0)}% left)</div>
         </div>
         <div className="h-1.5 rounded-full bg-slate-200 overflow-hidden mt-1">
           <div
@@ -796,10 +796,10 @@ function RollRowCompact({
       {showPrice && (
         <div className="shrink-0 text-right">
           <div className="text-sm font-extrabold text-emerald-700 tabular-nums">
-            {formatPKR(roll.salePricePerSqft)}<span className="text-[10px] text-slate-500 font-bold">/sqft</span>
+            {formatPKR(roll.salePricePerSqft)}<span className="text-[0.6875rem] text-slate-500 font-bold">/sqft</span>
           </div>
           {showCost && (
-            <div className="text-[11px] text-slate-500 font-bold tabular-nums">
+            <div className="text-[0.6875rem] text-slate-500 font-bold tabular-nums">
               Cost {formatPKR(roll.costPerSqft)}
             </div>
           )}
@@ -862,12 +862,12 @@ function KpiTile({
     <div className={`rounded-2xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3.5`}>
       <div className="flex items-center gap-1.5 mb-2">
         <Icon className="h-3.5 w-3.5 text-white/90" />
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/90">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/90">{label}</div>
       </div>
       <div className={`font-extrabold leading-none text-white tabular-nums ${big ? 'text-3xl' : 'text-2xl'}`}>
         {value}
       </div>
-      {sub && <div className="text-[11px] font-bold text-white/75 mt-1">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/75 mt-1">{sub}</div>}
     </div>
   );
 }
@@ -894,7 +894,7 @@ function RollCard({
     <div className="group rounded-2xl bg-white border-2 border-slate-200 overflow-hidden hover:border-emerald-400 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-0.5 transition-all">
       <div className="px-4 py-2.5 bg-gradient-to-r from-slate-900 to-slate-800 flex items-center justify-between">
         <div className="font-mono text-white font-extrabold text-base">{roll.rollNumber}</div>
-        <span className={`px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${status.color}`}>
+        <span className={`px-2 py-0.5 rounded-full border text-[0.6875rem] font-extrabold ${status.color}`}>
           {status.label}
         </span>
       </div>
@@ -946,7 +946,7 @@ function RollCard({
               style={{ width: `${Math.max(percentRemaining, 3)}%` }}
             />
           </div>
-          <div className="flex items-center justify-between text-[10px] font-bold mt-1.5">
+          <div className="flex items-center justify-between text-[0.6875rem] font-bold mt-1.5">
             <span className="text-slate-500">
               Original {Number(roll.originalLengthFt)}ft{Number(roll.originalLengthInch || 0) > 0 ? ` ${roll.originalLengthInch}in` : ''}
             </span>
@@ -960,12 +960,12 @@ function RollCard({
           <div className="grid grid-cols-3 gap-1.5">
             {showCost && (
               <div className="rounded-lg bg-slate-50 border border-slate-200 p-2">
-                <div className="text-[10px] uppercase font-extrabold text-slate-500">Cost</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Cost</div>
                 <div className="text-sm font-extrabold text-slate-700 tabular-nums">{formatPKR(roll.costPerSqft)}</div>
               </div>
             )}
             <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2">
-              <div className="text-[10px] uppercase font-extrabold text-emerald-700">Sale</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Sale</div>
               <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(roll.salePricePerSqft)}</div>
             </div>
             {showCost && (
@@ -974,7 +974,7 @@ function RollCard({
                 : margin > 10 ? 'bg-blue-50 border-blue-200'
                 : 'bg-slate-50 border-slate-200'
               }`}>
-                <div className={`text-[10px] uppercase font-extrabold ${
+                <div className={`text-[0.6875rem] uppercase font-extrabold ${
                   margin > 25 ? 'text-amber-700' : margin > 10 ? 'text-blue-700' : 'text-slate-500'
                 }`}>Margin</div>
                 <div className={`text-sm font-extrabold tabular-nums ${
@@ -1070,7 +1070,7 @@ function RollsTableView({
                     <div className="font-extrabold text-emerald-700 tabular-nums text-base">
                       {Number(roll.remainingSqft).toFixed(1)} sqft
                     </div>
-                    <div className="text-[10px] text-slate-500 font-bold">{percent.toFixed(0)}% left</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">{percent.toFixed(0)}% left</div>
                   </td>
                   {showPrice && showCost && (
                     <td className="px-4 py-3 text-right text-sm font-bold text-slate-700 tabular-nums">{formatPKR(roll.costPerSqft)}</td>
@@ -1085,7 +1085,7 @@ function RollsTableView({
                     {roll.rackNumber || <span className="text-slate-300">—</span>}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${status.color}`}>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[0.6875rem] font-extrabold ${status.color}`}>
                       <StatusIcon className="h-2.5 w-2.5" />
                       {status.label}
                     </span>
@@ -1115,7 +1115,7 @@ function RollsTableView({
 
 function Th({ children, className = '' }: { children: any; className?: string }) {
   return (
-    <th className={`px-4 py-3 text-left text-[11px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>
+    <th className={`px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>
       {children}
     </th>
   );
@@ -1187,15 +1187,15 @@ function QuickEditRollModal({
             {profitMargin > 0 && (
               <div className="rounded-xl bg-white border-2 border-emerald-200 p-3 flex items-center justify-between flex-wrap gap-2">
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-emerald-700">Margin</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Margin</div>
                   <div className="text-xl font-extrabold text-emerald-700 tabular-nums">{profitMargin.toFixed(1)}%</div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-600">Profit /sqft</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Profit /sqft</div>
                   <div className="text-lg font-extrabold text-slate-900 tabular-nums">Rs {(form.salePricePerSqft - form.costPerSqft).toFixed(2)}</div>
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-amber-700">Roll Value</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Roll Value</div>
                   <div className="text-lg font-extrabold text-amber-700 tabular-nums">{formatPKRFull(rollValue)}</div>
                 </div>
               </div>

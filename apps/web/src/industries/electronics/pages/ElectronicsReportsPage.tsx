@@ -468,27 +468,27 @@ export default function ElectronicsReportsPage() {
                         <span className="text-2xl">{r.emoji}</span>
                         <div className="min-w-0">
                           <div className="font-extrabold text-slate-900 truncate">{r.label}</div>
-                          <div className="text-[11px] font-bold text-slate-500 truncate">{r.hint}</div>
+                          <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{r.hint}</div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className={`font-extrabold tabular-nums ${r.margin >= 20 ? 'text-emerald-700' : r.margin < 8 ? 'text-rose-600' : 'text-amber-600'}`}>
                           {r.margin.toFixed(1)}%
                         </div>
-                        <div className="text-[10px] font-bold text-slate-400">margin</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-400">margin</div>
                       </div>
                     </div>
                     <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                       <div>
-                        <div className="text-[9px] uppercase font-extrabold text-slate-400">Units</div>
+                        <div className="text-[0.625rem] uppercase font-extrabold text-slate-400">Units</div>
                         <div className="font-extrabold text-slate-900 tabular-nums text-sm">{r.units}</div>
                       </div>
                       <div>
-                        <div className="text-[9px] uppercase font-extrabold text-slate-400">Bikri</div>
+                        <div className="text-[0.625rem] uppercase font-extrabold text-slate-400">Bikri</div>
                         <div className="font-extrabold text-slate-900 tabular-nums text-sm">{formatPKR(r.revenue)}</div>
                       </div>
                       <div>
-                        <div className="text-[9px] uppercase font-extrabold text-slate-400">Munafa</div>
+                        <div className="text-[0.625rem] uppercase font-extrabold text-slate-400">Munafa</div>
                         <div className="font-extrabold text-emerald-700 tabular-nums text-sm">
                           {hideCost ? '•••' : formatPKR(r.profit)}
                         </div>
@@ -603,7 +603,7 @@ export default function ElectronicsReportsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-slate-900 text-sm truncate">{r.name}</div>
-                        <div className="text-[11px] font-bold text-slate-500 truncate">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 truncate">
                           {m?.label}{r.brand ? ` · ${r.brand}` : ''}{r.requiresSerial ? ' · serial wala' : ''}
                         </div>
                       </div>
@@ -689,7 +689,7 @@ export default function ElectronicsReportsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-slate-900 text-sm truncate">{r.name}</div>
-                        <div className="text-[11px] font-bold text-slate-500 font-mono truncate">{r.serialNumber}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500 font-mono truncate">{r.serialNumber}</div>
                       </div>
                       <div className={`text-sm font-extrabold tabular-nums shrink-0 ${
                         r.ageDays > 90 ? 'text-rose-600' : r.ageDays > 60 ? 'text-orange-600' : r.ageDays > 30 ? 'text-amber-600' : 'text-emerald-600'
@@ -745,7 +745,7 @@ export default function ElectronicsReportsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-slate-900 text-sm truncate">{r.name}</div>
-                        <div className="text-[11px] font-bold text-slate-500 font-mono truncate">{r.serialNumber}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500 font-mono truncate">{r.serialNumber}</div>
                       </div>
                       <div className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 text-xs font-extrabold shrink-0 tabular-nums">
                         {r.warrantyDaysLeft != null && r.warrantyDaysLeft >= 0 ? `${r.warrantyDaysLeft} din baqi` : 'Khatam'}
@@ -856,7 +856,7 @@ export default function ElectronicsReportsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-slate-900 text-sm truncate">{c.name ?? 'Walk-in'}</div>
-                      <div className="text-[11px] font-bold text-slate-500 truncate">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 truncate">
                         {c.phone ?? ''}{c.orders != null ? ` · ${c.orders} sales` : ''}
                       </div>
                     </div>
@@ -901,7 +901,7 @@ function AlertPill({ icon: Icon, tone, text, to, cta }: any) {
         <Icon className="h-4 w-4" />
       </div>
       <div className="flex-1 text-xs font-bold min-w-0">{text}</div>
-      <Link to={to} className="px-2.5 h-8 rounded-lg bg-white/80 text-[11px] font-extrabold inline-flex items-center shrink-0 hover:bg-white transition">
+      <Link to={to} className="px-2.5 h-8 rounded-lg bg-white/80 text-[0.6875rem] font-extrabold inline-flex items-center shrink-0 hover:bg-white transition">
         {cta}
       </Link>
     </div>
@@ -942,7 +942,7 @@ function RankList({ title, subtitle, icon: Icon, rows, hideCost, emptyText }: {
                 <div className="h-9 w-9 rounded-xl bg-slate-100 flex items-center justify-center text-lg shrink-0">{r.emoji}</div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 text-sm truncate">{r.label}</div>
-                  <div className="mt-0.5 flex items-center gap-2 text-[11px] font-bold text-slate-500 flex-wrap">
+                  <div className="mt-0.5 flex items-center gap-2 text-[0.6875rem] font-bold text-slate-500 flex-wrap">
                     {r.sub && <span className="truncate">{r.sub}</span>}
                     <span className="tabular-nums">{r.units} units</span>
                     <span className="tabular-nums">Bikri {formatPKR(r.revenue)}</span>
@@ -956,7 +956,7 @@ function RankList({ title, subtitle, icon: Icon, rows, hideCost, emptyText }: {
                   <div className={`font-extrabold tabular-nums ${r.profit >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
                     {hideCost ? '•••••' : formatPKR(r.profit)}
                   </div>
-                  <div className={`text-[10px] font-extrabold tabular-nums ${
+                  <div className={`text-[0.6875rem] font-extrabold tabular-nums ${
                     r.margin >= 20 ? 'text-emerald-600' : r.margin < 8 ? 'text-rose-600' : 'text-amber-600'
                   }`}>
                     {r.margin.toFixed(1)}% margin
@@ -1006,7 +1006,7 @@ function ReportsTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Reports Kaise Parhein?</h3>
             </div>
           </div>
@@ -1025,7 +1025,7 @@ function ReportsTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

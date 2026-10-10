@@ -157,7 +157,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-mono font-extrabold text-violet-700 dark:text-violet-300">{phone.usedPhoneCode}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${statusColors.bg} ${statusColors.text}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${statusColors.bg} ${statusColors.text}`}>
                       {STATUS_LABELS[status]}
                     </span>
                   </div>
@@ -209,13 +209,13 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
               {editing ? (
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div>
-                    <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">Condition</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">Condition</div>
                     <div className="flex gap-1 flex-wrap">
                       {CONDITIONS.map((c) => (
                         <button
                           key={c}
                           onClick={() => set('condition', c)}
-                          className={`px-2 py-1.5 rounded-lg text-[10px] font-extrabold border-2 transition ${form.condition === c ? `${CONDITION_COLORS[c].bg} ${CONDITION_COLORS[c].text} ${CONDITION_COLORS[c].border}` : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
+                          className={`px-2 py-1.5 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${form.condition === c ? `${CONDITION_COLORS[c].bg} ${CONDITION_COLORS[c].text} ${CONDITION_COLORS[c].border}` : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
                         >
                           {CONDITION_LABELS[c]}
                         </button>
@@ -223,13 +223,13 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">PTA Status</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">PTA Status</div>
                     <div className="flex gap-1 flex-wrap">
                       {PTA_OPTIONS.map((p) => (
                         <button
                           key={p}
                           onClick={() => set('ptaStatus', p)}
-                          className={`px-2.5 py-1.5 rounded-lg text-[10px] font-extrabold border-2 transition ${form.ptaStatus === p ? 'border-violet-600 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
+                          className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${form.ptaStatus === p ? 'border-violet-600 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
                         >
                           {PTA_EMOJI[p]} {PTA_STATUS_LABELS[p]}
                         </button>
@@ -239,11 +239,11 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                 </div>
               ) : (
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold border ${conditionColors.bg} ${conditionColors.text} ${conditionColors.border}`}>
+                  <span className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold border ${conditionColors.bg} ${conditionColors.text} ${conditionColors.border}`}>
                     <Star className="h-3 w-3 inline mr-1 fill-current" />{CONDITION_LABELS[phone.condition as UsedPhoneCondition]}
                   </span>
                   <PtaStatusBadge status={phone.ptaStatus as PtaStatus} size="sm" />
-                  <span className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 inline-flex items-center gap-1">
+                  <span className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 inline-flex items-center gap-1">
                     <Clock className="h-3 w-3" /> {ageDays === 0 ? 'Aaj liya' : `${ageDays} din pehle liya`}
                   </span>
                 </div>
@@ -261,7 +261,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                   ].map((a) => (
                     <span
                       key={a.label}
-                      className={`px-2 py-1 rounded-lg text-[10px] font-extrabold border ${
+                      className={`px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold border ${
                         a.on
                           ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30'
                           : 'bg-slate-50 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 line-through'
@@ -311,7 +311,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
             <section className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-500/5 p-4 space-y-3">
               <div className="flex items-center justify-between gap-2 pb-1 border-b border-emerald-100 dark:border-emerald-500/20 flex-wrap">
                 <SectionTitle icon={BadgeDollarSign} title="Pricing & Profit" tone="emerald" noBorder />
-                <span className="text-[9px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/15 px-2 py-0.5 rounded-full">
+                <span className="text-[0.625rem] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/15 px-2 py-0.5 rounded-full">
                   🔒 Internal — receipt pe nahi jata
                 </span>
               </div>
@@ -337,10 +337,10 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                 <div className="flex items-center gap-2">
                   <TrendingUp className={`h-5 w-5 ${profit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`} />
                   <div>
-                    <div className={`text-[10px] uppercase font-extrabold ${profit >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
+                    <div className={`text-[0.6875rem] uppercase font-extrabold ${profit >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
                       {status === 'SOLD' ? '💰 Actual Profit' : '📈 Expected Profit'}
                     </div>
-                    <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
                       {formatPKR(displayResale)} − {formatPKR(displayCost)} cost
                     </div>
                   </div>
@@ -507,7 +507,7 @@ export function TradeInReceipt({ phone, onClose }: { phone: any; onClose: () => 
             <h3 className="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
               <ReceiptText className="h-4 w-4" /> Trade-In Receipt
             </h3>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold font-mono truncate">{phone.usedPhoneCode}</p>
+            <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold font-mono truncate">{phone.usedPhoneCode}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -728,7 +728,7 @@ function SectionTitle({ icon: Icon, title, tone = 'slate', noBorder }: { icon: a
 function InfoCell({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
-      <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
       <div className={`text-sm font-extrabold text-slate-900 dark:text-white truncate ${mono ? 'font-mono' : ''}`}>{value}</div>
     </div>
   );
@@ -737,9 +737,9 @@ function InfoCell({ label, value, mono }: { label: string; value: string; mono?:
 function PriceCell({ label, value, sub, highlight }: { label: string; value: string; sub: string; highlight?: boolean }) {
   return (
     <div className={`rounded-xl p-2.5 text-center border-2 ${highlight ? 'bg-white dark:bg-slate-800 border-emerald-400 dark:border-emerald-500/50' : 'bg-white/70 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'}`}>
-      <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
       <div className={`text-sm font-extrabold tabular-nums ${highlight ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-900 dark:text-white'}`}>{value}</div>
-      <div className="text-[9px] font-bold text-slate-400 dark:text-slate-500">{sub}</div>
+      <div className="text-[0.625rem] font-bold text-slate-400 dark:text-slate-500">{sub}</div>
     </div>
   );
 }
@@ -749,7 +749,7 @@ function EditField({ label, value, onChange, type = 'text', placeholder, mono }:
 }) {
   return (
     <div>
-      <label className="block text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1">{label}</label>
+      <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1">{label}</label>
       <input
         type={type}
         value={value}

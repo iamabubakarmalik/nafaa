@@ -402,7 +402,7 @@ export default function AgriLowStockPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Wheat className="h-3.5 w-3.5 text-lime-300" /> Agri · Roz subah
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
@@ -460,7 +460,7 @@ export default function AgriLowStockPage() {
             <h3 className="font-extrabold text-rose-900 dark:text-rose-200 text-sm">
               🚫 {stats.expiredCount} cheezon ki registration khatam — {formatPKR(stats.blockedValue)} ka maal phansa hua hai
             </h3>
-            <p className="text-[11px] font-bold text-rose-700 dark:text-rose-300 mt-0.5">
+            <p className="text-[0.6875rem] font-bold text-rose-700 dark:text-rose-300 mt-0.5">
               Stock gudaam me para hai magar qanooni tor par bik nahi sakta. Renew karwa kar tareekh update karein.
             </p>
           </div>
@@ -486,10 +486,10 @@ export default function AgriLowStockPage() {
             }`}>
             <Icon className="h-4 w-4" />
             <span className="truncate">{label}</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-lg ${
+            <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${
               tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
             }`}>{count}</span>
-            <kbd className="hidden sm:inline text-[9px] opacity-60">{key}</kbd>
+            <kbd className="hidden sm:inline text-[0.625rem] opacity-60">{key}</kbd>
           </button>
         ))}
       </div>
@@ -590,7 +590,7 @@ function OrderTab({ rows, chart, kindChart, totalCost, onStock }: {
     <div className="space-y-4">
       <section className="rounded-3xl bg-gradient-to-br from-emerald-50 to-lime-50 dark:from-emerald-500/10 dark:to-lime-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-4 flex items-center gap-3 flex-wrap print:hidden">
         <Truck className="h-5 w-5 text-emerald-600 shrink-0" />
-        <p className="flex-1 min-w-[200px] text-[12px] font-bold text-emerald-900 dark:text-emerald-200">
+        <p className="flex-1 min-w-[200px] text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200">
           <strong>{rows.length}</strong> cheezein hadd se neeche hain. Sab ko hadd tak bharne ka
           andazan kharcha <strong>{formatPKR(totalCost)}</strong> hai.
         </p>
@@ -662,7 +662,7 @@ function OrderTab({ rows, chart, kindChart, totalCost, onStock }: {
                           <span className="block font-extrabold text-slate-900 dark:text-white text-sm truncate group-hover:text-emerald-600">
                             {r.productName}
                           </span>
-                          <span className="block text-[10px] font-bold text-slate-400 truncate">
+                          <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">
                             {r.category || '—'}
                             {r.packSize ? ` • 1 ${agriUnitLabel(r.unit)} = ${r.packSize} ${r.packUnit}` : ''}
                           </span>
@@ -670,20 +670,20 @@ function OrderTab({ rows, chart, kindChart, totalCost, onStock }: {
                       </Link>
                     </td>
                     <td className="px-3 py-2.5">
-                      <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      <span className="text-[0.6875rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                         {prettyAgriKind(r.kind)}
                       </span>
                     </td>
                     <td className={`px-3 py-2.5 text-right font-extrabold tabular-nums ${out ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
-                      {fmtQty(r.have)} <span className="text-[10px] font-bold text-slate-500">{r.unit}</span>
+                      {fmtQty(r.have)} <span className="text-[0.6875rem] font-bold text-slate-500">{r.unit}</span>
                     </td>
                     <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-500 tabular-nums">{fmtQty(r.level)}</td>
                     <td className="px-3 py-2.5 text-right">
                       <div className="font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
-                        {fmtQty(r.short)} <span className="text-[10px] font-bold text-slate-500">{r.unit}</span>
+                        {fmtQty(r.short)} <span className="text-[0.6875rem] font-bold text-slate-500">{r.unit}</span>
                       </div>
                       {r.packSize > 0 && (
-                        <div className="text-[10px] font-bold text-slate-400 tabular-nums">
+                        <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                           = {fmtQty(r.short * r.packSize)} {r.packUnit}
                         </div>
                       )}
@@ -694,7 +694,7 @@ function OrderTab({ rows, chart, kindChart, totalCost, onStock }: {
                     <td className="px-3 py-2.5 print:hidden">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => onStock(r)} title="Stock daalein"
-                          className="h-8 px-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[11px] font-black inline-flex items-center gap-1 transition">
+                          className="h-8 px-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-black inline-flex items-center gap-1 transition">
                           <Boxes className="h-3.5 w-3.5" /> Stock
                         </button>
                         <Link to={`/agri-products/${r.productId}/edit`} title="Edit"
@@ -731,13 +731,13 @@ function CertTab({ rows, pie, blockedValue }: { rows: any[]; pie: any[]; blocked
       <section className="rounded-3xl bg-gradient-to-br from-rose-50 to-orange-50 dark:from-rose-500/10 dark:to-orange-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-4 flex items-start gap-3 print:hidden">
         <Landmark className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
         <div className="min-w-0 flex-1">
-          <p className="text-[12px] font-bold text-rose-900 dark:text-rose-200">
+          <p className="text-[0.75rem] font-bold text-rose-900 dark:text-rose-200">
             Pakistan me beej <strong>Seed Act</strong> aur zehreeli dawa{' '}
             <strong>Agricultural Pesticides Ordinance</strong> ke tehat registration ke baghair
             bechna ghair-qanooni hai. Inspector aaye to stock zabt bhi ho sakta hai.
           </p>
           {blockedValue > 0 && (
-            <p className="text-[12px] font-extrabold text-rose-800 dark:text-rose-300 mt-1">
+            <p className="text-[0.75rem] font-extrabold text-rose-800 dark:text-rose-300 mt-1">
               Abhi {formatPKR(blockedValue)} ka maal is wajah se bik nahi sakta.
             </p>
           )}
@@ -773,7 +773,7 @@ function CertTab({ rows, pie, blockedValue }: { rows: any[]; pie: any[]; blocked
                     <span className="block font-extrabold text-sm text-slate-900 dark:text-white truncate group-hover:text-emerald-600">
                       {r.productName}
                     </span>
-                    <span className="block text-[11px] font-bold text-slate-500">
+                    <span className="block text-[0.6875rem] font-bold text-slate-500">
                       {r.cert.state === 'none' ? 'Tareekh bhari hi nahi' : r.cert.text}
                     </span>
                   </span>
@@ -814,7 +814,7 @@ function CertTab({ rows, pie, blockedValue }: { rows: any[]; pie: any[]; blocked
                           <span className="block font-extrabold text-slate-900 dark:text-white text-sm truncate group-hover:text-emerald-600">
                             {r.productName}
                           </span>
-                          <span className="block text-[10px] font-bold text-slate-400">{prettyAgriKind(r.kind)}</span>
+                          <span className="block text-[0.6875rem] font-bold text-slate-400">{prettyAgriKind(r.kind)}</span>
                         </span>
                       </Link>
                     </td>
@@ -832,7 +832,7 @@ function CertTab({ rows, pie, blockedValue }: { rows: any[]; pie: any[]; blocked
                         : <Pill tone="slate">Nahi likhi</Pill>}
                     </td>
                     <td className="px-3 py-2.5 text-right font-extrabold text-slate-900 dark:text-white tabular-nums">
-                      {fmtQty(Number(r.stock || 0))} <span className="text-[10px] font-bold text-slate-500">{r.unit}</span>
+                      {fmtQty(Number(r.stock || 0))} <span className="text-[0.6875rem] font-bold text-slate-500">{r.unit}</span>
                     </td>
                     <td className={`px-3 py-2.5 text-right text-xs font-black tabular-nums ${gone ? 'text-rose-700 dark:text-rose-400' : 'text-slate-500'}`}>
                       {gone ? formatPKR(blocked) : '—'}
@@ -840,7 +840,7 @@ function CertTab({ rows, pie, blockedValue }: { rows: any[]; pie: any[]; blocked
                     <td className="px-3 py-2.5 print:hidden">
                       <div className="flex items-center justify-end gap-1">
                         <Link to={`/agri-products/${r.productId}/edit`}
-                          className="h-8 px-2.5 rounded-lg bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-700 dark:text-rose-300 text-[11px] font-black inline-flex items-center gap-1 transition">
+                          className="h-8 px-2.5 rounded-lg bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-black inline-flex items-center gap-1 transition">
                           <Edit3 className="h-3.5 w-3.5" /> Tareekh
                         </Link>
                       </div>
@@ -907,11 +907,11 @@ function SeasonBanner({ nowDef, comingDef }: { nowDef: any[]; comingDef: any }) 
           <h3 className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">
             Abhi chal raha hai: {nowDef.map((s) => `${s.e} ${s.l}`).join(', ') || 'Har mausam'}
           </h3>
-          <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
+          <p className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
             {nowDef[0]?.hint}
             {comingDef && ` • Aage ${comingDef.e} ${comingDef.l} aa raha hai — ${comingDef.hint}`}
           </p>
-          <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1">
             Season se pehle mangwa lein — baad me rate barh jata hai aur maal milta bhi nahi.
           </p>
         </div>
@@ -943,7 +943,7 @@ function SeasonGroup({ title, tone, rows, onStock }: {
                   className="font-extrabold text-sm text-slate-900 dark:text-white truncate hover:text-emerald-600 block">
                   {r.productName}
                 </Link>
-                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                   {s ? `${s.e} ${s.l}` : ''}
                   {crops.length > 0 && ` • 🌾 ${crops.slice(0, 3).join(', ')}`}
                 </div>
@@ -952,12 +952,12 @@ function SeasonGroup({ title, tone, rows, onStock }: {
                 <div className={`text-lg font-black tabular-nums ${r.have === 0 ? 'text-rose-600' : 'text-amber-600'}`}>
                   {fmtQty(r.have)} <span className="text-xs">{r.unit}</span>
                 </div>
-                <div className="text-[10px] font-bold text-slate-400 tabular-nums">
+                <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                   {r.short > 0 ? `${fmtQty(r.short)} mangwana hai` : 'hadd par hai'}
                 </div>
               </div>
               <button onClick={() => onStock(r)}
-                className="h-9 px-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[11px] font-black inline-flex items-center gap-1 shrink-0 transition print:hidden">
+                className="h-9 px-2.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-black inline-flex items-center gap-1 shrink-0 transition print:hidden">
                 <Boxes className="h-3.5 w-3.5" /> Stock
               </button>
             </div>
@@ -988,9 +988,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1016,7 +1016,7 @@ function EmptyChart() {
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>{children}</th>;
 }
 
 function Pill({ tone, children }: any) {
@@ -1026,7 +1026,7 @@ function Pill({ tone, children }: any) {
     rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
     slate: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${tones[tone]}`}>{children}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${tones[tone]}`}>{children}</span>;
 }
 
 function Empty({ icon: Icon, title, sub }: { icon: any; title: string; sub: string }) {
@@ -1084,8 +1084,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             zaroorat nahi.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-3</kbd> tabs</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
@@ -1106,8 +1106,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

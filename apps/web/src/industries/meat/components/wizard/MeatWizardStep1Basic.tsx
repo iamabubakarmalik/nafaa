@@ -189,7 +189,7 @@ export function MeatWizardStep1Basic({ basic, onChange, errors }: Props) {
         <SectionHeader icon={Scissors} title="Cut Category *" desc="Meat cut ka type" tone="rose" />
         {cutGroups.map((group) => (
           <div key={group}>
-            <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5">{group}</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5">{group}</div>
             <div className="flex flex-wrap gap-1.5">
               {CUT_CATEGORIES.filter((c) => c.group === group).map((c) => {
                 const active = basic.cutCategory === c.value;
@@ -221,7 +221,7 @@ export function MeatWizardStep1Basic({ basic, onChange, errors }: Props) {
                     active ? 'border-blue-600 bg-blue-600 text-white shadow-md'
                       : 'border-slate-200 bg-white text-slate-700 hover:border-blue-400'].join(' ')}>
                   <div className="text-2xl">{f.emoji}</div>
-                  <div className="text-[10px] font-extrabold mt-1">{f.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold mt-1">{f.label}</div>
                 </button>
               );
             })}
@@ -279,7 +279,7 @@ export function MeatWizardStep1Basic({ basic, onChange, errors }: Props) {
             <div className="flex items-center gap-2">
               <TrendingUp className={['h-5 w-5', isLoss ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
               <div>
-                <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                   isLoss ? 'text-rose-700' : margin >= 20 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                   {isLoss ? '⚠️ Loss Alert' : 'Profit per kg'}
                 </div>
@@ -322,7 +322,7 @@ export function MeatWizardStep1Basic({ basic, onChange, errors }: Props) {
             <input type="checkbox" checked={basic.isBoneless} onChange={(e) => onChange({ isBoneless: e.target.checked, isBoneIn: e.target.checked ? false : basic.isBoneIn })} className="h-5 w-5 rounded" />
             <div>
               <div className="font-extrabold text-slate-900 text-sm">Boneless</div>
-              <div className="text-[10px] text-slate-500 font-semibold">No bones</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">No bones</div>
             </div>
           </label>
           <label className={['flex items-center gap-3 cursor-pointer p-3 rounded-xl transition border-2',
@@ -330,7 +330,7 @@ export function MeatWizardStep1Basic({ basic, onChange, errors }: Props) {
             <input type="checkbox" checked={basic.isBoneIn} onChange={(e) => onChange({ isBoneIn: e.target.checked, isBoneless: e.target.checked ? false : basic.isBoneless })} className="h-5 w-5 rounded" />
             <div>
               <div className="font-extrabold text-slate-900 text-sm">With Bone</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Bone-in</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Bone-in</div>
             </div>
           </label>
           <label className={['flex items-center gap-3 cursor-pointer p-3 rounded-xl transition border-2',
@@ -338,7 +338,7 @@ export function MeatWizardStep1Basic({ basic, onChange, errors }: Props) {
             <input type="checkbox" checked={basic.isSkinless} onChange={(e) => onChange({ isSkinless: e.target.checked })} className="h-5 w-5 rounded" />
             <div>
               <div className="font-extrabold text-slate-900 text-sm">Skinless</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Skin removed</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Skin removed</div>
             </div>
           </label>
         </div>
@@ -411,7 +411,7 @@ export function MeatWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt={`meat-${idx}`} className="w-full h-full object-cover" />
                 {idx === 0 && (
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[9px] font-extrabold">PRIMARY</div>
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-red-600 text-white text-[0.625rem] font-extrabold">PRIMARY</div>
                 )}
                 <button
                   onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, i) => i !== idx) })}

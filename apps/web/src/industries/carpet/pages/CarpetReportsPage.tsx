@@ -476,7 +476,7 @@ export default function CarpetReportsPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="font-extrabold text-slate-900 text-sm tabular-nums">{r.soldSqft.toFixed(2)} sqft</div>
-                        <div className="text-[10px] text-slate-500 font-bold">{r.salesCount} sales</div>
+                        <div className="text-[0.6875rem] text-slate-500 font-bold">{r.salesCount} sales</div>
                       </td>
                       <td className="px-4 py-3 text-right text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKRFull(r.revenue)}</td>
                       <td className="px-4 py-3 text-right">
@@ -574,7 +574,7 @@ export default function CarpetReportsPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-emerald-700 text-base tabular-nums">{c.sqft.toFixed(2)} sqft</div>
-                      <div className="text-[11px] text-slate-500 font-bold">{new Date(c.createdAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">{new Date(c.createdAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
                   </div>
                 ))}
@@ -777,7 +777,7 @@ export default function CarpetReportsPage() {
                       <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center font-extrabold shadow-md shrink-0">
                         <div className="text-center leading-none">
                           <div className="text-lg">{r.daysSinceLastActivity}</div>
-                          <div className="text-[9px] opacity-90">days</div>
+                          <div className="text-[0.625rem] opacity-90">days</div>
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -925,7 +925,7 @@ export default function CarpetReportsPage() {
 
 // Helpers
 function Th({ children, className = '' }: { children: any; className?: string }) {
-  return <th className={`px-4 py-3 text-left text-[11px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
+  return <th className={`px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
 }
 
 function ChartCard({ title, icon: Icon, desc, children }: { title: string; icon: any; desc: string; children: React.ReactNode }) {

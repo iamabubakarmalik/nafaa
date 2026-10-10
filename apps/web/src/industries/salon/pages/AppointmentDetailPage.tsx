@@ -78,7 +78,7 @@ export default function AppointmentDetailPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 {apt.appointmentNumber}
               </div>
@@ -173,7 +173,7 @@ export default function AppointmentDetailPage() {
                     {isActive && !isCurrent ? <CheckCircle2 className="h-5 w-5" /> : <StatusIcon className="h-4 w-4" />}
                   </div>
                   <span className={
-                    'text-[10px] font-extrabold uppercase ' +
+                    'text-[0.6875rem] font-extrabold uppercase ' +
                     (isActive ? cfg.textColor : 'text-slate-400')
                   }>
                     {cfg.label}
@@ -226,24 +226,24 @@ export default function AppointmentDetailPage() {
             </h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-slate-500">Scheduled</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Scheduled</div>
                 <div className="font-extrabold">{format(startDate, 'HH:mm')} – {format(new Date(apt.scheduledEnd), 'HH:mm')}</div>
               </div>
               {apt.actualStart && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500">Actual Start</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Actual Start</div>
                   <div className="font-extrabold text-emerald-700">{format(new Date(apt.actualStart), 'HH:mm')}</div>
                 </div>
               )}
               {apt.actualEnd && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500">Actual End</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Actual End</div>
                   <div className="font-extrabold text-emerald-700">{format(new Date(apt.actualEnd), 'HH:mm')}</div>
                 </div>
               )}
               {apt.arrivedAt && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500">Arrived At</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Arrived At</div>
                   <div className="font-extrabold text-cyan-700">{format(new Date(apt.arrivedAt), 'HH:mm')}</div>
                 </div>
               )}
@@ -288,7 +288,7 @@ export default function AppointmentDetailPage() {
                     </div>
                     <div className="text-right shrink-0">
                       {svc.discount > 0 && (
-                        <div className="text-[10px] font-bold text-rose-700">-{formatPKR(svc.discount)} off</div>
+                        <div className="text-[0.6875rem] font-bold text-rose-700">-{formatPKR(svc.discount)} off</div>
                       )}
                       <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(svc.total)}</div>
                     </div>
@@ -331,7 +331,7 @@ export default function AppointmentDetailPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-pink-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
 
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-bold tabular-nums">{formatPKR(apt.subtotal)}</span></div>
@@ -419,7 +419,7 @@ function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-pink-700 mb-1 block">Amount *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-pink-700 mb-1 block">Amount *</label>
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-pink-300 bg-pink-50 dark:bg-pink-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-pink-500" />
             <div className="mt-1 flex gap-1">
               {[0.25, 0.5, 0.75, 1].map((f) => (
@@ -430,7 +430,7 @@ function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
             </div>
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
             <div className="grid grid-cols-3 gap-2">
               {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
                 <button key={m} onClick={() => setMethod(m)} className={
@@ -531,11 +531,11 @@ function RescheduleModal({ apptId, scheduledStart, scheduledEnd, onClose, onDone
         <div className="p-5 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">New Date *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">New Date *</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} min={new Date().toISOString().split('T')[0]} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-extrabold focus:outline-none focus:border-violet-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">New Time *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">New Time *</label>
               <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-extrabold focus:outline-none focus:border-violet-500" />
             </div>
           </div>

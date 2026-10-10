@@ -46,7 +46,7 @@ export function PosCartPanel({
       <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-900 text-white px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[10px] sm:text-[11px] uppercase font-extrabold text-white/70 tracking-wider">
+            <div className="text-[0.6875rem] sm:text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
               Cart • {itemCount} lines • {totalQty.toFixed(totalQty % 1 === 0 ? 0 : 1)} qty
             </div>
             <div className="text-3xl sm:text-4xl font-extrabold tabular-nums leading-none mt-1">
@@ -139,7 +139,7 @@ export function PosCartPanel({
             </div>
             <p className="mt-4 font-extrabold text-slate-700 dark:text-slate-200 text-lg sm:text-xl">Cart khaali hai</p>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-semibold mt-1">Scan karo, click karo, ya 🎤 bolo: "2 kilo chini"</p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-bold mt-2 inline-flex items-center gap-1">
+            <p className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold mt-2 inline-flex items-center gap-1">
               <Zap className="h-3 w-3 text-amber-500" /> F12 = instant cash + print!
             </p>
           </div>
@@ -217,7 +217,7 @@ export function PosCartPanel({
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'flex items-center justify-between px-5 sm:px-6'].join(' ')}>
             <div className="text-left">
-              <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
+              <div className="text-[0.6875rem] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
                 Paisay lein <span className="hidden sm:inline">(F9)</span> — cash / udhaar / card
               </div>
               <FbrModeIndicator saleTotal={total} className="mb-2" />
@@ -236,7 +236,7 @@ export function PosCartPanel({
 
 function KbdInline({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-white/20 border border-white/30 text-[10px] font-mono font-extrabold">{children}</kbd>
+    <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-white/20 border border-white/30 text-[0.6875rem] font-mono font-extrabold">{children}</kbd>
   );
 }
 
@@ -270,8 +270,8 @@ export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onS
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
             <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white leading-tight line-clamp-2">{l.name}</div>
-            {l.type === 'combo' && <span className="px-1.5 py-0.5 rounded bg-violet-600 text-white text-[9px] font-extrabold uppercase tracking-wider shrink-0">Combo</span>}
-            {customPriced && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase tracking-wider shrink-0">Custom Rs</span>}
+            {l.type === 'combo' && <span className="px-1.5 py-0.5 rounded bg-violet-600 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Combo</span>}
+            {customPriced && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Custom Rs</span>}
           </div>
 
           {editing ? (
@@ -284,7 +284,7 @@ export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onS
                 className="h-9 w-28 rounded-lg border-2 border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10 px-2 text-base font-extrabold tabular-nums text-amber-900 dark:text-amber-200 focus:outline-none" />
               <button onClick={commit} className="h-9 w-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center"><Check className="h-4 w-4" /></button>
               <button onClick={() => onSetPrice(l.basePrice)} title="Wapas original rate"
-                className="h-9 px-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold">Reset</button>
+                className="h-9 px-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold">Reset</button>
             </div>
           ) : (
             <button onClick={onStartPriceEdit} title="Rate badlo"
@@ -294,9 +294,9 @@ export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onS
             </button>
           )}
 
-          {l.note && <div className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{l.note}</div>}
+          {l.note && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{l.note}</div>}
           {customPriced && !editing && (
-            <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 tabular-nums">(original {formatPKR(l.basePrice)})</div>
+            <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 tabular-nums">(original {formatPKR(l.basePrice)})</div>
           )}
         </div>
         <button onClick={onRemove}
@@ -324,7 +324,7 @@ export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onS
         </div>
       </div>
       {isWeight && (
-        <div className="mt-1 text-[9px] font-extrabold text-amber-700 dark:text-amber-400 uppercase tracking-wider inline-flex items-center gap-1">
+        <div className="mt-1 text-[0.625rem] font-extrabold text-amber-700 dark:text-amber-400 uppercase tracking-wider inline-flex items-center gap-1">
           <Scale className="h-2.5 w-2.5" /> Weigh item — +/− {qtyStep(l.unitName)} {l.unitName} step
         </div>
       )}

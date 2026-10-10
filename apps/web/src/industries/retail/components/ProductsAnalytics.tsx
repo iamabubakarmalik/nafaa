@@ -86,7 +86,7 @@ function Stat({ icon: Icon, label, value, exact, sub, tone = 'sky', alert }: {
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 leading-tight">
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 leading-tight">
             {label}
           </div>
           {/* Number ko kabhi kaatna nahi — poora dikhna chahiye */}
@@ -94,7 +94,7 @@ function Stat({ icon: Icon, label, value, exact, sub, tone = 'sky', alert }: {
             {value}
           </div>
           {sub && (
-            <div className="mt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400 leading-snug">
+            <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 leading-snug">
               {sub}
             </div>
           )}
@@ -117,7 +117,7 @@ function Panel({ icon: Icon, title, hint, tone = 'sky', right, children, classNa
           </div>
           <div className="min-w-0">
             <h3 className="font-black text-slate-900 dark:text-white text-base leading-tight">{title}</h3>
-            {hint && <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
+            {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
           </div>
         </div>
         {right}
@@ -268,7 +268,7 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
 
         <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
             <Sparkles className="h-3.5 w-3.5 text-amber-300" /> Maal ka hisab
           </div>
 
@@ -279,14 +279,14 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
               { l: 'Mumkin munafa', v: a.profit, hint: `${a.margin.toFixed(1)}% margin`, c: 'text-amber-200', I: TrendingUp },
             ].map((k) => (
               <div key={k.l}>
-                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white/70">
+                <div className="flex items-center gap-1.5 text-[0.6875rem] font-black uppercase tracking-widest text-white/70">
                   <k.I className="h-3.5 w-3.5" /> {k.l}
                 </div>
                 <div className={`mt-1 text-2xl sm:text-3xl font-black tabular-nums ${k.c}`}
                   title={hideCost ? undefined : formatPKR(k.v)}>
                   {hideCost ? '••••' : money(k.v)}
                 </div>
-                <div className="text-[11px] font-bold text-white/60">{k.hint}</div>
+                <div className="text-[0.6875rem] font-bold text-white/60">{k.hint}</div>
               </div>
             ))}
           </div>
@@ -299,7 +299,7 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
                   style={{ width: `${Math.min(costShare, 100)}%` }} />
                 <div className="h-full bg-gradient-to-r from-amber-400 to-emerald-400 flex-1" />
               </div>
-              <div className="mt-1.5 flex items-center justify-between text-[11px] font-black">
+              <div className="mt-1.5 flex items-center justify-between text-[0.6875rem] font-black">
                 <span className="text-sky-200">Lagat {costShare.toFixed(0)}%</span>
                 <span className="text-amber-200">Munafa {(100 - costShare).toFixed(0)}%</span>
               </div>
@@ -356,13 +356,13 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
               <div className="flex gap-1.5 flex-wrap mt-2.5">
                 {a.lossMakers.slice(0, 6).map((p) => (
                   <Link key={p.id} to={`/retail-products/${p.id}/edit`}
-                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border-2 border-rose-200 dark:border-rose-500/30 text-[11px] font-black text-rose-700 dark:text-rose-300 hover:border-rose-400 transition">
+                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border-2 border-rose-200 dark:border-rose-500/30 text-[0.6875rem] font-black text-rose-700 dark:text-rose-300 hover:border-rose-400 transition">
                     {p.name} <span className="opacity-70">−{formatPKR(p._loss)}</span>
                   </Link>
                 ))}
                 {a.lossMakers.length > 6 && (
                   <button onClick={() => setProblemTab('loss')}
-                    className="px-3 py-1.5 text-[11px] font-black text-rose-700 dark:text-rose-300 underline">
+                    className="px-3 py-1.5 text-[0.6875rem] font-black text-rose-700 dark:text-rose-300 underline">
                     +{a.lossMakers.length - 6} aur dekhein
                   </button>
                 )}
@@ -377,7 +377,7 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
         hint="Lagat aur bikri ki qeemat — sab se bara zakheera upar"
         right={
           <div className="text-right shrink-0">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Top 3 ka hissa</div>
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-400">Top 3 ka hissa</div>
             <div className="text-lg font-black text-sky-600 dark:text-sky-400 tabular-nums">{a.top3Share.toFixed(0)}%</div>
           </div>
         }>
@@ -428,7 +428,7 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
                 {/* Darmiyan me kul ginti */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <div className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{products.length}</div>
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">products</div>
+                  <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-400">products</div>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2 mt-2">
@@ -439,7 +439,7 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
                 ].map((r) => (
                   <div key={r.l} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5 text-center">
                     <div className="h-1 w-8 rounded-full mx-auto mb-1.5" style={{ background: r.hex }} />
-                    <div className="text-[9px] font-black uppercase tracking-wider text-slate-500">{r.l}</div>
+                    <div className="text-[0.625rem] font-black uppercase tracking-wider text-slate-500">{r.l}</div>
                     <div className="text-lg font-black tabular-nums" style={{ color: r.hex }}>{r.v}</div>
                   </div>
                 ))}
@@ -464,7 +464,7 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-2 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3 text-[11px] font-bold text-slate-600 dark:text-slate-300 leading-relaxed">
+          <div className="mt-2 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 leading-relaxed">
             {a.noCost > 0 ? (
               <>Jin ki lagat likhi hi nahi (<strong>{a.noCost}</strong>) wo is chart me shamil nahi —
               unka margin nikala hi nahi ja sakta. Pehle unki lagat bharein.</>
@@ -486,7 +486,7 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
             ['dead', 'Bara zakheera', a.heavy.length, Archive],
           ] as const).map(([v, l, n, I]) => (
             <button key={v} onClick={() => setProblemTab(v)}
-              className={`h-10 px-3.5 rounded-2xl text-[11px] font-black border-2 inline-flex items-center gap-1.5 transition ${
+              className={`h-10 px-3.5 rounded-2xl text-[0.6875rem] font-black border-2 inline-flex items-center gap-1.5 transition ${
                 problemTab === v
                   ? 'bg-gradient-to-r from-rose-600 to-red-700 border-transparent text-white shadow-lg shadow-rose-500/30'
                   : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-400'
@@ -518,7 +518,7 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
                   <Thumb p={p} />
                   <div className="min-w-0 flex-1">
                     <div className="font-black text-sm text-slate-900 dark:text-white truncate">{p.name}</div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                       {problemTab === 'loss' && `Lagat ${formatPKR(Number(p.costPrice))} → rate ${formatPKR(Number(p.price))}`}
                       {problemTab === 'nocost' && `Rate ${formatPKR(Number(p.price))} · stock ${Number(p.stock ?? 0)}`}
                       {problemTab === 'nobarcode' && `${p.sku || 'SKU nahi'} · stock ${Number(p.stock ?? 0)}`}
@@ -540,7 +540,7 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
               ))}
             </div>
             {problems.length > 20 && (
-              <p className="text-[11px] font-bold text-slate-400 text-center mt-3">
+              <p className="text-[0.6875rem] font-bold text-slate-400 text-center mt-3">
                 Aur {problems.length - 20} — upar wale 20 sab se ahem hain
               </p>
             )}
@@ -558,10 +558,10 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
                 return (
                   <div key={c.name} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
                     <div className="flex items-center gap-2.5 mb-1.5">
-                      <span className="h-7 w-7 rounded-xl flex items-center justify-center text-[11px] font-black text-white shrink-0 shadow"
+                      <span className="h-7 w-7 rounded-xl flex items-center justify-center text-[0.6875rem] font-black text-white shrink-0 shadow"
                         style={{ background: COLORS[i % COLORS.length] }}>{i + 1}</span>
                       <span className="font-black text-sm text-slate-900 dark:text-white truncate flex-1">{c.name}</span>
-                      <span className="text-[11px] font-bold text-slate-400 shrink-0">{c.count} cheezein</span>
+                      <span className="text-[0.6875rem] font-bold text-slate-400 shrink-0">{c.count} cheezein</span>
                       <span className="text-sm font-black text-slate-900 dark:text-white tabular-nums shrink-0"
                         title={mExact(c.cost)}>{m(c.cost)}</span>
                     </div>
@@ -569,7 +569,7 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
                       <div className="h-full rounded-full transition-all duration-700"
                         style={{ width: `${Math.min(pct, 100)}%`, background: COLORS[i % COLORS.length] }} />
                     </div>
-                    <div className="mt-1 flex items-center justify-between text-[10px] font-bold">
+                    <div className="mt-1 flex items-center justify-between text-[0.6875rem] font-bold">
                       <span className="text-slate-400">{pct.toFixed(1)}% kul lagat ka</span>
                       <span className="text-emerald-600">+{m(c.retail - c.cost)} munafa</span>
                     </div>
@@ -586,18 +586,18 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
             <div className="space-y-2">
               {a.brands.slice(0, 10).map((b, i) => (
                 <div key={b.name} className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
-                  <span className="h-9 w-9 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-700 text-white flex items-center justify-center text-[11px] font-black shrink-0 shadow">
+                  <span className="h-9 w-9 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-700 text-white flex items-center justify-center text-[0.6875rem] font-black shrink-0 shadow">
                     {i + 1}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="font-black text-sm text-slate-900 dark:text-white truncate">{b.name}</div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{b.count} cheezein</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{b.count} cheezein</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums" title={mExact(b.cost)}>
                       {m(b.cost)}
                     </div>
-                    <div className="text-[10px] font-black text-emerald-600 tabular-nums">
+                    <div className="text-[0.6875rem] font-black text-emerald-600 tabular-nums">
                       +{m(b.retail - b.cost)}
                     </div>
                   </div>
@@ -618,13 +618,13 @@ export function ProductsAnalytics({ products, hideCost }: { products: any[]; hid
                 className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3 hover:bg-teal-50 dark:hover:bg-teal-500/10 border-2 border-transparent hover:border-teal-200 dark:hover:border-teal-500/30 transition">
                 <div className="relative shrink-0">
                   <Thumb p={p} />
-                  <span className="absolute -top-1.5 -left-1.5 h-5 w-5 rounded-lg bg-teal-600 text-white text-[9px] font-black flex items-center justify-center shadow">
+                  <span className="absolute -top-1.5 -left-1.5 h-5 w-5 rounded-lg bg-teal-600 text-white text-[0.625rem] font-black flex items-center justify-center shadow">
                     {i + 1}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-black text-sm text-slate-900 dark:text-white truncate">{p.name}</div>
-                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                     {Number(p.stock ?? 0)} {p.unit ?? 'pcs'} · {p.category?.name ?? 'Bina category'}
                   </div>
                 </div>

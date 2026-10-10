@@ -99,7 +99,7 @@ export function GamingWizardStep3Rental({ rental, onChange, retailPrice, errors 
               <Lbl><CalendarDays className="h-3 w-3 inline mr-1" /> Price per Day</Lbl>
               {retailPrice > 0 && (
                 <button type="button" onClick={suggestDay}
-                  className="text-[10px] font-extrabold text-violet-700 hover:underline">Suggest (3% of price)</button>
+                  className="text-[0.6875rem] font-extrabold text-violet-700 hover:underline">Suggest (3% of price)</button>
               )}
             </div>
             <input type="number" step="1" value={rental.rentalPricePerDay}
@@ -121,21 +121,21 @@ export function GamingWizardStep3Rental({ rental, onChange, retailPrice, errors 
               <Lbl><ShieldCheck className="h-3 w-3 inline mr-1" /> Security Deposit</Lbl>
               {retailPrice > 0 && (
                 <button type="button" onClick={suggestDeposit}
-                  className="text-[10px] font-extrabold text-violet-700 hover:underline">Suggest (50% of price)</button>
+                  className="text-[0.6875rem] font-extrabold text-violet-700 hover:underline">Suggest (50% of price)</button>
               )}
             </div>
             <input type="number" step="1" value={rental.rentalDeposit}
               onChange={(e) => onChange({ rentalDeposit: e.target.value === '' ? '' : Number(e.target.value) })}
               placeholder="0"
               className="h-14 w-full rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 text-2xl font-extrabold tabular-nums text-amber-900 focus:outline-none focus:border-amber-500" />
-            <p className="mt-1.5 text-[11px] text-slate-500 font-semibold">
+            <p className="mt-1.5 text-[0.6875rem] text-slate-500 font-semibold">
               Refundable at return, minus any damage or late fees.
             </p>
           </div>
 
           {(perHour > 0 || perDay > 0) && (
             <div className="rounded-2xl bg-white border-2 border-emerald-300 p-4">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 mb-2">Rental preview</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700 mb-2">Rental preview</div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {perHour > 0 && <Mini label="3 hours" value={formatPKRFull(perHour * 3)} />}
                 {perDay > 0 && <Mini label="1 day" value={formatPKRFull(perDay)} />}
@@ -222,7 +222,7 @@ function Lbl({ children }: any) {
 function Mini({ label, value, tone }: any) {
   return (
     <div className={['rounded-xl border-2 p-2.5', tone === 'amber' ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'].join(' ')}>
-      <div className="text-[9px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-base font-extrabold text-slate-900 tabular-nums">{value}</div>
     </div>
   );

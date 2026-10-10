@@ -103,7 +103,7 @@ export function Step1BusinessType({ data, onChange, options, detectedCity }: Pro
                 </div>
                 <div className="text-xs text-slate-600 font-medium">{bs.desc}</div>
                 {(bs.staffRange || bs.monthlyRevenue) && (
-                  <div className="text-[10px] text-slate-400 mt-1">
+                  <div className="text-[0.6875rem] text-slate-400 mt-1">
                     {bs.staffRange && `Staff: ${bs.staffRange}`}
                     {bs.staffRange && bs.monthlyRevenue && ' · '}
                     {bs.monthlyRevenue && `Revenue: ${bs.monthlyRevenue}`}

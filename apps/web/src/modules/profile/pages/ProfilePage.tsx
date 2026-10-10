@@ -151,7 +151,7 @@ export default function ProfilePage() {
                 <Mail className="h-3.5 w-3.5" />
                 <span className="truncate">{u?.email}</span>
                 {emailVerified && (
-                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-500/30 backdrop-blur text-[9px] font-extrabold ml-1">
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-500/30 backdrop-blur text-[0.625rem] font-extrabold ml-1">
                     <CheckCircle2 className="h-2 w-2" />
                     VERIFIED
                   </span>
@@ -159,20 +159,20 @@ export default function ProfilePage() {
               </div>
               <div className="flex items-center gap-2 mt-3 flex-wrap">
                 <span
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider backdrop-blur"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold uppercase tracking-wider backdrop-blur"
                   style={{ backgroundColor: `${rc.color}40`, border: `1px solid ${rc.color}60` }}
                 >
                   <RoleIcon className="h-2.5 w-2.5" />
                   {rc.label}
                 </span>
                 {tenant?.name && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-extrabold bg-white/15 backdrop-blur border border-white/20">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-white/15 backdrop-blur border border-white/20">
                     <Building2 className="h-2.5 w-2.5" />
                     {tenant.name}
                   </span>
                 )}
                 {(u as any)?.createdAt && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-extrabold bg-white/15 backdrop-blur border border-white/20">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-white/15 backdrop-blur border border-white/20">
                     <Calendar className="h-2.5 w-2.5" />
                     Member since {formatDate((u as any).createdAt)}
                   </span>
@@ -280,7 +280,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex-1">
                   <div
-                    className={`text-[10px] uppercase tracking-wider font-extrabold ${
+                    className={`text-[0.6875rem] uppercase tracking-wider font-extrabold ${
                       securityColor === 'emerald'
                         ? 'text-emerald-700'
                         : securityColor === 'amber'
@@ -475,11 +475,11 @@ function InfoRow({ icon: Icon, iconBg, customIconStyle, label, value, verified }
         <Icon className="h-5 w-5" style={customIconStyle ? { color: customIconStyle.color } : {}} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">{label}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-extrabold uppercase tracking-wider">{label}</div>
         <div className="text-sm font-extrabold text-slate-900 truncate flex items-center gap-1.5 mt-0.5">
           {value}
           {verified && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">
               <CheckCircle2 className="h-2.5 w-2.5" />
               VERIFIED
             </span>

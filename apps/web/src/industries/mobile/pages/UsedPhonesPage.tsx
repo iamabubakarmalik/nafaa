@@ -371,7 +371,7 @@ export default function UsedPhonesPage() {
           </div>
         </div>
 
-        <table className="w-full text-[10px]" style={{ borderCollapse: 'collapse' }}>
+        <table className="w-full text-[0.6875rem]" style={{ borderCollapse: 'collapse' }}>
           <thead>
             <tr>
               {['Code', 'Phone', 'IMEI', 'Cond.', 'PTA', 'Status', 'Cost', 'Resale/Sold', 'Profit', 'Customer', 'Date'].map((h) => (
@@ -401,7 +401,7 @@ export default function UsedPhonesPage() {
           </tbody>
         </table>
 
-        <div className="mt-3 pt-2 text-center text-[9px] text-slate-500 font-semibold" style={{ borderTop: '2px solid #7c3aed' }}>
+        <div className="mt-3 pt-2 text-center text-[0.625rem] text-slate-500 font-semibold" style={{ borderTop: '2px solid #7c3aed' }}>
           ✦ Powered by <b>Nafaa POS</b> ✦
         </div>
       </div>
@@ -424,7 +424,7 @@ export default function UsedPhonesPage() {
 
         <div className="relative flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Smartphone className="h-3.5 w-3.5 text-fuchsia-300" /> Mobile Industry
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
               {!isOnline && (<><span className="opacity-40">•</span><span className="inline-flex items-center gap-1 text-amber-300"><WifiOff className="h-3 w-3" /> Offline</span></>)}
@@ -544,7 +544,7 @@ export default function UsedPhonesPage() {
                   <button
                     key={p.id}
                     onClick={() => setDetailsPhone(p)}
-                    className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-rose-300 dark:border-rose-500/40 px-2 py-1 text-[11px] font-extrabold text-rose-800 dark:text-rose-300 hover:border-rose-500 transition"
+                    className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-rose-300 dark:border-rose-500/40 px-2 py-1 text-[0.6875rem] font-extrabold text-rose-800 dark:text-rose-300 hover:border-rose-500 transition"
                   >
                     {p.brand} {p.model}
                     <span className="text-rose-500 dark:text-rose-400 font-mono">{p.usedPhoneCode}</span>
@@ -714,7 +714,7 @@ export default function UsedPhonesPage() {
               />
               <div className="flex gap-1 flex-wrap">
                 {([['today', 'Aaj'], ['week', '7 Din'], ['month', 'Mahina'], ['year', 'Saal'], ['all', 'Sab']] as const).map(([p, l]) => (
-                  <button key={p} onClick={() => setDatePreset(p)} className="px-2.5 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-violet-100 dark:hover:bg-violet-500/20 text-[11px] font-extrabold text-slate-700 dark:text-slate-300 transition">
+                  <button key={p} onClick={() => setDatePreset(p)} className="px-2.5 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-violet-100 dark:hover:bg-violet-500/20 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300 transition">
                     {l}
                   </button>
                 ))}
@@ -799,7 +799,7 @@ export default function UsedPhonesPage() {
           <section className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
             <div className="px-5 py-3.5 border-b-2 border-slate-100 dark:border-slate-800">
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Is Range ke Trade-Ins ({analytics.inRange.length})</h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Kisi bhi row pe click karo — poori details khulegi</p>
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Kisi bhi row pe click karo — poori details khulegi</p>
             </div>
             {analytics.inRange.length === 0 ? (
               <p className="p-8 text-center text-sm text-slate-500 dark:text-slate-400 font-semibold">Is date range mein koi record nahi — range badal ke dekho</p>
@@ -817,17 +817,17 @@ export default function UsedPhonesPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono font-extrabold text-xs text-violet-700 dark:text-violet-300">{p.usedPhoneCode}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${colors.bg} ${colors.text}`}>{STATUS_LABELS[p.status as UsedPhoneStatus]}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${colors.bg} ${colors.text}`}>{STATUS_LABELS[p.status as UsedPhoneStatus]}</span>
                         </div>
                         <div className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{p.brand} {p.model}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                           {new Date(p.receivedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
                           {p.fromCustomerName && ` • ${p.fromCustomerName}`}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(p.finalSoldPrice || p.resalePrice)}</div>
-                        <div className={`text-[10px] font-extrabold tabular-nums ${profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                        <div className={`text-[0.6875rem] font-extrabold tabular-nums ${profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                           {profit >= 0 ? '+' : ''}{formatPKR(profit)}
                         </div>
                       </div>
@@ -910,17 +910,17 @@ function PhoneRow({ phone, onDetails, onWhatsApp, onPrintReceipt, onMarkInStock,
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="font-mono font-extrabold text-sm text-violet-700 dark:text-violet-300">{phone.usedPhoneCode}</span>
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider inline-flex items-center gap-1 ${statusColors.bg} ${statusColors.text}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase tracking-wider inline-flex items-center gap-1 ${statusColors.bg} ${statusColors.text}`}>
                 <StatusIcon className="h-2.5 w-2.5" />
                 {STATUS_LABELS[status]}
               </span>
-              <span className={`px-2 py-0.5 rounded-md text-[9px] font-extrabold border ${conditionColors.bg} ${conditionColors.text} ${conditionColors.border}`}>
+              <span className={`px-2 py-0.5 rounded-md text-[0.625rem] font-extrabold border ${conditionColors.bg} ${conditionColors.text} ${conditionColors.border}`}>
                 <Star className="h-2.5 w-2.5 inline mr-0.5 fill-current" />
                 {CONDITION_LABELS[condition]}
               </span>
               <PtaStatusBadge status={phone.ptaStatus as PtaStatus} size="sm" />
               {isAging && (
-                <span className="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-rose-600 text-white uppercase tracking-wider inline-flex items-center gap-1 animate-pulse">
+                <span className="px-2 py-0.5 rounded-md text-[0.625rem] font-extrabold bg-rose-600 text-white uppercase tracking-wider inline-flex items-center gap-1 animate-pulse">
                   <Clock className="h-2.5 w-2.5" /> {ageLabel} pending
                 </span>
               )}
@@ -951,11 +951,11 @@ function PhoneRow({ phone, onDetails, onWhatsApp, onPrintReceipt, onMarkInStock,
           <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">
             {formatPKR(phone.finalSoldPrice || phone.resalePrice)}
           </div>
-          <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 tabular-nums">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1 tabular-nums">
             Cost: {formatPKR(phone.totalCost)}
             {phone.refurbishCost > 0 && <span className="text-orange-600 dark:text-orange-400"> (+{formatPKR(phone.refurbishCost)} repair)</span>}
           </div>
-          <div className={`text-[11px] font-extrabold tabular-nums ${profit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+          <div className={`text-[0.6875rem] font-extrabold tabular-nums ${profit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
             {status === 'SOLD' ? '💰 Profit' : '📈 Expected'}: {formatPKR(profit)}
             <span className="opacity-70 ml-1">({marginPct.toFixed(0)}%)</span>
           </div>
@@ -1030,7 +1030,7 @@ function TradeInTeacher({ hasPhones, onClose, onStart }: {
           </p>
 
           <div className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/30 bg-violet-50/60 dark:bg-violet-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300">📱 Misal: iPhone 11 Trade-In</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300">📱 Misal: iPhone 11 Trade-In</div>
             <div className="flex items-center gap-2 flex-wrap">
               <FlowBox emoji="🤝" label="Buyback" value="Rs 45,000" sub="customer ko diye" />
               <ArrowRight className="h-4 w-4 text-violet-500 shrink-0" />
@@ -1074,9 +1074,9 @@ function FlowBox({ emoji, label, value, sub, highlight }: {
   return (
     <div className={`rounded-xl border-2 px-3 py-2 text-center min-w-[90px] ${highlight ? 'border-emerald-500 bg-white dark:bg-slate-800 shadow-md' : 'border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/60'}`}>
       <div className="text-xl">{emoji}</div>
-      <div className="text-[10px] font-extrabold text-slate-900 dark:text-white uppercase">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white uppercase">{label}</div>
       <div className={`text-xs font-extrabold tabular-nums ${highlight ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>{value}</div>
-      <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400">{sub}</div>
+      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">{sub}</div>
     </div>
   );
 }
@@ -1085,8 +1085,8 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
   return (
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -1111,9 +1111,9 @@ function Kpi({ label, value, sub, icon: Icon, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate" title={sub}>{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate" title={sub}>{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

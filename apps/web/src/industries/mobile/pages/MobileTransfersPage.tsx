@@ -351,7 +351,7 @@ export default function MobileTransfersPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <ArrowLeftRight className="h-3.5 w-3.5 text-amber-300" /> Multi-Shop
               {shopName && (
                 <>
@@ -419,7 +419,7 @@ export default function MobileTransfersPage() {
         {/* Shops */}
         <div className="grid sm:grid-cols-[1fr_auto_1fr] gap-3 items-end">
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
+            <label className="block text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
               🏪 Kahan se
             </label>
             <select value={fromShopId} onChange={(e) => { setFromShopId(e.target.value); setDraft([]); }}
@@ -432,7 +432,7 @@ export default function MobileTransfersPage() {
             <ArrowRight className="h-5 w-5 text-cyan-500" />
           </div>
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
+            <label className="block text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
               🏬 Kahan bhejna hai
             </label>
             <select value={toShopId} onChange={(e) => setToShopId(e.target.value)}
@@ -470,7 +470,7 @@ export default function MobileTransfersPage() {
                   }`}>
                   <t.icon className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">{t.label}</span>
-                  {t.n > 0 && <span className="px-1.5 rounded-full bg-slate-200 dark:bg-slate-700 text-[10px] tabular-nums">{t.n}</span>}
+                  {t.n > 0 && <span className="px-1.5 rounded-full bg-slate-200 dark:bg-slate-700 text-[0.6875rem] tabular-nums">{t.n}</span>}
                 </button>
               ))}
             </div>
@@ -487,7 +487,7 @@ export default function MobileTransfersPage() {
                 <button onClick={() => setScannerOpen(true)}
                   className="h-12 w-14 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
                   <Camera className="h-4 w-4" />
-                  <span className="text-[8px] font-extrabold uppercase">Scan</span>
+                  <span className="text-[0.625rem] font-extrabold uppercase">Scan</span>
                 </button>
               )}
             </div>
@@ -529,10 +529,10 @@ export default function MobileTransfersPage() {
         {draft.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
+              <span className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
                 Bhejne wala maal ({draft.length})
               </span>
-              <button onClick={resetDraft} className="text-[11px] font-extrabold text-rose-600 dark:text-rose-400 hover:underline">
+              <button onClick={resetDraft} className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 hover:underline">
                 Sab hatao
               </button>
             </div>
@@ -549,9 +549,9 @@ export default function MobileTransfersPage() {
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-slate-900 dark:text-white text-xs truncate">{d.name}</div>
                       <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
-                        <span className={`px-1 py-0.5 rounded text-[9px] font-extrabold ${meta.chip}`}>{meta.label}</span>
-                        {d.ref && <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400">{d.ref}</span>}
-                        {d.detail && <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{d.detail}</span>}
+                        <span className={`px-1 py-0.5 rounded text-[0.625rem] font-extrabold ${meta.chip}`}>{meta.label}</span>
+                        {d.ref && <span className="text-[0.6875rem] font-mono font-bold text-slate-500 dark:text-slate-400">{d.ref}</span>}
+                        {d.detail && <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{d.detail}</span>}
                       </div>
                     </div>
 
@@ -568,7 +568,7 @@ export default function MobileTransfersPage() {
                         </button>
                       </div>
                     ) : (
-                      <span className="text-[10px] font-extrabold text-slate-400 shrink-0">1 device</span>
+                      <span className="text-[0.6875rem] font-extrabold text-slate-400 shrink-0">1 device</span>
                     )}
 
                     <button onClick={() => removeItem(d.key)}
@@ -681,7 +681,7 @@ export default function MobileTransfersPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-white">{t.transferNumber}</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold uppercase ${meta.tone}`}>{meta.label}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[0.6875rem] font-extrabold uppercase ${meta.tone}`}>{meta.label}</span>
                       </div>
 
                       <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 flex-wrap">
@@ -698,28 +698,28 @@ export default function MobileTransfersPage() {
                         )}
                       </div>
 
-                      <div className="mt-1 text-[11px] font-semibold text-slate-400 dark:text-slate-500">
+                      <div className="mt-1 text-[0.6875rem] font-semibold text-slate-400 dark:text-slate-500">
                         {formatDate(t.createdAt)}
                         {t.createdBy && ` · ${t.createdBy.fullName}`}
                         {t.receivedAt && ` · wasool ${formatDate(t.receivedAt)}`}
                       </div>
 
                       {t.notes && (
-                        <div className="mt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 italic">{t.notes}</div>
+                        <div className="mt-1 text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 italic">{t.notes}</div>
                       )}
 
                       {(phones.length > 0 || used.length > 0) && (
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {[...phones, ...used].slice(0, 8).map((i) => (
                             <span key={i.id}
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300"
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-mono font-bold text-slate-600 dark:text-slate-300"
                               title={i.product?.name ?? `${i.usedPhone?.brand} ${i.usedPhone?.model}`}>
                               <Hash className="h-2.5 w-2.5" />
                               {i.imei?.imei1 ?? i.usedPhone?.usedPhoneCode}
                             </span>
                           ))}
                           {phones.length + used.length > 8 && (
-                            <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-extrabold text-slate-500">
+                            <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-extrabold text-slate-500">
                               +{phones.length + used.length - 8} aur
                             </span>
                           )}
@@ -767,13 +767,13 @@ function PickRow({ onClick, kind, title, subtitle, badge, badgeCfg, extra }: any
       <div className="flex-1 min-w-0">
         <div className="font-extrabold text-slate-900 dark:text-white text-xs truncate">{title}</div>
         <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400">{subtitle}</span>
+          <span className="text-[0.6875rem] font-mono font-bold text-slate-500 dark:text-slate-400">{subtitle}</span>
           {badge && (
-            <span className={`px-1 py-0.5 rounded text-[9px] font-extrabold uppercase ${
+            <span className={`px-1 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ${
               badgeCfg ? `border ${badgeCfg.bg} ${badgeCfg.text} ${badgeCfg.border}` : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
             }`}>{badge}</span>
           )}
-          {extra && <span className="text-[10px] font-bold text-slate-400">{extra}</span>}
+          {extra && <span className="text-[0.6875rem] font-bold text-slate-400">{extra}</span>}
         </div>
       </div>
       <Plus className="h-4 w-4 text-cyan-600 dark:text-cyan-400 shrink-0" />
@@ -796,7 +796,7 @@ function CountChip({ kind, n }: { kind: keyof typeof KIND_META; n: number }) {
   const meta = KIND_META[kind];
   const Icon = meta.icon;
   return (
-    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold ${meta.chip}`}>
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.6875rem] font-extrabold ${meta.chip}`}>
       <Icon className="h-2.5 w-2.5" /> {n} {meta.label}
     </span>
   );
@@ -816,9 +816,9 @@ function Kpi({ icon: Icon, tone, label, value, sub }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider truncate">{label}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider truncate">{label}</div>
         <div className="font-extrabold text-slate-900 dark:text-white text-xl tabular-nums">{value}</div>
-        {sub && <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 truncate">{sub}</div>}
+        {sub && <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 truncate">{sub}</div>}
       </div>
     </div>
   );
@@ -835,7 +835,7 @@ function TransferTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900 dark:text-white">Shop Transfer Kaise Karein?</h3>
             </div>
           </div>
@@ -913,7 +913,7 @@ function Step({ n, title, body, tips }: any) {
           {tips && (
             <ul className="mt-2 space-y-1">
               {tips.map((t: string, i: number) => (
-                <li key={i} className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
+                <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
                   <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {t}
                 </li>
               ))}

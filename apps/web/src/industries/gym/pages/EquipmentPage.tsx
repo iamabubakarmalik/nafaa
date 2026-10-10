@@ -180,9 +180,9 @@ function EquipmentCard({ equipment, onEdit, onMaintenance, onDelete }: any) {
         )}
         <div className="flex-1 min-w-0">
           <div className="font-extrabold truncate">{equipment.name}</div>
-          <div className="text-[10px] font-mono font-bold text-slate-500">{equipment.equipmentNumber}</div>
+          <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{equipment.equipmentNumber}</div>
           <div className="text-xs font-extrabold text-orange-600">{cat?.label}</div>
-          <span className={'inline-block mt-1 px-2 py-0.5 rounded text-white text-[9px] font-extrabold uppercase ' + STATUS_COLORS[equipment.status as EquipmentStatus]}>
+          <span className={'inline-block mt-1 px-2 py-0.5 rounded text-white text-[0.625rem] font-extrabold uppercase ' + STATUS_COLORS[equipment.status as EquipmentStatus]}>
             {equipment.status.replace('_', ' ')}
           </span>
         </div>
@@ -211,19 +211,19 @@ function EquipmentCard({ equipment, onEdit, onMaintenance, onDelete }: any) {
             Next Maintenance
           </div>
           <div className="font-bold mt-0.5">{format(new Date(equipment.nextMaintenanceDate), 'dd MMM yyyy')}</div>
-          {needsMaint && <div className="text-[10px] font-extrabold text-amber-700 mt-0.5">⚠️ Overdue</div>}
+          {needsMaint && <div className="text-[0.6875rem] font-extrabold text-amber-700 mt-0.5">⚠️ Overdue</div>}
         </div>
       )}
 
       <div className="grid grid-cols-2 gap-1 text-xs pt-2 border-t border-slate-100">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Purchase</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Purchase</div>
           <div className="font-extrabold text-emerald-700 tabular-nums">
             {equipment.purchasePrice ? formatPKR(equipment.purchasePrice) : '—'}
           </div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Maint Cost</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Maint Cost</div>
           <div className="font-extrabold text-amber-700 tabular-nums">{formatPKR(equipment.totalMaintenanceCost)}</div>
         </div>
       </div>
@@ -302,15 +302,15 @@ function EquipmentForm({ editing, onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Purchase Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Purchase Date</label>
             <input type="date" value={form.purchaseDate} onChange={(e) => setForm({ ...form, purchaseDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Purchase Price</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Purchase Price</label>
             <input type="number" value={form.purchasePrice} onChange={(e) => setForm({ ...form, purchasePrice: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Vendor</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Vendor</label>
             <input value={form.vendorName} onChange={(e) => setForm({ ...form, vendorName: e.target.value })} placeholder="Vendor name" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
           </div>
         </div>
@@ -322,7 +322,7 @@ function EquipmentForm({ editing, onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Status</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Status</label>
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500">
               <option value="AVAILABLE">Available</option>
               <option value="IN_USE">In Use</option>
@@ -332,7 +332,7 @@ function EquipmentForm({ editing, onClose, onSaved }: any) {
             </select>
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Warranty Expiry</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Warranty Expiry</label>
             <input type="date" value={form.warrantyExpiry} onChange={(e) => setForm({ ...form, warrantyExpiry: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
           </div>
         </div>
@@ -344,11 +344,11 @@ function EquipmentForm({ editing, onClose, onSaved }: any) {
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Interval (days)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Interval (days)</label>
               <input type="number" value={form.maintenanceIntervalDays} onChange={(e) => setForm({ ...form, maintenanceIntervalDays: e.target.value })} placeholder="e.g. 90" className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Next Maintenance</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Next Maintenance</label>
               <input type="date" value={form.nextMaintenanceDate} onChange={(e) => setForm({ ...form, nextMaintenanceDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
             </div>
           </div>
@@ -397,13 +397,13 @@ function MaintenanceModal({ equipment, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Cost (Rs) *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Cost (Rs) *</label>
             <input type="number" step="0.01" autoFocus value={cost} onChange={(e) => setCost(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Next Maintenance Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Next Maintenance Date</label>
             <input type="date" value={nextDate} onChange={(e) => setNextDate(e.target.value)} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-            <div className="text-[10px] font-bold text-slate-500 mt-1">Leave blank to use interval ({equipment.maintenanceIntervalDays || 'N/A'} days)</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 mt-1">Leave blank to use interval ({equipment.maintenanceIntervalDays || 'N/A'} days)</div>
           </div>
           <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Maintenance notes (what was done, parts replaced...)" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
 

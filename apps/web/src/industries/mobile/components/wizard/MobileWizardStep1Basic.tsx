@@ -119,7 +119,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
         {/* 🎧 Accessory quick names */}
         {isAccessory && !basic.name && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-400 mb-1.5 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700 dark:text-emerald-400 mb-1.5 flex items-center gap-1">
               <Zap className="h-3 w-3" /> 1-Tap Quick Names
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -240,8 +240,8 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 dark:text-white text-sm">{t.label}</div>
-                  <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold leading-snug mt-0.5">{t.desc}</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold italic mt-1">{t.examples}</div>
+                  <div className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold leading-snug mt-0.5">{t.desc}</div>
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold italic mt-1">{t.examples}</div>
                 </div>
               </button>
             );
@@ -281,7 +281,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                       type="button"
                       onClick={() => onChange({ defaultPtaStatus: status })}
                       className={[
-                        'h-10 rounded-lg border-2 text-[10px] font-extrabold transition active:scale-95',
+                        'h-10 rounded-lg border-2 text-[0.6875rem] font-extrabold transition active:scale-95',
                         active
                           ? `${colors.bg} ${colors.text} ${colors.border} shadow-sm ring-2 ring-blue-200 dark:ring-blue-500/30`
                           : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-400',
@@ -293,7 +293,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                   );
                 })}
               </div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mt-1">
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold mt-1">
                 Naya IMEI add hote waqt ye default aajayega
               </p>
             </div>
@@ -354,7 +354,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
               ].join(' ')} />
               <div>
                 <div className={[
-                  'text-[10px] uppercase tracking-wider font-extrabold',
+                  'text-[0.6875rem] uppercase tracking-wider font-extrabold',
                   isLoss ? 'text-rose-700 dark:text-rose-400' : margin >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400',
                 ].join(' ')}>
                   {isLoss ? '⚠️ Loss Alert — sale price cost se kam!' : `Profit per ${priceUnit}`}
@@ -455,7 +455,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
                 <img src={url} alt={`mobile-${idx}`} className="w-full h-full object-cover" />
                 {idx === 0 && (
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-blue-600 text-white text-[9px] font-extrabold">PRIMARY</div>
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-blue-600 text-white text-[0.625rem] font-extrabold">PRIMARY</div>
                 )}
                 <button
                   onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, i) => i !== idx) })}

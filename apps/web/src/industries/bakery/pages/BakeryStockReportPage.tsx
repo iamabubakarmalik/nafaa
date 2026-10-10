@@ -242,7 +242,7 @@ export default function BakeryStockReportPage() {
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Boxes className="h-3.5 w-3.5 text-indigo-300" /> Bakery · Stock
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">📦 Paisa Kahan Phansa Hai</h1>
@@ -291,18 +291,18 @@ export default function BakeryStockReportPage() {
             <h3 className="font-black text-amber-900 dark:text-amber-200">Ye theek kar lein</h3>
           </div>
           {stats.out > 0 && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>{stats.out}</strong> cheezein bilkul khatam hain aur <strong>{stats.low}</strong> kam ho rahi hain.
             </p>
           )}
           {stats.noCost > 0 && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>{stats.noCost}</strong> cheezon ki cost 0 hai — in ka stock is hisab me
               zero qeemat ka gina ja raha hai, yani kul paisa asal se kam dikh raha hai.
             </p>
           )}
           {stats.noShelf > 0 && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>{stats.noShelf}</strong> banai hui cheezon par "kitni der theek rehti hai"
               likha nahi — in ki expiry ki warning kabhi nahi aayegi.
             </p>
@@ -318,16 +318,16 @@ export default function BakeryStockReportPage() {
           ['analytics', 'Analytics', BarChart3, null, '3'],
         ] as const).map(([v, label, Icon, count, key]) => (
           <button key={v} onClick={() => setTab(v as Tab)}
-            className={`h-14 rounded-2xl border-2 font-black text-[11px] sm:text-sm inline-flex items-center justify-center gap-1.5 transition ${
+            className={`h-14 rounded-2xl border-2 font-black text-[0.6875rem] sm:text-sm inline-flex items-center justify-center gap-1.5 transition ${
               tab === v
                 ? 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white border-transparent shadow-lg'
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-indigo-400'
             }`}>
             <Icon className="h-4 w-4 shrink-0" /> <span className="truncate">{label}</span>
             {count !== null && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'}`}>{count}</span>
+              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'}`}>{count}</span>
             )}
-            <kbd className="hidden lg:inline text-[9px] opacity-60">{key}</kbd>
+            <kbd className="hidden lg:inline text-[0.625rem] opacity-60">{key}</kbd>
           </button>
         ))}
       </div>
@@ -372,7 +372,7 @@ export default function BakeryStockReportPage() {
                 <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
                   <tr>
                     {['Cheez', 'Type', 'Stock', 'Cost', 'Rate', 'Lagat', 'Bikri par', 'Theek rehti'].map((h, i) => (
-                      <th key={h} className={`px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-500 ${i === 0 ? 'text-left' : 'text-right'}`}>{h}</th>
+                      <th key={h} className={`px-3 py-2.5 text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 ${i === 0 ? 'text-left' : 'text-right'}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -383,20 +383,20 @@ export default function BakeryStockReportPage() {
                         <Link to={`/bakery-products/${g.productId}`} className="font-extrabold text-slate-900 dark:text-white hover:text-indigo-600">
                           {g.productName}
                         </Link>
-                        <div className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                        <div className="text-[0.6875rem] font-bold text-slate-400 flex items-center gap-1">
                           {g.category ?? '—'}
                           {g.fridge && <Snowflake className="h-2.5 w-2.5 text-sky-500" />}
                         </div>
                       </td>
                       <td className="px-3 py-2.5 text-right">
-                        <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md ${
+                        <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md ${
                           g.isMade ? 'bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300'
                             : 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
                         }`}>{g.isMade ? 'Khud' : 'Bahar'}</span>
                       </td>
                       <td className={`px-3 py-2.5 text-right font-black tabular-nums ${
                         g.isOut ? 'text-rose-600' : g.isLow ? 'text-amber-600' : 'text-slate-900 dark:text-white'
-                      }`}>{fmtQty(Number(g.stock))} <span className="text-[10px] text-slate-400">{g.unit}</span></td>
+                      }`}>{fmtQty(Number(g.stock))} <span className="text-[0.6875rem] text-slate-400">{g.unit}</span></td>
                       <td className={`px-3 py-2.5 text-right font-bold tabular-nums ${Number(g.costPrice) <= 0 ? 'text-amber-600' : 'text-slate-600 dark:text-slate-300'}`}>
                         {Number(g.costPrice) > 0 ? formatPKR(g.costPrice) : '—'}
                       </td>
@@ -427,7 +427,7 @@ export default function BakeryStockReportPage() {
           <>
             <div className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3 flex gap-2 print:hidden">
               <Wheat className="h-4 w-4 text-violet-600 shrink-0 mt-0.5" />
-              <p className="text-[12px] font-bold text-violet-900 dark:text-violet-200">
+              <p className="text-[0.75rem] font-bold text-violet-900 dark:text-violet-200">
                 Ye bikne ki cheezein nahi — magar paisa yahan bhi utna hi laga hua hai. Aksar
                 bakery ka sab se bara stock yehi hota hai.
               </p>
@@ -445,7 +445,7 @@ export default function BakeryStockReportPage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.name}</div>
-                      <div className="text-[11px] font-bold text-slate-400 tabular-nums">
+                      <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                         {formatPKR(r.cost)} / {r.unit}{r.level > 0 ? ` · hadd ${fmtQty(r.level)}` : ''}
                       </div>
                     </div>
@@ -453,7 +453,7 @@ export default function BakeryStockReportPage() {
                       <div className={`text-lg font-black tabular-nums ${r.isOut ? 'text-rose-600' : r.isLow ? 'text-amber-600' : 'text-slate-900 dark:text-white'}`}>
                         {fmtQty(r.have)} <span className="text-xs">{r.unit}</span>
                       </div>
-                      <div className="text-[11px] font-black text-violet-700 dark:text-violet-400 tabular-nums">{formatPKR(r.value)}</div>
+                      <div className="text-[0.6875rem] font-black text-violet-700 dark:text-violet-400 tabular-nums">{formatPKR(r.value)}</div>
                     </div>
                   </div>
                 ))}
@@ -558,9 +558,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
       }`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -627,8 +627,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             jata hai — yani kul paisa asal se kam dikhta hai. Pehle wo theek karein.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-3</kbd> tab badlo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
@@ -649,8 +649,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

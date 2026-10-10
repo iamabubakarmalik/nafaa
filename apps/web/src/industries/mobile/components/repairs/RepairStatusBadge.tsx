@@ -47,8 +47,8 @@ export function RepairStatusBadge({
   const nextAction = STATUS_NEXT_ACTIONS[status];
 
   const sizeClasses = {
-    sm: 'text-[9px] px-1.5 py-0.5 gap-0.5',
-    md: 'text-[10px] px-2 py-0.5 gap-1',
+    sm: 'text-[0.625rem] px-1.5 py-0.5 gap-0.5',
+    md: 'text-[0.6875rem] px-2 py-0.5 gap-1',
     lg: 'text-xs px-2.5 py-1 gap-1.5',
   };
 

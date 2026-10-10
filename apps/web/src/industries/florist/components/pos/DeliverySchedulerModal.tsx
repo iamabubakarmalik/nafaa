@@ -127,7 +127,7 @@ export function DeliverySchedulerModal({ cartTotal, customerName, customerPhone,
                       a ? 'border-pink-600 bg-pink-600 text-white shadow-md scale-[1.02]' : 'border-slate-200 bg-white text-slate-700 hover:border-pink-400'}`}>
                     <Icon className="h-5 w-5 mb-1" />
                     <div className="font-extrabold text-sm">{t.l}</div>
-                    <div className={`text-[10px] font-semibold ${a ? 'text-white/80' : 'text-slate-500'}`}>{t.desc}</div>
+                    <div className={`text-[0.6875rem] font-semibold ${a ? 'text-white/80' : 'text-slate-500'}`}>{t.desc}</div>
                   </button>
                 );
               })}
@@ -239,8 +239,8 @@ export function DeliverySchedulerModal({ cartTotal, customerName, customerPhone,
                           className={`p-2.5 rounded-xl border-2 transition flex flex-col items-center gap-1 ${
                             a ? `${tones[s.tone]} shadow-md scale-[1.02]` : 'border-slate-200 bg-white text-slate-700 hover:border-amber-400'}`}>
                           <Icon className="h-5 w-5" />
-                          <div className="text-[11px] font-extrabold">{s.l}</div>
-                          <div className={`text-[9px] font-semibold ${a ? 'text-white/85' : 'text-slate-500'}`}>{s.desc}</div>
+                          <div className="text-[0.6875rem] font-extrabold">{s.l}</div>
+                          <div className={`text-[0.625rem] font-semibold ${a ? 'text-white/85' : 'text-slate-500'}`}>{s.desc}</div>
                         </button>
                       );
                     })}
@@ -264,7 +264,7 @@ export function DeliverySchedulerModal({ cartTotal, customerName, customerPhone,
                             const dt = new Date(); dt.setDate(dt.getDate() + q.d);
                             setD({ ...d, scheduledDeliveryDate: dt.toISOString().slice(0, 10) });
                           }}
-                          className="px-2.5 py-1 rounded-lg bg-white border-2 border-amber-200 hover:border-amber-400 text-amber-800 text-[10px] font-extrabold">
+                          className="px-2.5 py-1 rounded-lg bg-white border-2 border-amber-200 hover:border-amber-400 text-amber-800 text-[0.6875rem] font-extrabold">
                           {q.l}
                         </button>
                       ))}
@@ -292,7 +292,7 @@ export function DeliverySchedulerModal({ cartTotal, customerName, customerPhone,
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {MESSAGE_TEMPLATES.map((m) => (
                       <button key={m} type="button" onClick={() => setD({ ...d, messageCard: m })}
-                        className="px-2.5 py-1 rounded-lg bg-white border-2 border-violet-200 hover:border-violet-400 text-violet-800 text-[10px] font-extrabold">
+                        className="px-2.5 py-1 rounded-lg bg-white border-2 border-violet-200 hover:border-violet-400 text-violet-800 text-[0.6875rem] font-extrabold">
                         {m}
                       </button>
                     ))}
@@ -317,7 +317,7 @@ export function DeliverySchedulerModal({ cartTotal, customerName, customerPhone,
                       className="h-5 w-5 rounded" />
                     <div className="flex-1">
                       <div className="font-extrabold text-sm text-slate-900">Anonymous</div>
-                      <div className="text-[10px] text-slate-500 font-semibold">Hide sender name</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-semibold">Hide sender name</div>
                     </div>
                   </label>
                 </div>
@@ -341,7 +341,7 @@ export function DeliverySchedulerModal({ cartTotal, customerName, customerPhone,
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {DELIVERY_PRESETS.map((p) => (
                     <button key={p} type="button" onClick={() => setD({ ...d, deliveryCharge: p })}
-                      className="px-2.5 py-1 rounded-lg bg-white border-2 border-emerald-200 hover:border-emerald-400 text-emerald-800 text-[10px] font-extrabold">
+                      className="px-2.5 py-1 rounded-lg bg-white border-2 border-emerald-200 hover:border-emerald-400 text-emerald-800 text-[0.6875rem] font-extrabold">
                       {p === 0 ? 'Free' : formatPKR(p)}
                     </button>
                   ))}
@@ -355,7 +355,7 @@ export function DeliverySchedulerModal({ cartTotal, customerName, customerPhone,
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {WRAP_PRESETS.map((p) => (
                     <button key={p} type="button" onClick={() => setD({ ...d, wrappingCharge: p })}
-                      className="px-2.5 py-1 rounded-lg bg-white border-2 border-emerald-200 hover:border-emerald-400 text-emerald-800 text-[10px] font-extrabold">
+                      className="px-2.5 py-1 rounded-lg bg-white border-2 border-emerald-200 hover:border-emerald-400 text-emerald-800 text-[0.6875rem] font-extrabold">
                       {p === 0 ? 'None' : formatPKR(p)}
                     </button>
                   ))}

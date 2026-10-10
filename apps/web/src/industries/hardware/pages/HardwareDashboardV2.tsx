@@ -162,12 +162,12 @@ export default function HardwareDashboardV2() {
                   <div className="flex-1 min-w-0">
                     <div className="font-mono font-extrabold text-xs text-slate-500">{p.projectNumber}</div>
                     <div className="font-bold text-slate-900 truncate group-hover:text-blue-700">{p.name}</div>
-                    <div className="text-[10px] text-slate-500 font-semibold truncate">{p.customerName}</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">{p.customerName}</div>
                   </div>
                 </div>
                 {p.totalOrdered > 0 && (
                   <div className="mt-2">
-                    <div className="flex justify-between text-[9px] font-extrabold text-slate-500 mb-1">
+                    <div className="flex justify-between text-[0.625rem] font-extrabold text-slate-500 mb-1">
                       <span>Delivered</span>
                       <span>{((p.totalDelivered / p.totalOrdered) * 100).toFixed(0)}%</span>
                     </div>
@@ -190,30 +190,30 @@ export default function HardwareDashboardV2() {
             <div className="h-9 w-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-2">
               <Clock className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-amber-700">Pending Dispatch</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Pending Dispatch</div>
             <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{deliveriesSummary.pending}</div>
           </Link>
           <Link to="/hardware/deliveries" className="rounded-2xl bg-white border-2 border-slate-200 hover:border-orange-400 hover:shadow-md p-4 transition">
             <div className="h-9 w-9 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center mb-2">
               <Truck className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-orange-700">In Transit</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-orange-700">In Transit</div>
             <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{deliveriesSummary.inTransit}</div>
           </Link>
           <Link to="/hardware/deliveries" className="rounded-2xl bg-white border-2 border-slate-200 hover:border-blue-400 hover:shadow-md p-4 transition">
             <div className="h-9 w-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center mb-2">
               <Activity className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-blue-700">Today Scheduled</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Today Scheduled</div>
             <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{deliveriesSummary.todayScheduled}</div>
           </Link>
           <Link to="/hardware/deliveries" className="rounded-2xl bg-white border-2 border-slate-200 hover:border-emerald-400 hover:shadow-md p-4 transition">
             <div className="h-9 w-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-2">
               <Award className="h-4 w-4" />
             </div>
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Delivered</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Delivered</div>
             <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{deliveriesSummary.deliveredCount}</div>
-            <div className="text-[10px] font-bold text-emerald-700">{formatPKR(deliveriesSummary.deliveredRevenue)}</div>
+            <div className="text-[0.6875rem] font-bold text-emerald-700">{formatPKR(deliveriesSummary.deliveredRevenue)}</div>
           </Link>
         </section>
       )}

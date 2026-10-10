@@ -24,7 +24,7 @@ export function PosTeacher({ onClose }: { onClose: () => void }) {
         <div className="p-5 space-y-4">
           {/* 🖨️ PRINT FLOW — sab se zaroori */}
           <div className="rounded-2xl border-2 border-sky-200 dark:border-sky-500/30 bg-sky-50/60 dark:bg-sky-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-sky-700 dark:text-sky-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-sky-700 dark:text-sky-300 flex items-center gap-1">
               <Printer className="h-3 w-3" /> 🖨️ 2-Second Billing Flow
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -35,7 +35,7 @@ export function PosTeacher({ onClose }: { onClose: () => void }) {
             </div>
           </div>
           <div className="rounded-2xl border-2 border-rose-200 dark:border-rose-500/30 bg-rose-50/60 dark:bg-rose-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300 flex items-center gap-1">
               <Mic className="h-3 w-3" /> 🎤 Voice Sale (F6)
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -48,7 +48,7 @@ export function PosTeacher({ onClose }: { onClose: () => void }) {
             </div>
           </div>
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <Zap className="h-3 w-3" /> ⚡ Speed Shortcuts
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -59,7 +59,7 @@ export function PosTeacher({ onClose }: { onClose: () => void }) {
             </div>
           </div>
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
               <Banknote className="h-3 w-3" /> 💱 Zyada Paisa / Udhaar
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">

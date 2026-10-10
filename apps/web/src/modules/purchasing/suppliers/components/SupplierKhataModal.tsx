@@ -311,12 +311,12 @@ export function SupplierKhataModal({ supplierId, onClose }: { supplierId: string
               ? 'bg-gradient-to-br from-rose-500 to-red-700 text-white shadow-lg shadow-rose-500/30'
               : 'bg-gradient-to-br from-emerald-500 to-teal-700 text-white shadow-lg shadow-emerald-500/30'
           }`}>
-            <div className="text-[10px] font-extrabold uppercase tracking-widest opacity-80">
+            <div className="text-[0.6875rem] font-extrabold uppercase tracking-widest opacity-80">
               {t!.balance > 0 ? 'Hum ne dena hai' : 'Hisab clear hai'}
             </div>
             <div className="text-4xl font-extrabold tabular-nums mt-1">{formatPKR(t!.balance)}</div>
             {t!.openingBalance > 0 && (
-              <div className="text-[11px] font-bold opacity-80 mt-1">
+              <div className="text-[0.6875rem] font-bold opacity-80 mt-1">
                 isme {formatPKR(t!.openingBalance)} purana hisab shamil hai
               </div>
             )}
@@ -336,7 +336,7 @@ export function SupplierKhataModal({ supplierId, onClose }: { supplierId: string
                   <div className="text-xs font-extrabold text-violet-900 dark:text-violet-200">
                     📖 Purana hisab daalein
                   </div>
-                  <div className="text-[11px] font-semibold text-violet-700 dark:text-violet-300">
+                  <div className="text-[0.6875rem] font-semibold text-violet-700 dark:text-violet-300">
                     System chalane se pehle is supplier ko jitna dena tha — ek dafa daal dein,
                     phir aage ka hisab khud chalta rahega
                   </div>
@@ -356,7 +356,7 @@ export function SupplierKhataModal({ supplierId, onClose }: { supplierId: string
           <div className="flex gap-1.5 flex-wrap">
             {([['all', `Sab (${data.entries.length})`], ['due', '📦 Maal liya'], ['paid', '💸 Adaigi']] as const).map(([v, label]) => (
               <button key={v} onClick={() => setKind(v as FilterKind)}
-                className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border-2 transition ${
+                className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
                   kind === v ? 'bg-orange-600 border-orange-600 text-white shadow'
                     : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-orange-400'
                 }`}>{label}</button>
@@ -385,7 +385,7 @@ export function SupplierKhataModal({ supplierId, onClose }: { supplierId: string
           {/* Kharidari */}
           {data.purchases.length > 0 && (
             <div>
-              <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+              <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
                 Is supplier se kharidari ({data.purchases.length})
               </div>
               <div className="space-y-1.5 max-h-56 overflow-y-auto">
@@ -394,15 +394,15 @@ export function SupplierKhataModal({ supplierId, onClose }: { supplierId: string
                   return (
                     <div key={p.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
                       <div className="min-w-0 flex-1">
-                        <div className="text-[11px] font-extrabold text-slate-800 dark:text-slate-100 truncate">
+                        <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-slate-100 truncate">
                           {p.purchaseNumber}
                           <span className="ml-1.5 font-bold text-slate-400">{p.items.length} cheezein</span>
                         </div>
-                        <div className="text-[10px] font-bold text-slate-400">{fmtDate(p.purchasedAt)}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-400">{fmtDate(p.purchasedAt)}</div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-[11px] font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{formatPKR(p.total)}</div>
-                        {due > 0 && <div className="text-[10px] font-extrabold text-rose-600 dark:text-rose-400 tabular-nums">{formatPKR(due)} baqi</div>}
+                        <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{formatPKR(p.total)}</div>
+                        {due > 0 && <div className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 tabular-nums">{formatPKR(due)} baqi</div>}
                       </div>
                     </div>
                   );
@@ -430,7 +430,7 @@ function Shell({ title, subtitle, badge, onClose, children, footer }: {
           <div className="relative flex items-start justify-between gap-3">
             <div className="min-w-0">
               {badge && (
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
                   <BookOpen className="h-3 w-3" /> {badge}
                 </div>
               )}
@@ -464,11 +464,11 @@ function EntryRow({ e, canDelete, onDelete }: {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black border ${m.cls}`}>{m.label}</span>
-          {e.reference && <span className="font-mono text-[10px] font-bold text-slate-400">{e.reference}</span>}
+          <span className={`px-1.5 py-0.5 rounded-md text-[0.625rem] font-black border ${m.cls}`}>{m.label}</span>
+          {e.reference && <span className="font-mono text-[0.6875rem] font-bold text-slate-400">{e.reference}</span>}
         </div>
-        {e.note && <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 truncate">{e.note}</div>}
-        <div className="text-[10px] font-bold text-slate-400">{fmtDateTime(e.entryDate)}</div>
+        {e.note && <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 truncate">{e.note}</div>}
+        <div className="text-[0.6875rem] font-bold text-slate-400">{fmtDateTime(e.entryDate)}</div>
       </div>
       <div className="text-right shrink-0">
         <div className={`text-sm font-extrabold tabular-nums ${
@@ -476,7 +476,7 @@ function EntryRow({ e, canDelete, onDelete }: {
         }`}>
           {d > 0 ? '+' : '−'}{formatPKR(Math.abs(d))}
         </div>
-        <div className="text-[10px] font-bold text-slate-400 tabular-nums">baqi {formatPKR(e.balanceAfter)}</div>
+        <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">baqi {formatPKR(e.balanceAfter)}</div>
       </div>
       {canDelete && (
         <button onClick={onDelete} title="Entry hatao"
@@ -500,7 +500,7 @@ const inp = (extra = '', bad = false) =>
 
 function Lbl({ children, hint, req }: { children: React.ReactNode; hint?: string; req?: boolean }) {
   return (
-    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
       {children}{req && <span className="text-rose-500 ml-0.5">*</span>}
       {hint && <span className="text-slate-400 normal-case font-bold ml-1">({hint})</span>}
     </label>
@@ -522,7 +522,7 @@ function FormShell({ icon: Icon, title, hint, tone, children }: any) {
         </div>
         <div className="min-w-0">
           <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">{title}</h4>
-          {hint && <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{hint}</p>}
+          {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{hint}</p>}
         </div>
       </div>
       {children}
@@ -540,7 +540,7 @@ function OpeningForm({ pending, onCancel, onSubmit }: any) {
     <FormShell icon={BookOpen} title="Purana Hisab" tone="violet"
       hint="System chalane se pehle is supplier ko jitna dena tha">
       <div className="space-y-3">
-        <div className="rounded-xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3 text-[11px] font-bold text-violet-900 dark:text-violet-200">
+        <div className="rounded-xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3 text-[0.6875rem] font-bold text-violet-900 dark:text-violet-200">
           Ye <strong>sirf ek dafa</strong> daalna hota hai. Purani copy/register me jo baqi likha hai,
           wohi raqam yahan daal dein — aage ka hisab system khud chalata rahega.
         </div>
@@ -599,7 +599,7 @@ function AmountForm({ title, hint, icon, tone, max, pending, onCancel, onSubmit,
             className={inp('h-14 text-2xl font-extrabold tabular-nums text-center', bad && !!amount)}
             placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
           {bad && !!amount && (
-            <div className="mt-1 text-[11px] font-extrabold text-rose-600">
+            <div className="mt-1 text-[0.6875rem] font-extrabold text-rose-600">
               {max !== undefined ? `1 se ${formatPKR(max)} ke darmiyan honi chahiye` : '0 se ziyada honi chahiye'}
             </div>
           )}
@@ -631,7 +631,7 @@ function AmountForm({ title, hint, icon, tone, max, pending, onCancel, onSubmit,
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
               {PAY_METHODS.map(([v, label]) => (
                 <button key={v} type="button" onClick={() => setMethod(v)}
-                  className={`h-11 rounded-xl text-[11px] font-extrabold transition border-2 ${
+                  className={`h-11 rounded-xl text-[0.6875rem] font-extrabold transition border-2 ${
                     method === v
                       ? 'bg-emerald-600 text-white border-emerald-600 shadow'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-transparent hover:border-emerald-400'
@@ -640,7 +640,7 @@ function AmountForm({ title, hint, icon, tone, max, pending, onCancel, onSubmit,
                 </button>
               ))}
             </div>
-            <p className="mt-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               {method === 'CASH'
                 ? 'Cash golak (cash register) se nikal jayega.'
                 : 'Golak par asar nahi — ye paisa golak se nahi gaya.'}
@@ -730,14 +730,14 @@ function PrintPicker({ onPick, onCancel }: { onPick: (p: 'a4' | 'thermal') => vo
         <button onClick={() => onPick('a4')}
           className="w-full rounded-2xl border-2 border-blue-300 dark:border-blue-500/40 bg-blue-50 dark:bg-blue-500/10 p-4 text-left hover:shadow-lg transition active:scale-[0.98]">
           <div className="text-sm font-extrabold text-slate-900 dark:text-white">📄 A4 — poora hisab</div>
-          <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 mt-0.5">
+          <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 mt-0.5">
             Har entry alag line par, chalta hua balance, aur dono dastakhaton ki jagah. PDF bhi bana sakte hain.
           </div>
         </button>
         <button onClick={() => onPick('thermal')}
           className="w-full rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 p-4 text-left hover:shadow-lg transition active:scale-[0.98]">
           <div className="text-sm font-extrabold text-slate-900 dark:text-white">🧾 80mm — chhoti parchi</div>
-          <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 mt-0.5">
+          <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 mt-0.5">
             Usi printer se jis se receipt nikalti hai — supplier ko haath me dene ke liye.
           </div>
         </button>
@@ -754,7 +754,7 @@ function Box({ label, value, tone }: { label: string; value: string; tone: 'ambe
   };
   return (
     <div className={`rounded-xl border-2 px-3 py-2 ${tones[tone]}`}>
-      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
       <div className="text-lg font-extrabold tabular-nums truncate">{value}</div>
     </div>
   );
@@ -763,7 +763,7 @@ function Box({ label, value, tone }: { label: string; value: string; tone: 'ambe
 function SmallBtn({ icon: Icon, label, onClick }: any) {
   return (
     <button onClick={onClick}
-      className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-extrabold inline-flex items-center gap-1.5 hover:border-orange-400 transition">
+      className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 hover:border-orange-400 transition">
       <Icon className="h-3.5 w-3.5" /> {label}
     </button>
   );

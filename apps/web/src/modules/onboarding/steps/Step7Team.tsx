@@ -91,7 +91,7 @@ export function Step7Team({ data, onChange, options }: Props) {
                       }`}
                     >
                       <span className="text-base">{r.icon}</span>
-                      <span className="text-[10px] mt-0.5">{r.label}</span>
+                      <span className="text-[0.6875rem] mt-0.5">{r.label}</span>
                     </button>
                   );
                 })}

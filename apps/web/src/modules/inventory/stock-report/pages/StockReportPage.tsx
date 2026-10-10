@@ -331,7 +331,7 @@ export default function StockReportPage() {
           >
             <Sliders className="h-4 w-4" /> Filters
             {hasActiveFilters && (
-              <span className="h-5 w-5 rounded-full bg-brand-600 text-white text-[10px] font-bold flex items-center justify-center">
+              <span className="h-5 w-5 rounded-full bg-brand-600 text-white text-[0.6875rem] font-bold flex items-center justify-center">
                 !
               </span>
             )}
@@ -441,7 +441,7 @@ export default function StockReportPage() {
                       className="h-full bg-gradient-to-r from-brand-500 to-emerald-500"
                       style={{ width: `${Math.max(pct, 1)}%` }}
                     />
-                    <div className="absolute inset-0 flex items-center px-3 text-[11px] font-bold text-slate-900">
+                    <div className="absolute inset-0 flex items-center px-3 text-[0.6875rem] font-bold text-slate-900">
                       {cat.productCount} products
                     </div>
                   </div>
@@ -485,7 +485,7 @@ export default function StockReportPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b-2 border-slate-200">
                 <tr>
-                  <th className="px-2 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-700 w-10 print:hidden">
+                  <th className="px-2 py-3 text-center text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700 w-10 print:hidden">
                     <button
                       onClick={() => expandedRows.size > 0 ? collapseAll() : expandAll()}
                       className="h-6 w-6 rounded-md bg-slate-200 hover:bg-slate-300 text-slate-700 inline-flex items-center justify-center transition"
@@ -498,16 +498,16 @@ export default function StockReportPage() {
                       )}
                     </button>
                   </th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-700">#</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-700">Product</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-700">Category / Brand</th>
-                  <th className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-700">Industry</th>
-                  <th className="px-3 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-slate-700">Stock</th>
-                  <th className="px-3 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-slate-700">Cost</th>
-                  <th className="px-3 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-slate-700">Sale</th>
-                  <th className="px-3 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-slate-700">Stock Value</th>
-                  <th className="px-3 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-slate-700">Profit</th>
-                  <th className="px-3 py-3 text-center text-[10px] font-bold uppercase tracking-wider text-slate-700">Status</th>
+                  <th className="px-3 py-3 text-left text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">#</th>
+                  <th className="px-3 py-3 text-left text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Product</th>
+                  <th className="px-3 py-3 text-left text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Category / Brand</th>
+                  <th className="px-3 py-3 text-center text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Industry</th>
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Stock</th>
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Cost</th>
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Sale</th>
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Stock Value</th>
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Profit</th>
+                  <th className="px-3 py-3 text-center text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -566,7 +566,7 @@ export default function StockReportPage() {
                               {row.productName}
                               {row.isFeatured && <Star className="h-3 w-3 text-amber-500 fill-amber-500" />}
                             </div>
-                            <div className="flex items-center gap-1.5 mt-0.5 text-[10px]">
+                            <div className="flex items-center gap-1.5 mt-0.5 text-[0.6875rem]">
                               {row.sku && (
                                 <span className="font-mono text-slate-500">{row.sku}</span>
                               )}
@@ -594,7 +594,7 @@ export default function StockReportPage() {
                           </div>
                         )}
                         {row.brand && (
-                          <div className="text-[10px] font-bold text-violet-700 mt-0.5">
+                          <div className="text-[0.6875rem] font-bold text-violet-700 mt-0.5">
                             {row.brand}
                           </div>
                         )}
@@ -610,7 +610,7 @@ export default function StockReportPage() {
                         <div className="font-extrabold text-slate-900 tabular-nums">
                           {row.stock.toFixed(row.stock % 1 === 0 ? 0 : 2)}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-bold uppercase">
+                        <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">
                           {row.unit}
                         </div>
                       </td>
@@ -638,7 +638,7 @@ export default function StockReportPage() {
                       {/* Status */}
                       <td className="px-3 py-3 text-center">
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-extrabold ${statusInfo.bg} ${statusInfo.color}`}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[0.6875rem] font-extrabold ${statusInfo.bg} ${statusInfo.color}`}
                         >
                           <StatusIcon className="h-2.5 w-2.5" />
                           {statusInfo.label}
@@ -736,10 +736,10 @@ function IndustryBadge({ row }: { row: any }) {
   if (row.industryType === 'CARPET') {
     return (
       <div className="inline-flex flex-col items-center gap-0.5">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">
           <Layers className="h-2.5 w-2.5" /> CARPET
         </span>
-        <div className="text-[9px] text-slate-500 font-bold">
+        <div className="text-[0.625rem] text-slate-500 font-bold">
           {row.carpetRollCount}R / {row.carpetCutPiecesCount}CP
         </div>
       </div>
@@ -748,10 +748,10 @@ function IndustryBadge({ row }: { row: any }) {
   if (row.industryType === 'MOBILE') {
     return (
       <div className="inline-flex flex-col items-center gap-0.5">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-extrabold">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">
           <Smartphone className="h-2.5 w-2.5" /> MOBILE
         </span>
-        <div className="text-[9px] text-slate-500 font-bold">
+        <div className="text-[0.625rem] text-slate-500 font-bold">
           {row.imeiCount} IMEIs
         </div>
       </div>
@@ -759,13 +759,13 @@ function IndustryBadge({ row }: { row: any }) {
   }
   if (row.industryType === 'WEIGHT_BASED') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-extrabold">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">
         <Hash className="h-2.5 w-2.5" /> WEIGHT
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[9px] font-extrabold">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold">
       <Package className="h-2.5 w-2.5" /> STANDARD
     </span>
   );

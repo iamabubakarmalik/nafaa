@@ -101,15 +101,15 @@ export default function GymDashboardPage() {
 
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Total Revenue</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Total Revenue</div>
               <div className="mt-1 text-3xl font-extrabold tabular-nums text-emerald-300">{formatPKR(monthly.revenue)}</div>
             </div>
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Collected</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Collected</div>
               <div className="mt-1 text-3xl font-extrabold tabular-nums text-cyan-300">{formatPKR(monthly.collected)}</div>
             </div>
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Outstanding</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Outstanding</div>
               <div className="mt-1 text-3xl font-extrabold tabular-nums text-amber-300">{formatPKR(monthly.revenue - monthly.collected)}</div>
             </div>
           </div>
@@ -197,11 +197,11 @@ export default function GymDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm">{cls.name}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[9px] font-extrabold uppercase">
+                        <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
                           {cls.classType?.replace('_', ' ')}
                         </span>
-                        {isSoon && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">SOON</span>}
-                        {isFull && <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[9px] font-extrabold uppercase">FULL</span>}
+                        {isSoon && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">SOON</span>}
+                        {isFull && <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase">FULL</span>}
                       </div>
                       <div className="text-xs text-slate-500 font-semibold truncate">
                         {cls.trainer?.staff?.firstName || cls.trainer?.staff?.name || 'No trainer'} • {cls.currentEnrolled}/{cls.maxParticipants} enrolled
@@ -211,7 +211,7 @@ export default function GymDashboardPage() {
                       <div className="text-sm font-extrabold text-slate-900">
                         {format(new Date(cls.scheduledStart), 'HH:mm')}
                       </div>
-                      <div className="text-[10px] font-bold text-slate-500">
+                      <div className="text-[0.6875rem] font-bold text-slate-500">
                         {cls.durationMinutes}min
                       </div>
                     </div>
@@ -259,8 +259,8 @@ export default function GymDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm">{att.member?.memberNumber || 'Guest'}</span>
-                        {isInside && <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-extrabold uppercase">INSIDE</span>}
-                        <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-600 text-[9px] font-extrabold uppercase">{att.method}</span>
+                        {isInside && <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase">INSIDE</span>}
+                        <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-600 text-[0.625rem] font-extrabold uppercase">{att.method}</span>
                       </div>
                       <div className="text-xs text-slate-500 font-semibold">
                         {format(new Date(att.checkInAt), 'HH:mm')} • {duration}min {isInside ? '(ongoing)' : ''}
@@ -287,11 +287,11 @@ export default function GymDashboardPage() {
             {byGoal.map((g: any) => (
               <div key={g.primaryGoal} className="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-neutral-800 dark:to-neutral-800/50 p-4 border-2 border-slate-200 dark:border-neutral-700 text-center">
                 <div className="text-4xl mb-2">{GOAL_EMOJI[g.primaryGoal] || '🎯'}</div>
-                <div className="text-[10px] font-extrabold uppercase text-slate-700 mb-1">
+                <div className="text-[0.6875rem] font-extrabold uppercase text-slate-700 mb-1">
                   {g.primaryGoal.replace('_', ' ')}
                 </div>
                 <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{g._count._all}</div>
-                <div className="text-[10px] font-bold text-slate-500">members</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500">members</div>
               </div>
             ))}
           </div>
@@ -344,7 +344,7 @@ function MiniKpi({ label, value, icon: Icon, color, to }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-      <div className="text-[10px] font-extrabold uppercase text-slate-500 mt-0.5">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold uppercase text-slate-500 mt-0.5">{label}</div>
     </Link>
   );
 }

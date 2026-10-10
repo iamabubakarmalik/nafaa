@@ -63,7 +63,7 @@ export default function DevInvitePage() {
     <div className="min-h-screen bg-slate-100 px-4 py-8">
       <div className="mx-auto max-w-3xl space-y-4">
         <header className="rounded-2xl bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wide text-emerald-700"><Terminal className="h-4 w-4" /> Developer setup · Nafaa POS</div>
+          <div className="flex items-center gap-2 text-[0.75rem] font-semibold uppercase tracking-wide text-emerald-700"><Terminal className="h-4 w-4" /> Developer setup · Nafaa POS</div>
           <h1 className="mt-1 text-2xl font-bold text-slate-900">{info.business ?? info.channel} ki website ko Nafaa se jorein</h1>
           <p className="mt-1 text-sm text-slate-600">Website par order confirm hote hi (server se) neeche wala ek POST bhejein. Bas — order Nafaa me aa jayega, ghanti bajegi, bill aur stock khud.</p>
           <div className={`mt-4 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold ${live ? 'bg-emerald-50 text-emerald-800' : info.lastOrder ? 'bg-sky-50 text-sky-800' : 'bg-amber-50 text-amber-800'}`}>
@@ -120,10 +120,10 @@ export default function DevInvitePage() {
         <section className="rounded-2xl bg-white p-6 text-sm text-slate-700 shadow-sm">
           <h2 className="font-bold text-slate-900">Aur (optional)</h2>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li><code className="text-[12.5px]">GET {info.urls.products}?page=1&amp;limit=100</code> — Nafaa ke products + asli stock (website par dikhane ke liye)</li>
-            <li><code className="text-[12.5px]">GET {info.urls.stock}?skus=SKU1,SKU2</code> — sirf stock</li>
-            <li><code className="text-[12.5px]">POST {info.urls.base}/orders/&#123;orderId&#125;/status</code> — customer ne cancel kiya: <code>{'{"status":"cancelled"}'}</code></li>
-            <li><code className="text-[12.5px]">GET {info.urls.verify}</code> — key check</li>
+            <li><code className="text-[0.78125rem]">GET {info.urls.products}?page=1&amp;limit=100</code> — Nafaa ke products + asli stock (website par dikhane ke liye)</li>
+            <li><code className="text-[0.78125rem]">GET {info.urls.stock}?skus=SKU1,SKU2</code> — sirf stock</li>
+            <li><code className="text-[0.78125rem]">POST {info.urls.base}/orders/&#123;orderId&#125;/status</code> — customer ne cancel kiya: <code>{'{"status":"cancelled"}'}</code></li>
+            <li><code className="text-[0.78125rem]">GET {info.urls.verify}</code> — key check</li>
           </ul>
           <p className="mt-3 text-sm">
             Poori reference (saare fields, errors, status webhook, signature):{' '}

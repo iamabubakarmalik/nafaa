@@ -193,7 +193,7 @@ export default function SupplierDetailPage() {
             </div>
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-3xl font-black truncate">{s.name}</h1>
-              <div className="flex items-center gap-2 flex-wrap mt-1.5 text-[11px] font-extrabold">
+              <div className="flex items-center gap-2 flex-wrap mt-1.5 text-[0.6875rem] font-extrabold">
                 {!s.isActive && <span className="px-2 py-0.5 rounded-full bg-black/30 border border-white/30">Band</span>}
                 {s.contactPerson && <span className="px-2 py-0.5 rounded-full bg-white/20">👤 {s.contactPerson}</span>}
                 {s.city && <span className="px-2 py-0.5 rounded-full bg-white/20">📍 {s.city}{s.area ? `, ${s.area}` : ''}</span>}
@@ -254,11 +254,11 @@ export default function SupplierDetailPage() {
         <div className={`relative mt-5 rounded-2xl p-4 ${due > 0 ? 'bg-rose-500/25 border-2 border-rose-300/40' : 'bg-emerald-500/25 border-2 border-emerald-300/40'}`}>
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <div className="text-[10px] font-extrabold uppercase tracking-wider text-white/80">
+              <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-white/80">
                 {due > 0 ? 'Hum ne is supplier ko dena hai' : 'Hisab saaf hai'}
               </div>
               <div className="text-3xl font-black tabular-nums">{money(due)}</div>
-              <div className="text-[11px] font-bold text-white/85 mt-0.5">
+              <div className="text-[0.6875rem] font-bold text-white/85 mt-0.5">
                 {ledger?.lastPaymentAt
                   ? `Aakhri adaigi ${money(Number(ledger.lastPaymentAmount ?? 0))} — ${daysPhrase(ledger.daysSincePayment)}`
                   : due > 0 ? 'Ab tak ek bhi adaigi darj nahi' : 'Sab kuch chuka diya gaya'}
@@ -309,7 +309,7 @@ export default function SupplierDetailPage() {
             }`}>
             <t.icon className="h-4 w-4" /> {t.label}
             {t.n !== undefined && t.n > 0 && (
-              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
             )}
           </button>
         ))}
@@ -323,7 +323,7 @@ export default function SupplierDetailPage() {
             <Panel icon={BookOpen} title="Baqi Bana Kaise" desc="Har hissa alag alag" tone="violet"
               right={
                 <button onClick={() => setShowKhata(true)}
-                  className="h-9 px-3 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+                  className="h-9 px-3 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
                   Poora khata <ChevronRight className="h-3.5 w-3.5" />
                 </button>
               }>
@@ -346,7 +346,7 @@ export default function SupplierDetailPage() {
                     <div key={r.label} className={`flex items-center justify-between gap-3 rounded-xl p-2.5 ${tones[r.tone]}`}>
                       <div className="min-w-0">
                         <div className="text-sm font-extrabold truncate">{r.label}</div>
-                        <div className="text-[10px] font-bold opacity-70">{r.desc}</div>
+                        <div className="text-[0.6875rem] font-bold opacity-70">{r.desc}</div>
                       </div>
                       <div className="text-sm font-black tabular-nums shrink-0">
                         {r.sign} {money(r.value)}
@@ -393,7 +393,7 @@ export default function SupplierDetailPage() {
             <Panel icon={ShoppingCart} title="Haal ke Bill" desc="Aakhri 20 kharidari" tone="blue"
               right={
                 <button onClick={doCsv}
-                  className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+                  className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
                   <FileSpreadsheet className="h-3.5 w-3.5" /> CSV
                 </button>
               }>
@@ -478,10 +478,10 @@ export default function SupplierDetailPage() {
         <Panel icon={ShoppingCart} title="Saray Bill" desc={`${s._count?.purchases ?? 0} kharidari — aakhri 20 yahan`} tone="blue"
           right={
             <div className="flex gap-1.5">
-              <button onClick={doCsv} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+              <button onClick={doCsv} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
                 <FileSpreadsheet className="h-3.5 w-3.5" /> CSV
               </button>
-              <button onClick={doPrint} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition">
+              <button onClick={doPrint} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
                 <Printer className="h-3.5 w-3.5" /> Print
               </button>
             </div>
@@ -516,13 +516,13 @@ export default function SupplierDetailPage() {
                       <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
                         {p.product?.name ?? '—'}
                       </div>
-                      <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                         {p.quantity} {p.product?.unit ?? ''} · {p.orderCount} bill
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-xs font-black text-slate-900 dark:text-white tabular-nums">{money(p.total)}</div>
-                      <div className="text-[10px] font-bold text-slate-400">#{i + 1}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-400">#{i + 1}</div>
                     </div>
                   </Link>
                 ))}
@@ -545,11 +545,11 @@ export default function SupplierDetailPage() {
                       <div className="flex items-center justify-between gap-3 flex-wrap mb-2">
                         <div className="min-w-0">
                           <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{ph.productName}</div>
-                          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                             {ph.points.length} dafa aaya · pehla {money(ph.firstCost)} → abhi {money(ph.lastCost)}
                           </div>
                         </div>
-                        <span className={`px-2.5 py-1 rounded-xl text-[11px] font-black tabular-nums inline-flex items-center gap-1 shrink-0 ${
+                        <span className={`px-2.5 py-1 rounded-xl text-[0.6875rem] font-black tabular-nums inline-flex items-center gap-1 shrink-0 ${
                           up ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                              : down ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
@@ -577,7 +577,7 @@ export default function SupplierDetailPage() {
                       {up && ph.changePct > 15 && (
                         <div className="mt-2 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 flex items-start gap-2">
                           <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-                          <div className="text-[11px] font-bold text-rose-900 dark:text-rose-200">
+                          <div className="text-[0.6875rem] font-bold text-rose-900 dark:text-rose-200">
                             Rate {ph.changePct.toFixed(0)}% barh chuka hai — bechne ka rate bhi dekh lein warna munafa khatam ho jayega.
                           </div>
                         </div>
@@ -730,7 +730,7 @@ function PurchaseRow({ p, money, expandable }: { p: any; money: (n: number) => s
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-extrabold text-sm text-slate-900 dark:text-white font-mono truncate">{p.purchaseNumber}</div>
-          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
             <span>{fmtDate(p.purchasedAt)}</span>
             <span className="px-1.5 rounded" style={{ background: `${meta.hex}22`, color: meta.hex }}>{meta.label}</span>
             {p.items?.length > 0 && <span>{p.items.length} cheezein</span>}
@@ -739,8 +739,8 @@ function PurchaseRow({ p, money, expandable }: { p: any; money: (n: number) => s
         <div className="text-right shrink-0">
           <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">{money(Number(p.total ?? 0))}</div>
           {d > 0
-            ? <div className="text-[10px] font-extrabold text-rose-600 tabular-nums">{money(d)} udhaar</div>
-            : <div className="text-[10px] font-extrabold text-emerald-600">Poora diya</div>}
+            ? <div className="text-[0.6875rem] font-extrabold text-rose-600 tabular-nums">{money(d)} udhaar</div>
+            : <div className="text-[0.6875rem] font-extrabold text-emerald-600">Poora diya</div>}
         </div>
         {expandable && <ChevronRight className={`h-4 w-4 text-slate-400 shrink-0 transition ${open ? 'rotate-90' : ''}`} />}
       </button>
@@ -748,7 +748,7 @@ function PurchaseRow({ p, money, expandable }: { p: any; money: (n: number) => s
       {open && p.items?.length > 0 && (
         <div className="border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 p-3 space-y-1.5">
           {p.items.map((it: any) => (
-            <div key={it.id} className="flex items-center gap-2 text-[11px] font-bold">
+            <div key={it.id} className="flex items-center gap-2 text-[0.6875rem] font-bold">
               <span className="flex-1 min-w-0 truncate text-slate-700 dark:text-slate-200">{it.product?.name ?? '—'}</span>
               <span className="text-slate-500 tabular-nums shrink-0">
                 {it.quantity} {it.product?.unit ?? ''} × {money(Number(it.costPrice ?? 0))}
@@ -772,7 +772,7 @@ function Info({ label, value, icon: Icon, mono, copy }: {
     <div className="flex items-start gap-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
       <Icon className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
       <div className="min-w-0 flex-1">
-        <div className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500">{label}</div>
+        <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500">{label}</div>
         <div className={`text-sm font-extrabold text-slate-900 dark:text-white break-words ${mono ? 'font-mono' : ''}`}>
           {value}
         </div>

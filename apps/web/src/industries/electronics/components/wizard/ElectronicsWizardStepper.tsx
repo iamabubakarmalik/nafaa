@@ -42,10 +42,10 @@ export function ElectronicsWizardStepper({ currentStep, stepValidation, onStepCl
       {/* Progress */}
       <div className="px-2 pt-1.5 pb-2.5">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
+          <span className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
             Step {currentStep} / {STEPS.length}
           </span>
-          <span className="text-[10px] font-extrabold text-blue-700 dark:text-blue-400 tabular-nums">
+          <span className="text-[0.6875rem] font-extrabold text-blue-700 dark:text-blue-400 tabular-nums">
             {pct}% mukammal
           </span>
         </div>
@@ -99,7 +99,7 @@ export function ElectronicsWizardStepper({ currentStep, stepValidation, onStepCl
                 </div>
                 <div className="text-left min-w-0">
                   <div className={[
-                    'text-[10px] uppercase tracking-wider font-extrabold',
+                    'text-[0.6875rem] uppercase tracking-wider font-extrabold',
                     isActive ? 'text-white/90' : isPast ? 'text-blue-700 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400',
                   ].join(' ')}>
                     Step {s.id}
@@ -109,7 +109,7 @@ export function ElectronicsWizardStepper({ currentStep, stepValidation, onStepCl
                     <span className="hidden sm:inline">{s.label}</span>
                   </div>
                   <div className={[
-                    'text-[10px] font-bold leading-tight hidden sm:block truncate',
+                    'text-[0.6875rem] font-bold leading-tight hidden sm:block truncate',
                     isActive ? 'text-white/80' : hasError ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400',
                   ].join(' ')}>{hasError ? 'Kuch cheez reh gayi' : s.desc}</div>
                 </div>

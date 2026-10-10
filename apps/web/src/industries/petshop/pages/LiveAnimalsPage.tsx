@@ -245,7 +245,7 @@ export default function LiveAnimalsPage() {
                         </div>
                         <div>
                           <div className="font-extrabold text-slate-900 text-sm truncate group-hover:text-rose-700">{a.name || '—'}</div>
-                          <div className="text-[10px] text-slate-500 font-bold">{a.breed || 'Unknown'}</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-bold">{a.breed || 'Unknown'}</div>
                         </div>
                       </Link>
                     </td>
@@ -254,15 +254,15 @@ export default function LiveAnimalsPage() {
                       {a.gender || '—'}{a.ageMonths ? ` • ${a.ageMonths}mo` : ''}
                     </td>
                     <td className="px-3 py-2.5 text-center">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${meta.bg} ${meta.color}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold uppercase ${meta.bg} ${meta.color}`}>
                         {meta.label}
                       </span>
                     </td>
                     <td className="px-3 py-2.5 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        {a.isVaccinated && <span title="Vaccinated" className="text-[10px]">💉</span>}
-                        {a.isDewormed && <span title="Dewormed" className="text-[10px]">🐛</span>}
-                        {a.hasHealthCertificate && <span title="Health cert" className="text-[10px]">📄</span>}
+                        {a.isVaccinated && <span title="Vaccinated" className="text-[0.6875rem]">💉</span>}
+                        {a.isDewormed && <span title="Dewormed" className="text-[0.6875rem]">🐛</span>}
+                        {a.hasHealthCertificate && <span title="Health cert" className="text-[0.6875rem]">📄</span>}
                       </div>
                     </td>
                     <td className="px-3 py-2.5 text-right font-extrabold text-rose-700 tabular-nums">{formatPKR(a.askingPrice)}</td>
@@ -314,7 +314,7 @@ function AnimalCard({ animal: a, onReserve, onUnreserve, onDelete }: any) {
               <Heart className="h-16 w-16 text-rose-400" />
             </div>
           )}
-          <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${meta.bg} ${meta.color}`}>
+          <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${meta.bg} ${meta.color}`}>
             {meta.label}
           </div>
           {a.isFeatured && (
@@ -323,7 +323,7 @@ function AnimalCard({ animal: a, onReserve, onUnreserve, onDelete }: any) {
             </div>
           )}
           {isLongStay && (
-            <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-orange-500 text-white text-[9px] font-extrabold shadow-lg">
+            <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-orange-500 text-white text-[0.625rem] font-extrabold shadow-lg">
               {daysInStore}d in store
             </div>
           )}
@@ -335,7 +335,7 @@ function AnimalCard({ animal: a, onReserve, onUnreserve, onDelete }: any) {
           <div className="font-extrabold text-slate-900 truncate">
             {a.name || `${a.species.replace(/_/g, ' ')}`}
           </div>
-          <div className="text-[10px] font-mono text-slate-500">#{a.animalNumber}</div>
+          <div className="text-[0.6875rem] font-mono text-slate-500">#{a.animalNumber}</div>
           <div className="text-xs font-bold text-slate-600 truncate">
             {a.breed || a.species.replace(/_/g, ' ')}
             {a.gender && ` • ${a.gender}`}
@@ -344,19 +344,19 @@ function AnimalCard({ animal: a, onReserve, onUnreserve, onDelete }: any) {
         </div>
 
         <div className="flex items-center gap-1 flex-wrap">
-          {a.isVaccinated && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">💉 VAC</span>}
-          {a.isDewormed && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold">🐛 DEW</span>}
-          {a.hasHealthCertificate && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold">📄 CERT</span>}
+          {a.isVaccinated && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">💉 VAC</span>}
+          {a.isDewormed && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">🐛 DEW</span>}
+          {a.hasHealthCertificate && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold">📄 CERT</span>}
         </div>
 
         <div className="pt-2 border-t border-slate-100 flex items-end justify-between">
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-slate-500">Price</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Price</div>
             <div className="text-lg font-extrabold text-rose-700 tabular-nums">{formatPKR(a.askingPrice)}</div>
           </div>
           <div className="text-right">
             {a.currentCage && (
-              <div className="text-[10px] font-bold text-slate-500">Cage: {a.currentCage}</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">Cage: {a.currentCage}</div>
             )}
           </div>
         </div>
@@ -408,7 +408,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
       className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-rose-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1 truncate">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md shrink-0`}>
@@ -420,5 +420,5 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
 }

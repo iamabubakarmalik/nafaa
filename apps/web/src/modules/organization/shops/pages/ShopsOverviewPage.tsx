@@ -170,7 +170,7 @@ export default function ShopsOverviewPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wider">
               <Layers className="h-3.5 w-3.5" />
               Branch Analytics
             </div>
@@ -218,7 +218,7 @@ export default function ShopsOverviewPage() {
                 <Crown className="h-6 w-6" />
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-amber-700 dark:text-amber-300">
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-700 dark:text-amber-300">
                   Sab se aage
                 </div>
                 <div className="text-xl font-extrabold text-slate-900 dark:text-white truncate">
@@ -253,7 +253,7 @@ export default function ShopsOverviewPage() {
                   />
                   <div className="min-w-0">
                     <div className="text-sm font-bold text-slate-900 dark:text-white">{n.name}</div>
-                    <div className="text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+                    <div className="text-[0.6875rem] font-semibold text-amber-700 dark:text-amber-300">
                       {n.reasons.join(' · ')}
                     </div>
                   </div>
@@ -315,7 +315,7 @@ export default function ShopsOverviewPage() {
             </ResponsiveContainer>
           </div>
           {period === 'week' && (
-            <p className="px-1 pt-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            <p className="px-1 pt-1 text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">
               7-din ke kharche branch-wise abhi record nahi hote — is period mein Kharche 0 dikhenge.
             </p>
           )}
@@ -374,7 +374,7 @@ export default function ShopsOverviewPage() {
               <button
                 key={k}
                 onClick={() => setSortBy(k)}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold transition ${
+                className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold transition ${
                   sortBy === k
                     ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
                     : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
@@ -388,7 +388,7 @@ export default function ShopsOverviewPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <thead className="bg-slate-50 dark:bg-slate-800/60 text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400">
               <tr>
                 <Th className="text-left pl-5">Branch</Th>
                 <Th>Aaj</Th>
@@ -421,7 +421,7 @@ export default function ShopsOverviewPage() {
                         )}
                         <span className="font-extrabold text-slate-900 dark:text-white truncate">{s.name}</span>
                         {s.isMain && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 shrink-0">
+                          <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 shrink-0">
                             MAIN
                           </span>
                         )}
@@ -449,11 +449,11 @@ export default function ShopsOverviewPage() {
                     <Td>{s.staffCount}</Td>
                     <td className="px-3 py-3 text-center">
                       {s.registerOpen ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
                           <LockOpen className="h-2.5 w-2.5" /> Khula
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
                           <Lock className="h-2.5 w-2.5" /> Band
                         </span>
                       )}
@@ -498,9 +498,9 @@ export default function ShopsOverviewPage() {
 function HeroStat({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/25 p-4">
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">{label}</div>
       <div className="mt-1 text-xl sm:text-2xl font-extrabold tabular-nums truncate">{value}</div>
-      <div className="text-[11px] font-semibold text-white/70 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-semibold text-white/70 truncate">{sub}</div>
     </div>
   );
 }
@@ -508,7 +508,7 @@ function HeroStat({ label, value, sub }: { label: string; value: string; sub: st
 function MiniFact({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl bg-white/70 dark:bg-slate-800/60 p-2.5">
-      <div className="text-[9px] uppercase tracking-wide font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-wide font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
       <div className="font-extrabold text-slate-900 dark:text-white tabular-nums text-sm truncate">{value}</div>
     </div>
   );
@@ -540,7 +540,7 @@ function QuickLink({
         </div>
         <div className="min-w-0">
           <div className="font-extrabold text-slate-900 dark:text-white text-sm">{label}</div>
-          <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">{sub}</div>
+          <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 truncate">{sub}</div>
         </div>
         <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 ml-auto shrink-0 transition" />
       </div>

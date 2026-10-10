@@ -121,7 +121,7 @@ export default function PharmacyCustomersPage() {
               themeColor="emerald"
               onDelete={(id) => removeMutation.mutate(id)}
               extraBadges={c.cnic && (
-                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-[11px] font-bold">
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-[0.6875rem] font-bold">
                   <FileText className="h-3 w-3" />
                   CNIC verified
                 </div>

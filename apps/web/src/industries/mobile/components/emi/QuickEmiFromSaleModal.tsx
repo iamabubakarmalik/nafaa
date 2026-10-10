@@ -114,11 +114,11 @@ export function QuickEmiFromSaleModal({
               <CreditCard className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-indigo-700 dark:text-indigo-300 font-extrabold">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-indigo-700 dark:text-indigo-300 font-extrabold">
                 Sale → EMI Convert
               </div>
               <h3 className="font-extrabold text-slate-900 dark:text-white truncate">Sale: {saleNumber}</h3>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
+              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
                 {customerName}{customerPhone && ` • ${customerPhone}`}
               </div>
             </div>
@@ -133,15 +133,15 @@ export function QuickEmiFromSaleModal({
           <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-blue-50 dark:from-emerald-500/10 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3.5">
             <div className="grid grid-cols-3 gap-2 text-center">
               <div>
-                <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400">Sale Total</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">Sale Total</div>
                 <div className="font-extrabold text-slate-900 dark:text-white text-sm tabular-nums">{formatPKR(saleTotal)}</div>
               </div>
               <div>
-                <div className="text-[9px] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Already Paid</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Already Paid</div>
                 <div className="font-extrabold text-emerald-700 dark:text-emerald-400 text-sm tabular-nums">{formatPKR(paidAmount)}</div>
               </div>
               <div>
-                <div className="text-[9px] uppercase font-extrabold text-indigo-700 dark:text-indigo-400">To Finance</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-indigo-700 dark:text-indigo-400">To Finance</div>
                 <div className="font-extrabold text-indigo-700 dark:text-indigo-400 text-sm tabular-nums">{formatPKR(financed)}</div>
               </div>
             </div>
@@ -162,12 +162,12 @@ export function QuickEmiFromSaleModal({
               />
             </div>
             {down >= saleTotal && (
-              <div className="text-[10px] text-rose-600 dark:text-rose-400 font-extrabold mt-1 flex items-center gap-1">
+              <div className="text-[0.6875rem] text-rose-600 dark:text-rose-400 font-extrabold mt-1 flex items-center gap-1">
                 <AlertTriangle className="h-3 w-3" /> Down payment total se kam honi chahiye
               </div>
             )}
             {saleTotal > 0 && down < saleTotal && downPct < 15 && (
-              <div className="text-[10px] text-amber-600 dark:text-amber-400 font-extrabold mt-1 flex items-center gap-1">
+              <div className="text-[0.6875rem] text-amber-600 dark:text-amber-400 font-extrabold mt-1 flex items-center gap-1">
                 <AlertTriangle className="h-3 w-3" /> Sirf {downPct.toFixed(0)}% down — 20%+ safer hai
               </div>
             )}
@@ -214,7 +214,7 @@ export function QuickEmiFromSaleModal({
               <div className="text-3xl font-extrabold text-indigo-700 dark:text-indigo-300 tabular-nums">
                 {formatPKR(perInstallment)}
               </div>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1 tabular-nums">
+              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-1 tabular-nums">
                 × {installmentCount} months = {formatPKR(financed)}
               </div>
             </div>
@@ -245,7 +245,7 @@ export function QuickEmiFromSaleModal({
                     d.setDate(d.getDate() + q.days);
                     setStartDate(d.toISOString().slice(0, 10));
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-extrabold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                 >
                   {q.label}
                 </button>
@@ -274,7 +274,7 @@ export function QuickEmiFromSaleModal({
                   </div>
                 ))}
                 {preview.length > 6 && (
-                  <div className="text-center text-[10px] text-slate-500 dark:text-slate-400 font-extrabold py-1">
+                  <div className="text-center text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold py-1">
                     +{preview.length - 6} aur installments
                   </div>
                 )}
@@ -296,7 +296,7 @@ export function QuickEmiFromSaleModal({
           {/* Info */}
           <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3 flex items-start gap-2">
             <Sparkles className="h-4 w-4 text-blue-700 dark:text-blue-300 shrink-0 mt-0.5" />
-            <div className="text-[11px] font-semibold text-blue-900 dark:text-blue-200 leading-relaxed">
+            <div className="text-[0.6875rem] font-semibold text-blue-900 dark:text-blue-200 leading-relaxed">
               <strong>Yaad rakho:</strong> Down payment POS pe already aa chuki hai.
               Baqi amount installments me convert hogi — phir EMI page se track + WhatsApp reminders.
             </div>

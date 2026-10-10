@@ -196,10 +196,10 @@ function TechnicianCard({ technician, onEdit, onSkills, onStatusChange, onDelete
             <span>{level?.label}</span>
           </div>
           {technician.experienceYears > 0 && (
-            <div className="text-[10px] text-slate-500 font-bold">{technician.experienceYears} years exp.</div>
+            <div className="text-[0.6875rem] text-slate-500 font-bold">{technician.experienceYears} years exp.</div>
           )}
           {technician.staff?.phone && (
-            <a href={'tel:' + technician.staff.phone} className="text-[10px] text-blue-600 font-bold hover:underline inline-flex items-center gap-0.5">
+            <a href={'tel:' + technician.staff.phone} className="text-[0.6875rem] text-blue-600 font-bold hover:underline inline-flex items-center gap-0.5">
               <Phone className="h-2.5 w-2.5" />
               {technician.staff.phone}
             </a>
@@ -223,12 +223,12 @@ function TechnicianCard({ technician, onEdit, onSkills, onStatusChange, onDelete
       {(technician.primarySkill || technician.secondarySkills?.length > 0) && (
         <div className="flex flex-wrap gap-1">
           {technician.primarySkill && (
-            <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[9px] font-extrabold uppercase">
+            <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[0.625rem] font-extrabold uppercase">
               ⭐ {technician.primarySkill.replace('_', ' ')}
             </span>
           )}
           {technician.secondarySkills?.slice(0, 2).map((s: string, i: number) => (
-            <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[9px] font-extrabold uppercase">
+            <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
               {s.replace('_', ' ')}
             </span>
           ))}
@@ -250,22 +250,22 @@ function TechnicianCard({ technician, onEdit, onSkills, onStatusChange, onDelete
 
       <div className="grid grid-cols-4 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Jobs</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Jobs</div>
           <div className="text-sm font-extrabold">{technician.completedJobs}</div>
         </div>
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-emerald-700">Revenue</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Revenue</div>
           <div className="text-xs font-extrabold text-emerald-700 tabular-nums">{formatPKR(technician.totalRevenue).replace('Rs', '').trim()}</div>
         </div>
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
+          <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
             <Star className="h-2 w-2 fill-current" />
             Rating
           </div>
           <div className="text-sm font-extrabold text-amber-700">{technician.avgRating ? technician.avgRating.toFixed(1) : '—'}</div>
         </div>
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-blue-700">On Time</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">On Time</div>
           <div className="text-sm font-extrabold text-blue-700">{technician.onTimePct?.toFixed(0)}%</div>
         </div>
       </div>
@@ -376,7 +376,7 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         {!editing && (
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Select Staff *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Select Staff *</label>
             <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
               <option value="">-- Pick staff --</option>
               {staffList.map((s: any) => {
@@ -388,7 +388,7 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
         )}
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
           {form.photoUrl ? (
             <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-slate-200">
               <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
@@ -414,7 +414,7 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Primary Skill</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Primary Skill</label>
           <select value={form.primarySkill} onChange={(e) => setForm({ ...form, primarySkill: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
             <option value="">-- Select --</option>
             <option value="ELECTRICIAN">⚡ Electrician</option>
@@ -457,7 +457,7 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
             Working Schedule
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Working Days</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Working Days</label>
             <div className="grid grid-cols-7 gap-1">
               {DAYS.map((d, i) => (
                 <button key={d} onClick={() => toggleDay(i)} className={
@@ -469,19 +469,19 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
           </div>
           <div className="grid sm:grid-cols-4 gap-2">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Start</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Start</label>
               <input type="time" value={form.workStartTime} onChange={(e) => setForm({ ...form, workStartTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-extrabold focus:outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">End</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">End</label>
               <input type="time" value={form.workEndTime} onChange={(e) => setForm({ ...form, workEndTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-extrabold focus:outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Break Start</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Break Start</label>
               <input type="time" value={form.breakStartTime} onChange={(e) => setForm({ ...form, breakStartTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Break End</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Break End</label>
               <input type="time" value={form.breakEndTime} onChange={(e) => setForm({ ...form, breakEndTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
             </div>
           </div>
@@ -516,15 +516,15 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
           </select>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Percentage %</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Percentage %</label>
               <input type="number" step="0.1" value={form.commissionPct} onChange={(e) => setForm({ ...form, commissionPct: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Fixed / Job</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Fixed / Job</label>
               <input type="number" value={form.fixedPerJob} onChange={(e) => setForm({ ...form, fixedPerJob: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Monthly Salary</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Monthly Salary</label>
               <input type="number" value={form.monthlySalary} onChange={(e) => setForm({ ...form, monthlySalary: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
           </div>
@@ -533,15 +533,15 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
         {/* Booking rules */}
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Max Daily Jobs</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Max Daily Jobs</label>
             <input type="number" value={form.maxDailyJobs} onChange={(e) => setForm({ ...form, maxDailyJobs: e.target.value })} placeholder="Unlimited" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Max Ongoing</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Max Ongoing</label>
             <input type="number" value={form.maxOngoingJobs} onChange={(e) => setForm({ ...form, maxOngoingJobs: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Buffer (min)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Buffer (min)</label>
             <input type="number" value={form.bookingBufferMin} onChange={(e) => setForm({ ...form, bookingBufferMin: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
         </div>
@@ -604,7 +604,7 @@ function SkillsModal({ technician, onClose, onSaved }: any) {
                   (isSelected ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-violet-300')
                 }>
                   <div className="font-extrabold text-sm truncate">{svc.name}</div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase">{svc.businessType?.replace('_', ' ')}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{svc.businessType?.replace('_', ' ')}</div>
                   <div className="text-xs font-extrabold text-emerald-700 tabular-nums mt-1">{formatPKR(svc.baseCharge)}</div>
                 </button>
               );

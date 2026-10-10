@@ -381,12 +381,12 @@ export function VoiceSaleButton({
 
               {/* Examples */}
               <div>
-                <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1">
+                <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" /> Aise bolo
                 </div>
                 <div className="flex flex-wrap gap-1.5 justify-center">
                   {EXAMPLES.map((ex) => (
-                    <span key={ex} className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                    <span key={ex} className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
                       {ex}
                     </span>
                   ))}

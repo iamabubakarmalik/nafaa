@@ -32,7 +32,7 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Charge Type *</h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">How do you charge for this service?</p>
+            <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">How do you charge for this service?</p>
           </div>
         </div>
 
@@ -55,7 +55,7 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
                 <div className={'font-extrabold text-sm ' + (active ? 'text-emerald-800' : 'text-slate-900 dark:text-white')}>
                   {t.label}
                 </div>
-                <div className="text-[10px] font-semibold text-slate-500 mt-0.5">{t.desc}</div>
+                <div className="text-[0.6875rem] font-semibold text-slate-500 mt-0.5">{t.desc}</div>
               </button>
             );
           })}
@@ -69,7 +69,7 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Base Charges</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Fill any that apply — at least one required</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Fill any that apply — at least one required</p>
           </div>
         </div>
 
@@ -119,7 +119,7 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Surcharges (optional)</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Extra charges for special conditions</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Extra charges for special conditions</p>
           </div>
         </div>
 
@@ -162,7 +162,7 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Advanced Options</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Quote and advance payment rules</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Quote and advance payment rules</p>
           </div>
         </div>
 
@@ -182,7 +182,7 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
             <FileText className="h-5 w-5 text-violet-600" />
             <div>
               <div className="font-extrabold text-sm">Requires Quote</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Custom quote every time</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Custom quote every time</div>
             </div>
           </label>
 
@@ -201,7 +201,7 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
             <Wallet className="h-5 w-5 text-emerald-600" />
             <div>
               <div className="font-extrabold text-sm">Requires Advance</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Book with advance payment</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Book with advance payment</div>
             </div>
           </label>
         </div>
@@ -226,7 +226,7 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
                 %
               </span>
             </div>
-            <p className="text-[10px] text-emerald-700 font-bold mt-1">
+            <p className="text-[0.6875rem] text-emerald-700 font-bold mt-1">
               Customer will need to pay {pricing.advancePct || 0}% upfront to confirm booking
             </p>
           </div>
@@ -272,7 +272,7 @@ function PriceInput({ label, emoji, value, onChange, tone }: any) {
   };
   return (
     <div>
-      <label className="block text-[11px] font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
+      <label className="block text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
         {emoji} {label}
       </label>
       <div className="relative">

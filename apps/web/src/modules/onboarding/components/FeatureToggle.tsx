@@ -33,7 +33,7 @@ export function FeatureToggle({ features, onChange, items, color, borderColor }:
             }`}
           >
             {item.recommended && !enabled && (
-              <div className="absolute top-2 right-2 text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+              <div className="absolute top-2 right-2 text-[0.625rem] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
                 RECOMMENDED
               </div>
             )}

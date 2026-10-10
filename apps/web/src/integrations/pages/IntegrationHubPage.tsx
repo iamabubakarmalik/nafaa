@@ -277,12 +277,12 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-xl font-black tabular-nums">{stats.health.toFixed(0)}%</span>
-                  <span className="text-[9px] font-black text-white/70">sehat</span>
+                  <span className="text-[0.625rem] font-black text-white/70">sehat</span>
                 </div>
               </div>
             )}
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
                 <Link2 className="h-3.5 w-3.5 text-amber-300" /> Integration hub
                 {shopName && <span className="normal-case tracking-normal text-emerald-200">· 🏪 {shopName}</span>}
                 {stats.errored.length > 0 && (
@@ -297,7 +297,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                 har 30 second me khud taaza.
               </p>
               {stats.lastSync && (
-                <p className="mt-1 text-[11px] font-bold text-white/60 inline-flex items-center gap-1">
+                <p className="mt-1 text-[0.6875rem] font-bold text-white/60 inline-flex items-center gap-1">
                   <Clock className="h-3 w-3" /> Aakhri sync {timeAgo(stats.lastSync)} pehle
                 </p>
               )}
@@ -357,10 +357,10 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                     <span className="h-9 w-9 rounded-xl bg-rose-100 dark:bg-rose-500/20 flex items-center justify-center text-lg shrink-0">{getIntegrationEmoji(i.type)}</span>
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-black text-slate-900 dark:text-white truncate">{i.displayName}</div>
-                      <div className="text-[10px] font-bold text-rose-600">{STATUS_CONFIG[i.status]?.label}{i.lastSyncAt ? ` · ${timeAgo(i.lastSyncAt)} pehle` : ''}</div>
+                      <div className="text-[0.6875rem] font-bold text-rose-600">{STATUS_CONFIG[i.status]?.label}{i.lastSyncAt ? ` · ${timeAgo(i.lastSyncAt)} pehle` : ''}</div>
                     </div>
                     <button onClick={() => reconnectMutation.mutate(i.id)} disabled={reconnectMutation.isPending}
-                      className="h-8 px-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-black inline-flex items-center gap-1 disabled:opacity-60 transition">
+                      className="h-8 px-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1 disabled:opacity-60 transition">
                       {reconnectMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wifi className="h-3 w-3" />} Jorein
                     </button>
                   </div>
@@ -390,11 +390,11 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                   <div className="flex items-center gap-2">
                     <span className="text-base font-black truncate">{t.label}</span>
                     {n > 0 && (
-                      <span className={cn('px-2 py-0.5 rounded-full text-[11px] font-black tabular-nums',
+                      <span className={cn('px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums',
                         t.value === 'overview' ? (on ? 'bg-black/25' : 'bg-slate-100 dark:bg-slate-800 text-slate-500') : 'bg-rose-500 text-white')}>{n}</span>
                     )}
                   </div>
-                  <div className={cn('text-[11px] font-bold truncate', on ? 'text-white/80' : 'text-slate-400')}>{t.hint}</div>
+                  <div className={cn('text-[0.6875rem] font-bold truncate', on ? 'text-white/80' : 'text-slate-400')}>{t.hint}</div>
                 </div>
                 <span className="sm:hidden text-xs font-black truncate">{t.label}</span>
               </div>
@@ -470,7 +470,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                     className={cn('shrink-0 px-3 py-2 rounded-xl text-xs font-black transition border-2 inline-flex items-center gap-1.5',
                       on ? `bg-gradient-to-r ${c.gradient} text-white border-transparent shadow-lg` : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300')}>
                     <span>{c.emoji}</span> {c.label}
-                    <span className={cn('px-1.5 rounded text-[10px] tabular-nums', on ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-700')}>{c.mine.length}</span>
+                    <span className={cn('px-1.5 rounded text-[0.6875rem] tabular-nums', on ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-700')}>{c.mine.length}</span>
                   </button>
                 );
               })}
@@ -492,17 +492,17 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                     className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 text-left hover:shadow-md hover:-translate-y-0.5 transition">
                     <div className="flex items-center justify-between">
                       <span className={cn('h-10 w-10 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center shadow-lg', c.gradient)}><c.icon className="h-5 w-5" /></span>
-                      {live > 0 ? <span className="text-[10px] font-black text-emerald-600">● {live} chal rahi</span>
-                        : <span className="text-[10px] font-black text-slate-400">Abhi koi nahi</span>}
+                      {live > 0 ? <span className="text-[0.6875rem] font-black text-emerald-600">● {live} chal rahi</span>
+                        : <span className="text-[0.6875rem] font-black text-slate-400">Abhi koi nahi</span>}
                     </div>
                     <div className="mt-3 font-black text-slate-900 dark:text-white">{c.label}</div>
-                    <div className="text-[11px] font-bold text-slate-500">{c.hint}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{c.hint}</div>
                     <div className="mt-2 flex -space-x-1.5">
                       {c.mine.slice(0, 5).map((i) => (
                         <span key={i.id} className="h-7 w-7 rounded-full bg-slate-100 dark:bg-slate-800 ring-2 ring-white dark:ring-slate-900 flex items-center justify-center text-sm">{getIntegrationEmoji(i.type)}</span>
                       ))}
                       {c.open.length > 0 && (
-                        <span className="h-7 px-2 rounded-full bg-violet-100 dark:bg-violet-500/20 ring-2 ring-white dark:ring-slate-900 flex items-center text-[10px] font-black text-violet-700 dark:text-violet-300">+{c.open.length} aur</span>
+                        <span className="h-7 px-2 rounded-full bg-violet-100 dark:bg-violet-500/20 ring-2 ring-white dark:ring-slate-900 flex items-center text-[0.6875rem] font-black text-violet-700 dark:text-violet-300">+{c.open.length} aur</span>
                       )}
                     </div>
                   </button>
@@ -554,7 +554,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
             <span className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-lg shrink-0"><Store className="h-6 w-6" /></span>
             <div className="flex-1 min-w-0">
               <div className="font-black text-slate-900 dark:text-white">Apni website jorein — WooCommerce, Shopify ya custom</div>
-              <div className="text-[12px] font-bold text-slate-600 dark:text-slate-300">Setup checklist, test order, products sync aur keys — sab ek safhe par</div>
+              <div className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">Setup checklist, test order, products sync aur keys — sab ek safhe par</div>
             </div>
             <ChevronRight className="h-5 w-5 text-emerald-600 shrink-0" />
           </Link>
@@ -568,21 +568,21 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                   <div key={g.key}>
                     <div className="mb-2 flex items-center gap-2 text-sm font-black text-slate-700 dark:text-slate-200">
                       <span>{g.cfg.emoji}</span> {g.cfg.label}
-                      <span className="text-[11px] font-bold text-slate-400">· {g.cfg.hint}</span>
+                      <span className="text-[0.6875rem] font-bold text-slate-400">· {g.cfg.hint}</span>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-3">
                       {g.items.map((a: any) => (
                         <button key={a.type} onClick={() => startConnect(a)}
                           className="group relative flex flex-col p-4 rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-500/50 hover:shadow-lg transition text-left">
                           {a.popular && (
-                            <span className="absolute top-3 right-3 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[9px] font-black">
+                            <span className="absolute top-3 right-3 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.625rem] font-black">
                               <Star className="h-2.5 w-2.5 fill-current" /> Mashhoor
                             </span>
                           )}
                           <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl" style={{ backgroundColor: `${a.color ?? '#8b5cf6'}20` }}>{a.icon}</div>
                           <div className="mt-3 font-black text-sm text-slate-900 dark:text-white">{a.name}</div>
-                          <div className="mt-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400 line-clamp-2 flex-1">{a.description}</div>
-                          <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-black text-violet-700 dark:text-violet-300">
+                          <div className="mt-0.5 text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 line-clamp-2 flex-1">{a.description}</div>
+                          <div className="mt-3 inline-flex items-center gap-1 text-[0.6875rem] font-black text-violet-700 dark:text-violet-300">
                             <Plus className="h-3 w-3" /> Jorein
                           </div>
                         </button>
@@ -604,7 +604,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
             <span className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center text-2xl shadow-lg shrink-0">🛍️</span>
             <div className="flex-1 min-w-0">
               <div className="font-black text-slate-900 dark:text-white">Online Orders ka poora safha</div>
-              <div className="text-[12px] font-bold text-slate-600 dark:text-slate-300">
+              <div className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
                 Accept → bill → receipt → stock, delivery aur COD ka hisaab, analytics — sab ek jagah
               </div>
             </div>
@@ -687,9 +687,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active, highlight, 
             : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800')}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-tight">{value}</div>
-          {sub && <div className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={cn('h-11 w-11 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center shadow-lg shrink-0', KPI_TONES[tone], pulse && 'animate-pulse')}>
           <Icon className="h-5 w-5" />
@@ -709,7 +709,7 @@ function MiniKpi({ label, value, tone }: { label: string; value: React.ReactNode
   return (
     <div className={cn('rounded-2xl border-2 p-3', t)}>
       <div className="text-2xl font-black tabular-nums">{value}</div>
-      <div className="text-[11px] font-black opacity-80">{label}</div>
+      <div className="text-[0.6875rem] font-black opacity-80">{label}</div>
     </div>
   );
 }
@@ -721,7 +721,7 @@ function SectionHead({ title, sub, icon: Icon }: { title: string; sub?: string; 
         <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
           {Icon && <Icon className="h-5 w-5 text-violet-600" />}{title}
         </h2>
-        {sub && <p className="text-[12px] font-bold text-slate-500">{sub}</p>}
+        {sub && <p className="text-[0.75rem] font-bold text-slate-500">{sub}</p>}
       </div>
     </div>
   );
@@ -740,7 +740,7 @@ function EmptyState({ onConnect, onGuide }: { onConnect: () => void; onGuide: ()
           <div key={n} className="rounded-2xl bg-white/80 dark:bg-slate-900/60 border-2 border-violet-200 dark:border-violet-500/30 p-3">
             <div className="h-6 w-6 rounded-lg bg-violet-600 text-white text-xs font-black flex items-center justify-center">{n}</div>
             <div className="mt-1.5 text-sm font-black text-slate-900 dark:text-white">{t}</div>
-            <div className="text-[11px] font-bold text-slate-500">{d}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500">{d}</div>
           </div>
         ))}
       </div>
@@ -777,15 +777,15 @@ function IntegrationCard({ integration: it, onOpen, onDisconnect, onReconnect }:
           </div>
           <div className="min-w-0 flex-1">
             <div className="font-black text-sm text-slate-900 dark:text-white truncate">{it.displayName}</div>
-            <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">{cat.emoji} {String(it.type ?? '').replace(/_/g, ' ')}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">{cat.emoji} {String(it.type ?? '').replace(/_/g, ' ')}</div>
           </div>
-          <span className={cn('shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black', st.chip)}>
+          <span className={cn('shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-black', st.chip)}>
             <st.icon className="h-3 w-3" /> {st.label}
           </span>
         </div>
 
         {isError && (
-          <div className="mt-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 p-2 text-[11px] font-black text-rose-700 dark:text-rose-300 inline-flex items-center gap-1.5">
+          <div className="mt-3 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 p-2 text-[0.6875rem] font-black text-rose-700 dark:text-rose-300 inline-flex items-center gap-1.5">
             <AlertCircle className="h-3.5 w-3.5 shrink-0" /> Connection me masla — dobara jorein
           </div>
         )}
@@ -797,7 +797,7 @@ function IntegrationCard({ integration: it, onOpen, onDisconnect, onReconnect }:
         </div>
 
         <div className="mt-3">
-          <div className="flex items-center justify-between text-[10px] font-black text-slate-500">
+          <div className="flex items-center justify-between text-[0.6875rem] font-black text-slate-500">
             <span>Sync kamyabi</span>
             <span className={sr >= 95 ? 'text-emerald-600' : sr >= 80 ? 'text-amber-600' : 'text-rose-600'}>{sr.toFixed(0)}%</span>
           </div>
@@ -837,14 +837,14 @@ function IntegrationRow({ integration: it, onOpen, onDisconnect, onReconnect }: 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-black text-sm text-slate-900 dark:text-white truncate">{it.displayName}</span>
-          <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-black', st.chip)}>{st.label}</span>
+          <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-black', st.chip)}>{st.label}</span>
         </div>
-        <div className="text-[11px] font-bold text-slate-500 truncate">{cat.emoji} {cat.label} · {String(it.type ?? '').replace(/_/g, ' ')}</div>
+        <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{cat.emoji} {cat.label} · {String(it.type ?? '').replace(/_/g, ' ')}</div>
       </div>
       <div className="hidden md:grid grid-cols-3 gap-6 text-right shrink-0">
-        <div><div className="text-sm font-black tabular-nums text-slate-900 dark:text-white">{Number(it.totalOrdersSynced ?? 0).toLocaleString('en-PK')}</div><div className="text-[10px] font-bold text-slate-400">orders</div></div>
-        <div><div className={cn('text-sm font-black tabular-nums', sr >= 95 ? 'text-emerald-600' : sr >= 80 ? 'text-amber-600' : 'text-rose-600')}>{sr.toFixed(0)}%</div><div className="text-[10px] font-bold text-slate-400">kamyabi</div></div>
-        <div><div className="text-sm font-black tabular-nums text-slate-900 dark:text-white">{it.lastSyncAt ? timeAgo(it.lastSyncAt) : '—'}</div><div className="text-[10px] font-bold text-slate-400">aakhri sync</div></div>
+        <div><div className="text-sm font-black tabular-nums text-slate-900 dark:text-white">{Number(it.totalOrdersSynced ?? 0).toLocaleString('en-PK')}</div><div className="text-[0.6875rem] font-bold text-slate-400">orders</div></div>
+        <div><div className={cn('text-sm font-black tabular-nums', sr >= 95 ? 'text-emerald-600' : sr >= 80 ? 'text-amber-600' : 'text-rose-600')}>{sr.toFixed(0)}%</div><div className="text-[0.6875rem] font-bold text-slate-400">kamyabi</div></div>
+        <div><div className="text-sm font-black tabular-nums text-slate-900 dark:text-white">{it.lastSyncAt ? timeAgo(it.lastSyncAt) : '—'}</div><div className="text-[0.6875rem] font-bold text-slate-400">aakhri sync</div></div>
       </div>
       <div className="flex gap-1.5 shrink-0">
         <Button size="sm" variant="outline" onClick={onOpen} leftIcon={<Settings className="h-3.5 w-3.5" />}>Sambhalein</Button>
@@ -861,7 +861,7 @@ function Mini({ label, value, icon: Icon, warn }: { label: string; value: React.
     <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-center">
       <Icon className={cn('h-3 w-3 mx-auto', warn ? 'text-rose-500' : 'text-slate-400')} />
       <div className={cn('mt-0.5 font-black text-xs truncate tabular-nums', warn ? 'text-rose-600' : 'text-slate-900 dark:text-white')}>{value}</div>
-      <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">{label}</div>
     </div>
   );
 }
@@ -886,11 +886,11 @@ function SyncLogRow({ log }: { log: any }) {
           <span className="text-rose-700 dark:text-rose-400">{log.recordsFailed ?? 0} ghalat</span>
           <span>{log.recordsProcessed ?? 0} kul</span>
         </div>
-        {log.errorMessage && <div className="text-[11px] text-rose-700 dark:text-rose-400 mt-0.5 font-bold line-clamp-2">⚠️ {log.errorMessage}</div>}
+        {log.errorMessage && <div className="text-[0.6875rem] text-rose-700 dark:text-rose-400 mt-0.5 font-bold line-clamp-2">⚠️ {log.errorMessage}</div>}
       </div>
       <div className="text-right shrink-0">
         <div className="text-xs font-black text-slate-700 dark:text-slate-200">{new Date(log.startedAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}</div>
-        <div className="text-[10px] font-bold text-slate-400">{new Date(log.startedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} · {timeAgo(log.startedAt)}</div>
+        <div className="text-[0.6875rem] font-bold text-slate-400">{new Date(log.startedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} · {timeAgo(log.startedAt)}</div>
       </div>
     </div>
   );
@@ -907,11 +907,11 @@ function IntegrationsTeacher({ onClose }: { onClose: () => void }) {
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+          <p className="text-[0.8125rem] font-semibold text-slate-700 dark:text-slate-200">
             Integration matlab doosre platform ko apne POS se jorna. Foodpanda par order aaya — seedha Nafaa me.
             Parcel TCS se gaya — tracking khud.
           </p>
-          <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 text-[12px] font-bold text-emerald-900 dark:text-emerald-200">
+          <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200">
             🍔 Misal: restaurant + Foodpanda — portal se keys lein → Nafaa me daalein → Jorein. Customer order kare to 30 second me POS me,
             accept karein, kitchen ticket, stock aur sale khud.
           </div>
@@ -920,8 +920,8 @@ function IntegrationsTeacher({ onClose }: { onClose: () => void }) {
           <Tip icon={CreditCard} title="💳 Payment">JazzCash, EasyPaisa, NayaPay, Raast — online paisa lena.</Tip>
           <Tip icon={Calculator} title="📊 Hisaab kitaab">QuickBooks, Xero — bikri khud books me.</Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Halat ka matlab</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-700 dark:text-slate-200">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Halat ka matlab</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-700 dark:text-slate-200">
               <div>🟢 <strong>Chal raha</strong> — sab theek</div>
               <div>🔴 <strong>Ghalti</strong> — dobara jorein</div>
               <div>⚪ <strong>Band</strong> — aap ne band ki</div>
@@ -935,8 +935,8 @@ function IntegrationsTeacher({ onClose }: { onClose: () => void }) {
           </Tip>
           <Tip icon={Globe} title="Apni website">WooCommerce, Shopify ya custom website ke liye alag safha hai — checklist, test order aur keys ke saath.</Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><Kbd>/</Kbd> dhoondo</div>
               <div><Kbd>N</Kbd> nayi integration</div>
               <div><Kbd>1</Kbd>–<Kbd>3</Kbd> tabs</div>
@@ -963,8 +963,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

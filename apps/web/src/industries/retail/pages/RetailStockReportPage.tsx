@@ -275,7 +275,7 @@ export default function RetailStockReportPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
             <div className="text-xs font-bold text-slate-900">{printDate}</div>
           </div>
         </div>
@@ -290,7 +290,7 @@ export default function RetailStockReportPage() {
 
         <div className="relative flex items-start justify-between flex-wrap gap-4">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <BarChart3 className="h-3.5 w-3.5 text-amber-300" /> Retail Intelligence
               {shopName && (
                 <>
@@ -404,10 +404,10 @@ export default function RetailStockReportPage() {
           >
             <Filter className="h-4 w-4" /> Filters
             {hasActiveFilters && (
-              <span className="h-5 w-5 rounded-full bg-sky-600 text-white text-[10px] font-extrabold flex items-center justify-center">!</span>
+              <span className="h-5 w-5 rounded-full bg-sky-600 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">!</span>
             )}
           </button>
-          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[11px] font-extrabold">
+          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[0.6875rem] font-extrabold">
             <button
               onClick={() => expandedRows.size > 0 ? collapseAll() : expandAll()}
               className="px-3 h-9 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900 transition inline-flex items-center gap-1.5"
@@ -496,7 +496,7 @@ export default function RetailStockReportPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{r.productName}</div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
                       Stock: {r.stock.toFixed(0)} {r.unit} • {r.category || 'No cat'}
                     </div>
                   </div>
@@ -554,7 +554,7 @@ export default function RetailStockReportPage() {
               <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">
                 Detailed Stock ({filteredRows.length})
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
                 Generated: {data?.generatedAt ? new Date(data.generatedAt).toLocaleString('en-PK') : '—'}
               </p>
             </div>
@@ -579,20 +579,20 @@ export default function RetailStockReportPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm print:text-[10px]">
+            <table className="w-full text-sm print:text-[0.6875rem]">
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
                 <tr>
                   <th className="px-2 py-3 text-center w-10 print:hidden"></th>
-                  <th className="px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 w-10">#</th>
+                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 w-10">#</th>
                   <SortHeader label="Product" active={sortKey === 'name'} dir={sortDir} onClick={() => toggleSort('name')} align="left" />
-                  <th className="px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Category / Brand</th>
+                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Category / Brand</th>
                   <SortHeader label="Stock" active={sortKey === 'stock'} dir={sortDir} onClick={() => toggleSort('stock')} align="right" />
-                  {!hideCost && <th className="px-3 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Cost</th>}
-                  <th className="px-3 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sale</th>
+                  {!hideCost && <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Cost</th>}
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sale</th>
                   <SortHeader label="Stock Value" active={sortKey === 'stockValue'} dir={sortDir} onClick={() => toggleSort('stockValue')} align="right" />
                   {!hideCost && <SortHeader label="Profit" active={sortKey === 'profit'} dir={sortDir} onClick={() => toggleSort('profit')} align="right" />}
                   {!hideCost && <SortHeader label="Margin" active={sortKey === 'margin'} dir={sortDir} onClick={() => toggleSort('margin')} align="right" />}
-                  <th className="px-3 py-3 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Status</th>
+                  <th className="px-3 py-3 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -641,7 +641,7 @@ export default function RetailStockReportPage() {
                                 {row.productName}
                                 {row.isFeatured && <Star className="h-3 w-3 text-amber-500 fill-amber-500" />}
                               </div>
-                              <div className="flex items-center gap-1.5 mt-0.5 text-[10px]">
+                              <div className="flex items-center gap-1.5 mt-0.5 text-[0.6875rem]">
                                 {row.sku && <span className="font-mono text-slate-500 dark:text-slate-400">{row.sku}</span>}
                                 {row.variantCount && row.variantCount > 0 ? (
                                   <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 font-extrabold">
@@ -664,7 +664,7 @@ export default function RetailStockReportPage() {
                             </div>
                           )}
                           {row.brand && (
-                            <div className="text-[10px] font-bold text-violet-700 dark:text-violet-400 mt-0.5 truncate">
+                            <div className="text-[0.6875rem] font-bold text-violet-700 dark:text-violet-400 mt-0.5 truncate">
                               {row.brand}
                             </div>
                           )}
@@ -675,7 +675,7 @@ export default function RetailStockReportPage() {
                           <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">
                             {row.stock.toFixed(row.stock % 1 === 0 ? 0 : 2)}
                           </div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">{row.unit}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold uppercase">{row.unit}</div>
                         </td>
 
                         {/* Cost */}
@@ -719,7 +719,7 @@ export default function RetailStockReportPage() {
                         {/* Status */}
                         <td className="px-3 py-3 text-center">
                           <span className={[
-                            'inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-extrabold',
+                            'inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[0.6875rem] font-extrabold',
                             st.light, st.dark,
                           ].join(' ')}>
                             <StatusIcon className="h-2.5 w-2.5" />
@@ -777,7 +777,7 @@ export default function RetailStockReportPage() {
       </Card>
 
       {/* Print-only footer */}
-      <div className="hidden print:block print-footer text-center text-[10px] text-slate-500 border-t border-slate-300 pt-2 mt-4">
+      <div className="hidden print:block print-footer text-center text-[0.6875rem] text-slate-500 border-t border-slate-300 pt-2 mt-4">
         Generated by Nafaa POS • {tenantName || ''} • Page will auto-paginate
       </div>
 
@@ -981,7 +981,7 @@ function CardHeader({ icon: Icon, title, subtitle, tone }: any) {
       </div>
       <div>
         <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h3>
-        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">{subtitle}</p>
+        <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{subtitle}</p>
       </div>
     </div>
   );
@@ -998,10 +998,10 @@ function HeroTile({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-2xl bg-gradient-to-br backdrop-blur-md border p-3 shadow-lg ${tones[tone]}`}>
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className="h-3.5 w-3.5 text-white/90" />
-        <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/95">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/95">{label}</div>
       </div>
       <div className="text-lg sm:text-2xl font-extrabold text-white tabular-nums leading-tight truncate drop-shadow-sm">{value}</div>
-      <div className="text-[11px] font-bold text-white/85 mt-1 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-white/85 mt-1 truncate">{sub}</div>
     </div>
   );
 }
@@ -1041,7 +1041,7 @@ function StatusButton({ active, onClick, icon: Icon, label, value, tone }: any) 
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className={`text-[10px] uppercase font-extrabold ${t.iconC}`}>{label}</div>
+          <div className={`text-[0.6875rem] uppercase font-extrabold ${t.iconC}`}>{label}</div>
           <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1 tabular-nums">{value}</div>
         </div>
         <Icon className={`h-7 w-7 sm:h-8 sm:w-8 ${t.iconC} shrink-0`} />
@@ -1061,14 +1061,14 @@ function FilterField({ label, children }: any) {
 
 function SortHeader({ label, active, dir, onClick, align }: any) {
   return (
-    <th className={`px-3 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 text-${align}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 text-${align}`}>
       <button
         onClick={onClick}
         className={`inline-flex items-center gap-1 hover:text-sky-700 dark:hover:text-sky-400 transition ${active ? 'text-sky-700 dark:text-sky-400' : ''}`}
       >
         {label}
         <ArrowUpDown className={`h-2.5 w-2.5 ${active ? 'opacity-100' : 'opacity-40'}`} />
-        {active && <span className="text-[8px]">{dir === 'asc' ? '▲' : '▼'}</span>}
+        {active && <span className="text-[0.625rem]">{dir === 'asc' ? '▲' : '▼'}</span>}
       </button>
     </th>
   );
@@ -1107,7 +1107,7 @@ function DetailBox({ label, value, tone = 'slate', mono }: any) {
   };
   return (
     <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5">
-      <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
       <div className={`text-sm font-extrabold mt-0.5 truncate ${tones[tone]} ${mono ? 'font-mono' : ''}`}>
         {value}
       </div>

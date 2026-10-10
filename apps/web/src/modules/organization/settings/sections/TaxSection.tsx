@@ -76,7 +76,7 @@ export function TaxSection({ settings }: { settings: TenantSettings }) {
 
             {/* Live example */}
             <div className="mt-4 rounded-2xl bg-gradient-to-br from-slate-950 to-amber-900 text-white p-4 shadow-lg">
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-300 mb-2 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-300 mb-2 flex items-center gap-1">
                 <Calculator className="h-3 w-3" /> Live Example (Rs 1,000 sale)
               </div>
               <div className="space-y-1 text-sm font-bold">
@@ -126,7 +126,7 @@ export function TaxSection({ settings }: { settings: TenantSettings }) {
 
         {/* Markup example */}
         <div className="mt-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3">
-          <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-1 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-1 flex items-center gap-1">
             <TrendingUp className="h-3 w-3" /> Markup Example
           </div>
           <div className="text-xs font-semibold text-slate-700 dark:text-slate-200">

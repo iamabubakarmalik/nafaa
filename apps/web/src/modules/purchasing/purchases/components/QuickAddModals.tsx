@@ -36,7 +36,7 @@ const inp = (extra = '', bad = false) =>
 
 function Lbl({ children, hint, req }: { children: React.ReactNode; hint?: string; req?: boolean }) {
   return (
-    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
       {children}{req && <span className="text-rose-500 ml-0.5">*</span>}
       {hint && <span className="text-slate-400 normal-case font-bold ml-1">({hint})</span>}
     </label>
@@ -56,7 +56,7 @@ function Shell({ title, subtitle, badge, icon, tone, onClose, children, footer }
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
           <div className="relative flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
                 {icon} {badge}
               </div>
               <h3 className="text-lg sm:text-xl font-black mt-2 truncate">{title}</h3>
@@ -172,7 +172,7 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
           <Lbl hint="purani copy se">📖 Purana hisab — pehle se kitna dena tha</Lbl>
           <input type="number" min={0} className={inp('h-11 font-extrabold tabular-nums')}
             placeholder="0" value={opening} onChange={(e) => setOpening(e.target.value)} />
-          <div className="mt-1.5 text-[11px] font-semibold text-violet-800 dark:text-violet-300">
+          <div className="mt-1.5 text-[0.6875rem] font-semibold text-violet-800 dark:text-violet-300">
             Agar is supplier ka purana baqi hai to abhi daal dein — baad me yaad nahi rehta.
             {Number(opening) > 0 && (
               <strong className="block mt-0.5">Khata {formatPKR(Number(opening))} se shuru hoga</strong>
@@ -180,7 +180,7 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
           </div>
         </div>
 
-        <div className="text-center text-[10px] font-bold text-slate-400">
+        <div className="text-center text-[0.6875rem] font-bold text-slate-400">
           Bank tafseel, NTN, payment terms waghera baad me poori form se
         </div>
       </div>
@@ -336,7 +336,7 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
           <div className="flex gap-1.5 flex-wrap">
             {[10, 15, 20, 25, 30].map((p) => (
               <button key={p} type="button" onClick={() => markup(p)}
-                className="px-3 py-1.5 rounded-xl text-[11px] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400 transition">
+                className="px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400 transition">
                 +{p}%
               </button>
             ))}
@@ -361,7 +361,7 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
 
         <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3 flex items-start gap-2">
           <AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-          <div className="text-[11px] font-bold text-blue-900 dark:text-blue-200">
+          <div className="text-[0.6875rem] font-bold text-blue-900 dark:text-blue-200">
             Stock <strong>0</strong> se shuru hoga — is bill se khud barh jayega.
             {wizardPath && (
               <> Poori tafseel (warranty, specs waghera) baad me <strong>poori wizard</strong> se bhar lein.</>

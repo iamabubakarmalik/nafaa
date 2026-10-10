@@ -155,9 +155,9 @@ function TrainerCard({ trainer, onEdit, onDelete }: any) {
             <span>{role?.emoji}</span>
             <span>{role?.label}</span>
           </div>
-          <div className="text-[10px] font-mono font-bold text-slate-500">{trainer.trainerNumber}</div>
+          <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{trainer.trainerNumber}</div>
           {trainer.experienceYears && (
-            <div className="text-[10px] font-bold text-slate-500">{trainer.experienceYears} years exp</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500">{trainer.experienceYears} years exp</div>
           )}
         </div>
       </div>
@@ -165,7 +165,7 @@ function TrainerCard({ trainer, onEdit, onDelete }: any) {
       {trainer.specializations?.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {trainer.specializations.slice(0, 3).map((s: string, i: number) => (
-            <span key={i} className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[9px] font-extrabold uppercase">{s}</span>
+            <span key={i} className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[0.625rem] font-extrabold uppercase">{s}</span>
           ))}
         </div>
       )}
@@ -183,15 +183,15 @@ function TrainerCard({ trainer, onEdit, onDelete }: any) {
 
       <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Clients</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Clients</div>
           <div className="font-extrabold tabular-nums">{trainer.activeClients}</div>
         </div>
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Sessions</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Sessions</div>
           <div className="font-extrabold tabular-nums">{trainer.totalSessions}</div>
         </div>
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
+          <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
             <Star className="h-2 w-2 fill-current" /> Rating
           </div>
           <div className="font-extrabold text-amber-700 tabular-nums">
@@ -206,7 +206,7 @@ function TrainerCard({ trainer, onEdit, onDelete }: any) {
           <span className="font-extrabold text-emerald-900 tabular-nums">{formatPKR(trainer.perSessionRate)}</span>
         </div>
         {trainer.commissionPct > 0 && (
-          <div className="text-[10px] font-bold text-emerald-600 mt-0.5">
+          <div className="text-[0.6875rem] font-bold text-emerald-600 mt-0.5">
             Commission: {trainer.commissionPct}%
           </div>
         )}
@@ -290,7 +290,7 @@ function TrainerForm({ editing, onClose, onSaved }: any) {
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         {!editing && (
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Select Staff *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Select Staff *</label>
             <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
               <option value="">-- Pick from HR/Staff --</option>
               {(staffList ?? []).map((s: any) => {
@@ -303,7 +303,7 @@ function TrainerForm({ editing, onClose, onSaved }: any) {
 
         <div className="flex gap-4">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
             {form.photoUrl ? (
               <div className="relative h-24 w-24 rounded-2xl overflow-hidden border-2 border-slate-200">
                 <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
@@ -343,15 +343,15 @@ function TrainerForm({ editing, onClose, onSaved }: any) {
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Per Hour</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Per Hour</label>
               <input type="number" value={form.hourlyRate} onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Per Session</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Per Session</label>
               <input type="number" value={form.perSessionRate} onChange={(e) => setForm({ ...form, perSessionRate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Monthly Pkg</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Monthly Pkg</label>
               <input type="number" value={form.monthlyPackageRate} onChange={(e) => setForm({ ...form, monthlyPackageRate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
           </div>
@@ -365,11 +365,11 @@ function TrainerForm({ editing, onClose, onSaved }: any) {
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Percentage %</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Percentage %</label>
               <input type="number" step="0.1" value={form.commissionPct} onChange={(e) => setForm({ ...form, commissionPct: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Fixed (Rs)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Fixed (Rs)</label>
               <input type="number" value={form.commissionFixed} onChange={(e) => setForm({ ...form, commissionFixed: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
           </div>

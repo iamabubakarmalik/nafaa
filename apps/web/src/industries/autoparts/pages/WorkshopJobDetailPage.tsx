@@ -73,7 +73,7 @@ export default function WorkshopJobDetailPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 {job.priority} priority
               </div>
@@ -138,7 +138,7 @@ export default function WorkshopJobDetailPage() {
                   }>
                     {isActive && !isCurrent ? '✓' : i + 1}
                   </div>
-                  <span className={'text-[9px] font-extrabold uppercase ' + (isActive ? 'text-slate-800' : 'text-slate-400')}>{cfg.label}</span>
+                  <span className={'text-[0.625rem] font-extrabold uppercase ' + (isActive ? 'text-slate-800' : 'text-slate-400')}>{cfg.label}</span>
                 </div>
                 {i < STATUS_FLOW.length - 1 && (
                   <div className={'h-0.5 w-6 mx-1 ' + (i < currentIdx ? 'bg-orange-500' : 'bg-slate-200')} />
@@ -179,19 +179,19 @@ export default function WorkshopJobDetailPage() {
               <h3 className="text-sm font-extrabold flex items-center gap-2"><Wrench className="h-4 w-4 text-orange-600" />Job Description</h3>
               {job.customerComplaint && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-600">Complaint</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Complaint</div>
                   <p className="text-sm italic text-slate-700">{job.customerComplaint}</p>
                 </div>
               )}
               {job.diagnosis && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-600">Diagnosis</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Diagnosis</div>
                   <p className="text-sm text-slate-700">{job.diagnosis}</p>
                 </div>
               )}
               {job.workDescription && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-600">Work Description</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Work Description</div>
                   <p className="text-sm text-slate-700">{job.workDescription}</p>
                 </div>
               )}
@@ -233,15 +233,15 @@ export default function WorkshopJobDetailPage() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold">{p.partName}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-extrabold uppercase">{p.condition}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">{p.condition}</span>
                         {p.warrantyMonths > 0 && (
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                             <ShieldCheck className="h-2 w-2" />
                             {p.warrantyMonths}m
                           </span>
                         )}
                       </div>
-                      {p.partNumber && <div className="text-[10px] font-mono font-bold text-slate-500">#{p.partNumber}</div>}
+                      {p.partNumber && <div className="text-[0.6875rem] font-mono font-bold text-slate-500">#{p.partNumber}</div>}
                       <div className="text-xs text-slate-500 font-bold">Qty {p.quantity} × {formatPKR(p.unitPrice)}</div>
                     </div>
                     <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.total)}</div>
@@ -276,7 +276,7 @@ export default function WorkshopJobDetailPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-orange-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Labor</span><span className="font-bold tabular-nums">{formatPKR(job.laborTotal)}</span></div>
                 <div className="flex justify-between"><span className="text-white/70">Parts</span><span className="font-bold tabular-nums">{formatPKR(job.partsTotal)}</span></div>
@@ -363,7 +363,7 @@ function PaymentModal({ jobId, remaining, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-orange-700 mb-1 block">Amount *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-orange-700 mb-1 block">Amount *</label>
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-orange-300 bg-orange-50 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
             <div className="mt-1 flex gap-1">
               {[0.25, 0.5, 0.75, 1].map((f) => (
@@ -374,7 +374,7 @@ function PaymentModal({ jobId, remaining, onClose, onDone }: any) {
             </div>
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
             <div className="grid grid-cols-3 gap-2">
               {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
                 <button key={m} onClick={() => setMethod(m)} className={

@@ -256,7 +256,7 @@ export default function IngredientsPage() {
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Wheat className="h-3.5 w-3.5 text-violet-300" /> Bakery · Gudaam
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">🌾 Banane ka Saamaan</h1>
@@ -336,7 +336,7 @@ export default function IngredientsPage() {
             }`}>
             <Icon className="h-4 w-4" /> {label}
             {v === 'list' && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'}`}>{shown.length}</span>
+              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'}`}>{shown.length}</span>
             )}
           </button>
         ))}
@@ -364,7 +364,7 @@ export default function IngredientsPage() {
                     : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-violet-400'
                 }`}>
                 <Layers className="h-4 w-4" /> Chaant
-                {activeFilters > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-lg bg-violet-600 text-white">{activeFilters}</span>}
+                {activeFilters > 0 && <span className="text-[0.6875rem] px-1.5 py-0.5 rounded-lg bg-violet-600 text-white">{activeFilters}</span>}
                 <ChevronDown className={`h-4 w-4 transition ${showFilters ? 'rotate-180' : ''}`} />
               </button>
             </div>
@@ -372,7 +372,7 @@ export default function IngredientsPage() {
             <div className="flex gap-1.5 flex-wrap">
               {([['all', 'Sab'], ['low', '🟡 Kam ho gaya'], ['out', '🔴 Khatam'], ['critical', '⚠️ Zaroori'], ['fridge', '❄️ Fridge']] as const).map(([v, l]) => (
                 <button key={v} onClick={() => setFilter(v as Filter)}
-                  className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black transition ${
+                  className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     filter === v
                       ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300'
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-violet-400'
@@ -382,15 +382,15 @@ export default function IngredientsPage() {
 
             {showFilters && (
               <div className="pt-2 border-t-2 border-slate-100 dark:border-slate-800">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Category</label>
+                <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Category</label>
                 <div className="flex gap-1.5 flex-wrap">
                   <button onClick={() => setCategoryFilter('all')}
-                    className={`h-9 px-2.5 rounded-lg border-2 text-[11px] font-black transition ${
+                    className={`h-9 px-2.5 rounded-lg border-2 text-[0.6875rem] font-black transition ${
                       categoryFilter === 'all' ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                     }`}>Sab</button>
                   {CATEGORIES.map((c) => (
                     <button key={c.value} onClick={() => setCategoryFilter(c.value)}
-                      className={`h-9 px-2.5 rounded-lg border-2 text-[11px] font-black inline-flex items-center gap-1 transition ${
+                      className={`h-9 px-2.5 rounded-lg border-2 text-[0.6875rem] font-black inline-flex items-center gap-1 transition ${
                         categoryFilter === c.value ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                       }`}>{c.emoji} {c.label}</button>
                   ))}
@@ -439,7 +439,7 @@ export default function IngredientsPage() {
                             {r.isOut && <Chip tone="rose">Khatam</Chip>}
                             {r.isLow && <Chip tone="amber">Kam ho gaya</Chip>}
                           </div>
-                          <div className="text-[11px] font-bold text-slate-400 mt-0.5 truncate">
+                          <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5 truncate">
                             {formatPKR(r.cost)} / {r.unit}
                             {r.supplierName ? ` · ${r.supplierName}` : ''}
                             {r.level > 0 ? ` · hadd ${fmtQty(r.level)}` : ''}
@@ -450,31 +450,31 @@ export default function IngredientsPage() {
                           <div className={`text-lg font-black tabular-nums ${
                             r.isOut ? 'text-rose-600' : r.isLow ? 'text-amber-600' : 'text-slate-900 dark:text-white'
                           }`}>{fmtQty(r.have)} <span className="text-xs">{r.unit}</span></div>
-                          <div className="text-[10px] font-bold text-slate-400 tabular-nums">{formatPKR(r.value)}</div>
+                          <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">{formatPKR(r.value)}</div>
                         </div>
                       </div>
 
                       <div className="mt-2.5 flex gap-1.5 flex-wrap print:hidden">
                         <button onClick={() => setStockOn({ item: r, mode: 'purchase' })}
-                          className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 transition">
+                          className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                           <ArrowDownToLine className="h-3.5 w-3.5" /> Maal aaya
                         </button>
                         <button onClick={() => setStockOn({ item: r, mode: 'waste' })}
-                          className="h-9 px-3 rounded-xl border-2 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 text-[11px] font-black inline-flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition">
+                          className="h-9 px-3 rounded-xl border-2 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition">
                           <Trash2 className="h-3.5 w-3.5" /> Zaya hua
                         </button>
                         <button onClick={() => setStockOn({ item: r, mode: 'adjust' })}
-                          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-black inline-flex items-center gap-1.5 hover:border-violet-400 transition">
+                          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:border-violet-400 transition">
                           <Scale className="h-3.5 w-3.5" /> Gin kar theek
                         </button>
                         <button onClick={() => setEditing(r)}
-                          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-black inline-flex items-center gap-1.5 hover:border-violet-400 transition">
+                          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:border-violet-400 transition">
                           <Edit3 className="h-3.5 w-3.5" /> Edit
                         </button>
                         {r.supplierPhone && (
                           <a href={`https://wa.me/${r.supplierPhone.replace(/\D/g, '')}?text=${encodeURIComponent(`Assalam o alaikum, ${r.name} chahiye — ${fmtQty(r.short || r.level || 1)} ${r.unit}`)}`}
                             target="_blank" rel="noreferrer"
-                            className="h-9 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+                            className="h-9 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                             <Phone className="h-3.5 w-3.5" /> Supplier
                           </a>
                         )}
@@ -635,7 +635,7 @@ function IngredientForm({ item, onClose, onDone }: any) {
             <div className="grid grid-cols-3 gap-1.5">
               {CATEGORIES.map((c) => (
                 <button key={c.value} onClick={() => set({ category: c.value })}
-                  className={`h-10 px-1 rounded-lg border-2 text-[10px] font-black inline-flex items-center justify-center gap-1 transition ${
+                  className={`h-10 px-1 rounded-lg border-2 text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${
                     f.category === c.value ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                   }`}>{c.emoji} <span className="truncate">{c.label}</span></button>
               ))}
@@ -668,7 +668,7 @@ function IngredientForm({ item, onClose, onDone }: any) {
           </div>
 
           {isEdit && (
-            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 -mt-1">
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 -mt-1">
               Stock yahan se nahi badalta — "Maal aaya" ya "Gin kar theek" se badlein, taake
               record me wajah bhi aa jaye.
             </p>
@@ -783,7 +783,7 @@ function StockModal({ item, mode, onClose, onDone }: any) {
           </span>
           <div className="min-w-0">
             <h3 className="font-black text-slate-900 dark:text-white">{cfg.title}</h3>
-            <p className="text-[11px] font-bold text-slate-500 truncate">
+            <p className="text-[0.6875rem] font-bold text-slate-500 truncate">
               {item.name} · abhi {fmtQty(Number(item.currentStock))} {item.unit}
             </p>
           </div>
@@ -813,7 +813,7 @@ function StockModal({ item, mode, onClose, onDone }: any) {
               {rateChanged && (
                 <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 flex gap-2">
                   <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-[11px] font-bold text-amber-900 dark:text-amber-200">
+                  <p className="text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
                     Rate {formatPKR(item.costPerUnit)} se {formatPKR(Number(rate))} ho gaya. Jin cheezon
                     ki recipe me ye saamaan lagta hai, un ki cost bhi dobara dekh lein.
                   </p>
@@ -828,7 +828,7 @@ function StockModal({ item, mode, onClose, onDone }: any) {
               <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 space-y-3">
                 <div className="flex items-center gap-2">
                   <Wallet className="h-4 w-4 text-emerald-600" />
-                  <span className="text-[12px] font-extrabold text-slate-900 dark:text-white">Paisa kaise diya</span>
+                  <span className="text-[0.75rem] font-extrabold text-slate-900 dark:text-white">Paisa kaise diya</span>
                   <span className="ml-auto text-sm font-black tabular-nums text-slate-900 dark:text-white">
                     {formatPKR(totalCost)}
                   </span>
@@ -837,7 +837,7 @@ function StockModal({ item, mode, onClose, onDone }: any) {
                 <div className="grid grid-cols-3 gap-1.5">
                   {([['FULL', 'Poora diya'], ['PARTIAL', 'Kuch diya'], ['UDHAAR', 'Poora udhaar']] as const).map(([v, l]) => (
                     <button key={v} type="button" onClick={() => setPayMode(v as any)}
-                      className={`h-10 rounded-xl text-[11px] font-black transition ${
+                      className={`h-10 rounded-xl text-[0.6875rem] font-black transition ${
                         payMode === v ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                       }`}>{l}</button>
                   ))}
@@ -855,7 +855,7 @@ function StockModal({ item, mode, onClose, onDone }: any) {
                   <div className="grid grid-cols-3 gap-1.5">
                     {PAY_WAYS.map(([v, l, Icon]) => (
                       <button key={v} type="button" onClick={() => setPayWay(v)}
-                        className={`h-10 rounded-xl text-[11px] font-black inline-flex items-center justify-center gap-1 transition ${
+                        className={`h-10 rounded-xl text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${
                           payWay === v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                         }`}>
                         <Icon className="h-3.5 w-3.5" /> {l}
@@ -879,18 +879,18 @@ function StockModal({ item, mode, onClose, onDone }: any) {
 
                 <div className="rounded-xl bg-white dark:bg-slate-900 p-2.5 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-slate-500">Abhi diya</span>
-                    <span className="text-[13px] font-black tabular-nums text-emerald-600 dark:text-emerald-400">{formatPKR(paid)}</span>
+                    <span className="text-[0.6875rem] font-bold text-slate-500">Abhi diya</span>
+                    <span className="text-[0.8125rem] font-black tabular-nums text-emerald-600 dark:text-emerald-400">{formatPKR(paid)}</span>
                   </div>
                   {udhaar > 0 && (
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-slate-500">Udhaar raha</span>
-                      <span className="text-[13px] font-black tabular-nums text-amber-600 dark:text-amber-400">{formatPKR(udhaar)}</span>
+                      <span className="text-[0.6875rem] font-bold text-slate-500">Udhaar raha</span>
+                      <span className="text-[0.8125rem] font-black tabular-nums text-amber-600 dark:text-amber-400">{formatPKR(udhaar)}</span>
                     </div>
                   )}
                 </div>
 
-                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                   {paid > 0 && udhaar > 0
                     ? <>Diya hua paisa <strong>kharch</strong> me jayega{payWay === 'CASH' ? ' (cash register se ghatega)' : ''}, aur baqi supplier ke <strong>khate</strong> me.</>
                     : udhaar > 0
@@ -903,7 +903,7 @@ function StockModal({ item, mode, onClose, onDone }: any) {
                 {udhaar > 0 && !supplierId && (
                   <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 flex gap-2">
                     <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-                    <p className="text-[11px] font-bold text-rose-900 dark:text-rose-200">
+                    <p className="text-[0.6875rem] font-bold text-rose-900 dark:text-rose-200">
                       Udhaar ke liye supplier chunna zaroori hai — warna baad me pata nahi chalega
                       ke kis ko dena hai.
                     </p>
@@ -938,7 +938,7 @@ const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-
 function Field({ label, children }: any) {
   return (
     <div>
-      <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">{label}</label>
+      <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">{label}</label>
       {children}
     </div>
   );
@@ -953,7 +953,7 @@ function Toggle({ icon: Icon, label, value, onChange }: any) {
       <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
         value ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
       }`}><Icon className="h-4 w-4" /></span>
-      <span className="text-[11px] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
+      <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
     </button>
   );
 }
@@ -964,7 +964,7 @@ function Chip({ tone, children }: any) {
     amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
     sky: 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300',
   };
-  return <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md inline-flex items-center gap-1 ${tones[tone]}`}>{children}</span>;
+  return <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md inline-flex items-center gap-1 ${tones[tone]}`}>{children}</span>;
 }
 
 function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
@@ -982,9 +982,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
       }`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
           <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1047,8 +1047,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             "Bagair kaam nahi chalta" laga dein — khatam hone par sab se upar aayegi.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> naya saamaan</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
@@ -1069,8 +1069,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

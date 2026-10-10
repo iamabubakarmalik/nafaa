@@ -266,7 +266,7 @@ export default function LensOrderFormPage() {
           <Input label="Advance Payment" type="number" step="0.01" value={form.paidAmount}
             onChange={(e) => setForm({ ...form, paidAmount: e.target.value })} />
           <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-amber-700">Remaining Balance</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Remaining Balance</div>
             <div className="text-2xl font-extrabold text-amber-900 tabular-nums">{formatPKR(Math.max(remaining, 0))}</div>
           </div>
         </div>

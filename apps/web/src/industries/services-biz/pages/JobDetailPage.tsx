@@ -96,7 +96,7 @@ export default function JobDetailPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 {job.priority}
               </div>
@@ -179,7 +179,7 @@ export default function JobDetailPage() {
                   }>
                     {isActive && !isCurrent ? <CheckCircle2 className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
                   </div>
-                  <span className="text-[9px] font-extrabold uppercase text-slate-600">{cfg.label}</span>
+                  <span className="text-[0.625rem] font-extrabold uppercase text-slate-600">{cfg.label}</span>
                 </div>
                 {i < STATUS_FLOW.length - 1 && (
                   <div className={'h-0.5 w-6 mx-1 ' + (i < currentIdx ? 'bg-blue-500' : 'bg-slate-200 dark:bg-neutral-700')} />
@@ -224,12 +224,12 @@ export default function JobDetailPage() {
           {/* Problem + Location */}
           <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1">Problem Description</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Problem Description</div>
               <p className="text-sm font-semibold text-slate-900 dark:text-white">{job.problemDescription}</p>
             </div>
             {job.customerReportedIssue && (
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1">Customer Reported</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Customer Reported</div>
                 <p className="text-sm italic text-slate-700">{job.customerReportedIssue}</p>
               </div>
             )}
@@ -241,15 +241,15 @@ export default function JobDetailPage() {
 
             {(job.brand || job.modelNumber || job.serialNumber) && (
               <div className="grid grid-cols-3 gap-2 pt-3 border-t">
-                {job.brand && <div><div className="text-[9px] uppercase font-extrabold text-slate-500">Brand</div><div className="text-sm font-extrabold">{job.brand}</div></div>}
-                {job.modelNumber && <div><div className="text-[9px] uppercase font-extrabold text-slate-500">Model</div><div className="text-sm font-extrabold font-mono">{job.modelNumber}</div></div>}
-                {job.serialNumber && <div><div className="text-[9px] uppercase font-extrabold text-slate-500">Serial</div><div className="text-sm font-extrabold font-mono">{job.serialNumber}</div></div>}
+                {job.brand && <div><div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Brand</div><div className="text-sm font-extrabold">{job.brand}</div></div>}
+                {job.modelNumber && <div><div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Model</div><div className="text-sm font-extrabold font-mono">{job.modelNumber}</div></div>}
+                {job.serialNumber && <div><div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Serial</div><div className="text-sm font-extrabold font-mono">{job.serialNumber}</div></div>}
               </div>
             )}
 
             {job.serviceAddress && (
               <div className="pt-3 border-t">
-                <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1 flex items-center gap-1">
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1 flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
                   Service Location
                 </div>
@@ -288,7 +288,7 @@ export default function JobDetailPage() {
                     </a>
                   )}
                   {job.technician.profile && (
-                    <div className="text-[10px] font-bold text-violet-700 uppercase">{job.technician.profile.level} • {job.technician.profile.status}</div>
+                    <div className="text-[0.6875rem] font-bold text-violet-700 uppercase">{job.technician.profile.level} • {job.technician.profile.status}</div>
                   )}
                 </div>
               </div>
@@ -320,13 +320,13 @@ export default function JobDetailPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-lg font-extrabold text-orange-700 tabular-nums">{p.quantity}×</span>
                           <span className="font-extrabold">{p.partName}</span>
-                          {p.partNumber && <span className="text-[10px] font-mono text-slate-500">{p.partNumber}</span>}
-                          {p.brand && <span className="px-2 py-0.5 rounded bg-orange-100 text-orange-700 text-[9px] font-extrabold">{p.brand}</span>}
-                          {p.isUnderWarranty && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">🛡️ WARRANTY</span>}
-                          {p.isCustomerSupplied && <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold">CUSTOMER</span>}
+                          {p.partNumber && <span className="text-[0.6875rem] font-mono text-slate-500">{p.partNumber}</span>}
+                          {p.brand && <span className="px-2 py-0.5 rounded bg-orange-100 text-orange-700 text-[0.625rem] font-extrabold">{p.brand}</span>}
+                          {p.isUnderWarranty && <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">🛡️ WARRANTY</span>}
+                          {p.isCustomerSupplied && <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">CUSTOMER</span>}
                         </div>
-                        {p.serialNumber && <div className="text-[10px] font-mono text-slate-500 mt-1">SN: {p.serialNumber}</div>}
-                        {p.warrantyDays > 0 && <div className="text-[10px] font-extrabold text-emerald-700 mt-0.5">Part warranty: {p.warrantyDays} days</div>}
+                        {p.serialNumber && <div className="text-[0.6875rem] font-mono text-slate-500 mt-1">SN: {p.serialNumber}</div>}
+                        {p.warrantyDays > 0 && <div className="text-[0.6875rem] font-extrabold text-emerald-700 mt-0.5">Part warranty: {p.warrantyDays} days</div>}
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-sm text-slate-500">{formatPKR(p.unitPrice)} × {p.quantity}</div>
@@ -354,7 +354,7 @@ export default function JobDetailPage() {
                     </button>
                   </div>
                   {urls.length === 0 ? (
-                    <div className="text-[10px] text-slate-400 font-bold text-center py-4">No photos</div>
+                    <div className="text-[0.6875rem] text-slate-400 font-bold text-center py-4">No photos</div>
                   ) : (
                     <div className="grid grid-cols-2 gap-1">
                       {urls.slice(0, 4).map((url: string, i: number) => (
@@ -384,7 +384,7 @@ export default function JobDetailPage() {
                   ))}
                 </div>
                 <span className="font-extrabold text-amber-900">{job.customerRating}/5</span>
-                {job.wouldRecommend && <span className="px-2 py-0.5 rounded bg-emerald-500 text-white text-[10px] font-extrabold">✅ RECOMMENDS</span>}
+                {job.wouldRecommend && <span className="px-2 py-0.5 rounded bg-emerald-500 text-white text-[0.6875rem] font-extrabold">✅ RECOMMENDS</span>}
               </div>
               {job.customerFeedback && <p className="text-sm italic text-slate-700">"{job.customerFeedback}"</p>}
             </div>
@@ -413,7 +413,7 @@ export default function JobDetailPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
 
               <div className="space-y-1.5 text-sm">
                 {job.visitCharge > 0 && <div className="flex justify-between"><span className="text-white/70">Visit</span><span className="font-bold tabular-nums">{formatPKR(job.visitCharge)}</span></div>}
@@ -455,7 +455,7 @@ export default function JobDetailPage() {
                     <Shield className="h-3 w-3" />
                     Warranty: {job.jobWarrantyDays} days
                   </div>
-                  <div className="text-emerald-300 text-[10px] font-bold">
+                  <div className="text-emerald-300 text-[0.6875rem] font-bold">
                     Valid until: {format(new Date(job.jobWarrantyExpiryDate), 'dd MMM yyyy')}
                   </div>
                 </div>
@@ -484,7 +484,7 @@ export default function JobDetailPage() {
                       </div>
                       <div className="text-slate-500 mt-0.5">{format(new Date(log.timestamp), 'dd MMM, HH:mm')}</div>
                       {log.latitude && (
-                        <div className="text-[10px] font-mono text-emerald-700">📍 {log.latitude.toFixed(4)}, {log.longitude.toFixed(4)}</div>
+                        <div className="text-[0.6875rem] font-mono text-emerald-700">📍 {log.latitude.toFixed(4)}, {log.longitude.toFixed(4)}</div>
                       )}
                     </div>
                   ))}
@@ -534,7 +534,7 @@ function PaymentModal({ jobId, remaining, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Amount</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Amount</label>
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
             <div className="mt-1 flex gap-1">
               {[0.25, 0.5, 0.75, 1].map((f) => (
@@ -594,11 +594,11 @@ function RatingModal({ jobId, onClose, onDone }: any) {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Satisfaction</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Satisfaction</label>
             <div className="grid grid-cols-4 gap-1">
               {['VERY_SATISFIED', 'SATISFIED', 'NEUTRAL', 'DISSATISFIED'].map((s) => (
                 <button key={s} onClick={() => setSatisfaction(s)} className={
-                  'py-2 rounded-lg text-[10px] font-extrabold ' +
+                  'py-2 rounded-lg text-[0.6875rem] font-extrabold ' +
                   (satisfaction === s ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-700')
                 }>{s.replace('_', ' ')}</button>
               ))}
@@ -677,8 +677,8 @@ function AssignModal({ jobId, onClose, onDone }: any) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold truncate">{name}</div>
-                      <div className="text-[10px] font-bold text-slate-500 uppercase">{t.level} • {t.status}</div>
-                      <div className="flex items-center gap-2 mt-0.5 text-[10px]">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{t.level} • {t.status}</div>
+                      <div className="flex items-center gap-2 mt-0.5 text-[0.6875rem]">
                         {t.avgRating && (
                           <span className="inline-flex items-center gap-0.5 text-amber-700 font-extrabold">
                             <Star className="h-2 w-2 fill-current" />

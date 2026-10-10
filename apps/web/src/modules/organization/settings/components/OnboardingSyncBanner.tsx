@@ -54,7 +54,7 @@ export function OnboardingSyncBanner() {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 mb-0.5">
                 <Sparkles className="h-3 w-3 text-amber-500" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">Setup Complete</span>
+                <span className="text-[0.6875rem] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">Setup Complete</span>
               </div>
               <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
                 Onboarding data yahan synced hai
@@ -122,7 +122,7 @@ export function OnboardingSyncBanner() {
                   Yes, Re-run
                 </Button>
               </div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 text-center font-semibold inline-flex items-center gap-1 justify-center w-full">
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 text-center font-semibold inline-flex items-center gap-1 justify-center w-full">
                 <Shield className="h-3 w-3" /> Data 100% safe hai — sirf wizard restart hoga
               </p>
             </div>

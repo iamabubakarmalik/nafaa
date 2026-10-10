@@ -367,7 +367,7 @@ export default function ToystorePosPage() {
                     <h2 className="text-base sm:text-lg font-extrabold leading-none">🧸 Toy Store POS</h2>
                     {isOnline ? <Wifi className="h-4 w-4 text-emerald-300" /> : <WifiOff className="h-4 w-4 text-amber-300" />}
                   </div>
-                  <p className="text-[11px] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
+                  <p className="text-[0.6875rem] sm:text-xs text-white/80 font-semibold mt-0.5 flex items-center gap-1 truncate">
                     <Store className="h-3 w-3 shrink-0" />
                     <span className="truncate">{tenant?.name || 'Toy Store'}</span>
                   </p>
@@ -382,7 +382,7 @@ export default function ToystorePosPage() {
                   className="lg:hidden relative h-10 w-10 rounded-2xl bg-emerald-500 hover:bg-emerald-600 flex items-center justify-center">
                   <ShoppingCart className="h-5 w-5" />
                   {itemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">
                       {itemCount}
                     </span>
                   )}
@@ -410,7 +410,7 @@ export default function ToystorePosPage() {
               <button onClick={() => setScannerOpen(true)}
                 className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg shrink-0">
                 <Camera className="h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="text-[9px] sm:text-[10px] font-extrabold uppercase">Scan</span>
+                <span className="text-[0.625rem] sm:text-[0.6875rem] font-extrabold uppercase">Scan</span>
               </button>
             </div>
 
@@ -502,12 +502,12 @@ export default function ToystorePosPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-pink-700 text-[11px] font-extrabold flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-pink-700 text-[0.6875rem] font-extrabold flex items-center justify-center">
                   {itemCount}
                 </span>
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Cart</div>
                 <div className="text-lg font-extrabold tabular-nums leading-none">{hidePrices ? '••••' : formatPKR(total)}</div>
               </div>
             </div>
@@ -556,23 +556,23 @@ function ToyTile({ product: p, profile, cart, hidePrices, onClick }: any) {
           </div>
         )}
         {out && <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center"><span className="px-3 py-1 rounded-xl bg-rose-600 text-white text-xs sm:text-sm font-extrabold shadow-lg">OUT</span></div>}
-        {low && !out && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-extrabold shadow-lg animate-pulse">LOW</div>}
+        {low && !out && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg animate-pulse">LOW</div>}
         {profile?.isEducational && !out && (
-          <div className="absolute top-1.5 left-1.5 h-6 px-1.5 rounded-md bg-violet-600 flex items-center gap-1 text-white text-[9px] font-extrabold shadow-lg">
+          <div className="absolute top-1.5 left-1.5 h-6 px-1.5 rounded-md bg-violet-600 flex items-center gap-1 text-white text-[0.625rem] font-extrabold shadow-lg">
             <GraduationCap className="h-2.5 w-2.5" /> EDU
           </div>
         )}
         {profile?.isBirthdayGift && !out && (
-          <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-pink-600 text-white text-[9px] font-extrabold shadow-lg">🎂</div>
+          <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-pink-600 text-white text-[0.625rem] font-extrabold shadow-lg">🎂</div>
         )}
         {profile?.chokingHazard && !out && (
-          <div className="absolute bottom-1.5 right-1.5 h-5 w-5 rounded-full bg-rose-500 flex items-center justify-center text-white text-[10px]">⚠</div>
+          <div className="absolute bottom-1.5 right-1.5 h-5 w-5 rounded-full bg-rose-500 flex items-center justify-center text-white text-[0.6875rem]">⚠</div>
         )}
       </div>
       <div className="p-2 sm:p-3">
         <div className="font-extrabold text-slate-900 text-sm sm:text-base line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem]">{p.name}</div>
         {profile?.ageGroup && (
-          <div className="text-[9px] font-extrabold uppercase text-pink-700 mt-0.5">
+          <div className="text-[0.625rem] font-extrabold uppercase text-pink-700 mt-0.5">
             {AGE_GROUPS.find((a) => a.v === profile.ageGroup)?.l || profile.ageGroup}
           </div>
         )}
@@ -604,7 +604,7 @@ function CartPanel({
       <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
               Cart • {itemCount} lines • {totalQty} qty
             </div>
             <div className="text-3xl sm:text-4xl font-extrabold tabular-nums leading-none mt-1">
@@ -679,10 +679,10 @@ function CartPanel({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm sm:text-base text-slate-900 leading-tight line-clamp-2">{l.name}</div>
-                  {l.brand && <div className="text-[10px] font-bold text-slate-500 mt-0.5">{l.brand}</div>}
+                  {l.brand && <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">{l.brand}</div>}
                   <div className="text-xs sm:text-sm font-bold text-pink-700 mt-0.5">{formatPKR(l.unitPrice)}</div>
                   {l.chokingHazard && (
-                    <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-700 text-[9px] font-extrabold">
+                    <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-700 text-[0.625rem] font-extrabold">
                       ⚠️ Choking hazard
                     </div>
                   )}
@@ -734,14 +734,14 @@ function CartPanel({
       {cart.length > 0 && (
         <div className="shrink-0 p-2.5 sm:p-3 border-t-4 border-slate-100 bg-white space-y-2">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-[11px] sm:text-xs font-extrabold text-slate-600 shrink-0">
+            <div className="flex items-center gap-1 text-[0.6875rem] sm:text-xs font-extrabold text-slate-600 shrink-0">
               <Percent className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600" />
               <span className="hidden sm:inline">Discount:</span>
             </div>
             <div className="flex gap-1 flex-1">
               {[0, 5, 10, 15, 20].map((d) => (
                 <button key={d} onClick={() => setDiscountPct(d)}
-                  className={`flex-1 h-9 sm:h-10 rounded-xl text-[11px] sm:text-xs font-extrabold ${
+                  className={`flex-1 h-9 sm:h-10 rounded-xl text-[0.6875rem] sm:text-xs font-extrabold ${
                     discountPct === d ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}>
                   {d === 0 ? 'None' : `${d}%`}
                 </button>
@@ -752,7 +752,7 @@ function CartPanel({
           <button onClick={onCheckout} disabled={!canCheckout}
             className="w-full h-[76px] sm:h-[88px] rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98] bg-gradient-to-r from-pink-600 to-rose-700 hover:from-pink-700 hover:to-rose-700 disabled:opacity-50 flex items-center justify-between px-5 sm:px-6">
             <div className="text-left">
-              <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
+              <div className="text-[0.6875rem] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
                 Checkout
               </div>
               <div className="text-2xl sm:text-3xl tabular-nums leading-none mt-0.5">{formatPKR(total)}</div>

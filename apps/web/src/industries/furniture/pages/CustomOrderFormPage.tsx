@@ -313,7 +313,7 @@ export default function CustomOrderFormPage() {
             <div className="mt-1 flex gap-1">
               {[25, 50, 75, 100].map((pct) => (
                 <button key={pct} type="button" onClick={() => setForm({ ...form, depositAmount: Math.round(form.quotedPrice * pct / 100) })}
-                  className="flex-1 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold">
+                  className="flex-1 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[0.6875rem] font-extrabold">
                   {pct}%
                 </button>
               ))}

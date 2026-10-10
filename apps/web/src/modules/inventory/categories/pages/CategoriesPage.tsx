@@ -254,7 +254,7 @@ export default function CategoriesPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Tag className="h-3.5 w-3.5 text-amber-300" /> Product Organization
               {industryPresets.industryId && (
                 <>
@@ -316,7 +316,7 @@ export default function CategoriesPage() {
         </div>
 
         {/* Keyboard hints */}
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>N</Kbd><span className="text-white/60">Nayi category</span>
@@ -349,7 +349,7 @@ export default function CategoriesPage() {
                 <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 text-sm">
                   {industryPresets.industryEmoji} {industryPresets.industryName} — Ready-Made Categories
                 </h3>
-                <p className="text-[11px] text-emerald-700 dark:text-emerald-300/80 font-bold">
+                <p className="text-[0.6875rem] text-emerald-700 dark:text-emerald-300/80 font-bold">
                   Click karo, naam+color pehle se bhara — bas save karo
                 </p>
               </div>
@@ -377,7 +377,7 @@ export default function CategoriesPage() {
                 </div>
                 <div className="text-left min-w-0 flex-1">
                   <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{s.name}</div>
-                  <div className="text-[9px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-0.5">
+                  <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-0.5">
                     <Plus className="h-2.5 w-2.5" /> Click to add
                   </div>
                 </div>
@@ -403,7 +403,7 @@ export default function CategoriesPage() {
               <Star className="h-5 w-5 text-amber-500" />
               <div>
                 <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200">Top Categories</h3>
-                <p className="text-[11px] text-emerald-700 dark:text-emerald-300/80 font-bold">Sab se zyada products kis group me</p>
+                <p className="text-[0.6875rem] text-emerald-700 dark:text-emerald-300/80 font-bold">Sab se zyada products kis group me</p>
               </div>
             </div>
           </div>
@@ -423,11 +423,11 @@ export default function CategoriesPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold text-slate-900 dark:text-white truncate">{c.name}</div>
-                    <div className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase">{c.color}</div>
+                    <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-slate-400 uppercase">{c.color}</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 dark:text-emerald-400 text-lg tabular-nums">{c._count?.products ?? 0}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">products</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">products</div>
                   </div>
                 </div>
               );
@@ -569,13 +569,13 @@ export default function CategoriesPage() {
                     <Package className="h-3 w-3" />
                     {cat._count?.products ?? 0} products
                   </div>
-                  <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-1 uppercase">{cat.color}</div>
+                  <div className="text-[0.6875rem] font-mono text-slate-400 dark:text-slate-500 mt-1 uppercase">{cat.color}</div>
                 </div>
               </div>
 
               <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <span className={[
-                  'text-[10px] font-extrabold',
+                  'text-[0.6875rem] font-extrabold',
                   (cat._count?.products ?? 0) > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500',
                 ].join(' ')}>
                   {(cat._count?.products ?? 0) > 0 ? '✓ In use' : 'Khaali'}
@@ -614,11 +614,11 @@ export default function CategoriesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 dark:text-white truncate">{cat.name}</div>
-                  <div className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase">{cat.color}</div>
+                  <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-slate-400 uppercase">{cat.color}</div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{cat._count?.products ?? 0}</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">products</div>
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">products</div>
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <button
@@ -678,7 +678,7 @@ export default function CategoriesPage() {
                 <span className="text-slate-300 dark:text-slate-600">•</span>
                 <button onClick={() => setSelectedPresets(new Set())} className="text-xs font-extrabold text-slate-600 dark:text-slate-400 hover:underline">Kuch nahi</button>
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Jo pehle se hain, woh chhupe hain</div>
+              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Jo pehle se hain, woh chhupe hain</div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-5">
@@ -704,7 +704,7 @@ export default function CategoriesPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{p.name}</div>
-                        <div className="text-[9px] font-mono text-slate-500 dark:text-slate-400 uppercase">{p.color}</div>
+                        <div className="text-[0.625rem] font-mono text-slate-500 dark:text-slate-400 uppercase">{p.color}</div>
                       </div>
                       {selected && <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />}
                     </button>
@@ -807,7 +807,7 @@ export default function CategoriesPage() {
 
               {/* Live preview */}
               <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-800/30 border-2 border-slate-200 dark:border-slate-700 p-4">
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mb-3 flex items-center gap-1">
+                <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mb-3 flex items-center gap-1">
                   <Sparkles className="h-3 w-3" /> Live Preview
                 </div>
                 <div className="flex items-center gap-3">
@@ -954,9 +954,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

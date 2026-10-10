@@ -231,7 +231,7 @@ export default function ElectronicsCustomersPage() {
                 : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300'
             }`}>
             <o.icon className="h-3.5 w-3.5" /> {o.label}
-            <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${filter === o.v ? 'bg-black/20' : 'bg-slate-100'}`}>{o.n}</span>
+            <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${filter === o.v ? 'bg-black/20' : 'bg-slate-100'}`}>{o.n}</span>
           </button>
         ))}
       </div>
@@ -261,17 +261,17 @@ export default function ElectronicsCustomersPage() {
               extraBadges={
                 <>
                   {c.serialCount > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.6875rem] font-bold">
                       <Barcode className="h-3 w-3" /> {c.serialCount} serial unit
                     </div>
                   )}
                   {c.activeWarranty > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-bold">
                       <ShieldCheck className="h-3 w-3" /> {c.activeWarranty} warranty chal rahi
                     </div>
                   )}
                   {c.expiringSoon > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-bold">
                       <ShieldAlert className="h-3 w-3" /> {c.expiringSoon} 30 din me khatam
                     </div>
                   )}
@@ -323,7 +323,7 @@ function CustomersTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Customers Page</h3>
             </div>
           </div>
@@ -342,7 +342,7 @@ function CustomersTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

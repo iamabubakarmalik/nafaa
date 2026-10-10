@@ -315,7 +315,7 @@ export default function AgriProfitReportPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <TrendingUp className="h-3.5 w-3.5 text-lime-300" /> Agri · Munafa
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
@@ -387,7 +387,7 @@ export default function AgriProfitReportPage() {
             <h3 className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">
               ⚠️ {problems.bulkRisk} cheezon par thok ki chhoot munafa aadha kar deti hai
             </h3>
-            <p className="text-[11px] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
+            <p className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
               Ye report khudra rate par bani hai. Jab farmer 20 bori leta hai aur chhoot lagti
               hai, to asal munafa yahan dikhne wale se bohat kam reh jata hai. Neeche har cheez
               par thok wala margin alag dikhaya gaya hai — jahan wo aadhe se kam hai wahan
@@ -415,7 +415,7 @@ export default function AgriProfitReportPage() {
             }`}>
             <Icon className="h-4 w-4" /> {label}
             {count !== undefined && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-lg tabular-nums ${
+              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
                 tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
               }`}>{count}</span>
             )}
@@ -459,7 +459,7 @@ export default function AgriProfitReportPage() {
                 ['tool', GROUP_LABEL.tool, Tractor],
               ] as const).map(([v, label, Icon]) => (
                 <button key={v} onClick={() => setKindFilter(v as KindFilter)}
-                  className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black inline-flex items-center gap-1.5 transition ${
+                  className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition ${
                     kindFilter === v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
                   }`}>
@@ -468,7 +468,7 @@ export default function AgriProfitReportPage() {
               ))}
 
               <button onClick={() => setPerPack((v) => !v)} title="Per kilo / per bori (K)"
-                className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black inline-flex items-center gap-1.5 transition ${
+                className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition ${
                   perPack ? 'border-lime-500 bg-lime-50 dark:bg-lime-500/15 text-lime-700 dark:text-lime-300'
                     : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-lime-400'
                 }`}>
@@ -476,7 +476,7 @@ export default function AgriProfitReportPage() {
               </button>
 
               <button onClick={() => setOnlyProblems((v) => !v)}
-                className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black inline-flex items-center gap-1.5 transition ${
+                className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition ${
                   onlyProblems ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
                     : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-rose-400'
                 }`}>
@@ -565,7 +565,7 @@ function ProfitTable({ rows, hideCost, perPack }: { rows: any[]; hideCost: boole
                         <span className="block font-extrabold text-slate-900 dark:text-white text-sm truncate group-hover:text-emerald-600">
                           {r.name}
                         </span>
-                        <span className="block text-[10px] font-bold text-slate-400 truncate">
+                        <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">
                           {r.categoryName || '—'}
                           {r.packSize ? ` · 1 ${agriUnitLabel(r.unit)} = ${r.packSize} ${r.packUnit}` : ''}
                         </span>
@@ -573,16 +573,16 @@ function ProfitTable({ rows, hideCost, perPack }: { rows: any[]; hideCost: boole
                     </Link>
                   </td>
                   <td className="px-3 py-2.5">
-                    <span className="text-[10px] font-black uppercase px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    <span className="text-[0.6875rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                       {prettyAgriKind(r.kind)}
                     </span>
                   </td>
                   <td className="px-3 py-2.5 text-right">
                     <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">
-                      {fmtQty(Number(r.quantitySold))} <span className="text-[10px] font-bold text-slate-500">{agriUnitLabel(r.unit)}</span>
+                      {fmtQty(Number(r.quantitySold))} <span className="text-[0.6875rem] font-bold text-slate-500">{agriUnitLabel(r.unit)}</span>
                     </div>
                     {r.qtyPack !== null && (
-                      <div className="text-[10px] font-bold text-slate-400 tabular-nums">
+                      <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                         = {fmtQty(r.qtyPack)} {r.packUnit}
                       </div>
                     )}
@@ -605,9 +605,9 @@ function ProfitTable({ rows, hideCost, perPack }: { rows: any[]; hideCost: boole
                       r.profitPerPack !== null ? (
                         <div className="font-extrabold text-lime-700 dark:text-lime-400 tabular-nums">
                           {hideCost ? '••••' : `${formatPKR(r.profitPerPack)}`}
-                          <span className="text-[10px] font-bold text-slate-500"> / {r.packUnit}</span>
+                          <span className="text-[0.6875rem] font-bold text-slate-500"> / {r.packUnit}</span>
                         </div>
-                      ) : <span className="text-[10px] font-bold text-slate-400">—</span>
+                      ) : <span className="text-[0.6875rem] font-bold text-slate-400">—</span>
                     ) : (
                       <div className={`font-extrabold tabular-nums ${
                         Number(r.margin) > 20 ? 'text-emerald-700 dark:text-emerald-400'
@@ -624,13 +624,13 @@ function ProfitTable({ rows, hideCost, perPack }: { rows: any[]; hideCost: boole
                         <div className="font-extrabold text-slate-700 dark:text-slate-200 tabular-nums text-xs">
                           {formatPKR(r.bulkPrice)}
                         </div>
-                        <div className={`text-[10px] font-black tabular-nums ${
+                        <div className={`text-[0.6875rem] font-black tabular-nums ${
                           r.bulkRisk ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'
                         }`}>
                           {hideCost ? '••••' : `${(r.bulkMargin ?? 0).toFixed(1)}% margin`}
                         </div>
                       </>
-                    ) : <span className="text-[10px] font-bold text-slate-400">—</span>}
+                    ) : <span className="text-[0.6875rem] font-bold text-slate-400">—</span>}
                   </td>
                   <td className="px-3 py-2.5 text-center">
                     <div className="inline-flex flex-col gap-1 items-center">
@@ -674,19 +674,19 @@ function Analytics({ s, rows, hideCost, money, problems, topChart, kindPie, seas
             <h3 className="font-black text-amber-900 dark:text-amber-200">Ye report poori sahi nahi hogi jab tak</h3>
           </div>
           {problems.noCost > 0 && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>{problems.noCost}</strong> cheezon ki cost bhari hi nahi — un ka munafa poora
               rate dikh raha hai, jo sach nahi.
             </p>
           )}
           {problems.losing > 0 && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>{problems.losing}</strong> cheezein nuqsaan par bik rahi hain — rate ya cost
               me se koi ek ghalat hai.
             </p>
           )}
           {problems.bulkRisk > 0 && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>{problems.bulkRisk}</strong> cheezon par thok ki chhoot munafa aadha kar deti hai.
               {!hideCost && problems.bulkGap > 0 && (
                 <> Agar saara maal thok par bikta to takreeban <strong>{formatPKR(problems.bulkGap)}</strong> kam milta.</>
@@ -694,7 +694,7 @@ function Analytics({ s, rows, hideCost, money, problems, topChart, kindPie, seas
             </p>
           )}
           {problems.noProfile > 0 && (
-            <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+            <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
               • <strong>{problems.noProfile}</strong> cheezein bina agri tafseel ke hain — un ka thok
               aur mausam ka hisab nahi ho raha.
             </p>
@@ -835,7 +835,7 @@ function ListCard({ icon: Icon, tone, title, rows }: any) {
               </span>
               <Link to={`/agri-products/${r.productId}`} className="min-w-0 flex-1 hover:text-emerald-600">
                 <span className="block font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.name}</span>
-                <span className="block text-[11px] font-bold text-slate-400 tabular-nums">
+                <span className="block text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                   {fmtQty(Number(r.quantitySold))} {agriUnitLabel(r.unit)} bika · {Number(r.margin).toFixed(1)}% margin
                 </span>
               </Link>
@@ -870,9 +870,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -891,7 +891,7 @@ function Box({ label, value, tone }: any) {
   };
   return (
     <div className={`rounded-2xl border-2 p-3 ${tones[tone] ?? tones.slate}`}>
-      <div className="text-[10px] font-black uppercase tracking-widest opacity-70">{label}</div>
+      <div className="text-[0.6875rem] font-black uppercase tracking-widest opacity-70">{label}</div>
       <div className="mt-0.5 text-lg font-black tabular-nums break-words">{value}</div>
     </div>
   );
@@ -913,7 +913,7 @@ function EmptyBox({ text }: { text: string }) {
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>{children}</th>;
 }
 
 function Pill({ tone, children }: any) {
@@ -922,7 +922,7 @@ function Pill({ tone, children }: any) {
     amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
     rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
   };
-  return <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold whitespace-nowrap ${tones[tone]}`}>{children}</span>;
+  return <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold whitespace-nowrap ${tones[tone]}`}>{children}</span>;
 }
 
 function Empty({ onlyProblems, onClear }: { onlyProblems: boolean; onClear: () => void }) {
@@ -987,8 +987,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             khaad se kayi guna zyada hota hai; ye chart wohi batata hai.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">K</kbd> per kilo / bori</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
@@ -1009,8 +1009,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

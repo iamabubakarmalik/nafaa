@@ -255,7 +255,7 @@ export default function MobileProductDetailPage() {
               </div>
             )}
             {product.isFeatured && (
-              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <Star className="h-3 w-3 fill-white" /> FEATURED
               </div>
             )}
@@ -311,14 +311,14 @@ export default function MobileProductDetailPage() {
 
             <div className="mt-5 flex items-center gap-4 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Sale price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Sale price</div>
                 <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
                   {formatPKRFull(product.price)}
                 </div>
               </div>
               {product.costPrice > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
                     {formatPKRFull(product.costPrice)}
                   </div>
@@ -326,7 +326,7 @@ export default function MobileProductDetailPage() {
               )}
               {product.wholesalePrice && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1">
                     {formatPKRFull(product.wholesalePrice)}
                   </div>
@@ -348,7 +348,7 @@ export default function MobileProductDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Add IMEIs</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Bulk or single</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Bulk or single</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </button>
@@ -358,7 +358,7 @@ export default function MobileProductDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">All IMEIs</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Global inventory</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Global inventory</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -368,7 +368,7 @@ export default function MobileProductDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Repairs</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Service tickets</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Service tickets</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -378,7 +378,7 @@ export default function MobileProductDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Go to POS</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Sell this product</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Sell this product</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -403,14 +403,14 @@ export default function MobileProductDetailPage() {
               const colors = PTA_STATUS_COLORS[status];
               return (
                 <div key={status} className={`rounded-xl border-2 p-3 ${colors.bg} ${colors.border}`}>
-                  <div className={`text-[10px] uppercase font-extrabold ${colors.text}`}>
+                  <div className={`text-[0.6875rem] uppercase font-extrabold ${colors.text}`}>
                     {PTA_STATUS_LABELS[status]}
                   </div>
                   <div className={`text-2xl font-extrabold ${colors.text} tabular-nums`}>
                     {data.count}
                   </div>
                   {data.taxLocked > 0 && (
-                    <div className={`text-[10px] font-bold ${colors.text} mt-1`}>
+                    <div className={`text-[0.6875rem] font-bold ${colors.text} mt-1`}>
                       Tax: {formatPKR(data.taxLocked)}
                     </div>
                   )}
@@ -463,7 +463,7 @@ export default function MobileProductDetailPage() {
                       {b.variantName}
                     </div>
                     {b.storage && (
-                      <div className="text-[10px] font-mono text-indigo-700 inline-flex items-center gap-0.5">
+                      <div className="text-[0.6875rem] font-mono text-indigo-700 inline-flex items-center gap-0.5">
                         <HardDrive className="h-2.5 w-2.5" /> {b.storage}
                       </div>
                     )}
@@ -488,22 +488,22 @@ export default function MobileProductDetailPage() {
 
                 <div className="grid grid-cols-3 gap-2 mt-3">
                   <div className="rounded-lg bg-white border border-slate-200 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-emerald-700">In Stock</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">In Stock</div>
                     <div className="text-base font-extrabold text-emerald-900 tabular-nums">{b.inStock}</div>
                   </div>
                   <div className="rounded-lg bg-white border border-slate-200 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-violet-700">Sold</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-violet-700">Sold</div>
                     <div className="text-base font-extrabold text-violet-900 tabular-nums">{b.sold}</div>
                   </div>
                   <div className="rounded-lg bg-white border border-slate-200 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-rose-700">Damaged</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-rose-700">Damaged</div>
                     <div className="text-base font-extrabold text-rose-900 tabular-nums">{b.damaged}</div>
                   </div>
                 </div>
 
                 {b.totalValue > 0 && (
                   <div className="mt-3 pt-2 border-t border-slate-200 flex items-baseline justify-between">
-                    <div className="text-[10px] uppercase font-extrabold text-slate-600">Stock Value</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Stock Value</div>
                     <div className="text-sm font-extrabold text-blue-700 tabular-nums">
                       {formatPKRFull(b.totalValue)}
                     </div>
@@ -548,11 +548,11 @@ export default function MobileProductDetailPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">IMEI</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Variant</th>
-                  <th className="px-3 py-2 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700">PTA</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Cost</th>
-                  <th className="px-3 py-2 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Status</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">IMEI</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Variant</th>
+                  <th className="px-3 py-2 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">PTA</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Cost</th>
+                  <th className="px-3 py-2 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Status</th>
                   <th className="px-3 py-2"></th>
                 </tr>
               </thead>
@@ -564,7 +564,7 @@ export default function MobileProductDetailPage() {
                       <td className="px-3 py-2">
                         <div className="font-mono font-extrabold text-slate-900 text-xs">{imei.imei1}</div>
                         {imei.imei2 && (
-                          <div className="font-mono text-[10px] text-slate-500">2: {imei.imei2}</div>
+                          <div className="font-mono text-[0.6875rem] text-slate-500">2: {imei.imei2}</div>
                         )}
                       </td>
                       <td className="px-3 py-2 text-xs">
@@ -574,11 +574,11 @@ export default function MobileProductDetailPage() {
                           <span className="text-slate-400">—</span>
                         )}
                         {imei.color && (
-                          <div className="text-[10px] text-violet-700 font-bold">{imei.color}</div>
+                          <div className="text-[0.6875rem] text-violet-700 font-bold">{imei.color}</div>
                         )}
                       </td>
                       <td className="px-3 py-2 text-center">
-                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[9px] font-extrabold ${ptaColors.bg} ${ptaColors.text} ${ptaColors.border}`}>
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[0.625rem] font-extrabold ${ptaColors.bg} ${ptaColors.text} ${ptaColors.border}`}>
                           {PTA_STATUS_LABELS[imei.ptaStatus]}
                         </span>
                       </td>
@@ -587,7 +587,7 @@ export default function MobileProductDetailPage() {
                       </td>
                       <td className="px-3 py-2 text-center">
                         <span className={[
-                          'px-1.5 py-0.5 rounded-full text-[9px] font-extrabold',
+                          'px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold',
                           imei.status === 'IN_STOCK' ? 'bg-emerald-100 text-emerald-700' :
                           imei.status === 'SOLD' ? 'bg-violet-100 text-violet-700' :
                           imei.status === 'DAMAGED' ? 'bg-rose-100 text-rose-700' :
@@ -665,7 +665,7 @@ export default function MobileProductDetailPage() {
                         <div className="font-mono font-extrabold text-sm text-slate-900">
                           {s.saleNumber}
                         </div>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', {
                             day: '2-digit', month: 'short', year: 'numeric',
                           })}
@@ -704,10 +704,10 @@ function HeroStat({
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }

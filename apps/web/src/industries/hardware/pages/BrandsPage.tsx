@@ -158,12 +158,12 @@ function BrandCard({ brand, onEdit, onToggleFeatured, onDelete }: any) {
 
         <div className="absolute top-2 left-2 flex gap-1">
           {brand.isFeatured && (
-            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <Star className="h-2 w-2 fill-current" />
               Featured
             </span>
           )}
-          <span className={'px-2 py-0.5 rounded-md text-white text-[9px] font-extrabold uppercase shadow bg-gradient-to-r ' + (tier?.gradient ?? 'from-slate-500 to-slate-700')}>
+          <span className={'px-2 py-0.5 rounded-md text-white text-[0.625rem] font-extrabold uppercase shadow bg-gradient-to-r ' + (tier?.gradient ?? 'from-slate-500 to-slate-700')}>
             {tier?.label}
           </span>
         </div>
@@ -191,7 +191,7 @@ function BrandCard({ brand, onEdit, onToggleFeatured, onDelete }: any) {
       <div className="p-4 space-y-2">
         <div>
           <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">{brand.name}</h3>
-          {brand.code && <div className="text-[10px] font-mono font-bold text-slate-500">{brand.code}</div>}
+          {brand.code && <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{brand.code}</div>}
           {brand.countryOfOrigin && (
             <div className="text-xs font-bold text-slate-600 inline-flex items-center gap-1 mt-1">
               <Globe className="h-3 w-3" />
@@ -223,14 +223,14 @@ function BrandCard({ brand, onEdit, onToggleFeatured, onDelete }: any) {
 
         <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 grid grid-cols-2 gap-2">
           <div>
-            <div className="text-[9px] uppercase font-extrabold text-slate-500 inline-flex items-center gap-0.5">
+            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 inline-flex items-center gap-0.5">
               <Package className="h-2.5 w-2.5" />
               Products
             </div>
             <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{brand.productCount ?? brand.totalProducts}</div>
           </div>
           <div>
-            <div className="text-[9px] uppercase font-extrabold text-emerald-700 inline-flex items-center gap-0.5">
+            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 inline-flex items-center gap-0.5">
               <TrendingUp className="h-2.5 w-2.5" />
               Revenue
             </div>
@@ -274,7 +274,7 @@ function BrandForm({ editing, onClose, onSaved }: { editing: HardwareBrand | nul
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Brand Name *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Brand Name *</label>
             <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Fauji Cement, Amreli Steel" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
           </div>
           <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code (FAUJI)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
@@ -283,7 +283,7 @@ function BrandForm({ editing, onClose, onSaved }: { editing: HardwareBrand | nul
 
         {/* Tier picker */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Tier *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Tier *</label>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {TIERS.map((t) => {
               const active = form.tier === t.value;
@@ -299,7 +299,7 @@ function BrandForm({ editing, onClose, onSaved }: { editing: HardwareBrand | nul
                   }
                 >
                   <div className="text-2xl mb-1">{t.emoji}</div>
-                  <div className="text-[10px] font-extrabold text-slate-700 dark:text-slate-300">{t.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300">{t.label}</div>
                 </button>
               );
             })}
@@ -310,7 +310,7 @@ function BrandForm({ editing, onClose, onSaved }: { editing: HardwareBrand | nul
 
         {/* Logo */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Brand Logo</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Brand Logo</label>
           {form.logoUrl ? (
             <div className="relative w-full aspect-video rounded-xl overflow-hidden border-2 border-slate-200 bg-white flex items-center justify-center p-4">
               <img src={form.logoUrl} alt="" className="max-w-full max-h-full object-contain" />
@@ -341,7 +341,7 @@ function BrandForm({ editing, onClose, onSaved }: { editing: HardwareBrand | nul
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Display Order</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Display Order</label>
             <input type="number" value={form.displayOrder} onChange={(e) => setForm({ ...form, displayOrder: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
           </div>
           <label className={

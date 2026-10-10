@@ -130,13 +130,13 @@ export default function EyeTestDetailPage() {
           </div>
           {test.diagnosis && (
             <div className="mt-4 rounded-xl bg-amber-50 border-2 border-amber-200 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-amber-700 mb-1">Diagnosis</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1">Diagnosis</div>
               <div className="text-sm font-semibold text-amber-900">{test.diagnosis}</div>
             </div>
           )}
           {test.recommendation && (
             <div className="mt-3 rounded-xl bg-blue-50 border-2 border-blue-200 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-blue-700 mb-1">Recommendation</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1">Recommendation</div>
               <div className="text-sm font-semibold text-blue-900">{test.recommendation}</div>
             </div>
           )}
@@ -282,7 +282,7 @@ function InfoBox({ icon: Icon, label, value, tone }: any) {
   };
   return (
     <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold opacity-75">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold opacity-75">
         <Icon className="h-3 w-3" /> {label}
       </div>
       <div className="text-sm font-extrabold mt-1">{value}</div>

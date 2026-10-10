@@ -274,7 +274,7 @@ export default function ShoePosPage() {
                   className="lg:hidden relative h-10 w-10 rounded-2xl bg-emerald-500 flex items-center justify-center">
                   <ShoppingCart className="h-5 w-5" />
                   {itemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">
                       {itemCount}
                     </span>
                   )}
@@ -299,7 +299,7 @@ export default function ShoePosPage() {
               <button onClick={() => setScannerOpen(true)}
                 className="h-16 w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg">
                 <Camera className="h-6 w-6" />
-                <span className="text-[10px] font-extrabold uppercase">Scan</span>
+                <span className="text-[0.6875rem] font-extrabold uppercase">Scan</span>
               </button>
             </div>
 
@@ -364,12 +364,12 @@ export default function ShoePosPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <ShoppingCart className="h-6 w-6" />
-                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[11px] font-extrabold flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 min-w-[22px] h-5 px-1 rounded-full bg-white text-emerald-700 text-[0.6875rem] font-extrabold flex items-center justify-center">
                   {itemCount}
                 </span>
               </div>
               <div className="text-left">
-                <div className="text-[10px] uppercase font-extrabold text-white/80">Cart</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">Cart</div>
                 <div className="text-lg font-extrabold tabular-nums leading-none">{hidePrices ? '••••' : formatPKR(total)}</div>
               </div>
             </div>
@@ -409,7 +409,7 @@ function ProductTile({ product: p, profile, hidePrices, onClick }: any) {
         {profile?.colorName && (
           <div className="flex items-center gap-1 mt-0.5">
             <span className="h-2.5 w-2.5 rounded-full border border-slate-300" style={{ backgroundColor: profile.colorHex || '#ccc' }} />
-            <span className="text-[10px] font-bold text-slate-600">{profile.colorName}</span>
+            <span className="text-[0.6875rem] font-bold text-slate-600">{profile.colorName}</span>
           </div>
         )}
         <div className="mt-2 flex items-end justify-between gap-1">
@@ -431,7 +431,7 @@ function CartPanel({ isMobile, onCloseMobile, cart, itemCount, subtotal, total, 
       <div className="shrink-0 bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white px-4 py-4">
         <div className="flex items-center justify-between gap-2">
           <div>
-            <div className="text-[11px] uppercase font-extrabold text-white/70">Cart • {itemCount} items</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Cart • {itemCount} items</div>
             <div className="text-4xl font-extrabold tabular-nums leading-none mt-1">
               {hidePrices ? '••••' : formatPKR(total)}
             </div>
@@ -484,7 +484,7 @@ function CartPanel({ isMobile, onCloseMobile, cart, itemCount, subtotal, total, 
                     <Ruler className="h-3 w-3" /> Size {l.size} {l.sizeSystem}
                   </div>
                   {(l.boxNumber || l.shelfLocation) && (
-                    <div className="mt-1 flex items-center gap-2 text-[10px] font-bold text-slate-600">
+                    <div className="mt-1 flex items-center gap-2 text-[0.6875rem] font-bold text-slate-600">
                       {l.boxNumber && <span className="inline-flex items-center gap-0.5"><Package className="h-2.5 w-2.5" /> {l.boxNumber}</span>}
                       {l.shelfLocation && <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" /> {l.shelfLocation}</span>}
                     </div>

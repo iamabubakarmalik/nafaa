@@ -52,7 +52,7 @@ export default function AutoPartsCustomerDetailPage() {
                           {v.make?.name} {v.model?.name}
                           {v.year && ` (${v.year})`}
                         </div>
-                        {v.color && <div className="text-[10px] text-slate-500">🎨 {v.color}</div>}
+                        {v.color && <div className="text-[0.6875rem] text-slate-500">🎨 {v.color}</div>}
                       </div>
                     </div>
                   </div>
@@ -74,16 +74,16 @@ export default function AutoPartsCustomerDetailPage() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono font-extrabold text-sm text-slate-900">{job.jobNumber}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase ${
+                          <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ${
                             job.status === 'COMPLETED' || job.status === 'DELIVERED' ? 'bg-emerald-100 text-emerald-700' :
                             job.status === 'CANCELLED' ? 'bg-rose-100 text-rose-700' :
                             'bg-amber-100 text-amber-700'
                           }`}>{job.status}</span>
                         </div>
-                        <div className="text-[11px] text-slate-500 truncate">
+                        <div className="text-[0.6875rem] text-slate-500 truncate">
                           🚗 {job.registrationNumber} • {job.makeName} {job.modelName}
                         </div>
-                        <div className="text-[10px] text-slate-500 inline-flex items-center gap-1">
+                        <div className="text-[0.6875rem] text-slate-500 inline-flex items-center gap-1">
                           <Calendar className="h-2.5 w-2.5" />{formatDate(job.createdAt)}
                         </div>
                       </div>

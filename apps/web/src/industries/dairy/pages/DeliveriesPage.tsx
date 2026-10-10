@@ -97,25 +97,25 @@ export default function DairyDeliveriesPage() {
       <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
         <div className="flex gap-3 flex-wrap items-center">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Date</label>
             <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Slot</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Slot</label>
             <select value={slotFilter} onChange={(e) => setSlotFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
               <option value="all">All Slots</option>
               {SLOTS.map((s) => <option key={s.value} value={s.value}>{s.emoji} {s.label}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Route</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Route</label>
             <select value={routeFilter} onChange={(e) => setRouteFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
               <option value="all">All Routes</option>
               {routes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Status</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Status</label>
             <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
               <option value="all">All Status</option>
               {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
@@ -186,7 +186,7 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">{label}</div>
           <div className="mt-1 text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
         </div>
         <div className={'h-10 w-10 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow shrink-0'}>
@@ -214,8 +214,8 @@ function DeliveryRow({ delivery, onConfirm, onSkip }: any) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold">{c?.name}</span>
-              <span className={'px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
-              {c?.route && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold inline-flex items-center gap-0.5"><RouteIcon className="h-2 w-2" />{c.route.name}</span>}
+              <span className={'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
+              {c?.route && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5"><RouteIcon className="h-2 w-2" />{c.route.name}</span>}
             </div>
             <div className="mt-0.5 text-xs text-slate-500 font-semibold">
               {c?.phone} • {c?.address}
@@ -225,21 +225,21 @@ function DeliveryRow({ delivery, onConfirm, onSkip }: any) {
 
         <div className="flex items-center gap-2 shrink-0">
           <div className="text-center">
-            <div className="text-[9px] uppercase font-extrabold text-slate-500">Sched</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Sched</div>
             <div className="text-sm font-extrabold tabular-nums">{delivery.scheduledQty}L</div>
           </div>
           {delivery.status === 'DELIVERED' && (
             <div className="text-center">
-              <div className="text-[9px] uppercase font-extrabold text-emerald-700">Deliv</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Deliv</div>
               <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{delivery.deliveredQty}L</div>
             </div>
           )}
           <div className="text-center">
-            <div className="text-[9px] uppercase font-extrabold text-slate-500">Rate</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Rate</div>
             <div className="text-sm font-extrabold tabular-nums">{formatPKR(delivery.ratePerLiter).replace('Rs', '')}</div>
           </div>
           <div className="text-center">
-            <div className="text-[9px] uppercase font-extrabold text-emerald-700">Total</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Total</div>
             <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(delivery.totalAmount)}</div>
           </div>
 
@@ -285,11 +285,11 @@ function BulkGenerateModal({ routes, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Date *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Date *</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-11 w-full rounded-xl border-2 border-cyan-300 bg-cyan-50 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Slot *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Slot *</label>
             <div className="grid grid-cols-4 gap-2">
               {SLOTS.map((s) => (
                 <button key={s.value} onClick={() => setSlot(s.value)} className={
@@ -297,13 +297,13 @@ function BulkGenerateModal({ routes, onClose, onDone }: any) {
                   (slot === s.value ? 'border-cyan-500 bg-cyan-50 shadow' : 'border-slate-200 bg-white')
                 }>
                   <div className="text-xl">{s.emoji}</div>
-                  <div className="text-[9px] font-extrabold">{s.label}</div>
+                  <div className="text-[0.625rem] font-extrabold">{s.label}</div>
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Route (optional)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Route (optional)</label>
             <select value={routeId} onChange={(e) => setRouteId(e.target.value)} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
               <option value="">All routes</option>
               {routes.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -350,14 +350,14 @@ function ConfirmDeliveryModal({ delivery, onClose, onDone }: any) {
         <div className="p-5 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Delivered *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Delivered *</label>
               <div className="relative">
                 <input type="number" step="0.1" autoFocus value={qty} onChange={(e) => setQty(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 pr-10 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-extrabold text-emerald-700">L</span>
               </div>
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Returned</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Returned</label>
               <div className="relative">
                 <input type="number" step="0.1" value={returned} onChange={(e) => setReturned(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-amber-300 bg-amber-50 px-3 pr-10 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-extrabold text-amber-700">L</span>

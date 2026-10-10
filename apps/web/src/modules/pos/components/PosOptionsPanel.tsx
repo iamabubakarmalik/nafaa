@@ -91,7 +91,7 @@ export function PosOptionsPanel({ onClose, onChange }: Props) {
                 <Settings className="h-6 w-6 text-white" />
               </div>
               <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider border border-white/20">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-wider border border-white/20">
                   <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                   POS Preferences
                 </div>

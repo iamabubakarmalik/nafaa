@@ -144,13 +144,13 @@ export default function AutoPartsCustomersPage() {
               extraBadges={
                 <>
                   {c.vehicleCount > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-fuchsia-100 text-fuchsia-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-fuchsia-100 text-fuchsia-700 text-[0.6875rem] font-bold">
                       <Car className="h-3 w-3" />
                       {c.vehicleCount} vehicles
                     </div>
                   )}
                   {c.activeJobs > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[0.6875rem] font-bold">
                       <Wrench className="h-3 w-3" />
                       {c.activeJobs} active
                     </div>

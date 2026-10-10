@@ -10,11 +10,11 @@ export function MobileVariantsBanner({ variants }: IndustrySectionProps) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <div className="text-[10px] uppercase tracking-wider text-blue-700 font-bold">
+            <div className="text-[0.6875rem] uppercase tracking-wider text-blue-700 font-bold">
               Mobile Variants
             </div>
             {variants.length > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-[9px] font-extrabold">
+              <span className="px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-[0.625rem] font-extrabold">
                 {variants.length} variants
               </span>
             )}
@@ -32,7 +32,7 @@ export function MobileVariantsBanner({ variants }: IndustrySectionProps) {
                 <HardDrive className="h-3 w-3" />
                 Storage Examples
               </div>
-              <div className="text-slate-700 font-mono text-[10px]">
+              <div className="text-slate-700 font-mono text-[0.6875rem]">
                 64GB, 128GB, 256GB, 512GB, 1TB
               </div>
             </div>
@@ -41,7 +41,7 @@ export function MobileVariantsBanner({ variants }: IndustrySectionProps) {
                 <Palette className="h-3 w-3" />
                 Color Examples
               </div>
-              <div className="text-slate-700 font-mono text-[10px]">
+              <div className="text-slate-700 font-mono text-[0.6875rem]">
                 Black, White, Blue, Gold, Green
               </div>
             </div>
@@ -49,7 +49,7 @@ export function MobileVariantsBanner({ variants }: IndustrySectionProps) {
 
           <div className="mt-3 rounded-lg bg-emerald-50 border border-emerald-200 p-2 flex items-start gap-1.5">
             <Sparkles className="h-3 w-3 text-emerald-700 shrink-0 mt-0.5" />
-            <div className="text-[10px] text-emerald-900">
+            <div className="text-[0.6875rem] text-emerald-900">
               <strong>Tip:</strong> Variant Builder use karke 128GB + Black, 128GB + White, 256GB + Black, etc. ek saath generate kar saktay hain.
               IMEIs har variant ke neeche separately add hoti hain.
             </div>

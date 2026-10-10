@@ -75,14 +75,14 @@ export function RetailQuickKeysBar({ onProductAdd, onComboAdd, shopId }: Props) 
       >
         <div className="flex items-center gap-2 min-w-0">
           <Zap className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-          <span className="text-[10px] uppercase tracking-widest font-extrabold text-amber-800 dark:text-amber-400">
+          <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-800 dark:text-amber-400">
             Quick Access
           </span>
-          <span className="px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900 text-[9px] font-extrabold text-amber-700 dark:text-amber-300">
+          <span className="px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900 text-[0.625rem] font-extrabold text-amber-700 dark:text-amber-300">
             {total}
           </span>
           {collapsed && combos.length > 0 && (
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
               {combos.length} combos • {keys.length} shortcuts
             </span>
           )}
@@ -101,7 +101,7 @@ export function RetailQuickKeysBar({ onProductAdd, onComboAdd, shopId }: Props) 
             <div>
               <div className="flex items-center gap-1 mb-1 px-1">
                 <Sparkles className="h-2.5 w-2.5 text-violet-600" />
-                <span className="text-[9px] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-400">
+                <span className="text-[0.625rem] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-400">
                   Combos
                 </span>
               </div>
@@ -114,7 +114,7 @@ export function RetailQuickKeysBar({ onProductAdd, onComboAdd, shopId }: Props) 
                   >
                     <div className="text-base">🎁</div>
                     <div className="min-w-0">
-                      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate max-w-[120px]">
+                      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate max-w-[120px]">
                         {combo.name}
                       </div>
                       <div className="flex items-center gap-1">
@@ -122,7 +122,7 @@ export function RetailQuickKeysBar({ onProductAdd, onComboAdd, shopId }: Props) 
                           {formatPKR(combo.comboPrice)}
                         </span>
                         {combo.savingsPercentage > 0 && (
-                          <span className="px-1 rounded bg-emerald-500 text-white text-[8px] font-extrabold">
+                          <span className="px-1 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold">
                             -{combo.savingsPercentage.toFixed(0)}%
                           </span>
                         )}
@@ -146,11 +146,11 @@ export function RetailQuickKeysBar({ onProductAdd, onComboAdd, shopId }: Props) 
                   title={key.label + (key.hotkey ? ' [' + key.hotkey + ']' : '')}
                 >
                   <span className="text-base">{key.icon || '⚡'}</span>
-                  <span className="text-[11px] font-extrabold text-slate-900 dark:text-white whitespace-nowrap">
+                  <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white whitespace-nowrap">
                     {key.label}
                   </span>
                   {key.hotkey && (
-                    <span className="px-1 rounded bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[8px] font-mono font-extrabold">
+                    <span className="px-1 rounded bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[0.625rem] font-mono font-extrabold">
                       {key.hotkey}
                     </span>
                   )}

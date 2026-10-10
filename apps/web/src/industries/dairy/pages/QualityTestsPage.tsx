@@ -90,11 +90,11 @@ export default function QualityTestsPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold">{t.testNumber}</span>
                       <span className={
-                        'px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' +
+                        'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +
                         (t.passed ? 'bg-emerald-600' : 'bg-rose-500')
                       }>{t.passed ? 'PASSED' : 'FAILED'}</span>
-                      {t.quality && <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-extrabold">{t.quality.replace('_', ' ')}</span>}
-                      {t.adulterationDetected && <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase animate-pulse">ADULTERATION!</span>}
+                      {t.quality && <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold">{t.quality.replace('_', ' ')}</span>}
+                      {t.adulterationDetected && <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">ADULTERATION!</span>}
                     </div>
                     <div className="text-xs text-slate-500 font-semibold">
                       {t.sourceType} {t.sourceName ? '• ' + t.sourceName : ''} • {format(new Date(t.testedAt), 'dd MMM HH:mm')}
@@ -108,19 +108,19 @@ export default function QualityTestsPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   {t.fatContent && (
                     <div className="text-center rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2">
-                      <div className="text-[9px] uppercase font-extrabold text-amber-700">Fat</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Fat</div>
                       <div className="text-sm font-extrabold text-amber-900 tabular-nums">{t.fatContent}%</div>
                     </div>
                   )}
                   {t.snfContent && (
                     <div className="text-center rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2">
-                      <div className="text-[9px] uppercase font-extrabold text-blue-700">SNF</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">SNF</div>
                       <div className="text-sm font-extrabold text-blue-900 tabular-nums">{t.snfContent}%</div>
                     </div>
                   )}
                   {t.waterContent && (
                     <div className="text-center rounded-lg bg-cyan-50 dark:bg-cyan-950/30 p-2">
-                      <div className="text-[9px] uppercase font-extrabold text-cyan-700">Water</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-cyan-700">Water</div>
                       <div className="text-sm font-extrabold text-cyan-900 tabular-nums">{t.waterContent}%</div>
                     </div>
                   )}
@@ -204,7 +204,7 @@ function TestForm({ onClose, onSaved }: any) {
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Source Type *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Source Type *</label>
             <select value={form.sourceType} onChange={(e) => setForm({ ...form, sourceType: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
               {SOURCE_TYPES.map((s) => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
             </select>
@@ -214,33 +214,33 @@ function TestForm({ onClose, onSaved }: any) {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-0.5 block">Fat %</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-0.5 block">Fat %</label>
             <input type="number" step="0.1" value={form.fatContent} onChange={(e) => setForm({ ...form, fatContent: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-0.5 block">SNF %</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-0.5 block">SNF %</label>
             <input type="number" step="0.1" value={form.snfContent} onChange={(e) => setForm({ ...form, snfContent: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-0.5 block">Protein %</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-0.5 block">Protein %</label>
             <input type="number" step="0.1" value={form.proteinContent} onChange={(e) => setForm({ ...form, proteinContent: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-cyan-700 mb-0.5 block">Water %</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-0.5 block">Water %</label>
             <input type="number" step="0.1" value={form.waterContent} onChange={(e) => setForm({ ...form, waterContent: e.target.value })} className="h-11 w-full rounded-xl border-2 border-cyan-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-cyan-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-0.5 block">pH</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">pH</label>
             <input type="number" step="0.1" value={form.phLevel} onChange={(e) => setForm({ ...form, phLevel: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-slate-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-0.5 block">Temp °C</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Temp °C</label>
             <input type="number" step="0.1" value={form.temperature} onChange={(e) => setForm({ ...form, temperature: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-slate-500" />
           </div>
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Quality Grade</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Quality Grade</label>
           <div className="grid grid-cols-4 gap-2">
             {QUALITIES.map((q) => (
               <button key={q} onClick={() => setForm({ ...form, quality: q, passed: q !== 'REJECTED' })} className={
@@ -252,7 +252,7 @@ function TestForm({ onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-red-700 mb-2 block">Adulteration (check if detected)</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-red-700 mb-2 block">Adulteration (check if detected)</label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {ADULTERATIONS.map((a) => (
               <button key={a} onClick={() => toggleAdulteration(a)} className={

@@ -182,7 +182,7 @@ export default function MobileCatalogPage() {
               <ShoppingBag className="h-4 w-4" />
               Cart
               {cart.totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
+                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
                   {cart.totalItems.toFixed(0)}
                 </span>
               )}
@@ -234,7 +234,7 @@ export default function MobileCatalogPage() {
                 {b.logoUrl ? (
                   <img src={b.logoUrl} alt="" className="h-4 w-4 rounded object-cover" />
                 ) : (
-                  <span className="h-4 w-4 rounded bg-blue-100 text-blue-700 flex items-center justify-center text-[9px] font-extrabold">
+                  <span className="h-4 w-4 rounded bg-blue-100 text-blue-700 flex items-center justify-center text-[0.625rem] font-extrabold">
                     {b.name.charAt(0)}
                   </span>
                 )}
@@ -279,7 +279,7 @@ export default function MobileCatalogPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-blue-900 text-lg">Featured Phones</h3>
-              <p className="text-[11px] text-blue-700 font-bold">Top picks for you</p>
+              <p className="text-[0.6875rem] text-blue-700 font-bold">Top picks for you</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -391,20 +391,20 @@ function PhoneCard({ product, onAdd, onDetail, onEmi, onCompare, inCompare, wish
     }`}>
       <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 items-start">
         {product.isFeatured && (
-          <div className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-1">
+          <div className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-1">
             <Star className="h-2 w-2 fill-white" /> FEATURED
           </div>
         )}
         {outOfStock ? (
-          <div className="px-2 py-0.5 rounded-full bg-slate-900/85 text-white text-[9px] font-extrabold shadow">
+          <div className="px-2 py-0.5 rounded-full bg-slate-900/85 text-white text-[0.625rem] font-extrabold shadow">
             STOCK KHATAM
           </div>
         ) : lowStock ? (
-          <div className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[9px] font-extrabold shadow">
+          <div className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[0.625rem] font-extrabold shadow">
             SIRF {stock} BAQI
           </div>
         ) : (
-          <div className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-extrabold shadow">
+          <div className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[0.625rem] font-extrabold shadow">
             {stock} MOJOOD
           </div>
         )}
@@ -444,11 +444,11 @@ function PhoneCard({ product, onAdd, onDetail, onEmi, onCompare, inCompare, wish
 
       <div className="p-3 space-y-1.5">
         {product.brand && (
-          <div className="text-[9px] uppercase font-extrabold text-blue-700 tracking-wider">{product.brand.name}</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-blue-700 tracking-wider">{product.brand.name}</div>
         )}
         <h4 className="font-extrabold text-slate-900 text-sm line-clamp-2 min-h-[2.25rem]">{product.name}</h4>
         {ptaTop && ptaCfg && (
-          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-extrabold uppercase ${ptaCfg.bg} ${ptaCfg.text} ${ptaCfg.border}`}>
+          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[0.625rem] font-extrabold uppercase ${ptaCfg.bg} ${ptaCfg.text} ${ptaCfg.border}`}>
             <ShieldCheck className="h-2.5 w-2.5" />
             {PTA_STATUS_LABELS[ptaTop[0] as PtaStatus]}
             {Object.keys(product.ptaMix ?? {}).length > 1 && <span className="opacity-60">+</span>}
@@ -457,7 +457,7 @@ function PhoneCard({ product, onAdd, onDetail, onEmi, onCompare, inCompare, wish
         <div className="flex items-baseline justify-between">
           <div>
             <div className="text-lg font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKR(Number(product.price))}</div>
-            <div className="text-[10px] text-slate-500 font-bold mt-0.5">
+            <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">
               or <button onClick={(e) => { e.stopPropagation(); onEmi(); }} className="text-blue-700 font-extrabold hover:underline">EMI {formatPKR(monthlyEmi)}/mo</button>
             </div>
           </div>
@@ -465,7 +465,7 @@ function PhoneCard({ product, onAdd, onDetail, onEmi, onCompare, inCompare, wish
         <div className="grid grid-cols-2 gap-1 pt-1">
           <button
             onClick={onDetail}
-            className="h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold flex items-center justify-center gap-1"
+            className="h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[0.6875rem] font-extrabold flex items-center justify-center gap-1"
           >
             View
           </button>
@@ -473,7 +473,7 @@ function PhoneCard({ product, onAdd, onDetail, onEmi, onCompare, inCompare, wish
             onClick={onAdd}
             disabled={outOfStock}
             title={outOfStock ? 'Abhi stock me nahi' : undefined}
-            className={`h-8 rounded-lg text-[10px] font-extrabold flex items-center justify-center gap-1 transition ${
+            className={`h-8 rounded-lg text-[0.6875rem] font-extrabold flex items-center justify-center gap-1 transition ${
               outOfStock
                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700 text-white'
@@ -547,18 +547,18 @@ function PhoneDetailModal({ product, onClose, onAdd, onEmi, wishlist }: any) {
             <div className="grid grid-cols-3 gap-2 text-xs">
               <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-center">
                 <ShieldCheck className="h-4 w-4 text-emerald-700 mx-auto mb-1" />
-                <div className="font-extrabold text-emerald-900 text-[10px]">PTA</div>
-                <div className="text-[9px] text-emerald-700 font-bold">Approved</div>
+                <div className="font-extrabold text-emerald-900 text-[0.6875rem]">PTA</div>
+                <div className="text-[0.625rem] text-emerald-700 font-bold">Approved</div>
               </div>
               <div className="rounded-lg bg-blue-50 border border-blue-200 p-2 text-center">
                 <Award className="h-4 w-4 text-blue-700 mx-auto mb-1" />
-                <div className="font-extrabold text-blue-900 text-[10px]">Warranty</div>
-                <div className="text-[9px] text-blue-700 font-bold">Included</div>
+                <div className="font-extrabold text-blue-900 text-[0.6875rem]">Warranty</div>
+                <div className="text-[0.625rem] text-blue-700 font-bold">Included</div>
               </div>
               <div className="rounded-lg bg-violet-50 border border-violet-200 p-2 text-center">
                 <Package className="h-4 w-4 text-violet-700 mx-auto mb-1" />
-                <div className="font-extrabold text-violet-900 text-[10px]">Box Pack</div>
-                <div className="text-[9px] text-violet-700 font-bold">Sealed</div>
+                <div className="font-extrabold text-violet-900 text-[0.6875rem]">Box Pack</div>
+                <div className="text-[0.625rem] text-violet-700 font-bold">Sealed</div>
               </div>
             </div>
 
@@ -639,7 +639,7 @@ function EmiCalculatorModal({ product, onClose, shopPhone }: any) {
 
         <div className="p-5 space-y-4">
           <div className="rounded-xl bg-slate-50 p-3 text-center">
-            <div className="text-[10px] uppercase font-extrabold text-slate-600">Phone Price</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Phone Price</div>
             <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{formatPKRFull(price)}</div>
           </div>
 
@@ -692,9 +692,9 @@ function EmiCalculatorModal({ product, onClose, shopPhone }: any) {
           </div>
 
           <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-4 space-y-1.5">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Your Monthly EMI</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Your Monthly EMI</div>
             <div className="text-4xl font-extrabold tabular-nums">{formatPKR(monthlyEmi)}</div>
-            <div className="text-[10px] text-white/80 font-semibold pt-2 border-t border-white/20 space-y-0.5">
+            <div className="text-[0.6875rem] text-white/80 font-semibold pt-2 border-t border-white/20 space-y-0.5">
               <div className="flex justify-between"><span>Down payment:</span><span className="font-bold">{formatPKR(downPayment)}</span></div>
               <div className="flex justify-between"><span>Finance amount:</span><span className="font-bold">{formatPKR(financeAmount)}</span></div>
               <div className="flex justify-between"><span>Total cost:</span><span className="font-bold">{formatPKR(totalCost)}</span></div>

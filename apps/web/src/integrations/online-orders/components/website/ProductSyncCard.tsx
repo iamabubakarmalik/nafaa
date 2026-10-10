@@ -88,7 +88,7 @@ export function ProductSyncCard({ channelId, productLinks, platform, wooConnecte
             Shopify CSV
           </Button>
         </div>
-        <ul className="mt-3 space-y-1 text-[11px] text-slate-500">
+        <ul className="mt-3 space-y-1 text-[0.6875rem] text-slate-500">
           <li>• WooCommerce: Products → Import → file chunein → Run</li>
           <li>• Shopify: Products → Import → file chunein</li>
           {platform === 'woocommerce' && <li>• Plugin laga hai to WP me <b>Nafaa POS → "Products Nafaa se lao"</b> ek click me</li>}
@@ -117,7 +117,7 @@ export function ProductSyncCard({ channelId, productLinks, platform, wooConnecte
           >
             <Upload className="h-6 w-6 text-slate-400" />
             <span className="text-sm font-bold text-slate-700 dark:text-slate-200">CSV file chunein ya yahan chhorein</span>
-            <span className="text-[11px] text-slate-500">WooCommerce / Shopify / Excel se "Save as CSV"</span>
+            <span className="text-[0.6875rem] text-slate-500">WooCommerce / Shopify / Excel se "Save as CSV"</span>
           </button>
         ) : (
           <div className="mt-3 space-y-3 rounded-xl bg-slate-50 p-3 dark:bg-neutral-900">
@@ -204,7 +204,7 @@ function WooDirect({ channelId, kind }: { channelId: string; kind: 'woocommerce'
         <span className="text-xl">{shopify ? '🟢' : '🟣'}</span>
         <div className="text-sm font-black text-slate-900 dark:text-white">{shopify ? 'Shopify' : 'WooCommerce'} se seedha — ek click</div>
       </div>
-      <p className="mt-1 text-[12px] font-bold text-slate-600 dark:text-slate-300">
+      <p className="mt-1 text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
         Products SKU se jurte hain. Stock har 15 minute khud jata hai — abhi chahiye to "Stock sync" dabayein.
       </p>
       <div className="mt-3 grid gap-2 sm:grid-cols-3">

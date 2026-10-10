@@ -150,7 +150,7 @@ export default function FloristSubscriptionsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm truncate">{s.customerName}</div>
-                  <div className="text-[10px] font-bold text-slate-500 truncate">{s.bouquetType}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{s.bouquetType}</div>
                 </div>
                 <button onClick={() => markDelivered.mutate(s.id)}
                   className="h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shrink-0">
@@ -226,7 +226,7 @@ function SubCard({ sub: s, onEdit, onDelivered, onPause, onResume, onCancel, onD
     <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4 hover:shadow-lg transition">
       <div className="flex items-start justify-between gap-2 mb-2">
         <span className="font-mono font-extrabold text-slate-900 text-xs">{s.subscriptionNumber}</span>
-        <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 ${meta.cls}`}>
+        <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.cls}`}>
           <StatusIcon className="h-2.5 w-2.5" /> {meta.l}
         </span>
       </div>
@@ -235,36 +235,36 @@ function SubCard({ sub: s, onEdit, onDelivered, onPause, onResume, onCancel, onD
       <div className="text-xs font-bold text-slate-500 inline-flex items-center gap-1 mt-0.5">
         <Phone className="h-3 w-3" /> {s.customerPhone}
       </div>
-      <div className="text-[11px] font-semibold text-slate-500 mt-1 truncate flex items-start gap-1">
+      <div className="text-[0.6875rem] font-semibold text-slate-500 mt-1 truncate flex items-start gap-1">
         <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
         <span className="line-clamp-2">{s.deliveryAddress}</span>
       </div>
 
       <div className="mt-2 pt-2 border-t border-slate-100">
-        <div className="text-[10px] uppercase font-extrabold text-violet-700">Plan</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700">Plan</div>
         <div className="font-extrabold text-slate-900 text-sm">{s.planName}</div>
-        <div className="text-[10px] font-bold text-slate-500">{s.bouquetType}</div>
+        <div className="text-[0.6875rem] font-bold text-slate-500">{s.bouquetType}</div>
       </div>
 
       <div className="mt-2 grid grid-cols-2 gap-2">
         <div className="rounded-lg bg-violet-50 border border-violet-200 p-2">
-          <div className="text-[9px] uppercase font-extrabold text-violet-700">Frequency</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-violet-700">Frequency</div>
           <div className="text-sm font-extrabold text-violet-900">{s.frequency}</div>
         </div>
         <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2">
-          <div className="text-[9px] uppercase font-extrabold text-emerald-700">Per Delivery</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Per Delivery</div>
           <div className="text-sm font-extrabold text-emerald-900 tabular-nums">{formatPKR(s.pricePerDelivery)}</div>
         </div>
       </div>
 
       <div className="mt-2 rounded-lg bg-slate-50 border border-slate-200 p-2 flex items-center justify-between">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Next Delivery</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Next Delivery</div>
           <div className="text-xs font-extrabold text-slate-900">
             {new Date(s.nextDeliveryDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
           </div>
         </div>
-        <div className={`px-2 py-1 rounded-full text-[10px] font-extrabold ${
+        <div className={`px-2 py-1 rounded-full text-[0.6875rem] font-extrabold ${
           daysToNext < 0 ? 'bg-rose-500 text-white'
             : daysToNext === 0 ? 'bg-amber-500 text-white animate-pulse'
               : daysToNext <= 2 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}`}>
@@ -272,7 +272,7 @@ function SubCard({ sub: s, onEdit, onDelivered, onPause, onResume, onCancel, onD
         </div>
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-slate-500">
+      <div className="mt-2 flex items-center justify-between text-[0.6875rem] font-bold text-slate-500">
         <span><Clock className="h-2.5 w-2.5 inline mr-0.5" /> Started {new Date(s.startDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}</span>
         <span>{s.completedDeliveries} delivered</span>
       </div>
@@ -381,7 +381,7 @@ function SubForm({ editing, onClose, onSaved }: any) {
                     className={`p-2.5 rounded-xl border-2 transition text-center ${
                       a ? 'border-violet-500 bg-violet-500 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-violet-400'}`}>
                     <div className="font-extrabold text-sm">{f.l}</div>
-                    <div className={`text-[10px] font-semibold ${a ? 'text-white/85' : 'text-slate-500'}`}>{f.desc}</div>
+                    <div className={`text-[0.6875rem] font-semibold ${a ? 'text-white/85' : 'text-slate-500'}`}>{f.desc}</div>
                   </button>
                 );
               })}
@@ -457,7 +457,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
       className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-violet-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

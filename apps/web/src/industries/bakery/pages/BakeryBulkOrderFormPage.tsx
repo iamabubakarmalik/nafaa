@@ -255,7 +255,7 @@ export default function BakeryBulkOrderFormPage() {
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-yellow-700 text-white p-5 sm:p-6 shadow-2xl">
         <div className="absolute -top-20 -right-16 h-60 w-60 rounded-full bg-amber-400/25 blur-3xl pointer-events-none" />
         <div className="relative">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
             <ShoppingBag className="h-3.5 w-3.5 text-amber-300" /> Bakery · Bara order{isEdit && existing?.orderNumber ? ` · ${existing.orderNumber}` : ''}
           </div>
           <h1 className="mt-3 text-2xl sm:text-3xl font-black leading-tight">{isEdit ? 'Order me tabdeeli' : '🎪 Naya Bara Order'}</h1>
@@ -266,7 +266,7 @@ export default function BakeryBulkOrderFormPage() {
       {locked && (
         <div className="rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 p-3 flex gap-2">
           <Lock className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
-          <p className="text-[12px] font-bold text-slate-700 dark:text-slate-200">
+          <p className="text-[0.75rem] font-bold text-slate-700 dark:text-slate-200">
             Ye order <strong>{existing.status === 'DELIVERED' ? 'de diya ja chuka' : 'cancel ho chuka'}</strong> hai
             {existing.status === 'DELIVERED' ? ' aur is ka bill ban chuka' : ''} — ab badla nahi ja sakta.
           </p>
@@ -288,7 +288,7 @@ export default function BakeryBulkOrderFormPage() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                 {ORDER_TYPES.map((t) => (
                   <button key={t.value} type="button" onClick={() => set({ orderType: t.value })}
-                    className={`h-11 px-2 rounded-xl border-2 text-[11px] font-black inline-flex items-center justify-center gap-1 transition ${
+                    className={`h-11 px-2 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${
                       f.orderType === t.value ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
                         : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-amber-400'
                     }`}>{t.emoji} {t.label}</button>
@@ -313,10 +313,10 @@ export default function BakeryBulkOrderFormPage() {
                 onChange={(e) => set({ totalGuests: e.target.value === '' ? '' : Number(e.target.value) })} placeholder="300" />
             </div>
             {!f.eventTime && f.eventDate && (
-              <p className="text-[11px] font-bold text-slate-500">Waqt na likha to din ke aakhir tak ka mana jayega.</p>
+              <p className="text-[0.6875rem] font-bold text-slate-500">Waqt na likha to din ke aakhir tak ka mana jayega.</p>
             )}
             {isPast && (
-              <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 flex gap-2 text-[11px] font-bold text-amber-900 dark:text-amber-200">
+              <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 flex gap-2 text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
                 <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" /> Ye waqt guzar chuka hai — tareekh sahi hai?
               </div>
             )}
@@ -362,14 +362,14 @@ export default function BakeryBulkOrderFormPage() {
                           <button type="button" onClick={() => updateLine(idx, { qty: Number(l.qty || 0) + 1 })}
                             className="h-10 w-9 rounded-r-lg border-2 border-l-0 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-center"><Plus className="h-3.5 w-3.5" /></button>
                         </div>
-                        <span className="text-[11px] font-black text-slate-500 w-10">{l.unit ?? p?.unit ?? ''}</span>
+                        <span className="text-[0.6875rem] font-black text-slate-500 w-10">{l.unit ?? p?.unit ?? ''}</span>
                         <span className="text-slate-400 font-black">×</span>
                         <input type="number" min={0} step="any" value={l.rate}
                           onChange={(e) => updateLine(idx, { rate: e.target.value === '' ? '' : Number(e.target.value) })} placeholder="Rate"
                           className="h-10 w-28 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-sm font-extrabold text-center tabular-nums focus:outline-none focus:border-amber-500" />
                         <span className="ml-auto text-sm font-black tabular-nums text-slate-900 dark:text-white">{formatPKR(Number(l.qty || 0) * Number(l.rate || 0))}</span>
                       </div>
-                      <div className="text-[10px] font-bold">
+                      <div className="text-[0.6875rem] font-bold">
                         {p ? (
                           <span className="text-emerald-700 dark:text-emerald-400">
                             ✓ Apne maal se jura — dete waqt stock ghatega · abhi stock {Number(Number(p.shopStock ?? p.stock ?? 0).toFixed(2))} {p.unit}
@@ -394,9 +394,9 @@ export default function BakeryBulkOrderFormPage() {
                 {options.map((p) => (
                   <button key={p.id} type="button"
                     onClick={() => { setLines((xs) => [...xs, { productId: p.id, name: p.name, qty: '', rate: Number(p.price) || '', unit: p.unit }]); setSearch(''); }}
-                    className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 text-[11px] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition">
+                    className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition">
                     <Plus className="h-3.5 w-3.5 text-amber-500" /> {p.name}
-                    <span className="text-[10px] text-slate-400 tabular-nums">{formatPKR(p.price)}/{p.unit}</span>
+                    <span className="text-[0.6875rem] text-slate-400 tabular-nums">{formatPKR(p.price)}/{p.unit}</span>
                   </button>
                 ))}
               </div>
@@ -412,16 +412,16 @@ export default function BakeryBulkOrderFormPage() {
 
         <aside className="xl:sticky xl:top-4 xl:self-start space-y-3">
           <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-slate-800 text-white p-5 shadow-xl">
-            <div className="text-[10px] font-black uppercase tracking-widest text-white/60">Kul rakam</div>
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60">Kul rakam</div>
             <div className="mt-1 text-3xl font-black tabular-nums">{formatPKR(total)}</div>
-            <div className="mt-1 text-[11px] font-bold text-white/70">{lines.length} line · {Number(totalItems.toFixed(2))} cheezein</div>
+            <div className="mt-1 text-[0.6875rem] font-bold text-white/70">{lines.length} line · {Number(totalItems.toFixed(2))} cheezein</div>
           </div>
 
           <Card icon={Wallet} title={isEdit ? 'Paisa' : 'Advance'}>
             {isEdit ? (
               <div className="rounded-2xl bg-sky-50 dark:bg-sky-500/10 border-2 border-sky-200 dark:border-sky-500/30 p-3 flex gap-2">
                 <Info className="h-4 w-4 text-sky-600 shrink-0 mt-0.5" />
-                <p className="text-[11px] font-bold text-sky-900 dark:text-sky-200">
+                <p className="text-[0.6875rem] font-bold text-sky-900 dark:text-sky-200">
                   Ab tak <strong>{formatPKR(alreadyPaid)}</strong> mil chuka. Naya paisa list ke <strong>"Paisa mila"</strong> se darj
                   karein — yahan se paisa nahi badalta, taake purani payments na mitein.
                 </p>
@@ -434,7 +434,7 @@ export default function BakeryBulkOrderFormPage() {
                   <div className="grid grid-cols-3 gap-1.5">
                     {[0.5, 0.3, 1].map((pc) => (
                       <button key={pc} type="button" onClick={() => set({ advancePaid: Math.round(total * pc) })}
-                        className="h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-[11px] font-black text-slate-700 dark:text-slate-200 transition">
+                        className="h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-[0.6875rem] font-black text-slate-700 dark:text-slate-200 transition">
                         {pc === 1 ? 'Poora' : `${pc * 100}%`}
                       </button>
                     ))}
@@ -450,13 +450,13 @@ export default function BakeryBulkOrderFormPage() {
             {!isEdit && total > 0 && advancePct < 30 && (
               <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3 flex gap-2">
                 <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-                <p className="text-[11px] font-bold text-rose-900 dark:text-rose-200">
+                <p className="text-[0.6875rem] font-bold text-rose-900 dark:text-rose-200">
                   Advance sirf {advancePct.toFixed(0)}% hai. Itna bara saamaan apni jeb se khareedna parega — kam se kam 50% lena behtar hai.
                 </p>
               </div>
             )}
             {!isEdit && advance > 0 && (
-              <p className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">✓ Advance ke saath order khud "Pakka hua" ho jayega.</p>
+              <p className="text-[0.6875rem] font-bold text-emerald-700 dark:text-emerald-400">✓ Advance ke saath order khud "Pakka hua" ho jayega.</p>
             )}
           </Card>
 
@@ -466,14 +466,14 @@ export default function BakeryBulkOrderFormPage() {
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
                 <span className="text-sm font-extrabold text-amber-900 dark:text-amber-200">Ye reh gaya hai</span>
               </div>
-              <ul className="space-y-0.5">{errors.map((e, i) => <li key={i} className="text-[12px] font-bold text-amber-800 dark:text-amber-300">• {e}</li>)}</ul>
+              <ul className="space-y-0.5">{errors.map((e, i) => <li key={i} className="text-[0.75rem] font-bold text-amber-800 dark:text-amber-300">• {e}</li>)}</ul>
             </div>
           )}
 
           <Button className="w-full h-14 text-base font-extrabold bg-gradient-to-r from-amber-600 to-yellow-700"
             disabled={errors.length > 0 || mut.isPending} loading={mut.isPending} onClick={() => mut.mutate()}>
             {mut.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-            {isEdit ? 'Save karein' : 'Order banayein'} <kbd className="hidden sm:inline text-[9px] opacity-70">Ctrl+Enter</kbd>
+            {isEdit ? 'Save karein' : 'Order banayein'} <kbd className="hidden sm:inline text-[0.625rem] opacity-70">Ctrl+Enter</kbd>
           </Button>
         </aside>
       </div>
@@ -516,7 +516,7 @@ function Card({ icon: Icon, title, children }: any) {
 }
 
 function Lbl({ children }: any) {
-  return <label className="block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1.5">{children}</label>;
+  return <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">{children}</label>;
 }
 
 function Toggle({ icon: Icon, label, hint, value, onChange }: any) {
@@ -527,8 +527,8 @@ function Toggle({ icon: Icon, label, hint, value, onChange }: any) {
       }`}>
       <span className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${value ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}><Icon className="h-4 w-4" /></span>
       <span className="min-w-0">
-        <span className="block text-[13px] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
-        <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</span>
+        <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
+        <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</span>
       </span>
     </button>
   );
@@ -538,7 +538,7 @@ function Line2({ label, value, tone }: any) {
   const tones: Record<string, string> = { emerald: 'text-emerald-600 dark:text-emerald-400', amber: 'text-amber-600 dark:text-amber-400' };
   return (
     <div className="flex items-center justify-between">
-      <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400">{label}</span>
+      <span className="text-[0.75rem] font-bold text-slate-500 dark:text-slate-400">{label}</span>
       <span className={`text-sm font-black tabular-nums ${tone ? tones[tone] : 'text-slate-900 dark:text-white'}`}>{value}</span>
     </div>
   );
@@ -549,8 +549,8 @@ function Tip({ icon: Icon, title, children }: any) {
     <div className="flex gap-2.5">
       <div className="h-8 w-8 rounded-xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center shrink-0"><Icon className="h-4 w-4 text-amber-600 dark:text-amber-400" /></div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

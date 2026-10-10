@@ -69,16 +69,16 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-black text-slate-900 dark:text-white">{o.courierLabel ?? 'Courier'}</span>
               <button
-                className="inline-flex items-center gap-1 font-mono text-[13px] font-bold text-slate-700 hover:underline dark:text-slate-200"
+                className="inline-flex items-center gap-1 font-mono text-[0.8125rem] font-bold text-slate-700 hover:underline dark:text-slate-200"
                 onClick={() => navigator.clipboard?.writeText(o.trackingNumber!).then(() => toast.success('CN copy ho gaya'))}
               >
                 {o.trackingNumber} <Copy className="h-3 w-3" />
               </button>
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              <span className={cn('rounded-md px-2 py-0.5 text-[11px] font-black', st.tone)}>{st.label}</span>
-              {o.courierTrail?.label && <span className="text-[11px] text-slate-500">“{o.courierTrail.label}”</span>}
-              {o.courierStatusAt && <span className="text-[11px] text-slate-400">· {whenText(o.courierStatusAt)}</span>}
+              <span className={cn('rounded-md px-2 py-0.5 text-[0.6875rem] font-black', st.tone)}>{st.label}</span>
+              {o.courierTrail?.label && <span className="text-[0.6875rem] text-slate-500">“{o.courierTrail.label}”</span>}
+              {o.courierStatusAt && <span className="text-[0.6875rem] text-slate-400">· {whenText(o.courierStatusAt)}</span>}
             </div>
           </div>
         </div>
@@ -120,7 +120,7 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
             </Button>
           )}
         </div>
-        <p className="mt-2 text-[11px] text-slate-400">Nafaa har 30 minute courier se status leta hai — deliver ya wapas (RTO) hote hi order khud update hota hai.</p>
+        <p className="mt-2 text-[0.6875rem] text-slate-400">Nafaa har 30 minute courier se status leta hai — deliver ya wapas (RTO) hote hi order khud update hota hai.</p>
       </section>
     );
   }
@@ -240,7 +240,7 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
     >
       <div className="space-y-4">
         {current.missing.length > 0 && (
-          <div className="rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
+          <div className="rounded-lg bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
             {current.name} ki settings poori karein: {current.missing.join(', ')} —{' '}
             <Link to={`/online-store/couriers/${current.code.toLowerCase()}?tab=settings`} className="font-semibold underline">Settings kholein</Link>
           </div>
@@ -295,7 +295,7 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
           </label>
         </div>
         {Number(cod) !== Math.round(o.total) && o.paymentStatus !== 'PAID' && (
-          <p className="-mt-2 text-[11px] font-semibold text-amber-600">Order ka total {rs(o.total)} hai — COD alag rakh rahe hain</p>
+          <p className="-mt-2 text-[0.6875rem] font-semibold text-amber-600">Order ka total {rs(o.total)} hai — COD alag rakh rahe hain</p>
         )}
 
         <label className="block">

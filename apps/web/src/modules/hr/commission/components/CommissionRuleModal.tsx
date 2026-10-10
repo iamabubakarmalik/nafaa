@@ -119,7 +119,7 @@ export function CommissionRuleModal({
                         : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-violet-400'
                     }`}>
                     <div className="text-sm font-black text-slate-900 dark:text-white">{m.emoji} {m.label}</div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{m.hint}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{m.hint}</div>
                   </button>
                 );
               })}
@@ -146,7 +146,7 @@ export function CommissionRuleModal({
                       <div className="text-xs font-black text-slate-900 dark:text-white inline-flex items-center gap-1.5">
                         <Icon className="h-3.5 w-3.5" /> {l}
                       </div>
-                      <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">{hint}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">{hint}</div>
                     </button>
                   );
                 })}
@@ -168,7 +168,7 @@ export function CommissionRuleModal({
               )}
             </div>
 
-            <p className="mt-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               {perBill
                 ? 'Har bill par itne rupay — chahe bill chhota ho ya bara.'
                 : effType === 'PERCENT'
@@ -176,7 +176,7 @@ export function CommissionRuleModal({
                   : 'Har bikne wali cheez par itne rupay (miqdar ke hisab se).'}
             </p>
             {example && (
-              <p className="mt-1 text-[12px] font-black text-violet-700 dark:text-violet-400">
+              <p className="mt-1 text-[0.75rem] font-black text-violet-700 dark:text-violet-400">
                 Misal: {example}
               </p>
             )}
@@ -193,7 +193,7 @@ export function CommissionRuleModal({
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               Kisi ek ka alag rule banayein to us par wohi chalega, "sab wala" nahi.
             </p>
           </div>
@@ -208,7 +208,7 @@ export function CommissionRuleModal({
                   return (
                     <button key={c.id}
                       onClick={() => setCats((prev) => on ? prev.filter((x) => x !== c.id) : [...prev, c.id])}
-                      className={`h-9 px-2.5 rounded-xl border-2 text-[11px] font-black transition ${
+                      className={`h-9 px-2.5 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                         on
                           ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300'
                           : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-violet-400'
@@ -216,7 +216,7 @@ export function CommissionRuleModal({
                   );
                 })}
               </div>
-              <p className="mt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                 Kuch na chunein to har cheez par lagu. Chunne par sirf unhi cheezon ki bikri
                 ginti hai — jaise sirf cake par 5%.
               </p>
@@ -227,25 +227,25 @@ export function CommissionRuleModal({
             <Label opt>Hadd — itni bikri ke baad commission shuru ho</Label>
             <input type="number" min={0} value={minSale} onChange={(e) => setMinSale(e.target.value)}
               placeholder="0" className={`${inp} tabular-nums`} />
-            <p className="mt-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               Khali chhorein to pehle rupay se hi commission banti hai.
             </p>
           </div>
 
           <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 space-y-2.5">
-            <p className="text-[11px] font-black uppercase tracking-wide text-amber-800 dark:text-amber-300 inline-flex items-center gap-1.5">
+            <p className="text-[0.6875rem] font-black uppercase tracking-wide text-amber-800 dark:text-amber-300 inline-flex items-center gap-1.5">
               <Target className="h-3.5 w-3.5" /> Target ka bonus (marzi)
             </p>
             <div className="grid grid-cols-2 gap-2">
               {([['Target', target, setTarget, '300000'], ['Bonus', bonus, setBonus, '5000']] as const).map(([l, v, set, ph]) => (
                 <div key={l}>
-                  <span className="block mb-1 text-[10px] font-black uppercase text-slate-500">{l}</span>
+                  <span className="block mb-1 text-[0.6875rem] font-black uppercase text-slate-500">{l}</span>
                   <input type="number" min={0} value={v} onChange={(e) => set(e.target.value)} placeholder={ph}
                     className="h-11 w-full rounded-xl border-2 border-amber-200 dark:border-amber-500/40 bg-white dark:bg-slate-800 px-2.5 text-sm font-black text-slate-900 dark:text-white tabular-nums focus:outline-none focus:border-amber-500 transition" />
                 </div>
               ))}
             </div>
-            <p className="text-[11px] font-bold text-amber-800/80 dark:text-amber-300/80">
+            <p className="text-[0.6875rem] font-bold text-amber-800/80 dark:text-amber-300/80">
               Mahine me target poora hua to commission ke upar se itna aur mil jayega.
             </p>
           </div>
@@ -282,7 +282,7 @@ const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-
 
 function Label({ children, opt }: any) {
   return (
-    <span className="block mb-1.5 text-[11px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+    <span className="block mb-1.5 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
       {children} {opt && <span className="normal-case font-bold text-slate-400">(marzi)</span>}
     </span>
   );

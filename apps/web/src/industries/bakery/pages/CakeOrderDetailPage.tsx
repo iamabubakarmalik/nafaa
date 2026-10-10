@@ -84,7 +84,7 @@ export default function CakeOrderDetailPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 {order.orderNumber}
               </div>
@@ -157,7 +157,7 @@ export default function CakeOrderDetailPage() {
                     {isActive && !isCurrent ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-4 w-4" />}
                   </div>
                   <span className={
-                    'text-[9px] font-extrabold uppercase ' +
+                    'text-[0.625rem] font-extrabold uppercase ' +
                     (isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400')
                   }>
                     {cfg.label}
@@ -189,7 +189,7 @@ export default function CakeOrderDetailPage() {
                 )}
                 {order.messageOnCake && (
                   <div className="mt-4 inline-block px-4 py-2 rounded-xl bg-white/25 backdrop-blur border border-white/30">
-                    <div className="text-[10px] uppercase font-extrabold text-white/80">Message</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">Message</div>
                     <div className="text-lg font-extrabold italic">"{order.messageOnCake}"</div>
                   </div>
                 )}
@@ -233,7 +233,7 @@ export default function CakeOrderDetailPage() {
               </h3>
               {order.hasPhotoOnCake && order.photoUrl && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-fuchsia-700 mb-1">📸 Photo for Cake (Edible Print)</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700 mb-1">📸 Photo for Cake (Edible Print)</div>
                   <a href={order.photoUrl} target="_blank" rel="noreferrer">
                     <img src={order.photoUrl} alt="" className="w-40 h-40 rounded-xl object-cover border-2 border-fuchsia-300" />
                   </a>
@@ -241,7 +241,7 @@ export default function CakeOrderDetailPage() {
               )}
               {order.designReferenceUrls?.length > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-violet-700 mb-1">Design References</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1">Design References</div>
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                     {order.designReferenceUrls.map((url: string, i: number) => (
                       <a key={i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-lg overflow-hidden border border-slate-200 hover:border-fuchsia-500 transition">
@@ -274,30 +274,30 @@ export default function CakeOrderDetailPage() {
             </h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-slate-500">Occasion</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Occasion</div>
                 <div className="font-extrabold flex items-center gap-1">{OCCASION_EMOJI[order.occasion] || '⭐'} {order.occasion?.replace('_', ' ')}</div>
               </div>
               {order.celebrantName && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500">For</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">For</div>
                   <div className="font-extrabold">{order.celebrantName}{order.celebrantAge ? ' (' + order.celebrantAge + ')' : ''}</div>
                 </div>
               )}
               {order.eventDate && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500">Event Date</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Event Date</div>
                   <div className="font-extrabold">{format(new Date(order.eventDate), 'dd MMM yyyy')}</div>
                 </div>
               )}
               {order.eventTime && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500">Event Time</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Event Time</div>
                   <div className="font-extrabold">{order.eventTime}</div>
                 </div>
               )}
               {order.eventVenue && (
                 <div className="col-span-2">
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500">Venue</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Venue</div>
                   <div className="font-extrabold">{order.eventVenue}</div>
                 </div>
               )}
@@ -416,7 +416,7 @@ export default function CakeOrderDetailPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-pink-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
 
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Base Price</span><span className="font-bold tabular-nums">{formatPKR(order.basePrice)}</span></div>
@@ -557,7 +557,7 @@ function RatingModal({ orderId, onClose, onDone }: any) {
           </div>
           <textarea rows={3} value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Customer feedback..." className="w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Final Delivery Photos</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Final Delivery Photos</label>
             {photoUrls.length > 0 && (
               <div className="grid grid-cols-4 gap-1 mb-2">
                 {photoUrls.map((url, i) => (

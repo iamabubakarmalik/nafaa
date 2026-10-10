@@ -293,11 +293,11 @@ export default function RestaurantReportsV2() {
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50 text-slate-600">
                     <tr>
-                      <th className="text-center px-3 py-3 font-bold text-[10px] uppercase w-12">Rank</th>
-                      <th className="text-left px-3 py-3 font-bold text-[10px] uppercase">Table</th>
-                      <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Orders</th>
-                      <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Revenue</th>
-                      <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Avg Bill</th>
+                      <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase w-12">Rank</th>
+                      <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase">Table</th>
+                      <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Orders</th>
+                      <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Revenue</th>
+                      <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Avg Bill</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -373,11 +373,11 @@ export default function RestaurantReportsV2() {
                     <div className="h-9 w-9 rounded-lg text-white flex items-center justify-center" style={{ backgroundColor: m.color }}>
                       <Icon className="h-4 w-4" />
                     </div>
-                    <div className="text-[10px] uppercase font-extrabold" style={{ color: m.color }}>{m.label}</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold" style={{ color: m.color }}>{m.label}</div>
                   </div>
                   <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{m.count}</div>
                   <div className="text-xs text-slate-500 font-bold">{formatPKR(m.revenue)}</div>
-                  <div className="text-[10px] text-slate-500 font-bold mt-1">AOV {formatPKR(m.avgOrderValue)}</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-bold mt-1">AOV {formatPKR(m.avgOrderValue)}</div>
                 </div>
               );
             })}
@@ -396,13 +396,13 @@ export default function RestaurantReportsV2() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-slate-600">
                 <tr>
-                  <th className="text-center px-3 py-3 font-bold text-[10px] uppercase w-12">#</th>
-                  <th className="text-left px-3 py-3 font-bold text-[10px] uppercase">Menu Item</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Sold</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Orders</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Revenue</th>
-                  <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Profit</th>
-                  <th className="text-center px-3 py-3 font-bold text-[10px] uppercase">Margin</th>
+                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase w-12">#</th>
+                  <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase">Menu Item</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Sold</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Orders</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Revenue</th>
+                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Profit</th>
+                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase">Margin</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

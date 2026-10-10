@@ -55,7 +55,7 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="relative flex items-start justify-between">
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[10px] font-extrabold border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-extrabold border border-white/30">
                 <Tag className="h-3 w-3" /> Discount
               </div>
               <div className="mt-2 text-xs font-bold text-white/85">Subtotal</div>
@@ -86,7 +86,7 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
           <div className={['rounded-2xl border-2 p-4 text-center',
             mode === 'pct' ? 'border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10'
             : 'border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10'].join(' ')}>
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1">
               {mode === 'pct' ? 'Kitne % Discount' : 'Kitne Rs Discount'}
             </div>
             <div className="flex items-baseline justify-center gap-1">
@@ -131,7 +131,7 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
           </div>
 
           <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-slate-800 text-white p-4 shadow-lg">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-300 mb-2 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-300 mb-2 flex items-center gap-1">
               <Calculator className="h-3 w-3" /> Live Hisaab
             </div>
             <div className="space-y-1.5 text-sm font-bold">

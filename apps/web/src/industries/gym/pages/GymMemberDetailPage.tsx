@@ -118,7 +118,7 @@ export default function GymMemberDetailPage() {
                 <Award className="h-7 w-7" />
               </div>
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-emerald-700">Active Membership</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Active Membership</div>
                 <div className="text-2xl font-extrabold">{activeMembership.plan?.name}</div>
                 <div className="text-sm text-slate-700 font-bold mt-0.5">
                   Valid till {format(new Date(activeMembership.endDate), 'dd MMM yyyy')}
@@ -126,11 +126,11 @@ export default function GymMemberDetailPage() {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-[10px] uppercase font-extrabold text-emerald-700">Balance</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Balance</div>
               <div className={'text-2xl font-extrabold ' + (activeMembership.balanceDue > 0 ? 'text-amber-700' : 'text-emerald-700')}>
                 {formatPKR(activeMembership.balanceDue)}
               </div>
-              {activeMembership.balanceDue > 0 && <div className="text-[10px] text-amber-700 font-bold">Payment pending</div>}
+              {activeMembership.balanceDue > 0 && <div className="text-[0.6875rem] text-amber-700 font-bold">Payment pending</div>}
             </div>
           </div>
         </section>
@@ -152,17 +152,17 @@ export default function GymMemberDetailPage() {
         <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-3">
           <SectionTitle icon={Target} title="Fitness Goals" gradient="from-fuchsia-500 to-purple-600" />
           <div className="p-3 rounded-xl bg-gradient-to-br from-fuchsia-50 to-pink-50 border-2 border-fuchsia-200">
-            <div className="text-[10px] uppercase font-extrabold text-fuchsia-700">Primary Goal</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700">Primary Goal</div>
             <div className="text-lg font-extrabold text-fuchsia-900 mt-1">
               {GOAL_LABELS[member.primaryGoal]?.emoji} {GOAL_LABELS[member.primaryGoal]?.label ?? member.primaryGoal}
             </div>
           </div>
           {member.secondaryGoals?.length > 0 && (
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1">Also targeting</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Also targeting</div>
               <div className="flex flex-wrap gap-1">
                 {member.secondaryGoals.map((g: string) => (
-                  <span key={g} className="px-2 py-0.5 rounded bg-fuchsia-100 text-fuchsia-800 text-[10px] font-extrabold">
+                  <span key={g} className="px-2 py-0.5 rounded bg-fuchsia-100 text-fuchsia-800 text-[0.6875rem] font-extrabold">
                     {GOAL_LABELS[g]?.emoji} {GOAL_LABELS[g]?.label ?? g}
                   </span>
                 ))}
@@ -184,10 +184,10 @@ export default function GymMemberDetailPage() {
           {member.medications && <TextBlock label="Medications" value={member.medications} />}
           {member.allergies?.length > 0 && (
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-amber-700 mb-1">Allergies</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1">Allergies</div>
               <div className="flex flex-wrap gap-1">
                 {member.allergies.map((a: string) => (
-                  <span key={a} className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-extrabold">⚠️ {a}</span>
+                  <span key={a} className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[0.6875rem] font-extrabold">⚠️ {a}</span>
                 ))}
               </div>
             </div>
@@ -206,18 +206,18 @@ export default function GymMemberDetailPage() {
             <div className="text-lg font-extrabold text-orange-900">{member.emergencyContactName ?? '—'}</div>
             <div className="text-sm font-bold text-orange-700">{member.emergencyContactPhone ?? '—'}</div>
             {member.emergencyContactRelation && (
-              <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-orange-200 text-orange-800 text-[10px] font-extrabold uppercase">
+              <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded bg-orange-200 text-orange-800 text-[0.6875rem] font-extrabold uppercase">
                 {member.emergencyContactRelation}
               </div>
             )}
           </div>
           <SectionTitle icon={Clock} title="Schedule" gradient="from-violet-500 to-purple-600" />
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1">Preferred Time</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Preferred Time</div>
             <div className="font-extrabold">{member.preferredWorkoutTime ?? '—'}</div>
           </div>
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1">Workout Days</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Workout Days</div>
             <div className="flex gap-1">
               {DAYS.map((d, i) => (
                 <div key={d} className={'h-8 w-10 rounded-lg flex items-center justify-center text-xs font-extrabold ' + (member.workoutDays?.includes(i) ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-400')}>
@@ -254,7 +254,7 @@ function StatBadge({ label, value, emoji }: any) {
   return (
     <div className="rounded-xl bg-white/15 backdrop-blur border border-white/20 p-2 text-center">
       <div className="text-lg mb-0.5">{emoji}</div>
-      <div className="text-[9px] uppercase font-extrabold text-white/70">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-white/70">{label}</div>
       <div className="text-sm font-extrabold text-white tabular-nums">{value}</div>
     </div>
   );
@@ -263,9 +263,9 @@ function StatBadge({ label, value, emoji }: any) {
 function InfoBox({ label, value, sub, highlight }: any) {
   return (
     <div className={'rounded-xl border-2 p-3 ' + (highlight ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-slate-50')}>
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
       <div className={'text-lg font-extrabold tabular-nums ' + (highlight ? 'text-red-900' : 'text-slate-900')}>{value}</div>
-      {sub && <div className="text-[10px] font-bold text-slate-500">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-slate-500">{sub}</div>}
     </div>
   );
 }
@@ -273,7 +273,7 @@ function InfoBox({ label, value, sub, highlight }: any) {
 function TextBlock({ label, value }: any) {
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1">{label}</div>
       <p className="text-sm text-slate-700 leading-relaxed">{value}</p>
     </div>
   );

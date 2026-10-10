@@ -81,20 +81,20 @@ export function TopupPickerModal({ provider, topupType, denomination, onConfirm,
                   <div className="flex-1 min-w-0 text-left">
                     <div className="font-mono font-extrabold text-slate-900 text-sm truncate">{t.topupNumber}</div>
                     {t.cardSerial && (
-                      <div className="text-[10px] font-mono text-slate-600 mt-0.5">Serial: {t.cardSerial}</div>
+                      <div className="text-[0.6875rem] font-mono text-slate-600 mt-0.5">Serial: {t.cardSerial}</div>
                     )}
                     {t.expiryDate && (
-                      <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-extrabold text-slate-600">
+                      <div className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-slate-600">
                         Expires {new Date(t.expiryDate).toLocaleDateString('en-PK')}
                       </div>
                     )}
                     {t.regionRestriction && (
-                      <div className="text-[10px] font-extrabold text-amber-700 mt-0.5">Region: {t.regionRestriction}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-amber-700 mt-0.5">Region: {t.regionRestriction}</div>
                     )}
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(t.sellingPrice)}</div>
-                    <div className="text-[10px] text-slate-500 font-bold">cost {formatPKR(t.costPrice)}</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">cost {formatPKR(t.costPrice)}</div>
                   </div>
                   <CheckCircle2 className="h-5 w-5 text-amber-500 opacity-0 group-hover:opacity-100 transition shrink-0" />
                 </button>

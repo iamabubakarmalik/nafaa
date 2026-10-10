@@ -64,15 +64,15 @@ export function CompletionCelebration({ onContinue, stats }: Props) {
           <div className="grid grid-cols-3 gap-2 mt-6">
             <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/20 p-3">
               <div className="text-2xl font-black">{stats.products}</div>
-              <div className="text-[10px] font-bold uppercase tracking-wide opacity-80">Products</div>
+              <div className="text-[0.6875rem] font-bold uppercase tracking-wide opacity-80">Products</div>
             </div>
             <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/20 p-3">
               <div className="text-2xl font-black">{stats.categories}</div>
-              <div className="text-[10px] font-bold uppercase tracking-wide opacity-80">Categories</div>
+              <div className="text-[0.6875rem] font-bold uppercase tracking-wide opacity-80">Categories</div>
             </div>
             <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/20 p-3">
               <div className="text-2xl font-black">{stats.team}</div>
-              <div className="text-[10px] font-bold uppercase tracking-wide opacity-80">Team</div>
+              <div className="text-[0.6875rem] font-bold uppercase tracking-wide opacity-80">Team</div>
             </div>
           </div>
 

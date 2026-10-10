@@ -198,19 +198,19 @@ function ProductCard({ profile }: { profile: any }) {
 
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {profile.isFeatured && (
-            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <Star className="h-2 w-2 fill-current" />
               Featured
             </span>
           )}
           {profile.isBestSeller && (
-            <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <TrendingUp className="h-2 w-2" />
               Best
             </span>
           )}
           {profile.isFastMoving && (
-            <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <Zap className="h-2 w-2" />
               Fast
             </span>
@@ -236,10 +236,10 @@ function ProductCard({ profile }: { profile: any }) {
           <h3 className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{p?.name}</h3>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             {profile.brand && (
-              <span className="text-[10px] font-extrabold text-amber-700">{profile.brand.name}</span>
+              <span className="text-[0.6875rem] font-extrabold text-amber-700">{profile.brand.name}</span>
             )}
             {category && (
-              <span className="text-[10px] font-bold text-slate-500">• {category.label}</span>
+              <span className="text-[0.6875rem] font-bold text-slate-500">• {category.label}</span>
             )}
           </div>
         </div>
@@ -248,37 +248,37 @@ function ProductCard({ profile }: { profile: any }) {
         <div className="grid grid-cols-2 gap-1 text-xs">
           {profile.grade && (
             <div className="rounded bg-blue-50 dark:bg-blue-950/30 p-1.5">
-              <div className="text-[8px] uppercase font-extrabold text-blue-700">Grade</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Grade</div>
               <div className="font-extrabold text-blue-900">{profile.grade}</div>
             </div>
           )}
           {profile.diameter && (
             <div className="rounded bg-purple-50 dark:bg-purple-950/30 p-1.5">
-              <div className="text-[8px] uppercase font-extrabold text-purple-700">Dia</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-purple-700">Dia</div>
               <div className="font-extrabold text-purple-900">{profile.diameter}</div>
             </div>
           )}
           {profile.bagWeight && (
             <div className="rounded bg-amber-50 dark:bg-amber-950/30 p-1.5">
-              <div className="text-[8px] uppercase font-extrabold text-amber-700">Bag</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Bag</div>
               <div className="font-extrabold text-amber-900">{profile.bagWeight}kg</div>
             </div>
           )}
           {profile.tileSize && (
             <div className="rounded bg-cyan-50 dark:bg-cyan-950/30 p-1.5">
-              <div className="text-[8px] uppercase font-extrabold text-cyan-700">Size</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-cyan-700">Size</div>
               <div className="font-extrabold text-cyan-900">{profile.tileSize}</div>
             </div>
           )}
           {profile.colorName && (
             <div className="rounded bg-fuchsia-50 dark:bg-fuchsia-950/30 p-1.5">
-              <div className="text-[8px] uppercase font-extrabold text-fuchsia-700">Color</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-fuchsia-700">Color</div>
               <div className="font-extrabold text-fuchsia-900 truncate">{profile.colorName}</div>
             </div>
           )}
           {profile.litersPerCan && (
             <div className="rounded bg-cyan-50 dark:bg-cyan-950/30 p-1.5">
-              <div className="text-[8px] uppercase font-extrabold text-cyan-700">Can</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-cyan-700">Can</div>
               <div className="font-extrabold text-cyan-900">{profile.litersPerCan}L</div>
             </div>
           )}
@@ -286,10 +286,10 @@ function ProductCard({ profile }: { profile: any }) {
 
         <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
           <div>
-            <div className="text-[10px] font-extrabold text-slate-500 uppercase">{profile.unit}</div>
+            <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase">{profile.unit}</div>
             <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(p?.price ?? 0)}</div>
             {profile.bulkPrice && (
-              <div className="text-[10px] font-extrabold text-blue-700">Bulk: {formatPKR(profile.bulkPrice)}</div>
+              <div className="text-[0.6875rem] font-extrabold text-blue-700">Bulk: {formatPKR(profile.bulkPrice)}</div>
             )}
           </div>
           <div className="text-right">

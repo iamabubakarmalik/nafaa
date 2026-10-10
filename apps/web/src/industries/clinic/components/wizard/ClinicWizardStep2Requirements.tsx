@@ -41,7 +41,7 @@ export function ClinicWizardStep2Requirements({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Service Requirements</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Kya kya chahiye is service ke liye</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Kya kya chahiye is service ke liye</p>
           </div>
         </div>
 
@@ -60,7 +60,7 @@ export function ClinicWizardStep2Requirements({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Instructions</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Patient ko batayen kya karna hai</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Patient ko batayen kya karna hai</p>
           </div>
         </div>
 
@@ -117,10 +117,10 @@ export function ClinicWizardStep2Requirements({
           </div>
           <div className="flex-1">
             <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Package Includes</h3>
-            <p className="text-[11px] text-slate-500 font-semibold">Kya kya milta hai patient ko is package mein</p>
+            <p className="text-[0.6875rem] text-slate-500 font-semibold">Kya kya milta hai patient ko is package mein</p>
           </div>
           {requirements.packageIncludes.length > 0 && (
-            <span className="px-2 py-0.5 rounded bg-violet-100 text-violet-700 text-[10px] font-extrabold">
+            <span className="px-2 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.6875rem] font-extrabold">
               {requirements.packageIncludes.length} items
             </span>
           )}
@@ -128,7 +128,7 @@ export function ClinicWizardStep2Requirements({
 
         {suggestedItems.length > 0 && (
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-violet-700 mb-2">Suggested Items</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-2">Suggested Items</div>
             <div className="flex flex-wrap gap-1.5">
               {suggestedItems.map((item) => {
                 const active = requirements.packageIncludes.includes(item);
@@ -153,7 +153,7 @@ export function ClinicWizardStep2Requirements({
         )}
 
         <div className="pt-3 border-t border-slate-100">
-          <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">Add Custom Item</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2">Add Custom Item</div>
           <div className="flex gap-2">
             <input
               value={customItem}
@@ -174,7 +174,7 @@ export function ClinicWizardStep2Requirements({
 
         {requirements.packageIncludes.length > 0 && (
           <div className="pt-3 border-t border-slate-100">
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700 mb-2">Included Items</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-2">Included Items</div>
             <div className="flex flex-wrap gap-1">
               {requirements.packageIncludes.map((item) => (
                 <span
@@ -228,7 +228,7 @@ function ReqToggle({ active, onToggle, icon: Icon, label, desc, tone }: any) {
         <Icon className={'h-4 w-4 ' + (active ? 'text-white' : 'text-slate-500')} />
         <div className={'font-extrabold text-sm ' + (active ? 'text-white' : 'text-slate-900')}>{label}</div>
       </div>
-      <div className={'text-[10px] font-semibold mt-0.5 ' + (active ? 'text-white/85' : 'text-slate-500')}>{desc}</div>
+      <div className={'text-[0.6875rem] font-semibold mt-0.5 ' + (active ? 'text-white/85' : 'text-slate-500')}>{desc}</div>
     </button>
   );
 }

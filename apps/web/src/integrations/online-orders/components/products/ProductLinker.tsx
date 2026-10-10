@@ -59,17 +59,17 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
         <div className="flex flex-wrap items-center gap-4">
           <div className="min-w-[220px] flex-1">
             <div className="flex items-baseline justify-between gap-2">
-              <div className="text-[14px] font-semibold text-slate-900 dark:text-white">
+              <div className="text-[0.875rem] font-semibold text-slate-900 dark:text-white">
                 {data.canFetch ? `${s.linked} / ${s.variants} jure hue` : 'Jore hue products'}
               </div>
-              {data.canFetch && <div className="text-[12.5px] font-semibold tabular-nums text-slate-500">{pct}%</div>}
+              {data.canFetch && <div className="text-[0.78125rem] font-semibold tabular-nums text-slate-500">{pct}%</div>}
             </div>
             {data.canFetch && (
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                 <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
               </div>
             )}
-            <div className="mt-2 flex flex-wrap gap-1.5 text-[12px]">
+            <div className="mt-2 flex flex-wrap gap-1.5 text-[0.75rem]">
               <Badge tone="success" dot>{s.linked} jure</Badge>
               {s.suggested > 0 && <Badge tone="warning" dot>{s.suggested} salah</Badge>}
               {s.unlinked > 0 && <Badge tone="neutral" dot>{s.unlinked} baqi</Badge>}
@@ -85,7 +85,7 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
             {s.suggested > 0 && <AcceptAll channelId={channelId} products={data.products} onDone={invalidate} />}
           </div>
         </div>
-        <p className="mt-3 text-[12.5px] text-slate-500">
+        <p className="mt-3 text-[0.78125rem] text-slate-500">
           {data.kind === 'indolj'
             ? <>🍪 <b>Indolj ka menu</b> — har item ko Nafaa product se jorein, phir Indolj ka har order khud bill banata aur stock kam karta hai. Menu / qeemat Indolj ke panel se badalti hai.</>
             : <>📦 <b>Stock ka malik Nafaa hai</b> — jora hua har variant ka stock Nafaa (branch) se {siteName} par jata hai: har 15 minute, aur har accept/cancel par foran.</>}
@@ -196,8 +196,8 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
 
       {picked.size > 0 && (
         <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-white sm:mx-5 dark:bg-slate-800">
-          <span className="text-[13px] font-semibold">{picked.size} chune</span>
-          <span className="text-[12px] text-white/70">— Nafaa me ban jayenge (naam, qeemat, tasveer, variants) aur jur jayenge · jo pehle se hai us se jurenge</span>
+          <span className="text-[0.8125rem] font-semibold">{picked.size} chune</span>
+          <span className="text-[0.75rem] text-white/70">— Nafaa me ban jayenge (naam, qeemat, tasveer, variants) aur jur jayenge · jo pehle se hai us se jurenge</span>
           <span className="flex-1" />
           <Btn size="sm" variant="plain" className="text-white hover:bg-white/10" onClick={() => setPicked(new Set())}>Chhoro</Btn>
           <Btn size="sm" variant="success" loading={importMut.isPending} onClick={() => importMut.mutate([...picked])} icon={<CloudDownload className="h-3.5 w-3.5" />}>
@@ -208,7 +208,7 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
 
       <div className="mt-3 border-t border-slate-100 dark:border-slate-800">
         {/* sar-khat */}
-        <div className="hidden grid-cols-[28px_minmax(0,1.3fr)_minmax(0,0.7fr)_24px_minmax(0,1.4fr)] items-center gap-3 bg-slate-50 px-4 py-2 text-[11.5px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40 md:grid sm:px-5">
+        <div className="hidden grid-cols-[28px_minmax(0,1.3fr)_minmax(0,0.7fr)_24px_minmax(0,1.4fr)] items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40 md:grid sm:px-5">
           <input type="checkbox" aria-label="Sab jorne baqi chuno" className="h-4 w-4 rounded border-slate-300"
             checked={unlinkedIds.length > 0 && unlinkedIds.every((id) => picked.has(id))}
             onChange={(e) => setPicked(e.target.checked ? new Set(unlinkedIds) : new Set())} />
@@ -239,11 +239,11 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
                         {open.has(p.externalProductId) ? <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" /> : <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />}
                         <Thumb src={p.image} />
                         <span className="min-w-0">
-                          <span className="block truncate text-[13.5px] font-semibold text-slate-900 dark:text-white">{p.title}</span>
-                          <span className="text-[12px] text-slate-500">{p.variants.length} variants · {p.status}</span>
+                          <span className="block truncate text-[0.84375rem] font-semibold text-slate-900 dark:text-white">{p.title}</span>
+                          <span className="text-[0.75rem] text-slate-500">{p.variants.length} variants · {p.status}</span>
                         </span>
                       </button>
-                      <span className="hidden text-[12.5px] text-slate-500 md:block">—</span>
+                      <span className="hidden text-[0.78125rem] text-slate-500 md:block">—</span>
                       <span className="hidden md:block" />
                       <span className="col-start-2 flex flex-wrap items-center gap-2 md:col-start-auto">
                         <Badge tone={allLinked ? 'success' : noneLinked ? 'neutral' : 'warning'} dot>
@@ -310,14 +310,14 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
       <div className={cn('flex min-w-0 items-center gap-2.5', nested && 'pl-6')}>
         {!nested && <Thumb src={v.image ?? product.image} />}
         <span className="min-w-0">
-          <span className={cn('block truncate text-slate-900 dark:text-white', nested ? 'text-[13px] font-medium' : 'text-[13.5px] font-semibold')}>
+          <span className={cn('block truncate text-slate-900 dark:text-white', nested ? 'text-[0.8125rem] font-medium' : 'text-[0.84375rem] font-semibold')}>
             {nested ? v.title : product.title}
           </span>
-          {!nested && <span className="text-[12px] text-slate-500">{product.status}</span>}
+          {!nested && <span className="text-[0.75rem] text-slate-500">{product.status}</span>}
         </span>
       </div>
-      <div className="col-start-2 text-[12.5px] text-slate-600 dark:text-slate-300 md:col-start-auto">
-        <span className="font-mono text-[12px]">{v.sku || '— SKU nahi'}</span>
+      <div className="col-start-2 text-[0.78125rem] text-slate-600 dark:text-slate-300 md:col-start-auto">
+        <span className="font-mono text-[0.75rem]">{v.sku || '— SKU nahi'}</span>
         <span className="text-slate-400"> · </span>{rs(v.price)}
         <span className="text-slate-400"> · </span>{v.stock === null ? 'stock track nahi' : `stock ${v.stock}`}
       </div>
@@ -328,10 +328,10 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
           <div className="flex items-center gap-2">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15"><Check className="h-3.5 w-3.5" /></span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13px] font-medium text-slate-900 dark:text-white">
+              <span className="block truncate text-[0.8125rem] font-medium text-slate-900 dark:text-white">
                 {v.link.name}{v.link.variantName ? <span className="text-slate-500"> — {v.link.variantName}</span> : null}
               </span>
-              <span className="text-[12px] text-slate-500">
+              <span className="text-[0.75rem] text-slate-500">
                 Nafaa stock <b className={cn(v.link.stock <= 0 && 'text-rose-600')}>{v.link.stock}</b>
                 {v.stock !== null && v.stock !== v.link.stock && <span className="text-amber-600"> · website par {v.stock} (agli sync me barabar)</span>}
                 {v.link.inactive && <span className="text-rose-600"> · Nafaa me band</span>}
@@ -343,8 +343,8 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
         ) : v.suggestion && !changing ? (
           <div className="flex flex-wrap items-center gap-2">
             <span className="min-w-0 flex-1">
-              <span className="flex items-center gap-1 text-[12px] font-semibold text-amber-700 dark:text-amber-300"><Sparkles className="h-3.5 w-3.5" /> Salah ({v.suggestion.reason === 'sku' ? 'SKU mila' : 'naam mila'})</span>
-              <span className="block truncate text-[13px] font-medium text-slate-900 dark:text-white">
+              <span className="flex items-center gap-1 text-[0.75rem] font-semibold text-amber-700 dark:text-amber-300"><Sparkles className="h-3.5 w-3.5" /> Salah ({v.suggestion.reason === 'sku' ? 'SKU mila' : 'naam mila'})</span>
+              <span className="block truncate text-[0.8125rem] font-medium text-slate-900 dark:text-white">
                 {v.suggestion.name}{v.suggestion.variantName ? <span className="text-slate-500"> — {v.suggestion.variantName}</span> : null}
               </span>
             </span>
@@ -436,7 +436,7 @@ function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; sit
           {picked.size ? `${picked.size} ${siteName} par bhejo` : `${siteName} par bhejo`}
         </Btn>
       </div>
-      <p className="mt-2 px-4 text-[12.5px] text-slate-500 sm:px-5">
+      <p className="mt-2 px-4 text-[0.78125rem] text-slate-500 sm:px-5">
         Naam, qeemat, tasveerein, variants aur Nafaa ka stock website par ban jayega — aur har variant khud jur jayega.
       </p>
       <div className="mt-3 border-t border-slate-100 dark:border-slate-800">
@@ -446,7 +446,7 @@ function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; sit
           <EmptyState icon={<Check className="h-5 w-5" />} title="Sab products website par hain">Nafaa ka har active product is website se jura hua hai.</EmptyState>
         ) : (
           <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-            <li className="flex items-center gap-3 bg-slate-50 px-4 py-2 text-[11.5px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40 sm:px-5">
+            <li className="flex items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40 sm:px-5">
               <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={items.length > 0 && items.every((p) => picked.has(p.id))}
                 onChange={(e) => setPicked(e.target.checked ? new Set(items.map((p) => p.id)) : new Set())} aria-label="Sab chuno" />
               <span className="flex-1">Nafaa product</span>
@@ -459,14 +459,14 @@ function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; sit
                   <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(p.id)} onChange={() => toggle(p.id)} />
                   <Thumb src={p.image} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13.5px] font-medium text-slate-900 dark:text-white">{p.name}</span>
-                    <span className="text-[12px] text-slate-500">
+                    <span className="block truncate text-[0.84375rem] font-medium text-slate-900 dark:text-white">{p.name}</span>
+                    <span className="text-[0.75rem] text-slate-500">
                       {p.sku ? `SKU ${p.sku}` : 'SKU nahi'}{p.category ? ` · ${p.category}` : ''}
                       {p.variants.length > 0 && ` · ${p.variants.length} variants (${p.variants.slice(0, 4).map((v) => v.name).join(', ')}${p.variants.length > 4 ? '…' : ''})`}
                     </span>
                   </span>
-                  <span className={cn('w-28 text-right text-[13px] tabular-nums', p.stock <= 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-200')}>{p.stock}</span>
-                  <span className="w-24 text-right text-[13px] font-medium tabular-nums text-slate-900 dark:text-white">{rs(p.price)}</span>
+                  <span className={cn('w-28 text-right text-[0.8125rem] tabular-nums', p.stock <= 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-200')}>{p.stock}</span>
+                  <span className="w-24 text-right text-[0.8125rem] font-medium tabular-nums text-slate-900 dark:text-white">{rs(p.price)}</span>
                 </label>
               </li>
             ))}
@@ -516,7 +516,7 @@ function CustomLinks({ channelId, links, onDone }: { channelId: string; links: {
         <ul className="-my-2 divide-y divide-slate-100 dark:divide-slate-800">
           {links.map((l) => (
             <li key={l.mappingId} className="flex items-center gap-3 py-2">
-              <span className="min-w-0 flex-1 text-[13px]">
+              <span className="min-w-0 flex-1 text-[0.8125rem]">
                 <span className="font-medium text-slate-900 dark:text-white">{l.externalTitle ?? l.externalSku ?? l.externalProductId}</span>
                 <span className="text-slate-400"> → </span>
                 <span className="text-slate-700 dark:text-slate-200">{l.name}{l.variantName ? ` — ${l.variantName}` : ''}</span>
@@ -543,7 +543,7 @@ function IndoljConnect({ channelId, onDone, connected }: { channelId: string; on
   const off = useMutation({ mutationFn: () => onlineOrdersApi.disconnectIndolj(channelId), onSuccess: () => { toast.success('Indolj menu hata diya'); onDone(); } });
   if (connected) {
     return (
-      <p className="text-[12.5px] text-slate-500">
+      <p className="text-[0.78125rem] text-slate-500">
         Indolj menu jura hai. <button type="button" className="font-semibold text-rose-600 hover:underline" onClick={() => { if (confirm('Indolj ka menu link hatayein? Jore hue products waise hi rahenge.')) off.mutate(); }}>Hatayein</button>
       </p>
     );
@@ -553,10 +553,10 @@ function IndoljConnect({ channelId, onDone, connected }: { channelId: string; on
       actions={!open ? <Btn size="sm" onClick={() => setOpen(true)}>Indolj jorein</Btn> : undefined}>
       {open && (
         <div className="space-y-3">
-          <p className="text-[12.5px] text-slate-500">Indolj ki team ye deti hai: <b>activation token</b> aur <b>JWT secret key</b> (Merchant Menu API key). Merchant ID ho to wo bhi.</p>
+          <p className="text-[0.78125rem] text-slate-500">Indolj ki team ye deti hai: <b>activation token</b> aur <b>JWT secret key</b> (Merchant Menu API key). Merchant ID ho to wo bhi.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {([['activationToken', 'Activation token'], ['merchantId', 'Merchant ID (optional)'], ['secret', 'JWT secret key'], ['branchId', 'Branch ID (optional)'], ['baseUrl', 'API URL (khali = console.indolj.io)']] as const).map(([k, label]) => (
-              <label key={k} className="block text-[12.5px] font-medium text-slate-700 dark:text-slate-200">
+              <label key={k} className="block text-[0.78125rem] font-medium text-slate-700 dark:text-slate-200">
                 {label}
                 <input type={k === 'secret' ? 'password' : 'text'} autoComplete="off" value={f[k]} onChange={(e) => setF((x) => ({ ...x, [k]: e.target.value }))} className={cn(inputCls, 'mt-1 font-mono')} />
               </label>

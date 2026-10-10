@@ -109,7 +109,7 @@ export function ApplianceWizardStep3Warranty({
           <div className="text-xs font-extrabold uppercase text-cyan-800">🔧 Extended Component Warranty</div>
 
           <div>
-            <label className="block text-[10px] uppercase font-extrabold text-slate-600 mb-1">Compressor Warranty (Fridge/AC)</label>
+            <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Compressor Warranty (Fridge/AC)</label>
             <div className="flex flex-wrap gap-1.5">
               {COMPRESSOR_WARRANTIES.map((p) => {
                 const a = warranty.compressorWarrantyMonths === p.months;
@@ -125,7 +125,7 @@ export function ApplianceWizardStep3Warranty({
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase font-extrabold text-slate-600 mb-1">Motor Warranty (Washing Machine)</label>
+            <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Motor Warranty (Washing Machine)</label>
             <input type="number" min="0" value={warranty.motorWarrantyMonths}
               onChange={(e) => onChangeWarranty({ motorWarrantyMonths: e.target.value === '' ? '' : Number(e.target.value) })}
               placeholder="Months"
@@ -240,7 +240,7 @@ export function ApplianceWizardStep3Warranty({
 
         {(warranty.boxContents ?? []).length > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2">
               {warranty.boxContents.length} items in box
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -293,7 +293,7 @@ function Tog({ checked, onChange, icon: Icon, label, color }: any) {
       className={['flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition',
         checked ? colors[color] : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'].join(' ')}>
       <Icon className="h-5 w-5" />
-      <span className="text-[11px] font-extrabold text-center leading-tight">{label}</span>
+      <span className="text-[0.6875rem] font-extrabold text-center leading-tight">{label}</span>
     </button>
   );
 }

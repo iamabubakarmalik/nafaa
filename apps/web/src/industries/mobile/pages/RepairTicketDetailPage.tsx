@@ -452,10 +452,10 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="flex-1 min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Wrench className="h-3.5 w-3.5 text-amber-300" /> Repair Ticket
               {isUrgent && (
-                <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">
+                <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">
                   Urgent
                 </span>
               )}
@@ -603,7 +603,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
 
             <div className="space-y-3">
               <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3">
-                <div className="text-[10px] uppercase font-extrabold text-blue-700 dark:text-blue-300 mb-1">
+                <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700 dark:text-blue-300 mb-1">
                   Customer Ne Kaha
                 </div>
                 <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 whitespace-pre-line">
@@ -613,7 +613,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
 
               {ticket.diagnosedIssue ? (
                 <div className="rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border-2 border-indigo-200 dark:border-indigo-500/30 p-3">
-                  <div className="text-[10px] uppercase font-extrabold text-indigo-700 dark:text-indigo-300">
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-indigo-700 dark:text-indigo-300">
                     Technician Diagnosis
                   </div>
                   <div className="text-sm text-slate-900 dark:text-white mt-1 whitespace-pre-line font-bold">
@@ -626,7 +626,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                   )}
                   {ticket.recommendedActions && (
                     <div className="mt-2 pt-2 border-t border-indigo-100 dark:border-indigo-500/20">
-                      <div className="text-[10px] uppercase font-extrabold text-indigo-700 dark:text-indigo-300 flex items-center gap-1">
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-indigo-700 dark:text-indigo-300 flex items-center gap-1">
                         <Sparkles className="h-2.5 w-2.5" /> Recommended
                       </div>
                       <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5 whitespace-pre-line">
@@ -697,26 +697,26 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                       <div className="font-extrabold text-slate-900 dark:text-white text-sm">
                         {part.partName}
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap font-semibold">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap font-semibold">
                         <span className="tabular-nums">
                           {part.quantity} × {formatPKR(part.unitPrice)}
                         </span>
                         {part.source && (
-                          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-[9px] font-extrabold">
+                          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-[0.625rem] font-extrabold">
                             {part.source}
                           </span>
                         )}
                         {part.partNumber && (
-                          <span className="font-mono text-[10px]">#{part.partNumber}</span>
+                          <span className="font-mono text-[0.6875rem]">#{part.partNumber}</span>
                         )}
                       </div>
                       {part.product && (
-                        <div className="text-[10px] text-violet-700 dark:text-violet-300 font-extrabold mt-0.5 inline-flex items-center gap-1">
+                        <div className="text-[0.6875rem] text-violet-700 dark:text-violet-300 font-extrabold mt-0.5 inline-flex items-center gap-1">
                           <Package className="h-2.5 w-2.5" /> Inventory se liya
                         </div>
                       )}
                       {part.notes && (
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 italic">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 italic">
                           {part.notes}
                         </div>
                       )}
@@ -827,7 +827,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                       <div className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                         {formatPKR(p.amount)}
                       </div>
-                      <div className="text-[9px] text-slate-500 dark:text-slate-400 font-bold">
+                      <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-bold">
                         {p.paymentMethod} · {formatDate(p.paidAt)}
                         {p.reference && ` · Ref: ${p.reference}`}
                       </div>
@@ -847,13 +847,13 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                   <ShieldCheck className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-[10px] uppercase font-extrabold text-teal-700 dark:text-teal-300">
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-teal-700 dark:text-teal-300">
                     Repair Warranty
                   </div>
                   <div className="text-sm font-extrabold text-teal-900 dark:text-teal-200">
                     {formatDateOnly(ticket.warrantyEnds)} tak
                   </div>
-                  <div className="text-[10px] text-teal-700 dark:text-teal-400 font-semibold mt-0.5">
+                  <div className="text-[0.6875rem] text-teal-700 dark:text-teal-400 font-semibold mt-0.5">
                     Sirf same fault ke liye
                   </div>
                 </div>
@@ -877,7 +877,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                   <Clock className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className={`text-[10px] uppercase font-extrabold ${
+                  <div className={`text-[0.6875rem] uppercase font-extrabold ${
                     readyOverdue ? 'text-rose-700 dark:text-rose-300' : 'text-blue-700 dark:text-blue-300'
                   }`}>
                     Ready Estimated {readyOverdue && '⚠️'}
@@ -895,7 +895,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
           {/* Technician */}
           {ticket.technicianName && (
             <div className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3.5">
-              <div className="text-[10px] uppercase font-extrabold text-violet-700 dark:text-violet-300">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 dark:text-violet-300">
                 Assigned Technician
               </div>
               <div className="text-sm font-extrabold text-violet-900 dark:text-violet-200 mt-1 flex items-center gap-1.5">
@@ -906,7 +906,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
 
           {/* Quick actions — FIXED static tone classes */}
           <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3.5 print:hidden">
-            <div className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400 mb-2 tracking-wider">
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 mb-2 tracking-wider">
               Quick Actions
             </div>
             <div className="grid grid-cols-2 gap-1.5">
@@ -1014,7 +1014,7 @@ function Kpi({ label, value, icon: Icon, tone = 'blue' }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
         <div className="font-extrabold text-slate-900 dark:text-white text-lg truncate tabular-nums">{value}</div>
       </div>
     </div>
@@ -1033,12 +1033,12 @@ function QuickBtn({ icon: Icon, label, onClick, tone, hint }: any) {
   return (
     <button
       onClick={onClick}
-      className={`p-2.5 rounded-xl border-2 text-[10px] font-extrabold transition flex flex-col items-center gap-1 relative active:scale-95 ${QUICK_TONES[tone]}`}
+      className={`p-2.5 rounded-xl border-2 text-[0.6875rem] font-extrabold transition flex flex-col items-center gap-1 relative active:scale-95 ${QUICK_TONES[tone]}`}
     >
       <Icon className="h-4 w-4" />
       {label}
       {hint && (
-        <kbd className="absolute top-1 right-1 text-[8px] px-1 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 font-mono font-bold">
+        <kbd className="absolute top-1 right-1 text-[0.625rem] px-1 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 font-mono font-bold">
           {hint}
         </kbd>
       )}
@@ -1062,7 +1062,7 @@ function TeacherModal({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-extrabold">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-extrabold">
                 Guide
               </div>
               <h3 className="font-extrabold text-slate-900 dark:text-white">Repair Ticket Kaise Chalayein?</h3>
@@ -1127,7 +1127,7 @@ function Step({ n, title, body, tips }: any) {
           {tips && (
             <ul className="mt-2 space-y-1">
               {tips.map((t: string, i: number) => (
-                <li key={i} className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
+                <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
                   <Sparkles className="h-2.5 w-2.5 text-amber-500 flex-shrink-0 mt-0.5" /> {t}
                 </li>
               ))}

@@ -54,7 +54,7 @@ export function ImeiPickerModal({
               <Smartphone className="h-5 w-5 text-white" />
             </div>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-wider text-blue-700 font-bold">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-blue-700 font-bold">
                 Select IMEI
               </div>
               <h3 className="font-bold text-slate-900 truncate">{productName}</h3>
@@ -76,13 +76,13 @@ export function ImeiPickerModal({
         {/* Stats bar */}
         <div className="px-5 py-3 bg-slate-50 border-b border-slate-100 grid grid-cols-2 gap-3">
           <div className="text-center">
-            <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+            <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">
               Available
             </div>
             <div className="text-2xl font-extrabold text-emerald-700">{imeis.length}</div>
           </div>
           <div className="text-center">
-            <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+            <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">
               Filtered
             </div>
             <div className="text-2xl font-extrabold text-slate-900">{filtered.length}</div>
@@ -153,12 +153,12 @@ export function ImeiPickerModal({
                             {imei.imei1}
                           </span>
                           {excluded && (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">
+                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-bold">
                               IN CART
                             </span>
                           )}
                           {imei.color && (
-                            <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold">
+                            <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.6875rem] font-bold">
                               {imei.color}
                             </span>
                           )}
@@ -180,7 +180,7 @@ export function ImeiPickerModal({
                           </div>
                         )}
 
-                        <div className="mt-2 flex items-center gap-2 flex-wrap text-[11px]">
+                        <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem]">
                           {imei.warrantyMonths && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-bold">
                               <ShieldCheck className="h-3 w-3" />
@@ -212,7 +212,7 @@ export function ImeiPickerModal({
 
         {/* Footer hint */}
         <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 text-center">
-          <div className="text-[11px] text-slate-500 inline-flex items-center gap-1.5">
+          <div className="text-[0.6875rem] text-slate-500 inline-flex items-center gap-1.5">
             <Sparkles className="h-3 w-3 text-amber-500" />
             FIFO order — oldest stock first
           </div>

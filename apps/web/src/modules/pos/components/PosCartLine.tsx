@@ -128,7 +128,7 @@ export function PosCartLine({
           )}
 
           {item.rollId && item.rollNumber && (
-            <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">
+            <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[0.6875rem] font-extrabold">
               <Layers className="h-2.5 w-2.5" />
               {item.rollNumber}
               {item.cutWidthFt !== undefined && item.cutLengthFt !== undefined && (
@@ -140,14 +140,14 @@ export function PosCartLine({
           )}
 
           {item.cutPieceId && item.cutPieceCode && (
-            <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-violet-100 text-violet-800 text-[10px] font-extrabold">
+            <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-violet-100 text-violet-800 text-[0.6875rem] font-extrabold">
               <Scissors className="h-2.5 w-2.5" />
               Piece {item.cutPieceCode}
             </div>
           )}
 
           {item.imeiNumber && (
-            <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-extrabold font-mono">
+            <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[0.6875rem] font-extrabold font-mono">
               <Smartphone className="h-2.5 w-2.5" />
               {item.imeiNumber}
             </div>
@@ -182,7 +182,7 @@ export function PosCartLine({
           )}
 
           {hasDiscount && (
-            <div className="mt-1 inline-flex items-center gap-1 text-[10px] text-rose-700 font-extrabold bg-rose-50 px-1.5 py-0.5 rounded">
+            <div className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] text-rose-700 font-extrabold bg-rose-50 px-1.5 py-0.5 rounded">
               <Tag className="h-2 w-2" />
               -{formatPKR(item.lineDiscount)} discount
             </div>
@@ -235,12 +235,12 @@ export function PosCartLine({
         <div className="px-3 pb-3 -mt-1 space-y-2">
           <div className="rounded-lg bg-amber-50 border-2 border-amber-300 p-2 space-y-1">
             <div className="flex items-center justify-between">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 flex items-center gap-1">
+              <label className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-amber-800 flex items-center gap-1">
                 <MessageSquare className="h-3 w-3" />
                 Customer Note (prints on receipt)
               </label>
               {userNoteDraft.trim() && (
-                <button onClick={() => saveUserNote('')} className="text-[10px] font-extrabold text-rose-600 hover:text-rose-800 inline-flex items-center gap-0.5">
+                <button onClick={() => saveUserNote('')} className="text-[0.6875rem] font-extrabold text-rose-600 hover:text-rose-800 inline-flex items-center gap-0.5">
                   <X className="h-2.5 w-2.5" /> Clear
                 </button>
               )}
@@ -256,12 +256,12 @@ export function PosCartLine({
 
           <div className="rounded-lg bg-slate-100 border-2 border-slate-300 p-2 space-y-1">
             <div className="flex items-center justify-between">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1">
+              <label className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1">
                 <EyeOff className="h-3 w-3" />
                 Internal Note (team-only)
               </label>
               {internalNoteDraft.trim() && (
-                <button onClick={() => saveInternalNote('')} className="text-[10px] font-extrabold text-rose-600 hover:text-rose-800 inline-flex items-center gap-0.5">
+                <button onClick={() => saveInternalNote('')} className="text-[0.6875rem] font-extrabold text-rose-600 hover:text-rose-800 inline-flex items-center gap-0.5">
                   <X className="h-2.5 w-2.5" /> Clear
                 </button>
               )}
@@ -357,7 +357,7 @@ export function PosCartLine({
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[10px] font-extrabold text-slate-600 mb-1 uppercase tracking-wider">
+              <label className="block text-[0.6875rem] font-extrabold text-slate-600 mb-1 uppercase tracking-wider">
                 {item.rollId || item.cutPieceId ? 'Rate/sqft' : 'Custom Price'}
               </label>
               <input
@@ -373,7 +373,7 @@ export function PosCartLine({
               />
             </div>
             <div>
-              <label className="block text-[10px] font-extrabold text-slate-600 mb-1 uppercase tracking-wider">Line Discount</label>
+              <label className="block text-[0.6875rem] font-extrabold text-slate-600 mb-1 uppercase tracking-wider">Line Discount</label>
               <input
                 type="number"
                 step="0.01"

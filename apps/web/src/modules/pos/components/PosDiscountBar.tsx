@@ -106,7 +106,7 @@ export function PosDiscountBar({
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
         {showLabel && (
-          <div className="flex items-center gap-1 text-[11px] sm:text-xs font-extrabold text-slate-600 shrink-0">
+          <div className="flex items-center gap-1 text-[0.6875rem] sm:text-xs font-extrabold text-slate-600 shrink-0">
             <Percent className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${ICON_TONES[tone]}`} />
             <span className="hidden sm:inline">Discount:</span>
           </div>
@@ -116,12 +116,12 @@ export function PosDiscountBar({
         {!legacy && (
           <div className="flex rounded-xl border-2 border-slate-200 bg-white p-0.5 shrink-0">
             <button type="button" onClick={() => onMode?.('pct')}
-              className={['h-8 px-2.5 rounded-lg text-[11px] font-extrabold transition inline-flex items-center gap-1',
+              className={['h-8 px-2.5 rounded-lg text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1',
                 m === 'pct' ? `${TONES[tone]} text-white shadow` : 'text-slate-500 hover:bg-slate-50'].join(' ')}>
               <Percent className="h-3 w-3" /> %
             </button>
             <button type="button" onClick={() => onMode?.('rs')}
-              className={['h-8 px-2.5 rounded-lg text-[11px] font-extrabold transition inline-flex items-center gap-1',
+              className={['h-8 px-2.5 rounded-lg text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1',
                 m === 'rs' ? `${TONES[tone]} text-white shadow` : 'text-slate-500 hover:bg-slate-50'].join(' ')}>
               <Banknote className="h-3 w-3" /> Rs
             </button>
@@ -132,7 +132,7 @@ export function PosDiscountBar({
           {m === 'pct'
             ? steps.map((d) => (
                 <button key={d} type="button" onClick={() => setPct(d)}
-                  className={['flex-1 h-9 sm:h-10 rounded-xl text-[11px] sm:text-xs font-extrabold transition',
+                  className={['flex-1 h-9 sm:h-10 rounded-xl text-[0.6875rem] sm:text-xs font-extrabold transition',
                     pctVal === d ? `${TONES[tone]} text-white shadow` : 'bg-slate-100 hover:bg-slate-200 text-slate-700'].join(' ')}>
                   {d === 0 ? 'None' : `${d}%`}
                 </button>
@@ -141,7 +141,7 @@ export function PosDiscountBar({
               <>
                 {rsOptions.map((v) => (
                   <button key={v} type="button" onClick={() => setRs(v)}
-                    className={['flex-1 h-9 sm:h-10 rounded-xl text-[11px] sm:text-xs font-extrabold transition tabular-nums',
+                    className={['flex-1 h-9 sm:h-10 rounded-xl text-[0.6875rem] sm:text-xs font-extrabold transition tabular-nums',
                       rsVal === v ? `${TONES[tone]} text-white shadow` : 'bg-slate-100 hover:bg-slate-200 text-slate-700'].join(' ')}>
                     {v >= 1000 ? `${v / 1000}k` : v}
                   </button>
@@ -151,7 +151,7 @@ export function PosDiscountBar({
                   value={rsVal || ''}
                   onChange={(e) => setRs(Number(e.target.value || 0))}
                   placeholder="Khud"
-                  className={`w-20 h-9 sm:h-10 rounded-xl border-2 border-slate-200 bg-white px-2 text-[11px] sm:text-xs font-extrabold tabular-nums text-center focus:outline-none transition ${FOCUS[tone]}`}
+                  className={`w-20 h-9 sm:h-10 rounded-xl border-2 border-slate-200 bg-white px-2 text-[0.6875rem] sm:text-xs font-extrabold tabular-nums text-center focus:outline-none transition ${FOCUS[tone]}`}
                 />
               </>
             )}
@@ -168,7 +168,7 @@ export function PosDiscountBar({
       </div>
 
       {has && subtotal > 0 && (
-        <div className="flex items-center justify-between px-1 text-[11px] font-extrabold tabular-nums">
+        <div className="flex items-center justify-between px-1 text-[0.6875rem] font-extrabold tabular-nums">
           <span className="text-slate-500">
             {m === 'pct' ? `${pctVal}% chhoot` : `${formatPKR(rsVal)} kam`}
             {' '}<span className="text-slate-400">({((amount / subtotal) * 100).toFixed(1)}%)</span>

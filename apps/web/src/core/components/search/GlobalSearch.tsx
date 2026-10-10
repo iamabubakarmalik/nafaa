@@ -60,7 +60,7 @@ export default function GlobalSearch() {
       >
         <Search className="h-4 w-4" />
         <span>Search...</span>
-        <kbd className="ml-2 px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[10px] font-mono">⌘K</kbd>
+        <kbd className="ml-2 px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[0.6875rem] font-mono">⌘K</kbd>
       </button>
 
       <button
@@ -107,7 +107,7 @@ export default function GlobalSearch() {
                 <div className="divide-y divide-slate-100">
                   {results.products.length > 0 && (
                     <div className="p-3">
-                      <div className="px-3 py-1 text-[10px] uppercase tracking-wider text-slate-500 font-semibold flex items-center gap-2">
+                      <div className="px-3 py-1 text-[0.6875rem] uppercase tracking-wider text-slate-500 font-semibold flex items-center gap-2">
                         <Package className="h-3 w-3" /> Products
                       </div>
                       {results.products.map((p) => (
@@ -131,7 +131,7 @@ export default function GlobalSearch() {
 
                   {results.customers.length > 0 && (
                     <div className="p-3">
-                      <div className="px-3 py-1 text-[10px] uppercase tracking-wider text-slate-500 font-semibold flex items-center gap-2">
+                      <div className="px-3 py-1 text-[0.6875rem] uppercase tracking-wider text-slate-500 font-semibold flex items-center gap-2">
                         <Users className="h-3 w-3" /> Customers
                       </div>
                       {results.customers.map((c) => (
@@ -156,7 +156,7 @@ export default function GlobalSearch() {
 
                   {results.sales.length > 0 && (
                     <div className="p-3">
-                      <div className="px-3 py-1 text-[10px] uppercase tracking-wider text-slate-500 font-semibold flex items-center gap-2">
+                      <div className="px-3 py-1 text-[0.6875rem] uppercase tracking-wider text-slate-500 font-semibold flex items-center gap-2">
                         <Receipt className="h-3 w-3" /> Sales
                       </div>
                       {results.sales.map((s) => (
@@ -177,7 +177,7 @@ export default function GlobalSearch() {
 
                   {results.suppliers.length > 0 && (
                     <div className="p-3">
-                      <div className="px-3 py-1 text-[10px] uppercase tracking-wider text-slate-500 font-semibold flex items-center gap-2">
+                      <div className="px-3 py-1 text-[0.6875rem] uppercase tracking-wider text-slate-500 font-semibold flex items-center gap-2">
                         <Truck className="h-3 w-3" /> Suppliers
                       </div>
                       {results.suppliers.map((s) => (

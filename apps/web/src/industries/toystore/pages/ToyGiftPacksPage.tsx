@@ -167,12 +167,12 @@ function GiftPackCard({ pack: p, onDuplicate, onDelete }: any) {
         )}
         <div className="absolute top-2 left-2 flex gap-1.5">
           {p.isFeatured && (
-            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
               <Star className="h-2.5 w-2.5 fill-white" /> Featured
             </span>
           )}
           {p.isSeasonal && p.seasonName && (
-            <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold uppercase">
+            <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase">
               {p.seasonName}
             </span>
           )}
@@ -194,7 +194,7 @@ function GiftPackCard({ pack: p, onDuplicate, onDelete }: any) {
         {p.computed && (
           <div className={`rounded-lg p-2 text-center ${
             p.computed.allInStock ? 'bg-emerald-50 border border-emerald-200' : 'bg-amber-50 border border-amber-200'}`}>
-            <div className={`text-[10px] uppercase font-extrabold ${p.computed.allInStock ? 'text-emerald-700' : 'text-amber-700'}`}>
+            <div className={`text-[0.6875rem] uppercase font-extrabold ${p.computed.allInStock ? 'text-emerald-700' : 'text-amber-700'}`}>
               {p.computed.allInStock ? '✓ Ready to build' : '⚠ Missing stock'}
             </div>
             <div className={`text-sm font-extrabold ${p.computed.allInStock ? 'text-emerald-900' : 'text-amber-900'}`}>
@@ -206,15 +206,15 @@ function GiftPackCard({ pack: p, onDuplicate, onDelete }: any) {
         <div className="flex items-end justify-between gap-2 pt-2 border-t border-slate-100">
           <div>
             {p.originalPrice > p.giftPackPrice && (
-              <div className="text-[10px] text-slate-400 line-through font-bold">{formatPKR(p.originalPrice)}</div>
+              <div className="text-[0.6875rem] text-slate-400 line-through font-bold">{formatPKR(p.originalPrice)}</div>
             )}
             <div className="text-xl font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKR(p.giftPackPrice)}</div>
             {p.savings > 0 && (
-              <div className="text-[10px] font-extrabold text-amber-700 mt-0.5">Save {formatPKR(p.savings)}</div>
+              <div className="text-[0.6875rem] font-extrabold text-amber-700 mt-0.5">Save {formatPKR(p.savings)}</div>
             )}
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500">Sold</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Sold</div>
             <div className="text-lg font-extrabold text-slate-900 tabular-nums">{p.totalSold || 0}</div>
           </div>
         </div>
@@ -247,7 +247,7 @@ function StatCard({ label, value, icon: Icon, tone }: any) {
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

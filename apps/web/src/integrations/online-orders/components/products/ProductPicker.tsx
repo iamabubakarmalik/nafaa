@@ -68,7 +68,7 @@ export function ProductPicker({ onPick, initialSearch, placeholder = 'Nafaa prod
     <>
       <button ref={btn} type="button" onClick={() => setOpen((v) => !v)}
         className={cn('inline-flex w-full items-center justify-between gap-2 rounded-lg border border-dashed border-slate-300 bg-white text-left font-medium text-slate-500 transition hover:border-slate-400 hover:text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400',
-          compact ? 'h-8 px-2.5 text-[12.5px]' : 'h-9 px-3 text-[13px]')}>
+          compact ? 'h-8 px-2.5 text-[0.78125rem]' : 'h-9 px-3 text-[0.8125rem]')}>
         <span className="inline-flex items-center gap-1.5 truncate"><Search className="h-3.5 w-3.5 shrink-0" /> {placeholder}</span>
         <ChevronDown className="h-3.5 w-3.5 shrink-0" />
       </button>
@@ -79,12 +79,12 @@ export function ProductPicker({ onPick, initialSearch, placeholder = 'Nafaa prod
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Naam, SKU ya barcode…"
-                className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 text-[13px] outline-none focus:border-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+                className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 text-[0.8125rem] outline-none focus:border-slate-400 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
             </div>
           </div>
           <div className="max-h-80 overflow-y-auto p-1">
-            {isFetching && !items.length && <div className="p-4 text-center text-[12.5px] text-slate-500">Dhoond rahe hain…</div>}
-            {!isFetching && !items.length && <div className="p-4 text-center text-[12.5px] text-slate-500">Koi product nahi mila</div>}
+            {isFetching && !items.length && <div className="p-4 text-center text-[0.78125rem] text-slate-500">Dhoond rahe hain…</div>}
+            {!isFetching && !items.length && <div className="p-4 text-center text-[0.78125rem] text-slate-500">Koi product nahi mila</div>}
             {items.map((p: any) => {
               const img = p.images?.[0]?.url;
               const head = (
@@ -93,10 +93,10 @@ export function ProductPicker({ onPick, initialSearch, placeholder = 'Nafaa prod
                     {img ? <img src={img} alt="" className="h-full w-full object-cover" /> : <Package className="h-4 w-4 text-slate-400" />}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-medium text-slate-900 dark:text-white">{p.name}</span>
-                    <span className="block text-[11.5px] text-slate-500">{p.sku ? `SKU ${p.sku} · ` : ''}Stock {p.stock}</span>
+                    <span className="block truncate text-[0.8125rem] font-medium text-slate-900 dark:text-white">{p.name}</span>
+                    <span className="block text-[0.71875rem] text-slate-500">{p.sku ? `SKU ${p.sku} · ` : ''}Stock {p.stock}</span>
                   </span>
-                  {!p.hasVariants && <span className="text-[12.5px] font-semibold text-slate-700 dark:text-slate-200">{rs(p.price)}</span>}
+                  {!p.hasVariants && <span className="text-[0.78125rem] font-semibold text-slate-700 dark:text-slate-200">{rs(p.price)}</span>}
                 </div>
               );
               if (p.hasVariants && p.variants?.length) {
@@ -106,7 +106,7 @@ export function ProductPicker({ onPick, initialSearch, placeholder = 'Nafaa prod
                     <div className="mt-1.5 flex flex-wrap gap-1 pl-10">
                       {p.variants.map((v: any) => (
                         <button key={v.id} onClick={() => pick({ productId: p.id, variantId: v.id, label: `${p.name} — ${v.name}` })}
-                          className="rounded-md border border-slate-200 px-2 py-1 text-[12px] font-medium text-slate-700 hover:border-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                          className="rounded-md border border-slate-200 px-2 py-1 text-[0.75rem] font-medium text-slate-700 hover:border-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                           {v.name}{v.sku ? <span className="text-slate-400"> · {v.sku}</span> : null}
                         </button>
                       ))}

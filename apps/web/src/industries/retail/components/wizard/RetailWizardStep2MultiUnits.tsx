@@ -118,12 +118,12 @@ export function RetailWizardStep2MultiUnits({
           <button type="button" onClick={() => onToggleMultiUnits(false)}
             className={['p-4 rounded-2xl border-2 text-left transition', !hasMultiUnits ? 'border-slate-900 dark:border-white bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500'].join(' ')}>
             <div className="flex items-center gap-2"><ToggleLeft className="h-5 w-5" /><span className="font-extrabold text-sm">Nahi — sirf {U}</span></div>
-            <div className={['text-[11px] font-bold mt-1', !hasMultiUnits ? 'text-white/70 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'].join(' ')}>Simple product. Seedha Step 3.</div>
+            <div className={['text-[0.6875rem] font-bold mt-1', !hasMultiUnits ? 'text-white/70 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'].join(' ')}>Simple product. Seedha Step 3.</div>
           </button>
           <button type="button" onClick={() => onToggleMultiUnits(true)}
             className={['p-4 rounded-2xl border-2 text-left transition', hasMultiUnits ? 'border-sky-600 bg-sky-600 text-white shadow-lg shadow-sky-500/40' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-sky-400 dark:hover:border-sky-500/50'].join(' ')}>
             <div className="flex items-center gap-2"><ToggleRight className="h-5 w-5" /><span className="font-extrabold text-sm">Haan — multi-unit</span></div>
-            <div className={['text-[11px] font-bold mt-1', hasMultiUnits ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'].join(' ')}>Dozen, carton, pack ke alag rate.</div>
+            <div className={['text-[0.6875rem] font-bold mt-1', hasMultiUnits ? 'text-white/70' : 'text-slate-500 dark:text-slate-400'].join(' ')}>Dozen, carton, pack ke alag rate.</div>
           </button>
         </div>
 
@@ -143,12 +143,12 @@ export function RetailWizardStep2MultiUnits({
           <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm p-5 space-y-3">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-300 flex items-center gap-1">
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-300 flex items-center gap-1">
                   <Sparkles className="h-3 w-3 text-amber-500" /> Ek click me add
                 </div>
                 <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mt-0.5">Aam conversions</h4>
               </div>
-              <span className="text-[10px] font-extrabold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-500/15 px-2 py-1 rounded-lg tabular-nums">{units.length} units</span>
+              <span className="text-[0.6875rem] font-extrabold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-500/15 px-2 py-1 rounded-lg tabular-nums">{units.length} units</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
               {PRESETS.map((p) => {
@@ -159,8 +159,8 @@ export function RetailWizardStep2MultiUnits({
                       ex ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-sky-400 dark:hover:border-sky-500/50 hover:shadow-sm'].join(' ')}>
                     <div className="text-2xl leading-none">{p.e}</div>
                     <div className="font-extrabold text-xs text-slate-900 dark:text-white mt-1">{p.n}</div>
-                    <div className="text-[9px] text-slate-500 dark:text-slate-400 font-bold">= {p.r} {U}</div>
-                    <div className="text-[9px] text-emerald-700 dark:text-emerald-400 font-extrabold mt-0.5 tabular-nums">
+                    <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-bold">= {p.r} {U}</div>
+                    <div className="text-[0.625rem] text-emerald-700 dark:text-emerald-400 font-extrabold mt-0.5 tabular-nums">
                       {ex ? '✓ Added' : formatPKRFull(sale * p.r)}
                     </div>
                   </button>
@@ -172,7 +172,7 @@ export function RetailWizardStep2MultiUnits({
           {/* Custom */}
           <section className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/40 bg-gradient-to-br from-violet-50 to-white dark:from-violet-500/10 dark:to-slate-900 p-5 space-y-3">
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
                 <Plus className="h-3 w-3" /> Apna unit banao
               </div>
               <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mt-0.5">Jaise "Peti = 30 {U}"</h4>
@@ -200,7 +200,7 @@ export function RetailWizardStep2MultiUnits({
           {units.length > 0 ? (
             <section className="rounded-2xl border-2 border-sky-200 dark:border-sky-500/40 bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm p-5 space-y-3">
               <div>
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-sky-700 dark:text-sky-300">Set kiye huay units</div>
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-sky-700 dark:text-sky-300">Set kiye huay units</div>
                 <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mt-0.5">
                   {units.length} unit{units.length !== 1 ? 's' : ''} — rate/barcode badal sakte ho
                 </h4>
@@ -224,9 +224,9 @@ export function RetailWizardStep2MultiUnits({
                           <input value={u.unitName} disabled={u.isBase}
                             onChange={(e) => onUpdateUnit(u.tempId, { unitName: e.target.value })}
                             className="text-sm font-extrabold text-slate-900 dark:text-white bg-transparent focus:outline-none focus:bg-slate-50 dark:focus:bg-slate-700 rounded px-1 capitalize disabled:cursor-not-allowed" />
-                          {u.isBase && <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold">BASE</span>}
+                          {u.isBase && <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold">BASE</span>}
                         </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1 mt-0.5">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1 mt-0.5">
                           <ArrowRightLeft className="h-2.5 w-2.5" />
                           1 {u.unitName} = <strong className="text-slate-700 dark:text-slate-200 tabular-nums">{rate}</strong> {U}
                         </div>
@@ -242,10 +242,10 @@ export function RetailWizardStep2MultiUnits({
                     {/* Quick discount */}
                     {!u.isBase && sale > 0 && (
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400">Bulk discount:</span>
+                        <span className="text-[0.6875rem] font-extrabold uppercase text-slate-500 dark:text-slate-400">Bulk discount:</span>
                         {[0, 3, 5, 8, 10].map((d) => (
                           <button key={d} type="button" onClick={() => applyDiscount(u, d)}
-                            className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-400 dark:hover:border-emerald-500/50 text-[11px] font-extrabold text-slate-700 dark:text-slate-200 transition">
+                            className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-400 dark:hover:border-emerald-500/50 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 transition">
                             {d === 0 ? 'Full' : `-${d}%`} <span className="text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKRFull(Math.round(full * (1 - d / 100)))}</span>
                           </button>
                         ))}
@@ -265,7 +265,7 @@ export function RetailWizardStep2MultiUnits({
                     {/* Barcode/SKU */}
                     <div className="grid sm:grid-cols-2 gap-2">
                       <div>
-                        <label className="text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1 flex items-center gap-1">
+                        <label className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1 flex items-center gap-1">
                           <BarcodeIcon className="h-2.5 w-2.5" /> Unit Barcode
                         </label>
                         <input value={u.barcode ?? ''} onChange={(e) => onUpdateUnit(u.tempId, { barcode: e.target.value })}
@@ -273,7 +273,7 @@ export function RetailWizardStep2MultiUnits({
                           className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-mono font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500 transition" />
                       </div>
                       <div>
-                        <label className="text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1 flex items-center gap-1">
+                        <label className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1 flex items-center gap-1">
                           <Hash className="h-2.5 w-2.5" /> Unit SKU
                         </label>
                         <input value={u.sku ?? ''} onChange={(e) => onUpdateUnit(u.tempId, { sku: e.target.value })}
@@ -315,7 +315,7 @@ function Fld({ lbl, tone, v, onV, ph }: { lbl: string; tone: string; v: number |
   const lc: Record<string, string> = { emerald: 'text-emerald-700 dark:text-emerald-400', slate: 'text-slate-600 dark:text-slate-300', violet: 'text-violet-700 dark:text-violet-400', blue: 'text-blue-700 dark:text-blue-400' };
   return (
     <div>
-      <label className={['block text-[10px] font-extrabold uppercase mb-1', lc[tone]].join(' ')}>{lbl}</label>
+      <label className={['block text-[0.6875rem] font-extrabold uppercase mb-1', lc[tone]].join(' ')}>{lbl}</label>
       <input type="number" step="0.01" value={v} placeholder={ph}
         onChange={(e) => onV(e.target.value === '' ? 0 : Number(e.target.value))}
         className={['h-10 w-full rounded-lg border-2 px-2 text-sm font-extrabold tabular-nums bg-white dark:bg-slate-800 focus:outline-none transition', t[tone]].join(' ')} />
@@ -326,7 +326,7 @@ function Cell({ l, v, tone }: any) {
   const t: Record<string, string> = { emerald: 'text-emerald-700 dark:text-emerald-400', rose: 'text-rose-700 dark:text-rose-400', sky: 'text-sky-700 dark:text-sky-400' };
   return (
     <div>
-      <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{l}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{l}</div>
       <div className={['text-sm font-extrabold tabular-nums', t[tone]].join(' ')}>{v}</div>
     </div>
   );

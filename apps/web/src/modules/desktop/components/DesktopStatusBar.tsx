@@ -16,7 +16,7 @@ export function DesktopStatusBar() {
   const platformLabel = platform === 'darwin' ? 'macOS' : platform === 'win32' ? 'Windows' : 'Linux';
 
   return (
-    <div className="h-7 flex items-center px-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-[11px] font-semibold text-slate-600 dark:text-slate-400 print:hidden select-none">
+    <div className="h-7 flex items-center px-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-400 print:hidden select-none">
       {/* Left — connection */}
       <div className="flex items-center gap-1.5">
         {status.isOnline ? (

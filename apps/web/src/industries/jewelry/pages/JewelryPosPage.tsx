@@ -318,12 +318,12 @@ export default function JewelryPosPage() {
           {rates.length > 0 && (
             <div className="shrink-0 px-4 py-2 bg-gradient-to-r from-amber-50 to-yellow-50 border-b border-amber-200 overflow-x-auto">
               <div className="flex gap-2 items-center min-w-max">
-                <div className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 uppercase shrink-0">
+                <div className="inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-amber-700 uppercase shrink-0">
                   <Coins className="h-3 w-3" />
                   Live Rates:
                 </div>
                 {(rates as any[]).slice(0, 8).map((r: any) => (
-                  <div key={r.id} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-amber-200 text-[11px] font-bold shrink-0">
+                  <div key={r.id} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-amber-200 text-[0.6875rem] font-bold shrink-0">
                     <span>{METAL_ICONS[r.metalType]}</span>
                     <span className="text-slate-700">{r.purity.replace('KARAT_', '').replace('SILVER_', 'S').replace('PLATINUM_', 'Pt-')}K:</span>
                     <span className="font-extrabold text-amber-700 tabular-nums">Rs {r.ratePerGram.toLocaleString()}/g</span>
@@ -382,7 +382,7 @@ export default function JewelryPosPage() {
                             {METAL_ICONS[p.metalType] || '💎'}
                           </div>
                         )}
-                        <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-amber-600 text-white text-[9px] font-extrabold font-mono">
+                        <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-amber-600 text-white text-[0.625rem] font-extrabold font-mono">
                           {p.itemCode || p.designNumber || p.id.slice(-6)}
                         </div>
                         {p.hallmarkNumber && (
@@ -391,12 +391,12 @@ export default function JewelryPosPage() {
                           </div>
                         )}
                         {p.isBridalCollection && (
-                          <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-rose-500 text-white text-[9px] font-extrabold">
+                          <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold">
                             👰 BRIDAL
                           </div>
                         )}
                         {!rateAvailable && (
-                          <div className="absolute inset-x-0 bottom-0 py-1 bg-rose-600 text-white text-center text-[9px] font-extrabold">
+                          <div className="absolute inset-x-0 bottom-0 py-1 bg-rose-600 text-white text-center text-[0.625rem] font-extrabold">
                             NO LIVE RATE
                           </div>
                         )}
@@ -405,7 +405,7 @@ export default function JewelryPosPage() {
                         <div className="font-extrabold text-slate-900 text-xs line-clamp-2 min-h-[2rem] leading-tight">
                           {p.product?.name || 'Item'}
                         </div>
-                        <div className="mt-1 text-[10px] font-bold text-slate-600 uppercase">
+                        <div className="mt-1 text-[0.6875rem] font-bold text-slate-600 uppercase">
                           {p.metalType.replace('_', ' ')} {p.purity.replace('KARAT_', '').replace('SILVER_', 'S').replace('PLATINUM_', 'Pt-')}K
                         </div>
                         <div className="mt-1 flex items-baseline justify-between">
@@ -413,7 +413,7 @@ export default function JewelryPosPage() {
                             {p.netWeight.toFixed(2)}g
                           </div>
                           {rateAvailable && (
-                            <div className="text-[10px] font-bold text-amber-700 tabular-nums">
+                            <div className="text-[0.6875rem] font-bold text-amber-700 tabular-nums">
                               ~{formatPKR(p.netWeight * rate)}
                             </div>
                           )}
@@ -432,7 +432,7 @@ export default function JewelryPosPage() {
           <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-amber-900 to-yellow-700 text-white px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                   <Gem className="h-2.5 w-2.5" />
                   Jewelry Cart
                 </div>
@@ -514,7 +514,7 @@ export default function JewelryPosPage() {
                             <span className="font-extrabold text-sm text-slate-900 truncate">{item.name}</span>
                             {item.hallmarkNumber && <ShieldCheck className="h-3 w-3 text-emerald-600" />}
                           </div>
-                          <div className="text-[10px] font-bold text-slate-600 uppercase mt-0.5">
+                          <div className="text-[0.6875rem] font-bold text-slate-600 uppercase mt-0.5">
                             {item.metalType.replace('_', ' ')} {item.purity.replace('KARAT_', '').replace('SILVER_', 'S').replace('PLATINUM_', 'Pt-')}K
                             {item.buyBackPct > 0 && ` • Buyback: ${item.buyBackPct}%`}
                           </div>
@@ -527,17 +527,17 @@ export default function JewelryPosPage() {
 
                       <div className="grid grid-cols-3 gap-1.5">
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-blue-700 block">Rate/g</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-blue-700 block">Rate/g</label>
                           <input type="number" value={item.ratePerGram} onChange={(e) => updateLine(item.cartLineId, { ratePerGram: Number(e.target.value) })}
                             className="h-9 w-full rounded-lg border border-blue-300 bg-blue-50 px-2 text-xs font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
                         </div>
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-emerald-700 block">Net (g)</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-emerald-700 block">Net (g)</label>
                           <input type="number" step="0.001" value={item.netWeight} onChange={(e) => updateLine(item.cartLineId, { netWeight: Number(e.target.value) })}
                             className="h-9 w-full rounded-lg border border-emerald-300 bg-emerald-50 px-2 text-xs font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
                         </div>
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-slate-600 block">Qty</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 block">Qty</label>
                           <input type="number" min="1" value={item.quantity} onChange={(e) => updateLine(item.cartLineId, { quantity: Number(e.target.value) })}
                             className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs font-extrabold tabular-nums text-center focus:outline-none focus:border-amber-500" />
                         </div>
@@ -545,24 +545,24 @@ export default function JewelryPosPage() {
 
                       <div className="grid grid-cols-3 gap-1.5">
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-purple-700 block">Making %</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-purple-700 block">Making %</label>
                           <input type="number" step="0.1" value={item.makingChargePct} onChange={(e) => updateLine(item.cartLineId, { makingChargePct: Number(e.target.value) })}
-                            placeholder="0" className="h-8 w-full rounded-lg border border-purple-200 bg-purple-50 px-2 text-[11px] font-extrabold tabular-nums text-center focus:outline-none focus:border-purple-500" />
+                            placeholder="0" className="h-8 w-full rounded-lg border border-purple-200 bg-purple-50 px-2 text-[0.6875rem] font-extrabold tabular-nums text-center focus:outline-none focus:border-purple-500" />
                         </div>
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-orange-700 block">Wastage %</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-orange-700 block">Wastage %</label>
                           <input type="number" step="0.1" value={item.wastagePct} onChange={(e) => updateLine(item.cartLineId, { wastagePct: Number(e.target.value) })}
-                            placeholder="0" className="h-8 w-full rounded-lg border border-orange-200 bg-orange-50 px-2 text-[11px] font-extrabold tabular-nums text-center focus:outline-none focus:border-orange-500" />
+                            placeholder="0" className="h-8 w-full rounded-lg border border-orange-200 bg-orange-50 px-2 text-[0.6875rem] font-extrabold tabular-nums text-center focus:outline-none focus:border-orange-500" />
                         </div>
                         <div>
-                          <label className="text-[9px] uppercase font-extrabold text-cyan-700 block">Stones</label>
+                          <label className="text-[0.625rem] uppercase font-extrabold text-cyan-700 block">Stones</label>
                           <input type="number" value={item.stoneValue} onChange={(e) => updateLine(item.cartLineId, { stoneValue: Number(e.target.value) })}
-                            placeholder="0" className="h-8 w-full rounded-lg border border-cyan-200 bg-cyan-50 px-2 text-[11px] font-extrabold tabular-nums text-center focus:outline-none focus:border-cyan-500" />
+                            placeholder="0" className="h-8 w-full rounded-lg border border-cyan-200 bg-cyan-50 px-2 text-[0.6875rem] font-extrabold tabular-nums text-center focus:outline-none focus:border-cyan-500" />
                         </div>
                       </div>
 
                       {/* Live breakdown */}
-                      <div className="rounded-lg bg-white border border-amber-200 p-2 space-y-0.5 text-[10px]">
+                      <div className="rounded-lg bg-white border border-amber-200 p-2 space-y-0.5 text-[0.6875rem]">
                         <div className="flex justify-between"><span className="text-slate-600">Metal:</span><span className="font-bold tabular-nums">{formatPKR(calc.metalValue)}</span></div>
                         <div className="flex justify-between"><span className="text-slate-600">Making:</span><span className="font-bold tabular-nums">{formatPKR(calc.makingCharge)}</span></div>
                         <div className="flex justify-between"><span className="text-slate-600">Wastage:</span><span className="font-bold tabular-nums">{formatPKR(calc.wastageValue)}</span></div>
@@ -580,7 +580,7 @@ export default function JewelryPosPage() {
             {/* Exchange */}
             {cart.length > 0 && (
               <div className="p-3 border-t border-slate-100 bg-violet-50/50 space-y-2">
-                <div className="text-[10px] uppercase font-extrabold text-violet-700 inline-flex items-center gap-1">
+                <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 inline-flex items-center gap-1">
                   <Repeat className="h-3 w-3" />
                   Old Gold Exchange (optional)
                 </div>

@@ -129,7 +129,7 @@ function StatBox({ icon: Icon, color, label, value, sub }: any) {
       <Icon className="h-5 w-5 mb-2" />
       <div className="text-xl font-black tabular-nums truncate">{value}</div>
       <div className="text-xs font-black uppercase tracking-wider">{label}</div>
-      <div className="text-[10px] font-medium opacity-70 mt-0.5">{sub}</div>
+      <div className="text-[0.6875rem] font-medium opacity-70 mt-0.5">{sub}</div>
     </div>
   );
 }
@@ -155,7 +155,7 @@ function MetricBar({ label, value, color, icon: Icon, hint, lowerIsBetter }: any
           style={{ width: `${value}%` }}
         />
       </div>
-      <div className="text-[10px] text-slate-500 font-medium mt-1">{hint}</div>
+      <div className="text-[0.6875rem] text-slate-500 font-medium mt-1">{hint}</div>
     </div>
   );
 }

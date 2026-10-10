@@ -163,7 +163,7 @@ export function RestaurantWizardStep2Modifiers({
                   ].join(' ')}>
                     {tag.label}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-semibold leading-tight">{tag.desc}</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-semibold leading-tight">{tag.desc}</div>
                 </div>
                 {active && <Check className="h-4 w-4 text-emerald-600 shrink-0" />}
               </button>
@@ -238,26 +238,26 @@ export function RestaurantWizardStep2Modifiers({
                         <div className={['font-extrabold text-sm', active ? 'text-pink-900' : 'text-slate-900'].join(' ')}>
                           {group.name}
                         </div>
-                        <span className="px-1.5 py-0.5 rounded bg-pink-200 text-pink-800 text-[9px] font-extrabold uppercase">
+                        <span className="px-1.5 py-0.5 rounded bg-pink-200 text-pink-800 text-[0.625rem] font-extrabold uppercase">
                           {group.type}
                         </span>
                         {group.isRequired && (
-                          <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-extrabold uppercase">
+                          <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[0.625rem] font-extrabold uppercase">
                             Required
                           </span>
                         )}
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {group.minSelections}–{group.maxSelections} choices
                         </span>
                       </div>
                       {group.description && (
-                        <div className="text-[11px] text-slate-600 font-semibold mt-0.5">{group.description}</div>
+                        <div className="text-[0.6875rem] text-slate-600 font-semibold mt-0.5">{group.description}</div>
                       )}
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         {group.options.slice(0, 8).map((opt) => (
                           <span
                             key={opt.id}
-                            className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[9px] font-bold text-slate-700 inline-flex items-center gap-0.5"
+                            className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[0.625rem] font-bold text-slate-700 inline-flex items-center gap-0.5"
                           >
                             {opt.emoji && <span>{opt.emoji}</span>}
                             {opt.name}
@@ -269,7 +269,7 @@ export function RestaurantWizardStep2Modifiers({
                           </span>
                         ))}
                         {group.options.length > 8 && (
-                          <span className="text-[9px] font-extrabold text-slate-500">
+                          <span className="text-[0.625rem] font-extrabold text-slate-500">
                             +{group.options.length - 8} more
                           </span>
                         )}

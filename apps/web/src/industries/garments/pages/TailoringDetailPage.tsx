@@ -78,7 +78,7 @@ export default function TailoringDetailPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 {order.priority} priority
               </div>
@@ -164,7 +164,7 @@ export default function TailoringDetailPage() {
                     {isActive && !isCurrent ? '✓' : i + 1}
                   </div>
                   <span className={
-                    'text-[9px] font-extrabold uppercase ' +
+                    'text-[0.625rem] font-extrabold uppercase ' +
                     (isActive ? cfg.textColor : 'text-slate-400')
                   }>
                     {cfg.label}
@@ -216,7 +216,7 @@ export default function TailoringDetailPage() {
                   if (val === null || val === undefined) return null;
                   return (
                     <div key={f} className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
-                      <div className="text-[8px] uppercase font-extrabold text-slate-500 truncate">{f}</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 truncate">{f}</div>
                       <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{val}</div>
                     </div>
                   );
@@ -269,17 +269,17 @@ export default function TailoringDetailPage() {
                         <span className="text-lg font-extrabold text-purple-700 tabular-nums">{item.quantity}×</span>
                         <span className="font-extrabold text-slate-900 dark:text-white">{item.garmentName}</span>
                         {item.categoryType && (
-                          <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[9px] font-extrabold uppercase">
+                          <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[0.625rem] font-extrabold uppercase">
                             {item.categoryType.replace('_', ' ')}
                           </span>
                         )}
                         {item.size && (
-                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[9px] font-extrabold uppercase">
+                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
                             Size: {item.size}
                           </span>
                         )}
                         {item.colorName && (
-                          <span className="px-2 py-0.5 rounded bg-pink-100 text-pink-700 text-[9px] font-extrabold uppercase">
+                          <span className="px-2 py-0.5 rounded bg-pink-100 text-pink-700 text-[0.625rem] font-extrabold uppercase">
                             {item.colorName}
                           </span>
                         )}
@@ -330,7 +330,7 @@ export default function TailoringDetailPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-purple-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
 
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Fabric</span><span className="font-bold tabular-nums">{formatPKR(order.fabricCharges)}</span></div>
@@ -439,7 +439,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-4">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-purple-700 mb-1 block">Amount *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-purple-700 mb-1 block">Amount *</label>
             <input
               type="number" step="0.01" autoFocus
               value={amount}
@@ -459,7 +459,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
             </div>
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
             <div className="grid grid-cols-3 gap-2">
               {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
                 <button key={m} onClick={() => setMethod(m)} className={

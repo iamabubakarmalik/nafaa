@@ -132,7 +132,7 @@ export function ToyWizardStep3Safety({ safety, onChange, ageGroup, ageMinYears, 
                 <span className="text-2xl">{c.e}</span>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm">{c.l}</div>
-                  <div className={['text-[10px] font-bold', a ? 'text-white/80' : 'text-slate-500'].join(' ')}>{c.desc}</div>
+                  <div className={['text-[0.6875rem] font-bold', a ? 'text-white/80' : 'text-slate-500'].join(' ')}>{c.desc}</div>
                 </div>
                 {a && <CheckCircle2 className="h-5 w-5 shrink-0" />}
               </button>
@@ -165,7 +165,7 @@ export function ToyWizardStep3Safety({ safety, onChange, ageGroup, ageMinYears, 
           <AlertTriangle className={['h-5 w-5', safety.chokingHazard ? 'text-rose-700' : 'text-slate-400'].join(' ')} />
           <div className="flex-1">
             <div className="font-extrabold text-sm text-slate-900">⚠️ Choking hazard</div>
-            <div className="text-[11px] text-slate-600 font-semibold">
+            <div className="text-[0.6875rem] text-slate-600 font-semibold">
               {isCritical && safety.chokingHazard
                 ? '❌ NOT SAFE for the age group you selected — reconsider'
                 : 'Contains small pieces that could be swallowed'}
@@ -180,7 +180,7 @@ export function ToyWizardStep3Safety({ safety, onChange, ageGroup, ageMinYears, 
           <AlertTriangle className={['h-5 w-5', safety.smallPartsWarning ? 'text-amber-700' : 'text-slate-400'].join(' ')} />
           <div className="flex-1">
             <div className="font-extrabold text-sm text-slate-900">Small parts warning</div>
-            <div className="text-[11px] text-slate-600 font-semibold">Requires supervision, unsuitable for younger siblings</div>
+            <div className="text-[0.6875rem] text-slate-600 font-semibold">Requires supervision, unsuitable for younger siblings</div>
           </div>
         </label>
       </section>
@@ -221,7 +221,7 @@ export function ToyWizardStep3Safety({ safety, onChange, ageGroup, ageMinYears, 
 
         {(safety.safetyWarnings ?? []).length > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2">
               {safety.safetyWarnings.length} active warnings
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -270,7 +270,7 @@ function SafetyTog({ checked, onChange, icon, label, desc }: any) {
         checked ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-white text-slate-600 hover:border-emerald-300'].join(' ')}>
       <div className="text-3xl mb-1">{icon}</div>
       <div className="font-extrabold text-sm">{label}</div>
-      <div className={['text-[10px] font-bold mt-0.5', checked ? 'text-emerald-700' : 'text-slate-500'].join(' ')}>{desc}</div>
+      <div className={['text-[0.6875rem] font-bold mt-0.5', checked ? 'text-emerald-700' : 'text-slate-500'].join(' ')}>{desc}</div>
       {checked && <CheckCircle2 className="h-4 w-4 mx-auto mt-1 text-emerald-600" />}
     </button>
   );

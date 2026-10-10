@@ -81,7 +81,7 @@ function StatBox({ icon: Icon, color, label, value, sub }: any) {
       <Icon className="h-5 w-5 mb-2" />
       <div className="text-2xl font-black">{value}</div>
       <div className="text-xs font-black uppercase tracking-wider">{label}</div>
-      <div className="text-[10px] font-medium opacity-70 mt-0.5">{sub}</div>
+      <div className="text-[0.6875rem] font-medium opacity-70 mt-0.5">{sub}</div>
     </div>
   );
 }

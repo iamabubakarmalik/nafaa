@@ -315,7 +315,7 @@ export default function DairyPosPage() {
           <div className="flex-1 overflow-y-auto p-3 bg-slate-50/30">
             {(saleType === 'SUBSCRIBER' || saleType === 'ROUTE_DELIVERY') && filteredDairyCustomers.length > 0 && (
               <div className="mb-3 rounded-2xl bg-emerald-50 border-2 border-emerald-200 p-3">
-                <div className="text-[10px] uppercase font-extrabold text-emerald-700 mb-2">
+                <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-2">
                   📋 Subscribers ({filteredDairyCustomers.length}) — click to auto-load {slot.toLowerCase()} order
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[240px] overflow-y-auto">
@@ -323,15 +323,15 @@ export default function DairyPosPage() {
                     <button key={dc.id} onClick={() => loadSubscriberDefaults(dc.id)}
                       className="text-left rounded-xl bg-white border-2 border-emerald-200 hover:border-emerald-500 p-2.5 transition">
                       <div className="font-extrabold text-slate-900 text-sm truncate">{dc.name}</div>
-                      <div className="text-[10px] text-slate-500 font-bold">{dc.customerNumber}</div>
-                      <div className="mt-1 flex items-center gap-2 text-[10px] font-bold">
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">{dc.customerNumber}</div>
+                      <div className="mt-1 flex items-center gap-2 text-[0.6875rem] font-bold">
                         {slot === 'MORNING' && <span className="text-amber-700">🌅 {dc.morningQuantity}L</span>}
                         {slot === 'EVENING' && <span className="text-indigo-700">🌆 {dc.eveningQuantity}L</span>}
                         {slot === 'BOTH' && <span className="text-fuchsia-700">☀️ {dc.morningQuantity + dc.eveningQuantity}L</span>}
                         {dc.customRate && <span className="text-emerald-700">@{formatPKR(dc.customRate)}</span>}
                       </div>
                       {dc.currentBalance > 0 && (
-                        <div className="mt-1 text-[9px] font-extrabold text-rose-700">Owes: {formatPKR(dc.currentBalance)}</div>
+                        <div className="mt-1 text-[0.625rem] font-extrabold text-rose-700">Owes: {formatPKR(dc.currentBalance)}</div>
                       )}
                     </button>
                   ))}
@@ -362,7 +362,7 @@ export default function DairyPosPage() {
                       <div className="text-sm font-extrabold text-emerald-700 tabular-nums">
                         {formatPKR(saleType === 'BULK' && p.wholesalePrice ? p.wholesalePrice : p.price)}
                       </div>
-                      <div className="text-[9px] font-bold text-slate-500">{p.stock} {p.unit}</div>
+                      <div className="text-[0.625rem] font-bold text-slate-500">{p.stock} {p.unit}</div>
                     </div>
                   </div>
                 </button>
@@ -376,7 +376,7 @@ export default function DairyPosPage() {
           <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-fuchsia-900 to-pink-700 text-white px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                   <Milk className="h-2.5 w-2.5" />
                   Dairy Cart • {saleType.replace('_', ' ')}
                 </div>
@@ -428,7 +428,7 @@ export default function DairyPosPage() {
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-sm text-slate-900 truncate">{item.name}</div>
                         {item.note && (
-                          <div className="mt-1 text-[10px] font-mono text-fuchsia-700 bg-fuchsia-50 rounded px-1.5 py-0.5">
+                          <div className="mt-1 text-[0.6875rem] font-mono text-fuchsia-700 bg-fuchsia-50 rounded px-1.5 py-0.5">
                             {item.note}
                           </div>
                         )}
@@ -474,7 +474,7 @@ export default function DairyPosPage() {
               <div className="grid grid-cols-3 gap-1">
                 {(['FULL_PAYMENT', 'PARTIAL_CREDIT', 'FULL_CREDIT'] as const).map((m) => (
                   <button key={m} onClick={() => setSaleMode(m)}
-                    className={`py-2 rounded-lg text-[10px] font-extrabold transition ${
+                    className={`py-2 rounded-lg text-[0.6875rem] font-extrabold transition ${
                       saleMode === m ? 'bg-fuchsia-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-700'
                     }`}>
                     {m === 'FULL_PAYMENT' ? 'Full Pay' : m === 'PARTIAL_CREDIT' ? 'Partial' : 'Khata'}

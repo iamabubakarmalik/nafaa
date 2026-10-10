@@ -212,7 +212,7 @@ export function PinPromptModal({
       <div className="w-full max-w-sm bg-[#ffffff] dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-slate-900 to-slate-800 text-white flex items-start justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <Shield className="h-3 w-3 text-emerald-300" /> Sirf Malik
             </div>
             <h3 className="font-extrabold text-lg mt-1.5">{title}</h3>
@@ -237,7 +237,7 @@ export function PinPromptModal({
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5">
+            <label className="block text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5">
               Kitni der ke liye khula rahe?
             </label>
             <div className="grid grid-cols-4 gap-1.5">
@@ -260,7 +260,7 @@ export function PinPromptModal({
           </button>
 
           <button onClick={() => setForgot(true)}
-            className="w-full text-[11px] font-extrabold text-slate-500 dark:text-slate-400 hover:text-emerald-600 inline-flex items-center justify-center gap-1 transition">
+            className="w-full text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 hover:text-emerald-600 inline-flex items-center justify-center gap-1 transition">
             <HelpCircle className="h-3.5 w-3.5" /> PIN bhool gaye?
           </button>
         </div>
@@ -301,7 +301,7 @@ export function ForgotPinModal({ onClose, onDone }: { onClose: () => void; onDon
       <div className="w-full max-w-sm bg-[#ffffff] dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white flex items-start justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <KeyRound className="h-3 w-3" /> PIN Bhool Gaye
             </div>
             <h3 className="font-extrabold text-lg mt-1.5">Password se naya PIN</h3>
@@ -322,14 +322,14 @@ export function ForgotPinModal({ onClose, onDone }: { onClose: () => void; onDon
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[10px] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1.5">Naya PIN</label>
+              <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1.5">Naya PIN</label>
               <input type="password" inputMode="numeric" maxLength={8} value={newPin}
                 onChange={(e) => { setNewPin(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
                 placeholder="••••"
                 className="h-12 w-full rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-[#ffffff] dark:bg-slate-800 text-slate-900 dark:text-white px-3 text-center text-xl font-extrabold tabular-nums tracking-[0.3em] focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="block text-[10px] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1.5">Dobara</label>
+              <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1.5">Dobara</label>
               <input type="password" inputMode="numeric" maxLength={8} value={pin2}
                 onChange={(e) => { setPin2(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
                 onKeyDown={(e) => e.key === 'Enter' && submit()}
@@ -343,7 +343,7 @@ export function ForgotPinModal({ onClose, onDone }: { onClose: () => void; onDon
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
             Naya PIN Set Karein
           </button>
-          <p className="text-[10px] font-bold text-slate-400 text-center leading-relaxed">
+          <p className="text-[0.6875rem] font-bold text-slate-400 text-center leading-relaxed">
             Password bhool gaye hain? Login safhe par "Password bhool gaye" se email par link aa jata hai.
           </p>
         </div>
@@ -400,7 +400,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
       <div className="w-full max-w-sm bg-[#ffffff] dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-start justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <KeyRound className="h-3 w-3" /> Malik ka PIN
             </div>
             <h3 className="font-extrabold text-lg mt-1.5">
@@ -478,7 +478,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
                   className="h-14 w-full rounded-2xl border-2 border-slate-300 dark:border-slate-700 bg-[#ffffff] dark:bg-slate-800 text-slate-900 dark:text-white px-4 text-center text-2xl font-extrabold tabular-nums tracking-[0.5em] focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/30" />
               </div>
               {error && <p className="text-xs font-extrabold text-rose-600 text-center">{error}</p>}
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3 text-[11px] font-bold text-slate-600 dark:text-slate-300 leading-relaxed">
+              <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 leading-relaxed">
                 🔐 Ye PIN server par mehfooz hai — aap jis bhi mobile ya computer se login karein, wohi PIN chalega.
                 Kisi ko bata dein to wo bhi apne phone se cost dekh sakega.
               </div>
@@ -488,7 +488,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
               </button>
               {hasPin && (
                 <button onClick={() => setStep('forgot')}
-                  className="w-full text-[11px] font-extrabold text-slate-500 dark:text-slate-400 hover:text-amber-600 transition">
+                  className="w-full text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 hover:text-amber-600 transition">
                   Purana PIN yaad nahi? Password se badlein
                 </button>
               )}

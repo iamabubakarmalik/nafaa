@@ -222,7 +222,7 @@ export default function BakeryCatalogPage() {
               <ShoppingBag className="h-4 w-4" />
               Cart
               {cart.totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
+                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
                   {cart.totalItems.toFixed(0)}
                 </span>
               )}
@@ -250,7 +250,7 @@ export default function BakeryCatalogPage() {
 
         {/* Category chips */}
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5">Categories</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5">Categories</div>
           <div className="flex gap-1.5 overflow-x-auto pb-1">
             <button
               onClick={() => setCategoryFilter('all')}
@@ -278,7 +278,7 @@ export default function BakeryCatalogPage() {
 
         {/* Tag filters */}
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5">Filter</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5">Filter</div>
           <div className="flex gap-1.5 flex-wrap">
             {TAG_FILTERS.map((t) => (
               <button
@@ -297,7 +297,7 @@ export default function BakeryCatalogPage() {
 
         {/* Dietary filters */}
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5">Dietary</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5">Dietary</div>
           <div className="flex gap-1.5 flex-wrap">
             {DIETARY_FILTERS.map((d) => (
               <button
@@ -324,7 +324,7 @@ export default function BakeryCatalogPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-amber-900 text-lg">Featured Items</h3>
-              <p className="text-[11px] text-amber-700 font-bold">Chef's signature creations</p>
+              <p className="text-[0.6875rem] text-amber-700 font-bold">Chef's signature creations</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -352,7 +352,7 @@ export default function BakeryCatalogPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-rose-900 text-lg">Best Sellers</h3>
-              <p className="text-[11px] text-rose-700 font-bold">Customer favorites</p>
+              <p className="text-[0.6875rem] text-rose-700 font-bold">Customer favorites</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -380,7 +380,7 @@ export default function BakeryCatalogPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-emerald-900 text-lg">New Arrivals</h3>
-              <p className="text-[11px] text-emerald-700 font-bold">Fresh from the oven</p>
+              <p className="text-[0.6875rem] text-emerald-700 font-bold">Fresh from the oven</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -539,22 +539,22 @@ function BakeryCard({ profile, compact = false, onClick, onDetail, wishlist, min
         {/* Marketing badges */}
         <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
           {profile.isFeatured && (
-            <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
               <Star className="h-2 w-2 fill-white" /> FT
             </span>
           )}
           {profile.isBestSeller && (
-            <span className="px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
               <TrendingUp className="h-2 w-2" /> BEST
             </span>
           )}
           {profile.isNewArrival && (
-            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
               <Sparkles className="h-2 w-2" /> NEW
             </span>
           )}
           {profile.isSeasonalItem && (
-            <span className="px-1.5 py-0.5 rounded-md bg-fuchsia-500 text-white text-[9px] font-extrabold shadow">
+            <span className="px-1.5 py-0.5 rounded-md bg-fuchsia-500 text-white text-[0.625rem] font-extrabold shadow">
               🌸 {profile.seasonName || 'Season'}
             </span>
           )}
@@ -572,17 +572,17 @@ function BakeryCard({ profile, compact = false, onClick, onDetail, wishlist, min
             <Heart className={`h-3.5 w-3.5 ${inWishlist ? 'fill-current' : ''}`} />
           </button>
           {profile.isEggless && (
-            <span className="h-6 w-6 rounded-full bg-emerald-500/90 backdrop-blur text-white flex items-center justify-center text-[10px] shadow" title="Eggless">🥚</span>
+            <span className="h-6 w-6 rounded-full bg-emerald-500/90 backdrop-blur text-white flex items-center justify-center text-[0.6875rem] shadow" title="Eggless">🥚</span>
           )}
           {profile.isVegan && (
-            <span className="h-6 w-6 rounded-full bg-green-600/90 backdrop-blur text-white flex items-center justify-center text-[10px] shadow" title="Vegan">🌱</span>
+            <span className="h-6 w-6 rounded-full bg-green-600/90 backdrop-blur text-white flex items-center justify-center text-[0.6875rem] shadow" title="Vegan">🌱</span>
           )}
         </div>
 
         {/* Customizable badge */}
         {profile.isCakeCustomizable && (
           <div className="absolute bottom-1.5 left-1.5">
-            <span className="px-1.5 py-0.5 rounded-md bg-violet-600 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-violet-600 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
               <Sparkles className="h-2 w-2" /> CUSTOMIZABLE
             </span>
           </div>
@@ -591,7 +591,7 @@ function BakeryCard({ profile, compact = false, onClick, onDetail, wishlist, min
         {/* Prep time */}
         {profile.prepTimeHours && (
           <div className="absolute bottom-1.5 right-1.5">
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-900/80 backdrop-blur text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
               <Clock className="h-2 w-2" /> {profile.prepTimeHours}h
             </span>
           </div>
@@ -600,7 +600,7 @@ function BakeryCard({ profile, compact = false, onClick, onDetail, wishlist, min
 
       <div className="p-2.5">
         {category && (
-          <div className="text-[9px] uppercase font-extrabold text-pink-600 truncate">
+          <div className="text-[0.625rem] uppercase font-extrabold text-pink-600 truncate">
             {category.emoji} {category.label}
           </div>
         )}
@@ -672,12 +672,12 @@ function BakeryDetailModal({ profile, onClose, onAdd, onCustomize, wishlist, pri
               )}
               <h2 className="text-2xl font-extrabold text-slate-900 mt-1">{p?.name}</h2>
               <div className="mt-2 flex flex-wrap gap-1">
-                {profile.isFeatured && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold">⭐ Featured</span>}
-                {profile.isBestSeller && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">🏆 Best Seller</span>}
-                {profile.isEggless && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">🥚 Eggless</span>}
-                {profile.isVegan && <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-extrabold">🌱 Vegan</span>}
-                {profile.isSugarFree && <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-extrabold">🍬 Sugar-Free</span>}
-                {profile.isHalal && <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-[10px] font-extrabold">☪️ Halal</span>}
+                {profile.isFeatured && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold">⭐ Featured</span>}
+                {profile.isBestSeller && <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">🏆 Best Seller</span>}
+                {profile.isEggless && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold">🥚 Eggless</span>}
+                {profile.isVegan && <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[0.6875rem] font-extrabold">🌱 Vegan</span>}
+                {profile.isSugarFree && <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.6875rem] font-extrabold">🍬 Sugar-Free</span>}
+                {profile.isHalal && <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-[0.6875rem] font-extrabold">☪️ Halal</span>}
               </div>
             </div>
           </div>
@@ -691,7 +691,7 @@ function BakeryDetailModal({ profile, onClose, onAdd, onCustomize, wishlist, pri
           {/* Price options */}
           {priceOptions.length > 1 && (
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">Select Size / Unit</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2">Select Size / Unit</div>
               <div className="grid grid-cols-2 gap-2">
                 {priceOptions.map((opt: any) => {
                   const active = selectedOpt?.key === opt.key;
@@ -726,21 +726,21 @@ function BakeryDetailModal({ profile, onClose, onAdd, onCustomize, wishlist, pri
               <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 text-center">
                 <Clock className="h-4 w-4 text-amber-700 mx-auto mb-0.5" />
                 <div className="font-extrabold text-amber-900">{profile.prepTimeHours}h</div>
-                <div className="text-[9px] text-amber-700 font-bold uppercase">Prep</div>
+                <div className="text-[0.625rem] text-amber-700 font-bold uppercase">Prep</div>
               </div>
             )}
             {profile.advanceOrderHours && (
               <div className="rounded-lg bg-blue-50 border border-blue-200 p-2 text-center">
                 <Calendar className="h-4 w-4 text-blue-700 mx-auto mb-0.5" />
                 <div className="font-extrabold text-blue-900">{profile.advanceOrderHours}h</div>
-                <div className="text-[9px] text-blue-700 font-bold uppercase">Advance</div>
+                <div className="text-[0.625rem] text-blue-700 font-bold uppercase">Advance</div>
               </div>
             )}
             {profile.shelfLifeDays && (
               <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-center">
                 <Timer className="h-4 w-4 text-emerald-700 mx-auto mb-0.5" />
                 <div className="font-extrabold text-emerald-900">{profile.shelfLifeDays}d</div>
-                <div className="text-[9px] text-emerald-700 font-bold uppercase">Shelf Life</div>
+                <div className="text-[0.625rem] text-emerald-700 font-bold uppercase">Shelf Life</div>
               </div>
             )}
           </div>
@@ -774,7 +774,7 @@ function BakeryDetailModal({ profile, onClose, onAdd, onCustomize, wishlist, pri
           {/* Ingredients */}
           {profile.ingredientList && (
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1">Ingredients</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Ingredients</div>
               <p className="text-xs text-slate-700 leading-relaxed">{profile.ingredientList}</p>
             </div>
           )}
@@ -782,7 +782,7 @@ function BakeryDetailModal({ profile, onClose, onAdd, onCustomize, wishlist, pri
           {/* Serving suggestions */}
           {profile.servingSuggestions && (
             <div className="rounded-xl bg-pink-50 border border-pink-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-pink-700 mb-1">Serving Suggestion</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-pink-700 mb-1">Serving Suggestion</div>
               <p className="text-xs text-slate-700 leading-relaxed">{profile.servingSuggestions}</p>
             </div>
           )}
@@ -872,7 +872,7 @@ function CustomCakeModal({ profile, onClose, onAddToCart, shopPhone, shopName }:
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/80">Customize Cake</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">Customize Cake</div>
               <h3 className="font-extrabold text-lg truncate">{p?.name}</h3>
             </div>
           </div>
@@ -905,7 +905,7 @@ function CustomCakeModal({ profile, onClose, onAddToCart, shopPhone, shopName }:
                       ].join(' ')}
                     >
                       <div className="text-xl mb-0.5">{opt.emoji}</div>
-                      <div className="text-[10px] font-extrabold text-slate-900">{opt.label}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-slate-900">{opt.label}</div>
                       <div className={`text-xs font-extrabold tabular-nums mt-1 ${active ? 'text-pink-700' : 'text-emerald-700'}`}>
                         {formatPKR(Number(opt.price))}
                       </div>
@@ -935,7 +935,7 @@ function CustomCakeModal({ profile, onClose, onAddToCart, shopPhone, shopName }:
                       <div className={`aspect-square bg-gradient-to-br ${f.color} rounded-lg flex items-center justify-center mb-1`}>
                         <span className="text-xl">{f.emoji}</span>
                       </div>
-                      <div className="text-[9px] font-extrabold text-slate-900 truncate">{f.label}</div>
+                      <div className="text-[0.625rem] font-extrabold text-slate-900 truncate">{f.label}</div>
                     </button>
                   );
                 })}
@@ -970,7 +970,7 @@ function CustomCakeModal({ profile, onClose, onAddToCart, shopPhone, shopName }:
             <div>
               <label className="block text-xs font-extrabold text-slate-700 mb-2">
                 Message on Cake ✍️
-                <span className="text-[10px] text-slate-500 font-semibold ml-1">(e.g. "Happy Birthday Ali")</span>
+                <span className="text-[0.6875rem] text-slate-500 font-semibold ml-1">(e.g. "Happy Birthday Ali")</span>
               </label>
               <input
                 type="text"
@@ -980,7 +980,7 @@ function CustomCakeModal({ profile, onClose, onAddToCart, shopPhone, shopName }:
                 placeholder="Write your custom message here"
                 className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
               />
-              <div className="text-[10px] text-slate-500 font-semibold text-right mt-0.5">{messageOnCake.length}/50</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold text-right mt-0.5">{messageOnCake.length}/50</div>
             </div>
           )}
 
@@ -1000,7 +1000,7 @@ function CustomCakeModal({ profile, onClose, onAddToCart, shopPhone, shopName }:
                 <div className={`font-extrabold text-sm ${hasPhotoOnCake ? 'text-white' : 'text-slate-900'}`}>
                   Photo Cake
                 </div>
-                <div className={`text-[10px] font-semibold ${hasPhotoOnCake ? 'text-white/85' : 'text-slate-500'}`}>
+                <div className={`text-[0.6875rem] font-semibold ${hasPhotoOnCake ? 'text-white/85' : 'text-slate-500'}`}>
                   Edible photo printing (+Rs 500 typical)
                 </div>
               </div>
@@ -1013,7 +1013,7 @@ function CustomCakeModal({ profile, onClose, onAddToCart, shopPhone, shopName }:
             <label className="block text-xs font-extrabold text-slate-700 mb-2">
               Delivery / Event Date
               {profile.advanceOrderHours && (
-                <span className="text-[10px] text-amber-700 font-bold ml-1">(min {profile.advanceOrderHours}h advance)</span>
+                <span className="text-[0.6875rem] text-amber-700 font-bold ml-1">(min {profile.advanceOrderHours}h advance)</span>
               )}
             </label>
             <input

@@ -67,8 +67,8 @@ export default function CodPage() {
               <EmptyState icon={<Truck className="h-5 w-5" />} title="Abhi koi parcel nahi bheja">Order par "Rider/courier ko de diya" me courier aur CN daalein — hisaab yahan banega.</EmptyState>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] text-[13px]">
-                  <thead className="bg-slate-50 text-left text-[11.5px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+                <table className="w-full min-w-[640px] text-[0.8125rem]">
+                  <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
                     <tr>
                       <th className="px-4 py-2 sm:px-5">Courier</th>
                       <th className="px-3 py-2 text-right">Raste me</th>
@@ -88,7 +88,7 @@ export default function CodPage() {
                         <td className="px-3 py-2.5 text-right tabular-nums">{rs(c.settledMonthValue)} <span className="text-slate-400">· {c.settledMonth}</span></td>
                         <td className="px-4 py-2.5 text-right sm:px-5">
                           <Badge tone={c.rtoRate >= 25 ? 'critical' : c.rtoRate >= 12 ? 'warning' : 'success'}>{c.rtoRate}%</Badge>
-                          <span className="ml-1.5 text-[12px] text-slate-400">{c.returned30}/{c.dispatched30}</span>
+                          <span className="ml-1.5 text-[0.75rem] text-slate-400">{c.returned30}/{c.dispatched30}</span>
                         </td>
                       </tr>
                     ))}
@@ -113,9 +113,9 @@ export default function CodPage() {
 
             {picked.size > 0 && (
               <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-white sm:mx-5">
-                <span className="text-[13px] font-semibold">{picked.size} chune · {rs(pickedValue)}</span>
+                <span className="text-[0.8125rem] font-semibold">{picked.size} chune · {rs(pickedValue)}</span>
                 <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Settlement / cheque ref (optional)"
-                  className="h-8 min-w-[180px] flex-1 rounded-md border border-white/20 bg-white/10 px-2.5 text-[12.5px] text-white placeholder:text-white/50 outline-none" />
+                  className="h-8 min-w-[180px] flex-1 rounded-md border border-white/20 bg-white/10 px-2.5 text-[0.78125rem] text-white placeholder:text-white/50 outline-none" />
                 <Btn size="sm" variant="plain" className="text-white hover:bg-white/10" onClick={() => setPicked(new Set())}>Chhoro</Btn>
                 <Btn size="sm" variant="success" loading={settle.isPending} onClick={() => settle.mutate()} icon={<Wallet className="h-3.5 w-3.5" />}>Paisa mil gaya</Btn>
               </div>
@@ -126,7 +126,7 @@ export default function CodPage() {
                 <EmptyState icon={<CheckCircle2 className="h-5 w-5" />} title="Kisi courier ke paas paisa nahi atka">Deliver hue sab COD orders ka paisa aa chuka hai.</EmptyState>
               ) : (
                 <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                  <li className="flex items-center gap-3 bg-slate-50 px-4 py-2 text-[11.5px] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40 sm:px-5">
+                  <li className="flex items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40 sm:px-5">
                     <input type="checkbox" className="h-4 w-4 rounded border-slate-300" aria-label="Sab chuno"
                       checked={rows.length > 0 && rows.every((r) => picked.has(r.id))}
                       onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((r) => r.id)) : new Set())} />
@@ -139,17 +139,17 @@ export default function CodPage() {
                     <li key={o.id}>
                       <label className="flex cursor-pointer items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 sm:px-5">
                         <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(o.id)} onChange={() => toggle(o.id)} />
-                        <Link to={`/online-orders?order=${o.id}`} onClick={(e) => e.stopPropagation()} className="w-20 text-[13px] font-semibold text-slate-900 hover:underline dark:text-white">
+                        <Link to={`/online-orders?order=${o.id}`} onClick={(e) => e.stopPropagation()} className="w-20 text-[0.8125rem] font-semibold text-slate-900 hover:underline dark:text-white">
                           #{o.externalOrderNumber ?? o.externalOrderId}
                         </Link>
-                        <span className="min-w-0 flex-1 truncate text-[13px] text-slate-600 dark:text-slate-300">
-                          {o.customerName}{o.customerCity ? ` · ${o.customerCity}` : ''} · {o.courier ?? '—'}{o.trackingNumber ? <span className="font-mono text-[12px]"> · {o.trackingNumber}</span> : null}
+                        <span className="min-w-0 flex-1 truncate text-[0.8125rem] text-slate-600 dark:text-slate-300">
+                          {o.customerName}{o.customerCity ? ` · ${o.customerCity}` : ''} · {o.courier ?? '—'}{o.trackingNumber ? <span className="font-mono text-[0.75rem]"> · {o.trackingNumber}</span> : null}
                         </span>
-                        <span className="hidden w-32 text-right text-[12px] text-slate-500 sm:block">
+                        <span className="hidden w-32 text-right text-[0.75rem] text-slate-500 sm:block">
                           {o.deliveredAt ? whenText(o.deliveredAt) : '—'}
                           {o.daysWaiting !== null && o.daysWaiting >= 7 && <Badge tone="warning" className="ml-1">{o.daysWaiting} din</Badge>}
                         </span>
-                        <span className="w-24 text-right text-[13px] font-semibold tabular-nums text-slate-900 dark:text-white">{rs(o.total)}</span>
+                        <span className="w-24 text-right text-[0.8125rem] font-semibold tabular-nums text-slate-900 dark:text-white">{rs(o.total)}</span>
                       </label>
                     </li>
                   ))}

@@ -181,27 +181,27 @@ export default function HotelDashboardV2() {
 
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           <div className="rounded-2xl bg-white border-2 border-emerald-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Available</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Available</div>
             <div className="text-2xl font-extrabold text-emerald-900 tabular-nums mt-1">{roomStats.available}</div>
           </div>
           <div className="rounded-2xl bg-white border-2 border-blue-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-blue-700">Occupied</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Occupied</div>
             <div className="text-2xl font-extrabold text-blue-900 tabular-nums mt-1">{roomStats.occupied}</div>
           </div>
           <div className="rounded-2xl bg-white border-2 border-cyan-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-cyan-700">Cleaning</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-cyan-700">Cleaning</div>
             <div className="text-2xl font-extrabold text-cyan-900 tabular-nums mt-1">{roomStats.cleaning}</div>
           </div>
           <div className="rounded-2xl bg-white border-2 border-orange-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-orange-700">Maintenance</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-orange-700">Maintenance</div>
             <div className="text-2xl font-extrabold text-orange-900 tabular-nums mt-1">{roomStats.maintenance}</div>
           </div>
           <div className="rounded-2xl bg-white border-2 border-violet-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-violet-700">Total</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700">Total</div>
             <div className="text-2xl font-extrabold text-violet-900 tabular-nums mt-1">{roomStats.total}</div>
           </div>
           <div className="rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-3">
-            <div className="text-[10px] uppercase font-extrabold text-white/80">Occupancy</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/80">Occupancy</div>
             <div className="text-2xl font-extrabold tabular-nums mt-1">{roomStats.occupancyPct.toFixed(0)}%</div>
           </div>
         </div>
@@ -209,7 +209,7 @@ export default function HotelDashboardV2() {
         {/* Visual room grid */}
         {rooms.length > 0 && (
           <div className="mt-4 rounded-2xl bg-white border border-indigo-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-indigo-700 mb-2">Room Floor View</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-indigo-700 mb-2">Room Floor View</div>
             <div className="grid grid-cols-6 sm:grid-cols-10 lg:grid-cols-15 gap-1">
               {rooms.slice(0, 30).map((room: any) => (
                 <Link key={room.id} to="/hotel/rooms"
@@ -360,7 +360,7 @@ export default function HotelDashboardV2() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-extrabold text-slate-900 text-sm">{b.bookingNumber}</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${statusColor}`}>{b.status.replace('_', ' ')}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${statusColor}`}>{b.status.replace('_', ' ')}</span>
                       </div>
                       <div className="text-xs text-slate-600 font-semibold mt-0.5">
                         {b.guestName} • {b.nights}n • {b.bookedRooms?.length || 0} room{(b.bookedRooms?.length || 0) !== 1 ? 's' : ''}
@@ -369,7 +369,7 @@ export default function HotelDashboardV2() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(b.grandTotal)}</div>
-                    <div className="text-[10px] text-slate-500 font-bold mt-0.5">{formatDate(b.createdAt)}</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{formatDate(b.createdAt)}</div>
                   </div>
                 </Link>
               );

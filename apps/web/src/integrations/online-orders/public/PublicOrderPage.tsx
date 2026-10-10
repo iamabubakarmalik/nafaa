@@ -188,7 +188,7 @@ export default function PublicOrderPage() {
             <label className="block">
               <span className="mb-1 block text-xs font-semibold text-slate-600">Poora address</span>
               <textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={3} autoComplete="street-address"
-                placeholder="Ghar #, gali, area, qareeb koi nishani" className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-[15px] outline-none focus:border-emerald-600" />
+                placeholder="Ghar #, gali, area, qareeb koi nishani" className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-[0.9375rem] outline-none focus:border-emerald-600" />
             </label>
             <In label="Koi baat (optional)" value={form.notes} onChange={(v) => setForm({ ...form, notes: v })} placeholder="Jaise: shaam 5 ke baad" />
             {/* Bots ke liye — insaan ko nahi dikhta */}
@@ -201,7 +201,7 @@ export default function PublicOrderPage() {
                 <div className="relative flex-1">
                   <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Discount code"
-                    className="w-full rounded-xl border border-slate-300 py-2.5 pl-9 pr-3 text-[15px] uppercase outline-none focus:border-slate-500" />
+                    className="w-full rounded-xl border border-slate-300 py-2.5 pl-9 pr-3 text-[0.9375rem] uppercase outline-none focus:border-slate-500" />
                 </div>
                 <button onClick={applyCoupon} disabled={checking || !code.trim()} className="rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white disabled:opacity-50">
                   {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Lagao'}
@@ -231,21 +231,21 @@ export default function PublicOrderPage() {
       ) : (
         <div className="p-4 pb-28">
           {focus && cat.products.some((p) => p.id === focus) && cat.products.length > 1 && (
-            <button type="button" onClick={() => setFocus(null)} className="mb-3 text-[13px] font-semibold underline" style={{ color: accent }}>
+            <button type="button" onClick={() => setFocus(null)} className="mb-3 text-[0.8125rem] font-semibold underline" style={{ color: accent }}>
               ← Sab products dekhein
             </button>
           )}
           {!focus && cat.products.length > 6 && (
             <div className="relative mb-3">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dhoondein…" className="w-full rounded-xl border border-slate-300 py-2.5 pl-9 pr-3 text-[15px] outline-none focus:border-emerald-600" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dhoondein…" className="w-full rounded-xl border border-slate-300 py-2.5 pl-9 pr-3 text-[0.9375rem] outline-none focus:border-emerald-600" />
             </div>
           )}
           {cat.categories.length > 1 && (
             <div className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1">
               {['', ...cat.categories].map((c) => (
                 <button key={c || 'all'} onClick={() => setCat2(c)}
-                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[13px] font-semibold ${cat2 === c ? 'border-transparent text-white' : 'border-slate-300 text-slate-700'}`}
+                  className={`shrink-0 rounded-full border px-3 py-1.5 text-[0.8125rem] font-semibold ${cat2 === c ? 'border-transparent text-white' : 'border-slate-300 text-slate-700'}`}
                   style={cat2 === c ? { background: accent } : undefined}>
                   {c || 'Sab'}
                 </button>
@@ -254,7 +254,7 @@ export default function PublicOrderPage() {
           )}
           {cat.phone && (
             <a href={`https://wa.me/${cat.phone.replace(/\D/g, '').replace(/^0/, '92')}`} target="_blank" rel="noreferrer"
-              className="mb-3 flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-[13px] font-semibold text-emerald-800">
+              className="mb-3 flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-[0.8125rem] font-semibold text-emerald-800">
               <MessageCircle className="h-4 w-4" /> Koi sawal? WhatsApp karein: {cat.phone}
             </a>
           )}
@@ -269,11 +269,11 @@ export default function PublicOrderPage() {
                 <div key={p.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
                   <div className="aspect-square bg-slate-100">{p.image ? <img src={p.image} alt="" className="h-full w-full object-cover" loading="lazy" /> : <Package className="m-auto mt-[35%] h-8 w-8 text-slate-300" />}</div>
                   <div className="flex flex-1 flex-col p-2.5">
-                    <div className="line-clamp-2 text-[13px] font-semibold leading-snug text-slate-900">{p.name}</div>
+                    <div className="line-clamp-2 text-[0.8125rem] font-semibold leading-snug text-slate-900">{p.name}</div>
                     <div className="mt-1 text-sm font-bold" style={{ color: accent }}>{chosen ? rs(chosen.price) : `${rs(minPrice)} se`}</div>
                     {multi && (
                       <select value={pick[p.id] ?? ''} onChange={(e) => setPick({ ...pick, [p.id]: e.target.value })}
-                        className="mt-1.5 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-[13px]">
+                        className="mt-1.5 w-full rounded-lg border border-slate-300 px-2 py-1.5 text-[0.8125rem]">
                         <option value="">Chunein…</option>
                         {p.options.map((o) => <option key={o.variantId ?? '-'} value={o.variantId ?? '-'} disabled={!o.inStock}>{o.name}{o.inStock ? '' : ' (khatam)'}</option>)}
                       </select>
@@ -284,7 +284,7 @@ export default function PublicOrderPage() {
                       ) : (
                         <button disabled={!chosen || !chosen.inStock}
                           onClick={() => chosen && setQty({ productId: p.id, variantId: chosen.variantId, quantity: 0 }, 1, chosen.maxQty)}
-                          className="w-full rounded-xl bg-slate-900 py-2 text-[13px] font-semibold text-white disabled:bg-slate-300">
+                          className="w-full rounded-xl bg-slate-900 py-2 text-[0.8125rem] font-semibold text-white disabled:bg-slate-300">
                           {chosen && !chosen.inStock ? 'Khatam' : multi && !chosen ? 'Size chunein' : '+ Cart'}
                         </button>
                       )}
@@ -323,7 +323,7 @@ export function Shell({ embed, onClose, title, logo, accent = '#059669', right, 
           {embed && <button onClick={onClose} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" aria-label="Band karein"><X className="h-5 w-5" /></button>}
         </header>
         {children}
-        <footer className="px-4 pb-24 pt-2 text-center text-[11px] text-slate-400">Powered by Nafaa</footer>
+        <footer className="px-4 pb-24 pt-2 text-center text-[0.6875rem] text-slate-400">Powered by Nafaa</footer>
       </div>
     </div>
   );
@@ -351,7 +351,7 @@ function In({ label, value, onChange, ...rest }: { label: string; value: string;
   return (
     <label className="block">
       <span className="mb-1 block text-xs font-semibold text-slate-600">{label}</span>
-      <input {...rest} value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-[15px] outline-none focus:border-emerald-600" />
+      <input {...rest} value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-[0.9375rem] outline-none focus:border-emerald-600" />
     </label>
   );
 }

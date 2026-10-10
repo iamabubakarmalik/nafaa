@@ -245,7 +245,7 @@ export default function SalaryProcessPage() {
 
         {/* Preview */}
         <aside className="rounded-3xl bg-white border border-slate-200 shadow-sm p-5 sticky top-6">
-          <div className="text-[10px] uppercase tracking-widest font-bold text-slate-500 mb-3">
+          <div className="text-[0.6875rem] uppercase tracking-widest font-bold text-slate-500 mb-3">
             Estimated Calculation
           </div>
 
@@ -299,7 +299,7 @@ export default function SalaryProcessPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl bg-amber-50 border border-amber-200 p-2 mt-3 text-[11px] text-amber-900">
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-2 mt-3 text-[0.6875rem] text-amber-900">
                   ℹ️ Actual amount auto-calculates from attendance after processing
                 </div>
               </div>

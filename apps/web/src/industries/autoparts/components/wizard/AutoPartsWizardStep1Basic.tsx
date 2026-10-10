@@ -169,7 +169,7 @@ export function AutoPartsWizardStep1Basic({ basic, onChange, errors }: Props) {
 
         {Object.entries(groupedCategories).map(([group, cats]) => (
           <div key={group}>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-orange-700 mb-2">{group}</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-orange-700 mb-2">{group}</div>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {cats.map((cat) => {
                 const active = basic.partCategory === cat.value;
@@ -186,7 +186,7 @@ export function AutoPartsWizardStep1Basic({ basic, onChange, errors }: Props) {
                     ].join(' ')}
                   >
                     <div className="text-xl mb-0.5">{cat.emoji}</div>
-                    <div className={['text-[10px] font-extrabold leading-tight',
+                    <div className={['text-[0.6875rem] font-extrabold leading-tight',
                       active ? 'text-orange-900' : 'text-slate-700'].join(' ')}>
                       {cat.label}
                     </div>
@@ -270,7 +270,7 @@ export function AutoPartsWizardStep1Basic({ basic, onChange, errors }: Props) {
               <TrendingUp className={['h-5 w-5',
                 isLoss ? 'text-rose-700' : margin >= 30 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
               <div>
-                <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                   isLoss ? 'text-rose-700' : margin >= 30 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                   {isLoss ? '⚠️ Loss Alert' : 'Profit per unit'}
                 </div>
@@ -384,7 +384,7 @@ export function AutoPartsWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt={`part-${idx}`} className="w-full h-full object-cover" />
                 {idx === 0 && (
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-slate-700 text-white text-[9px] font-extrabold">PRIMARY</div>
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-slate-700 text-white text-[0.625rem] font-extrabold">PRIMARY</div>
                 )}
                 <button
                   onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, i) => i !== idx) })}

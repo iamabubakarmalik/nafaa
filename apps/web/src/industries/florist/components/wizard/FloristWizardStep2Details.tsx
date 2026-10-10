@@ -145,8 +145,8 @@ export function FloristWizardStep2Details({ details, onChange, categoryType }: P
                     a ? 'border-slate-900 scale-105 shadow-md' : 'border-slate-200 hover:border-slate-400'].join(' ')}>
                   <div className="h-10 w-10 rounded-lg border border-slate-300 shadow-inner"
                     style={{ backgroundColor: c.hex }} />
-                  <span className="text-[10px] font-extrabold text-slate-700">{c.l}</span>
-                  {a && <div className="absolute top-1 right-1 h-4 w-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">✓</div>}
+                  <span className="text-[0.6875rem] font-extrabold text-slate-700">{c.l}</span>
+                  {a && <div className="absolute top-1 right-1 h-4 w-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[0.6875rem]">✓</div>}
                 </button>
               );
             })}
@@ -195,7 +195,7 @@ export function FloristWizardStep2Details({ details, onChange, categoryType }: P
                       className={['p-2.5 rounded-xl border-2 transition text-left',
                         a ? 'border-emerald-500 bg-emerald-500 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-400'].join(' ')}>
                       <div className="font-extrabold text-sm">{s.v}</div>
-                      <div className={['text-[10px] font-semibold', a ? 'text-white/85' : 'text-slate-500'].join(' ')}>
+                      <div className={['text-[0.6875rem] font-semibold', a ? 'text-white/85' : 'text-slate-500'].join(' ')}>
                         {s.desc}
                       </div>
                     </button>

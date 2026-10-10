@@ -101,7 +101,7 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
             }`}>
             <div className="text-xl leading-none">{m.emoji}</div>
             <div className="text-sm font-black text-slate-900 dark:text-white mt-1">{m.label}</div>
-            <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-snug mt-0.5">{m.hint}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 leading-snug mt-0.5">{m.hint}</div>
           </button>
         ))}
       </div>
@@ -120,48 +120,48 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
 
           {/* Khane */}
           <div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5 flex items-center gap-1">
               <Info className="h-3 w-3" /> Khane — click karke paighaam me daalein
             </div>
             <div className="flex gap-1.5 flex-wrap">
               {meta.fields.map((f) => (
                 <button key={f} onClick={() => insertField(f)}
                   title={FIELD_HELP[f]}
-                  className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-[11px] font-black text-slate-600 dark:text-slate-300 font-mono transition">
+                  className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-[0.6875rem] font-black text-slate-600 dark:text-slate-300 font-mono transition">
                   {`{{${f}}}`}
                 </button>
               ))}
             </div>
-            <div className="mt-1.5 text-[10px] font-bold text-slate-400 leading-relaxed">
+            <div className="mt-1.5 text-[0.6875rem] font-bold text-slate-400 leading-relaxed">
               {meta.fields.map((f) => `{{${f}}} = ${FIELD_HELP[f]}`).join(' · ')}
             </div>
           </div>
 
           <button onClick={resetOne}
-            className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+            className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
             <RotateCcw className="h-3.5 w-3.5" /> Tayyar paighaam wapas lein
           </button>
         </div>
 
         {/* Jaisa jayega */}
         <div className="space-y-2">
-          <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center gap-1">
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center gap-1">
             <Eye className="h-3 w-3" /> Jaisa customer ko jayega
           </div>
 
           {/* WhatsApp ki nakal — taake asal shakl nazar aaye */}
           <div className="rounded-2xl bg-[#e5ddd5] dark:bg-slate-800 p-4 min-h-[280px]">
             <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-sm bg-[#dcf8c6] dark:bg-emerald-900/60 p-3 shadow-sm">
-              <pre className="whitespace-pre-wrap break-words font-sans text-[13px] font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">
+              <pre className="whitespace-pre-wrap break-words font-sans text-[0.8125rem] font-semibold text-slate-900 dark:text-slate-100 leading-relaxed">
                 {preview || <span className="text-slate-400">Paighaam khali hai…</span>}
               </pre>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 text-right mt-1 font-bold">
+              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 text-right mt-1 font-bold">
                 {new Intl.DateTimeFormat('en-PK', { hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date())} ✓✓
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
             Ye misal ke a'daad hain — asal me har customer ke apne naam aur raqam aayenge.
           </div>
 
@@ -202,14 +202,14 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
           <Button variant="secondary" onClick={() => setDrafts(resolveTemplates(saved))} className="font-black">
             Cancel
           </Button>
-          <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">
+          <span className="text-[0.6875rem] font-bold text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">
             <Info className="h-3.5 w-3.5" /> Tabdeeli abhi save nahi hui
           </span>
         </div>
       )}
 
       {!dirty && (
-        <div className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5">
+        <div className="text-[0.6875rem] font-black text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5">
           <CheckCircle2 className="h-3.5 w-3.5" /> Sab save hai — ye paighaam har jagah use honge
         </div>
       )}

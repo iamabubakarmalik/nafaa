@@ -81,7 +81,7 @@ export function CommissionDetailDrawer({
         <header className={`p-5 bg-gradient-to-br ${tone.grad} text-white shrink-0`}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[10px] font-black uppercase tracking-widest text-white/75">
+              <div className="text-[0.6875rem] font-black uppercase tracking-widest text-white/75">
                 {periodLabel(period)} · poora khata
               </div>
               <h2 className="mt-1 text-xl sm:text-2xl font-black truncate">{row.name}</h2>
@@ -116,7 +116,7 @@ export function CommissionDetailDrawer({
           {/* Pakki tankhwah bhi ho to poora jor — banda yehi poochta hai */}
           {row.baseSalary > 0 && (
             <div className="mt-2 rounded-2xl bg-white/15 backdrop-blur border border-white/20 px-3 py-2 flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/75">Is mahine kul</span>
+              <span className="text-[0.6875rem] font-black uppercase tracking-widest text-white/75">Is mahine kul</span>
               <span className="text-xs font-bold text-white/85">
                 tankhwah {money(row.baseSalary)} + commission {money(row.earned)} =
               </span>
@@ -127,11 +127,11 @@ export function CommissionDetailDrawer({
 
         {/* ── Hisab kaise bana ── */}
         <div className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 shrink-0">
-          <p className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2 inline-flex items-center gap-1.5">
+          <p className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2 inline-flex items-center gap-1.5">
             <Gauge className="h-3 w-3" /> Hisab kaise bana
           </p>
           {row.lines.length === 0 ? (
-            <p className="text-[12px] font-bold text-slate-500 dark:text-slate-400">
+            <p className="text-[0.75rem] font-bold text-slate-500 dark:text-slate-400">
               {row.blockedByMin
                 ? `Hadd ${money(row.blockedByMin.need)} hai aur abhi ${money(row.blockedByMin.short)} kam hai — commission nahi bani.`
                 : 'Is bande par koi chaalu rule lagu nahi hota.'}
@@ -141,9 +141,9 @@ export function CommissionDetailDrawer({
               {row.lines.map((l, i) => (
                 <div key={i} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-3 py-2">
                   <div className="min-w-0">
-                    <div className="text-[12px] font-black text-slate-800 dark:text-slate-100 truncate">{l.label}</div>
+                    <div className="text-[0.75rem] font-black text-slate-800 dark:text-slate-100 truncate">{l.label}</div>
                     {l.rate > 0 && (
-                      <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
                         {l.valueType === 'PERCENT'
                           ? `${money(l.base)} ka ${l.rate}%`
                           : `${qty(l.base)} × ${formatPKR(l.rate)}`}
@@ -161,14 +161,14 @@ export function CommissionDetailDrawer({
         <div className="px-4 sm:px-5 pt-3 shrink-0 flex gap-1.5 overflow-x-auto">
           {TABS.map((x) => (
             <button key={x.v} onClick={() => setTab(x.v)}
-              className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black inline-flex items-center gap-1.5 shrink-0 transition ${
+              className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 shrink-0 transition ${
                 tab === x.v
                   ? `border-transparent bg-gradient-to-r ${tone.grad} text-white shadow`
                   : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-400'
               }`}>
               <x.i className="h-3.5 w-3.5" /> {x.l}
               {x.n !== undefined && (
-                <span className={`px-1.5 rounded-md text-[9px] ${tab === x.v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-700'}`}>
+                <span className={`px-1.5 rounded-md text-[0.625rem] ${tab === x.v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-700'}`}>
                   {x.n}
                 </span>
               )}
@@ -200,13 +200,13 @@ export function CommissionDetailDrawer({
                             {i === 0 && p.commission > 0 && <Trophy className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
                             <span className="text-sm font-black text-slate-900 dark:text-white truncate">{p.name}</span>
                           </div>
-                          <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                             {p.categoryName ?? 'Bina category'} · {p.bills} bill par
                           </div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className={`text-sm font-black tabular-nums ${tone.text}`}>{money(p.commission)}</div>
-                          <div className="text-[9px] font-bold text-slate-400">commission</div>
+                          <div className="text-[0.625rem] font-bold text-slate-400">commission</div>
                         </div>
                       </div>
 
@@ -219,7 +219,7 @@ export function CommissionDetailDrawer({
                       </div>
 
                       {p.returned > 0 && (
-                        <p className="mt-1.5 text-[10px] font-black text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">
+                        <p className="mt-1.5 text-[0.6875rem] font-black text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">
                           <Undo2 className="h-2.5 w-2.5" /> {qty(p.returned)} {p.unit} wapas aaya — commission me shamil nahi
                         </p>
                       )}
@@ -244,7 +244,7 @@ export function CommissionDetailDrawer({
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <div className="text-sm font-black text-slate-900 dark:text-white truncate">{cat.name}</div>
-                          <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                             {cat.items} cheezein · {qty(cat.qty)} miqdar · {money(cat.sale)}
                           </div>
                         </div>
@@ -270,22 +270,22 @@ export function CommissionDetailDrawer({
                       className="px-3 py-2.5 flex items-center gap-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-[12px] font-black text-slate-900 dark:text-white">{b.saleNumber}</span>
+                          <span className="font-mono text-[0.75rem] font-black text-slate-900 dark:text-white">{b.saleNumber}</span>
                           {b.status === 'PARTIALLY_RETURNED' && (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-[9px] font-black text-amber-700 dark:text-amber-300">
+                            <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-[0.625rem] font-black text-amber-700 dark:text-amber-300">
                               Kuch wapsi
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                           {new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(b.soldAt))}
                           {' · '}{b.customer ?? 'Walk-in'}{' · '}{b.items} cheezein
                           {b.discount > 0 && ` · ${money(b.discount)} chhoot`}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-[13px] font-black text-slate-900 dark:text-white tabular-nums">{money(b.total)}</div>
-                        <div className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                        <div className="text-[0.8125rem] font-black text-slate-900 dark:text-white tabular-nums">{money(b.total)}</div>
+                        <div className="text-[0.625rem] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
                           munafa {money(b.profit)}
                         </div>
                       </div>
@@ -294,7 +294,7 @@ export function CommissionDetailDrawer({
                   ))}
                 </div>
                 {data.billList.length >= 200 && (
-                  <p className="px-3 py-2 bg-slate-50 dark:bg-slate-900 text-[11px] font-bold text-slate-500 text-center">
+                  <p className="px-3 py-2 bg-slate-50 dark:bg-slate-900 text-[0.6875rem] font-bold text-slate-500 text-center">
                     Pehle 200 bill — poori list ke liye Bikri ka safha dekhein
                   </p>
                 )}
@@ -310,7 +310,7 @@ export function CommissionDetailDrawer({
 function HeroStat({ label, value, big }: any) {
   return (
     <div className={`rounded-2xl bg-white/15 backdrop-blur border border-white/20 p-2.5 ${big ? 'ring-2 ring-white/40' : ''}`}>
-      <div className="text-[9px] font-black uppercase tracking-widest text-white/75">{label}</div>
+      <div className="text-[0.625rem] font-black uppercase tracking-widest text-white/75">{label}</div>
       <div className={`font-black tabular-nums truncate ${big ? 'text-lg' : 'text-sm'}`}>{value}</div>
     </div>
   );
@@ -319,8 +319,8 @@ function HeroStat({ label, value, big }: any) {
 function Cell({ label, value, tone }: any) {
   return (
     <div className="min-w-0">
-      <div className="text-[9px] font-black uppercase tracking-wide text-slate-400 truncate">{label}</div>
-      <div className={`text-[12px] font-black tabular-nums truncate ${tone ?? 'text-slate-800 dark:text-slate-100'}`}>
+      <div className="text-[0.625rem] font-black uppercase tracking-wide text-slate-400 truncate">{label}</div>
+      <div className={`text-[0.75rem] font-black tabular-nums truncate ${tone ?? 'text-slate-800 dark:text-slate-100'}`}>
         {value}
       </div>
     </div>

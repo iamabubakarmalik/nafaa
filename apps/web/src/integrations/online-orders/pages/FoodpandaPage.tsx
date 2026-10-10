@@ -40,7 +40,7 @@ function Body({ data }: { data: FoodpandaOverview }) {
         </Banner>
       )}
       <Card title="Kaise kaam karta hai">
-        <ol className="grid gap-2 text-[13px] text-slate-700 dark:text-slate-200 sm:grid-cols-3">
+        <ol className="grid gap-2 text-[0.8125rem] text-slate-700 dark:text-slate-200 sm:grid-cols-3">
           <li><b>1.</b> Foodpanda account manager se apna <b>chain code</b> aur har branch ka <b>vendor code</b> lein</li>
           <li><b>2.</b> Neeche daal kar save — har branch ka Nafaa <b>Remote ID</b> banega, wo Foodpanda ko bhej dein</li>
           <li><b>3.</b> Order aaye → Online orders me ghanti → <b>Accept</b> (bill khud) → <b>Ready</b> → rider le jaye</li>
@@ -49,10 +49,10 @@ function Body({ data }: { data: FoodpandaOverview }) {
       {data.channels.map((c) => <ChannelForm key={c.id} data={data} channel={c} />)}
       {data.channels.length === 0 && <ChannelForm data={data} />}
       <Card title="Foodpanda team ke liye (technical)">
-        <div className="space-y-2 text-[13px]">
+        <div className="space-y-2 text-[0.8125rem]">
           <Field label="POS plugin base URL">
             <div className="flex gap-2">
-              <input readOnly value={data.pluginBaseUrl} className={cn(inputCls, 'font-mono text-[12px]')} />
+              <input readOnly value={data.pluginBaseUrl} className={cn(inputCls, 'font-mono text-[0.75rem]')} />
               <Btn icon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(data.pluginBaseUrl)}>Copy</Btn>
             </div>
           </Field>
@@ -98,7 +98,7 @@ function ChannelForm({ data, channel }: { data: FoodpandaOverview; channel?: Foo
         <SettingRow title="Order khud accept" help="Bill khud ban jaye (sab items Nafaa products se jure hon). Band ho to 15 minute ke andar khud accept karein — warna Foodpanda cancel kar deta hai."
           control={<Toggle checked={autoAccept} onChange={setAuto} />} />
         <div className="space-y-2">
-          <div className="text-[12px] font-semibold uppercase tracking-wide text-slate-500">Branches</div>
+          <div className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Branches</div>
           {vendors.map((v, i) => {
             const closed = v.remoteId ? channel?.availability?.[v.remoteId]?.closures?.length : 0;
             return (
@@ -111,7 +111,7 @@ function ChannelForm({ data, channel }: { data: FoodpandaOverview; channel?: Foo
                   </select>
                 </Field>
                 {v.remoteId && (
-                  <div className="text-[12px]">
+                  <div className="text-[0.75rem]">
                     <div className="text-slate-500">Remote ID (Foodpanda ko dein)</div>
                     <button type="button" onClick={() => copy(v.remoteId!)} className="font-mono font-semibold text-slate-900 hover:underline dark:text-white">{v.remoteId}</button>
                     {closed ? <Badge tone="warning">Foodpanda par band</Badge> : null}
@@ -127,7 +127,7 @@ function ChannelForm({ data, channel }: { data: FoodpandaOverview; channel?: Foo
           <div className="flex flex-wrap gap-2">
             {channel && <Btn size="sm" icon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(shareText)}>Foodpanda ke liye details copy</Btn>}
             {channel && <Link to={`/online-orders?channel=${channel.id}`}><Btn size="sm" variant="plain">Is ke orders</Btn></Link>}
-            {channel?.lastMenuImportRequest && <span className="text-[12px] text-slate-500">Menu darkhwast {whenText(channel.lastMenuImportRequest.at)} — menu Foodpanda portal se chalta hai</span>}
+            {channel?.lastMenuImportRequest && <span className="text-[0.75rem] text-slate-500">Menu darkhwast {whenText(channel.lastMenuImportRequest.at)} — menu Foodpanda portal se chalta hai</span>}
           </div>
           <Btn variant="primary" loading={save.isPending} icon={<Save className="h-4 w-4" />} onClick={() => save.mutate()}>Mehfooz karein</Btn>
         </div>

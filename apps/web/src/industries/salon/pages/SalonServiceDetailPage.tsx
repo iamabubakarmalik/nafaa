@@ -98,12 +98,12 @@ export default function SalonServiceDetailPage() {
               </div>
             )}
             {service.isFeatured && (
-              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <Star className="h-3 w-3 fill-white" /> FEATURED
               </div>
             )}
             {service.isPopular && (
-              <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-red-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-red-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" /> POPULAR
               </div>
             )}
@@ -148,7 +148,7 @@ export default function SalonServiceDetailPage() {
 
             <div className="mt-5 flex items-center gap-4 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
                   {hasDiscount ? 'Sale Price' : 'Price'}
                 </div>
                 <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
@@ -162,7 +162,7 @@ export default function SalonServiceDetailPage() {
               </div>
               {service.costPrice && service.costPrice > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
                     {formatPKRFull(service.costPrice)}
                   </div>
@@ -170,7 +170,7 @@ export default function SalonServiceDetailPage() {
               )}
               {commission > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-amber-300 tracking-wider">Commission</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-amber-300 tracking-wider">Commission</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1">
                     {formatPKRFull(commission)}
                   </div>
@@ -311,10 +311,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -351,7 +351,7 @@ function AudienceBox({ label, emoji, active }: { label: string; emoji: string; a
         {label}
       </div>
       {active && (
-        <div className="mt-1 inline-flex items-center gap-0.5 text-[9px] font-extrabold text-emerald-600">
+        <div className="mt-1 inline-flex items-center gap-0.5 text-[0.625rem] font-extrabold text-emerald-600">
           <CheckCircle2 className="h-2.5 w-2.5" /> Available
         </div>
       )}
@@ -371,7 +371,7 @@ function StatBox({ label, value, icon: Icon, color }: any) {
       <div className={['h-8 w-8 rounded-lg bg-gradient-to-br text-white flex items-center justify-center shadow mb-2', colors[color]].join(' ')}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className="text-[9px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-lg font-extrabold text-slate-900 tabular-nums">{value}</div>
     </div>
   );

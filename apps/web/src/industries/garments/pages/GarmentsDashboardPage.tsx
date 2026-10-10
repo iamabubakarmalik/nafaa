@@ -118,17 +118,17 @@ export default function GarmentsDashboardPage() {
 
         <div className="grid sm:grid-cols-3 gap-4">
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Total Revenue</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Total Revenue</div>
             <div className="mt-1 text-3xl font-extrabold tabular-nums text-emerald-300">{formatPKR(tailoringRevenue.total)}</div>
             <div className="text-xs text-white/60 font-semibold mt-1">{tailoringRevenue.count} delivered orders</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Amount Collected</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Amount Collected</div>
             <div className="mt-1 text-3xl font-extrabold tabular-nums text-cyan-300">{formatPKR(tailoringRevenue.paid)}</div>
             <div className="text-xs text-white/60 font-semibold mt-1">Cash + digital</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Outstanding</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Outstanding</div>
             <div className="mt-1 text-3xl font-extrabold tabular-nums text-amber-300">
               {formatPKR(tailoringRevenue.total - tailoringRevenue.paid)}
             </div>
@@ -182,7 +182,7 @@ export default function GarmentsDashboardPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm text-slate-900 dark:text-white">{o.orderNumber}</span>
                         <span className={
-                          'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' +
+                          'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                           (o.priority === 'URGENT' ? 'bg-red-600 animate-pulse' : o.priority === 'HIGH' ? 'bg-amber-500' : 'bg-slate-500')
                         }>
                           {o.priority}
@@ -199,7 +199,7 @@ export default function GarmentsDashboardPage() {
                           {daysLeft <= 0 ? 'OVERDUE' : daysLeft + ' days'}
                         </div>
                       )}
-                      <div className="text-[10px] font-bold text-slate-500">{formatPKR(o.total)}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">{formatPKR(o.total)}</div>
                     </div>
                   </Link>
                 );

@@ -265,7 +265,7 @@ export function JewelryWizardStep2Charges({
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
                   <div className="font-extrabold text-slate-900 text-sm">Individual Gemstones (Detailed)</div>
-                  <div className="text-[10px] text-slate-500 font-bold">Add each stone separately for certification</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">Add each stone separately for certification</div>
                 </div>
                 <div className="flex gap-2">
                   <select value={newGemType} onChange={(e) => setNewGemType(e.target.value as GemstoneType)}
@@ -324,7 +324,7 @@ export function JewelryWizardStep2Charges({
                         </div>
 
                         {g.totalValue > 0 && (
-                          <div className="text-[10px] font-extrabold text-emerald-700 text-right">
+                          <div className="text-[0.6875rem] font-extrabold text-emerald-700 text-right">
                             Stone value: {formatPKR(g.totalValue)}
                           </div>
                         )}

@@ -344,7 +344,7 @@ export default function PayInvoicePage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Receipt className="h-3.5 w-3.5 text-amber-300" /> Pay Invoice
             </div>
             <h2 className="mt-3 text-2xl sm:text-3xl font-extrabold font-mono">{invoice.invoiceNumber}</h2>
@@ -355,12 +355,12 @@ export default function PayInvoicePage() {
                 Due: {formatDate(invoice.dueDate)}
               </div>
               {daysUntilDue > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/30 border border-amber-400/40 px-2.5 py-1 text-[10px] font-extrabold text-amber-100">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/30 border border-amber-400/40 px-2.5 py-1 text-[0.6875rem] font-extrabold text-amber-100">
                   ⏱️ {daysUntilDue} din baaki
                 </span>
               )}
               {isOverdue && (
-                <span className="inline-flex items-center gap-1 rounded-lg bg-rose-500/30 border border-rose-400/40 px-2.5 py-1 text-[10px] font-extrabold text-rose-100 animate-pulse">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-rose-500/30 border border-rose-400/40 px-2.5 py-1 text-[0.6875rem] font-extrabold text-rose-100 animate-pulse">
                   ⚠️ {Math.abs(daysUntilDue)} din overdue
                 </span>
               )}
@@ -394,7 +394,7 @@ export default function PayInvoicePage() {
                       {s.done ? <Check className="h-4 w-4" /> : <StepIcon className="h-3.5 w-3.5" />}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[9px] font-extrabold uppercase tracking-widest text-white/70">Step {s.n}</div>
+                      <div className="text-[0.625rem] font-extrabold uppercase tracking-widest text-white/70">Step {s.n}</div>
                       <div className="text-xs font-extrabold text-white truncate">{s.label}</div>
                     </div>
                   </div>
@@ -495,7 +495,7 @@ export default function PayInvoicePage() {
             <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-600 via-violet-600 to-purple-700 text-white p-5 sm:p-7 shadow-2xl shadow-blue-500/30">
               <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-3xl pointer-events-none" />
               <div className="absolute top-3 right-3">
-                <span className="px-2 py-0.5 rounded-md bg-amber-400 text-amber-900 text-[9px] font-extrabold uppercase tracking-wider shadow-lg">
+                <span className="px-2 py-0.5 rounded-md bg-amber-400 text-amber-900 text-[0.625rem] font-extrabold uppercase tracking-wider shadow-lg">
                   ⚡ Recommended
                 </span>
               </div>
@@ -510,7 +510,7 @@ export default function PayInvoicePage() {
                     <p className="text-xs sm:text-sm text-white/85 mt-1 font-semibold">
                       Visa / Master / international cards • Plan auto-activate hoga
                     </p>
-                    <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-extrabold text-white/90">
+                    <div className="mt-2 inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-white/90">
                       <ShieldCheck className="h-3 w-3" />
                       Secure • 256-bit SSL • Powered by Stripe
                     </div>
@@ -568,7 +568,7 @@ export default function PayInvoicePage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-extrabold text-slate-900 dark:text-white text-sm">{m.label}</div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate">{m.description}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold truncate">{m.description}</div>
                         </div>
                         {active && (
                           <div className="h-5 w-5 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0">
@@ -588,7 +588,7 @@ export default function PayInvoicePage() {
                 <div className="relative p-5 sm:p-6">
                   <div className="flex items-center gap-2 mb-1">
                     <currentProvider.icon className="h-5 w-5" />
-                    <span className="text-[10px] uppercase tracking-widest font-extrabold opacity-90">
+                    <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold opacity-90">
                       Step 2 — Payment Yahan Bhejo
                     </span>
                   </div>
@@ -653,7 +653,7 @@ export default function PayInvoicePage() {
                   placeholder="TX-12345678"
                   className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-mono font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 transition"
                 />
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
                   Bank/wallet ka reference number
                 </div>
               </div>
@@ -683,7 +683,7 @@ export default function PayInvoicePage() {
                     Payment Screenshot / Receipt <span className="text-rose-600">*</span>
                   </span>
                   {!uploadUrl && !uploading && (
-                    <span className="text-[10px] text-slate-400 font-bold">Press U to upload</span>
+                    <span className="text-[0.6875rem] text-slate-400 font-bold">Press U to upload</span>
                   )}
                 </label>
                 <div
@@ -799,7 +799,7 @@ export default function PayInvoicePage() {
 
               <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3 flex items-start gap-2">
                 <ShieldCheck className="h-4 w-4 text-blue-700 dark:text-blue-400 shrink-0 mt-0.5" />
-                <p className="text-[11px] text-blue-900 dark:text-blue-200 font-semibold leading-relaxed">
+                <p className="text-[0.6875rem] text-blue-900 dark:text-blue-200 font-semibold leading-relaxed">
                   Admin <strong>24 hours</strong> me review karega aur approve/reject karega. Notification aayegi. Receipt safely store hoti hai — kabhi delete nahi hoti.
                 </p>
               </div>
@@ -834,7 +834,7 @@ function PayTeacher({ onClose, amount }: { onClose: () => void; amount: number }
 
           {/* Instant vs Manual */}
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
               <Globe className="h-3 w-3" /> Kaunsa Method Choose Karein?
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -852,7 +852,7 @@ function PayTeacher({ onClose, amount }: { onClose: () => void; amount: number }
 
           {/* 3-step process */}
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3" /> Manual Payment — 3 Steps
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -870,7 +870,7 @@ function PayTeacher({ onClose, amount }: { onClose: () => void; amount: number }
 
           {/* Troubleshooting */}
           <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 space-y-1.5 text-xs font-semibold text-amber-900 dark:text-amber-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1 mb-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1 mb-1">
               <AlertTriangle className="h-3 w-3" /> Common Issues
             </div>
             <TipRow><strong>Screenshot nahi upload ho raha?</strong> File 10MB se kam honi chahiye. PNG/JPG/PDF format work karta hai.</TipRow>
@@ -916,7 +916,7 @@ function TipRow({ children }: { children: React.ReactNode }) {
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold">{label}</div>
+      <div className="text-[0.6875rem] text-slate-500 uppercase tracking-widest font-extrabold">{label}</div>
       <div className="font-extrabold text-slate-900 mt-0.5">{value}</div>
     </div>
   );
@@ -933,7 +933,7 @@ function CopyRow({ label, value, copyKey, copied, onCopy, mono, large }: {
 }) {
   return (
     <div>
-      <div className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold">{label}</div>
+      <div className="text-[0.6875rem] text-slate-500 uppercase tracking-widest font-extrabold">{label}</div>
       <div className="flex items-center gap-2 mt-1">
         <div className={`font-extrabold text-slate-900 ${mono ? 'font-mono' : ''} ${large ? 'text-lg' : 'text-sm'} break-all`}>
           {value}

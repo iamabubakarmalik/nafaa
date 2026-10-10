@@ -36,7 +36,7 @@ function Chip({ active, onClick, label, emoji, count }: any) {
       <span>{emoji}</span>
       {label}
       {count !== undefined && (
-        <span className={['px-1.5 rounded-md text-[10px]', active ? 'bg-white/20' : 'bg-slate-100 text-slate-600'].join(' ')}>{count}</span>
+        <span className={['px-1.5 rounded-md text-[0.6875rem]', active ? 'bg-white/20' : 'bg-slate-100 text-slate-600'].join(' ')}>{count}</span>
       )}
     </button>
   );

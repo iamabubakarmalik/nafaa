@@ -117,7 +117,7 @@ export function MobileImeiTable({
               <X className="h-3 w-3 text-slate-500 dark:text-slate-400" />
             </button>
           </div>
-          <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/40 p-2 text-[10px] text-amber-900 dark:text-amber-200 font-semibold">
+          <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/40 p-2 text-[0.6875rem] text-amber-900 dark:text-amber-200 font-semibold">
             💡 Ek IMEI per line (ya comma/space se). 15 digits. Duplicates auto-skip.
           </div>
           <textarea
@@ -176,7 +176,7 @@ export function MobileImeiTable({
         <>
           {/* Duplicate warning banner */}
           {dupCount > 0 && (
-            <div className="mx-3 mt-2 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-300 dark:border-rose-500/40 p-2 flex items-center gap-2 text-[11px] font-extrabold text-rose-800 dark:text-rose-300">
+            <div className="mx-3 mt-2 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-300 dark:border-rose-500/40 p-2 flex items-center gap-2 text-[0.6875rem] font-extrabold text-rose-800 dark:text-rose-300">
               <Copy className="h-3.5 w-3.5 shrink-0" />
               ⚠️ {dupCount} duplicate IMEI{dupCount > 1 ? 's' : ''} — red rows fix karo warna save fail hoga
             </div>
@@ -209,7 +209,7 @@ export function MobileImeiTable({
                       isDup ? 'bg-rose-50 dark:bg-rose-500/10' : isValid ? 'bg-emerald-50/20 dark:bg-emerald-500/5' : '',
                     ].join(' ')}>
                       <td className="px-2 py-1.5 text-center">
-                        <div className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400">{idx + 1}</div>
+                        <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400">{idx + 1}</div>
                         {isDup ? (
                           <Copy className="h-3 w-3 text-rose-600 dark:text-rose-400 mx-auto mt-0.5" />
                         ) : l.imei1 && !isValid ? (
@@ -243,7 +243,7 @@ export function MobileImeiTable({
                             <Camera className="h-3 w-3" />
                           </button>
                         </div>
-                        {isDup && <div className="text-[9px] font-extrabold text-rose-600 dark:text-rose-400 mt-0.5">DUPLICATE</div>}
+                        {isDup && <div className="text-[0.625rem] font-extrabold text-rose-600 dark:text-rose-400 mt-0.5">DUPLICATE</div>}
                       </td>
                       <td className="px-2 py-1.5">
                         <input
@@ -275,7 +275,7 @@ export function MobileImeiTable({
                           value={l.ptaStatus}
                           onChange={(e) => onUpdate(l.tempId, { ptaStatus: e.target.value as PtaStatus })}
                           className={[
-                            'h-8 rounded-lg border-2 px-1 text-[10px] font-extrabold focus:outline-none transition',
+                            'h-8 rounded-lg border-2 px-1 text-[0.6875rem] font-extrabold focus:outline-none transition',
                             ptaColors.bg, ptaColors.text, ptaColors.border,
                           ].join(' ')}
                         >
@@ -295,7 +295,7 @@ export function MobileImeiTable({
                             className="w-16 h-8 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-xs font-bold tabular-nums text-right text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
                           />
                         ) : (
-                          <span className="text-slate-300 dark:text-slate-600 text-[10px]">—</span>
+                          <span className="text-slate-300 dark:text-slate-600 text-[0.6875rem]">—</span>
                         )}
                       </td>
                       <td className="px-2 py-1.5">
@@ -315,7 +315,7 @@ export function MobileImeiTable({
           </div>
 
           <div className="border-t border-slate-100 dark:border-slate-800 bg-blue-50/50 dark:bg-blue-500/5 p-2 flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-3 text-[11px] font-extrabold text-blue-800 dark:text-blue-300 pl-1">
+            <div className="flex items-center gap-3 text-[0.6875rem] font-extrabold text-blue-800 dark:text-blue-300 pl-1">
               <span>📱 {validCount}/{lines.length} valid</span>
               {dupCount > 0 && <span className="text-rose-600 dark:text-rose-400">• {dupCount} dup</span>}
             </div>
@@ -323,14 +323,14 @@ export function MobileImeiTable({
               <button
                 type="button"
                 onClick={() => setBulkMode(true)}
-                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-blue-300 dark:border-blue-500/40 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition active:scale-95"
+                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-blue-300 dark:border-blue-500/40 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition active:scale-95"
               >
                 <Upload className="h-3 w-3" /> Bulk Paste
               </button>
               <button
                 type="button"
                 onClick={onAdd}
-                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-dashed border-blue-300 dark:border-blue-500/40 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[11px] font-extrabold inline-flex items-center gap-1 transition active:scale-95"
+                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-dashed border-blue-300 dark:border-blue-500/40 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-700 dark:text-blue-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition active:scale-95"
               >
                 <Plus className="h-3 w-3" /> Add IMEI
               </button>
@@ -344,12 +344,12 @@ export function MobileImeiTable({
 
 function ColHead({ label, hint, icon: Icon }: { label: string; hint?: string; icon?: any }) {
   return (
-    <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 text-[9px]">
+    <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 text-[0.625rem]">
       <div className="flex items-center gap-0.5">
         {Icon && <Icon className="h-2.5 w-2.5" />}
         {label}
       </div>
-      {hint && <div className="text-[9px] font-bold text-slate-400 dark:text-slate-500 normal-case">{hint}</div>}
+      {hint && <div className="text-[0.625rem] font-bold text-slate-400 dark:text-slate-500 normal-case">{hint}</div>}
     </th>
   );
 }

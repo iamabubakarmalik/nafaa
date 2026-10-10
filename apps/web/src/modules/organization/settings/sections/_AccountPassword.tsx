@@ -134,7 +134,7 @@ export function AccountPasswordCard() {
                 <div className={`h-full rounded-full transition-all duration-300 ${str.color}`}
                   style={{ width: `${(str.score / 5) * 100}%` }} />
               </div>
-              <div className={`text-[10px] font-extrabold mt-0.5 ${str.text}`}>{str.label}</div>
+              <div className={`text-[0.6875rem] font-extrabold mt-0.5 ${str.text}`}>{str.label}</div>
             </div>
           )}
         </Field>
@@ -174,7 +174,7 @@ export function AccountPasswordCard() {
         )}
       </div>
 
-      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+      <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
         Password badalne par baqi devices ka login chalta rahega. Kisi device ko nikalna ho to
         neeche "Active Devices" se us ka session revoke karein.
       </p>

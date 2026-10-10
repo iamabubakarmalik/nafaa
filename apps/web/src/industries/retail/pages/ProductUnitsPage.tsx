@@ -175,7 +175,7 @@ export default function ProductUnitsPage() {
 
         <div className="relative flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Sparkles className="h-3.5 w-3.5 text-amber-300" /> Multi-Unit Selling
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">
@@ -429,7 +429,7 @@ function UnitsTeacher({ onClose, onStart }: { onClose: () => void; onStart: () =
 
           {/* Live visual example */}
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300">
               🥚 Misal: Anday (Eggs)
             </div>
 
@@ -469,7 +469,7 @@ function UnitsTeacher({ onClose, onStart }: { onClose: () => void; onStart: () =
           </div>
 
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400">
               Banane ke baad
             </div>
             <div className="flex items-start gap-2">
@@ -508,8 +508,8 @@ function ChainBox({ emoji, name, detail, price, highlight }: {
     ].join(' ')}>
       <div className="text-2xl">{emoji}</div>
       <div className="text-xs font-extrabold text-slate-900 dark:text-white">{name}</div>
-      <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400">{detail}</div>
-      <div className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums mt-0.5">{price}</div>
+      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">{detail}</div>
+      <div className="text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums mt-0.5">{price}</div>
     </div>
   );
 }
@@ -518,8 +518,8 @@ function TermCard({ emoji, term, desc }: { emoji: string; term: string; desc: st
   return (
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white mt-1">{term}</div>
-      <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{term}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -531,7 +531,7 @@ function TermCard({ emoji, term, desc }: { emoji: string; term: string; desc: st
 function StepPill({ n, label, state }: { n: number; label: string; state: 'done' | 'active' | 'todo' }) {
   return (
     <div className={[
-      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-extrabold border backdrop-blur-md transition',
+      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.6875rem] font-extrabold border backdrop-blur-md transition',
       state === 'done'
         ? 'bg-emerald-400/25 border-emerald-300/50 text-emerald-200'
         : state === 'active'
@@ -542,7 +542,7 @@ function StepPill({ n, label, state }: { n: number; label: string; state: 'done'
         <CheckCircle2 className="h-3.5 w-3.5" />
       ) : (
         <span className={[
-          'h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-black',
+          'h-4 w-4 rounded-full flex items-center justify-center text-[0.625rem] font-black',
           state === 'active' ? 'bg-slate-900 text-amber-300' : 'bg-white/20 text-white/60',
         ].join(' ')}>
           {n}
@@ -602,7 +602,7 @@ function ProductPicker({
             <Boxes className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             ① Product Chuno
           </h3>
-          <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+          <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
             {products.length}
           </span>
         </div>
@@ -706,7 +706,7 @@ function ProductHeader({ product, basePrice, baseStock, stats, onNewUnit, onChan
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold uppercase tracking-wider shrink-0">
+            <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">
               ✓ Selected
             </span>
             <h2 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white truncate">
@@ -715,7 +715,7 @@ function ProductHeader({ product, basePrice, baseStock, stats, onNewUnit, onChan
           </div>
           {/* Pehle yahan sirf "Base: 1 pcs" likha tha — log poochte thay
               "base kya hota hai". Ab poori baat likhi hai. */}
-          <div className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-bold mt-1">
+          <div className="text-[0.6875rem] sm:text-xs text-slate-600 dark:text-slate-300 font-bold mt-1">
             Is cheez ka <strong className="text-slate-900 dark:text-white">asal naap {product.unit}</strong> hai —
             stock isi me ginta hai.
             <span className="mx-1 opacity-40">•</span>
@@ -764,13 +764,13 @@ function QuickPresets({ units, basePrice, baseUnit, onAdd, pending }: {
     <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900/60 dark:backdrop-blur-sm border-2 border-emerald-200 dark:border-emerald-500/30 p-4 sm:p-5 space-y-3">
       <div className="flex items-start justify-between gap-2 flex-wrap">
         <div>
-          <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
             <Zap className="h-3 w-3 text-amber-500" /> ② Ek Click Se Unit Banao
           </div>
           <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mt-0.5">
             Common packages — price khud calculate ho jayegi
           </h4>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+          <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
             Jaise "Dozen" dabao → 1 Dozen = 12 {baseUnit} = {formatPKRFull(basePrice * 12)} ban jayega
           </p>
         </div>
@@ -795,10 +795,10 @@ function QuickPresets({ units, basePrice, baseUnit, onAdd, pending }: {
             >
               <div className="text-2xl leading-none">{p.e}</div>
               <div className="font-extrabold text-xs text-slate-900 dark:text-white mt-1">{p.n}</div>
-              <div className="text-[9px] text-slate-500 dark:text-slate-400 font-bold">
+              <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-bold">
                 = {p.r} {baseUnit}
               </div>
-              <div className="text-[9px] text-emerald-700 dark:text-emerald-400 font-extrabold mt-0.5 tabular-nums">
+              <div className="text-[0.625rem] text-emerald-700 dark:text-emerald-400 font-extrabold mt-0.5 tabular-nums">
                 {exists ? '✓ Added' : formatPKRFull(basePrice * p.r)}
               </div>
             </button>
@@ -868,17 +868,17 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
                     dukaan-daar ko in alfaaz ka koi matlab nahi. Ab seedhi
                     baat likhi hai. */}
                 {unit.isBase && (
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[9px] font-extrabold uppercase tracking-wider">
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider">
                     ⭐ Asal naap — stock isi me ginta hai
                   </span>
                 )}
                 {unit.isDefault && !unit.isBase && (
-                  <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold uppercase tracking-wider">
+                  <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider">
                     🎯 POS par pehle se yehi
                   </span>
                 )}
                 {!unit.isActive && (
-                  <span className="px-2 py-0.5 rounded-md bg-slate-500 text-white text-[9px] font-extrabold uppercase tracking-wider">
+                  <span className="px-2 py-0.5 rounded-md bg-slate-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider">
                     Band — POS par nazar nahi aayega
                   </span>
                 )}
@@ -897,12 +897,12 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
               </span>
             )}
             {unit.barcode && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[10px]">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[0.6875rem]">
                 <Barcode className="h-3 w-3" /> {unit.barcode}
               </span>
             )}
             {unit.sku && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[10px]">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[0.6875rem]">
                 SKU: {unit.sku}
               </span>
             )}
@@ -910,7 +910,7 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
 
           {!hideCost && Math.abs(priceDeviation) > 1 && expectedPrice > 0 && (
             <div className={[
-              'mt-2 text-[10px] font-extrabold inline-flex items-center gap-1 px-2 py-0.5 rounded-md',
+              'mt-2 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 px-2 py-0.5 rounded-md',
               priceDeviation > 0
                 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                 : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
@@ -926,14 +926,14 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
             {formatPKR(unit.price)}
           </div>
           {!hideCost && (
-            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 dark:text-slate-400 justify-end mt-1">
+            <div className="flex items-center gap-2 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 justify-end mt-1">
               {unit.costPrice > 0 && <span>Cost: {formatPKR(unit.costPrice)}</span>}
               {unit.wholesalePrice && <span className="text-violet-700 dark:text-violet-400">W/S: {formatPKR(unit.wholesalePrice)}</span>}
             </div>
           )}
           {!hideCost && profit !== 0 && (
             <div className={[
-              'text-[11px] font-extrabold mt-0.5 tabular-nums',
+              'text-[0.6875rem] font-extrabold mt-0.5 tabular-nums',
               profit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400',
             ].join(' ')}>
               Faida: {formatPKR(profit)}
@@ -950,7 +950,7 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
               <button
                 onClick={onSetDefault} disabled={busy}
                 title="Counter par ye naap pehle se chuna hua mile"
-                className="h-8 px-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/15 hover:bg-amber-100 dark:hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 text-[10px] font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition"
+                className="h-8 px-2.5 rounded-lg bg-amber-50 dark:bg-amber-500/15 hover:bg-amber-100 dark:hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition"
               >
                 <Star className="h-3 w-3" /> POS par pehle ye
               </button>
@@ -959,7 +959,7 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
               <button
                 onClick={onToggleActive} disabled={busy}
                 title={unit.isActive ? 'Counter par dikhna band karein' : 'Counter par dobara dikhayein'}
-                className={`h-8 px-2.5 rounded-lg text-[10px] font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition ${
+                className={`h-8 px-2.5 rounded-lg text-[0.6875rem] font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition ${
                   unit.isActive
                     ? 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
                     : 'bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-400'
@@ -1106,7 +1106,7 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
           {/* 👁️ LIVE CONVERSION CHAIN — type karo, samjho */}
           {form.unitName.trim() && form.conversionRate > 0 && (
             <div className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 p-3">
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-2 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-2 flex items-center gap-1">
                 <Lightbulb className="h-3 w-3" /> Live Preview — Aisa Dikhega
               </div>
               <div className="flex items-center gap-2 flex-wrap text-sm font-extrabold">
@@ -1127,7 +1127,7 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
                 )}
               </div>
               {basePrice > 0 && form.conversionRate > 0 && form.price > 0 && (
-                <div className="mt-2 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                <div className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
                   Per {baseUnit}: <span className="text-slate-900 dark:text-white tabular-nums">{formatPKR(form.price / form.conversionRate)}</span>
                   {form.price / form.conversionRate < basePrice && (
                     <span className="text-emerald-700 dark:text-emerald-400">
@@ -1213,7 +1213,7 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
               </span>
               <span className="font-extrabold tabular-nums">
                 {formatPKR(profit)}
-                <span className="text-[11px] opacity-70 ml-1">({marginPct.toFixed(1)}%)</span>
+                <span className="text-[0.6875rem] opacity-70 ml-1">({marginPct.toFixed(1)}%)</span>
               </span>
             </div>
           )}
@@ -1367,7 +1367,7 @@ function EmptyPickProduct({ onOpenPicker, onLearn }: { onOpenPicker: () => void;
           <GraduationCap className="h-4 w-4" /> Pehle Samjho — Units Kya Hain?
         </button>
       </div>
-      <p className="hidden xl:block mt-3 text-[11px] text-slate-400 dark:text-slate-500 font-bold">
+      <p className="hidden xl:block mt-3 text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold">
         👈 Baayein list se product click karo
       </p>
     </div>
@@ -1452,7 +1452,7 @@ function ToggleTile({ checked, onChange, label, hint, tone }: {
         />
         <span className="text-xs font-extrabold">{label}</span>
       </span>
-      {hint && <span className="text-[9px] font-bold opacity-60 pl-6">{hint}</span>}
+      {hint && <span className="text-[0.625rem] font-bold opacity-60 pl-6">{hint}</span>}
     </label>
   );
 }

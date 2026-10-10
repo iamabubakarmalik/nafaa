@@ -113,7 +113,7 @@ export default function LogoUploader({
         ) : (
           <div className="flex flex-col items-center gap-1.5 text-slate-400 dark:text-slate-500 pointer-events-none">
             <ImageIcon className="h-7 w-7" />
-            <span className="text-[10px] font-extrabold uppercase tracking-wider">
+            <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider">
               {dragOver ? 'Drop!' : 'Upload'}
             </span>
           </div>
@@ -128,7 +128,7 @@ export default function LogoUploader({
                 <div className="w-16 h-1 rounded-full bg-white/20 overflow-hidden">
                   <div className="h-full bg-emerald-400 transition-all" style={{ width: `${progress}%` }} />
                 </div>
-                <span className="text-[10px] font-extrabold text-emerald-300 tabular-nums">{progress}%</span>
+                <span className="text-[0.6875rem] font-extrabold text-emerald-300 tabular-nums">{progress}%</span>
               </>
             )}
           </div>

@@ -71,25 +71,25 @@ export function ReturnCartPanel({
           </div>
           <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="rounded-lg bg-white p-2 text-center">
-              <div className="text-[9px] uppercase font-bold text-emerald-700">Cart</div>
+              <div className="text-[0.625rem] uppercase font-bold text-emerald-700">Cart</div>
               <div className="text-lg font-extrabold text-emerald-900">{carpetCartCount}</div>
-              <div className="text-[9px] text-emerald-700 font-bold">carpet items</div>
+              <div className="text-[0.625rem] text-emerald-700 font-bold">carpet items</div>
             </div>
             <div className="rounded-lg bg-white p-2 text-center">
-              <div className="text-[9px] uppercase font-bold text-emerald-700">Resellable</div>
+              <div className="text-[0.625rem] uppercase font-bold text-emerald-700">Resellable</div>
               <div className="text-lg font-extrabold text-emerald-900">{willCreatePieces}</div>
-              <div className="text-[9px] text-emerald-700 font-bold">pieces</div>
+              <div className="text-[0.625rem] text-emerald-700 font-bold">pieces</div>
             </div>
             <div className="rounded-lg bg-white p-2 text-center">
-              <div className="text-[9px] uppercase font-bold text-rose-700">Damaged</div>
+              <div className="text-[0.625rem] uppercase font-bold text-rose-700">Damaged</div>
               <div className="text-lg font-extrabold text-rose-900">{willCreateDamaged}</div>
-              <div className="text-[9px] text-rose-700 font-bold">pieces</div>
+              <div className="text-[0.625rem] text-rose-700 font-bold">pieces</div>
             </div>
           </div>
           {unconfiguredCarpet > 0 && (
             <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-2 flex items-center gap-1.5">
               <AlertTriangle className="h-3.5 w-3.5 text-amber-700 shrink-0" />
-              <div className="text-[11px] text-amber-900 font-bold">
+              <div className="text-[0.6875rem] text-amber-900 font-bold">
                 {unconfiguredCarpet} carpet item{unconfiguredCarpet !== 1 ? 's' : ''} need configuration
               </div>
             </div>
@@ -163,7 +163,7 @@ export function ReturnCartPanel({
           <div className="text-3xl font-extrabold text-rose-900 mt-1">
             {formatPKR(totalRefund)}
           </div>
-          <div className="text-[10px] text-rose-700 font-semibold mt-0.5">
+          <div className="text-[0.6875rem] text-rose-700 font-semibold mt-0.5">
             {returnLines.length} item{returnLines.length !== 1 ? 's' : ''} • via{' '}
             {paymentLabels[refundMethod]}
             {willCreatePieces > 0 && (
@@ -199,7 +199,7 @@ export function ReturnCartPanel({
 
       {/* Quick action hint */}
       {willCreatePieces + willCreateDamaged > 0 && (
-        <div className="text-[10px] text-center text-slate-500 font-semibold">
+        <div className="text-[0.6875rem] text-center text-slate-500 font-semibold">
           <CheckCircle2 className="h-3 w-3 inline text-emerald-600 mr-1" />
           Backend will auto-create{' '}
           <strong>{willCreatePieces + willCreateDamaged} cut piece(s)</strong> on submit

@@ -186,7 +186,7 @@ export function MobileWizardStep2Variants({
 
             {/* Colors */}
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
                 <Palette className="h-3 w-3" /> Pick Colors ({matrixColors.length})
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -208,7 +208,7 @@ export function MobileWizardStep2Variants({
 
             {/* Storage (phone) / Size (accessory) */}
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
                 <SecondDimIcon className="h-3 w-3" /> Pick {secondDimLabel} ({matrixStorages.length}) — optional
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -254,7 +254,7 @@ export function MobileWizardStep2Variants({
           {/* Custom single variant */}
           <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-3">
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 flex items-center gap-1">
                 <Plus className="h-3 w-3" /> Add One at a Time
               </div>
               <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mt-0.5">
@@ -302,14 +302,14 @@ export function MobileWizardStep2Variants({
             <section className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/40 bg-white dark:bg-slate-900 p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-blue-700 dark:text-blue-400">
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700 dark:text-blue-400">
                     Selected Variants
                   </div>
                   <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mt-0.5">
                     {variants.length} variant{variants.length !== 1 ? 's' : ''} to create
                   </h4>
                 </div>
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold text-right">
+                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold text-right">
                   Click each to<br/>edit price, SKU, image
                 </div>
               </div>
@@ -328,7 +328,7 @@ export function MobileWizardStep2Variants({
                           onChange={(e) => onUpdateVariant(v.tempId, { name: e.target.value })}
                           className="w-full text-sm font-extrabold text-slate-900 dark:text-white bg-transparent focus:outline-none focus:bg-slate-50 dark:focus:bg-slate-700/60 rounded px-1"
                         />
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold px-1 mt-0.5 flex items-center gap-2 flex-wrap">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold px-1 mt-0.5 flex items-center gap-2 flex-wrap">
                           {v.storage && (
                             <span className="inline-flex items-center gap-0.5 text-indigo-700 dark:text-indigo-300">
                               <SecondDimIcon className="h-2 w-2" /> {v.storage}

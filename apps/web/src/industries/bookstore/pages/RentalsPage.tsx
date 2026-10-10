@@ -125,9 +125,9 @@ export default function RentalsPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-slate-900 dark:text-white">{r.rentalNumber}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + STATUS_COLORS[r.status]}>{r.status}</span>
-                        {isOverdue && <span className="px-2 py-0.5 rounded bg-rose-500 text-white text-[9px] font-extrabold uppercase animate-pulse">{Math.abs(daysLeft)}d OVERDUE</span>}
-                        {isSoon && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase">{daysLeft}d LEFT</span>}
+                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[r.status]}>{r.status}</span>
+                        {isOverdue && <span className="px-2 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">{Math.abs(daysLeft)}d OVERDUE</span>}
+                        {isSoon && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase">{daysLeft}d LEFT</span>}
                       </div>
                       <div className="mt-1 flex items-center gap-3 text-xs text-slate-600 font-bold flex-wrap">
                         {r.customerName && <span className="inline-flex items-center gap-1"><User className="h-3 w-3" />{r.customerName}</span>}
@@ -142,8 +142,8 @@ export default function RentalsPage() {
                   <div className="text-right shrink-0 space-y-1">
                     <div>
                       <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(r.rentalPrice)}</div>
-                      {r.depositAmount > 0 && <div className="text-[10px] font-bold text-amber-600">Deposit: {formatPKR(r.depositAmount)}</div>}
-                      {r.fineAmount > 0 && <div className="text-[10px] font-extrabold text-rose-700">Fine: {formatPKR(r.fineAmount)}</div>}
+                      {r.depositAmount > 0 && <div className="text-[0.6875rem] font-bold text-amber-600">Deposit: {formatPKR(r.depositAmount)}</div>}
+                      {r.fineAmount > 0 && <div className="text-[0.6875rem] font-extrabold text-rose-700">Fine: {formatPKR(r.fineAmount)}</div>}
                     </div>
                     {(r.status === 'ACTIVE' || r.status === 'OVERDUE') && (
                       <Button size="sm" onClick={() => setReturning(r)} className="bg-emerald-600 text-white">
@@ -222,7 +222,7 @@ function RentalForm({ onClose, onSaved }: any) {
                 <button key={p.id} onClick={() => { setSelectedProduct(p); setForm({ ...form, productId: p.id, rentalPrice: 100 }); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-blue-50 text-left">
                   <BookMarked className="h-3.5 w-3.5 text-slate-400" />
                   <span className="text-sm font-extrabold flex-1 truncate">{p.name}</span>
-                  <span className="text-[10px] text-slate-500 font-bold">Stock: {p.stock}</span>
+                  <span className="text-[0.6875rem] text-slate-500 font-bold">Stock: {p.stock}</span>
                 </button>
               ))}
             </div>
@@ -237,30 +237,30 @@ function RentalForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-4 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Qty</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Qty</label>
             <input type="number" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Rental Rs</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Rental Rs</label>
             <input type="number" value={form.rentalPrice} onChange={(e) => setForm({ ...form, rentalPrice: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Deposit</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Deposit</label>
             <input type="number" value={form.depositAmount} onChange={(e) => setForm({ ...form, depositAmount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-300 bg-amber-50 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Fine/day</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Fine/day</label>
             <input type="number" value={form.finePerDay} onChange={(e) => setForm({ ...form, finePerDay: e.target.value })} className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Rental Days</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Rental Days</label>
             <input type="number" value={form.rentalDays} onChange={(e) => setForm({ ...form, rentalDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Condition on Issue</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Condition on Issue</label>
             <select value={form.conditionOnIssue} onChange={(e) => setForm({ ...form, conditionOnIssue: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
               <option>Excellent</option><option>Good</option><option>Fair</option><option>Poor</option>
             </select>
@@ -320,7 +320,7 @@ function ReturnModal({ rental, onClose, onDone }: any) {
           )}
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Condition on Return *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Condition on Return *</label>
             <select value={conditionOnReturn} onChange={(e) => setConditionOnReturn(e.target.value)} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
               <option>Excellent</option><option>Good</option><option>Fair</option><option>Poor</option><option>Damaged</option>
             </select>

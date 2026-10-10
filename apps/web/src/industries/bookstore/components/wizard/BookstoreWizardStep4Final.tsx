@@ -64,7 +64,7 @@ export function BookstoreWizardStep4Final({ basic, book, onBasicChange, errors }
               <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt={`product-${idx}`} className="w-full h-full object-cover" />
                 {idx === 0 && (
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-amber-600 text-white text-[9px] font-extrabold">PRIMARY</div>
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-amber-600 text-white text-[0.625rem] font-extrabold">PRIMARY</div>
                 )}
                 <button
                   onClick={() => onBasicChange({ imageUrls: basic.imageUrls.filter((_, i) => i !== idx) })}
@@ -179,7 +179,7 @@ function ReviewCard({ icon: Icon, label, value, truncate }: any) {
         <Icon className="h-4 w-4 text-slate-600" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[9px] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
         <div className={['text-sm font-extrabold text-slate-900', truncate ? 'truncate' : ''].join(' ')}>{value}</div>
       </div>
     </div>

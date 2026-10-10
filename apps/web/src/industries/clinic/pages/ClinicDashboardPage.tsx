@@ -92,15 +92,15 @@ export default function ClinicDashboardPage() {
         </div>
         <div className="grid sm:grid-cols-3 gap-4">
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Total Billed</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Total Billed</div>
             <div className="mt-1 text-3xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(monthly.revenue)}</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Collected</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Collected</div>
             <div className="mt-1 text-3xl font-extrabold text-cyan-300 tabular-nums">{formatPKR(monthly.collected)}</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Outstanding</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Outstanding</div>
             <div className="mt-1 text-3xl font-extrabold text-amber-300 tabular-nums">{formatPKR(monthly.revenue - monthly.collected)}</div>
           </div>
         </div>
@@ -162,10 +162,10 @@ export default function ClinicDashboardPage() {
                         <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
                           {apt.patient?.fullName || apt.appointmentNumber}
                         </span>
-                        {isSoon && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">SOON</span>}
-                        {apt.isEmergency && <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase">EMERGENCY</span>}
-                        {apt.isTelemedicine && <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><Video className="h-2 w-2" />TELE</span>}
-                        {apt.isHomeVisit && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><Home className="h-2 w-2" />HOME</span>}
+                        {isSoon && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">SOON</span>}
+                        {apt.isEmergency && <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase">EMERGENCY</span>}
+                        {apt.isTelemedicine && <span className="px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Video className="h-2 w-2" />TELE</span>}
+                        {apt.isHomeVisit && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Home className="h-2 w-2" />HOME</span>}
                       </div>
                       <div className="text-xs text-slate-500 font-semibold truncate">
                         Dr. {apt.doctor?.fullName || 'Unknown'} • {apt.visitType?.replace(/_/g, ' ')}
@@ -176,7 +176,7 @@ export default function ClinicDashboardPage() {
                         {format(new Date(apt.scheduledStart), 'HH:mm')}
                       </div>
                       <div className={
-                        'text-[10px] font-bold ' +
+                        'text-[0.6875rem] font-bold ' +
                         (apt.status === 'ARRIVED' ? 'text-cyan-700' :
                          apt.status === 'IN_CONSULTATION' ? 'text-amber-700 animate-pulse' :
                          'text-slate-500')
@@ -226,13 +226,13 @@ export default function ClinicDashboardPage() {
                       {d.doctor?.title ? d.doctor.title + ' ' : ''}
                       {d.doctor?.fullName}
                     </div>
-                    <div className="text-[10px] font-bold text-slate-500 uppercase truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 uppercase truncate">
                       {d.doctor?.specialties?.[0]?.replace(/_/g, ' ')}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums text-sm">{formatPKR(d.revenue)}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{d.consultations} visits</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{d.consultations} visits</div>
                   </div>
                 </div>
               ))
@@ -317,7 +317,7 @@ function MiniKpi({ label, value, icon: Icon, color, to, highlight }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-      <div className="text-[10px] font-extrabold uppercase text-slate-500 mt-0.5">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold uppercase text-slate-500 mt-0.5">{label}</div>
     </Link>
   );
 }

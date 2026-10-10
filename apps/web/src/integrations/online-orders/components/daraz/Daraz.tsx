@@ -29,7 +29,7 @@ export function DarazConnectCard({ shopList }: { shopList: { id: string; name: s
       {st && !st.configured && (
         <div className="mb-3"><Banner tone="warning" title="Daraz app abhi server par nahi lagi">Nafaa admin Railway par DARAZ_APP_KEY aur DARAZ_APP_SECRET lagaye — phir yahan se jor sakte hain.</Banner></div>
       )}
-      <ul className="mb-4 space-y-1.5 text-[13px] text-slate-700 dark:text-slate-200">
+      <ul className="mb-4 space-y-1.5 text-[0.8125rem] text-slate-700 dark:text-slate-200">
         <li>✓ Daraz ke naye orders khud Nafaa me — ghanti, bill, stock</li>
         <li>✓ Stock Nafaa se Daraz par khud (POS par bika to Daraz par bhi kam)</li>
         <li>✓ Products SKU se khud jurte hain</li>
@@ -47,7 +47,7 @@ export function DarazConnectCard({ shopList }: { shopList: { id: string; name: s
       <Btn className="mt-4" variant="primary" loading={start.isPending} disabled={st ? !st.configured : false} onClick={() => start.mutate()} icon={<Zap className="h-4 w-4" />}>
         Daraz jorein
       </Btn>
-      <p className="mt-2 text-[12px] text-slate-500">Ek baat: Daraz products ke SellerSku aur Nafaa ke SKU same hon — tab hi stock aur orders sahi product se jurte hain.</p>
+      <p className="mt-2 text-[0.75rem] text-slate-500">Ek baat: Daraz products ke SellerSku aur Nafaa ke SKU same hon — tab hi stock aur orders sahi product se jurte hain.</p>
     </Card>
   );
 }
@@ -96,7 +96,7 @@ export function DarazChannelCard({ id, data, onChange }: { id: string; data: Web
       {expSoon && d.connected && !d.error && (
         <div className="mb-3"><Banner tone="warning" title="Daraz ki ijazat jald khatam">Is hafte "Dobara jorein" dabayein — warna orders aana band ho jayenge.</Banner></div>
       )}
-      <div className="grid gap-2 text-[13px] text-slate-600 dark:text-slate-300 sm:grid-cols-2">
+      <div className="grid gap-2 text-[0.8125rem] text-slate-600 dark:text-slate-300 sm:grid-cols-2">
         <div>Orders check: <b>{d.ordersSyncedAt ? timeAgo(d.ordersSyncedAt) : 'abhi nahi'}</b> <span className="text-slate-400">(har 5 minute)</span></div>
         <div>Jura: <b>{d.connectedAt ? whenText(d.connectedAt) : '—'}</b></div>
       </div>

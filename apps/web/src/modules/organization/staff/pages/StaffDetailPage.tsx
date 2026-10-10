@@ -107,7 +107,7 @@ export default function StaffDetailPage() {
                 )}
               </div>
               <div className="mt-2 flex items-center gap-2 flex-wrap">
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${
                   staff.status === 'ACTIVE' ? 'bg-emerald-500/20 text-emerald-200' :
                   staff.status === 'ON_LEAVE' ? 'bg-amber-500/20 text-amber-200' :
                   staff.status === 'SUSPENDED' ? 'bg-rose-500/20 text-rose-200' :
@@ -115,7 +115,7 @@ export default function StaffDetailPage() {
                 }`}>
                   {staff.status.replace('_', ' ')}
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-white">
+                <span className="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-white/10 text-white">
                   {staff.salaryType.replace('_', ' ')}
                 </span>
               </div>
@@ -161,7 +161,7 @@ export default function StaffDetailPage() {
               <Wallet className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Base Salary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">Base Salary</div>
               <div className="text-xl font-extrabold text-slate-900">
                 {staff.salaryType === 'COMMISSION' ? `${staff.baseSalary}%` : formatPKR(staff.baseSalary)}
               </div>
@@ -175,7 +175,7 @@ export default function StaffDetailPage() {
               <TrendingUp className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Total Paid</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">Total Paid</div>
               <div className="text-xl font-extrabold text-slate-900">{formatPKR(totalSalaryPaid)}</div>
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function StaffDetailPage() {
               <CheckCircle2 className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Attendance</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">Attendance</div>
               <div className="text-xl font-extrabold text-slate-900">{attendancePct.toFixed(0)}%</div>
             </div>
           </div>
@@ -199,7 +199,7 @@ export default function StaffDetailPage() {
               <Coffee className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Pending Leaves</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">Pending Leaves</div>
               <div className="text-xl font-extrabold text-slate-900">{pendingLeaves}</div>
             </div>
           </div>
@@ -335,7 +335,7 @@ export default function StaffDetailPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${
                         a.status === 'PRESENT' ? 'bg-emerald-100 text-emerald-700' :
                         a.status === 'LATE' ? 'bg-amber-100 text-amber-700' :
                         a.status === 'ABSENT' ? 'bg-rose-100 text-rose-700' :
@@ -388,14 +388,14 @@ export default function StaffDetailPage() {
                       <div className="text-right">
                         <div className="text-xl font-extrabold text-emerald-700">{formatPKR(p.netAmount)}</div>
                         <div className="flex items-center gap-1 mt-1 justify-end">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${
                             p.status === 'PAID' ? 'bg-emerald-100 text-emerald-700' :
                             p.status === 'PARTIAL' ? 'bg-amber-100 text-amber-700' :
                             'bg-slate-100 text-slate-700'
                           }`}>{p.status}</span>
                         </div>
                         {p.balanceAmount > 0 && (
-                          <div className="text-[10px] text-rose-600 font-bold mt-1">
+                          <div className="text-[0.6875rem] text-rose-600 font-bold mt-1">
                             Balance: {formatPKR(p.balanceAmount)}
                           </div>
                         )}
@@ -420,7 +420,7 @@ export default function StaffDetailPage() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-900">{l.type}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${
                             l.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
                             l.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
                             l.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' :
@@ -481,7 +481,7 @@ function InfoRow({ label, value, icon: Icon, mono }: { label: string; value?: st
     <div className="flex items-start gap-2">
       {Icon && <Icon className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />}
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">{label}</div>
         <div className={`text-sm text-slate-900 font-semibold truncate ${mono ? 'font-mono' : ''}`}>{value}</div>
       </div>
     </div>

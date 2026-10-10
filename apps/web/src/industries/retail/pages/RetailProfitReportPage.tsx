@@ -197,7 +197,7 @@ export default function RetailProfitReportPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
             <div className="text-xs font-bold text-slate-900">{printDate}</div>
           </div>
         </div>
@@ -212,7 +212,7 @@ export default function RetailProfitReportPage() {
 
         <div className="relative flex items-start justify-between flex-wrap gap-4">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <BarChart3 className="h-3.5 w-3.5 text-amber-300" /> Profit Intelligence
               {shopName && (
                 <>
@@ -324,14 +324,14 @@ export default function RetailProfitReportPage() {
           >
             <Filter className="h-4 w-4" /> Filters
             {hasActiveFilters && (
-              <span className="h-5 w-5 rounded-full bg-emerald-600 text-white text-[10px] font-extrabold flex items-center justify-center">!</span>
+              <span className="h-5 w-5 rounded-full bg-emerald-600 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">!</span>
             )}
           </button>
 
           <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
             <button
               onClick={() => expandedRows.size > 0 ? collapseAll() : expandAll()}
-              className="px-3 h-9 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900 text-[11px] font-extrabold transition inline-flex items-center gap-1.5"
+              className="px-3 h-9 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900 text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1.5"
             >
               {expandedRows.size > 0 ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
               {expandedRows.size > 0 ? 'Collapse' : 'Expand'} All
@@ -457,11 +457,11 @@ export default function RetailProfitReportPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{p.name}</div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">{p.quantitySold} {p.unit} sold</div>
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{p.quantitySold} {p.unit} sold</div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-rose-700 dark:text-rose-400 text-sm tabular-nums">{formatPKR(p.profit)}</div>
-                  <div className="text-[10px] text-rose-600 dark:text-rose-400 font-bold">{p.margin.toFixed(1)}%</div>
+                  <div className="text-[0.6875rem] text-rose-600 dark:text-rose-400 font-bold">{p.margin.toFixed(1)}%</div>
                 </div>
               </div>
             ))}
@@ -571,7 +571,7 @@ export default function RetailProfitReportPage() {
               <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">
                 Detailed Profit ({filteredProducts.length})
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
                 Period: {currentPeriod?.label}{hasActiveFilters && ' (filtered)'}
               </p>
             </div>
@@ -596,19 +596,19 @@ export default function RetailProfitReportPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm print:text-[10px]">
+            <table className="w-full text-sm print:text-[0.6875rem]">
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
                 <tr>
                   <th className="px-2 py-3 text-center w-10 print:hidden"></th>
-                  <th className="px-3 py-3 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 w-12">#</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Product</th>
-                  <th className="px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Cat / Brand</th>
-                  <th className="px-3 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sold</th>
-                  <th className="px-3 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Avg Price</th>
-                  <th className="px-3 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Revenue</th>
-                  {!hideCost && <th className="px-3 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Cost</th>}
-                  {!hideCost && <th className="px-3 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Profit</th>}
-                  {!hideCost && <th className="px-3 py-3 text-center text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Margin</th>}
+                  <th className="px-3 py-3 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 w-12">#</th>
+                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Product</th>
+                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Cat / Brand</th>
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sold</th>
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Avg Price</th>
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Revenue</th>
+                  {!hideCost && <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Cost</th>}
+                  {!hideCost && <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Profit</th>}
+                  {!hideCost && <th className="px-3 py-3 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Margin</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -641,7 +641,7 @@ export default function RetailProfitReportPage() {
                         </td>
                         <td className="px-3 py-3 text-center">
                           <span className={[
-                            'inline-flex items-center justify-center h-6 w-6 rounded-md text-[10px] font-extrabold',
+                            'inline-flex items-center justify-center h-6 w-6 rounded-md text-[0.6875rem] font-extrabold',
                             idx < 3 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
                           ].join(' ')}>
                             {idx + 1}
@@ -658,7 +658,7 @@ export default function RetailProfitReportPage() {
                             </div>
                             <div className="min-w-0">
                               <div className="font-extrabold text-slate-900 dark:text-white text-sm line-clamp-1">{p.name}</div>
-                              <div className="flex items-center gap-1.5 mt-0.5 text-[10px]">
+                              <div className="flex items-center gap-1.5 mt-0.5 text-[0.6875rem]">
                                 {p.sku && <span className="font-mono text-slate-500 dark:text-slate-400">{p.sku}</span>}
                                 {p.variantCount > 0 && (
                                   <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 font-extrabold">
@@ -679,14 +679,14 @@ export default function RetailProfitReportPage() {
                             </div>
                           )}
                           {p.brandName && (
-                            <div className="text-[10px] font-bold text-violet-700 dark:text-violet-400 mt-0.5 truncate">{p.brandName}</div>
+                            <div className="text-[0.6875rem] font-bold text-violet-700 dark:text-violet-400 mt-0.5 truncate">{p.brandName}</div>
                           )}
                         </td>
                         <td className="px-3 py-3 text-right">
                           <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">
                             {p.quantitySold.toFixed(p.quantitySold % 1 === 0 ? 0 : 2)}
                           </div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">{p.unit}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold uppercase">{p.unit}</div>
                         </td>
                         <td className="px-3 py-3 text-right text-xs font-bold text-slate-700 dark:text-slate-200 tabular-nums">
                           {formatPKR(p.avgSellPrice)}
@@ -713,7 +713,7 @@ export default function RetailProfitReportPage() {
                         {!hideCost && (
                           <td className="px-3 py-3 text-center">
                             <span className={[
-                              'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold',
+                              'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold',
                               isHigh ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
                               isMed ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300' :
                               isLow ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' :
@@ -764,7 +764,7 @@ export default function RetailProfitReportPage() {
         )}
       </Card>
 
-      <div className="hidden print:block text-center text-[10px] text-slate-500 border-t border-slate-300 pt-2 mt-4">
+      <div className="hidden print:block text-center text-[0.6875rem] text-slate-500 border-t border-slate-300 pt-2 mt-4">
         Generated by Nafaa POS • {tenantName || ''} • Auto-paginated
       </div>
 
@@ -912,7 +912,7 @@ function CardHeader({ icon: Icon, title, subtitle, tone }: any) {
       </div>
       <div>
         <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h3>
-        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">{subtitle}</p>
+        <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{subtitle}</p>
       </div>
     </div>
   );
@@ -933,10 +933,10 @@ function HeroTile({ icon: Icon, label, value, sub, tone, highlight }: any) {
     ].join(' ')}>
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className="h-3.5 w-3.5 text-white/90" />
-        <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/95">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/95">{label}</div>
       </div>
       <div className="text-lg sm:text-2xl font-extrabold text-white tabular-nums leading-tight truncate drop-shadow-sm">{value}</div>
-      <div className="text-[11px] font-bold text-white/85 mt-1 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-white/85 mt-1 truncate">{sub}</div>
     </div>
   );
 }
@@ -973,7 +973,7 @@ function TopProductCard({ product, rank, variant, hideCost }: { product: Product
       </div>
       <div className="min-w-0 flex-1">
         <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{product.name}</div>
-        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
           {product.quantitySold} {product.unit} • {product.ordersCount} orders
         </div>
       </div>
@@ -983,14 +983,14 @@ function TopProductCard({ product, rank, variant, hideCost }: { product: Product
             <div className="font-extrabold text-emerald-700 dark:text-emerald-400 text-sm tabular-nums">
               {hideCost ? '••••' : formatPKR(product.profit)}
             </div>
-            <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">{product.margin.toFixed(1)}%</div>
+            <div className="text-[0.6875rem] text-emerald-600 dark:text-emerald-400 font-bold">{product.margin.toFixed(1)}%</div>
           </>
         ) : (
           <>
             <div className="font-extrabold text-violet-700 dark:text-violet-400 text-base tabular-nums">
               {product.margin.toFixed(1)}%
             </div>
-            <div className="text-[10px] text-violet-600 dark:text-violet-400 font-bold">
+            <div className="text-[0.6875rem] text-violet-600 dark:text-violet-400 font-bold">
               {hideCost ? '••••' : formatPKR(product.profit)}
             </div>
           </>
@@ -1030,7 +1030,7 @@ function DetailBox({ label, value, tone = 'slate', mono }: any) {
   };
   return (
     <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5">
-      <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
       <div className={`text-sm font-extrabold mt-0.5 truncate ${tones[tone]} ${mono ? 'font-mono' : ''}`}>{value}</div>
     </div>
   );

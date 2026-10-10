@@ -140,29 +140,29 @@ export default function BooksPage() {
 
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {book.isBestSeller && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+                      <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
                         <TrendingUp className="h-2 w-2" />BEST
                       </span>
                     )}
                     {book.isNewArrival && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
                         <Sparkles className="h-2 w-2" />NEW
                       </span>
                     )}
                     {book.isAwardWinner && (
-                      <span className="px-1.5 py-0.5 rounded bg-purple-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+                      <span className="px-1.5 py-0.5 rounded bg-purple-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
                         <Award className="h-2 w-2" />AWARD
                       </span>
                     )}
                     {book.isRentable && (
-                      <span className="px-1.5 py-0.5 rounded bg-blue-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+                      <span className="px-1.5 py-0.5 rounded bg-blue-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
                         <BookMarked className="h-2 w-2" />RENT
                       </span>
                     )}
                   </div>
 
                   {book.condition !== 'NEW' && (
-                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-slate-900/80 text-white text-[9px] font-extrabold uppercase shadow">
+                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-slate-900/80 text-white text-[0.625rem] font-extrabold uppercase shadow">
                       {book.condition.replace('USED_', '').replace('_', ' ')}
                     </div>
                   )}
@@ -171,26 +171,26 @@ export default function BooksPage() {
                 <div className="p-3 space-y-1.5">
                   <div>
                     <h3 className="font-extrabold text-sm text-slate-900 dark:text-white line-clamp-2 leading-tight">{book.title}</h3>
-                    {book.subtitle && <div className="text-[10px] italic text-slate-500 line-clamp-1">{book.subtitle}</div>}
+                    {book.subtitle && <div className="text-[0.6875rem] italic text-slate-500 line-clamp-1">{book.subtitle}</div>}
                   </div>
 
                   {primaryAuthor && (
-                    <div className="text-[10px] font-extrabold text-blue-600 truncate">by {primaryAuthor.name}</div>
+                    <div className="text-[0.6875rem] font-extrabold text-blue-600 truncate">by {primaryAuthor.name}</div>
                   )}
 
                   <div className="flex flex-wrap gap-1">
-                    {cat && <span className="text-[9px] font-extrabold uppercase text-slate-500">{cat.emoji} {cat.label}</span>}
+                    {cat && <span className="text-[0.625rem] font-extrabold uppercase text-slate-500">{cat.emoji} {cat.label}</span>}
                     {book.isTextbook && book.grade && (
-                      <span className="text-[9px] font-extrabold uppercase text-violet-600">• {book.grade}</span>
+                      <span className="text-[0.625rem] font-extrabold uppercase text-violet-600">• {book.grade}</span>
                     )}
                   </div>
 
                   {book.isbn13 && (
-                    <div className="text-[9px] font-mono text-slate-400">ISBN: {book.isbn13}</div>
+                    <div className="text-[0.625rem] font-mono text-slate-400">ISBN: {book.isbn13}</div>
                   )}
 
                   {book.publisher && (
-                    <div className="flex items-center gap-1 text-[9px] text-slate-500 font-bold">
+                    <div className="flex items-center gap-1 text-[0.625rem] text-slate-500 font-bold">
                       <Building2 className="h-2.5 w-2.5" />
                       {book.publisher.name}
                     </div>
@@ -199,7 +199,7 @@ export default function BooksPage() {
                   <div className="pt-1 flex items-end justify-between">
                     <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">{formatPKR(book.product?.price ?? 0)}</div>
                     {book.avgRating && (
-                      <div className="text-[10px] font-extrabold text-amber-700 inline-flex items-center gap-0.5">
+                      <div className="text-[0.6875rem] font-extrabold text-amber-700 inline-flex items-center gap-0.5">
                         <Star className="h-2.5 w-2.5 fill-current" />
                         {book.avgRating.toFixed(1)}
                       </div>

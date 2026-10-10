@@ -160,7 +160,7 @@ export default function GamingDashboardPage() {
               <h3 className="font-extrabold text-slate-900 inline-flex items-center gap-2">
                 Live Sessions
                 {liveSessions.length > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-extrabold uppercase">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase">
                     <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" /> {liveSessions.length} running
                   </span>
                 )}
@@ -198,25 +198,25 @@ export default function GamingDashboardPage() {
                     <div className="font-extrabold text-slate-900 text-sm truncate">
                       {s.station?.name || s.station?.stationNumber || 'Station'}
                     </div>
-                    <span className={['inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase',
+                    <span className={['inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase',
                       paused ? 'bg-amber-500 text-white' : 'bg-emerald-500 text-white'].join(' ')}>
                       {paused ? <Pause className="h-2.5 w-2.5" /> : <Play className="h-2.5 w-2.5" />}
                       {paused ? 'Paused' : 'Live'}
                     </span>
                   </div>
-                  <div className="mt-1 text-[11px] font-bold text-slate-600 truncate">
+                  <div className="mt-1 text-[0.6875rem] font-bold text-slate-600 truncate">
                     {s.customerName || 'Walk-in'} • {s.playerCount || 1} player(s)
                     {s.gameSelected ? ` • ${s.gameSelected}` : ''}
                   </div>
                   <div className="mt-2 flex items-end justify-between">
                     <div>
-                      <div className="text-[9px] uppercase font-extrabold text-slate-500">Elapsed</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Elapsed</div>
                       <div className="text-lg font-extrabold text-slate-900 tabular-nums leading-none">
                         {Math.floor(mins / 60)}h {mins % 60}m
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[9px] uppercase font-extrabold text-slate-500">Running bill</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Running bill</div>
                       <div className="text-lg font-extrabold text-emerald-700 tabular-nums leading-none">
                         {formatPKR(amount)}
                       </div>
@@ -348,7 +348,7 @@ export default function GamingDashboardPage() {
                   <div className="font-extrabold text-sm truncate text-slate-900 group-hover:text-violet-700">
                     {p.product?.name || p.modelNumber || 'Product'}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                     {p.totalSold ?? 0} sold{p.totalRented ? ` • ${p.totalRented} rented` : ''}
                   </div>
                 </div>
@@ -391,14 +391,14 @@ export default function GamingDashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm truncate text-slate-900">{t.name}</div>
-                  <div className="text-[10px] text-slate-500 font-bold truncate">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
                     {t.gameName} • {t.platform?.replace(/_/g, ' ')} • {t.currentParticipants}/{t.maxParticipants} players
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500">Prize pool</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Prize pool</div>
                   <div className="font-extrabold text-rose-700 text-sm tabular-nums">{formatPKR(t.prizePool || 0)}</div>
-                  <div className="text-[9px] font-bold text-slate-500">
+                  <div className="text-[0.625rem] font-bold text-slate-500">
                     {new Date(t.scheduledDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                   </div>
                 </div>
@@ -423,10 +423,10 @@ function HeroTile({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3 sm:p-4`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-lg sm:text-xl font-extrabold text-white tabular-nums leading-none truncate">{value}</div>
-      <div className="text-[10px] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
     </div>
   );
 }
@@ -480,21 +480,21 @@ function StreamCard({ label, icon: Icon, tone, today, month, extra }: any) {
   return (
     <div className={`rounded-3xl bg-gradient-to-br from-white to-slate-50 border-2 ${parts[2]} p-4 shadow-sm`}>
       <div className="flex items-center justify-between gap-2">
-        <div className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white bg-gradient-to-r ${parts[0]} ${parts[1]}`}>
+        <div className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-wider text-white bg-gradient-to-r ${parts[0]} ${parts[1]}`}>
           <Icon className="h-3 w-3" /> {label}
         </div>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Today</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Today</div>
           <div className="text-base font-extrabold text-slate-900 tabular-nums leading-none mt-1">{formatPKR(today)}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">This month</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">This month</div>
           <div className="text-base font-extrabold text-emerald-700 tabular-nums leading-none mt-1">{formatPKR(month)}</div>
         </div>
       </div>
-      <div className="mt-2 text-[10px] font-bold text-slate-500">{extra}</div>
+      <div className="mt-2 text-[0.6875rem] font-bold text-slate-500">{extra}</div>
     </div>
   );
 }

@@ -56,7 +56,7 @@ export function IntegrationsSection() {
         <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-white/10 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-fuchsia-400/20 blur-3xl pointer-events-none" />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest">
             <Sparkles className="h-3 w-3 text-amber-300" />
             {INTEGRATION_CATALOG.length} Integrations Available
           </div>
@@ -68,15 +68,15 @@ export function IntegrationsSection() {
           <div className="mt-4 grid grid-cols-3 gap-3 max-w-sm">
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-2.5">
               <div className="text-2xl font-extrabold tabular-nums">{activeCount}</div>
-              <div className="text-[9px] font-extrabold uppercase tracking-widest text-white/70">Active</div>
+              <div className="text-[0.625rem] font-extrabold uppercase tracking-widest text-white/70">Active</div>
             </div>
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-2.5">
               <div className="text-2xl font-extrabold tabular-nums">{configuredCount}</div>
-              <div className="text-[9px] font-extrabold uppercase tracking-widest text-white/70">Configured</div>
+              <div className="text-[0.625rem] font-extrabold uppercase tracking-widest text-white/70">Configured</div>
             </div>
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-2.5">
               <div className="text-2xl font-extrabold tabular-nums">{INTEGRATION_CATALOG.length - configuredCount}</div>
-              <div className="text-[9px] font-extrabold uppercase tracking-widest text-white/70">Available</div>
+              <div className="text-[0.625rem] font-extrabold uppercase tracking-widest text-white/70">Available</div>
             </div>
           </div>
         </div>
@@ -123,7 +123,7 @@ export function IntegrationsSection() {
               {meta ? <span>{meta.icon}</span> : null}
               <span>{meta?.label || 'All'}</span>
               <span className={[
-                'px-1.5 rounded-md text-[10px] tabular-nums',
+                'px-1.5 rounded-md text-[0.6875rem] tabular-nums',
                 active ? 'bg-white/20 dark:bg-slate-900/20' : 'bg-slate-100 dark:bg-slate-800',
               ].join(' ')}>
                 {count}
@@ -177,33 +177,33 @@ export function IntegrationsSection() {
                     <div className="text-3xl">{intg.icon}</div>
                     <div className="flex flex-col gap-1 items-end">
                       {isActive && (
-                        <span className="text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest inline-flex items-center gap-1">
+                        <span className="text-[0.625rem] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest inline-flex items-center gap-1">
                           <Check className="h-2.5 w-2.5" strokeWidth={3} /> Active
                         </span>
                       )}
                       {isConfigured && !isActive && (
-                        <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded uppercase tracking-widest">
+                        <span className="text-[0.625rem] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded uppercase tracking-widest">
                           Off
                         </span>
                       )}
                       {intg.status === 'BETA' && (
-                        <span className="text-[9px] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest">
+                        <span className="text-[0.625rem] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 rounded uppercase tracking-widest">
                           Beta
                         </span>
                       )}
                       {intg.status === 'COMING_SOON' && (
-                        <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded uppercase tracking-widest">
+                        <span className="text-[0.625rem] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded uppercase tracking-widest">
                           Soon
                         </span>
                       )}
                     </div>
                   </div>
                   <div className="font-extrabold text-sm text-slate-900 dark:text-white">{intg.name}</div>
-                  <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-semibold line-clamp-2 leading-snug">
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-1 font-semibold line-clamp-2 leading-snug">
                     {intg.description}
                   </div>
                   <div className="mt-3 flex items-center justify-between">
-                    <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                    <span className="text-[0.625rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                       {CATEGORY_META[intg.category]?.label || intg.category}
                     </span>
                     <ChevronRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-0.5 group-hover:text-violet-500 transition" />
@@ -286,7 +286,7 @@ function IntegrationModal({ definition, installed, onClose, onSaved }: any) {
             <div className="flex items-center gap-3 min-w-0">
               <div className="text-5xl shrink-0">{definition.icon}</div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/70">
+                <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/70">
                   {CATEGORY_META[definition.category]?.label}
                 </div>
                 <h3 className="text-xl font-extrabold leading-tight">{definition.name}</h3>
@@ -368,7 +368,7 @@ function IntegrationModal({ definition, installed, onClose, onSaved }: any) {
             >
               {installed.lastTestResult.message}
               {installed.lastTestedAt && (
-                <div className="text-[10px] mt-1 opacity-70">
+                <div className="text-[0.6875rem] mt-1 opacity-70">
                   {new Date(installed.lastTestedAt).toLocaleString()}
                 </div>
               )}

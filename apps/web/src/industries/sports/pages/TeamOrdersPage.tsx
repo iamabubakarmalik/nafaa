@@ -177,11 +177,11 @@ function OrderCard({ order: o, onDelete }: any) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono font-extrabold text-slate-900 text-sm">{o.orderNumber}</span>
-            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
+            <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${meta.bg} ${meta.color}`}>
               <StatusIcon className="h-2.5 w-2.5" /> {meta.label}
             </span>
             {o.hasCustomJerseys && (
-              <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+              <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <Sparkles className="h-2.5 w-2.5" /> Custom Jerseys
               </span>
             )}
@@ -195,7 +195,7 @@ function OrderCard({ order: o, onDelete }: any) {
             {o.organization && <span className="inline-flex items-center gap-1"><Building className="h-3 w-3" /> {o.organization}</span>}
           </div>
 
-          <div className="flex items-center gap-3 mt-1 text-[10px] text-slate-500 font-bold">
+          <div className="flex items-center gap-3 mt-1 text-[0.6875rem] text-slate-500 font-bold">
             <span>{o.totalQuantity} pcs</span>
             <span className="text-slate-300">•</span>
             <span>{o.items?.length || 0} items</span>
@@ -212,13 +212,13 @@ function OrderCard({ order: o, onDelete }: any) {
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">Total</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total</div>
           <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(o.totalAmount)}</div>
-          <div className="text-[10px] font-bold text-slate-500 mt-0.5">
+          <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">
             Paid: <span className="text-emerald-700">{formatPKR(o.advancePaid)}</span>
           </div>
           {o.balanceAmount > 0 && (
-            <div className="text-[10px] font-extrabold text-rose-700 mt-0.5">
+            <div className="text-[0.6875rem] font-extrabold text-rose-700 mt-0.5">
               Balance: {formatPKR(o.balanceAmount)}
             </div>
           )}
@@ -258,7 +258,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
     <C onClick={onClick} className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-emerald-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

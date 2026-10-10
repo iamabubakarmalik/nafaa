@@ -294,7 +294,7 @@ export default function BundleFormPage() {
             {originalTotal > 0 && (
               <>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">Quick discount</div>
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">Quick discount</div>
                   <div className="flex flex-wrap gap-1.5">
                     {DISCOUNT_QUICK.map((d) => (
                       <button key={d} onClick={() => applyDiscount(d)}
@@ -311,7 +311,7 @@ export default function BundleFormPage() {
                   'bg-amber-50 border-amber-300'}`}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <div className={`text-[10px] uppercase tracking-wider font-extrabold ${
+                      <div className={`text-[0.6875rem] uppercase tracking-wider font-extrabold ${
                         isLoss ? 'text-rose-700' : savingsPct >= 15 ? 'text-emerald-700' : 'text-amber-700'}`}>
                         {isLoss ? '⚠️ Loss!' : 'Customer Savings'}
                       </div>
@@ -340,7 +340,7 @@ export default function BundleFormPage() {
                   className="h-5 w-5 rounded" />
                 <div>
                   <div className="text-sm font-extrabold text-pink-900">🎀 Includes Gift Wrap</div>
-                  <div className="text-[10px] font-bold text-pink-700">Beautifully wrapped</div>
+                  <div className="text-[0.6875rem] font-bold text-pink-700">Beautifully wrapped</div>
                 </div>
               </label>
               <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-violet-200 bg-violet-50 cursor-pointer">
@@ -349,7 +349,7 @@ export default function BundleFormPage() {
                   className="h-5 w-5 rounded" />
                 <div>
                   <div className="text-sm font-extrabold text-violet-900">💌 Greeting Card</div>
-                  <div className="text-[10px] font-bold text-violet-700">Custom message</div>
+                  <div className="text-[0.6875rem] font-bold text-violet-700">Custom message</div>
                 </div>
               </label>
             </div>
@@ -419,7 +419,7 @@ export default function BundleFormPage() {
         <aside className="flex flex-col gap-3 xl:sticky xl:top-4 xl:self-start">
           <div className="rounded-3xl bg-white border-2 border-fuchsia-300 shadow-lg overflow-hidden">
             <div className="px-4 py-2 border-b border-slate-100 bg-gradient-to-r from-fuchsia-50 to-pink-50">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-fuchsia-700 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-fuchsia-700 flex items-center gap-1">
                 <Sparkles className="h-3 w-3" /> Live Preview
               </div>
             </div>
@@ -432,7 +432,7 @@ export default function BundleFormPage() {
                 </div>
               )}
               {form.occasion && (
-                <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-fuchsia-600 text-white text-[9px] font-extrabold uppercase shadow">
+                <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-fuchsia-600 text-white text-[0.625rem] font-extrabold uppercase shadow">
                   {form.occasion}
                 </div>
               )}
@@ -459,15 +459,15 @@ export default function BundleFormPage() {
               </div>
               {(form.hasGiftWrap || form.includesGreetingCard) && (
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {form.hasGiftWrap && <span className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 text-[9px] font-extrabold">🎀 Gift Wrap</span>}
-                  {form.includesGreetingCard && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold">💌 Card</span>}
+                  {form.hasGiftWrap && <span className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 text-[0.625rem] font-extrabold">🎀 Gift Wrap</span>}
+                  {form.includesGreetingCard && <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold">💌 Card</span>}
                 </div>
               )}
             </div>
           </div>
 
           <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 space-y-1.5">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3" /> Checklist
             </div>
             <Chk done={!!form.name.trim()} label="Bundle name" />

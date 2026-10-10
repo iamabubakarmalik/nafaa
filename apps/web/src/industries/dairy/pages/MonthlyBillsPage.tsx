@@ -55,13 +55,13 @@ export default function MonthlyBillsPage() {
 
       <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 flex gap-3 flex-wrap items-end">
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Month</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Month</label>
           <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500">
             {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
           </select>
         </div>
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Year</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Year</label>
           <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="h-10 w-24 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500" />
         </div>
         <div className="flex gap-1.5">
@@ -123,10 +123,10 @@ export default function MonthlyBillsPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold">{b.billNumber}</span>
                       <span className={
-                        'px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' +
+                        'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +
                         (b.isPaid ? 'bg-emerald-600' : 'bg-amber-500')
                       }>{b.isPaid ? 'PAID' : 'PENDING'}</span>
-                      {b.sentToCustomer && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase">SENT</span>}
+                      {b.sentToCustomer && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">SENT</span>}
                     </div>
                     <div className="text-xs text-slate-500 font-semibold">{MONTHS[b.month - 1]} {b.year} • {b.totalDeliveries} deliveries • {b.totalLiters.toFixed(1)}L</div>
                   </div>
@@ -134,18 +134,18 @@ export default function MonthlyBillsPage() {
 
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-slate-500">Total</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Total</div>
                     <div className="text-lg font-extrabold tabular-nums">{formatPKR(b.totalAmount)}</div>
                   </div>
                   {b.paidAmount > 0 && (
                     <div className="text-center">
-                      <div className="text-[9px] uppercase font-extrabold text-emerald-700">Paid</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Paid</div>
                       <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(b.paidAmount)}</div>
                     </div>
                   )}
                   {b.remainingAmount > 0 && (
                     <div className="text-center">
-                      <div className="text-[9px] uppercase font-extrabold text-rose-700">Due</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-rose-700">Due</div>
                       <div className="text-sm font-extrabold text-rose-700 tabular-nums">{formatPKR(b.remainingAmount)}</div>
                     </div>
                   )}

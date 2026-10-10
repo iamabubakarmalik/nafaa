@@ -117,8 +117,8 @@ export default function DashboardPage() {
             <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-semibold">
               <Sparkles className="h-3.5 w-3.5 text-amber-300" />
               {tenant?.name || 'Your Shop'}
-              {isCarpet && <span className="ml-1 px-1.5 py-0.5 rounded bg-emerald-500/30 text-[10px] font-extrabold uppercase">Carpet</span>}
-              {isMobile && <span className="ml-1 px-1.5 py-0.5 rounded bg-blue-500/30 text-[10px] font-extrabold uppercase">Mobile</span>}
+              {isCarpet && <span className="ml-1 px-1.5 py-0.5 rounded bg-emerald-500/30 text-[0.6875rem] font-extrabold uppercase">Carpet</span>}
+              {isMobile && <span className="ml-1 px-1.5 py-0.5 rounded bg-blue-500/30 text-[0.6875rem] font-extrabold uppercase">Mobile</span>}
             </div>
             <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold leading-tight">
               Aaj ka asli profit
@@ -499,7 +499,7 @@ export default function DashboardPage() {
                 <div>
                   <div className="flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-90">Register Open</span>
+                    <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider opacity-90">Register Open</span>
                   </div>
                   <h3 className="text-2xl font-bold mt-1">{formatPKR(stats.registerExpected)}</h3>
                 </div>
@@ -517,7 +517,7 @@ export default function DashboardPage() {
                   <Wallet className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800">Register Closed</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-amber-800">Register Closed</div>
                   <h3 className="text-base font-bold text-amber-900 mt-1">Open to start</h3>
                 </div>
               </div>
@@ -536,7 +536,7 @@ export default function DashboardPage() {
                 <Boxes className="h-6 w-6" />
               </div>
               <div className="flex-1">
-                <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Stock Value</div>
+                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500">Stock Value</div>
                 <h3 className="text-2xl font-bold text-slate-900">{formatPKR(stats?.inventoryValueAtCost ?? 0)}</h3>
               </div>
             </div>
@@ -562,7 +562,7 @@ export default function DashboardPage() {
                   <BookOpen className="h-6 w-6" />
                 </div>
                 <div>
-                  <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-90">Total Udhaar</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider opacity-90">Total Udhaar</div>
                   <h3 className="text-2xl font-bold mt-1">{formatPKR(stats?.totalUdhaar ?? 0)}</h3>
                 </div>
               </div>
@@ -578,7 +578,7 @@ export default function DashboardPage() {
                 <BookOpen className="h-6 w-6 text-white" />
               </div>
               <div>
-                <div className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">All Clear!</div>
+                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-700">All Clear!</div>
                 <h3 className="text-base font-bold text-emerald-900">No Udhaar Outstanding</h3>
               </div>
             </div>
@@ -699,7 +699,7 @@ export default function DashboardPage() {
                       <div className={`font-extrabold text-lg ${isOut ? 'text-rose-700' : 'text-amber-700'}`}>
                         {p.stock}
                       </div>
-                      <div className={`text-[10px] font-extrabold uppercase ${isOut ? 'text-rose-700' : 'text-amber-700'}`}>
+                      <div className={`text-[0.6875rem] font-extrabold uppercase ${isOut ? 'text-rose-700' : 'text-amber-700'}`}>
                         {isOut ? 'OUT' : 'LOW'}
                       </div>
                     </div>
@@ -840,7 +840,7 @@ export default function DashboardPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="font-bold text-slate-900 truncate font-mono text-xs">{sale.saleNumber}</div>
-                        <div className="text-[11px] text-slate-500 truncate">
+                        <div className="text-[0.6875rem] text-slate-500 truncate">
                           {sale.customer?.name || 'Walk-in'} • {formatDate(sale.soldAt)}
                         </div>
                       </div>
@@ -848,7 +848,7 @@ export default function DashboardPage() {
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-emerald-700 text-sm">{formatPKR(sale.total)}</div>
                       {sale.creditAmount > 0 && (
-                        <div className="text-[10px] text-amber-700 font-bold">Udhaar: {formatPKR(sale.creditAmount)}</div>
+                        <div className="text-[0.6875rem] text-amber-700 font-bold">Udhaar: {formatPKR(sale.creditAmount)}</div>
                       )}
                     </div>
                   </Link>
@@ -931,7 +931,7 @@ function HeroKpiCard({ title, value, subtitle, icon: Icon, color, isHighlight, t
           <h3 className="mt-2 text-2xl font-extrabold text-slate-900 truncate tabular-nums">{value}</h3>
           <p className="mt-1 text-xs text-slate-500 truncate">{subtitle}</p>
           {trend !== undefined && trend !== 0 && (
-            <div className={`mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
+            <div className={`mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[0.6875rem] font-extrabold ${
               trend >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
             }`}>
               {trend >= 0 ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
@@ -968,9 +968,9 @@ function IndustryStatCard({ label, value, sub, icon: Icon, color }: any) {
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-bold text-slate-500">{label}</div>
         <div className="text-lg font-extrabold text-slate-900 tabular-nums">{value}</div>
-        <div className="text-[10px] text-slate-500 font-bold">{sub}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-bold">{sub}</div>
       </div>
     </div>
   );

@@ -116,7 +116,7 @@ export default function PurchaseDetailPage() {
             <span className={`px-3 py-1 rounded-full border-2 text-xs font-extrabold ${statusColors[purchase.status]}`}>
               {purchase.status}
             </span>
-            <div className="mt-2 text-[10px] uppercase tracking-wider text-white/60 print:text-slate-500">Payment</div>
+            <div className="mt-2 text-[0.6875rem] uppercase tracking-wider text-white/60 print:text-slate-500">Payment</div>
             <div className="text-sm font-extrabold mt-0.5 inline-flex items-center gap-1.5">
               <PayIcon className="h-3.5 w-3.5" />
               {paymentLabels[purchase.paymentMethod] || purchase.paymentMethod}
@@ -145,7 +145,7 @@ export default function PurchaseDetailPage() {
             <Building2 className="h-6 w-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">Supplier Information</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-extrabold">Supplier Information</div>
             <h3 className="text-xl font-extrabold text-slate-900 mt-0.5">{purchase.supplier?.name}</h3>
             <div className="mt-2 grid sm:grid-cols-2 gap-2 text-xs">
               {purchase.supplier?.phone && (
@@ -195,11 +195,11 @@ export default function PurchaseDetailPage() {
           <table className="w-full text-sm">
             <thead className="bg-gradient-to-r from-slate-100 to-slate-50 border-b-2 border-slate-200">
               <tr>
-                <th className="px-4 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 w-12">#</th>
-                <th className="px-4 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Product</th>
-                <th className="px-4 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Qty</th>
-                <th className="px-4 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Cost</th>
-                <th className="px-4 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Total</th>
+                <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 w-12">#</th>
+                <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Product</th>
+                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Qty</th>
+                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Cost</th>
+                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Total</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -219,9 +219,9 @@ export default function PurchaseDetailPage() {
                         </div>
                         <div>
                           <div className="font-extrabold text-slate-900 text-sm">{item.product.name}</div>
-                          <div className="text-[10px] text-slate-500 font-mono uppercase">{item.product.unit}</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-mono uppercase">{item.product.unit}</div>
                           {itemRolls.length > 0 && (
-                            <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700">
+                            <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700">
                               <Layers className="h-2.5 w-2.5" />
                               {itemRolls.length} roll{itemRolls.length !== 1 ? 's' : ''} created
                             </div>
@@ -233,7 +233,7 @@ export default function PurchaseDetailPage() {
                       <div className="font-extrabold text-slate-900 tabular-nums">
                         {formatQty(item.quantity)}
                       </div>
-                      <div className="text-[10px] text-slate-500 font-bold uppercase">{item.product.unit}</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">{item.product.unit}</div>
                     </td>
                     <td className="px-4 py-3 text-right text-sm font-bold text-slate-700 tabular-nums">
                       {formatPKR(item.costPrice)}
@@ -285,7 +285,7 @@ export default function PurchaseDetailPage() {
               </div>
               <div>
                 <h3 className="font-extrabold text-emerald-900">Carpet Rolls Created</h3>
-                <p className="text-[11px] text-emerald-700 font-bold">
+                <p className="text-[0.6875rem] text-emerald-700 font-bold">
                   {carpetRolls.length} rolls • {totalSqftCreated.toFixed(2)} sqft total
                 </p>
               </div>
@@ -301,13 +301,13 @@ export default function PurchaseDetailPage() {
             <table className="w-full text-sm">
               <thead className="bg-emerald-100/50 border-b border-emerald-200">
                 <tr>
-                  <th className="px-4 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-emerald-900">Roll #</th>
-                  <th className="px-4 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-emerald-900">Product / Variant</th>
-                  <th className="px-4 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-emerald-900">Dimensions</th>
-                  <th className="px-4 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-emerald-900">Sqft</th>
-                  <th className="px-4 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-emerald-900">Cost/sqft</th>
-                  <th className="px-4 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-emerald-900">Sale/sqft</th>
-                  <th className="px-4 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-emerald-900">Status</th>
+                  <th className="px-4 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Roll #</th>
+                  <th className="px-4 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Product / Variant</th>
+                  <th className="px-4 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Dimensions</th>
+                  <th className="px-4 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Sqft</th>
+                  <th className="px-4 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Cost/sqft</th>
+                  <th className="px-4 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Sale/sqft</th>
+                  <th className="px-4 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-emerald-100">
@@ -320,13 +320,13 @@ export default function PurchaseDetailPage() {
                           {roll.rollNumber}
                         </Link>
                         {roll.designCode && (
-                          <div className="text-[9px] font-mono text-slate-500 mt-0.5">{roll.designCode}</div>
+                          <div className="text-[0.625rem] font-mono text-slate-500 mt-0.5">{roll.designCode}</div>
                         )}
                       </td>
                       <td className="px-4 py-2.5">
                         <div className="font-bold text-slate-900 text-xs">{roll.product.name}</div>
                         {roll.variant && (
-                          <div className="text-[10px] text-violet-700 font-bold flex items-center gap-1 mt-0.5">
+                          <div className="text-[0.6875rem] text-violet-700 font-bold flex items-center gap-1 mt-0.5">
                             {roll.variant.colorHex && (
                               <span className="h-2 w-2 rounded-full border border-slate-300" style={{ backgroundColor: roll.variant.colorHex }} />
                             )}
@@ -351,7 +351,7 @@ export default function PurchaseDetailPage() {
                         {roll.salePricePerSqft > 0 ? formatPKR(roll.salePricePerSqft) : '—'}
                       </td>
                       <td className="px-4 py-2.5">
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${
+                        <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold ${
                           roll.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
                           roll.status === 'FINISHED' ? 'bg-slate-100 text-slate-700' :
                           'bg-amber-100 text-amber-700'
@@ -375,7 +375,7 @@ export default function PurchaseDetailPage() {
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-amber-900">Notes</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-900">Notes</div>
             <div className="text-sm text-amber-900 mt-0.5 font-semibold">{purchase.notes}</div>
           </div>
         </div>
@@ -388,7 +388,7 @@ export default function PurchaseDetailPage() {
           Stock Successfully Received & Updated
           <Award className="h-4 w-4 text-amber-500" />
         </div>
-        <div className="text-[10px] text-slate-500 mt-2 inline-flex items-center gap-1">
+        <div className="text-[0.6875rem] text-slate-500 mt-2 inline-flex items-center gap-1">
           <Sparkles className="h-2.5 w-2.5" />
           Powered by Nafaa POS • Generated {formatDate(new Date().toISOString())}
         </div>
@@ -409,7 +409,7 @@ function StatBox({ label, value, icon: Icon, color, highlight }: any) {
     <div className={`rounded-2xl bg-gradient-to-br border-2 p-4 ${colors[color]} ${highlight ? 'shadow-lg' : ''}`}>
       <div className="flex items-center gap-2 mb-2">
         <Icon className="h-3.5 w-3.5" />
-        <div className="text-[10px] uppercase tracking-wider font-extrabold opacity-80">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-80">{label}</div>
       </div>
       <div className={`font-extrabold tabular-nums ${highlight ? 'text-2xl' : 'text-xl'}`}>{value}</div>
     </div>

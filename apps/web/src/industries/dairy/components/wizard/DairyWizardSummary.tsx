@@ -26,7 +26,7 @@ export function DairyWizardSummary({ draft, stats, allValid }: Props) {
       <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-fuchsia-900 to-pink-700 text-white p-5 shadow-xl overflow-hidden relative">
         <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-fuchsia-400/20 blur-2xl" />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-extrabold border border-white/20">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold border border-white/20">
             {allValid ? (
               <><CheckCircle2 className="h-3 w-3 text-emerald-300" /> Ready to Save</>
             ) : (
@@ -38,17 +38,17 @@ export function DairyWizardSummary({ draft, stats, allValid }: Props) {
           </h3>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {draft.basic.isFeatured && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 text-[9px] font-extrabold uppercase border border-amber-300/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 text-[0.625rem] font-extrabold uppercase border border-amber-300/40">
                 <Star className="h-2 w-2 fill-current" /> Featured
               </span>
             )}
             {draft.basic.isBestSeller && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/30 text-emerald-200 text-[9px] font-extrabold uppercase border border-emerald-300/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/30 text-emerald-200 text-[0.625rem] font-extrabold uppercase border border-emerald-300/40">
                 <TrendingUp className="h-2 w-2" /> Best Seller
               </span>
             )}
             {draft.composition.isOrganic && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/30 text-green-200 text-[9px] font-extrabold uppercase border border-green-300/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-500/30 text-green-200 text-[0.625rem] font-extrabold uppercase border border-green-300/40">
                 <Leaf className="h-2 w-2" /> Organic
               </span>
             )}
@@ -70,12 +70,12 @@ export function DairyWizardSummary({ draft, stats, allValid }: Props) {
 
         {stats.qualityBadges.length > 0 && (
           <div className="p-3 border-t border-slate-100">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 flex items-center gap-1">
               <Award className="h-3 w-3" /> Quality Attributes
             </div>
             <div className="flex flex-wrap gap-1">
               {stats.qualityBadges.map((b) => (
-                <span key={b} className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">
+                <span key={b} className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold">
                   {b}
                 </span>
               ))}
@@ -85,12 +85,12 @@ export function DairyWizardSummary({ draft, stats, allValid }: Props) {
 
         {stats.slotBadges.length > 0 && (
           <div className="p-3 border-t border-slate-100 bg-gradient-to-br from-fuchsia-50 to-white">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-fuchsia-700 mb-2 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-fuchsia-700 mb-2 flex items-center gap-1">
               <Truck className="h-3 w-3" /> Availability
             </div>
             <div className="flex flex-wrap gap-1">
               {stats.slotBadges.map((b) => (
-                <span key={b} className="px-1.5 py-0.5 rounded bg-fuchsia-100 text-fuchsia-700 text-[10px] font-extrabold inline-flex items-center gap-0.5">
+                <span key={b} className="px-1.5 py-0.5 rounded bg-fuchsia-100 text-fuchsia-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-0.5">
                   {b === 'Morning' && <Sunrise className="h-2 w-2" />}
                   {b === 'Evening' && <Sunset className="h-2 w-2" />}
                   {b === 'Home Delivery' && <Truck className="h-2 w-2" />}
@@ -106,7 +106,7 @@ export function DairyWizardSummary({ draft, stats, allValid }: Props) {
             <div className="flex items-center gap-2">
               <Thermometer className="h-4 w-4 text-cyan-700" />
               <div className="flex-1">
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-cyan-700">
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-cyan-700">
                   Storage Temp
                 </div>
                 <div className="text-sm font-extrabold text-cyan-900 tabular-nums">
@@ -120,7 +120,7 @@ export function DairyWizardSummary({ draft, stats, allValid }: Props) {
 
       {Number(draft.basic.salePrice || 0) > 0 && (
         <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-2.5">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
             <DollarSign className="h-3 w-3" /> Finance
           </div>
           <Row label="Sale price" value={formatPKRFull(Number(draft.basic.salePrice || 0))} tone="emerald" />
@@ -142,7 +142,7 @@ export function DairyWizardSummary({ draft, stats, allValid }: Props) {
                   {formatPKRFull(stats.profit)}
                 </div>
               </div>
-              <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
+              <div className="flex items-center justify-between text-[0.6875rem] font-bold text-slate-500">
                 <span>Margin</span>
                 <span className={stats.margin >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
                   {stats.margin.toFixed(1)}%
@@ -153,7 +153,7 @@ export function DairyWizardSummary({ draft, stats, allValid }: Props) {
         </div>
       )}
 
-      <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-[10px] text-slate-500 font-semibold text-center">
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-[0.6875rem] text-slate-500 font-semibold text-center">
         💾 Draft auto-saves — safai se close karo, wapas mile ga
       </div>
     </aside>
@@ -171,7 +171,7 @@ function StatCell({ icon: Icon, label, value, tone }: any) {
     <div className="p-4">
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={['h-3 w-3', tones[tone]].join(' ')} />
-        <div className={['text-[10px] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
+        <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
       </div>
       <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{value}</div>
     </div>

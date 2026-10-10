@@ -269,8 +269,8 @@ export function CarpetWizardStep1Basic({ basic, onChange, errors }: Props) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 text-sm">{t.label}</div>
-                  <div className="text-[11px] text-slate-600 font-semibold leading-snug mt-0.5">{t.desc}</div>
-                  <div className="text-[10px] text-slate-500 font-bold italic mt-1">{t.examples}</div>
+                  <div className="text-[0.6875rem] text-slate-600 font-semibold leading-snug mt-0.5">{t.desc}</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-bold italic mt-1">{t.examples}</div>
                 </div>
               </button>
             );
@@ -330,7 +330,7 @@ export function CarpetWizardStep1Basic({ basic, onChange, errors }: Props) {
               placeholder="0"
               className="h-14 w-full rounded-2xl border-2 border-slate-200 bg-white px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-slate-500"
             />
-            <p className="text-[11px] text-slate-500 font-bold mt-1">Purchase price</p>
+            <p className="text-[0.6875rem] text-slate-500 font-bold mt-1">Purchase price</p>
           </div>
           <div>
             <label className="block text-xs font-extrabold uppercase text-emerald-700 mb-1.5">Bikri Rate (Sale) *</label>
@@ -343,13 +343,13 @@ export function CarpetWizardStep1Basic({ basic, onChange, errors }: Props) {
               placeholder="0"
               className="h-14 w-full rounded-2xl border-2 border-emerald-400 bg-emerald-50 px-4 text-2xl font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200"
             />
-            <p className="text-[11px] text-emerald-700 font-bold mt-1">Customer rate</p>
+            <p className="text-[0.6875rem] text-emerald-700 font-bold mt-1">Customer rate</p>
           </div>
         </div>
 
         {cost > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Fatafat markup lagao
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -376,7 +376,7 @@ export function CarpetWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div className="flex items-center gap-2.5">
                 <TrendingUp className={['h-6 w-6', isLoss ? 'text-rose-700' : margin >= 25 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
                 <div>
-                  <div className={['text-[10px] uppercase tracking-wider font-extrabold', isLoss ? 'text-rose-700' : margin >= 25 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
+                  <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold', isLoss ? 'text-rose-700' : margin >= 25 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                     {isLoss ? '⚠️ NUQSAAN HO RAHA HAI' : `Faida per ${priceUnitLabel}`}
                   </div>
                   <div className={['text-2xl font-extrabold tabular-nums', isLoss ? 'text-rose-900' : 'text-slate-900'].join(' ')}>
@@ -593,7 +593,7 @@ export function CarpetWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div key={url + i} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt="" className="w-full h-full object-cover" />
                 {i === 0 && (
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-emerald-600 text-white text-[9px] font-extrabold">
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-emerald-600 text-white text-[0.625rem] font-extrabold">
                     MAIN
                   </div>
                 )}
@@ -655,7 +655,7 @@ function Toggle({ checked, onChange, icon: Icon, title, desc }: { checked: boole
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-extrabold text-slate-900 text-sm">{title}</div>
-        <div className="text-[11px] text-slate-500 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-semibold">{desc}</div>
       </div>
       <div className={['h-7 w-12 rounded-full transition relative shrink-0', checked ? 'bg-emerald-600' : 'bg-slate-300'].join(' ')}>
         <div className={['absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all', checked ? 'left-6' : 'left-1'].join(' ')} />

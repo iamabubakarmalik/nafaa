@@ -86,7 +86,7 @@ export default function NotificationCenterPage() {
               <Bell className="h-3.5 w-3.5" />
               Notification Center
               {counts.unread > 0 && (
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-white text-[9px] animate-pulse">
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-white text-[0.625rem] animate-pulse">
                   {counts.unread} new
                 </span>
               )}
@@ -184,7 +184,7 @@ function HeroKpi({ label, value, icon: Icon, highlight }: any) {
     }`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
       </div>
       <div className="text-xl font-black leading-none tabular-nums">{value}</div>
     </div>
@@ -211,11 +211,11 @@ function NotificationCard({ notification: n, onMarkRead, onDelete }: any) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${priorityMeta.bg} ${priorityMeta.color}`}>
+            <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${priorityMeta.bg} ${priorityMeta.color}`}>
               {priorityMeta.label}
             </span>
-            <span className="text-[10px] font-black text-slate-500">{n.type.replace(/_/g, ' ')}</span>
-            <span className="text-[10px] font-bold text-slate-400 ml-auto">{relativeTime(n.createdAt)}</span>
+            <span className="text-[0.6875rem] font-black text-slate-500">{n.type.replace(/_/g, ' ')}</span>
+            <span className="text-[0.6875rem] font-bold text-slate-400 ml-auto">{relativeTime(n.createdAt)}</span>
           </div>
 
           <h3 className="font-black text-slate-900">{n.title}</h3>
@@ -348,7 +348,7 @@ function NotificationSettingsModal({ onClose }: any) {
             {prefs.quietHoursEnabled && (
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-black text-slate-600 uppercase">From</label>
+                  <label className="text-[0.6875rem] font-black text-slate-600 uppercase">From</label>
                   <input
                     type="time"
                     value={prefs.quietHoursStart || '22:00'}
@@ -357,7 +357,7 @@ function NotificationSettingsModal({ onClose }: any) {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-600 uppercase">To</label>
+                  <label className="text-[0.6875rem] font-black text-slate-600 uppercase">To</label>
                   <input
                     type="time"
                     value={prefs.quietHoursEnd || '07:00'}

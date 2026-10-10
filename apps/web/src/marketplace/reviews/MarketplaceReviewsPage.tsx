@@ -52,7 +52,7 @@ export default function MarketplaceReviewsPage() {
               <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" />
               Customer Reviews
               {counts.unresponded > 0 && (
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] animate-pulse">
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem] animate-pulse">
                   {counts.unresponded} PENDING
                 </span>
               )}
@@ -206,7 +206,7 @@ function ReviewCard({ review, onReply, onHide, onReport }: any) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-black text-slate-900">{review.customer?.fullName || 'Anonymous'}</span>
             {review.isVerifiedPurchase && (
-              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 inline-flex items-center gap-0.5">
+              <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 inline-flex items-center gap-0.5">
                 <CheckCircle2 className="h-2.5 w-2.5" />
                 Verified
               </span>
@@ -218,7 +218,7 @@ function ReviewCard({ review, onReply, onHide, onReport }: any) {
                 <Star key={i} className={`h-3.5 w-3.5 ${i < review.rating ? 'fill-current' : ''}`} />
               ))}
             </div>
-            <span className="text-[10px] text-slate-500 font-bold">{relativeTime(review.createdAt)}</span>
+            <span className="text-[0.6875rem] text-slate-500 font-bold">{relativeTime(review.createdAt)}</span>
           </div>
 
           {review.title && (
@@ -248,12 +248,12 @@ function ReviewCard({ review, onReply, onHide, onReport }: any) {
 
           {hasReply && (
             <div className="mt-4 ml-4 pl-4 border-l-4 border-emerald-300 bg-emerald-50 rounded-r-lg p-3">
-              <div className="text-[10px] font-black uppercase tracking-wider text-emerald-700 mb-1">
+              <div className="text-[0.6875rem] font-black uppercase tracking-wider text-emerald-700 mb-1">
                 🏪 Shop Reply
               </div>
               <p className="text-sm text-slate-700 font-medium">{review.replyFromShop}</p>
               {review.repliedAt && (
-                <div className="text-[10px] text-slate-500 font-bold mt-1">{relativeTime(review.repliedAt)}</div>
+                <div className="text-[0.6875rem] text-slate-500 font-bold mt-1">{relativeTime(review.repliedAt)}</div>
               )}
             </div>
           )}
@@ -345,7 +345,7 @@ function ReplyModal({ review, onClose, onSuccess }: any) {
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {review.comment && (
             <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-              <div className="text-[10px] font-black uppercase text-slate-500 mb-1">Original Review</div>
+              <div className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1">Original Review</div>
               <p className="text-sm text-slate-700 font-medium">{review.comment}</p>
             </div>
           )}
@@ -361,13 +361,13 @@ function ReplyModal({ review, onClose, onSuccess }: any) {
               className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 text-sm outline-none focus:border-emerald-500 resize-none"
               autoFocus
             />
-            <div className="text-right text-[10px] font-bold text-slate-400 mt-1">
+            <div className="text-right text-[0.6875rem] font-bold text-slate-400 mt-1">
               {reply.length}/500
             </div>
           </div>
 
           <div>
-            <div className="text-[10px] font-black uppercase text-slate-500 mb-2">Quick Templates</div>
+            <div className="text-[0.6875rem] font-black uppercase text-slate-500 mb-2">Quick Templates</div>
             <div className="space-y-1.5">
               {templates.map((t, i) => (
                 <button

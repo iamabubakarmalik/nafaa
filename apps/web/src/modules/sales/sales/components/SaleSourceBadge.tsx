@@ -13,7 +13,7 @@ export function SaleSourceBadge({ sale, className = '' }: { sale: { source?: str
   const s = sale.source && sale.source !== 'POS' ? SOURCE[sale.source] : null;
   if (!s) return null;
   return (
-    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold inline-flex items-center gap-1 whitespace-nowrap ${s.cls} ${className}`} title={sale.sourceRef ? `Online order #${sale.sourceRef}` : undefined}>
+    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold inline-flex items-center gap-1 whitespace-nowrap ${s.cls} ${className}`} title={sale.sourceRef ? `Online order #${sale.sourceRef}` : undefined}>
       {s.emoji} {s.label}{sale.sourceRef ? ` #${sale.sourceRef}` : ''}
     </span>
   );

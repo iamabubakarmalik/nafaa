@@ -64,8 +64,8 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   return (
     <div>
       <div className="mb-2 flex flex-wrap items-baseline gap-2">
-        <h2 className="text-[14px] font-semibold text-slate-900 dark:text-white">{title}</h2>
-        {hint && <span className="text-[12.5px] text-slate-500">{hint}</span>}
+        <h2 className="text-[0.875rem] font-semibold text-slate-900 dark:text-white">{title}</h2>
+        {hint && <span className="text-[0.78125rem] text-slate-500">{hint}</span>}
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
     </div>
@@ -81,13 +81,13 @@ function CourierTile({ c }: { c: CourierAccount }) {
         <CourierLogo c={c} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="truncate text-[14px] font-semibold text-slate-900 dark:text-white">{c.name}</span>
+            <span className="truncate text-[0.875rem] font-semibold text-slate-900 dark:text-white">{c.name}</span>
             {c.connected
               ? c.lastError ? <Badge tone="critical" dot>Masla</Badge> : <Badge tone={c.active ? 'success' : 'neutral'} dot>{c.active ? 'Jura hua' : 'Band'}</Badge>
               : c.mode === 'api' ? <Badge tone="info"><Zap className="mr-0.5 inline h-3 w-3" />Ek click</Badge>
                 : <Badge><PenLine className="mr-0.5 inline h-3 w-3" />Manual</Badge>}
           </div>
-          <div className="truncate text-[12px] text-slate-500">
+          <div className="truncate text-[0.75rem] text-slate-500">
             {c.connected
               ? c.lastSyncAt ? `Sync ${timeAgo(c.lastSyncAt)}` : 'Abhi sync nahi hua'
               : c.mode === 'api' ? 'Booking · label · tracking khud' : 'CN khud likhein'}
@@ -96,7 +96,7 @@ function CourierTile({ c }: { c: CourierAccount }) {
         <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500" />
       </div>
       {(s.active > 0 || s.dispatched30 > 0 || s.codPending > 0) && (
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-2 text-[12px] text-slate-600 dark:border-slate-800 dark:text-slate-300">
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-2 text-[0.75rem] text-slate-600 dark:border-slate-800 dark:text-slate-300">
           <span><Truck className="mr-1 inline h-3.5 w-3.5 text-slate-400" />{s.active} raste me</span>
           {s.codPending > 0 && <span className="text-orange-700 dark:text-orange-300">{rs(s.codPendingValue)} courier ke paas</span>}
           {s.dispatched30 > 0 && <span className={s.rtoRate >= 20 ? 'text-rose-600' : ''}>RTO {s.rtoRate}%</span>}

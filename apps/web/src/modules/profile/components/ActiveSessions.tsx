@@ -94,12 +94,12 @@ export function ActiveSessions() {
               <Shield className="h-6 w-6 text-white" />
             </div>
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider mb-1 border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.625rem] font-extrabold uppercase tracking-wider mb-1 border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 Device Manager
               </div>
               <h3 className="font-extrabold text-lg leading-tight">Active Devices</h3>
-              <p className="text-[11px] text-white/80 font-semibold mt-0.5">
+              <p className="text-[0.6875rem] text-white/80 font-semibold mt-0.5">
                 {sessions.length} device{sessions.length !== 1 ? 's' : ''} currently signed in
               </p>
             </div>
@@ -155,7 +155,7 @@ export function ActiveSessions() {
                 <CheckCircle2 className="h-4 w-4" />
               </div>
               <div>
-                <div className="text-[9px] uppercase tracking-wider font-extrabold text-emerald-700">Total</div>
+                <div className="text-[0.625rem] uppercase tracking-wider font-extrabold text-emerald-700">Total</div>
                 <div className="text-lg font-extrabold text-slate-900 tabular-nums">{sessions.length}</div>
               </div>
             </div>
@@ -166,7 +166,7 @@ export function ActiveSessions() {
                 <Activity className="h-4 w-4" />
               </div>
               <div>
-                <div className="text-[9px] uppercase tracking-wider font-extrabold text-blue-700">Current</div>
+                <div className="text-[0.625rem] uppercase tracking-wider font-extrabold text-blue-700">Current</div>
                 <div className="text-lg font-extrabold text-slate-900 tabular-nums">1</div>
               </div>
             </div>
@@ -177,7 +177,7 @@ export function ActiveSessions() {
                 <Eye className="h-4 w-4" />
               </div>
               <div>
-                <div className="text-[9px] uppercase tracking-wider font-extrabold text-amber-700">Others</div>
+                <div className="text-[0.625rem] uppercase tracking-wider font-extrabold text-amber-700">Others</div>
                 <div className="text-lg font-extrabold text-slate-900 tabular-nums">{otherSessionsCount}</div>
               </div>
             </div>
@@ -246,12 +246,12 @@ export function ActiveSessions() {
                         {session.deviceName || 'Unknown Device'}
                       </div>
                       {isCurrent && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-extrabold shadow-sm">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[0.625rem] font-extrabold shadow-sm">
                           <CheckCircle2 className="h-2.5 w-2.5" />
                           THIS DEVICE
                         </span>
                       )}
-                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[9px] font-extrabold uppercase tracking-wider">
+                      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[0.625rem] font-extrabold uppercase tracking-wider">
                         {info.label}
                       </span>
                     </div>
@@ -265,7 +265,7 @@ export function ActiveSessions() {
                       {session.ipAddress && (
                         <div className="inline-flex items-center gap-1 text-slate-700">
                           <Globe className="h-3 w-3 text-blue-500 shrink-0" />
-                          <span className="font-mono font-bold text-[10px]">{session.ipAddress}</span>
+                          <span className="font-mono font-bold text-[0.6875rem]">{session.ipAddress}</span>
                         </div>
                       )}
 
@@ -276,7 +276,7 @@ export function ActiveSessions() {
                     </div>
 
                     {session.createdAt && (
-                      <div className="mt-1.5 text-[10px] text-slate-500 font-semibold inline-flex items-center gap-1">
+                      <div className="mt-1.5 text-[0.6875rem] text-slate-500 font-semibold inline-flex items-center gap-1">
                         <Calendar className="h-2.5 w-2.5" />
                         Logged in: {new Intl.DateTimeFormat('en-PK', {
                           dateStyle: 'medium',

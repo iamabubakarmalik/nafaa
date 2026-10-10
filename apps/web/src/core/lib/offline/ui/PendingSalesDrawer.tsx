@@ -179,7 +179,7 @@ function PendingSaleCard({ sale, onDelete }: { sale: PendingSale; onDelete: () =
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs font-bold text-slate-800 truncate">{sale.saleNumber}</span>
-            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[10px] font-medium ${statusStyles[sale.status]}`}>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[0.6875rem] font-medium ${statusStyles[sale.status]}`}>
               {icons[sale.status]}
               {sale.status}
             </span>
@@ -208,7 +208,7 @@ function PendingSaleCard({ sale, onDelete }: { sale: PendingSale; onDelete: () =
       </div>
 
       {sale.syncError && (
-        <div className="mt-2 text-[10px] bg-rose-50 border border-rose-200 rounded px-2 py-1 text-rose-700">
+        <div className="mt-2 text-[0.6875rem] bg-rose-50 border border-rose-200 rounded px-2 py-1 text-rose-700">
           <strong>Error:</strong> {sale.syncError}
           {sale.retryCount > 0 && <span className="ml-1">({sale.retryCount} tries)</span>}
         </div>
@@ -231,14 +231,14 @@ function QueueItemCard({ item, onDelete }: { item: SyncQueueItem; onDelete: () =
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-slate-800">{typeLabels[item.type] || item.type}</span>
-            <span className={`px-1.5 py-0.5 rounded-full border text-[10px] font-medium ${statusStyles[item.status]}`}>
+            <span className={`px-1.5 py-0.5 rounded-full border text-[0.6875rem] font-medium ${statusStyles[item.status]}`}>
               {item.status}
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-0.5 font-mono truncate">{item.method} {item.endpoint}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">{new Date(item.createdAt).toLocaleString()}</p>
+          <p className="text-[0.6875rem] text-slate-500 mt-0.5 font-mono truncate">{item.method} {item.endpoint}</p>
+          <p className="text-[0.6875rem] text-slate-400 mt-0.5">{new Date(item.createdAt).toLocaleString()}</p>
           {item.syncError && (
-            <div className="mt-1.5 text-[10px] bg-rose-50 border border-rose-200 rounded px-2 py-1 text-rose-700">
+            <div className="mt-1.5 text-[0.6875rem] bg-rose-50 border border-rose-200 rounded px-2 py-1 text-rose-700">
               {item.syncError}
               {item.retryCount > 0 && ` (${item.retryCount} tries)`}
             </div>

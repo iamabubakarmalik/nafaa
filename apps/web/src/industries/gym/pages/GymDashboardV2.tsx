@@ -135,7 +135,7 @@ export default function GymDashboardV2() {
               <Activity className="h-8 w-8" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700">Live Occupancy</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700">Live Occupancy</div>
               <div className="text-3xl font-extrabold text-slate-900">{currentlyInside.length} members inside</div>
               <div className="text-sm text-slate-700 font-semibold mt-0.5">
                 {occupancyPct.toFixed(0)}% of capacity • Real-time
@@ -324,11 +324,11 @@ export default function GymDashboardV2() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm truncate">{m.customer?.name}</div>
-                    <div className="text-[10px] font-mono font-bold text-slate-500">{m.memberNumber}</div>
+                    <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{m.memberNumber}</div>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-extrabold text-orange-700 tabular-nums">🔥 {m.currentStreak}d</div>
-                    <div className="text-[9px] font-bold text-slate-500">Best: {m.longestStreak}d</div>
+                    <div className="text-[0.625rem] font-bold text-slate-500">Best: {m.longestStreak}d</div>
                   </div>
                 </Link>
               ))
@@ -377,15 +377,15 @@ export default function GymDashboardV2() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-extrabold text-sm truncate">{cls.name}</span>
-                          <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[9px] font-extrabold uppercase">{cls.classType.replace('_', ' ')}</span>
+                          <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[0.625rem] font-extrabold uppercase">{cls.classType.replace('_', ' ')}</span>
                         </div>
                         <div className="text-xs text-slate-500 font-semibold">
                           {format(start, 'HH:mm')} • {cls.durationMinutes}min • {cls.currentEnrolled}/{cls.maxParticipants} enrolled
                         </div>
                       </div>
                       <div className="text-right">
-                        {isSoon && <div className="text-[10px] font-extrabold text-blue-700">🚨 in {minsToStart}m</div>}
-                        {cls.status === 'IN_PROGRESS' && <div className="text-[10px] font-extrabold text-amber-700">▶ Live</div>}
+                        {isSoon && <div className="text-[0.6875rem] font-extrabold text-blue-700">🚨 in {minsToStart}m</div>}
+                        {cls.status === 'IN_PROGRESS' && <div className="text-[0.6875rem] font-extrabold text-amber-700">▶ Live</div>}
                       </div>
                     </div>
                   );
@@ -417,7 +417,7 @@ function QuickLink({ to, icon: Icon, label, color, badge }: any) {
   };
   return (
     <Link to={to} className="group rounded-2xl bg-white border-2 border-slate-200 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition relative">
-      {badge && <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-red-500 text-white text-[8px] font-extrabold uppercase animate-pulse">{badge}</span>}
+      {badge && <span className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">{badge}</span>}
       <div className={'h-11 w-11 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform mb-2'}>
         <Icon className="h-5 w-5" />
       </div>

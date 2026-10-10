@@ -302,18 +302,18 @@ export default function MeatPosPage() {
                         )}
                         <div className="absolute top-1 left-1 flex flex-col gap-1">
                           {profile?.isHalalCertified && (
-                            <div className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-extrabold inline-flex items-center gap-0.5 shadow">
+                            <div className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold inline-flex items-center gap-0.5 shadow">
                               <ShieldCheck className="h-2 w-2" /> HALAL
                             </div>
                           )}
                           {profile?.isFrozen && (
-                            <div className="px-1.5 py-0.5 rounded bg-blue-600 text-white text-[9px] font-extrabold shadow">
+                            <div className="px-1.5 py-0.5 rounded bg-blue-600 text-white text-[0.625rem] font-extrabold shadow">
                               <Snowflake className="h-2 w-2 inline mr-0.5" />FROZEN
                             </div>
                           )}
                         </div>
                         {profile?.qualityGrade && (
-                          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold shadow">
+                          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold shadow">
                             {profile.qualityGrade.replace('_', ' ')}
                           </div>
                         )}
@@ -324,7 +324,7 @@ export default function MeatPosPage() {
                           <div className="text-sm font-extrabold text-emerald-700 tabular-nums">
                             {formatPKR(profile?.pricePerKg || p.price)}
                           </div>
-                          <div className="text-[9px] font-bold text-slate-500">/kg</div>
+                          <div className="text-[0.625rem] font-bold text-slate-500">/kg</div>
                         </div>
                       </div>
                     </button>
@@ -340,7 +340,7 @@ export default function MeatPosPage() {
           <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-red-900 to-rose-700 text-white px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                   <Beef className="h-2.5 w-2.5" />
                   Meat Cart
                 </div>
@@ -391,7 +391,7 @@ export default function MeatPosPage() {
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-sm text-slate-900 truncate">{item.name}</div>
                         {item.note && (
-                          <div className="mt-1 text-[10px] font-mono text-red-700 bg-red-100 rounded px-1.5 py-0.5">
+                          <div className="mt-1 text-[0.6875rem] font-mono text-red-700 bg-red-100 rounded px-1.5 py-0.5">
                             {item.note}
                           </div>
                         )}
@@ -434,7 +434,7 @@ export default function MeatPosPage() {
                 {(['FULL_PAYMENT', 'PARTIAL_CREDIT', 'FULL_CREDIT'] as const).map((m) => (
                   <button key={m} onClick={() => setSaleMode(m)}
                     className={[
-                      'py-2 rounded-lg text-[10px] font-extrabold transition',
+                      'py-2 rounded-lg text-[0.6875rem] font-extrabold transition',
                       saleMode === m ? 'bg-red-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-700',
                     ].join(' ')}>
                     {m === 'FULL_PAYMENT' ? 'Full Pay' : m === 'PARTIAL_CREDIT' ? 'Partial' : 'Udhaar'}
@@ -508,17 +508,17 @@ function WeightPickerModal({ product, profile, onConfirm, onClose }: any) {
             <div className="text-5xl mb-2">{emoji}</div>
             <div className="flex items-center justify-center gap-1.5 flex-wrap">
               {profile.isHalalCertified && (
-                <span className="px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-extrabold inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded bg-emerald-600 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-0.5">
                   <ShieldCheck className="h-2.5 w-2.5" /> HALAL
                 </span>
               )}
               {profile.qualityGrade && (
-                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[10px] font-extrabold">
+                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.6875rem] font-extrabold">
                   {profile.qualityGrade.replace('_', ' ')}
                 </span>
               )}
               {profile.freshnessType && (
-                <span className="px-2 py-0.5 rounded bg-blue-500 text-white text-[10px] font-extrabold">
+                <span className="px-2 py-0.5 rounded bg-blue-500 text-white text-[0.6875rem] font-extrabold">
                   {profile.freshnessType.replace(/_/g, ' ')}
                 </span>
               )}
@@ -527,7 +527,7 @@ function WeightPickerModal({ product, profile, onConfirm, onClose }: any) {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-red-700 mb-2 block">Quick Select</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-red-700 mb-2 block">Quick Select</label>
             <div className="grid grid-cols-4 gap-1.5">
               {quickWeights.map((w) => (
                 <button key={w} onClick={() => setWeight(String(w))}
@@ -548,16 +548,16 @@ function WeightPickerModal({ product, profile, onConfirm, onClose }: any) {
           <ScaleChip onUse={(kg) => setWeight(String(kg))} />
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-red-700 mb-1 block">Weight (kg)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-red-700 mb-1 block">Weight (kg)</label>
             <input type="number" step="0.001" min="0" value={weight} onChange={(e) => setWeight(e.target.value)}
               className="h-14 w-full rounded-xl border-2 border-red-300 bg-red-50 px-4 text-2xl font-extrabold tabular-nums text-center focus:outline-none focus:border-red-500" />
             {minOrder > 0 && (
-              <p className="text-[10px] text-slate-500 font-bold mt-1">Min order: {minOrder}kg</p>
+              <p className="text-[0.6875rem] text-slate-500 font-bold mt-1">Min order: {minOrder}kg</p>
             )}
           </div>
 
           <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 p-4 text-center">
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Total Price</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Total Price</div>
             <div className="text-3xl font-extrabold text-emerald-700 tabular-nums mt-1">{formatPKR(total)}</div>
           </div>
 

@@ -215,7 +215,7 @@ export function CarpetReturnOptionsDialog({
                         <button key={c.value} onClick={() => setCondition(c.value)}
                           className={`px-3 py-2.5 rounded-xl border-2 text-sm font-extrabold transition ${colorMap[c.color]} hover:shadow-sm`}>
                           <div>{c.label}</div>
-                          <div className="text-[10px] font-semibold opacity-70 mt-0.5">{c.desc}</div>
+                          <div className="text-[0.6875rem] font-semibold opacity-70 mt-0.5">{c.desc}</div>
                         </button>
                       );
                     })}
@@ -229,19 +229,19 @@ export function CarpetReturnOptionsDialog({
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase mb-1">Width (ft)</label>
+                    <label className="block text-[0.6875rem] font-extrabold text-slate-500 uppercase mb-1">Width (ft)</label>
                     <input type="number" step="0.01" min="0.1" value={widthFt}
                       onChange={(e) => setWidthFt(e.target.value)}
                       className="h-11 w-full rounded-lg border-2 border-slate-200 px-2 text-base font-extrabold text-right focus:outline-none focus:border-emerald-500" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase mb-1">Length (ft)</label>
+                    <label className="block text-[0.6875rem] font-extrabold text-slate-500 uppercase mb-1">Length (ft)</label>
                     <input type="number" step="0.01" min="0.1" value={lengthFt}
                       onChange={(e) => setLengthFt(e.target.value)}
                       className="h-11 w-full rounded-lg border-2 border-slate-200 px-2 text-base font-extrabold text-right focus:outline-none focus:border-emerald-500" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-extrabold text-slate-500 uppercase mb-1">Sqft</label>
+                    <label className="block text-[0.6875rem] font-extrabold text-slate-500 uppercase mb-1">Sqft</label>
                     <div className="h-11 rounded-lg bg-emerald-50 border-2 border-emerald-200 px-2 flex items-center justify-end">
                       <div className="text-base font-extrabold text-emerald-700 tabular-nums">
                         {previewSqft > 0 ? previewSqft.toFixed(2) : '—'}

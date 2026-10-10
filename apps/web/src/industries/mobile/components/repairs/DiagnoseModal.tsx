@@ -106,7 +106,7 @@ export function DiagnoseModal({
               <Stethoscope className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-indigo-700 dark:text-indigo-300 font-bold">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-indigo-700 dark:text-indigo-300 font-bold">
                 {initialDiagnosed ? 'Edit Diagnosis' : 'New Diagnosis'}
               </div>
               <h3 className="font-bold text-slate-900 dark:text-white">{ticketNumber}</h3>
@@ -123,7 +123,7 @@ export function DiagnoseModal({
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Quick suggestions */}
           <div>
-            <div className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1.5 flex items-center gap-1">
+            <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1.5 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Quick Diagnosis Presets
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -132,7 +132,7 @@ export function DiagnoseModal({
                   key={q.label}
                   type="button"
                   onClick={() => applyQuick(q)}
-                  className="px-2.5 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-950/40 hover:bg-indigo-200 dark:hover:bg-indigo-900 text-indigo-800 dark:text-indigo-200 text-[10px] font-bold transition"
+                  className="px-2.5 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-950/40 hover:bg-indigo-200 dark:hover:bg-indigo-900 text-indigo-800 dark:text-indigo-200 text-[0.6875rem] font-bold transition"
                 >
                   {q.label}
                 </button>
@@ -231,13 +231,13 @@ export function DiagnoseModal({
 
           {total > 0 && (
             <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/40 dark:to-violet-950/40 border-2 border-indigo-200 dark:border-indigo-800 p-3 text-center">
-              <div className="text-[10px] uppercase font-bold text-indigo-700 dark:text-indigo-300">
+              <div className="text-[0.6875rem] uppercase font-bold text-indigo-700 dark:text-indigo-300">
                 Estimate for Customer
               </div>
               <div className="text-3xl font-extrabold text-indigo-900 dark:text-indigo-100">
                 {formatPKR(total)}
               </div>
-              <div className="text-[10px] text-indigo-700 dark:text-indigo-300 mt-1">
+              <div className="text-[0.6875rem] text-indigo-700 dark:text-indigo-300 mt-1">
                 Parts {formatPKR(parts)} + Labor {formatPKR(labor)}
               </div>
             </div>

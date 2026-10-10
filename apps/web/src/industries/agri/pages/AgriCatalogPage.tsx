@@ -278,7 +278,7 @@ export default function AgriCatalogPage() {
         <div className="relative">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5 text-[10px] font-black border border-white/25 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
                 <Wheat className="h-2.5 w-2.5 text-lime-300" /> Beej · Khaad · Dawa
               </div>
               <h1 className="mt-1.5 text-2xl sm:text-3xl font-black truncate">
@@ -298,7 +298,7 @@ export default function AgriCatalogPage() {
                 className="relative h-11 w-11 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 flex items-center justify-center backdrop-blur transition">
                 <Heart className={`h-4 w-4 ${wishlist.count > 0 ? 'fill-rose-400 text-rose-400' : ''}`} />
                 {wishlist.count > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-rose-500 text-[10px] font-black flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-rose-500 text-[0.6875rem] font-black flex items-center justify-center">
                     {wishlist.count}
                   </span>
                 )}
@@ -308,7 +308,7 @@ export default function AgriCatalogPage() {
                 <ShoppingBag className="h-4 w-4" />
                 <span className="hidden sm:inline">Meri list</span>
                 {cart.totalItems > 0 && (
-                  <span className="h-5 min-w-[20px] px-1 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center">
+                  <span className="h-5 min-w-[20px] px-1 rounded-full bg-emerald-600 text-white text-[0.6875rem] font-black flex items-center justify-center">
                     {fmtQty(cart.totalItems)}
                   </span>
                 )}
@@ -341,12 +341,12 @@ export default function AgriCatalogPage() {
           {acreNum > 0 && (
             <div className="mt-2 rounded-2xl bg-lime-400/20 border border-lime-300/40 px-3 py-2 flex items-center gap-2 flex-wrap backdrop-blur">
               <Calculator className="h-4 w-4 text-lime-200 shrink-0" />
-              <p className="text-[12px] font-bold text-lime-50">
+              <p className="text-[0.75rem] font-bold text-lime-50">
                 <strong>{acreNum} acre</strong> ke hisab se har cheez par miqdar likhi hai —
                 list me bhi utni hi jayegi.
               </p>
               <button onClick={() => setAcres('')}
-                className="ml-auto text-[11px] font-black text-lime-200 hover:text-white underline shrink-0">
+                className="ml-auto text-[0.6875rem] font-black text-lime-200 hover:text-white underline shrink-0">
                 hata dein
               </button>
             </div>
@@ -363,7 +363,7 @@ export default function AgriCatalogPage() {
             </span>
             <div className="min-w-0">
               <h2 className="text-sm font-black text-slate-900 dark:text-white">Kaunsi fasal?</h2>
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                 Fasal chunte hi sirf us ka maal reh jayega
               </p>
             </div>
@@ -377,7 +377,7 @@ export default function AgriCatalogPage() {
                     : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-lime-400'
                 }`}>
                 🌾 {c}
-                <span className="px-1.5 rounded-md bg-slate-100 dark:bg-slate-700 text-[10px] font-black">{n}</span>
+                <span className="px-1.5 rounded-md bg-slate-100 dark:bg-slate-700 text-[0.6875rem] font-black">{n}</span>
               </button>
             ))}
             {crop && (
@@ -403,7 +403,7 @@ export default function AgriCatalogPage() {
                     : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
                 }`}>
                 <span className="text-sm">{t.e}</span> {t.l}
-                <span className={`px-1.5 rounded-md text-[10px] font-black ${
+                <span className={`px-1.5 rounded-md text-[0.6875rem] font-black ${
                   kindTab === t.v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
                 }`}>{n}</span>
               </button>
@@ -414,14 +414,14 @@ export default function AgriCatalogPage() {
         <div className="flex gap-1.5 flex-wrap items-center">
           {SEASONS.map((s) => (
             <button key={s.v} onClick={() => setSeason(season === s.v ? '' : s.v)} title={s.hint}
-              className={`h-9 px-2.5 rounded-xl border-2 text-[11px] font-extrabold transition ${
+              className={`h-9 px-2.5 rounded-xl border-2 text-[0.6875rem] font-extrabold transition ${
                 season === s.v
                   ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                   : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
               }`}>{s.e} {s.l}</button>
           ))}
           <button onClick={() => setOrganicOnly((v) => !v)}
-            className={`h-9 px-2.5 rounded-xl border-2 text-[11px] font-extrabold inline-flex items-center gap-1 transition ${
+            className={`h-9 px-2.5 rounded-xl border-2 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition ${
               organicOnly
                 ? 'border-green-600 bg-green-50 dark:bg-green-500/15 text-green-700 dark:text-green-300'
                 : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-green-400'
@@ -429,7 +429,7 @@ export default function AgriCatalogPage() {
             <Leaf className="h-3 w-3" /> Sirf organic
           </button>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}
-            className="ml-auto h-9 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-[11px] font-extrabold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+            className="ml-auto h-9 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-500 transition">
             {SORTS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
           </select>
         </div>
@@ -487,7 +487,7 @@ export default function AgriCatalogPage() {
         </div>
       ) : (
         <>
-          <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          <p className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
             {filtered.length} cheezein
             {crop && <> · 🌾 {crop}</>}
             {acreNum > 0 && <> · 📐 {acreNum} acre</>}
@@ -545,22 +545,22 @@ function ProductCard({ p, acres, suggest, wished, onWish, onAdd, onOpen }: any) 
 
         <span className="absolute top-2 left-2 flex flex-col gap-1 items-start">
           {p.featured && (
-            <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-black inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-black inline-flex items-center gap-0.5">
               <Star className="h-2.5 w-2.5 fill-white" /> Khaas
             </span>
           )}
           {p.organic && (
-            <span className="px-1.5 py-0.5 rounded-md bg-green-600 text-white text-[9px] font-black inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded-md bg-green-600 text-white text-[0.625rem] font-black inline-flex items-center gap-0.5">
               <Leaf className="h-2.5 w-2.5" /> Organic
             </span>
           )}
           {p.restricted && (
-            <span className="px-1.5 py-0.5 rounded-md bg-orange-600 text-white text-[9px] font-black">
+            <span className="px-1.5 py-0.5 rounded-md bg-orange-600 text-white text-[0.625rem] font-black">
               🪪 License
             </span>
           )}
           {out && (
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-900/85 text-white text-[9px] font-black">
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-900/85 text-white text-[0.625rem] font-black">
               Khatam
             </span>
           )}
@@ -575,10 +575,10 @@ function ProductCard({ p, acres, suggest, wished, onWish, onAdd, onOpen }: any) 
       {/* Tafseel */}
       <div className="p-3 flex-1 flex flex-col gap-1.5">
         <button onClick={onOpen} className="text-left">
-          <p className="text-[13px] font-extrabold text-slate-900 dark:text-white leading-snug line-clamp-2">
+          <p className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white leading-snug line-clamp-2">
             {p.name}
           </p>
-          <p className="mt-0.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+          <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
             {AGRI_KIND_EMOJI[p.kind as AgriKind]} {p.categoryName || prettyAgriKind(p.kind)}
             {p.brand && ` · ${p.brand}`}
           </p>
@@ -586,14 +586,14 @@ function ProductCard({ p, acres, suggest, wished, onWish, onAdd, onOpen }: any) 
 
         {/* Bori aur kilo */}
         {p.packSize > 0 && (
-          <span className="inline-flex w-fit items-center gap-1 px-1.5 py-0.5 rounded-md bg-sky-50 dark:bg-sky-500/15 text-[9px] font-black text-sky-700 dark:text-sky-300">
+          <span className="inline-flex w-fit items-center gap-1 px-1.5 py-0.5 rounded-md bg-sky-50 dark:bg-sky-500/15 text-[0.625rem] font-black text-sky-700 dark:text-sky-300">
             <Scale className="h-2.5 w-2.5" /> 1 {agriUnitLabel(p.unit)} = {p.packSize} {p.packUnit}
           </span>
         )}
 
         {/* Kis fasal ke liye */}
         {p.crops.length > 0 && (
-          <p className="text-[10px] font-bold text-lime-700 dark:text-lime-400 truncate">
+          <p className="text-[0.6875rem] font-bold text-lime-700 dark:text-lime-400 truncate">
             🌾 {p.crops.slice(0, 3).join(' · ')}
           </p>
         )}
@@ -601,15 +601,15 @@ function ProductCard({ p, acres, suggest, wished, onWish, onAdd, onOpen }: any) 
         {/* Raqba ka hisab */}
         {showSuggest && (
           <div className="rounded-lg bg-lime-50 dark:bg-lime-500/10 border border-lime-200 dark:border-lime-500/30 px-1.5 py-1">
-            <p className="text-[10px] font-black text-lime-800 dark:text-lime-300 leading-tight">
+            <p className="text-[0.6875rem] font-black text-lime-800 dark:text-lime-300 leading-tight">
               📐 {acres} acre ke liye <strong>{fmtQty(suggest)} {agriUnitLabel(p.unit)}</strong>
             </p>
-            <p className="text-[9px] font-bold text-lime-700/70 dark:text-lime-400/70">{p.rate}</p>
+            <p className="text-[0.625rem] font-bold text-lime-700/70 dark:text-lime-400/70">{p.rate}</p>
           </div>
         )}
 
         {p.bulkPct > 0 && p.bulkMin > 0 && (
-          <p className="text-[9px] font-black text-amber-700 dark:text-amber-400">
+          <p className="text-[0.625rem] font-black text-amber-700 dark:text-amber-400">
             🎁 {p.bulkMin}+ par {p.bulkPct}% chhoot
           </p>
         )}
@@ -619,7 +619,7 @@ function ProductCard({ p, acres, suggest, wished, onWish, onAdd, onOpen }: any) 
             <p className="text-base font-black text-emerald-600 dark:text-emerald-400 tabular-nums leading-none">
               {formatPKR(p.price)}
             </p>
-            <p className="text-[9px] font-bold text-slate-400">
+            <p className="text-[0.625rem] font-bold text-slate-400">
               per {agriUnitLabel(p.unit)}
               {p.packSize > 0 && ` · ${formatPKR(p.price / p.packSize)}/${p.packUnit}`}
             </p>
@@ -681,7 +681,7 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
           </div>
 
           {p.desc && (
-            <p className="text-[13px] font-bold text-slate-600 dark:text-slate-300 leading-relaxed">{p.desc}</p>
+            <p className="text-[0.8125rem] font-bold text-slate-600 dark:text-slate-300 leading-relaxed">{p.desc}</p>
           )}
 
           {/* Kis fasal / keeray ke liye */}
@@ -699,7 +699,7 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
               {p.rate && <KV k="Kitni miqdar" v={p.rate} />}
               {p.method && <KV k="Kis tareeqe se" v={p.method} />}
               {p.usage && (
-                <p className="text-[12px] font-bold text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                   {p.usage}
                 </p>
               )}
@@ -713,17 +713,17 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
               {p.reEntry > 0 && <KV k="Chhirkao ke baad khet me" v={`${p.reEntry} din baad jayein`} />}
               {p.ppe > 0 && <KV k="Katai se pehle" v={`${p.ppe} din chhor dein`} />}
               {p.care && (
-                <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200 leading-relaxed whitespace-pre-line">
+                <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200 leading-relaxed whitespace-pre-line">
                   {p.care}
                 </p>
               )}
               {p.firstAid && (
                 <div className="rounded-xl bg-white dark:bg-slate-800 p-2.5">
-                  <p className="text-[10px] font-black uppercase tracking-wide text-rose-600 mb-0.5">Agar lag jaye</p>
-                  <p className="text-[12px] font-bold text-slate-700 dark:text-slate-300 whitespace-pre-line">{p.firstAid}</p>
+                  <p className="text-[0.6875rem] font-black uppercase tracking-wide text-rose-600 mb-0.5">Agar lag jaye</p>
+                  <p className="text-[0.75rem] font-bold text-slate-700 dark:text-slate-300 whitespace-pre-line">{p.firstAid}</p>
                 </div>
               )}
-              <p className="text-[11px] font-bold text-amber-800/80 dark:text-amber-300/80">
+              <p className="text-[0.6875rem] font-bold text-amber-800/80 dark:text-amber-300/80">
                 Dastane aur mask pehan kar chhirkao karein · bachon se door rakhein
               </p>
             </Box>
@@ -742,11 +742,11 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
           {acres > 0 && perAcre && (
             <div className="rounded-xl bg-lime-50 dark:bg-lime-500/10 border-2 border-lime-200 dark:border-lime-500/30 px-2.5 py-1.5 flex items-center gap-2 flex-wrap">
               <Calculator className="h-3.5 w-3.5 text-lime-600 shrink-0" />
-              <span className="text-[11px] font-bold text-lime-900 dark:text-lime-200 flex-1 min-w-0">
+              <span className="text-[0.6875rem] font-bold text-lime-900 dark:text-lime-200 flex-1 min-w-0">
                 {acres} acre ke liye <strong>{fmtQty(perAcre * acres)} {agriUnitLabel(p.unit)}</strong> chahiye
               </span>
               <button onClick={() => setQty(Number((perAcre * acres).toFixed(2)))}
-                className="text-[11px] font-black text-lime-700 dark:text-lime-300 underline shrink-0">
+                className="text-[0.6875rem] font-black text-lime-700 dark:text-lime-300 underline shrink-0">
                 laga do
               </button>
             </div>
@@ -770,7 +770,7 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
               <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 tabular-nums leading-none">
                 {formatPKR(line)}
               </p>
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                 {fmtQty(qty)} {agriUnitLabel(p.unit)} × {formatPKR(p.price)}
                 {p.packSize > 0 && ` · kul ${fmtQty(totalLoose)} ${p.packUnit}`}
               </p>
@@ -778,7 +778,7 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
           </div>
 
           {bulkOn && (
-            <p className="text-[11px] font-black text-amber-700 dark:text-amber-400">
+            <p className="text-[0.6875rem] font-black text-amber-700 dark:text-amber-400">
               🎁 {p.bulkMin}+ par {p.bulkPct}% chhoot mil jayegi — dukaan par baat kar lein
             </p>
           )}
@@ -803,7 +803,7 @@ const BOX_TONES: Record<string, string> = {
 function Box({ icon: Icon, title, tone, children }: any) {
   return (
     <div className={`rounded-2xl border-2 p-3 space-y-2 ${BOX_TONES[tone]}`}>
-      <p className="text-[11px] font-black uppercase tracking-wide text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+      <p className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
         <Icon className="h-3.5 w-3.5" /> {title}
       </p>
       {children}
@@ -814,8 +814,8 @@ function Box({ icon: Icon, title, tone, children }: any) {
 function KV({ k, v }: any) {
   return (
     <div className="flex gap-2 flex-wrap">
-      <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 shrink-0">{k}:</span>
-      <span className="text-[12px] font-extrabold text-slate-800 dark:text-slate-100 min-w-0">{v}</span>
+      <span className="text-[0.6875rem] font-black text-slate-500 dark:text-slate-400 shrink-0">{k}:</span>
+      <span className="text-[0.75rem] font-extrabold text-slate-800 dark:text-slate-100 min-w-0">{v}</span>
     </div>
   );
 }
@@ -823,10 +823,10 @@ function KV({ k, v }: any) {
 function TagRow({ label, items, emoji }: any) {
   return (
     <div className="flex gap-2 flex-wrap items-baseline">
-      <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 shrink-0">{label}:</span>
+      <span className="text-[0.6875rem] font-black text-slate-500 dark:text-slate-400 shrink-0">{label}:</span>
       <span className="flex flex-wrap gap-1 min-w-0">
         {items.map((x: string) => (
-          <span key={x} className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[11px] font-extrabold text-slate-700 dark:text-slate-200">
+          <span key={x} className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200">
             {emoji} {x}
           </span>
         ))}
@@ -845,7 +845,7 @@ const CHIP_TONES: Record<string, string> = {
 
 function Chip({ tone, icon: Icon, children }: any) {
   return (
-    <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black inline-flex items-center gap-1 ${CHIP_TONES[tone]}`}>
+    <span className={`px-2 py-0.5 rounded-lg text-[0.6875rem] font-black inline-flex items-center gap-1 ${CHIP_TONES[tone]}`}>
       {Icon && <Icon className="h-2.5 w-2.5" />} {children}
     </span>
   );
@@ -884,15 +884,15 @@ function Teacher({ onClose }: any) {
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-black text-slate-900 dark:text-white">{s.t}</p>
-                <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
               </div>
             </div>
           ))}
           <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
+            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['/', 'Dhoondein'], ['C', 'Meri list'], ['G', 'Ye safha'], ['Esc', 'Band']].map(([k, l]) => (
-                <span key={k} className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/80">
+                <span key={k} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/80">
                   <kbd className="px-1.5 py-0.5 rounded bg-white/15 font-black">{k}</kbd> {l}
                 </span>
               ))}

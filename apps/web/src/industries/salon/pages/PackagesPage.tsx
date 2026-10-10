@@ -171,14 +171,14 @@ function PackageCard({ pkg, onEdit, onDelete }: any) {
         )}
 
         {pkg.isFeatured && (
-          <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+          <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
             <Star className="h-2 w-2 fill-current" />
             Featured
           </span>
         )}
 
         {savings > 0 && (
-          <span className="absolute top-2 right-2 px-2 py-0.5 rounded bg-rose-500 text-white text-[10px] font-extrabold uppercase shadow">
+          <span className="absolute top-2 right-2 px-2 py-0.5 rounded bg-rose-500 text-white text-[0.6875rem] font-extrabold uppercase shadow">
             SAVE {savingsPct.toFixed(0)}%
           </span>
         )}
@@ -201,11 +201,11 @@ function PackageCard({ pkg, onEdit, onDelete }: any) {
 
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2">
-            <div className="text-[9px] uppercase font-extrabold text-emerald-700">Sessions</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Sessions</div>
             <div className="font-extrabold text-emerald-800 text-lg tabular-nums">{pkg.totalSessions}</div>
           </div>
           <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2">
-            <div className="text-[9px] uppercase font-extrabold text-blue-700">Validity</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Validity</div>
             <div className="font-extrabold text-blue-800 text-lg tabular-nums">{pkg.validityDays}d</div>
           </div>
         </div>
@@ -218,7 +218,7 @@ function PackageCard({ pkg, onEdit, onDelete }: any) {
             <div className="text-2xl font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKR(pkg.price)}</div>
           </div>
           <div className="text-right">
-            <div className="text-[10px] font-extrabold text-slate-500">Sold</div>
+            <div className="text-[0.6875rem] font-extrabold text-slate-500">Sold</div>
             <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{pkg.totalSold}</div>
           </div>
         </div>
@@ -246,7 +246,7 @@ function PurchaseCard({ purchase }: any) {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{purchase.purchaseNumber}</span>
               <span className={
-                'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' +
+                'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                 (purchase.status === 'ACTIVE' ? 'bg-emerald-600' :
                  purchase.status === 'USED' ? 'bg-blue-600' :
                  purchase.status === 'EXPIRED' ? 'bg-slate-500' :
@@ -255,7 +255,7 @@ function PurchaseCard({ purchase }: any) {
                 {purchase.status}
               </span>
               {isExpiring && (
-                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">
+                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">
                   {daysLeft}d left
                 </span>
               )}
@@ -273,7 +273,7 @@ function PurchaseCard({ purchase }: any) {
       </div>
 
       <div>
-        <div className="flex items-center justify-between text-[10px] font-extrabold text-slate-500 mb-1">
+        <div className="flex items-center justify-between text-[0.6875rem] font-extrabold text-slate-500 mb-1">
           <span>Sessions Used: {purchase.sessionsUsed}</span>
           <span>Remaining: {purchase.sessionsRemaining}</span>
         </div>
@@ -341,28 +341,28 @@ function PackageForm({ editing, onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Package Price *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Package Price *</label>
             <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Original Price</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Original Price</label>
             <input type="number" value={form.originalPrice} onChange={(e) => setForm({ ...form, originalPrice: e.target.value })} placeholder="For showing savings" className="h-14 w-full rounded-xl border-2 border-rose-200 bg-rose-50 dark:bg-rose-950/30 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Total Sessions *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Total Sessions *</label>
             <input type="number" value={form.totalSessions} onChange={(e) => setForm({ ...form, totalSessions: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Validity (days) *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Validity (days) *</label>
             <input type="number" value={form.validityDays} onChange={(e) => setForm({ ...form, validityDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Included Services ({selectedServiceIds.length})</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Included Services ({selectedServiceIds.length})</label>
           <div className="max-h-60 overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-2 space-y-1">
             {allServices.map((svc) => (
               <label key={svc.id} className={
@@ -372,7 +372,7 @@ function PackageForm({ editing, onClose, onSaved }: any) {
                 <input type="checkbox" checked={selectedServiceIds.includes(svc.id)} onChange={() => toggleService(svc.id)} className="h-4 w-4 rounded" />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-extrabold truncate">{svc.name}</div>
-                  <div className="text-[10px] font-bold text-slate-500">{formatPKR(svc.price)}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500">{formatPKR(svc.price)}</div>
                 </div>
               </label>
             ))}
@@ -380,7 +380,7 @@ function PackageForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Image</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Image</label>
           {form.imageUrl ? (
             <div className="relative w-full aspect-video rounded-xl overflow-hidden border-2 border-slate-200">
               <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -452,7 +452,7 @@ function PurchaseForm({ packages, onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Choose Package *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Choose Package *</label>
           <div className="grid gap-2">
             {packages.map((pkg: any) => (
               <button key={pkg.id} onClick={() => setForm({ ...form, packageId: pkg.id, amountPaid: pkg.price })} className={
@@ -475,7 +475,7 @@ function PurchaseForm({ packages, onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Customer *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Customer *</label>
           {selectedCustomer ? (
             <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-3 flex items-center gap-3">
               <User className="h-5 w-5 text-emerald-600" />
@@ -499,7 +499,7 @@ function PurchaseForm({ packages, onClose, onSaved }: any) {
                       <button key={c.id} onClick={() => { setSelectedCustomer(c); setForm({ ...form, customerId: c.id }); setShowPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
                         <User className="h-3.5 w-3.5 text-slate-400" />
                         <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                        <span className="text-[10px] text-slate-500 font-bold">{c.phone}</span>
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
                       </button>
                     ))}
                   </div>
@@ -511,7 +511,7 @@ function PurchaseForm({ packages, onClose, onSaved }: any) {
 
         {selectedPkg && (
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Amount Paid *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Amount Paid *</label>
             <input type="number" value={form.amountPaid} onChange={(e) => setForm({ ...form, amountPaid: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         )}

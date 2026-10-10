@@ -95,7 +95,7 @@ export default function JewelryCatalogPage() {
               <ShoppingBag className="h-4 w-4" />
               Wishlist
               {cart.totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
+                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
                   {cart.totalItems.toFixed(0)}
                 </span>
               )}
@@ -188,7 +188,7 @@ export default function JewelryCatalogPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-amber-900 text-lg">Signature Collection</h3>
-              <p className="text-[11px] text-amber-700 font-bold">Handcrafted premium pieces</p>
+              <p className="text-[0.6875rem] text-amber-700 font-bold">Handcrafted premium pieces</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -215,7 +215,7 @@ export default function JewelryCatalogPage() {
             </div>
             <div>
               <h3 className="font-extrabold text-rose-900 text-lg">Bridal Collection</h3>
-              <p className="text-[11px] text-rose-700 font-bold">Special occasion pieces</p>
+              <p className="text-[0.6875rem] text-rose-700 font-bold">Special occasion pieces</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -316,7 +316,7 @@ function JewelryCard({ product, onDetail, onAppointment, onAdd, wishlist }: any)
           </div>
         )}
         {product.isFeatured && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-1">
+          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-1">
             <Crown className="h-2.5 w-2.5" /> SIGNATURE
           </div>
         )}
@@ -333,7 +333,7 @@ function JewelryCard({ product, onDetail, onAppointment, onAdd, wishlist }: any)
 
       <div className="p-3 space-y-1.5">
         {product.brand && (
-          <div className="text-[9px] uppercase font-extrabold text-amber-700 tracking-wider">{product.brand.name}</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 tracking-wider">{product.brand.name}</div>
         )}
         <h4 className="font-extrabold text-slate-900 text-sm line-clamp-2 min-h-[2.25rem]">{product.name}</h4>
         <div className="flex items-baseline justify-between">
@@ -342,13 +342,13 @@ function JewelryCard({ product, onDetail, onAppointment, onAdd, wishlist }: any)
         <div className="grid grid-cols-2 gap-1 pt-1">
           <button
             onClick={onAppointment}
-            className="h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-extrabold"
+            className="h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[0.6875rem] font-extrabold"
           >
             Try On
           </button>
           <button
             onClick={onAdd}
-            className="h-8 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-extrabold inline-flex items-center justify-center gap-1"
+            className="h-8 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1"
           >
             <Heart className="h-3 w-3" /> Save
           </button>
@@ -395,26 +395,26 @@ function JewelryDetailModal({ product, onClose, onAppointment, onAdd, wishlist }
             <h2 className="text-2xl font-extrabold text-slate-900">{product.name}</h2>
 
             <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-200 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-amber-700 mb-1">Price</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1">Price</div>
               <div className="text-4xl font-extrabold text-amber-700 tabular-nums">{formatPKRFull(Number(product.price))}</div>
-              <div className="text-[10px] text-amber-700 font-semibold mt-1">Prices update daily with metal rate</div>
+              <div className="text-[0.6875rem] text-amber-700 font-semibold mt-1">Prices update daily with metal rate</div>
             </div>
 
             <div className="grid grid-cols-3 gap-2 text-xs">
               <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-center">
                 <Award className="h-4 w-4 text-emerald-700 mx-auto mb-1" />
-                <div className="font-extrabold text-emerald-900 text-[10px]">BIS</div>
-                <div className="text-[9px] text-emerald-700 font-bold">Certified</div>
+                <div className="font-extrabold text-emerald-900 text-[0.6875rem]">BIS</div>
+                <div className="text-[0.625rem] text-emerald-700 font-bold">Certified</div>
               </div>
               <div className="rounded-lg bg-blue-50 border border-blue-200 p-2 text-center">
                 <Sparkles className="h-4 w-4 text-blue-700 mx-auto mb-1" />
-                <div className="font-extrabold text-blue-900 text-[10px]">Hallmark</div>
-                <div className="text-[9px] text-blue-700 font-bold">Purity</div>
+                <div className="font-extrabold text-blue-900 text-[0.6875rem]">Hallmark</div>
+                <div className="text-[0.625rem] text-blue-700 font-bold">Purity</div>
               </div>
               <div className="rounded-lg bg-violet-50 border border-violet-200 p-2 text-center">
                 <Info className="h-4 w-4 text-violet-700 mx-auto mb-1" />
-                <div className="font-extrabold text-violet-900 text-[10px]">Custom</div>
-                <div className="text-[9px] text-violet-700 font-bold">Order</div>
+                <div className="font-extrabold text-violet-900 text-[0.6875rem]">Custom</div>
+                <div className="text-[0.625rem] text-violet-700 font-bold">Order</div>
               </div>
             </div>
 
@@ -482,7 +482,7 @@ function AppointmentModal({ product, onClose, shopPhone, shopName }: any) {
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-4 bg-gradient-to-br from-amber-600 to-yellow-700 text-white flex items-center justify-between">
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Book Showroom Visit</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Book Showroom Visit</div>
             <h3 className="font-extrabold text-lg">{product.name}</h3>
           </div>
           <button onClick={onClose} className="h-9 w-9 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
@@ -505,7 +505,7 @@ function AppointmentModal({ product, onClose, shopPhone, shopName }: any) {
           />
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <div className="text-[10px] font-bold text-slate-500 mb-1">Preferred Date</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500 mb-1">Preferred Date</div>
               <input
                 type="date"
                 value={preferredDate}
@@ -514,7 +514,7 @@ function AppointmentModal({ product, onClose, shopPhone, shopName }: any) {
               />
             </div>
             <div>
-              <div className="text-[10px] font-bold text-slate-500 mb-1">Preferred Time</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500 mb-1">Preferred Time</div>
               <input
                 type="time"
                 value={preferredTime}

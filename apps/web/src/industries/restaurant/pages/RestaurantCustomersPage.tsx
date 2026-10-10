@@ -140,7 +140,7 @@ export default function RestaurantCustomersPage() {
                         {s.name.charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <div className={`absolute -top-1 -right-1 h-5 w-5 rounded-full text-white text-[10px] font-bold flex items-center justify-center shadow ${
+                    <div className={`absolute -top-1 -right-1 h-5 w-5 rounded-full text-white text-[0.6875rem] font-bold flex items-center justify-center shadow ${
                       idx === 0 ? 'bg-amber-500' : idx === 1 ? 'bg-slate-400' : idx === 2 ? 'bg-orange-500' : 'bg-slate-600'
                     }`}>#{idx + 1}</div>
                   </div>
@@ -212,12 +212,12 @@ export default function RestaurantCustomersPage() {
                 extraBadges={
                   c.orderCount > 0 && (
                     <>
-                      <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold ${modeColor}`}>
+                      <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold ${modeColor}`}>
                         <ModeIcon className="h-3 w-3" />
                         {c.orderCount} orders
                       </div>
                       {c.lastOrder && (
-                        <div className="text-[10px] text-slate-500 font-semibold">
+                        <div className="text-[0.6875rem] text-slate-500 font-semibold">
                           Last: {new Date(c.lastOrder.createdAt).toLocaleDateString('en-PK')}
                         </div>
                       )}

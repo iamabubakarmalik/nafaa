@@ -360,17 +360,17 @@ export default function ElectronicsProductDetailPage() {
                 <div className="w-full h-full flex items-center justify-center text-white/50"><Cpu className="h-16 w-16" /></div>
               )}
               {profile?.isFeatured && (
-                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Star className="h-3 w-3 fill-white" /> FEATURED
                 </div>
               )}
               {profile?.isBestSeller && (
-                <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-orange-600 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-orange-600 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Award className="h-3 w-3 fill-white" /> BESTSELLER
                 </div>
               )}
               {profile?.isNewArrival && (
-                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[10px] font-extrabold shadow-lg">
+                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[0.6875rem] font-extrabold shadow-lg">
                   🆕 NEW
                 </div>
               )}
@@ -419,24 +419,24 @@ export default function ElectronicsProductDetailPage() {
 
             <div className="mt-5 flex items-end gap-5 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Retail Price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Retail Price</div>
                 <div className="text-4xl font-extrabold tabular-nums leading-none mt-1">{formatPKRFull(product.price)}</div>
               </div>
               {!hideCost && Number(product.costPrice || 0) > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">{formatPKRFull(product.costPrice)}</div>
                 </div>
               )}
               {profile?.mrp ? (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">MRP</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">MRP</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1 line-through">{formatPKRFull(profile.mrp)}</div>
                 </div>
               ) : null}
               {!hideCost && stats.profitPerUnit !== 0 && (
                 <div className={['rounded-xl px-3 py-2 backdrop-blur border', stats.profitPerUnit >= 0 ? 'bg-emerald-400/20 border-emerald-300/40' : 'bg-rose-400/20 border-rose-300/40'].join(' ')}>
-                  <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Profit / unit</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Profit / unit</div>
                   <div className="text-lg font-extrabold tabular-nums leading-none mt-0.5">
                     {formatPKRFull(stats.profitPerUnit)} <span className="text-xs opacity-80">({stats.margin.toFixed(0)}%)</span>
                   </div>
@@ -487,7 +487,7 @@ export default function ElectronicsProductDetailPage() {
                 <Icon className="h-4 w-4" />
                 {t.label}
                 {t.count !== undefined && (
-                  <span className={['px-1.5 rounded-full text-[10px] font-extrabold', active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'].join(' ')}>
+                  <span className={['px-1.5 rounded-full text-[0.6875rem] font-extrabold', active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'].join(' ')}>
                     {t.count}
                   </span>
                 )}
@@ -557,10 +557,10 @@ export default function ElectronicsProductDetailPage() {
                   <h3 className="font-extrabold text-slate-900">Brand: {brand.name}</h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     {brand.authorizedDealer && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase">Authorized Dealer</span>
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase">Authorized Dealer</span>
                     )}
                     {brand.countryOfOrigin && (
-                      <span className="text-[10px] text-slate-500 font-bold">📍 {brand.countryOfOrigin}</span>
+                      <span className="text-[0.6875rem] text-slate-500 font-bold">📍 {brand.countryOfOrigin}</span>
                     )}
                   </div>
                 </div>
@@ -619,7 +619,7 @@ export default function ElectronicsProductDetailPage() {
                 <SpecSection icon={Cpu} title="Compatibility" tone="amber">
                   {profile.compatibleOS?.length > 0 && (
                     <div>
-                      <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">Operating Systems</div>
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1.5">Operating Systems</div>
                       <div className="flex flex-wrap gap-1.5">
                         {profile.compatibleOS.map((os) => (
                           <span key={os} className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 text-xs font-extrabold">{os}</span>
@@ -719,14 +719,14 @@ export default function ElectronicsProductDetailPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="font-extrabold text-slate-900 text-sm truncate">{v.name}</div>
-                      <div className="text-[10px] font-mono text-slate-500 mt-0.5">{v.sku || v.barcode || '—'}</div>
+                      <div className="text-[0.6875rem] font-mono text-slate-500 mt-0.5">{v.sku || v.barcode || '—'}</div>
                     </div>
                     {v.colorHex && <span className="h-5 w-5 rounded-full border-2 border-white shadow shrink-0" style={{ backgroundColor: v.colorHex }} />}
                   </div>
                   <div className="mt-2 flex items-end justify-between">
                     <div className="text-base font-extrabold text-emerald-700 tabular-nums">{formatPKRFull(v.price)}</div>
                     <div className={['text-sm font-extrabold tabular-nums', vStock <= 0 ? 'text-rose-700' : vLow ? 'text-amber-700' : 'text-slate-700'].join(' ')}>
-                      {vStock} <span className="text-[10px] font-bold text-slate-500">pcs</span>
+                      {vStock} <span className="text-[0.6875rem] font-bold text-slate-500">pcs</span>
                     </div>
                   </div>
                 </div>
@@ -777,13 +777,13 @@ export default function ElectronicsProductDetailPage() {
                         <td className="px-3 py-2.5 font-mono text-xs text-slate-700">{s.imei || '—'}</td>
                         <td className="px-3 py-2.5 font-mono text-xs text-slate-700">{s.macAddress || '—'}</td>
                         <td className="px-3 py-2.5 text-center">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${statusColors[s.status] || 'bg-slate-100'}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${statusColors[s.status] || 'bg-slate-100'}`}>
                             {s.status}
                           </span>
                         </td>
                         <td className="px-3 py-2.5 text-center">
                           {s.warrantyEndDate ? (
-                            <span className={['text-[10px] font-extrabold', new Date(s.warrantyEndDate) > new Date() ? 'text-emerald-700' : 'text-rose-700'].join(' ')}>
+                            <span className={['text-[0.6875rem] font-extrabold', new Date(s.warrantyEndDate) > new Date() ? 'text-emerald-700' : 'text-rose-700'].join(' ')}>
                               {new Date(s.warrantyEndDate).toLocaleDateString('en-PK')}
                             </span>
                           ) : '—'}
@@ -816,7 +816,7 @@ export default function ElectronicsProductDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-extrabold text-sm text-slate-900">{s.saleNumber}</span>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
@@ -851,13 +851,13 @@ export default function ElectronicsProductDetailPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold text-slate-900 text-sm">{String(m.type || 'MOVEMENT').replace(/_/g, ' ')}</div>
-                    <div className="text-[11px] text-slate-500 font-semibold truncate">
+                    <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">
                       {m.note || m.reason || '—'}
                       {m.createdAt && ` • ${new Date(m.createdAt).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}`}
                     </div>
                   </div>
                   <div className={['font-extrabold tabular-nums shrink-0', isIn ? 'text-emerald-700' : 'text-rose-700'].join(' ')}>
-                    {isIn && qty > 0 ? '+' : ''}{qty} <span className="text-[10px] font-bold text-slate-500">pcs</span>
+                    {isIn && qty > 0 ? '+' : ''}{qty} <span className="text-[0.6875rem] font-bold text-slate-500">pcs</span>
                   </div>
                 </div>
               );
@@ -897,10 +897,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -977,7 +977,7 @@ function InfoBox({ label, value, tone }: any) {
   };
   return (
     <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
-      <div className="text-[10px] uppercase font-extrabold opacity-75">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold opacity-75">{label}</div>
       <div className="text-lg font-extrabold mt-0.5">{value}</div>
     </div>
   );
@@ -986,7 +986,7 @@ function InfoBox({ label, value, tone }: any) {
 function MiniField({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-sm font-bold text-slate-900 truncate">{value}</div>
     </div>
   );
@@ -1001,14 +1001,14 @@ function SerialStat({ label, value, tone }: any) {
   };
   return (
     <div className={`rounded-xl border-2 p-3 text-center ${tones[tone]}`}>
-      <div className="text-[10px] uppercase tracking-wider font-extrabold">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold">{label}</div>
       <div className="text-2xl font-extrabold tabular-nums mt-1">{value}</div>
     </div>
   );
 }
 
 function Th2({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
 }
 
 function QuickLink({ to, icon: Icon, title, desc, tone }: any) {
@@ -1025,7 +1025,7 @@ function QuickLink({ to, icon: Icon, title, desc, tone }: any) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-extrabold text-slate-900 text-sm">{title}</div>
-        <div className="text-[10px] text-slate-500 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-semibold">{desc}</div>
       </div>
       <ChevronRight className="h-4 w-4 text-slate-400" />
     </Link>
@@ -1070,7 +1070,7 @@ function DetailTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Product Page Kaise Parhein?</h3>
             </div>
           </div>
@@ -1089,7 +1089,7 @@ function DetailTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

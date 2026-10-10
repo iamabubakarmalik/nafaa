@@ -71,7 +71,7 @@ export default function MemberDetailPage() {
                 </div>
               )}
               <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                   <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                   {member.memberNumber}
                 </div>
@@ -112,19 +112,19 @@ export default function MemberDetailPage() {
         {/* Stats bar */}
         <div className="relative mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Total Visits</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Total Visits</div>
             <div className="text-2xl font-extrabold tabular-nums">{member.totalVisits}</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Best Streak</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Best Streak</div>
             <div className="text-2xl font-extrabold tabular-nums text-amber-300">{member.longestStreak}d</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Total Spent</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Total Spent</div>
             <div className="text-2xl font-extrabold tabular-nums text-emerald-300">{formatPKR(member.totalSpent)}</div>
           </div>
           <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Member Since</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Member Since</div>
             <div className="text-sm font-extrabold">{format(new Date(member.joinedAt), 'MMM yyyy')}</div>
           </div>
         </div>
@@ -195,14 +195,14 @@ export default function MemberDetailPage() {
               Fitness Goals
             </h3>
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1">Primary Goal</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Primary Goal</div>
               <div className="rounded-xl bg-fuchsia-50 border-2 border-fuchsia-200 p-3 font-extrabold text-fuchsia-800">
                 {member.primaryGoal.replace('_', ' ')}
               </div>
             </div>
             {member.secondaryGoals?.length > 0 && (
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1">Secondary Goals</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Secondary Goals</div>
                 <div className="flex flex-wrap gap-1">
                   {member.secondaryGoals.map((g: string, i: number) => (
                     <span key={i} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-xs font-extrabold uppercase">{g.replace('_', ' ')}</span>
@@ -227,19 +227,19 @@ export default function MemberDetailPage() {
               )}
               {member.medicalConditions && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-rose-700 mb-1">Conditions</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1">Conditions</div>
                   <p className="text-sm font-bold text-slate-800">{member.medicalConditions}</p>
                 </div>
               )}
               {member.injuries && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-rose-700 mb-1">Past Injuries</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1">Past Injuries</div>
                   <p className="text-sm font-bold text-slate-800">{member.injuries}</p>
                 </div>
               )}
               {member.allergies?.length > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-rose-700 mb-1">Allergies</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1">Allergies</div>
                   <div className="flex flex-wrap gap-1">
                     {member.allergies.map((a: string, i: number) => (
                       <span key={i} className="px-2 py-0.5 rounded bg-rose-100 text-rose-700 text-xs font-extrabold">⚠️ {a}</span>
@@ -249,7 +249,7 @@ export default function MemberDetailPage() {
               )}
               {member.medications && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-rose-700 mb-1">Medications</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1">Medications</div>
                   <p className="text-sm font-bold text-slate-800">{member.medications}</p>
                 </div>
               )}
@@ -335,7 +335,7 @@ export default function MemberDetailPage() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {Object.entries(progressData.changes).map(([key, val]: any) => (
                   <div key={key} className="rounded-2xl bg-slate-50 dark:bg-neutral-800/50 p-4">
-                    <div className="text-[10px] uppercase font-extrabold text-slate-500">{key}</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{key}</div>
                     <div className="mt-1 flex items-baseline gap-1">
                       <span className="text-slate-400 tabular-nums text-sm">{val.from?.toFixed(1)}</span>
                       <span className="text-slate-400">→</span>
@@ -452,8 +452,8 @@ export default function MemberDetailPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-sm">{format(new Date(a.checkInAt), 'dd MMM yyyy, HH:mm')}</span>
-                      {isInside && <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-extrabold uppercase">INSIDE</span>}
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[9px] font-extrabold uppercase">{a.method}</span>
+                      {isInside && <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase">INSIDE</span>}
+                      <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[0.625rem] font-extrabold uppercase">{a.method}</span>
                     </div>
                     <div className="text-xs text-slate-500 font-semibold">
                       {a.checkOutAt ? 'Duration: ' + duration + 'min' : duration + 'min (ongoing)'}
@@ -477,7 +477,7 @@ export default function MemberDetailPage() {
 function InfoField({ label, value }: any) {
   return (
     <div>
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="font-extrabold text-slate-900 dark:text-white">{value || '—'}</div>
     </div>
   );
@@ -495,7 +495,7 @@ function StatBox({ label, value, color }: any) {
   };
   return (
     <div className={'rounded-lg p-3 text-center ' + colors[color]}>
-      <div className="text-[9px] uppercase font-extrabold opacity-70">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold opacity-70">{label}</div>
       <div className="text-lg font-extrabold tabular-nums mt-0.5">{value}</div>
     </div>
   );
@@ -504,7 +504,7 @@ function StatBox({ label, value, color }: any) {
 function MeasurementBox({ label, value }: any) {
   return (
     <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
-      <div className="text-[9px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-sm font-extrabold tabular-nums">{value}</div>
     </div>
   );
@@ -557,7 +557,7 @@ function MeasurementForm({ memberId, onClose, onSaved }: any) {
               { key: 'muscleMassPct', label: 'Muscle %' },
             ].map((f) => (
               <div key={f.key}>
-                <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">{f.label}</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">{f.label}</label>
                 <input type="number" step="0.1" value={(form as any)[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
               </div>
             ))}
@@ -578,7 +578,7 @@ function MeasurementForm({ memberId, onClose, onSaved }: any) {
               { key: 'shouldersCm', label: 'Shoulders' },
             ].map((f) => (
               <div key={f.key}>
-                <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">{f.label}</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">{f.label}</label>
                 <input type="number" step="0.1" value={(form as any)[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} className="h-10 w-full rounded-lg border-2 border-blue-300 bg-white px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
               </div>
             ))}
@@ -589,11 +589,11 @@ function MeasurementForm({ memberId, onClose, onSaved }: any) {
           <div className="text-sm font-extrabold text-rose-900 mb-3">Vitals</div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Blood Pressure</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Blood Pressure</label>
               <input value={form.bloodPressure} onChange={(e) => setForm({ ...form, bloodPressure: e.target.value })} placeholder="120/80" className="h-11 w-full rounded-xl border-2 border-rose-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Resting HR</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Resting HR</label>
               <input type="number" value={form.restingHeartRate} onChange={(e) => setForm({ ...form, restingHeartRate: e.target.value })} placeholder="bpm" className="h-11 w-full rounded-xl border-2 border-rose-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
             </div>
           </div>

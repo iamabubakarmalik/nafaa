@@ -154,13 +154,13 @@ function MoneyTile({ icon: Icon, label, value, sub, tone, to, urgent }: any) {
       <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shadow-md mb-2`}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className="text-[10px] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold truncate">
+      <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold truncate">
         {label}
       </div>
       <div className="mt-0.5 text-base sm:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">
         {value}
       </div>
-      <div className="text-[10px] text-slate-600 dark:text-slate-400 font-bold mt-1 leading-snug line-clamp-2">
+      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-1 leading-snug line-clamp-2">
         {sub}
       </div>
     </Link>

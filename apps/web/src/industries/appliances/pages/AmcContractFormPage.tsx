@@ -162,7 +162,7 @@ export default function AmcContractFormPage() {
                     className={['p-3 rounded-xl border-2 text-left transition',
                       a ? 'border-pink-600 bg-pink-50 shadow-md' : 'border-slate-200 hover:border-pink-300'].join(' ')}>
                     <div className={['font-extrabold text-sm', a ? 'text-pink-900' : 'text-slate-900'].join(' ')}>{t.l}</div>
-                    <div className="text-[10px] font-bold text-slate-600 mt-0.5">{t.desc}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-600 mt-0.5">{t.desc}</div>
                   </button>
                 );
               })}
@@ -247,7 +247,7 @@ export default function AmcContractFormPage() {
                 className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-amber-700">Expires On</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Expires On</div>
               <div className="text-lg font-extrabold text-amber-900">
                 {expiryDate.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
               </div>
@@ -337,7 +337,7 @@ export default function AmcContractFormPage() {
                   const a = form.servicesIncluded?.includes(s);
                   return (
                     <button key={s} onClick={() => toggleService(form.servicesIncluded, 'servicesIncluded', s)}
-                      className={['px-2.5 py-1 rounded-lg border-2 text-[11px] font-extrabold transition',
+                      className={['px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold transition',
                         a ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300'].join(' ')}>
                       {a ? '✓ ' : '+ '}{s}
                     </button>
@@ -368,7 +368,7 @@ export default function AmcContractFormPage() {
         {/* SIDEBAR */}
         <aside className="xl:sticky xl:top-4 xl:self-start space-y-3">
           <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 text-white p-5 shadow-xl">
-            <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Summary</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Summary</div>
             <div className="mt-2 text-2xl font-extrabold">
               {form.amcType} PLAN
             </div>
@@ -383,7 +383,7 @@ export default function AmcContractFormPage() {
           </div>
 
           <div className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-3 space-y-1.5">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600">Checklist</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600">Checklist</div>
             <Chk done={!!form.customerName.trim()} label="Customer name" />
             <Chk done={!!form.customerPhone.trim()} label="Phone" />
             <Chk done={form.contractValue > 0} label="Contract value" />

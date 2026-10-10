@@ -195,10 +195,10 @@ function RxCard({ rx, onRenew, onDelete }: { rx: OpticalPrescription; onRenew: (
             <Link to={`/optical/prescriptions/${rx.id}`} className="font-mono font-extrabold text-slate-900 text-sm hover:text-blue-700">
               {rx.prescriptionNumber}
             </Link>
-            {!rx.isActive && <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[9px] font-extrabold uppercase">Inactive</span>}
-            {rx.prescriptionType && <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase">{rx.prescriptionType.replace(/_/g, ' ')}</span>}
-            {isExpired && <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold uppercase">Expired</span>}
-            {isExpiringSoon && !isExpired && <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-extrabold uppercase">Expiring {daysLeft}d</span>}
+            {!rx.isActive && <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[0.625rem] font-extrabold uppercase">Inactive</span>}
+            {rx.prescriptionType && <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">{rx.prescriptionType.replace(/_/g, ' ')}</span>}
+            {isExpired && <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase">Expired</span>}
+            {isExpiringSoon && !isExpired && <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase">Expiring {daysLeft}d</span>}
           </div>
 
           <div className="mt-1 flex items-center gap-3 text-sm text-slate-700 font-bold flex-wrap">
@@ -216,19 +216,19 @@ function RxCard({ rx, onRenew, onDelete }: { rx: OpticalPrescription; onRenew: (
           <div className="mt-2 grid sm:grid-cols-2 gap-2 text-xs">
             {formatEye(rx.rightSph, rx.rightCyl, rx.rightAxis, rx.rightAdd) && (
               <div className="rounded-lg bg-blue-50 border border-blue-200 p-2">
-                <span className="text-[10px] uppercase font-extrabold text-blue-700">OD (Right)</span>
+                <span className="text-[0.6875rem] uppercase font-extrabold text-blue-700">OD (Right)</span>
                 <div className="font-mono font-extrabold text-slate-900 tabular-nums">{formatEye(rx.rightSph, rx.rightCyl, rx.rightAxis, rx.rightAdd)}</div>
               </div>
             )}
             {formatEye(rx.leftSph, rx.leftCyl, rx.leftAxis, rx.leftAdd) && (
               <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2">
-                <span className="text-[10px] uppercase font-extrabold text-emerald-700">OS (Left)</span>
+                <span className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">OS (Left)</span>
                 <div className="font-mono font-extrabold text-slate-900 tabular-nums">{formatEye(rx.leftSph, rx.leftCyl, rx.leftAxis, rx.leftAdd)}</div>
               </div>
             )}
           </div>
 
-          <div className="mt-2 flex items-center gap-3 text-[10px] text-slate-500 font-bold">
+          <div className="mt-2 flex items-center gap-3 text-[0.6875rem] text-slate-500 font-bold">
             <span className="inline-flex items-center gap-0.5">
               <Calendar className="h-2.5 w-2.5" />
               Issued {new Date(rx.prescriptionDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -281,7 +281,7 @@ function StatCard({ label, value, icon: Icon, tone, onClick }: any) {
       className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-blue-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

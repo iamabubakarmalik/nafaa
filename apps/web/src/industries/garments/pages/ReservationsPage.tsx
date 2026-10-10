@@ -110,11 +110,11 @@ export default function ReservationsPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-extrabold text-slate-900 dark:text-white">{r.reservationNumber}</span>
-                    <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + STATUS_COLORS[r.status]}>
+                    <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[r.status]}>
                       {r.status.replace('_', ' ')}
                     </span>
                     {isExpiring && (
-                      <span className="px-2 py-0.5 rounded bg-rose-500 text-white text-[9px] font-extrabold uppercase animate-pulse">
+                      <span className="px-2 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">
                         Expiring
                       </span>
                     )}
@@ -139,15 +139,15 @@ export default function ReservationsPage() {
 
                 <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
                   <div>
-                    <div className="text-[9px] uppercase font-extrabold text-slate-500">Qty</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Qty</div>
                     <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{r.quantity}</div>
                   </div>
                   <div>
-                    <div className="text-[9px] uppercase font-extrabold text-emerald-700">Total</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Total</div>
                     <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(r.quantity * r.unitPrice)}</div>
                   </div>
                   <div>
-                    <div className="text-[9px] uppercase font-extrabold text-amber-700">Deposit</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Deposit</div>
                     <div className="text-sm font-extrabold text-amber-700 tabular-nums">{formatPKR(r.depositAmount)}</div>
                   </div>
                 </div>
@@ -246,7 +246,7 @@ function ReservationForm({ onClose, onSaved }: any) {
                       <Package className="h-3.5 w-3.5 text-slate-400" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-extrabold truncate">{p.name}</div>
-                        <div className="text-[10px] text-slate-500 font-bold">Stock: {p.stock} • {formatPKR(p.price)}</div>
+                        <div className="text-[0.6875rem] text-slate-500 font-bold">Stock: {p.stock} • {formatPKR(p.price)}</div>
                       </div>
                     </button>
                   ))}
@@ -258,21 +258,21 @@ function ReservationForm({ onClose, onSaved }: any) {
 
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Qty</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Qty</label>
             <input type="number" min="1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-200 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Unit Price</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Unit Price</label>
             <input type="number" value={form.unitPrice} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Deposit</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Deposit</label>
             <input type="number" value={form.depositAmount} onChange={(e) => setForm({ ...form, depositAmount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Expires At (default: 7 days)</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Expires At (default: 7 days)</label>
           <input type="datetime-local" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
         </div>
 

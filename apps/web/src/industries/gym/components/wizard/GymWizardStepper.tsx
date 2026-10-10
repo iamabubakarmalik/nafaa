@@ -44,11 +44,11 @@ export function GymWizardStepper({ currentStep, stepValidation, onStepClick }: P
                   {isPast && isComplete ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                 </div>
                 <div className="text-left">
-                  <div className={'text-[10px] uppercase tracking-wider font-extrabold ' + (isActive ? 'text-white/90' : isPast ? 'text-red-700' : 'text-slate-500')}>
+                  <div className={'text-[0.6875rem] uppercase tracking-wider font-extrabold ' + (isActive ? 'text-white/90' : isPast ? 'text-red-700' : 'text-slate-500')}>
                     Step {s.id}
                   </div>
                   <div className="text-sm font-extrabold leading-tight">{s.label}</div>
-                  <div className={'text-[10px] font-bold leading-tight mt-0.5 ' + (isActive ? 'text-white/80' : 'text-slate-500')}>{s.desc}</div>
+                  <div className={'text-[0.6875rem] font-bold leading-tight mt-0.5 ' + (isActive ? 'text-white/80' : 'text-slate-500')}>{s.desc}</div>
                 </div>
               </button>
               {idx < STEPS.length - 1 && (

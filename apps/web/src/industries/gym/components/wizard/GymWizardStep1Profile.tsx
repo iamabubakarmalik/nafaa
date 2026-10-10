@@ -104,7 +104,7 @@ export function GymWizardStep1Profile({ basic, onChange, onToggleGoal, onNext, v
         {bmi > 0 && (
           <div className="rounded-2xl bg-white border-2 border-red-200 p-4 flex items-center justify-between">
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-red-700">BMI Calculator</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-red-700">BMI Calculator</div>
               <div className={'text-3xl font-extrabold tabular-nums mt-1 ' + bmiColor}>{bmi.toFixed(1)}</div>
               <div className={'text-xs font-extrabold ' + bmiColor}>{bmiCategory}</div>
             </div>
@@ -128,7 +128,7 @@ export function GymWizardStep1Profile({ basic, onChange, onToggleGoal, onNext, v
                   active ? 'border-red-500 bg-red-50 dark:bg-red-950/40 shadow-md ring-2 ring-red-200' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-red-300',
                 ].join(' ')}>
                   <span className="text-xl">{g.emoji}</span>
-                  <span className={'text-[9px] font-extrabold text-center leading-tight ' + (active ? 'text-red-800' : 'text-slate-700 dark:text-slate-300')}>
+                  <span className={'text-[0.625rem] font-extrabold text-center leading-tight ' + (active ? 'text-red-800' : 'text-slate-700 dark:text-slate-300')}>
                     {g.label}
                   </span>
                 </button>
@@ -184,7 +184,7 @@ export function GymWizardStep1Profile({ basic, onChange, onToggleGoal, onNext, v
           <Info className="h-5 w-5 text-red-700 shrink-0" />
           <div className="text-sm text-red-900 dark:text-red-200">
             <div className="font-extrabold">Step 1 ready?</div>
-            <div className="text-[11px] text-red-700 font-semibold">Next: medical info + emergency contact + preferences</div>
+            <div className="text-[0.6875rem] text-red-700 font-semibold">Next: medical info + emergency contact + preferences</div>
           </div>
         </div>
         <Button onClick={onNext} disabled={!validation.valid} className="bg-gradient-to-r from-red-600 to-orange-600 shadow-md">
@@ -203,7 +203,7 @@ function SectionHeader({ icon: Icon, title, desc }: any) {
       </div>
       <div>
         <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">{title}</h3>
-        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">{desc}</p>
+        <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">{desc}</p>
       </div>
     </div>
   );
@@ -212,7 +212,7 @@ function SectionHeader({ icon: Icon, title, desc }: any) {
 function MetricInput({ label, emoji, value, onChange }: any) {
   return (
     <div>
-      <label className="block text-[11px] font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{emoji} {label}</label>
+      <label className="block text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">{emoji} {label}</label>
       <input type="number" step="0.1" value={value} onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))} placeholder="0" className="h-11 w-full rounded-xl border-2 border-red-300 bg-red-50/50 dark:bg-red-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-red-500" />
     </div>
   );

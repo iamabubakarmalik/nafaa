@@ -123,17 +123,17 @@ export default function ShoeProductDetailPage() {
                 <div className="w-full h-full flex items-center justify-center text-white/50"><Footprints className="h-16 w-16" /></div>
               )}
               {profile?.isBridal && (
-                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-pink-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-pink-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Heart className="h-3 w-3" /> BRIDAL
                 </div>
               )}
               {profile?.isFeatured && !profile?.isBridal && (
-                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                   <Star className="h-3 w-3 fill-white" /> FEATURED
                 </div>
               )}
               {profile?.isNewArrival && (
-                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[10px] font-extrabold shadow-lg">🆕 NEW</div>
+                <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-emerald-500 text-white text-[0.6875rem] font-extrabold shadow-lg">🆕 NEW</div>
               )}
               {!product.isActive && (
                 <div className="absolute inset-x-0 bottom-0 py-1.5 bg-rose-600 text-center text-xs font-extrabold">DEACTIVATED</div>
@@ -180,18 +180,18 @@ export default function ShoeProductDetailPage() {
 
             <div className="mt-5 flex items-end gap-5 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Retail Price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Retail Price</div>
                 <div className="text-4xl font-extrabold tabular-nums leading-none mt-1">{formatPKRFull(product.price)}</div>
               </div>
               {!hideCost && Number(product.costPrice || 0) > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">{formatPKRFull(product.costPrice)}</div>
                 </div>
               )}
               {!hideCost && stats.profitPerUnit !== 0 && (
                 <div className={`rounded-xl px-3 py-2 backdrop-blur border ${stats.profitPerUnit >= 0 ? 'bg-emerald-400/20 border-emerald-300/40' : 'bg-rose-400/20 border-rose-300/40'}`}>
-                  <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Profit / pair</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Profit / pair</div>
                   <div className="text-lg font-extrabold tabular-nums leading-none mt-0.5">
                     {formatPKRFull(stats.profitPerUnit)} <span className="text-xs opacity-80">({stats.margin.toFixed(0)}%)</span>
                   </div>
@@ -222,7 +222,7 @@ export default function ShoeProductDetailPage() {
                 <Icon className="h-4 w-4" />
                 {t.label}
                 {t.count !== undefined && (
-                  <span className={`px-1.5 rounded-full text-[10px] font-extrabold ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>
+                  <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>
                     {t.count}
                   </span>
                 )}
@@ -292,8 +292,8 @@ export default function ShoeProductDetailPage() {
                               {v.size}
                             </div>
                             <div>
-                              <div className="text-[10px] font-extrabold text-slate-500">{v.sizeSystem}</div>
-                              <div className="text-[10px] font-extrabold text-slate-500">{v.width}</div>
+                              <div className="text-[0.6875rem] font-extrabold text-slate-500">{v.sizeSystem}</div>
+                              <div className="text-[0.6875rem] font-extrabold text-slate-500">{v.width}</div>
                             </div>
                           </div>
                         </td>
@@ -305,16 +305,16 @@ export default function ShoeProductDetailPage() {
                             <span className="inline-flex items-center gap-1 font-mono font-extrabold text-xs bg-slate-100 px-2 py-1 rounded-lg">
                               <Package className="h-3 w-3" /> {v.boxNumber}
                             </span>
-                          ) : <span className="text-[10px] text-slate-400 font-bold">—</span>}
+                          ) : <span className="text-[0.6875rem] text-slate-400 font-bold">—</span>}
                         </td>
                         <td className="px-3 py-3">
                           {v.shelfLocation ? (
                             <span className="inline-flex items-center gap-1 font-mono text-xs">
                               <MapPin className="h-3 w-3 text-orange-600" /> {v.shelfLocation}
                             </span>
-                          ) : <span className="text-[10px] text-slate-400 font-bold">—</span>}
+                          ) : <span className="text-[0.6875rem] text-slate-400 font-bold">—</span>}
                         </td>
-                        <td className="px-3 py-3 text-[10px] font-mono font-bold text-slate-600">{v.sku || '—'}</td>
+                        <td className="px-3 py-3 text-[0.6875rem] font-mono font-bold text-slate-600">{v.sku || '—'}</td>
                         <td className="px-3 py-3 text-right font-extrabold text-emerald-700 tabular-nums text-sm">
                           {v.priceOverride ? formatPKR(v.priceOverride) : <span className="text-slate-400 text-xs">default</span>}
                         </td>
@@ -366,7 +366,7 @@ export default function ShoeProductDetailPage() {
               {profile.soleType && <InfoRow label="Sole Type" value={profile.soleType} />}
               {profile.includesBox !== undefined && (
                 <div className="col-span-2 rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-2">Box Contents</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-2">Box Contents</div>
                   <div className="flex flex-wrap gap-2">
                     {profile.includesBox && <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-extrabold">✓ Original Box</span>}
                     {profile.includesDustBag && <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-extrabold">✓ Dust Bag</span>}
@@ -402,7 +402,7 @@ export default function ShoeProductDetailPage() {
                   <InfoRow label="Sport" value={profile.sport} />
                   {profile.playingSurface?.length > 0 && (
                     <div className="mt-2">
-                      <div className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1">Playing Surface</div>
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1">Playing Surface</div>
                       <div className="flex flex-wrap gap-1.5">
                         {profile.playingSurface.map((s: string) => (
                           <span key={s} className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-extrabold">{s}</span>
@@ -449,10 +449,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -490,7 +490,7 @@ function Panel({ icon: Icon, title, desc, tone, children, empty, emptyText, empt
 function InfoRow({ label, value, mono, full }: any) {
   return (
     <div className={full ? 'col-span-2' : ''}>
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
       <div className={`text-sm font-bold text-slate-900 mt-0.5 ${mono ? 'font-mono' : ''}`}>{value}</div>
     </div>
   );
@@ -503,7 +503,7 @@ function SmallStat({ label, value, tone }: any) {
   };
   return (
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4">
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-3xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
     </div>
   );
@@ -516,12 +516,12 @@ function FeatureBadge({ active, icon, label }: any) {
       <span className="text-2xl">{icon}</span>
       <div className="min-w-0">
         <div className={`font-extrabold text-sm ${active ? 'text-emerald-900' : 'text-slate-500'}`}>{label}</div>
-        <div className="text-[10px] font-bold">{active ? '✓ Yes' : '—'}</div>
+        <div className="text-[0.6875rem] font-bold">{active ? '✓ Yes' : '—'}</div>
       </div>
     </div>
   );
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
 }

@@ -176,7 +176,7 @@ function StatusCounter({ label, value, bg }: any) {
       <div className="flex items-center gap-3">
         <div className={'h-3 w-3 rounded-full ' + bg} />
         <div className="flex-1 min-w-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
         </div>
       </div>
@@ -202,44 +202,44 @@ function RoomCard({ room, onStatusChange, onHkChange, onEdit, onDelete }: any) {
         <div className="flex items-start justify-between">
           <div>
             <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums leading-none">{room.roomNumber}</div>
-            {room.floor && <div className="text-[9px] font-bold text-slate-500 mt-0.5">Floor {room.floor}</div>}
+            {room.floor && <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">Floor {room.floor}</div>}
           </div>
           <button onClick={() => setShowMenu(!showMenu)} className="h-6 w-6 rounded hover:bg-white flex items-center justify-center">
             <Edit3 className="h-3 w-3 text-slate-500" />
           </button>
         </div>
 
-        <div className="text-[10px] font-extrabold text-slate-600 truncate">{room.roomType?.name}</div>
+        <div className="text-[0.6875rem] font-extrabold text-slate-600 truncate">{room.roomType?.name}</div>
 
-        <div className={'inline-block px-1.5 py-0.5 rounded text-white text-[9px] font-extrabold uppercase ' + cfg.bg}>
+        <div className={'inline-block px-1.5 py-0.5 rounded text-white text-[0.625rem] font-extrabold uppercase ' + cfg.bg}>
           {cfg.label}
         </div>
 
         {room.housekeepingStatus === 'DIRTY' && (
-          <div className="text-[9px] font-extrabold text-amber-700 inline-flex items-center gap-0.5">
+          <div className="text-[0.625rem] font-extrabold text-amber-700 inline-flex items-center gap-0.5">
             <Sparkle className="h-2 w-2" /> Needs cleaning
           </div>
         )}
 
         {showMenu && (
           <div className="border-t border-slate-200 pt-2 space-y-1">
-            <div className="text-[9px] uppercase font-extrabold text-slate-500 mb-1">Change Status</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">Change Status</div>
             <div className="grid grid-cols-2 gap-1">
               {Object.entries(STATUS_CONFIG).map(([k, v]) => (
                 <button
                   key={k}
                   onClick={() => { onStatusChange(k); setShowMenu(false); }}
                   className={
-                    'px-1.5 py-1 rounded text-[9px] font-extrabold text-white ' + v.bg +
+                    'px-1.5 py-1 rounded text-[0.625rem] font-extrabold text-white ' + v.bg +
                     (room.status === k ? ' ring-2 ring-slate-900' : ' opacity-70 hover:opacity-100')
                   }
                 >{v.label}</button>
               ))}
             </div>
-            <button onClick={onEdit} className="w-full mt-1 px-1.5 py-1 rounded bg-slate-200 text-slate-700 text-[9px] font-extrabold hover:bg-slate-300 inline-flex items-center justify-center gap-1">
+            <button onClick={onEdit} className="w-full mt-1 px-1.5 py-1 rounded bg-slate-200 text-slate-700 text-[0.625rem] font-extrabold hover:bg-slate-300 inline-flex items-center justify-center gap-1">
               <Edit3 className="h-2 w-2" /> Edit
             </button>
-            <button onClick={onDelete} className="w-full px-1.5 py-1 rounded bg-rose-100 text-rose-600 text-[9px] font-extrabold hover:bg-rose-200 inline-flex items-center justify-center gap-1">
+            <button onClick={onDelete} className="w-full px-1.5 py-1 rounded bg-rose-100 text-rose-600 text-[0.625rem] font-extrabold hover:bg-rose-200 inline-flex items-center justify-center gap-1">
               <Trash2 className="h-2 w-2" /> Delete
             </button>
           </div>

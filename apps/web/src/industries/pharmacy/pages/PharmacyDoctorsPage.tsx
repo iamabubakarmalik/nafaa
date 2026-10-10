@@ -100,7 +100,7 @@ export default function DoctorsPage() {
                     <span className="font-extrabold text-slate-900 dark:text-white truncate">{doc.name}</span>
                     {doc.isVerified && <Award className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
                   </div>
-                  <div className="text-[10px] font-mono font-bold text-slate-500">{doc.registrationNumber}</div>
+                  <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{doc.registrationNumber}</div>
                   {doc.specialization && <div className="text-xs text-slate-600 font-bold">{doc.specialization}</div>}
                 </div>
               </div>
@@ -122,22 +122,22 @@ export default function DoctorsPage() {
 
               <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
                 <div className="text-center">
-                  <div className="text-[9px] uppercase font-extrabold text-slate-500">Rx</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Rx</div>
                   <div className="font-extrabold tabular-nums">{doc.totalPrescriptions}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-[9px] uppercase font-extrabold text-emerald-700">Business</div>
-                  <div className="font-extrabold text-emerald-700 tabular-nums text-[10px]">{formatPKR(doc.totalBusiness)}</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Business</div>
+                  <div className="font-extrabold text-emerald-700 tabular-nums text-[0.6875rem]">{formatPKR(doc.totalBusiness)}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-[9px] uppercase font-extrabold text-amber-700">Commission</div>
-                  <div className="font-extrabold text-amber-700 tabular-nums text-[10px]">{formatPKR(doc.totalCommission)}</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Commission</div>
+                  <div className="font-extrabold text-amber-700 tabular-nums text-[0.6875rem]">{formatPKR(doc.totalCommission)}</div>
                 </div>
               </div>
 
               <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
                 <button onClick={() => verifyMutation.mutate(doc.id)} className={
-                  'flex-1 h-8 rounded-lg text-[10px] font-extrabold inline-flex items-center justify-center gap-1 ' +
+                  'flex-1 h-8 rounded-lg text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 ' +
                   (doc.isVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 dark:bg-neutral-800 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700')
                 }>
                   <ShieldCheck className="h-3 w-3" />

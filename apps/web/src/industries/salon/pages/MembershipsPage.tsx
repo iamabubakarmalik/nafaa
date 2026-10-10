@@ -293,7 +293,7 @@ function MembershipCard({ membership, onCancel }: any) {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{membership.membershipNumber}</span>
               <span className={
-                'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' +
+                'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                 (membership.status === 'ACTIVE' ? 'bg-emerald-600' :
                  membership.status === 'EXPIRED' ? 'bg-slate-500' :
                  membership.status === 'CANCELLED' ? 'bg-rose-500' : 'bg-amber-500')
@@ -301,12 +301,12 @@ function MembershipCard({ membership, onCancel }: any) {
                 {membership.status}
               </span>
               {isExpiringSoon && (
-                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">
+                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">
                   Expires in {daysLeft}d
                 </span>
               )}
               {membership.autoRenew && (
-                <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase">Auto-renew</span>
+                <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">Auto-renew</span>
               )}
             </div>
             <div className="mt-1 text-sm font-bold text-slate-900 dark:text-white">{membership.plan?.name}</div>
@@ -319,9 +319,9 @@ function MembershipCard({ membership, onCancel }: any) {
         <div className="text-right shrink-0">
           <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(membership.amountPaid)}</div>
           {membership.totalSaved > 0 && (
-            <div className="text-[10px] font-extrabold text-emerald-600">Saved: {formatPKR(membership.totalSaved)}</div>
+            <div className="text-[0.6875rem] font-extrabold text-emerald-600">Saved: {formatPKR(membership.totalSaved)}</div>
           )}
-          <div className="text-[10px] font-bold text-slate-500">{membership.usedServices} services used</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500">{membership.usedServices} services used</div>
           {membership.status === 'ACTIVE' && (
             <button onClick={onCancel} className="mt-2 text-xs font-extrabold text-rose-600 hover:underline">
               Cancel
@@ -388,11 +388,11 @@ function PlanForm({ editing, onClose, onSaved }: { editing: MembershipPlan | nul
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Price (Rs) *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Price (Rs) *</label>
             <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Duration (days) *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Duration (days) *</label>
             <input type="number" value={form.durationDays} onChange={(e) => setForm({ ...form, durationDays: e.target.value })} className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
         </div>
@@ -404,15 +404,15 @@ function PlanForm({ editing, onClose, onSaved }: { editing: MembershipPlan | nul
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-fuchsia-700 mb-1 block">Discount (%)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700 mb-1 block">Discount (%)</label>
               <input type="number" step="0.1" value={form.discountPct} onChange={(e) => setForm({ ...form, discountPct: e.target.value })} className="h-11 w-full rounded-xl border-2 border-fuchsia-300 bg-white dark:bg-fuchsia-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-fuchsia-700 mb-1 block">Free Services</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700 mb-1 block">Free Services</label>
               <input type="number" value={form.freeServiceCount} onChange={(e) => setForm({ ...form, freeServiceCount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-fuchsia-300 bg-white dark:bg-fuchsia-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-fuchsia-700 mb-1 block">Birthday Bonus (Rs)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700 mb-1 block">Birthday Bonus (Rs)</label>
               <input type="number" value={form.birthdayBonus} onChange={(e) => setForm({ ...form, birthdayBonus: e.target.value })} className="h-11 w-full rounded-xl border-2 border-fuchsia-300 bg-white dark:bg-fuchsia-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
             </div>
           </div>
@@ -437,7 +437,7 @@ function PlanForm({ editing, onClose, onSaved }: { editing: MembershipPlan | nul
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-fuchsia-700 mb-1 block">Additional Benefits (one per line)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700 mb-1 block">Additional Benefits (one per line)</label>
             <textarea rows={3} value={form.benefits} onChange={(e) => setForm({ ...form, benefits: e.target.value })} placeholder="Free hair spa monthly&#10;Complimentary consultation&#10;VIP treatment room" className="w-full rounded-xl border-2 border-fuchsia-300 bg-white dark:bg-fuchsia-950/40 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
           </div>
         </div>
@@ -498,7 +498,7 @@ function SubscribeForm({ plans, onClose, onSaved }: { plans: MembershipPlan[]; o
       <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
         {/* Plan picker */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Choose Plan *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Choose Plan *</label>
           <div className="grid sm:grid-cols-2 gap-2">
             {plans.map((plan) => {
               const tier = TIERS.find((t) => t.value === plan.tier);
@@ -515,11 +515,11 @@ function SubscribeForm({ plans, onClose, onSaved }: { plans: MembershipPlan[]; o
                     <span className="text-2xl">{tier?.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-sm truncate">{plan.name}</div>
-                      <div className="text-[10px] font-bold text-slate-500 uppercase">{tier?.label}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{tier?.label}</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-emerald-700 text-sm tabular-nums">{formatPKR(plan.price)}</div>
-                      <div className="text-[9px] font-bold text-slate-500">{plan.durationDays}d</div>
+                      <div className="text-[0.625rem] font-bold text-slate-500">{plan.durationDays}d</div>
                     </div>
                   </div>
                 </button>
@@ -530,7 +530,7 @@ function SubscribeForm({ plans, onClose, onSaved }: { plans: MembershipPlan[]; o
 
         {/* Customer picker */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Customer *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Customer *</label>
           {selectedCustomer ? (
             <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-200 p-3 flex items-center gap-3">
               <User className="h-5 w-5 text-amber-600" />
@@ -554,7 +554,7 @@ function SubscribeForm({ plans, onClose, onSaved }: { plans: MembershipPlan[]; o
                       <button key={c.id} onClick={() => { setSelectedCustomer(c); setForm({ ...form, customerId: c.id }); setShowPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
                         <User className="h-3.5 w-3.5 text-slate-400" />
                         <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                        <span className="text-[10px] text-slate-500 font-bold">{c.phone}</span>
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
                       </button>
                     ))}
                   </div>
@@ -567,11 +567,11 @@ function SubscribeForm({ plans, onClose, onSaved }: { plans: MembershipPlan[]; o
         {selectedPlan && (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Amount Paid *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Amount Paid *</label>
               <input type="number" value={form.amountPaid} onChange={(e) => setForm({ ...form, amountPaid: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Payment Method</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Payment Method</label>
               <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
                 <option>CASH</option><option>CARD</option><option>JAZZCASH</option><option>EASYPAISA</option><option>BANK</option>
               </select>

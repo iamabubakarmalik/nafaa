@@ -71,7 +71,7 @@ export default function ShopSelector() {
         <Store className={`h-4 w-4 ${user.assignedShop.isMain ? 'text-emerald-600' : 'text-indigo-600'}`} />
         <span className="hidden sm:inline max-w-[140px] truncate">{user.assignedShop.name}</span>
         {user.assignedShop.isMain && (
-          <span className="hidden md:inline px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-600 text-white">
+          <span className="hidden md:inline px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-600 text-white">
             MAIN
           </span>
         )}
@@ -135,12 +135,12 @@ export default function ShopSelector() {
           {isAll ? 'All Shops' : currentShop?.name || 'Select Shop'}
         </span>
         {isAll && (
-          <span className="hidden md:inline px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-violet-600 text-white">
+          <span className="hidden md:inline px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-violet-600 text-white">
             {activeShops.length}
           </span>
         )}
         {!isAll && currentShop?.isMain && (
-          <span className="hidden md:inline px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-600 text-white">
+          <span className="hidden md:inline px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-600 text-white">
             MAIN
           </span>
         )}
@@ -150,7 +150,7 @@ export default function ShopSelector() {
       {open && (
         <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150">
           <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-white">
-            <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-bold text-slate-500">
               Switch Shop
             </div>
             <div className="text-sm font-bold text-slate-900 mt-0.5">
@@ -175,7 +175,7 @@ export default function ShopSelector() {
                 </div>
                 <div className="flex-1 min-w-0 text-left">
                   <div className="font-bold text-slate-900 text-sm">All Shops</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">
+                  <div className="text-[0.6875rem] text-slate-500 mt-0.5">
                     Sab {activeShops.length} branches ka mila hua data — POS aur cash register ke liye
                     ek shop chunni paregi
                   </div>
@@ -214,22 +214,22 @@ export default function ShopSelector() {
                     <div className="flex items-center gap-1.5">
                       <span className="font-bold text-slate-900 truncate text-sm">{shop.name}</span>
                       {shop.isMain && (
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700">
+                        <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700">
                           MAIN
                         </span>
                       )}
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600">
+                      <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-bold bg-slate-100 text-slate-600">
                         {shop.type}
                       </span>
                     </div>
                     {shop.address && (
-                      <div className="text-[11px] text-slate-500 mt-0.5 flex items-start gap-1">
+                      <div className="text-[0.6875rem] text-slate-500 mt-0.5 flex items-start gap-1">
                         <MapPin className="h-2.5 w-2.5 mt-0.5 shrink-0" />
                         <span className="truncate">{shop.address}</span>
                       </div>
                     )}
                     {shop.phone && (
-                      <div className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
+                      <div className="text-[0.6875rem] text-slate-500 mt-0.5 flex items-center gap-1">
                         <Phone className="h-2.5 w-2.5 shrink-0" />
                         {shop.phone}
                       </div>

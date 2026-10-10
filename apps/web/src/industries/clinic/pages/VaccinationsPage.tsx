@@ -86,14 +86,14 @@ export default function VaccinationsPage() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-slate-900 dark:text-white">{v.vaccineName}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + STATUS_COLORS[v.status]}>{v.status}</span>
-                        {isOverdue && <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase animate-pulse">OVERDUE</span>}
+                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[v.status]}>{v.status}</span>
+                        {isOverdue && <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">OVERDUE</span>}
                       </div>
                       {v.doseNumber !== null && v.doseNumber !== undefined && (
                         <div className="text-xs font-bold text-slate-600">Dose #{v.doseNumber}</div>
                       )}
                       {v.scheduleName && (
-                        <div className="text-[10px] font-extrabold text-rose-700">{v.scheduleName}</div>
+                        <div className="text-[0.6875rem] font-extrabold text-rose-700">{v.scheduleName}</div>
                       )}
                     </div>
                   </div>
@@ -114,7 +114,7 @@ export default function VaccinationsPage() {
                 )}
 
                 {v.batchNumber && (
-                  <div className="text-[10px] font-mono font-bold text-slate-500">Batch: {v.batchNumber}</div>
+                  <div className="text-[0.6875rem] font-mono font-bold text-slate-500">Batch: {v.batchNumber}</div>
                 )}
 
                 {v.status === 'DUE' && (
@@ -176,14 +176,14 @@ function BulkEpiModal({ onClose, onSaved }: any) {
             </div>
           ) : (
             <div>
-              <label className="text-[10px] uppercase font-extrabold mb-1 block">Select Baby/Patient</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold mb-1 block">Select Baby/Patient</label>
               <input autoFocus value={patientSearch} onChange={(e) => setPatientSearch(e.target.value)} placeholder="Search..." className="h-11 w-full rounded-xl border-2 border-rose-200 bg-rose-50 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
               <div className="mt-2 max-h-40 overflow-y-auto space-y-1">
                 {patients.map((p) => (
                   <button key={p.id} onClick={() => { setSelectedPatient(p); setPatientId(p.id); setShowPicker(false); if (p.dateOfBirth) setBirthDate(p.dateOfBirth.slice(0, 10)); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-rose-50 text-left">
                     <User className="h-3.5 w-3.5 text-slate-400" />
                     <span className="text-sm font-extrabold flex-1 truncate">{p.fullName}</span>
-                    <span className="text-[10px] font-mono text-blue-600">{p.mrn}</span>
+                    <span className="text-[0.6875rem] font-mono text-blue-600">{p.mrn}</span>
                   </button>
                 ))}
               </div>
@@ -191,7 +191,7 @@ function BulkEpiModal({ onClose, onSaved }: any) {
           )}
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold mb-1 block">Birth Date *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold mb-1 block">Birth Date *</label>
             <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
           </div>
 

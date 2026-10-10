@@ -49,7 +49,7 @@ export function DangerZoneSection() {
             <AlertTriangle className="h-6 w-6" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/70">Careful zone</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/70">Careful zone</div>
             <h3 className="font-extrabold text-xl mt-0.5">⚠️ Danger Zone</h3>
             <p className="text-sm text-white/90 mt-1 font-semibold leading-relaxed">
               In actions ko sirf tab karein jab bilkul yaqeen ho. Ye <strong>permanent</strong> aur asaani se undo nahi hoti.

@@ -192,23 +192,23 @@ function LogCard({ log }: { log: SlaughterLog }) {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{log.slaughterNumber}</span>
               {log.isHalal && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                   <ShieldCheck className="h-2.5 w-2.5" />
                   HALAL
                 </span>
               )}
               {method && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[9px] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
                   {method.emoji} {method.label}
                 </span>
               )}
               {grade && (
-                <span className={'px-2 py-0.5 rounded text-white text-[9px] font-extrabold uppercase ' + grade.color}>
+                <span className={'px-2 py-0.5 rounded text-white text-[0.625rem] font-extrabold uppercase ' + grade.color}>
                   {grade.label}
                 </span>
               )}
               {log.vetInspection && (
-                <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                   <CheckCircle2 className="h-2 w-2" />
                   VET OK
                 </span>
@@ -251,15 +251,15 @@ function LogCard({ log }: { log: SlaughterLog }) {
 
         <div className="text-right shrink-0 space-y-1">
           <div>
-            <div className="text-[10px] font-extrabold text-slate-500 uppercase">Live Wt</div>
+            <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase">Live Wt</div>
             <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{log.liveWeightKg}kg</div>
           </div>
           {log.dressedWeightKg && (
             <div>
-              <div className="text-[10px] font-extrabold text-emerald-700 uppercase">Yield</div>
+              <div className="text-[0.6875rem] font-extrabold text-emerald-700 uppercase">Yield</div>
               <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{log.dressedWeightKg}kg</div>
               {log.yieldPct && (
-                <div className="text-[10px] font-bold text-emerald-600">{log.yieldPct.toFixed(1)}%</div>
+                <div className="text-[0.6875rem] font-bold text-emerald-600">{log.yieldPct.toFixed(1)}%</div>
               )}
             </div>
           )}
@@ -379,7 +379,7 @@ function SlaughterForm({ onClose, onSaved }: any) {
                         <span className="text-lg">{cfg?.emoji}</span>
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-extrabold truncate">{a.tagNumber}</div>
-                          <div className="text-[10px] text-slate-500 font-bold">{a.weightKg}kg • {a.breed}</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-bold">{a.weightKg}kg • {a.breed}</div>
                         </div>
                       </button>
                     );
@@ -399,7 +399,7 @@ function SlaughterForm({ onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Slaughter Method *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Slaughter Method *</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {METHODS.map((m) => (
               <button key={m.value} onClick={() => setForm({ ...form, slaughterMethod: m.value, isHalal: m.value.startsWith('HALAL') })} className={
@@ -407,7 +407,7 @@ function SlaughterForm({ onClose, onSaved }: any) {
                 (form.slaughterMethod === m.value ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-emerald-300')
               }>
                 <div className="text-2xl mb-1">{m.emoji}</div>
-                <div className="text-[10px] font-extrabold">{m.label}</div>
+                <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
               </button>
             ))}
           </div>
@@ -415,11 +415,11 @@ function SlaughterForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Live Weight (kg) *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Live Weight (kg) *</label>
             <input type="number" step="0.1" value={form.liveWeightKg} onChange={(e) => setForm({ ...form, liveWeightKg: e.target.value })} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Dressed Weight (kg)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Dressed Weight (kg)</label>
             <input type="number" step="0.1" value={form.dressedWeightKg} onChange={(e) => setForm({ ...form, dressedWeightKg: e.target.value })} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
@@ -471,7 +471,7 @@ function SlaughterForm({ onClose, onSaved }: any) {
 
         {/* Photos */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
             <Camera className="h-3 w-3" />
             Photos
           </label>

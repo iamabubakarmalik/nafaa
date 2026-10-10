@@ -161,7 +161,7 @@ export default function NewBookingPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 New Booking
               </div>
@@ -189,7 +189,7 @@ export default function NewBookingPage() {
                 <div className="flex-1">
                   <div className="font-extrabold">{selectedGuest.fullName}</div>
                   <div className="text-xs text-slate-600 font-bold">{selectedGuest.phone} • {selectedGuest.guestNumber}</div>
-                  {selectedGuest.isVIP && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 mt-1"><Star className="h-2 w-2 fill-current" />VIP</span>}
+                  {selectedGuest.isVIP && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 mt-1"><Star className="h-2 w-2 fill-current" />VIP</span>}
                 </div>
                 <button onClick={() => { setSelectedGuest(null); setForm({ ...form, primaryGuestId: '', guestName: '', guestPhone: '', guestEmail: '' }); }} className="text-xs font-extrabold text-blue-600 hover:underline">Change</button>
               </div>
@@ -208,7 +208,7 @@ export default function NewBookingPage() {
                           <User className="h-3.5 w-3.5 text-slate-400" />
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-extrabold truncate">{g.fullName}</div>
-                            <div className="text-[10px] text-slate-500 font-bold">{g.phone} • {g.guestNumber}</div>
+                            <div className="text-[0.6875rem] text-slate-500 font-bold">{g.phone} • {g.guestNumber}</div>
                           </div>
                           {g.isVIP && <Star className="h-3 w-3 text-amber-500 fill-current" />}
                         </button>
@@ -225,11 +225,11 @@ export default function NewBookingPage() {
             <div className="grid sm:grid-cols-3 gap-3">
               <input value={form.guestEmail} onChange={(e) => setForm({ ...form, guestEmail: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Adults</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Adults</label>
                 <input type="number" value={form.totalAdults} onChange={(e) => setForm({ ...form, totalAdults: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Children</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Children</label>
                 <input type="number" value={form.totalChildren} onChange={(e) => setForm({ ...form, totalChildren: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
               </div>
             </div>
@@ -243,11 +243,11 @@ export default function NewBookingPage() {
             </h3>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Check-in *</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Check-in *</label>
                 <input type="date" value={form.checkInDate} onChange={(e) => setForm({ ...form, checkInDate: e.target.value })} min={today} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Check-out *</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Check-out *</label>
                 <input type="date" value={form.checkOutDate} onChange={(e) => setForm({ ...form, checkOutDate: e.target.value })} min={form.checkInDate} className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 dark:bg-rose-950/30 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
               </div>
             </div>
@@ -288,7 +288,7 @@ export default function NewBookingPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="font-extrabold">{room.roomTypeName}</div>
-                        {room.roomNumber && <div className="text-[10px] font-bold text-slate-500">Room {room.roomNumber}</div>}
+                        {room.roomNumber && <div className="text-[0.6875rem] font-bold text-slate-500">Room {room.roomNumber}</div>}
                       </div>
                       <button onClick={() => removeRoom(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
                         <Trash2 className="h-3 w-3" />
@@ -296,19 +296,19 @@ export default function NewBookingPage() {
                     </div>
                     <div className="grid grid-cols-4 gap-2">
                       <div>
-                        <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-0.5 block">Rate/night</label>
+                        <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-0.5 block">Rate/night</label>
                         <input type="number" value={room.ratePerNight} onChange={(e) => updateRoom(i, { ratePerNight: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-emerald-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
                       </div>
                       <div>
-                        <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-0.5 block">Adults</label>
+                        <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-0.5 block">Adults</label>
                         <input type="number" value={room.adults} onChange={(e) => updateRoom(i, { adults: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-blue-300 bg-blue-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
                       </div>
                       <div>
-                        <label className="text-[10px] uppercase font-extrabold text-cyan-700 mb-0.5 block">Children</label>
+                        <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-0.5 block">Children</label>
                         <input type="number" value={room.children} onChange={(e) => updateRoom(i, { children: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-cyan-300 bg-cyan-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-cyan-500" />
                       </div>
                       <div>
-                        <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-0.5 block">Discount</label>
+                        <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-0.5 block">Discount</label>
                         <input type="number" value={room.discount} onChange={(e) => updateRoom(i, { discount: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-rose-200 bg-rose-50 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-rose-500" />
                       </div>
                     </div>
@@ -331,7 +331,7 @@ export default function NewBookingPage() {
                   (form.source === s.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 hover:border-blue-300')
                 }>
                   <div className="text-xl">{s.emoji}</div>
-                  <div className="text-[9px] font-extrabold">{s.label}</div>
+                  <div className="text-[0.625rem] font-extrabold">{s.label}</div>
                 </button>
               ))}
             </div>
@@ -347,7 +347,7 @@ export default function NewBookingPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Summary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Summary</div>
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Nights</span><span className="font-bold tabular-nums">{nights}</span></div>
                 <div className="flex justify-between"><span className="text-white/70">Rooms</span><span className="font-bold tabular-nums">{rooms.length}</span></div>
@@ -355,19 +355,19 @@ export default function NewBookingPage() {
               </div>
               <div className="mt-3 space-y-2">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
                   <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Service Charge</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Service Charge</label>
                   <input type="number" value={form.serviceCharge} onChange={(e) => setForm({ ...form, serviceCharge: e.target.value })} className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
                   <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-emerald-300 mb-0.5 block">Advance Paid</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-300 mb-0.5 block">Advance Paid</label>
                   <input type="number" value={form.advancePaid} onChange={(e) => setForm({ ...form, advancePaid: e.target.value })} className="h-9 w-full rounded-lg bg-emerald-500/20 border border-emerald-400/40 px-2 text-sm font-extrabold tabular-nums text-emerald-100 focus:outline-none focus:border-emerald-400" />
                 </div>
               </div>
@@ -418,7 +418,7 @@ export default function NewBookingPage() {
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(group.roomType.basePrice)}</div>
-                        <div className="text-[10px] font-bold text-slate-500">per night</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500">per night</div>
                       </div>
                     </div>
                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-1">

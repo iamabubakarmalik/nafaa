@@ -168,7 +168,7 @@ export default function AttendancePage() {
                     <div className="font-bold text-slate-900 truncate">{s.fullName}</div>
                     <div className="text-xs text-violet-700 font-bold mt-0.5">{s.designation}</div>
                     {att && Icon && cfg && (
-                      <span className={`inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.bg}`}>
+                      <span className={`inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold border ${cfg.bg}`}>
                         <Icon className="h-3 w-3" />
                         {cfg.label}
                       </span>
@@ -179,13 +179,13 @@ export default function AttendancePage() {
                 {att && (
                   <div className="px-4 pb-2 grid grid-cols-2 gap-2 text-xs">
                     <div className="rounded-lg bg-slate-50 p-2">
-                      <div className="text-[10px] text-slate-500 font-bold uppercase">Check In</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">Check In</div>
                       <div className="font-bold text-slate-900">
                         {att.checkIn ? new Date(att.checkIn).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' }) : '—'}
                       </div>
                     </div>
                     <div className="rounded-lg bg-slate-50 p-2">
-                      <div className="text-[10px] text-slate-500 font-bold uppercase">Check Out</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">Check Out</div>
                       <div className="font-bold text-slate-900">
                         {att.checkOut ? new Date(att.checkOut).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' }) : '—'}
                       </div>

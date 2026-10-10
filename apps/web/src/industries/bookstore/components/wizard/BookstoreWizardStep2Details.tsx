@@ -240,7 +240,7 @@ export function BookstoreWizardStep2Details({
                 ))}
               </select>
               {publishers.length === 0 && (
-                <div className="mt-1 text-[10px] text-blue-700 font-semibold">
+                <div className="mt-1 text-[0.6875rem] text-blue-700 font-semibold">
                   No publishers yet.{' '}
                   <a href="/bookstore/publishers" target="_blank" className="underline font-extrabold">
                     Add publishers →
@@ -327,7 +327,7 @@ export function BookstoreWizardStep2Details({
                                 {a.penName && <span className="text-slate-500 font-semibold ml-1">"{a.penName}"</span>}
                               </div>
                               {a.nationality && (
-                                <div className="text-[10px] text-slate-500 font-semibold">{a.nationality}</div>
+                                <div className="text-[0.6875rem] text-slate-500 font-semibold">{a.nationality}</div>
                               )}
                             </div>
                             {selected && <Check className="h-4 w-4 text-blue-600" />}
@@ -374,7 +374,7 @@ export function BookstoreWizardStep2Details({
                       ].join(' ')}
                     >
                       <div className="text-2xl mb-1">{b.emoji}</div>
-                      <div className="text-[10px] font-extrabold">{b.label}</div>
+                      <div className="text-[0.6875rem] font-extrabold">{b.label}</div>
                     </button>
                   );
                 })}
@@ -531,7 +531,7 @@ export function BookstoreWizardStep2Details({
                       ].join(' ')}
                     >
                       <div className="text-2xl">{c.emoji}</div>
-                      <div className="text-[10px] font-extrabold mt-0.5 leading-tight">{c.label}</div>
+                      <div className="text-[0.6875rem] font-extrabold mt-0.5 leading-tight">{c.label}</div>
                     </button>
                   );
                 })}
@@ -652,7 +652,7 @@ export function BookstoreWizardStep2Details({
                       ].join(' ')}
                     >
                       <div className="text-2xl">{c.emoji}</div>
-                      <div className="text-[10px] font-extrabold mt-0.5 leading-tight">{c.label}</div>
+                      <div className="text-[0.6875rem] font-extrabold mt-0.5 leading-tight">{c.label}</div>
                     </button>
                   );
                 })}

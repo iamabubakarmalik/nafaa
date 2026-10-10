@@ -110,7 +110,7 @@ export default function BirthdayDetailPage() {
             </div>
 
             <div className="text-right">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Days until</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Days until</div>
               <div className={`text-6xl sm:text-7xl font-extrabold tabular-nums leading-none mt-1 ${
                 isToday ? 'text-amber-300' : 'text-white'}`}>
                 {isToday ? '🎉' : daysUntil}
@@ -124,13 +124,13 @@ export default function BirthdayDetailPage() {
           {/* Parent Info */}
           <div className="mt-6 grid sm:grid-cols-2 gap-3">
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Parent</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Parent</div>
               <div className="text-lg font-extrabold mt-1 flex items-center gap-2">
                 <User className="h-4 w-4" /> {reminder.customerName}
               </div>
             </div>
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Phone</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Phone</div>
               <div className="text-lg font-extrabold mt-1 flex items-center gap-2">
                 <Phone className="h-4 w-4" /> {reminder.customerPhone}
               </div>
@@ -234,7 +234,7 @@ export default function BirthdayDetailPage() {
           <div>
             <h3 className="font-extrabold text-slate-900 inline-flex items-center gap-2">
               🎁 AI-Suggested Gifts
-              <span className="px-2 py-0.5 rounded-full bg-violet-500 text-white text-[9px] font-extrabold uppercase">
+              <span className="px-2 py-0.5 rounded-full bg-violet-500 text-white text-[0.625rem] font-extrabold uppercase">
                 Auto-matched
               </span>
             </h3>
@@ -265,17 +265,17 @@ export default function BirthdayDetailPage() {
                       </div>
                     )}
                     {p.isBirthdayGift && (
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-pink-500 text-white text-[9px] font-extrabold shadow">
+                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-pink-500 text-white text-[0.625rem] font-extrabold shadow">
                         🎂 GIFT
                       </div>
                     )}
                     {p.isBestSeller && (
-                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow">
+                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold shadow">
                         🏆 BEST
                       </div>
                     )}
                     {p.isEducational && (
-                      <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-violet-600 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+                      <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-violet-600 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
                         <GraduationCap className="h-2.5 w-2.5" /> EDU
                       </div>
                     )}
@@ -284,7 +284,7 @@ export default function BirthdayDetailPage() {
                     <div className="font-extrabold text-slate-900 text-xs leading-tight line-clamp-2 min-h-[2rem]">
                       {p.product?.name}
                     </div>
-                    {p.brand && <div className="text-[10px] font-bold text-slate-500 mt-0.5">{p.brand}</div>}
+                    {p.brand && <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">{p.brand}</div>}
                     <div className="mt-1.5 flex items-end justify-between">
                       <div className="text-base font-extrabold text-emerald-700 tabular-nums leading-none">
                         {formatPKR(p.retailPrice || p.product?.price || 0)}
@@ -314,7 +314,7 @@ export default function BirthdayDetailPage() {
                       <div className="mt-2 flex items-end justify-between">
                         <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(g.giftPackPrice)}</div>
                         {g.savingsPct > 0 && (
-                          <span className="text-[10px] font-extrabold text-amber-700">Save {Number(g.savingsPct).toFixed(0)}%</span>
+                          <span className="text-[0.6875rem] font-extrabold text-amber-700">Save {Number(g.savingsPct).toFixed(0)}%</span>
                         )}
                       </div>
                     </Link>
@@ -336,7 +336,7 @@ export default function BirthdayDetailPage() {
 
       {reminder.notes && (
         <section className="rounded-2xl bg-slate-50 border-2 border-slate-200 p-4">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1">Notes</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Notes</div>
           <p className="text-sm text-slate-700 font-semibold">{reminder.notes}</p>
         </section>
       )}
@@ -410,7 +410,7 @@ function StatCard({ label, value, icon: Icon, tone }: any) {
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1 truncate">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md shrink-0`}>

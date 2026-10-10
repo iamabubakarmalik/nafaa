@@ -181,8 +181,8 @@ export default function AppliancesDashboardPage() {
               <q.icon className="h-4.5 w-4.5" />
             </div>
             <div className="text-center min-w-0">
-              <div className="text-[11px] font-extrabold text-slate-800 dark:text-slate-100 truncate">{q.label}</div>
-              <div className="text-[9px] font-bold text-slate-400 truncate hidden sm:block">{q.hint}</div>
+              <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-slate-100 truncate">{q.label}</div>
+              <div className="text-[0.625rem] font-bold text-slate-400 truncate hidden sm:block">{q.hint}</div>
             </div>
           </Link>
         ))}
@@ -230,7 +230,7 @@ export default function AppliancesDashboardPage() {
                   className={`flex items-center gap-2.5 rounded-xl border-2 px-3 py-2.5 hover:shadow-md transition group ${tones[al.tone]}`}>
                   <al.icon className="h-4 w-4 shrink-0" />
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-extrabold truncate">{al.label}</div>
+                    <div className="text-[0.6875rem] font-extrabold truncate">{al.label}</div>
                     <div className="text-sm font-extrabold tabular-nums">{al.value}</div>
                   </div>
                   <ChevronRight className="h-4 w-4 shrink-0 opacity-50 group-hover:translate-x-0.5 transition" />
@@ -244,7 +244,7 @@ export default function AppliancesDashboardPage() {
       {/* Aaj ka kaam */}
       <Panel icon={CalendarDays} title="Aaj Ka Kaam" hint="Installation aur repair — dono mila kar, zaroori pehle" tone="cyan"
         right={
-          <Link to="/appliances/service-requests" className="text-[11px] font-extrabold text-cyan-700 dark:text-cyan-400 hover:underline inline-flex items-center gap-1">
+          <Link to="/appliances/service-requests" className="text-[0.6875rem] font-extrabold text-cyan-700 dark:text-cyan-400 hover:underline inline-flex items-center gap-1">
             Sab dekhein <ChevronRight className="h-3.5 w-3.5" />
           </Link>
         }>
@@ -270,15 +270,15 @@ export default function AppliancesDashboardPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[12px] font-extrabold text-slate-900 dark:text-white truncate">{w.title}</span>
-                    {w.overdue && <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white">LATE</span>}
-                    {w.priority === 'URGENT' && <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black ${prioMeta('URGENT').cls}`}>FORAN</span>}
+                    <span className="text-[0.75rem] font-extrabold text-slate-900 dark:text-white truncate">{w.title}</span>
+                    {w.overdue && <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-rose-600 text-white">LATE</span>}
+                    {w.priority === 'URGENT' && <span className={`px-1.5 py-0.5 rounded-md text-[0.625rem] font-black ${prioMeta('URGENT').cls}`}>FORAN</span>}
                   </div>
-                  <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                     {w.num} • {w.sub}
                   </div>
                 </div>
-                <div className="hidden sm:block text-[10px] font-bold text-slate-400 shrink-0 text-right">
+                <div className="hidden sm:block text-[0.6875rem] font-bold text-slate-400 shrink-0 text-right">
                   {w.tech || <span className="text-amber-600 dark:text-amber-400">banda nahi laga</span>}
                   {w.time && <div>{w.time}</div>}
                 </div>
@@ -382,7 +382,7 @@ export default function AppliancesDashboardPage() {
       <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
         <Panel icon={PackageX} title="Kya Khatam Ho Raha Hai" hint="Order dene se pehle yahan dekh lein" tone="amber"
           right={
-            <Link to="/appliances/low-stock" className="text-[11px] font-extrabold text-cyan-700 dark:text-cyan-400 hover:underline inline-flex items-center gap-1">
+            <Link to="/appliances/low-stock" className="text-[0.6875rem] font-extrabold text-cyan-700 dark:text-cyan-400 hover:underline inline-flex items-center gap-1">
               Sab dekhein <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           }>
@@ -401,10 +401,10 @@ export default function AppliancesDashboardPage() {
                     className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-2 transition">
                     <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white truncate">{r.name}</div>
-                      <div className="text-[10px] font-bold text-slate-400 truncate">{catLabel(r.categoryType)}{r.brand ? ` • ${r.brand}` : ''}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{r.name}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-400 truncate">{catLabel(r.categoryType)}{r.brand ? ` • ${r.brand}` : ''}</div>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold tabular-nums shrink-0 ${
+                    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold tabular-nums shrink-0 ${
                       r.isOut ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                         : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
                     }`}>{r.isOut ? 'Khatam' : `${r.stock} bachay`}</span>
@@ -428,7 +428,7 @@ export default function AppliancesDashboardPage() {
                 };
                 return (
                   <div key={s.key}>
-                    <div className="flex items-center justify-between text-[11px] font-extrabold mb-1">
+                    <div className="flex items-center justify-between text-[0.6875rem] font-extrabold mb-1">
                       <span className="text-slate-700 dark:text-slate-200">{s.label}</span>
                       <span className="tabular-nums text-slate-500 dark:text-slate-400">
                         {formatPKR(s.revenue)} <span className="opacity-60">({share.toFixed(0)}%)</span>
@@ -468,7 +468,7 @@ function ModuleCard({ to, icon: Icon, title, tone, rows }: {
       </div>
       <div className="space-y-1.5">
         {rows.map(([k, v]) => (
-          <div key={k} className="flex items-center justify-between text-[11px]">
+          <div key={k} className="flex items-center justify-between text-[0.6875rem]">
             <span className="font-bold text-slate-500 dark:text-slate-400">{k}</span>
             <span className="font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{v}</span>
           </div>
@@ -486,7 +486,7 @@ function Mini({ label, value, tone }: { label: string; value: string; tone: 'amb
   };
   return (
     <div className={`rounded-xl border px-2 py-1.5 ${tones[tone]}`}>
-      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
       <div className="text-sm font-extrabold tabular-nums truncate">{value}</div>
     </div>
   );
@@ -520,7 +520,7 @@ function DashTeacher({ onClose }: { onClose: () => void }) {
           tone: 'cyan',
           tips: [
             <>Installation aur repair <strong>dono mila kar</strong> — jo zaroori hai wo upar</>,
-            <><span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black">LATE</span> aur <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black">FORAN</span> wale pehle</>,
+            <><span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-black">LATE</span> aur <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-black">FORAN</span> wale pehle</>,
             <>Jis kaam par <strong>"banda nahi laga"</strong> likha ho, usay foran technician dein</>,
           ],
         },

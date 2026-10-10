@@ -131,15 +131,15 @@ export function CatalogCartDrawer({
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-slate-900 text-sm truncate">{item.name}</div>
                         {item.variantName && (
-                          <div className="text-[10px] font-bold text-violet-700">{item.variantName}</div>
+                          <div className="text-[0.6875rem] font-bold text-violet-700">{item.variantName}</div>
                         )}
                         {item.modifiers?.map((m, i) => (
-                          <div key={i} className="text-[10px] text-slate-600 font-semibold">
+                          <div key={i} className="text-[0.6875rem] text-slate-600 font-semibold">
                             + {m.name}{m.priceAdjustment !== 0 && ` (${m.priceAdjustment > 0 ? '+' : ''}${formatPKR(m.priceAdjustment)})`}
                           </div>
                         ))}
                         {item.notes && (
-                          <div className="text-[10px] italic text-amber-700 mt-0.5">📝 {item.notes}</div>
+                          <div className="text-[0.6875rem] italic text-amber-700 mt-0.5">📝 {item.notes}</div>
                         )}
                       </div>
                       <button
@@ -168,7 +168,7 @@ export function CatalogCartDrawer({
                       </div>
                       <div className="text-right">
                         <div className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(lineTotal)}</div>
-                        <div className="text-[9px] text-slate-500 font-bold">
+                        <div className="text-[0.625rem] text-slate-500 font-bold">
                           {formatPKR(item.price + modTotal)} × {item.quantity}
                         </div>
                       </div>
@@ -249,7 +249,7 @@ export function CatalogCartDrawer({
                   </Button>
                 </div>
                 {!shopPhone && (
-                  <p className="text-[10px] text-rose-600 font-bold text-center">
+                  <p className="text-[0.6875rem] text-rose-600 font-bold text-center">
                     Shop WhatsApp number not configured. Please contact the shop directly.
                   </p>
                 )}

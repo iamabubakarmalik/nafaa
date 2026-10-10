@@ -328,7 +328,7 @@ export default function CarpetSalesPage() {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 inline-flex items-center gap-1">
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 inline-flex items-center gap-1">
               <CalendarRange className="h-3 w-3" />Date Range
             </label>
             <div className="flex gap-1.5 overflow-x-auto pb-1">
@@ -349,12 +349,12 @@ export default function CarpetSalesPage() {
             {dateFilter === 'custom' && (
               <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl bg-emerald-50 border-2 border-emerald-200 p-3">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">From</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">From</label>
                   <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)}
                     className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">To</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">To</label>
                   <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)}
                     className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-white px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
                 </div>
@@ -363,7 +363,7 @@ export default function CarpetSalesPage() {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1.5 block">Payment Method</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1.5 block">Payment Method</label>
             <div className="flex gap-1.5 overflow-x-auto pb-1">
               <button onClick={() => setPaymentFilter('all')}
                 className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition active:scale-95 ${
@@ -436,7 +436,7 @@ function TabBtn({ active, onClick, icon: Icon, label, shortLabel, count, color }
       <Icon className="h-4 w-4" />
       <span className="hidden sm:inline">{label}</span>
       <span className="sm:hidden">{shortLabel}</span>
-      <span className={`px-1.5 rounded-md text-[10px] ${active ? 'bg-white/25' : 'bg-slate-200'}`}>
+      <span className={`px-1.5 rounded-md text-[0.6875rem] ${active ? 'bg-white/25' : 'bg-slate-200'}`}>
         {count}
       </span>
     </button>
@@ -454,9 +454,9 @@ function StatCard({ label, value, sub, icon: Icon, color }: any) {
     <div className="rounded-2xl border-2 border-slate-200 bg-white p-4 sm:p-5 shadow-sm hover:shadow-md transition">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
+          <div className="text-[0.6875rem] sm:text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
           <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
-          <div className="text-[10px] sm:text-xs text-slate-600 font-semibold mt-0.5 truncate">{sub}</div>
+          <div className="text-[0.6875rem] sm:text-xs text-slate-600 font-semibold mt-0.5 truncate">{sub}</div>
         </div>
         <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -483,15 +483,15 @@ function SaleRow({ sale, hideAmounts }: { sale: any; hideAmounts: boolean }) {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono font-extrabold text-sm text-slate-900">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
               {sale.status === 'VOIDED' && (
-                <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">VOIDED</span>
+                <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">VOIDED</span>
               )}
               {totalSqft > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                   <Ruler className="h-2.5 w-2.5" />{totalSqft.toFixed(2)} sqft
                 </span>
               )}
               {(sale.serviceCharges ?? 0) > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                   <Wrench className="h-2.5 w-2.5" />Services
                 </span>
               )}
@@ -500,7 +500,7 @@ function SaleRow({ sale, hideAmounts }: { sale: any; hideAmounts: boolean }) {
               <User className="h-3 w-3" />{sale.customer?.name || 'Walk-in'}
               {sale.customer?.phone && (<><span>•</span><span>{sale.customer.phone}</span></>)}
             </div>
-            <div className="mt-1 text-[10px] text-slate-500 inline-flex items-center gap-1">
+            <div className="mt-1 text-[0.6875rem] text-slate-500 inline-flex items-center gap-1">
               <Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}
             </div>
             <div className="mt-2 space-y-1">
@@ -517,16 +517,16 @@ function SaleRow({ sale, hideAmounts }: { sale: any; hideAmounts: boolean }) {
                       {carpet.type === 'cut-piece' && <Scissors className="h-3 w-3 text-violet-600" />}
                       <span className="font-extrabold text-slate-900">{it.product.name}</span>
                       {carpet.reference && (
-                        <span className="font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px]">
+                        <span className="font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.6875rem]">
                           {carpet.type === 'roll' ? 'Roll' : 'Piece'}: {carpet.reference}
                         </span>
                       )}
                       {carpet.dimensions && (
-                        <span className="text-[10px] font-bold text-slate-600 inline-flex items-center gap-0.5">
+                        <span className="text-[0.6875rem] font-bold text-slate-600 inline-flex items-center gap-0.5">
                           <Ruler className="h-2.5 w-2.5" />{carpet.dimensions}
                         </span>
                       )}
-                      <span className="text-[10px] font-bold text-emerald-700">
+                      <span className="text-[0.6875rem] font-bold text-emerald-700">
                         {it.quantity.toFixed(2)} {it.product.unit} × {formatPKR(it.price)}
                       </span>
                     </div>
@@ -534,7 +534,7 @@ function SaleRow({ sale, hideAmounts }: { sale: any; hideAmounts: boolean }) {
                 );
               })}
               {carpetItems.length > 3 && (
-                <div className="text-[10px] font-bold text-slate-500 pl-3">
+                <div className="text-[0.6875rem] font-bold text-slate-500 pl-3">
                   +{carpetItems.length - 3} more items
                 </div>
               )}
@@ -545,15 +545,15 @@ function SaleRow({ sale, hideAmounts }: { sale: any; hideAmounts: boolean }) {
           <div className="text-xl sm:text-2xl font-extrabold text-emerald-700 tabular-nums">
             <HiddenAmount value={formatPKR(sale.total)} hidden={hideAmounts} />
           </div>
-          <div className="text-[10px] text-slate-500 inline-flex items-center justify-end gap-1 mt-0.5">
+          <div className="text-[0.6875rem] text-slate-500 inline-flex items-center justify-end gap-1 mt-0.5">
             <PayIcon className="h-2.5 w-2.5" />{paymentConfig[sale.paymentMethod]?.label}
           </div>
           {sale.creditAmount > 0 && (
-            <div className="text-[10px] text-amber-700 font-extrabold mt-0.5">
+            <div className="text-[0.6875rem] text-amber-700 font-extrabold mt-0.5">
               Udhaar: <HiddenAmount value={formatPKR(sale.creditAmount)} hidden={hideAmounts} />
             </div>
           )}
-          <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 group-hover:text-emerald-700">
+          <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-emerald-600 group-hover:text-emerald-700">
             <Eye className="h-3 w-3" /> Certificate <ArrowRight className="h-3 w-3" />
           </div>
         </div>

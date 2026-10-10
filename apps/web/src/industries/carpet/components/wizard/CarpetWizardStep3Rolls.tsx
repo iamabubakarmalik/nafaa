@@ -145,7 +145,7 @@ export function CarpetWizardStep3Rolls({
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="font-extrabold text-slate-900 text-sm truncate">{b.name}</div>
                   <span className={[
-                    'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold',
+                    'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold',
                     color === 'emerald' ? 'bg-emerald-100 text-emerald-700' :
                     color === 'violet' ? 'bg-violet-100 text-violet-700' :
                     'bg-blue-100 text-blue-700',
@@ -153,9 +153,9 @@ export function CarpetWizardStep3Rolls({
                     <Icon className="h-2.5 w-2.5" />
                     {b.stockType}
                   </span>
-                  {b.designCode && <span className="text-[10px] font-mono text-slate-500">{b.designCode}</span>}
+                  {b.designCode && <span className="text-[0.6875rem] font-mono text-slate-500">{b.designCode}</span>}
                 </div>
-                <div className="text-[10px] text-slate-500 font-bold mt-0.5">
+                <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">
                   {b.stockType === 'ROLLS' && `${bucketRolls.length} rolls • ${rollSqft.toFixed(1)} sqft`}
                   {b.stockType === 'PIECES' && `${pieceCount} pieces • ${bucketPieces.length} lines`}
                   {b.stockType === 'FT' && `${ftCurrent.toFixed(1)} ft stock`}
@@ -347,7 +347,7 @@ function RollsTable({
                   </td>
                   <td className="px-2 py-1.5">
                     {locked ? (
-                      <span className="text-[9px] font-extrabold text-slate-500 bg-slate-200 px-2 py-1 rounded-md" title="Existing roll — edit from /carpet-rolls page">
+                      <span className="text-[0.625rem] font-extrabold text-slate-500 bg-slate-200 px-2 py-1 rounded-md" title="Existing roll — edit from /carpet-rolls page">
                         SAVED
                       </span>
                     ) : (
@@ -369,14 +369,14 @@ function RollsTable({
       </div>
 
       <div className="border-t border-slate-100 bg-slate-50/70 p-2 flex items-center justify-between gap-2 flex-wrap">
-        <div className="text-[10px] font-extrabold text-slate-600 flex items-center gap-1 pl-1">
+        <div className="text-[0.6875rem] font-extrabold text-slate-600 flex items-center gap-1 pl-1">
           <Sparkles className="h-3 w-3 text-amber-500" />
           Prices auto-filled — you can override per roll
         </div>
         <button
           type="button"
           onClick={onAdd}
-          className="px-2.5 py-1 rounded-lg bg-white border-2 border-dashed border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50 text-emerald-700 text-[11px] font-extrabold inline-flex items-center gap-1 transition active:scale-95"
+          className="px-2.5 py-1 rounded-lg bg-white border-2 border-dashed border-emerald-300 hover:border-emerald-500 hover:bg-emerald-50 text-emerald-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition active:scale-95"
         >
           <Plus className="h-3 w-3" /> Add Another Roll
         </button>
@@ -387,12 +387,12 @@ function RollsTable({
 
 function ColHead({ label, hint, icon: Icon }: { label: string; hint?: string; icon?: any }) {
   return (
-    <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">
+    <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">
       <div className="flex items-center gap-0.5">
         {Icon && <Icon className="h-2.5 w-2.5" />}
         {label}
       </div>
-      {hint && <div className="text-[9px] font-bold text-slate-400 normal-case">{hint}</div>}
+      {hint && <div className="text-[0.625rem] font-bold text-slate-400 normal-case">{hint}</div>}
     </th>
   );
 }
@@ -433,7 +433,7 @@ function NumCell({
         ].join(' ')}
       />
       {suffix && (
-        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-extrabold text-slate-400 pointer-events-none">
+        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[0.625rem] font-extrabold text-slate-400 pointer-events-none">
           {suffix}
         </span>
       )}

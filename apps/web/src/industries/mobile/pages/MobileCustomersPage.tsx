@@ -143,13 +143,13 @@ export default function MobileCustomersPage() {
               extraBadges={
                 <>
                   {c.imeiCount > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.6875rem] font-bold">
                       <Smartphone className="h-3 w-3" />
                       {c.imeiCount} phones
                     </div>
                   )}
                   {c.activeWarranty > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-[0.6875rem] font-bold">
                       <ShieldCheck className="h-3 w-3" />
                       {c.activeWarranty} active warranty
                     </div>

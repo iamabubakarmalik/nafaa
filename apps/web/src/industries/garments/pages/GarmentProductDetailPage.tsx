@@ -152,17 +152,17 @@ export default function GarmentProductDetailPage() {
             )}
             <div className="absolute top-2 left-2 flex flex-col gap-1">
               {profile?.isNewArrival && (
-                <span className="px-2 py-0.5 rounded bg-emerald-500 text-white text-[10px] font-extrabold shadow inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded bg-emerald-500 text-white text-[0.6875rem] font-extrabold shadow inline-flex items-center gap-0.5">
                   <Sparkles className="h-2.5 w-2.5" /> NEW
                 </span>
               )}
               {profile?.isBestSeller && (
-                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[10px] font-extrabold shadow inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow inline-flex items-center gap-0.5">
                   <Star className="h-2.5 w-2.5 fill-current" /> BEST
                 </span>
               )}
               {profile?.isOnSale && (
-                <span className="px-2 py-0.5 rounded bg-rose-500 text-white text-[10px] font-extrabold shadow inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded bg-rose-500 text-white text-[0.6875rem] font-extrabold shadow inline-flex items-center gap-0.5">
                   <Zap className="h-2.5 w-2.5" /> SALE
                 </span>
               )}
@@ -231,14 +231,14 @@ export default function GarmentProductDetailPage() {
 
             <div className="mt-5 flex items-center gap-4 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Sale price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Sale price</div>
                 <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
                   {formatPKRFull(product.price)}
                 </div>
               </div>
               {product.costPrice > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
                     {formatPKRFull(product.costPrice)}
                   </div>
@@ -246,7 +246,7 @@ export default function GarmentProductDetailPage() {
               )}
               {product.wholesalePrice && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1">
                     {formatPKRFull(product.wholesalePrice)}
                   </div>
@@ -302,11 +302,11 @@ export default function GarmentProductDetailPage() {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Variant</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">SKU</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Barcode</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Price</th>
-                  <th className="px-3 py-2 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-700">Stock</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Variant</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">SKU</th>
+                  <th className="px-3 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Barcode</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Price</th>
+                  <th className="px-3 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Stock</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -325,7 +325,7 @@ export default function GarmentProductDetailPage() {
                           <div>
                             <div className="font-extrabold text-slate-900">{v.name}</div>
                             {vp?.isFeaturedColor && (
-                              <span className="text-[9px] font-extrabold text-amber-700 uppercase">⭐ Featured</span>
+                              <span className="text-[0.625rem] font-extrabold text-amber-700 uppercase">⭐ Featured</span>
                             )}
                           </div>
                         </div>
@@ -386,7 +386,7 @@ export default function GarmentProductDetailPage() {
           </div>
           {profile.careInstructions && (
             <div className="mt-4 rounded-xl bg-slate-50 border border-slate-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-1">Care Instructions</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Care Instructions</div>
               <div className="text-sm text-slate-900 font-semibold">{profile.careInstructions}</div>
             </div>
           )}
@@ -428,7 +428,7 @@ export default function GarmentProductDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <div className="font-mono font-extrabold text-sm text-slate-900">{s.saleNumber}</div>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
@@ -461,10 +461,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -481,7 +481,7 @@ function QuickAction({ to, icon: Icon, label, desc, color }: any) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-extrabold text-slate-900 text-sm">{label}</div>
-        <div className="text-[10px] text-slate-500 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-semibold">{desc}</div>
       </div>
       <ChevronRight className="h-4 w-4 text-slate-400" />
     </Link>
@@ -501,7 +501,7 @@ function ServiceBadge({ icon: Icon, label, desc, color }: any) {
       <Icon className="h-5 w-5" />
       <div>
         <div className="text-sm font-extrabold">{label}</div>
-        {desc && <div className="text-[10px] font-bold opacity-75">{desc}</div>}
+        {desc && <div className="text-[0.6875rem] font-bold opacity-75">{desc}</div>}
       </div>
     </div>
   );
@@ -510,7 +510,7 @@ function ServiceBadge({ icon: Icon, label, desc, color }: any) {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-slate-50 border border-slate-200 p-2">
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-sm font-extrabold text-slate-900 mt-0.5">{value}</div>
     </div>
   );

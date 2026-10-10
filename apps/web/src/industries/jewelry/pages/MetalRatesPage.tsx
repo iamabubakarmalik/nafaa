@@ -121,7 +121,7 @@ export default function MetalRatesPage() {
                 </div>
                 {rate.ratePerTola && (
                   <div className="mt-2 rounded-lg bg-white/15 backdrop-blur border border-white/20 p-2 text-center">
-                    <div className="text-[10px] uppercase font-extrabold text-white/70">Per Tola</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Per Tola</div>
                     <div className="text-lg font-extrabold tabular-nums">Rs {rate.ratePerTola.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
                   </div>
                 )}
@@ -129,23 +129,23 @@ export default function MetalRatesPage() {
                   <div className="mt-2 grid grid-cols-2 gap-1 text-xs">
                     {rate.buyRate && (
                       <div className="rounded-lg bg-white/10 backdrop-blur p-2 text-center">
-                        <div className="text-[9px] uppercase font-extrabold text-white/70">Buy</div>
+                        <div className="text-[0.625rem] uppercase font-extrabold text-white/70">Buy</div>
                         <div className="font-extrabold tabular-nums">{rate.buyRate.toLocaleString()}</div>
                       </div>
                     )}
                     {rate.sellRate && (
                       <div className="rounded-lg bg-white/10 backdrop-blur p-2 text-center">
-                        <div className="text-[9px] uppercase font-extrabold text-white/70">Sell</div>
+                        <div className="text-[0.625rem] uppercase font-extrabold text-white/70">Sell</div>
                         <div className="font-extrabold tabular-nums">{rate.sellRate.toLocaleString()}</div>
                       </div>
                     )}
                   </div>
                 )}
-                <div className="mt-3 text-[10px] font-bold text-white/70 inline-flex items-center gap-1">
+                <div className="mt-3 text-[0.6875rem] font-bold text-white/70 inline-flex items-center gap-1">
                   <Calendar className="h-3 w-3" />
                   {format(new Date(rate.effectiveDate), 'dd MMM yyyy, HH:mm')}
                 </div>
-                {rate.source && <div className="text-[10px] font-bold text-white/70">Source: {rate.source}</div>}
+                {rate.source && <div className="text-[0.6875rem] font-bold text-white/70">Source: {rate.source}</div>}
               </div>
             );
           })}
@@ -170,11 +170,11 @@ export default function MetalRatesPage() {
                   <div className="text-2xl">{metal?.emoji}</div>
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm">{metal?.label} - {purity?.label}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{format(new Date(rate.effectiveDate), 'dd MMM yyyy, HH:mm')}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{format(new Date(rate.effectiveDate), 'dd MMM yyyy, HH:mm')}</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">Rs {rate.ratePerGram.toLocaleString()}</div>
-                    <div className="text-[10px] font-bold text-slate-500">per gram</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">per gram</div>
                   </div>
                 </div>
               );
@@ -227,7 +227,7 @@ function RateForm({ onClose, onSaved }: any) {
       <div className="p-5 space-y-4">
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Metal Type *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Metal Type *</label>
             <div className="grid grid-cols-3 gap-2">
               {METAL_TYPES.map((m) => (
                 <button key={m.value} onClick={() => setForm({ ...form, metalType: m.value })} className={
@@ -235,13 +235,13 @@ function RateForm({ onClose, onSaved }: any) {
                   (form.metalType === m.value ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-amber-300')
                 }>
                   <div className="text-2xl mb-1">{m.emoji}</div>
-                  <div className="text-[10px] font-extrabold">{m.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Purity *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Purity *</label>
             <select value={form.purity} onChange={(e) => setForm({ ...form, purity: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
               {PURITIES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
@@ -249,23 +249,23 @@ function RateForm({ onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Rate per Gram (Rs) *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Rate per Gram (Rs) *</label>
           <input type="number" step="0.01" value={form.ratePerGram} onChange={(e) => handleRateChange(e.target.value)} className="h-16 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-3xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Rate per Tola (Rs) — Auto</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Rate per Tola (Rs) — Auto</label>
           <input type="number" value={form.ratePerTola} onChange={(e) => setForm({ ...form, ratePerTola: e.target.value })} className="h-12 w-full rounded-xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-4 text-xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
-          <div className="text-[10px] font-bold text-slate-500 mt-1">1 tola = 11.664 grams</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500 mt-1">1 tola = 11.664 grams</div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-cyan-700 mb-1 block">Buy Rate (optional)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-1 block">Buy Rate (optional)</label>
             <input type="number" value={form.buyRate} onChange={(e) => setForm({ ...form, buyRate: e.target.value })} placeholder="For old gold" className="h-11 w-full rounded-xl border-2 border-cyan-300 bg-cyan-50 dark:bg-cyan-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-cyan-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Sell Rate (optional)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Sell Rate (optional)</label>
             <input type="number" value={form.sellRate} onChange={(e) => setForm({ ...form, sellRate: e.target.value })} placeholder="For new jewelry" className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         </div>

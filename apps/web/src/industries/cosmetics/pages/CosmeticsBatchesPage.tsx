@@ -195,15 +195,15 @@ export default function CosmeticsBatchesPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono font-extrabold text-slate-900 text-sm">{b.batchNumber}</span>
                       {isExpired ? (
-                        <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1">
                           <XCircle className="h-2.5 w-2.5" /> EXPIRED
                         </span>
                       ) : days !== null && days <= 30 ? (
-                        <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-extrabold uppercase">
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase">
                           {days} days left
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase">Active</span>
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase">Active</span>
                       )}
                     </div>
 
@@ -229,7 +229,7 @@ export default function CosmeticsBatchesPage() {
                             'bg-rose-500'}`}
                             style={{ width: `${remainingPct}%` }} />
                         </div>
-                        <div className="text-[9px] font-bold text-slate-500 mt-0.5">
+                        <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">
                           {remainingPct.toFixed(0)}% of {totalMonths} month shelf life remaining
                         </div>
                       </div>
@@ -239,7 +239,7 @@ export default function CosmeticsBatchesPage() {
                   <div className="text-right shrink-0 flex flex-col items-end gap-2">
                     {b.costPrice ? (
                       <div>
-                        <div className="text-[10px] uppercase font-extrabold text-slate-500">Cost/unit</div>
+                        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Cost/unit</div>
                         <div className="text-sm font-extrabold text-slate-900 tabular-nums">{formatPKR(b.costPrice)}</div>
                       </div>
                     ) : null}
@@ -385,7 +385,7 @@ function AlertKpi({ icon: Icon, label, value, tone, onClick }: any) {
       className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full hover:border-amber-300 hover:shadow-md transition">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>

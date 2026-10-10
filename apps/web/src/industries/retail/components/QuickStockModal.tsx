@@ -93,7 +93,7 @@ export function QuickStockModal({ product, onClose }: Props) {
         {/* Head — shrink-0, hamesha dikhega */}
         <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-sky-600 to-cyan-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-extrabold">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[0.6875rem] font-extrabold">
               <Package className="h-3 w-3" /> Quick Stock
             </div>
             <h3 className="font-extrabold text-lg mt-1.5 truncate">{product.name}</h3>
@@ -234,7 +234,7 @@ export function QuickStockModal({ product, onClose }: Props) {
           {/* Preview */}
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between gap-3">
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Naya Stock</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Naya Stock</div>
               <div className={[
                 'text-2xl font-extrabold tabular-nums',
                 finalStock < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white',
@@ -253,7 +253,7 @@ export function QuickStockModal({ product, onClose }: Props) {
               </div>
             )}
             <div className="text-right">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Stock Value</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Stock Value</div>
               <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                 {formatPKRFull(Math.max(finalStock, 0) * Number(product?.price || 0))}
               </div>
@@ -299,7 +299,7 @@ function ModeBtn({ active, onClick, activeCls, title, sub }: {
       ].join(' ')}
     >
       {title}
-      <div className="text-[10px] font-bold opacity-70">{sub}</div>
+      <div className="text-[0.6875rem] font-bold opacity-70">{sub}</div>
     </button>
   );
 }

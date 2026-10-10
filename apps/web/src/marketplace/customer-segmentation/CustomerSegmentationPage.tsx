@@ -128,17 +128,17 @@ export default function CustomerSegmentationPage() {
                 <div className={`h-10 w-10 rounded-xl ${meta.bg} ${meta.color} flex items-center justify-center`}>
                   <SegIcon className="h-5 w-5" />
                 </div>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${meta.bg} ${meta.color}`}>
+                <span className={`text-[0.6875rem] font-black px-2 py-0.5 rounded-full ${meta.bg} ${meta.color}`}>
                   {totalPct.toFixed(1)}%
                 </span>
               </div>
               <div className="text-2xl font-black text-slate-900 tabular-nums">{count}</div>
-              <div className="text-[11px] font-black text-slate-700 uppercase tracking-wide truncate">
+              <div className="text-[0.6875rem] font-black text-slate-700 uppercase tracking-wide truncate">
                 {seg?.displayName || segType.replace(/_/g, ' ')}
               </div>
-              <p className="text-[10px] text-slate-500 font-bold mt-2 line-clamp-2">{meta.description}</p>
+              <p className="text-[0.6875rem] text-slate-500 font-bold mt-2 line-clamp-2">{meta.description}</p>
               {seg && seg.count > 0 && (
-                <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-[10px]">
+                <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-[0.6875rem]">
                   <div>
                     <div className="text-slate-500 font-bold">Revenue</div>
                     <div className="font-black text-emerald-700 tabular-nums">Rs {formatPKR(seg.totalRevenue)}</div>
@@ -197,13 +197,13 @@ export default function CustomerSegmentationPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50 border-b-2 border-slate-100">
                     <tr>
-                      <th className="text-left px-3 py-2 text-[10px] font-black uppercase text-slate-600">Customer</th>
-                      <th className="text-right px-3 py-2 text-[10px] font-black uppercase text-slate-600">R</th>
-                      <th className="text-right px-3 py-2 text-[10px] font-black uppercase text-slate-600">F</th>
-                      <th className="text-right px-3 py-2 text-[10px] font-black uppercase text-slate-600">M</th>
-                      <th className="text-right px-3 py-2 text-[10px] font-black uppercase text-slate-600">Orders</th>
-                      <th className="text-right px-3 py-2 text-[10px] font-black uppercase text-slate-600">Spent</th>
-                      <th className="text-right px-3 py-2 text-[10px] font-black uppercase text-slate-600">Tier</th>
+                      <th className="text-left px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">Customer</th>
+                      <th className="text-right px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">R</th>
+                      <th className="text-right px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">F</th>
+                      <th className="text-right px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">M</th>
+                      <th className="text-right px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">Orders</th>
+                      <th className="text-right px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">Spent</th>
+                      <th className="text-right px-3 py-2 text-[0.6875rem] font-black uppercase text-slate-600">Tier</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -222,7 +222,7 @@ export default function CustomerSegmentationPage() {
                             </div>
                             <div className="min-w-0">
                               <div className="font-black text-slate-900 text-xs truncate">{c.fullName}</div>
-                              <div className="text-[10px] text-slate-500 font-bold">{c.phone}</div>
+                              <div className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</div>
                             </div>
                           </div>
                         </td>
@@ -232,7 +232,7 @@ export default function CustomerSegmentationPage() {
                         <td className="text-right px-3 py-2 tabular-nums text-xs font-bold">{c.totalOrders}</td>
                         <td className="text-right px-3 py-2 tabular-nums text-xs font-black text-emerald-700">Rs {formatPKR(c.totalSpent)}</td>
                         <td className="text-right px-3 py-2">
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 uppercase">
+                          <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 uppercase">
                             {c.currentTier}
                           </span>
                         </td>
@@ -266,7 +266,7 @@ export default function CustomerSegmentationPage() {
                 </div>
               )}
 
-              <p className="text-[10px] text-slate-500 font-bold mt-3">
+              <p className="text-[0.6875rem] text-slate-500 font-bold mt-3">
                 <strong>R</strong> = Days since last order · <strong>F</strong> = Total orders · <strong>M</strong> = Total spent
               </p>
             </>
@@ -375,7 +375,7 @@ function BroadcastModal({ segment, segmentCount, onClose, onSuccess }: any) {
               placeholder="Type your message..."
               className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 text-sm outline-none focus:border-purple-500 resize-none"
             />
-            <div className="text-right text-[10px] font-bold text-slate-400 mt-1">
+            <div className="text-right text-[0.6875rem] font-bold text-slate-400 mt-1">
               {form.body.length}/{form.channel === 'SMS' ? 160 : 500}
             </div>
           </div>

@@ -116,7 +116,7 @@ export default function LensOrderDetailPage() {
                       'bg-slate-100 text-slate-400'}`}>
                     {isPast ? <CheckCircle2 className="h-5 w-5" /> : <span className="text-xs font-extrabold">{i + 1}</span>}
                   </button>
-                  <div className={`text-[9px] font-extrabold text-center leading-tight ${isPast || isCurrent ? 'text-violet-800' : 'text-slate-500'}`}>
+                  <div className={`text-[0.625rem] font-extrabold text-center leading-tight ${isPast || isCurrent ? 'text-violet-800' : 'text-slate-500'}`}>
                     {step.replace(/_/g, ' ')}
                   </div>
                 </div>
@@ -142,10 +142,10 @@ export default function LensOrderDetailPage() {
           </div>
           {order.lensCoatings?.length > 0 && (
             <div className="mt-3 pt-3 border-t border-slate-100">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1.5">Coatings</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1.5">Coatings</div>
               <div className="flex flex-wrap gap-1.5">
                 {order.lensCoatings.map((c) => (
-                  <span key={c} className="px-2 py-0.5 rounded-md bg-cyan-100 text-cyan-800 text-[10px] font-extrabold">{c}</span>
+                  <span key={c} className="px-2 py-0.5 rounded-md bg-cyan-100 text-cyan-800 text-[0.6875rem] font-extrabold">{c}</span>
                 ))}
               </div>
             </div>
@@ -207,19 +207,19 @@ export default function LensOrderDetailPage() {
           <h3 className="font-extrabold text-slate-900 text-lg">Notes</h3>
           {order.notes && (
             <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 mb-1">General</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">General</div>
               <div className="text-sm font-semibold text-slate-700 whitespace-pre-wrap">{order.notes}</div>
             </div>
           )}
           {order.qcNotes && (
             <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-blue-700 mb-1">QC Notes</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1">QC Notes</div>
               <div className="text-sm font-semibold text-blue-900 whitespace-pre-wrap">{order.qcNotes}</div>
             </div>
           )}
           {order.fittingNotes && (
             <div className="rounded-xl bg-violet-50 border-2 border-violet-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-violet-700 mb-1">Fitting Notes</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1">Fitting Notes</div>
               <div className="text-sm font-semibold text-violet-900 whitespace-pre-wrap">{order.fittingNotes}</div>
             </div>
           )}

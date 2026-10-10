@@ -179,7 +179,7 @@ export default function CarpetCatalogPage() {
               <ShoppingBag className="h-4 w-4" />
               Cart
               {cart.totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
+                <span className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-[0.6875rem] font-extrabold flex items-center justify-center shadow-lg ring-2 ring-white">
                   {cart.totalItems.toFixed(0)}
                 </span>
               )}
@@ -371,7 +371,7 @@ function TabButton({ active, onClick, icon: Icon, label, count, color }: any) {
       <Icon className="h-4 w-4" />
       <span className="truncate">{label}</span>
       {count > 0 && (
-        <span className={`px-1.5 rounded-md text-[10px] ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>{count}</span>
+        <span className={`px-1.5 rounded-md text-[0.6875rem] ${active ? 'bg-white/25' : 'bg-slate-200 text-slate-700'}`}>{count}</span>
       )}
     </button>
   );
@@ -392,7 +392,7 @@ function CarpetProductCard({ product, onDetail, onQuote, wishlist }: any) {
           </div>
         )}
         {product.isFeatured && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] font-extrabold shadow inline-flex items-center gap-0.5">
+          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem] font-extrabold shadow inline-flex items-center gap-0.5">
             <Star className="h-2.5 w-2.5 fill-white" /> HOT
           </div>
         )}
@@ -408,12 +408,12 @@ function CarpetProductCard({ product, onDetail, onQuote, wishlist }: any) {
 
       <div className="p-3 space-y-2">
         {product.brand && (
-          <div className="text-[9px] uppercase font-extrabold text-emerald-700 tracking-wider">{product.brand.name}</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 tracking-wider">{product.brand.name}</div>
         )}
         <h4 className="font-extrabold text-slate-900 text-sm line-clamp-2 min-h-[2.25rem]">{product.name}</h4>
         <div className="flex items-baseline justify-between">
           <div className="text-lg font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKR(Number(product.price))}</div>
-          <div className="text-[10px] text-slate-500 font-bold">/{product.unit}</div>
+          <div className="text-[0.6875rem] text-slate-500 font-bold">/{product.unit}</div>
         </div>
         <button onClick={onQuote}
           className="w-full h-9 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1 active:scale-95 transition">
@@ -439,10 +439,10 @@ function ProductListRow({ product, onDetail, onQuote, wishlist }: any) {
           {product.isFeatured && <Star className="h-3 w-3 fill-amber-500 text-amber-500 shrink-0" />}
         </div>
         {product.brand && (
-          <div className="text-[10px] uppercase font-extrabold text-emerald-700">{product.brand.name}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">{product.brand.name}</div>
         )}
         <div className="text-base font-extrabold text-emerald-700 tabular-nums mt-0.5">
-          {formatPKR(Number(product.price))} <span className="text-[10px] text-slate-500 font-bold">/{product.unit}</span>
+          {formatPKR(Number(product.price))} <span className="text-[0.6875rem] text-slate-500 font-bold">/{product.unit}</span>
         </div>
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
@@ -477,11 +477,11 @@ function RollCard({ roll, onQuote }: any) {
             <Layers className="h-12 w-12 text-emerald-400" />
           </div>
         )}
-        <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-emerald-600 text-white text-[10px] font-extrabold font-mono shadow">
+        <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-emerald-600 text-white text-[0.6875rem] font-extrabold font-mono shadow">
           {roll.rollNumber}
         </div>
         {roll.variant?.name && (
-          <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-violet-600 text-white text-[9px] font-extrabold inline-flex items-center gap-1">
+          <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-violet-600 text-white text-[0.625rem] font-extrabold inline-flex items-center gap-1">
             {roll.variant.colorHex && <span className="h-2 w-2 rounded-full border border-white" style={{ backgroundColor: roll.variant.colorHex }} />}
             {roll.variant.name}
           </div>
@@ -490,7 +490,7 @@ function RollCard({ roll, onQuote }: any) {
 
       <div className="p-3 space-y-1.5">
         <h4 className="font-extrabold text-slate-900 text-sm line-clamp-1">{roll.product?.name}</h4>
-        <div className="grid grid-cols-2 gap-1 text-[10px]">
+        <div className="grid grid-cols-2 gap-1 text-[0.6875rem]">
           <div className="rounded bg-emerald-50 border border-emerald-200 px-1.5 py-1 text-center">
             <div className="text-emerald-700 font-bold">Available</div>
             <div className="font-extrabold text-emerald-800 tabular-nums">{availableSqft.toFixed(0)} sqft</div>
@@ -505,7 +505,7 @@ function RollCard({ roll, onQuote }: any) {
             style={{ width: `${Math.max(percent, 3)}%` }} />
         </div>
         <button onClick={onQuote}
-          className="w-full h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold active:scale-95 transition">
+          className="w-full h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-extrabold active:scale-95 transition">
           Cut Quote Lein
         </button>
       </div>
@@ -519,14 +519,14 @@ function RollListRow({ roll, onQuote }: any) {
       <div className="font-mono font-extrabold text-sm text-emerald-700 min-w-[80px]">{roll.rollNumber}</div>
       <div className="flex-1 min-w-0">
         <div className="font-extrabold text-slate-900 text-sm truncate">{roll.product?.name}</div>
-        <div className="text-[10px] text-slate-500 font-bold">
+        <div className="text-[0.6875rem] text-slate-500 font-bold">
           {Number(roll.widthFt)}ft × {Number(roll.remainingLengthFt)}ft
           {roll.variant?.name && ` • ${roll.variant.name}`}
         </div>
       </div>
       <div className="text-right shrink-0">
         <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{Number(roll.remainingSqft).toFixed(0)} sqft</div>
-        <div className="text-[10px] text-emerald-700 font-bold">{formatPKR(roll.salePricePerSqft || 0)}/sqft</div>
+        <div className="text-[0.6875rem] text-emerald-700 font-bold">{formatPKR(roll.salePricePerSqft || 0)}/sqft</div>
       </div>
       <button onClick={onQuote}
         className="h-9 px-3 rounded-lg bg-emerald-600 text-white text-xs font-extrabold active:scale-95 transition">
@@ -542,10 +542,10 @@ function PieceCard({ piece, onAdd }: any) {
       <div className="aspect-square bg-gradient-to-br from-violet-100 to-fuchsia-100 flex flex-col items-center justify-center p-3 relative">
         <Scissors className="h-10 w-10 text-violet-500 mb-2" />
         <div className="text-xs font-mono font-extrabold text-violet-900">{piece.pieceCode}</div>
-        <div className="text-[10px] font-bold text-slate-700 mt-1 text-center">
+        <div className="text-[0.6875rem] font-bold text-slate-700 mt-1 text-center">
           {piece.widthFt}ft × {piece.lengthFt}ft
         </div>
-        <div className="mt-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">
+        <div className="mt-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold">
           {piece.totalSqft?.toFixed(1)} sqft
         </div>
         {piece.variant?.colorHex && (
@@ -556,7 +556,7 @@ function PieceCard({ piece, onAdd }: any) {
         <h4 className="font-extrabold text-slate-900 text-xs line-clamp-1">{piece.product?.name}</h4>
         <div className="text-base font-extrabold text-emerald-700 tabular-nums">{formatPKR(Number(piece.salePrice || 0))}</div>
         <button onClick={onAdd}
-          className="w-full h-8 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-[11px] font-extrabold inline-flex items-center justify-center gap-1 active:scale-95 transition">
+          className="w-full h-8 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 active:scale-95 transition">
           <Plus className="h-3 w-3" /> Add to Cart
         </button>
       </div>
@@ -576,7 +576,7 @@ function PieceListRow({ piece, onAdd }: any) {
           {piece.variant?.colorHex && <span className="h-2.5 w-2.5 rounded-full border border-white shadow" style={{ backgroundColor: piece.variant.colorHex }} />}
         </div>
         <div className="text-xs font-bold text-slate-700 truncate">{piece.product?.name}</div>
-        <div className="text-[10px] text-slate-500 font-bold">
+        <div className="text-[0.6875rem] text-slate-500 font-bold">
           {piece.widthFt}ft × {piece.lengthFt}ft = {piece.totalSqft?.toFixed(1)} sqft
         </div>
       </div>
@@ -726,7 +726,7 @@ function QuoteRequestModal({ data, onClose, shopPhone }: any) {
       <div className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col animate-in slide-in-from-bottom duration-200">
         <div className="px-5 py-4 bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-between shrink-0">
           <div className="min-w-0">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Custom Quote</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Custom Quote</div>
             <h3 className="font-extrabold text-lg truncate">{productName}</h3>
           </div>
           <button onClick={onClose} className="h-9 w-9 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center active:scale-95">
@@ -741,13 +741,13 @@ function QuoteRequestModal({ data, onClose, shopPhone }: any) {
             </label>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <div className="text-[10px] font-bold text-slate-500 mb-1">Width (ft)</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500 mb-1">Width (ft)</div>
                 <input type="number" inputMode="decimal" value={widthFt} onChange={(e) => setWidthFt(Number(e.target.value))}
                   onFocus={(e) => e.target.select()}
                   className="h-14 w-full rounded-xl border-2 border-emerald-200 bg-emerald-50 px-3 text-xl font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-center" />
               </div>
               <div>
-                <div className="text-[10px] font-bold text-slate-500 mb-1">Length (ft)</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500 mb-1">Length (ft)</div>
                 <input type="number" inputMode="decimal" value={lengthFt} onChange={(e) => setLengthFt(Number(e.target.value))}
                   onFocus={(e) => e.target.select()}
                   className="h-14 w-full rounded-xl border-2 border-emerald-200 bg-emerald-50 px-3 text-xl font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 text-center" />
@@ -779,9 +779,9 @@ function QuoteRequestModal({ data, onClose, shopPhone }: any) {
           </div>
 
           <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1">Estimated Material Cost</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1">Estimated Material Cost</div>
             <div className="text-2xl font-extrabold text-emerald-900 tabular-nums">{formatPKRFull(materialCost)}</div>
-            <div className="text-[10px] text-emerald-700 font-semibold mt-1">Installation & services alag se</div>
+            <div className="text-[0.6875rem] text-emerald-700 font-semibold mt-1">Installation & services alag se</div>
           </div>
 
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Aap ka naam *"

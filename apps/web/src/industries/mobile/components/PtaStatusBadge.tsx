@@ -26,8 +26,8 @@ export function PtaStatusBadge({ status, size = 'md', showIcon = true, taxPaid }
   const label = PTA_STATUS_LABELS[status];
 
   const sizeClasses = {
-    sm: 'text-[9px] px-1.5 py-0.5',
-    md: 'text-[10px] px-2 py-0.5',
+    sm: 'text-[0.625rem] px-1.5 py-0.5',
+    md: 'text-[0.6875rem] px-2 py-0.5',
     lg: 'text-xs px-2.5 py-1',
   };
 

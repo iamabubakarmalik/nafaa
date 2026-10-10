@@ -51,7 +51,7 @@ export function MobileAccessoryStockCard({ basic, bucketName, stock, onChange }:
                   key={q}
                   type="button"
                   onClick={() => onChange({ currentStock: q })}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-extrabold border-2 transition active:scale-95 tabular-nums ${
+                  className={`px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold border-2 transition active:scale-95 tabular-nums ${
                     currentUnits === q
                       ? 'bg-emerald-600 text-white border-emerald-600'
                       : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
@@ -109,7 +109,7 @@ export function MobileAccessoryStockCard({ basic, bucketName, stock, onChange }:
               {isLow && <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400" />}
               <div>
                 <div className={[
-                  'text-[10px] uppercase tracking-wider font-extrabold',
+                  'text-[0.6875rem] uppercase tracking-wider font-extrabold',
                   isLow ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400',
                 ].join(' ')}>
                   {isLow ? '⚠️ Low stock — sale value' : 'Stock Sale Value'}
@@ -120,7 +120,7 @@ export function MobileAccessoryStockCard({ basic, bucketName, stock, onChange }:
               </div>
             </div>
             <div className="text-right">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 flex items-center gap-0.5 justify-end">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 flex items-center gap-0.5 justify-end">
                 <Package className="h-2.5 w-2.5" /> Stock
               </div>
               <div className={[
@@ -132,7 +132,7 @@ export function MobileAccessoryStockCard({ basic, bucketName, stock, onChange }:
             </div>
           </div>
           {costPrice > 0 && (
-            <div className="mt-2 pt-2 border-t border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-between text-[11px] font-bold">
+            <div className="mt-2 pt-2 border-t border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-between text-[0.6875rem] font-bold">
               <span className="text-slate-500 dark:text-slate-400">Cost: {formatPKRFull(stockCost)}</span>
               <span className={potentialProfit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
                 Potential profit: {formatPKRFull(potentialProfit)}

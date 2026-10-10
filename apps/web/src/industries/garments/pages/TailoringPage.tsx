@@ -200,21 +200,21 @@ function OrderCard({ order }: { order: any }) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{order.orderNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
                 <StatusIcon className="h-2.5 w-2.5" />
                 {statusCfg.label}
               </span>
-              <span className={'px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase text-white ' + priorityCfg.color}>
+              <span className={'px-2 py-0.5 rounded-md text-[0.625rem] font-extrabold uppercase text-white ' + priorityCfg.color}>
                 {priorityCfg.label}
               </span>
               {order.paymentStatus === 'PAID' && (
-                <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                   <CheckCircle2 className="h-2 w-2" />
                   Paid
                 </span>
               )}
               {order.paymentStatus === 'PARTIALLY_PAID' && (
-                <span className="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[9px] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase">
                   Partial
                 </span>
               )}
@@ -251,12 +251,12 @@ function OrderCard({ order }: { order: any }) {
 
             <div className="mt-2 flex flex-wrap gap-1">
               {order.items?.slice(0, 4).map((it: any, i: number) => (
-                <span key={i} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[10px] font-extrabold text-slate-700">
+                <span key={i} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.6875rem] font-extrabold text-slate-700">
                   {it.garmentName} × {it.quantity}
                 </span>
               ))}
               {(order.items?.length || 0) > 4 && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[10px] font-extrabold text-slate-500">
+                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.6875rem] font-extrabold text-slate-500">
                   +{(order.items?.length || 0) - 4} more
                 </span>
               )}
@@ -267,10 +267,10 @@ function OrderCard({ order }: { order: any }) {
         <div className="text-right shrink-0">
           <div className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(order.total)}</div>
           {remaining > 0 && order.paymentStatus !== 'PAID' && (
-            <div className="text-[10px] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
+            <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
           )}
           {order.paidAmount > 0 && (
-            <div className="text-[10px] font-bold text-emerald-600">Paid: {formatPKR(order.paidAmount)}</div>
+            <div className="text-[0.6875rem] font-bold text-emerald-600">Paid: {formatPKR(order.paidAmount)}</div>
           )}
           <div className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold text-purple-600">
             View <ArrowRight className="h-3 w-3" />

@@ -255,13 +255,13 @@ export default function PetshopDashboardPage() {
                   <div className="font-extrabold text-sm truncate text-slate-900">
                     {a.petName} <span className="text-slate-500 font-bold">({a.petSpecies})</span>
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold truncate">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
                     {a.customerName} • {a.scheduledSlot || new Date(a.scheduledDate).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-violet-700 text-sm tabular-nums">{formatPKR(a.totalFee)}</div>
-                  <div className="text-[9px] font-bold text-slate-500 uppercase">{a.status}</div>
+                  <div className="text-[0.625rem] font-bold text-slate-500 uppercase">{a.status}</div>
                 </div>
               </Link>
             ))}
@@ -290,14 +290,14 @@ export default function PetshopDashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm truncate text-slate-900">{a.petName}</div>
-                  <div className="text-[10px] text-slate-500 font-bold truncate">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
                     {a.customerName} • {a.customerPhone}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-emerald-700 text-sm tabular-nums">{formatPKR(a.totalFee)}</div>
                   {a.paidAmount < a.totalFee && (
-                    <div className="text-[9px] font-bold text-rose-700">Balance {formatPKR(a.totalFee - a.paidAmount)}</div>
+                    <div className="text-[0.625rem] font-bold text-rose-700">Balance {formatPKR(a.totalFee - a.paidAmount)}</div>
                   )}
                 </div>
               </Link>
@@ -339,7 +339,7 @@ export default function PetshopDashboardPage() {
                   <div className="font-extrabold text-sm truncate text-slate-900">
                     {a.name || `${a.species} #${a.animalNumber}`}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold truncate">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
                     {a.breed} • {a.gender} • {a.ageMonths ? `${a.ageMonths}mo` : 'age unknown'}
                   </div>
                 </div>
@@ -374,7 +374,7 @@ export default function PetshopDashboardPage() {
                   <div className="font-extrabold text-sm truncate text-slate-900 group-hover:text-amber-700">
                     {p.brand ? `${p.brand} — ` : ''}{p.categoryType?.replace(/_/g, ' ')}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-bold">{p.totalSold ?? 0} units sold</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">{p.totalSold ?? 0} units sold</div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-emerald-700 text-sm tabular-nums">{formatPKR(p.totalRevenue || 0)}</div>
@@ -417,7 +417,7 @@ export default function PetshopDashboardPage() {
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm truncate text-slate-900">{g.name}</div>
-                  <div className="text-[10px] text-slate-500 font-bold">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">
                     {g.completedAppointments} completed
                     {g.avgRating && ` • ⭐ ${g.avgRating.toFixed(1)}`}
                   </div>
@@ -454,16 +454,16 @@ export default function PetshopDashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm truncate text-slate-900">{p.brand || 'Medicine'}</div>
-                    <div className="text-[10px] text-slate-500 font-bold truncate">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold truncate">
                       Batch: {p.batchNumber || 'N/A'}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className={`text-[10px] font-extrabold uppercase ${days !== null && days < 30 ? 'text-rose-700' : 'text-amber-700'}`}>
+                    <div className={`text-[0.6875rem] font-extrabold uppercase ${days !== null && days < 30 ? 'text-rose-700' : 'text-amber-700'}`}>
                       {days !== null ? `${days} days` : 'Expiry set'}
                     </div>
                     {p.expiryDate && (
-                      <div className="text-[9px] font-bold text-slate-500">
+                      <div className="text-[0.625rem] font-bold text-slate-500">
                         {new Date(p.expiryDate).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                       </div>
                     )}
@@ -490,7 +490,7 @@ export default function PetshopDashboardPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
             {bySpecies.map((s: any) => (
               <div key={s.species} className="rounded-xl bg-gradient-to-br from-rose-50 to-pink-50 border-2 border-rose-200 p-3 text-center">
-                <div className="text-[9px] uppercase font-extrabold text-rose-700">{s.species.replace(/_/g, ' ')}</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-rose-700">{s.species.replace(/_/g, ' ')}</div>
                 <div className="text-2xl font-extrabold text-rose-900 tabular-nums mt-1">{s.count}</div>
               </div>
             ))}
@@ -512,10 +512,10 @@ function HeroTile({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3 sm:p-4`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-lg sm:text-xl font-extrabold text-white tabular-nums leading-none truncate">{value}</div>
-      <div className="text-[10px] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5 truncate">{sub}</div>
     </div>
   );
 }
@@ -570,21 +570,21 @@ function StreamCard({ label, icon: Icon, tone, today, month, extra }: any) {
   return (
     <div className={`rounded-3xl bg-gradient-to-br from-white to-slate-50 border-2 ${parts[2]} p-4 shadow-sm`}>
       <div className="flex items-center justify-between gap-2">
-        <div className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-white bg-gradient-to-r ${parts[0]} ${parts[1]}`}>
+        <div className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-wider text-white bg-gradient-to-r ${parts[0]} ${parts[1]}`}>
           <Icon className="h-3 w-3" /> {label}
         </div>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Today</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Today</div>
           <div className="text-base font-extrabold text-slate-900 tabular-nums leading-none mt-1">{formatPKR(today)}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">This month</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">This month</div>
           <div className="text-base font-extrabold text-emerald-700 tabular-nums leading-none mt-1">{formatPKR(month)}</div>
         </div>
       </div>
-      <div className="mt-2 text-[10px] font-bold text-slate-500">{extra}</div>
+      <div className="mt-2 text-[0.6875rem] font-bold text-slate-500">{extra}</div>
     </div>
   );
 }

@@ -178,9 +178,9 @@ export default function DispatchPage() {
                         <div className="font-extrabold text-sm truncate">
                           {((t.name?.firstName || '') + ' ' + (t.name?.lastName || '')).trim() || 'Technician'}
                         </div>
-                        <div className="text-[10px] font-bold text-slate-500 uppercase">{t.status.replace('_', ' ')}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{t.status.replace('_', ' ')}</div>
                         {t.lastLocationAt && (
-                          <div className="text-[10px] font-bold text-slate-500">
+                          <div className="text-[0.6875rem] font-bold text-slate-500">
                             Updated: {format(new Date(t.lastLocationAt), 'HH:mm')}
                           </div>
                         )}
@@ -214,12 +214,12 @@ export default function DispatchPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-sm truncate">{j.jobNumber}</div>
-                        <div className="text-[10px] font-bold text-slate-500 truncate">{j.customerName} • {j.serviceName}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{j.customerName} • {j.serviceName}</div>
                         {j.address && (
-                          <div className="text-[10px] text-slate-500 font-semibold truncate">📍 {j.address}</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">📍 {j.address}</div>
                         )}
                       </div>
-                      <span className="text-[9px] font-extrabold uppercase text-white px-2 py-0.5 rounded shrink-0 bg-slate-500">
+                      <span className="text-[0.625rem] font-extrabold uppercase text-white px-2 py-0.5 rounded shrink-0 bg-slate-500">
                         {j.status.replace('_', ' ')}
                       </span>
                     </Link>

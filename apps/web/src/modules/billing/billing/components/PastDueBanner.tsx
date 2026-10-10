@@ -21,7 +21,7 @@ export function PastDueBanner() {
           <AlertTriangle className="h-5 w-5 text-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-[9px] font-extrabold uppercase tracking-wider text-white/90 px-1.5 py-0.5 rounded-md bg-white/10 backdrop-blur inline-block mb-0.5">
+          <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-white/90 px-1.5 py-0.5 rounded-md bg-white/10 backdrop-blur inline-block mb-0.5">
             Payment Past Due
           </div>
           <p className="text-sm font-extrabold text-white truncate">

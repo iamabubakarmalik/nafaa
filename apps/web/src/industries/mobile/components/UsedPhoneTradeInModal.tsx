@@ -333,7 +333,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                 <RefreshCw className="h-5 w-5 text-white" />
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-widest text-violet-700 dark:text-violet-300 font-extrabold">
+                <div className="text-[0.6875rem] uppercase tracking-widest text-violet-700 dark:text-violet-300 font-extrabold">
                   Used Phone Trade-In
                 </div>
                 <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base truncate">
@@ -411,7 +411,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                     </div>
                     <div>
                       <div className="font-extrabold text-slate-900 dark:text-white text-sm">IMEI Number</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                         Phone dial pad me *#06# dabaao — ya scanner use karo
                       </div>
                     </div>
@@ -419,7 +419,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
 
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         IMEI 1 * (15 digits)
                       </label>
                       <div className="relative">
@@ -445,13 +445,13 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                         </button>
                       </div>
                       {imei1.length > 0 && imei1.length !== 15 && (
-                        <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1 flex items-center gap-1">
+                        <div className="text-[0.6875rem] text-amber-600 dark:text-amber-400 font-bold mt-1 flex items-center gap-1">
                           <AlertCircle className="h-3 w-3" />
                           {imei1.length}/15 digits
                         </div>
                       )}
                       {imei1.length === 15 && (
-                        <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-1 flex items-center gap-1">
+                        <div className="text-[0.6875rem] text-emerald-600 dark:text-emerald-400 font-bold mt-1 flex items-center gap-1">
                           <CheckCircle2 className="h-3 w-3" />
                           IMEI valid — 15 digits complete
                         </div>
@@ -459,7 +459,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                         IMEI 2 <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(Dual SIM)</span>
                       </label>
                       <div className="relative">
@@ -485,7 +485,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
 
                 {/* Brand — quick chips */}
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     Brand * <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">— select ya likho</span>
                   </label>
                   <div className="flex gap-1.5 flex-wrap mb-2">
@@ -514,7 +514,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
 
                 {/* Model */}
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                     Model *
                   </label>
                   <input
@@ -541,7 +541,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                     </div>
                     <div>
                       <div className="font-extrabold text-slate-900 dark:text-white text-sm">PTA Status</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                         Pakistan me lazmi — non-approved phone mushkil se bikta hai
                       </div>
                     </div>
@@ -555,7 +555,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                           key={s}
                           type="button"
                           onClick={() => setPtaStatus(s)}
-                          className={`px-2 py-2 rounded-lg text-[10px] font-extrabold border-2 transition ${
+                          className={`px-2 py-2 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${
                             active
                               ? `${colors.bg} ${colors.text} ${colors.border} shadow-md scale-105`
                               : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-400'
@@ -594,13 +594,13 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                         <div className="font-extrabold text-slate-900 dark:text-white text-sm">
                           Condition Rating *
                         </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                           Honestly mark karo — resale price isi pe hai
                         </div>
                       </div>
                     </div>
                     {referencePrice && (
-                      <div className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums bg-emerald-50 dark:bg-emerald-500/15 px-2 py-1 rounded-lg">
+                      <div className="text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums bg-emerald-50 dark:bg-emerald-500/15 px-2 py-1 rounded-lg">
                         💡 ~{formatPKR(conditionSuggestedBuyback)} suggested
                       </div>
                     )}
@@ -623,8 +623,8 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                           }`}
                         >
                           <div className="text-2xl mb-1">{CONDITION_EMOJIS[c]}</div>
-                          <div className="text-[10px] font-extrabold">{CONDITION_LABELS[c]}</div>
-                          <div className={`text-[9px] font-bold mt-0.5 ${active ? 'opacity-90' : 'opacity-60'}`}>
+                          <div className="text-[0.6875rem] font-extrabold">{CONDITION_LABELS[c]}</div>
+                          <div className={`text-[0.625rem] font-bold mt-0.5 ${active ? 'opacity-90' : 'opacity-60'}`}>
                             {(mult * 100).toFixed(0)}%
                           </div>
                         </button>
@@ -640,7 +640,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
 
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                       Condition Notes
                     </label>
                     <textarea
@@ -652,7 +652,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                       Battery Health % <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(agar pata ho)</span>
                     </label>
                     <div className="relative">
@@ -668,7 +668,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-extrabold text-slate-500 dark:text-slate-400">%</span>
                     </div>
                     {batteryHealth && Number(batteryHealth) < 80 && (
-                      <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-1 flex items-center gap-1">
+                      <div className="text-[0.6875rem] text-amber-600 dark:text-amber-400 font-bold mt-1 flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" />
                         Battery kaafi kam hai — resale price adjust karo
                       </div>
@@ -683,7 +683,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                     </div>
                     <div>
                       <div className="font-extrabold text-slate-900 dark:text-white text-sm">Accessories</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                         Original items = zyada resale value
                       </div>
                     </div>
@@ -726,7 +726,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
             {step === 3 && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
                     Trade-In Type
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -747,7 +747,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                       >
                         <div className="text-lg mb-0.5">{s.emoji}</div>
                         <div>{s.label}</div>
-                        <div className="text-[9px] font-semibold opacity-70 mt-0.5">{s.desc}</div>
+                        <div className="text-[0.625rem] font-semibold opacity-70 mt-0.5">{s.desc}</div>
                       </button>
                     ))}
                   </div>
@@ -762,7 +762,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                       <div className="font-extrabold text-violet-900 dark:text-violet-200 text-sm">
                         🧠 Auto-Valuation Helper
                       </div>
-                      <div className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">
+                      <div className="text-[0.6875rem] text-violet-700 dark:text-violet-300 font-semibold">
                         Naye phone ki market price daalo → AI suggest karega
                       </div>
                     </div>
@@ -800,7 +800,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                         </span>
                       </div>
                       {valuationMutation.data.reasoning?.length > 0 && (
-                        <div className="mt-1.5 text-[10px] text-slate-600 dark:text-slate-400 font-semibold leading-relaxed">
+                        <div className="mt-1.5 text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold leading-relaxed">
                           {valuationMutation.data.reasoning.join(' · ')}
                         </div>
                       )}
@@ -852,14 +852,14 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                       <div className="font-extrabold text-slate-900 dark:text-white text-sm">
                         Customer <span className="text-slate-400 dark:text-slate-500 font-semibold">(jinse phone khareeda)</span>
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
                         CNIC record rakho — chori ke phone se bachne ke liye
                       </div>
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                       Existing Customer
                     </label>
                     <select
@@ -900,7 +900,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                     Internal Notes
                   </label>
                   <textarea
@@ -918,7 +918,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
           {/* ═══ FOOTER ═══ */}
           <div className="px-4 sm:px-5 py-3 border-t-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-3 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-3 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                 <span className="hidden md:inline-flex items-center gap-1">
                   <Kbd>Ctrl</Kbd>+<Kbd>↵</Kbd> next
                 </span>
@@ -1034,7 +1034,7 @@ function TradeInFormTeacher({ step, onClose }: { step: 1 | 2 | 3; onClose: () =>
           <div className="flex items-center gap-2">
             <div className="text-2xl">{c.emoji}</div>
             <div>
-              <div className="text-[10px] uppercase tracking-widest font-extrabold opacity-80">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold opacity-80">Guide</div>
               <h3 className="font-extrabold">{c.title}</h3>
             </div>
           </div>
@@ -1084,7 +1084,7 @@ function InputCompact({
 }) {
   return (
     <div>
-      <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
         {label}
       </label>
       <input
@@ -1120,7 +1120,7 @@ function PricingInput({
   };
   return (
     <div>
-      <label className={`block text-[10px] font-extrabold uppercase tracking-wider mb-1 ${labelTones[tone]}`}>
+      <label className={`block text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1 ${labelTones[tone]}`}>
         {label} {required && <span>*</span>}
       </label>
       <div className="relative">
@@ -1133,7 +1133,7 @@ function PricingInput({
           className={`h-12 w-full rounded-xl border-2 pl-9 pr-3 text-base font-extrabold tabular-nums focus:outline-none transition ${tones[tone]}`}
         />
       </div>
-      <div className={`text-[9px] font-bold mt-0.5 ${labelTones[tone]} opacity-70`}>{hint}</div>
+      <div className={`text-[0.625rem] font-bold mt-0.5 ${labelTones[tone]} opacity-70`}>{hint}</div>
     </div>
   );
 }
@@ -1155,7 +1155,7 @@ function ProfitStat({
   };
   return (
     <div>
-      <div className="text-[9px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
       <div className={`font-extrabold tabular-nums ${tones[tone]} ${big ? 'text-lg' : 'text-sm'} mt-0.5`}>
         {value}
       </div>
@@ -1165,7 +1165,7 @@ function ProfitStat({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-mono font-bold text-[9px]">
+    <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-mono font-bold text-[0.625rem]">
       {children}
     </kbd>
   );

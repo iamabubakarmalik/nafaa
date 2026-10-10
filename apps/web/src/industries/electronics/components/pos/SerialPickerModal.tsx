@@ -86,14 +86,14 @@ export function SerialPickerModal({ product, profile, onConfirm, onClose }: Prop
                     <div className="font-mono font-extrabold text-slate-900 text-sm truncate">{s.serialNumber}</div>
                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
                       {s.imei && (
-                        <span className="text-[10px] font-mono text-slate-600">IMEI: {s.imei}</span>
+                        <span className="text-[0.6875rem] font-mono text-slate-600">IMEI: {s.imei}</span>
                       )}
                       {s.macAddress && (
-                        <span className="text-[10px] font-mono text-slate-600">MAC: {s.macAddress}</span>
+                        <span className="text-[0.6875rem] font-mono text-slate-600">MAC: {s.macAddress}</span>
                       )}
                     </div>
                     {s.warrantyEndDate && (
-                      <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-extrabold text-blue-700">
+                      <div className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-blue-700">
                         <Shield className="h-2.5 w-2.5" /> Warranty until {new Date(s.warrantyEndDate).toLocaleDateString('en-PK')}
                       </div>
                     )}

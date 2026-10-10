@@ -107,7 +107,7 @@ export default function SalesFunnelPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     {i > 0 && dropOffPct > 0 && (
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 inline-flex items-center gap-1">
+                      <span className="text-[0.6875rem] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 inline-flex items-center gap-1">
                         <TrendingDown className="h-2.5 w-2.5" />
                         -{dropOffPct.toFixed(1)}% dropped
                       </span>
@@ -140,7 +140,7 @@ export default function SalesFunnelPage() {
         <h3 className="font-black text-slate-900 text-lg mb-4 flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-orange-500" />
           High Drop-off Products
-          <span className="text-[10px] font-bold text-slate-500 ml-auto">Products with low view→order rate</span>
+          <span className="text-[0.6875rem] font-bold text-slate-500 ml-auto">Products with low view→order rate</span>
         </h3>
         {data.topDroppedProducts.length === 0 ? (
           <div className="py-6 text-center text-sm text-slate-500 font-bold">No data</div>
@@ -157,13 +157,13 @@ export default function SalesFunnelPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-black text-slate-900 text-sm truncate">{p.name}</div>
-                  <div className="text-[10px] text-slate-500 font-bold mt-0.5">
+                  <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">
                     {p.views} views → {p.addedToCart} carts → {p.ordered} orders
                   </div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-black text-rose-700 tabular-nums">{p.dropOffRate.toFixed(1)}%</div>
-                  <div className="text-[9px] text-slate-500 font-bold uppercase">drop-off</div>
+                  <div className="text-[0.625rem] text-slate-500 font-bold uppercase">drop-off</div>
                 </div>
               </div>
             ))}
@@ -190,15 +190,15 @@ export default function SalesFunnelPage() {
                 }}
                 title={`${h.hour}:00 — ${h.views} views, ${h.orders} orders`}
               >
-                <div className="text-[9px] font-bold text-slate-600">{h.hour}h</div>
-                <div className={`text-[10px] font-black ${intensity > 0.5 ? 'text-white' : 'text-slate-900'}`}>
+                <div className="text-[0.625rem] font-bold text-slate-600">{h.hour}h</div>
+                <div className={`text-[0.6875rem] font-black ${intensity > 0.5 ? 'text-white' : 'text-slate-900'}`}>
                   {h.orders}
                 </div>
               </div>
             );
           })}
         </div>
-        <p className="text-[10px] text-slate-500 font-bold mt-3 text-center">Numbers = orders per hour · Darker = more activity</p>
+        <p className="text-[0.6875rem] text-slate-500 font-bold mt-3 text-center">Numbers = orders per hour · Darker = more activity</p>
       </div>
 
       {/* Cohort Retention */}
@@ -256,7 +256,7 @@ export default function SalesFunnelPage() {
               <div key={p.method} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
                 <div className="flex-1">
                   <div className="font-black text-slate-900">{p.method}</div>
-                  <div className="text-[10px] text-slate-500 font-bold">{p.attempts} attempts · {p.failures} failed</div>
+                  <div className="text-[0.6875rem] text-slate-500 font-bold">{p.attempts} attempts · {p.failures} failed</div>
                 </div>
                 <div className="w-32 h-2 rounded-full bg-slate-200 overflow-hidden">
                   <div
@@ -285,7 +285,7 @@ function HeroKpi({ label, value, icon: Icon, highlight }: any) {
     }`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
       </div>
       <div className="text-xl font-black leading-none tabular-nums">{value}</div>
     </div>

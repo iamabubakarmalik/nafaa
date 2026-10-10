@@ -56,7 +56,7 @@ export function MobileAdminStockBlock({
     return (
       <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-center">
         <Smartphone className="h-5 w-5 text-blue-400 mx-auto mb-1" />
-        <div className="text-[10px] text-blue-700 font-bold">
+        <div className="text-[0.6875rem] text-blue-700 font-bold">
           IMEI tracking activates after save
         </div>
       </div>
@@ -67,10 +67,10 @@ export function MobileAdminStockBlock({
     return (
       <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-center">
         <Smartphone className="h-5 w-5 text-amber-500 mx-auto mb-1" />
-        <div className="text-[10px] text-amber-800 font-bold">No IMEIs added yet</div>
+        <div className="text-[0.6875rem] text-amber-800 font-bold">No IMEIs added yet</div>
         <Link
           to={`/products/${productId}/imei`}
-          className="text-[10px] text-blue-700 font-bold hover:underline mt-1 inline-block"
+          className="text-[0.6875rem] text-blue-700 font-bold hover:underline mt-1 inline-block"
         >
           Add IMEIs →
         </Link>
@@ -83,15 +83,15 @@ export function MobileAdminStockBlock({
       {/* IMEI Stats — 3 columns */}
       <div className="grid grid-cols-3 gap-1.5">
         <div className="rounded-lg bg-blue-50 border border-blue-200 p-2 text-center">
-          <div className="text-[8px] uppercase text-blue-700 font-bold">Total</div>
+          <div className="text-[0.625rem] uppercase text-blue-700 font-bold">Total</div>
           <div className="text-base font-extrabold text-blue-900">{stats.total}</div>
         </div>
         <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-center">
-          <div className="text-[8px] uppercase text-emerald-700 font-bold">In Stock</div>
+          <div className="text-[0.625rem] uppercase text-emerald-700 font-bold">In Stock</div>
           <div className="text-base font-extrabold text-emerald-900">{stats.inStock}</div>
         </div>
         <div className="rounded-lg bg-violet-50 border border-violet-200 p-2 text-center">
-          <div className="text-[8px] uppercase text-violet-700 font-bold">Sold</div>
+          <div className="text-[0.625rem] uppercase text-violet-700 font-bold">Sold</div>
           <div className="text-base font-extrabold text-violet-900">{stats.sold}</div>
         </div>
       </div>
@@ -99,12 +99,12 @@ export function MobileAdminStockBlock({
       {/* PTA Breakdown Mini Chart */}
       <div className="rounded-lg bg-white border border-slate-200 p-2">
         <div className="flex items-center justify-between mb-1.5">
-          <div className="text-[9px] uppercase text-slate-600 font-bold flex items-center gap-1">
+          <div className="text-[0.625rem] uppercase text-slate-600 font-bold flex items-center gap-1">
             <ShieldCheck className="h-2.5 w-2.5" />
             PTA Status
           </div>
           {totalPtaTax > 0 && (
-            <div className="text-[9px] text-emerald-700 font-bold">
+            <div className="text-[0.625rem] text-emerald-700 font-bold">
               Tax: {formatPKRFull(totalPtaTax)}
             </div>
           )}
@@ -124,7 +124,7 @@ export function MobileAdminStockBlock({
                 title={`${PTA_STATUS_LABELS[status]}: ${count} (${percent.toFixed(0)}%)`}
               >
                 <Icon className={`h-2.5 w-2.5 mx-auto ${count > 0 ? colors.text : 'text-slate-400'}`} />
-                <div className={`text-[10px] font-extrabold mt-0.5 ${count > 0 ? colors.text : 'text-slate-400'}`}>
+                <div className={`text-[0.6875rem] font-extrabold mt-0.5 ${count > 0 ? colors.text : 'text-slate-400'}`}>
                   {count}
                 </div>
               </div>
@@ -137,7 +137,7 @@ export function MobileAdminStockBlock({
       {totalCostValue > 0 && (
         <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2">
           <div className="flex items-center justify-between">
-            <div className="text-[9px] uppercase text-emerald-700 font-bold flex items-center gap-1">
+            <div className="text-[0.625rem] uppercase text-emerald-700 font-bold flex items-center gap-1">
               <TrendingUp className="h-2.5 w-2.5" />
               Stock Value
             </div>
@@ -151,7 +151,7 @@ export function MobileAdminStockBlock({
       {/* Returns warning */}
       {stats.returned > 0 && (
         <div className="rounded-lg bg-amber-50 border border-amber-200 p-2 text-center">
-          <div className="text-[9px] text-amber-800 font-bold">
+          <div className="text-[0.625rem] text-amber-800 font-bold">
             {stats.returned} returned IMEI{stats.returned !== 1 ? 's' : ''}
           </div>
         </div>

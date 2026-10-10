@@ -214,17 +214,17 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
 
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {service.isFeatured && (
-            <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <Star className="h-2 w-2 fill-current" /> Featured
             </span>
           )}
           {service.isPopular && (
-            <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <Flame className="h-2 w-2" /> Popular
             </span>
           )}
           {service.isEmergency && (
-            <span className="px-2 py-0.5 rounded bg-red-600 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow animate-pulse">
+            <span className="px-2 py-0.5 rounded bg-red-600 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow animate-pulse">
               🚨 Emergency
             </span>
           )}
@@ -244,8 +244,8 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
         <div>
           <h3 className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{service.name}</h3>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            {biz && <span className="text-[10px] font-extrabold uppercase text-cyan-600">{biz.emoji} {biz.label}</span>}
-            {cat && <span className="text-[10px] font-bold text-slate-500">• {cat.label}</span>}
+            {biz && <span className="text-[0.6875rem] font-extrabold uppercase text-cyan-600">{biz.emoji} {biz.label}</span>}
+            {cat && <span className="text-[0.6875rem] font-bold text-slate-500">• {cat.label}</span>}
           </div>
         </div>
 
@@ -272,14 +272,14 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
 
         <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
           <div>
-            <div className="text-[10px] uppercase font-extrabold text-slate-500">{service.chargeType.replace('_', ' ')}</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{service.chargeType.replace('_', ' ')}</div>
             <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">
               {formatPKR(service.baseCharge || service.visitCharge || service.hourlyRate)}
             </div>
           </div>
           {service.totalJobs > 0 && (
             <div className="text-right">
-              <div className="text-[10px] font-extrabold text-slate-500">Total Jobs</div>
+              <div className="text-[0.6875rem] font-extrabold text-slate-500">Total Jobs</div>
               <div className="text-sm font-extrabold text-slate-900 dark:text-white">{service.totalJobs}</div>
             </div>
           )}
@@ -383,7 +383,7 @@ function ServiceForm({ editing, onClose, onSaved }: any) {
             Pricing
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-2 block">Charge Type</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-2 block">Charge Type</label>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {CHARGE_TYPES.map((c) => (
                 <button key={c.value} onClick={() => setForm({ ...form, chargeType: c.value })} className={
@@ -399,15 +399,15 @@ function ServiceForm({ editing, onClose, onSaved }: any) {
 
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Base Charge</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Base Charge</label>
               <input type="number" step="0.01" value={form.baseCharge} onChange={(e) => setForm({ ...form, baseCharge: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Hourly Rate</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Hourly Rate</label>
               <input type="number" step="0.01" value={form.hourlyRate} onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Visit Charge</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Visit Charge</label>
               <input type="number" step="0.01" value={form.visitCharge} onChange={(e) => setForm({ ...form, visitCharge: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
           </div>
@@ -421,19 +421,19 @@ function ServiceForm({ editing, onClose, onSaved }: any) {
           </div>
           <div className="grid sm:grid-cols-4 gap-2">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-red-700 mb-1 block">Emergency (Rs)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-red-700 mb-1 block">Emergency (Rs)</label>
               <input type="number" value={form.emergencyCharge} onChange={(e) => setForm({ ...form, emergencyCharge: e.target.value })} className="h-10 w-full rounded-lg border-2 border-red-300 bg-white px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-red-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Weekend</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Weekend</label>
               <input type="number" value={form.weekendCharge} onChange={(e) => setForm({ ...form, weekendCharge: e.target.value })} className="h-10 w-full rounded-lg border-2 border-amber-300 bg-white px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-violet-700 mb-1 block">Night Hours</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1 block">Night Hours</label>
               <input type="number" value={form.nightCharge} onChange={(e) => setForm({ ...form, nightCharge: e.target.value })} className="h-10 w-full rounded-lg border-2 border-violet-300 bg-white px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Out of City</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Out of City</label>
               <input type="number" value={form.outOfCityCharge} onChange={(e) => setForm({ ...form, outOfCityCharge: e.target.value })} className="h-10 w-full rounded-lg border-2 border-blue-300 bg-white px-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
             </div>
           </div>
@@ -442,18 +442,18 @@ function ServiceForm({ editing, onClose, onSaved }: any) {
         {/* Duration + Warranty */}
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Duration (min)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Duration (min)</label>
             <input type="number" value={form.estimatedDurationMin} onChange={(e) => setForm({ ...form, estimatedDurationMin: e.target.value })} className="h-11 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Warranty (days)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Warranty (days)</label>
             <input type="number" value={form.warrantyDays} onChange={(e) => setForm({ ...form, warrantyDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
 
         {/* Image */}
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Image</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Image</label>
           {form.imageUrl ? (
             <div className="relative w-full aspect-video rounded-xl overflow-hidden border-2 border-slate-200">
               <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />

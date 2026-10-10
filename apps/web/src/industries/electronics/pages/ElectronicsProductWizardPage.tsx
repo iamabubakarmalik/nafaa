@@ -396,7 +396,7 @@ export default function ElectronicsProductWizardPage() {
 function SuccessStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-xl bg-white border-2 border-blue-200 p-3">
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-blue-700">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700">{label}</div>
       <div className="text-2xl font-extrabold text-blue-900 tabular-nums mt-0.5">{value}</div>
     </div>
   );
@@ -440,7 +440,7 @@ function WizardTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Product Kaise Add Karein?</h3>
             </div>
           </div>
@@ -463,7 +463,7 @@ function WizardTeacher({ onClose }: { onClose: () => void }) {
                   <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                   <ul className="mt-2 space-y-1">
                     {st.tips.map((t, i) => (
-                      <li key={i} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                      <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                         <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {t}
                       </li>
                     ))}

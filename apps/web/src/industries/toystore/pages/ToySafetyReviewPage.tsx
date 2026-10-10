@@ -203,8 +203,8 @@ function RiskCard({ item }: any) {
           <h3 className="font-extrabold text-slate-900 text-base truncate">{item.product?.name}</h3>
           <div className="flex items-center gap-2 flex-wrap mt-1">
             {item.brand && <span className="text-xs font-bold text-slate-600">{item.brand}</span>}
-            {item.ageGroup && <span className="text-[10px] font-extrabold uppercase text-pink-700 px-1.5 py-0.5 rounded bg-pink-50">{item.ageGroup.replace(/_/g, ' ')}</span>}
-            {item.genderTarget && <span className="text-[10px] font-extrabold uppercase text-violet-700 px-1.5 py-0.5 rounded bg-violet-50">{item.genderTarget}</span>}
+            {item.ageGroup && <span className="text-[0.6875rem] font-extrabold uppercase text-pink-700 px-1.5 py-0.5 rounded bg-pink-50">{item.ageGroup.replace(/_/g, ' ')}</span>}
+            {item.genderTarget && <span className="text-[0.6875rem] font-extrabold uppercase text-violet-700 px-1.5 py-0.5 rounded bg-violet-50">{item.genderTarget}</span>}
           </div>
 
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -212,7 +212,7 @@ function RiskCard({ item }: any) {
               const meta = RISK_LABELS[flag];
               if (!meta) return null;
               return (
-                <span key={flag} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border-2 text-[10px] font-extrabold uppercase ${meta.bg} ${meta.color}`}>
+                <span key={flag} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border-2 text-[0.6875rem] font-extrabold uppercase ${meta.bg} ${meta.color}`}>
                   {meta.emoji} {meta.label}
                 </span>
               );
@@ -223,7 +223,7 @@ function RiskCard({ item }: any) {
         <div className="text-right shrink-0 flex flex-col gap-2 items-end">
           <div>
             <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(item.product?.price || 0)}</div>
-            <div className="text-[10px] font-bold text-slate-500">Stock: {item.product?.stock || 0}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500">Stock: {item.product?.stock || 0}</div>
           </div>
           <Link to={`/toy-products/${item.productId}/edit`}
             className="h-9 px-3 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-extrabold inline-flex items-center gap-1">
@@ -245,7 +245,7 @@ function RiskStat({ label, value, icon, tone, onClick }: any) {
       className={`rounded-2xl bg-white border-2 border-slate-200 hover:border-rose-300 hover:shadow-md p-4 shadow-sm text-left w-full transition`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-2xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md text-lg`}>

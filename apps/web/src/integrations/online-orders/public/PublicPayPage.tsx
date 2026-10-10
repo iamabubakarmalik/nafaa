@@ -107,10 +107,10 @@ export default function PublicPayPage() {
                 {wallet && (
                   <div className="mt-5 space-y-2">
                     <input value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" placeholder={`Apna ${info.provider} number (03xxxxxxxxx)`}
-                      className="w-full rounded-xl border border-slate-300 px-3 py-3 text-[15px] outline-none focus:border-slate-500" />
+                      className="w-full rounded-xl border border-slate-300 px-3 py-3 text-[0.9375rem] outline-none focus:border-slate-500" />
                     {info.collect.includes('cnic') && (
                       <input value={cnic} onChange={(e) => setCnic(e.target.value)} inputMode="numeric" maxLength={15} placeholder="CNIC ke aakhri 6 hindse"
-                        className="w-full rounded-xl border border-slate-300 px-3 py-3 text-[15px] outline-none focus:border-slate-500" />
+                        className="w-full rounded-xl border border-slate-300 px-3 py-3 text-[0.9375rem] outline-none focus:border-slate-500" />
                     )}
                   </div>
                 )}
@@ -128,7 +128,7 @@ export default function PublicPayPage() {
                 {err && <p className="mt-3 text-center text-sm font-semibold text-rose-600">{err}</p>}
               </>
             )}
-            <p className="mt-6 flex items-center justify-center gap-1 text-[11px] text-slate-400"><Lock className="h-3 w-3" /> Card ki maloomat {info.provider} ke safhe par — Nafaa ya dukaan ke paas nahi aati</p>
+            <p className="mt-6 flex items-center justify-center gap-1 text-[0.6875rem] text-slate-400"><Lock className="h-3 w-3" /> Card ki maloomat {info.provider} ke safhe par — Nafaa ya dukaan ke paas nahi aati</p>
           </>
         )}
         {form && (

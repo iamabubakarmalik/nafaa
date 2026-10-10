@@ -94,8 +94,8 @@ export function MeatWizardStep2HalalQuality({ halalQuality, onChange, onToggleCe
                   active ? 'border-emerald-600 bg-emerald-600 text-white shadow-md scale-105'
                     : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-400'].join(' ')}>
                 <div className="text-2xl mb-1">{m.emoji}</div>
-                <div className="text-[11px] font-extrabold">{m.label}</div>
-                <div className={['text-[9px] font-bold mt-0.5', active ? 'text-white/80' : 'text-slate-500'].join(' ')}>{m.desc}</div>
+                <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
+                <div className={['text-[0.625rem] font-bold mt-0.5', active ? 'text-white/80' : 'text-slate-500'].join(' ')}>{m.desc}</div>
               </button>
             );
           })}
@@ -164,7 +164,7 @@ export function MeatWizardStep2HalalQuality({ halalQuality, onChange, onToggleCe
           {halalQuality.otherCerts.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {halalQuality.otherCerts.map((c) => (
-                <span key={c} className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-extrabold border border-emerald-300">
+                <span key={c} className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[0.6875rem] font-extrabold border border-emerald-300">
                   {c}
                   <button onClick={() => onToggleCert(c)} className="hover:text-rose-600">
                     <X className="h-2.5 w-2.5" />

@@ -136,7 +136,7 @@ export default function NewWorkshopJobPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 New Job
               </div>
@@ -178,7 +178,7 @@ export default function NewWorkshopJobPage() {
                       <Car className="h-3.5 w-3.5 text-slate-400" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-extrabold truncate">{v.registrationNumber}</div>
-                        <div className="text-[10px] font-bold text-slate-500">{v.makeName} {v.modelName} • {v.ownerName}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500">{v.makeName} {v.modelName} • {v.ownerName}</div>
                       </div>
                     </button>
                   ))}
@@ -201,7 +201,7 @@ export default function NewWorkshopJobPage() {
             </h3>
 
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Job Type</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Job Type</label>
               <div className="flex flex-wrap gap-1">
                 {JOB_TYPES.map((t) => (
                   <button key={t.value} onClick={() => setForm({ ...form, jobType: t.value })} className={
@@ -213,7 +213,7 @@ export default function NewWorkshopJobPage() {
             </div>
 
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Priority</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Priority</label>
               <div className="grid grid-cols-5 gap-2">
                 {PRIORITIES.map((p) => (
                   <button key={p.value} onClick={() => setForm({ ...form, priority: p.value })} className={
@@ -236,7 +236,7 @@ export default function NewWorkshopJobPage() {
             </div>
 
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Promised Delivery</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Promised Delivery</label>
               <input type="datetime-local" value={form.promisedAt} onChange={(e) => setForm({ ...form, promisedAt: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
             </div>
 
@@ -260,7 +260,7 @@ export default function NewWorkshopJobPage() {
             {laborItems.map((item, i) => (
               <div key={i} className="rounded-xl border-2 border-slate-200 bg-slate-50/50 p-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-extrabold text-slate-600">Labor #{i + 1}</span>
+                  <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Labor #{i + 1}</span>
                   <button onClick={() => setLaborItems(laborItems.filter((_, idx) => idx !== i))} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -292,7 +292,7 @@ export default function NewWorkshopJobPage() {
             {partsUsed.map((item, i) => (
               <div key={i} className="rounded-xl border-2 border-slate-200 bg-amber-50/50 p-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-extrabold text-slate-600">Part #{i + 1}</span>
+                  <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Part #{i + 1}</span>
                   <button onClick={() => setPartsUsed(partsUsed.filter((_, idx) => idx !== i))} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -335,7 +335,7 @@ export default function NewWorkshopJobPage() {
             {externalWork.map((item, i) => (
               <div key={i} className="rounded-xl border-2 border-slate-200 bg-violet-50/50 p-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-extrabold text-slate-600">External #{i + 1}</span>
+                  <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">External #{i + 1}</span>
                   <button onClick={() => setExternalWork(externalWork.filter((_, idx) => idx !== i))} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -361,7 +361,7 @@ export default function NewWorkshopJobPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-orange-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Summary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Summary</div>
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Labor</span><span className="font-bold tabular-nums">{formatPKR(laborTotal)}</span></div>
                 <div className="flex justify-between"><span className="text-white/70">Parts</span><span className="font-bold tabular-nums">{formatPKR(partsTotal)}</span></div>
@@ -373,11 +373,11 @@ export default function NewWorkshopJobPage() {
               </div>
               <div className="mt-3 space-y-2">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
                   <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
                   <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none" />
                 </div>
               </div>

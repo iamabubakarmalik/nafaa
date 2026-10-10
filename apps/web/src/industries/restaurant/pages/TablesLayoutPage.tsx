@@ -121,7 +121,7 @@ export default function TablesLayoutPage() {
             >
               <div className="flex items-center gap-2">
                 <div className={'h-4 w-4 rounded-full ' + cfg.bg} />
-                <span className={'text-[10px] uppercase font-extrabold ' + cfg.text}>{cfg.label}</span>
+                <span className={'text-[0.6875rem] uppercase font-extrabold ' + cfg.text}>{cfg.label}</span>
               </div>
               <div className="mt-2 text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums">{count}</div>
             </button>
@@ -269,17 +269,17 @@ function TableCard({ table, onEdit, onDelete, onStatusChange }: {
       {/* Attributes */}
       <div className="mt-2 flex flex-wrap justify-center gap-1">
         {table.isVip && (
-          <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+          <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
             <Crown className="h-2 w-2" /> VIP
           </span>
         )}
         {table.isFamilyArea && (
-          <span className="px-1.5 py-0.5 rounded bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+          <span className="px-1.5 py-0.5 rounded bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
             <Baby className="h-2 w-2" /> Family
           </span>
         )}
         {table.isAcRoom && (
-          <span className="px-1.5 py-0.5 rounded bg-cyan-100 dark:bg-cyan-950/40 text-cyan-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+          <span className="px-1.5 py-0.5 rounded bg-cyan-100 dark:bg-cyan-950/40 text-cyan-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
             <Wind className="h-2 w-2" /> AC
           </span>
         )}
@@ -293,14 +293,14 @@ function TableCard({ table, onEdit, onDelete, onStatusChange }: {
 
       {/* Status specific info */}
       {isOccupied && occupiedMinutes > 0 && (
-        <div className="mt-2 flex items-center justify-center gap-1 text-[10px] font-extrabold text-rose-700 dark:text-rose-400">
+        <div className="mt-2 flex items-center justify-center gap-1 text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-400">
           <Clock className="h-2.5 w-2.5" />
           {occupiedMinutes}m
         </div>
       )}
 
       {table.status === 'RESERVED' && table.reservedByName && (
-        <div className="mt-2 text-[10px] font-extrabold text-amber-700 dark:text-amber-400 text-center truncate">
+        <div className="mt-2 text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-400 text-center truncate">
           <Calendar className="h-2.5 w-2.5 inline mr-0.5" />
           {table.reservedByName}
         </div>
@@ -312,7 +312,7 @@ function TableCard({ table, onEdit, onDelete, onStatusChange }: {
           value={table.status}
           onChange={(e) => onStatusChange(e.target.value as TableStatus)}
           className={
-            'w-full h-7 rounded-md text-[10px] font-extrabold text-white text-center appearance-none cursor-pointer ' + cfg.bg
+            'w-full h-7 rounded-md text-[0.6875rem] font-extrabold text-white text-center appearance-none cursor-pointer ' + cfg.bg
           }
         >
           {(['AVAILABLE', 'OCCUPIED', 'RESERVED', 'CLEANING', 'OUT_OF_SERVICE'] as TableStatus[]).map((s) => (
@@ -377,7 +377,7 @@ function TableForm({ editing, onClose, onSaved }: {
 
       <div className="p-5 grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Table Number *</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Table Number *</label>
           <input
             autoFocus
             value={form.tableNumber}
@@ -387,7 +387,7 @@ function TableForm({ editing, onClose, onSaved }: {
           />
         </div>
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Table Name</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Table Name</label>
           <input
             value={form.tableName}
             onChange={(e) => setForm({ ...form, tableName: e.target.value })}
@@ -398,7 +398,7 @@ function TableForm({ editing, onClose, onSaved }: {
 
         <div className="grid grid-cols-3 gap-2 sm:col-span-2">
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Min</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Min</label>
             <input
               type="number"
               value={form.minCapacity}
@@ -407,7 +407,7 @@ function TableForm({ editing, onClose, onSaved }: {
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 mb-1 block">Capacity *</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700 mb-1 block">Capacity *</label>
             <input
               type="number"
               value={form.capacity}
@@ -416,7 +416,7 @@ function TableForm({ editing, onClose, onSaved }: {
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Max</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Max</label>
             <input
               type="number"
               value={form.maxCapacity}
@@ -427,7 +427,7 @@ function TableForm({ editing, onClose, onSaved }: {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Section</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Section</label>
           <input
             value={form.section}
             onChange={(e) => setForm({ ...form, section: e.target.value })}
@@ -436,7 +436,7 @@ function TableForm({ editing, onClose, onSaved }: {
           />
         </div>
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Floor</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Floor</label>
           <input
             value={form.floor}
             onChange={(e) => setForm({ ...form, floor: e.target.value })}
@@ -472,7 +472,7 @@ function TableForm({ editing, onClose, onSaved }: {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Min Order Amount</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Min Order Amount</label>
           <input
             type="number"
             value={form.minOrderAmount}
@@ -482,7 +482,7 @@ function TableForm({ editing, onClose, onSaved }: {
           />
         </div>
         <div>
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Shape</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Shape</label>
           <select
             value={form.shape}
             onChange={(e) => setForm({ ...form, shape: e.target.value })}
@@ -495,7 +495,7 @@ function TableForm({ editing, onClose, onSaved }: {
         </div>
 
         <div className="sm:col-span-2">
-          <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Notes</label>
+          <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Notes</label>
           <textarea
             rows={2}
             value={form.notes}

@@ -47,10 +47,10 @@ export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: Props) {
           </IconButton>
           <WorkspaceSwitcher />
           <div className="hidden pl-1 2xl:block">
-            <div className="text-[11px] font-medium text-slate-500">
+            <div className="text-[0.6875rem] font-medium text-slate-500">
               {greetingFor(now.getHours())} · {now.toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit', hour12: true })}
             </div>
-            <div className="whitespace-nowrap text-[14px] font-semibold leading-tight text-slate-900 dark:text-white">Hi, {firstName}</div>
+            <div className="whitespace-nowrap text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-white">Hi, {firstName}</div>
           </div>
         </div>
 

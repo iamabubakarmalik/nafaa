@@ -155,12 +155,12 @@ function CarpenterCard({ carpenter, onEdit, onDelete }: any) {
         )}
         <div className="flex-1 min-w-0">
           <div className="font-extrabold text-slate-900 truncate">{carpenter.name}</div>
-          <div className="text-[10px] font-mono text-slate-500">{carpenter.employeeCode}</div>
+          <div className="text-[0.6875rem] font-mono text-slate-500">{carpenter.employeeCode}</div>
           <div className="text-xs font-bold text-slate-600 mt-0.5 inline-flex items-center gap-1">
             <Phone className="h-3 w-3" /> {carpenter.phone}
           </div>
           {carpenter.workshopLocation && (
-            <div className="text-[10px] font-bold text-slate-500 mt-0.5 inline-flex items-center gap-1">
+            <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5 inline-flex items-center gap-1">
               <MapPin className="h-2.5 w-2.5" /> {carpenter.workshopLocation}
             </div>
           )}
@@ -170,36 +170,36 @@ function CarpenterCard({ carpenter, onEdit, onDelete }: any) {
       {carpenter.specializations?.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1">
           {carpenter.specializations.slice(0, 3).map((s: string) => (
-            <span key={s} className="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-[10px] font-extrabold">{s}</span>
+            <span key={s} className="px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 text-[0.6875rem] font-extrabold">{s}</span>
           ))}
           {carpenter.specializations.length > 3 && (
-            <span className="text-[10px] font-extrabold text-slate-500">+{carpenter.specializations.length - 3}</span>
+            <span className="text-[0.6875rem] font-extrabold text-slate-500">+{carpenter.specializations.length - 3}</span>
           )}
         </div>
       )}
 
       <div className="mt-3 grid grid-cols-3 gap-2 pt-3 border-t border-slate-100">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Total</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Total</div>
           <div className="text-lg font-extrabold text-slate-900 tabular-nums">{carpenter.totalProjects || 0}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Active</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Active</div>
           <div className="text-lg font-extrabold text-amber-700 tabular-nums">{carpenter.activeProjects || 0}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Done</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Done</div>
           <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{carpenter.completedProjects || 0}</div>
         </div>
       </div>
 
       <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between">
-        <div className="text-[9px] uppercase font-extrabold text-slate-500">Revenue</div>
+        <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
         <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(carpenter.totalRevenue || 0)}</div>
       </div>
 
       {carpenter.experienceYears && (
-        <div className="mt-2 text-[10px] font-bold text-slate-500 inline-flex items-center gap-1">
+        <div className="mt-2 text-[0.6875rem] font-bold text-slate-500 inline-flex items-center gap-1">
           <Award className="h-2.5 w-2.5" /> {carpenter.experienceYears} years experience
         </div>
       )}
@@ -445,9 +445,9 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1 truncate">{value}</div>
-          <div className="text-[10px] text-slate-500 font-bold mt-0.5">{sub}</div>
+          <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{sub}</div>
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

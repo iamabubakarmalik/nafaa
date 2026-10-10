@@ -45,7 +45,7 @@ export function TransferCartLine({
           <div className="flex items-center gap-2 flex-wrap">
             <div className="font-extrabold text-slate-900 text-base truncate">{line.productName}</div>
             {line.isCarpet && (
-              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-700">
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[0.6875rem] font-extrabold bg-emerald-100 text-emerald-700">
                 <Layers className="h-2.5 w-2.5" /> CARPET
               </span>
             )}
@@ -122,7 +122,7 @@ export function TransferCartLine({
                     <div className="font-extrabold text-emerald-700 text-base tabular-nums">
                       {Number(roll.remainingSqft).toFixed(0)}
                     </div>
-                    <div className="text-[10px] font-extrabold text-emerald-700">sqft</div>
+                    <div className="text-[0.6875rem] font-extrabold text-emerald-700">sqft</div>
                   </div>
                   {onRemoveRoll && (
                     <button onClick={() => onRemoveRoll(roll.id)}

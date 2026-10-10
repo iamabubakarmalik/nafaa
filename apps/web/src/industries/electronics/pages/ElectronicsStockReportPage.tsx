@@ -245,13 +245,13 @@ export default function ElectronicsStockReportPage() {
 
           <div className="mt-5 grid lg:grid-cols-[1.1fr_2fr] gap-3">
             <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/25 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider inline-flex items-center gap-1.5">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider inline-flex items-center gap-1.5">
                 <Wallet className="h-3.5 w-3.5" /> Kul Stock Value
               </div>
               <div className="mt-1 text-3xl sm:text-4xl font-extrabold tabular-nums">
                 {hideCost ? '••••••' : formatPKR(t?.totalValue ?? 0)}
               </div>
-              <div className="mt-1.5 text-[11px] font-bold text-white/80">
+              <div className="mt-1.5 text-[0.6875rem] font-bold text-white/80">
                 Bechne par <strong className="text-emerald-300">{formatPKR(t?.totalRetailValue ?? 0)}</strong>
                 {(t?.potentialProfit ?? 0) > 0 && (
                   <> · munafa <strong className="text-amber-300">{hideCost ? '•••' : formatPKR(t?.potentialProfit ?? 0)}</strong></>
@@ -309,7 +309,7 @@ export default function ElectronicsStockReportPage() {
               </div>
               <div>
                 <h3 className="font-extrabold text-slate-900">Maal Ki Umar</h3>
-                <p className="text-[11px] font-bold text-slate-500">Sirf serial wale units — inki umar track hoti hai</p>
+                <p className="text-[0.6875rem] font-bold text-slate-500">Sirf serial wale units — inki umar track hoti hai</p>
               </div>
             </div>
             {bucket && (
@@ -355,10 +355,10 @@ export default function ElectronicsStockReportPage() {
                     }`}>
                     <div className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full shrink-0" style={{ background: BUCKET_HEX[b.key] }} />
-                      <span className="text-[10px] uppercase font-extrabold text-slate-500 truncate">{b.label}</span>
+                      <span className="text-[0.6875rem] uppercase font-extrabold text-slate-500 truncate">{b.label}</span>
                     </div>
                     <div className="mt-0.5 font-extrabold text-slate-900 tabular-nums">{b.units}</div>
-                    <div className="text-[10px] font-bold text-slate-500 tabular-nums truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 tabular-nums truncate">
                       {hideCost ? '•••' : formatPKR(b.value)}
                     </div>
                   </button>
@@ -426,7 +426,7 @@ export default function ElectronicsStockReportPage() {
                     : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300'
                 }`}>
                 <k.icon className="h-3.5 w-3.5" /> {k.label}
-                <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
+                <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
               </button>
             ))}
           </div>
@@ -455,19 +455,19 @@ export default function ElectronicsStockReportPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-slate-900 text-sm truncate">{r.name}</div>
-                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500">
-                        <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500">
+                        <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                           <Barcode className="h-2.5 w-2.5" /> Serial
                         </span>
                         <span className="font-mono">{r.serialNumber}</span>
                         {r.brand && <span>{r.brand}</span>}
                         {r.conditionType && r.conditionType !== 'BRAND_NEW' && (
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${CONDITION_META[r.conditionType as ConditionType]?.chip}`}>
+                          <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${CONDITION_META[r.conditionType as ConditionType]?.chip}`}>
                             {CONDITION_META[r.conditionType as ConditionType]?.label}
                           </span>
                         )}
                         {warrantySoon && (
-                          <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold inline-flex items-center gap-0.5">
+                          <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                             <ShieldAlert className="h-2.5 w-2.5" /> Warranty {r.warrantyDaysLeft}d
                           </span>
                         )}
@@ -475,13 +475,13 @@ export default function ElectronicsStockReportPage() {
                     </div>
                     <div className="text-right shrink-0 hidden sm:block">
                       <div className={`text-sm font-extrabold tabular-nums ${ageTone(r.ageDays)}`}>{r.ageDays}d</div>
-                      <div className="text-[10px] font-bold text-slate-400">umar</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-400">umar</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-base font-extrabold text-slate-900 tabular-nums">
                         {hideCost ? '•••' : formatPKR(r.cost)}
                       </div>
-                      <div className="text-[10px] font-bold text-emerald-600 tabular-nums">→ {formatPKR(r.price)}</div>
+                      <div className="text-[0.6875rem] font-bold text-emerald-600 tabular-nums">→ {formatPKR(r.price)}</div>
                     </div>
                     {open ? <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />}
                   </button>
@@ -544,12 +544,12 @@ export default function ElectronicsStockReportPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-slate-900 text-sm truncate">{r.name}</div>
-                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500">
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500">
                         {meta && <span>{meta.label}</span>}
                         {r.brand && <span>{r.brand}</span>}
                         {r.sku && <span className="font-mono">{r.sku}</span>}
                         {r.conditionType && r.conditionType !== 'BRAND_NEW' && (
-                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${CONDITION_META[r.conditionType as ConditionType]?.chip}`}>
+                          <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${CONDITION_META[r.conditionType as ConditionType]?.chip}`}>
                             {CONDITION_META[r.conditionType as ConditionType]?.label}
                           </span>
                         )}
@@ -557,13 +557,13 @@ export default function ElectronicsStockReportPage() {
                     </div>
                     <div className="text-right shrink-0 hidden sm:block">
                       <div className="text-sm font-extrabold text-slate-900 tabular-nums">{r.stock}</div>
-                      <div className="text-[10px] font-bold text-slate-400">{r.unit}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-400">{r.unit}</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-base font-extrabold text-slate-900 tabular-nums">
                         {hideCost ? '•••' : formatPKR(r.value)}
                       </div>
-                      <div className="text-[10px] font-bold text-emerald-600 tabular-nums">→ {formatPKR(r.retailValue)}</div>
+                      <div className="text-[0.6875rem] font-bold text-emerald-600 tabular-nums">→ {formatPKR(r.retailValue)}</div>
                     </div>
                     {open ? <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" /> : <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />}
                   </button>
@@ -595,7 +595,7 @@ export default function ElectronicsStockReportPage() {
         )}
 
         {(serials.length > 200 || products.length > 200) && (
-          <div className="p-3 text-center text-[11px] font-bold text-slate-500 border-t-2 border-slate-100">
+          <div className="p-3 text-center text-[0.6875rem] font-bold text-slate-500 border-t-2 border-slate-100">
             Pehle 200 dikhaye — poori list CSV me download karo
           </div>
         )}
@@ -611,12 +611,12 @@ export default function ElectronicsStockReportPage() {
 function HeroSplit({ label, count, sub, value, icon: Icon }: any) {
   return (
     <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-3">
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> <span className="truncate">{label}</span>
       </div>
       <div className="mt-1 text-2xl font-extrabold tabular-nums">{count}</div>
-      <div className="text-[10px] font-bold text-white/70">{sub}</div>
-      <div className="mt-1 text-[11px] font-extrabold text-emerald-300 tabular-nums truncate">{value}</div>
+      <div className="text-[0.6875rem] font-bold text-white/70">{sub}</div>
+      <div className="mt-1 text-[0.6875rem] font-extrabold text-emerald-300 tabular-nums truncate">{value}</div>
     </div>
   );
 }
@@ -632,10 +632,10 @@ function Detail({ label, value, icon: Icon, mono, strong, tone = 'slate' }: any)
   if (value === null || value === undefined || value === '') return null;
   return (
     <div className="flex items-baseline justify-between gap-3 py-1 border-b border-slate-100 last:border-0">
-      <span className="text-[11px] font-bold text-slate-500 inline-flex items-center gap-1.5 shrink-0">
+      <span className="text-[0.6875rem] font-bold text-slate-500 inline-flex items-center gap-1.5 shrink-0">
         {Icon && <Icon className="h-3 w-3" />} {label}
       </span>
-      <span className={`text-[12px] tabular-nums truncate ${mono ? 'font-mono' : ''} ${strong ? 'font-extrabold' : 'font-bold'} ${DETAIL_TONES[tone]}`}>
+      <span className={`text-[0.75rem] tabular-nums truncate ${mono ? 'font-mono' : ''} ${strong ? 'font-extrabold' : 'font-bold'} ${DETAIL_TONES[tone]}`}>
         {value}
       </span>
     </div>
@@ -676,7 +676,7 @@ function StockTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Stock Report Kaise Parhein?</h3>
             </div>
           </div>
@@ -695,7 +695,7 @@ function StockTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

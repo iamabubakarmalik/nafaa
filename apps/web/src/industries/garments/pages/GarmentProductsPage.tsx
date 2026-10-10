@@ -216,22 +216,22 @@ function ProductCard({ profile }: { profile: any }) {
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {profile.isNewArrival && (
-            <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold uppercase shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase shadow inline-flex items-center gap-0.5">
               <Sparkles className="h-2 w-2" /> NEW
             </span>
           )}
           {profile.isBestSeller && (
-            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase shadow inline-flex items-center gap-0.5">
               <TrendingUp className="h-2 w-2" /> BEST
             </span>
           )}
           {profile.isOnSale && (
-            <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[9px] font-extrabold uppercase shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase shadow inline-flex items-center gap-0.5">
               <Zap className="h-2 w-2" /> SALE
             </span>
           )}
           {profile.isFeatured && (
-            <span className="px-1.5 py-0.5 rounded bg-purple-500 text-white text-[9px] font-extrabold uppercase shadow inline-flex items-center gap-0.5">
+            <span className="px-1.5 py-0.5 rounded bg-purple-500 text-white text-[0.625rem] font-extrabold uppercase shadow inline-flex items-center gap-0.5">
               <Star className="h-2 w-2 fill-current" /> HOT
             </span>
           )}
@@ -247,7 +247,7 @@ function ProductCard({ profile }: { profile: any }) {
         {/* Bottom info */}
         <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-slate-900/90 to-transparent">
           {profile.styleCode && (
-            <div className="text-[10px] font-mono font-bold text-white/90">{profile.styleCode}</div>
+            <div className="text-[0.6875rem] font-mono font-bold text-white/90">{profile.styleCode}</div>
           )}
         </div>
       </div>
@@ -257,24 +257,24 @@ function ProductCard({ profile }: { profile: any }) {
 
         <div className="flex items-center gap-1.5 flex-wrap">
           {category && (
-            <span className="text-[10px] font-extrabold text-fuchsia-600">{category.label}</span>
+            <span className="text-[0.6875rem] font-extrabold text-fuchsia-600">{category.label}</span>
           )}
           {profile.fabricType && (
-            <span className="text-[10px] font-bold text-slate-500">• {profile.fabricType}</span>
+            <span className="text-[0.6875rem] font-bold text-slate-500">• {profile.fabricType}</span>
           )}
           {profile.workType && profile.workType !== 'PLAIN' && (
-            <span className="text-[10px] font-bold text-slate-500">• {profile.workType.replace('_', ' ')}</span>
+            <span className="text-[0.6875rem] font-bold text-slate-500">• {profile.workType.replace('_', ' ')}</span>
           )}
         </div>
 
         <div className="pt-1 flex items-end justify-between">
           <div>
             <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(product?.price ?? 0)}</div>
-            <div className="text-[10px] font-extrabold text-slate-500">Stock: {product?.stock ?? 0}</div>
+            <div className="text-[0.6875rem] font-extrabold text-slate-500">Stock: {product?.stock ?? 0}</div>
           </div>
           <div className="text-right">
             {profile.totalSold > 0 && (
-              <div className="text-[10px] font-bold text-slate-500">{profile.totalSold} sold</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">{profile.totalSold} sold</div>
             )}
           </div>
         </div>

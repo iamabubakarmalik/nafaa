@@ -58,7 +58,7 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
                 <Layers className="h-7 w-7 text-white" />
               </div>
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider mb-1 border border-white/20">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1 border border-white/20">
                   <Sparkles className="h-3 w-3 text-amber-300" />
                   Select Variant
                 </div>
@@ -150,7 +150,7 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
                           </span>
                         </div>
                       ) : lowStock ? (
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-extrabold shadow-md ring-2 ring-white animate-pulse">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-md ring-2 ring-white animate-pulse">
                           LOW
                         </div>
                       ) : null}

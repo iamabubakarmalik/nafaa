@@ -144,8 +144,8 @@ function DeliveryCard({ d }: any) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold">{d.deliveryNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
-              <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-extrabold uppercase">{d.vehicleType}</span>
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
+              <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">{d.vehicleType}</span>
             </div>
             <div className="mt-1 font-bold">{d.customerName}</div>
             <div className="mt-1 flex items-center gap-3 text-xs text-slate-600 font-semibold flex-wrap">

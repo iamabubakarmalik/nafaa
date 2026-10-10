@@ -199,7 +199,7 @@ export default function BackupPage() {
                 return (
                   <div key={key} className={`rounded-2xl border-2 p-4 ${cfg.bg}`}>
                     <Icon className={`h-5 w-5 ${cfg.color} mb-1`} />
-                    <div className={`text-[10px] font-bold uppercase tracking-wider ${cfg.color}`}>{cfg.label}</div>
+                    <div className={`text-[0.6875rem] font-bold uppercase tracking-wider ${cfg.color}`}>{cfg.label}</div>
                     <div className={`mt-1 text-2xl font-extrabold ${cfg.color}`}>{(value || 0).toLocaleString()}</div>
                   </div>
                 );

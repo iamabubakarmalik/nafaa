@@ -247,12 +247,12 @@ export function RestaurantWizardStep3Recipe({
                 <table className="w-full text-xs">
                   <thead className="bg-slate-50">
                     <tr>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Ingredient</th>
-                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Qty</th>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Unit</th>
-                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Cost/Unit</th>
-                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Total</th>
-                      <th className="px-2 py-2 text-center font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Opt?</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Ingredient</th>
+                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Qty</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Unit</th>
+                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Cost/Unit</th>
+                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Total</th>
+                      <th className="px-2 py-2 text-center font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Opt?</th>
                       <th className="px-2 py-2"></th>
                     </tr>
                   </thead>

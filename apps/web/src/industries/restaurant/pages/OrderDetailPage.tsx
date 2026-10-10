@@ -246,7 +246,7 @@ export default function OrderDetailPage() {
                         <span className="font-extrabold text-slate-900 dark:text-white">{item.product?.name}</span>
                         {item.status && item.status !== 'PLACED' && (
                           <span className={
-                            'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' +
+                            'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                             (STATUS_CONFIG[item.status as OrderStatus]?.bg || 'bg-slate-500')
                           }>
                             {STATUS_CONFIG[item.status as OrderStatus]?.label || item.status}
@@ -259,7 +259,7 @@ export default function OrderDetailPage() {
                       {item.modifiers?.length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           {item.modifiers.map((m: any, i: number) => (
-                            <span key={i} className="px-1.5 py-0.5 rounded bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[10px] font-extrabold">
+                            <span key={i} className="px-1.5 py-0.5 rounded bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[0.6875rem] font-extrabold">
                               {m.modifierOption?.name}
                               {m.priceAdjustment !== 0 && ' (' + (m.priceAdjustment > 0 ? '+' : '') + formatPKR(m.priceAdjustment) + ')'}
                             </span>
@@ -318,7 +318,7 @@ export default function OrderDetailPage() {
         {/* RIGHT — Bill Summary */}
         <aside className="space-y-4">
           <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-emerald-900 text-white p-5 shadow-xl sticky top-4">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
 
             <div className="space-y-1.5 text-sm">
               <div className="flex justify-between">
@@ -458,7 +458,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-4">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Amount *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Amount *</label>
             <input
               type="number" step="0.01" autoFocus
               value={amount}
@@ -479,7 +479,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Payment Method</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Payment Method</label>
             <div className="grid grid-cols-3 gap-2">
               {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
                 <button
@@ -497,7 +497,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Reference</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Reference</label>
             <input
               value={reference}
               onChange={(e) => setReference(e.target.value)}

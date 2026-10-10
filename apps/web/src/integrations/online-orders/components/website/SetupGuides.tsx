@@ -27,7 +27,7 @@ function useActiveShops(): Shop[] {
 export function DocsLink({ anchor, children = 'Poori guide' }: { anchor?: string; children?: ReactNode }) {
   return (
     <a href={docsUrl(anchor)} target="_blank" rel="noreferrer"
-      className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-emerald-700 hover:underline dark:text-emerald-400">
+      className="inline-flex items-center gap-1 text-[0.78125rem] font-semibold text-emerald-700 hover:underline dark:text-emerald-400">
       <BookOpen className="h-3.5 w-3.5" /> {children}
     </a>
   );
@@ -36,13 +36,13 @@ export function DocsLink({ anchor, children = 'Poori guide' }: { anchor?: string
 function Step({ n, done, title, children }: { n: number; done?: boolean; title: ReactNode; children?: ReactNode }) {
   return (
     <li className="flex gap-3">
-      <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[12px] font-bold',
+      <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[0.75rem] font-bold',
         done ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200')}>
         {done ? <CheckCircle2 className="h-4 w-4" /> : n}
       </span>
       <div className="min-w-0 flex-1 pt-0.5">
-        <div className="text-[13.5px] font-semibold text-slate-900 dark:text-white">{title}</div>
-        {children && <div className="mt-1.5 space-y-2 text-[13px] text-slate-600 dark:text-slate-300">{children}</div>}
+        <div className="text-[0.84375rem] font-semibold text-slate-900 dark:text-white">{title}</div>
+        {children && <div className="mt-1.5 space-y-2 text-[0.8125rem] text-slate-600 dark:text-slate-300">{children}</div>}
       </div>
     </li>
   );
@@ -96,19 +96,19 @@ export function IndoljGuide({ data, onOpenProducts }: { data: WebsiteOverview; o
           <div className="space-y-3">
             {rows.map((r) => (
               <div key={r.id} className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
-                {multi && <div className="mb-2 text-[12.5px] font-bold uppercase tracking-wide text-slate-500">{r.name}</div>}
+                {multi && <div className="mb-2 text-[0.78125rem] font-bold uppercase tracking-wide text-slate-500">{r.name}</div>}
                 <div className="grid gap-2 md:grid-cols-2">
                   <CopyField label="Call Back URL" value={r.url} />
                   <CopyField label="Cancel Call Back URL" value={r.url} />
                   <CopyField label="Token" value={i.apiKey} secret />
                   <CopyField label="POS Code" value={r.id} />
                 </div>
-                <p className="mt-2 text-[12px] text-slate-500">Status: <b>Active</b> · Send on Order Placement: <b>ON</b></p>
+                <p className="mt-2 text-[0.75rem] text-slate-500">Status: <b>Active</b> · Send on Order Placement: <b>ON</b></p>
               </div>
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2 rounded-xl bg-sky-50 p-3 dark:bg-sky-500/10">
-            <span className="flex-1 text-[13px] font-medium text-sky-900 dark:text-sky-200">Indolj ki team ko English me poora paigham — har branch ka URL aur Token ke saath.</span>
+            <span className="flex-1 text-[0.8125rem] font-medium text-sky-900 dark:text-sky-200">Indolj ki team ko English me poora paigham — har branch ka URL aur Token ke saath.</span>
             <Btn size="sm" variant="primary" onClick={copy} icon={<Copy className="h-3.5 w-3.5" />}>Paigham copy</Btn>
             <a href={`https://wa.me/?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer">
               <Btn size="sm" icon={<MessageCircle className="h-3.5 w-3.5" />}>WhatsApp</Btn>
@@ -140,13 +140,13 @@ export function BranchSetup({ data }: { data: WebsiteOverview }) {
           <CopyField key={s.id} label={`${s.name}${s.id === defaultShop ? ' (main)' : ''}`} value={`${data.urls.base}/orders/branch/${s.id}`} />
         ))}
       </div>
-      <p className="mt-3 text-[12.5px] text-slate-500">
+      <p className="mt-3 text-[0.78125rem] text-slate-500">
         Branch ke baghair wala URL bhi chalta hai — us par aaya order Settings ki "Stock kis branch se" wali branch me jata hai.
         Ghalat branch me aaya order: order kholein → <b>Branch</b> badlein.
       </p>
       {(i.branchCodes?.length ?? 0) > 0 && (
         <details className="mt-3">
-          <summary className="cursor-pointer text-[12.5px] font-semibold text-slate-600 dark:text-slate-300">Advanced — website ke code se branch</summary>
+          <summary className="cursor-pointer text-[0.78125rem] font-semibold text-slate-600 dark:text-slate-300">Advanced — website ke code se branch</summary>
           <BranchCodeMap channelId={i.id} codes={i.branchCodes ?? []} defaultShopId={defaultShop} shops={shops} />
         </details>
       )}
@@ -178,15 +178,15 @@ function BranchCodeMap({ channelId, codes, defaultShopId, shops }: {
   const onlyMerchant = codes.every((c) => c.kind === 'merchant' && !c.shopId);
   return (
     <div className="mt-2 space-y-2">
-      <p className="text-[12.5px] text-slate-500">
+      <p className="text-[0.78125rem] text-slate-500">
         {onlyMerchant
           ? 'Website sab branches ka ek hi code bhejti hai — is se branch pata nahi chalti. Upar wale branch URL istemal karein.'
           : 'Jo code jis branch ka hai, us ke saamne wahi branch chunein.'}
       </p>
       {codes.map((c) => (
-        <div key={c.code} className="flex flex-wrap items-center gap-2 text-[13px]">
-          <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[12px] dark:bg-slate-800">{c.label ?? c.code}</code>
-          {c.sample && <span className="text-[12px] text-slate-500">aakhri order {c.sample}</span>}
+        <div key={c.code} className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
+          <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.75rem] dark:bg-slate-800">{c.label ?? c.code}</code>
+          {c.sample && <span className="text-[0.75rem] text-slate-500">aakhri order {c.sample}</span>}
           <span className="flex-1" />
           <select value={map[c.code] ?? fallback}
             onChange={(e) => setMap((m) => ({ ...m, [c.code]: e.target.value === fallback ? null : e.target.value }))}
@@ -245,10 +245,10 @@ export function Troubleshoot({ kind, onOpenActivity }: { kind: Kind; onOpenActiv
         {items.filter((x) => !x.only || x.only.includes(kind)).map((x) => (
           <li key={x.q}>
             <details className="group py-2.5">
-              <summary className="flex cursor-pointer list-none items-center gap-2 text-[13.5px] font-medium text-slate-900 dark:text-white">
+              <summary className="flex cursor-pointer list-none items-center gap-2 text-[0.84375rem] font-medium text-slate-900 dark:text-white">
                 <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-90" /> {x.q}
               </summary>
-              <div className="mt-1.5 pl-6 text-[13px] text-slate-600 dark:text-slate-300">{x.a}</div>
+              <div className="mt-1.5 pl-6 text-[0.8125rem] text-slate-600 dark:text-slate-300">{x.a}</div>
             </details>
           </li>
         ))}
@@ -262,7 +262,7 @@ export function Troubleshoot({ kind, onOpenActivity }: { kind: Kind; onOpenActiv
 export function HelpCard() {
   return (
     <Card title="Madad">
-      <ul className="space-y-2 text-[13px]">
+      <ul className="space-y-2 text-[0.8125rem]">
         <li><a href={docsUrl()} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-slate-200"><BookOpen className="h-4 w-4" /> Online store ki poori guide <ExternalLink className="h-3 w-3" /></a></li>
         <li><a href={docsUrl('masle')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-slate-200"><Circle className="h-4 w-4" /> Masle aur hal <ExternalLink className="h-3 w-3" /></a></li>
         <li><a href={docsUrl('api')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-slate-200"><Circle className="h-4 w-4" /> Developer API <ExternalLink className="h-3 w-3" /></a></li>

@@ -302,7 +302,7 @@ export default function StockAdjustmentsPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <ClipboardCheck className="h-3.5 w-3.5 text-amber-300" /> Stock Control
               {industryStock.industryId && (
                 <>
@@ -369,7 +369,7 @@ export default function StockAdjustmentsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Top Affected Products</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Sab se zyada adjust hone wale</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Sab se zyada adjust hone wale</p>
               </div>
               <BarChart3 className="h-5 w-5 text-blue-500" />
             </div>
@@ -390,7 +390,7 @@ export default function StockAdjustmentsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">By Type</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">In / Out / Damage / Loss split</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">In / Out / Damage / Loss split</p>
               </div>
               <TrendingUp className="h-5 w-5 text-emerald-500" />
             </div>
@@ -449,7 +449,7 @@ export default function StockAdjustmentsPage() {
                       onClick={() => { setProductId(p.id); setProductSearch(p.name); }}
                       className="w-full px-3 py-2 text-left hover:bg-blue-50 dark:hover:bg-blue-500/10 transition">
                       <div className="font-bold text-sm text-slate-900 dark:text-white truncate">{p.name}</div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">
                         {p.sku || 'No SKU'} • Stock: <span className="font-bold text-emerald-700 dark:text-emerald-400">{formatQty(p.stock)} {p.unit}</span>
                       </div>
                     </button>
@@ -464,17 +464,17 @@ export default function StockAdjustmentsPage() {
                   </div>
                   <div className="flex gap-1.5 mt-2 flex-wrap">
                     {options.variants.length > 0 && (
-                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 inline-flex items-center gap-1">
+                      <span className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 inline-flex items-center gap-1">
                         <Layers className="h-2.5 w-2.5" /> {options.variants.length} variants
                       </span>
                     )}
                     {options.carpetRolls.length > 0 && (
-                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1">
+                      <span className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1">
                         <Scissors className="h-2.5 w-2.5" /> {options.carpetRolls.length} rolls
                       </span>
                     )}
                     {options.imeis.length > 0 && (
-                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 inline-flex items-center gap-1">
+                      <span className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 inline-flex items-center gap-1">
                         <Smartphone className="h-2.5 w-2.5" /> {options.imeis.length} IMEIs
                       </span>
                     )}
@@ -524,7 +524,7 @@ export default function StockAdjustmentsPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-sm text-slate-900 dark:text-white truncate">{v.name}</div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">
                             {v.sku || '—'} • Stock: <span className="font-bold text-emerald-700 dark:text-emerald-400">{formatQty(v.stock)}</span>
                           </div>
                         </div>
@@ -553,14 +553,14 @@ export default function StockAdjustmentsPage() {
                         <div className="flex items-center justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <div className="font-bold text-sm text-slate-900 dark:text-white font-mono">{r.rollNumber}</div>
-                            <div className="text-[10px] text-slate-600 dark:text-slate-400 mt-0.5">
+                            <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 mt-0.5">
                               {r.widthFt}ft{r.widthInch ? ` ${r.widthInch}in` : ''} × {r.remainingLengthFt}ft{r.remainingLengthInch ? ` ${r.remainingLengthInch}in` : ''}
                               {' '}= <span className="font-extrabold text-emerald-700 dark:text-emerald-400">{formatQty(r.remainingSqft)} sqft</span>
                             </div>
-                            {r.rackNumber && <div className="text-[9px] text-slate-500 dark:text-slate-400">📍 {r.rackNumber}</div>}
+                            {r.rackNumber && <div className="text-[0.625rem] text-slate-500 dark:text-slate-400">📍 {r.rackNumber}</div>}
                           </div>
                           <div className="flex flex-col items-end gap-1 shrink-0">
-                            <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                            <span className={`text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-full ${
                               r.status === 'ACTIVE' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
                               r.status === 'DAMAGED' ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300' :
                               'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
@@ -622,13 +622,13 @@ export default function StockAdjustmentsPage() {
                         <div className="flex items-center justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <div className="font-bold text-sm text-slate-900 dark:text-white font-mono">{i.imei1}</div>
-                            <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5">
                               {i.variant?.name && <span className="text-violet-700 dark:text-violet-400 font-bold">{i.variant.name} • </span>}
                               {i.color && <span>🎨 {i.color}</span>}
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-1 shrink-0">
-                            <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                            <span className={`text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-full ${
                               i.status === 'IN_STOCK' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
                               i.status === 'DAMAGED' ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300' :
                               'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
@@ -695,7 +695,7 @@ export default function StockAdjustmentsPage() {
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300">Reason *</label>
                 {industryStock.industryId && (
-                  <span className="text-[9px] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/15 border border-blue-200 dark:border-blue-500/40 rounded-full px-2 py-0.5 inline-flex items-center gap-1">
+                  <span className="text-[0.625rem] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/15 border border-blue-200 dark:border-blue-500/40 rounded-full px-2 py-0.5 inline-flex items-center gap-1">
                     <Sparkles className="h-2.5 w-2.5" />
                     {industryStock.industryEmoji} {industryStock.industryName}
                   </span>
@@ -709,7 +709,7 @@ export default function StockAdjustmentsPage() {
                 if (filtered.length === 0) return null;
                 return (
                   <div className="mt-2 p-2 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-500/10 dark:to-cyan-500/10 border-2 border-blue-200 dark:border-blue-500/40">
-                    <div className="text-[9px] uppercase tracking-wider text-blue-800 dark:text-blue-300 font-extrabold mb-1.5 flex items-center gap-1">
+                    <div className="text-[0.625rem] uppercase tracking-wider text-blue-800 dark:text-blue-300 font-extrabold mb-1.5 flex items-center gap-1">
                       <Zap className="h-2.5 w-2.5" />
                       {industryStock.industryName} Quick Reasons ({type})
                     </div>
@@ -719,12 +719,12 @@ export default function StockAdjustmentsPage() {
                           key={r.reason}
                           type="button"
                           onClick={() => setReason(r.reason)}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[10px] font-extrabold hover:shadow-md transition bg-white/70 dark:bg-slate-800/60"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold hover:shadow-md transition bg-white/70 dark:bg-slate-800/60"
                           style={{ borderColor: `${r.color}50`, color: r.color }}
                         >
                           <span>{r.emoji}</span>
                           <span>{r.reason}</span>
-                          {r.severity === 'critical' && <span className="text-[8px] px-1 rounded bg-red-600 text-white">CRITICAL</span>}
+                          {r.severity === 'critical' && <span className="text-[0.625rem] px-1 rounded bg-red-600 text-white">CRITICAL</span>}
                         </button>
                       ))}
                     </div>
@@ -734,13 +734,13 @@ export default function StockAdjustmentsPage() {
 
               {industryStock.adjustmentReasons.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1 items-center">
-                  <span className="text-[9px] uppercase text-slate-500 dark:text-slate-400 font-bold mr-1">Common:</span>
+                  <span className="text-[0.625rem] uppercase text-slate-500 dark:text-slate-400 font-bold mr-1">Common:</span>
                   {industryStock.adjustmentReasons.slice(0, 5).map((r) => (
                     <button
                       key={r}
                       type="button"
                       onClick={() => setReason(r)}
-                      className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition"
+                      className="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition"
                     >
                       {r}
                     </button>
@@ -823,28 +823,28 @@ export default function StockAdjustmentsPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-slate-900 dark:text-white text-sm">{a.product?.name}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${cfg.tone}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold border ${cfg.tone}`}>
                               {cfg.label}
                             </span>
                             {a.variant && (
-                              <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[10px] font-extrabold inline-flex items-center gap-0.5">
+                              <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-0.5">
                                 <Layers className="h-2.5 w-2.5" /> {a.variant.name}
                               </span>
                             )}
                             {a.carpetRoll && (
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold font-mono inline-flex items-center gap-0.5">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold font-mono inline-flex items-center gap-0.5">
                                 <Scissors className="h-2.5 w-2.5" /> {a.carpetRoll.rollNumber}
                               </span>
                             )}
                             {a.imei && (
-                              <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 text-[10px] font-extrabold font-mono inline-flex items-center gap-0.5">
+                              <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 text-[0.6875rem] font-extrabold font-mono inline-flex items-center gap-0.5">
                                 <Smartphone className="h-2.5 w-2.5" /> {a.imei.imei1}
                               </span>
                             )}
                           </div>
                           <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-semibold">{a.reason}</div>
-                          {a.note && <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 italic">{a.note}</div>}
-                          <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
+                          {a.note && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 italic">{a.note}</div>}
+                          <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
                             <span className="inline-flex items-center gap-0.5">
                               <Calendar className="h-2.5 w-2.5" />{formatDate(a.createdAt)}
                             </span>
@@ -863,7 +863,7 @@ export default function StockAdjustmentsPage() {
                         <div className={`font-extrabold text-lg tabular-nums ${cfg.isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                           {cfg.isPositive ? '+' : '−'}{formatQty(a.quantity)}
                         </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{a.product?.unit}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{a.product?.unit}</div>
                       </div>
                     </div>
                   </div>
@@ -967,7 +967,7 @@ function TypeCard({ emoji, title, desc, tone }: { emoji: string; title: string; 
     <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
       <div className="text-xl">{emoji}</div>
       <div className="text-xs font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -994,9 +994,9 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm transition-all">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1033,7 +1033,7 @@ function ActionBtn({ icon: Icon, label, active, onClick, tone }: any) {
   };
   return (
     <button type="button" onClick={onClick}
-      className={`px-2 py-1.5 rounded-lg border-2 text-[10px] font-extrabold transition inline-flex items-center gap-1 bg-white dark:bg-slate-800/60 ${tones[tone]}`}>
+      className={`px-2 py-1.5 rounded-lg border-2 text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1 bg-white dark:bg-slate-800/60 ${tones[tone]}`}>
       <Icon className="h-3 w-3" />{label}
     </button>
   );

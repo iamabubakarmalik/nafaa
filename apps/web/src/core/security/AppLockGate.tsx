@@ -83,7 +83,7 @@ export function AppLockSetupModal({ mode, onClose }: { mode: 'setup' | 'change' 
           )}
           {(mode === 'change' || mode === 'disable') && (
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block tracking-wider">Purana PIN</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block tracking-wider">Purana PIN</label>
               <input
                 autoFocus type="password" inputMode="numeric" maxLength={8}
                 value={oldPin} onChange={(e) => setOldPin(e.target.value.replace(/[^0-9]/g, ''))}
@@ -95,7 +95,7 @@ export function AppLockSetupModal({ mode, onClose }: { mode: 'setup' | 'change' 
           {mode !== 'disable' && (
             <>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block tracking-wider">
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block tracking-wider">
                   {mode === 'change' ? 'Naya PIN' : 'Naya PIN (4-8 digits)'}
                 </label>
                 <input
@@ -106,7 +106,7 @@ export function AppLockSetupModal({ mode, onClose }: { mode: 'setup' | 'change' 
                 />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block tracking-wider">PIN Dobara</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block tracking-wider">PIN Dobara</label>
                 <input
                   type="password" inputMode="numeric" maxLength={8}
                   value={pin2} onChange={(e) => setPin2(e.target.value.replace(/[^0-9]/g, ''))}

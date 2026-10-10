@@ -130,12 +130,12 @@ export default function CosmeticsLoyaltyPage() {
                   tierFilter === t ? 'border-violet-400 ring-2 ring-violet-100' : 'border-slate-200'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-2xl">{meta.emoji}</span>
-                  <div className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${meta.bg} ${meta.color}`}>
+                  <div className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${meta.bg} ${meta.color}`}>
                     {meta.label}
                   </div>
                 </div>
                 <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{count}</div>
-                <div className="text-[10px] font-bold text-slate-500">members</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500">members</div>
               </button>
             );
           })}
@@ -162,12 +162,12 @@ export default function CosmeticsLoyaltyPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-slate-900 text-sm truncate">{m.name}</div>
-                  <div className="text-[10px] font-bold text-pink-700">
+                  <div className="text-[0.6875rem] font-bold text-pink-700">
                     {m.dateOfBirth && new Date(m.dateOfBirth).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                   </div>
                 </div>
                 <button onClick={() => markBirthday.mutate(m.id)}
-                  className="px-2.5 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-700 text-white text-[10px] font-extrabold inline-flex items-center gap-1">
+                  className="px-2.5 py-1.5 rounded-lg bg-pink-600 hover:bg-pink-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                   <Gift className="h-3 w-3" /> Sent
                 </button>
               </div>
@@ -236,10 +236,10 @@ export default function CosmeticsLoyaltyPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-extrabold text-slate-900 text-base">{m.name}</h3>
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${meta.bg} ${meta.color}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${meta.bg} ${meta.color}`}>
                         {meta.label}
                       </span>
-                      <span className="font-mono text-[10px] text-slate-500 font-bold">{m.memberCode}</span>
+                      <span className="font-mono text-[0.6875rem] text-slate-500 font-bold">{m.memberCode}</span>
                     </div>
 
                     <div className="flex items-center gap-3 mt-1 text-xs text-slate-600 font-bold flex-wrap">
@@ -254,11 +254,11 @@ export default function CosmeticsLoyaltyPage() {
 
                     {m.skinType && (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-800 text-[10px] font-extrabold">
+                        <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-800 text-[0.6875rem] font-extrabold">
                           {m.skinType.replace('_', ' ')} skin
                         </span>
                         {(m.skinConcerns ?? []).slice(0, 3).map((c) => (
-                          <span key={c} className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[10px] font-extrabold">
+                          <span key={c} className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[0.6875rem] font-extrabold">
                             {c}
                           </span>
                         ))}
@@ -463,7 +463,7 @@ function PointsDialog({ dialog, onClose, onDone }: any) {
 
         <div className="p-5 space-y-4">
           <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500">Member</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Member</div>
             <div className="font-extrabold text-slate-900">{dialog.member.name}</div>
             <div className="text-xs font-bold text-violet-700 mt-1">Balance: {dialog.member.pointsBalance} pts</div>
           </div>
@@ -476,7 +476,7 @@ function PointsDialog({ dialog, onClose, onDone }: any) {
                 isAward ? 'border-emerald-400 bg-emerald-50 text-emerald-900 focus:border-emerald-600'
                         : 'border-amber-400 bg-amber-50 text-amber-900 focus:border-amber-600'}`} />
             {!isAward && (
-              <div className="mt-1 text-[10px] text-slate-500 font-bold">Max: {maxPoints} points available</div>
+              <div className="mt-1 text-[0.6875rem] text-slate-500 font-bold">Max: {maxPoints} points available</div>
             )}
           </div>
 

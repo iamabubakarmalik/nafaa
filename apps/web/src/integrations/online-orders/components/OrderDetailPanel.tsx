@@ -206,7 +206,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
 
         {/* ─── Customer ─── */}
         <section className="rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
-          <div className="mb-2 text-[11px] font-black uppercase tracking-wider text-slate-400">Customer</div>
+          <div className="mb-2 text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">Customer</div>
           <div className="text-base font-black text-slate-900 dark:text-white">{o.customerName}</div>
           {o.customerPhone && <div className="text-sm font-semibold text-slate-600 dark:text-slate-300">{o.customerPhone}</div>}
           {o.customerEmail && <div className="text-xs text-slate-500">{o.customerEmail}</div>}
@@ -242,7 +242,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
 
         {/* ─── Items ─── */}
         <section className="rounded-2xl border border-slate-200 dark:border-neutral-800">
-          <div className="border-b border-slate-100 px-4 py-2 text-[11px] font-black uppercase tracking-wider text-slate-400 dark:border-neutral-800">
+          <div className="border-b border-slate-100 px-4 py-2 text-[0.6875rem] font-black uppercase tracking-wider text-slate-400 dark:border-neutral-800">
             Items ({o.lines.length})
           </div>
           <ul className="divide-y divide-slate-100 dark:divide-neutral-800">
@@ -261,11 +261,11 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
                     {l.quantity} × {rs(l.price)}{l.sku ? ` · ${l.sku}` : ''}
                   </div>
                   {l.match ? (
-                    <div className={cn('mt-0.5 text-[11px] font-bold', !isPending || l.match.enough ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600')}>
+                    <div className={cn('mt-0.5 text-[0.6875rem] font-bold', !isPending || l.match.enough ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600')}>
                       ✓ {l.match.name}{isPending ? ` · stock ${l.match.stock}` : ''}
                     </div>
                   ) : (
-                    <div className="mt-0.5 text-[11px] font-bold text-amber-600">⚠ Nafaa product se jodna hai</div>
+                    <div className="mt-0.5 text-[0.6875rem] font-bold text-amber-600">⚠ Nafaa product se jodna hai</div>
                   )}
                 </div>
                 <div className="text-sm font-black text-slate-800 dark:text-slate-100">{rs(l.lineTotal)}</div>
@@ -330,7 +330,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
 
         {/* ─── Timeline ─── */}
         <section className="rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
-          <div className="mb-3 text-[11px] font-black uppercase tracking-wider text-slate-400">Order ka safar</div>
+          <div className="mb-3 text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">Order ka safar</div>
           <ol className="space-y-2.5">
             <Step done at={o.receivedAt} label="Order aaya" icon={<Clock className="h-3.5 w-3.5" />} />
             <Step done={!!o.acceptedAt} at={o.acceptedAt} label="Accept — bill bana, stock kam hua" icon={<CheckCircle2 className="h-3.5 w-3.5" />} />
@@ -474,7 +474,7 @@ function Step({ done, bad, at, label, icon }: { done: boolean; bad?: boolean; at
       )}>{icon}</span>
       <div className="min-w-0 flex-1">
         <div className={cn('text-sm font-bold', done ? 'text-slate-900 dark:text-white' : 'text-slate-400')}>{label}</div>
-        {at && <div className="text-[11px] text-slate-500">{whenText(at)}</div>}
+        {at && <div className="text-[0.6875rem] text-slate-500">{whenText(at)}</div>}
       </div>
     </li>
   );

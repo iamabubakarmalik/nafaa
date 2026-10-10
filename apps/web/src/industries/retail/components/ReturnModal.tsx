@@ -131,7 +131,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
           <div className="relative flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-black border border-white/30">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-0.5 text-[0.6875rem] font-black border border-white/30">
                 <RotateCcw className="h-3 w-3" /> Maal Wapas Aaya
               </div>
               <h3 className="text-lg sm:text-xl font-black mt-2">Wapsi — {sale.saleNumber}</h3>
@@ -157,11 +157,11 @@ export function ReturnModal({ sale, onClose, onDone }: {
               {/* ── Kitna wapas ── */}
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                  <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
                     Kya kya wapas aaya
                   </div>
                   <button onClick={takeAll}
-                    className="h-8 px-3 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-black transition">
+                    className="h-8 px-3 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.6875rem] font-black transition">
                     Poora bill wapas
                   </button>
                 </div>
@@ -183,7 +183,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="font-black text-sm text-slate-900 dark:text-white truncate">{l.name}</div>
-                            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                               {l.sold} {l.unit} becha · {formatPKR(l.unitPrice)} fi {l.unit}
                               {l.already > 0 && (
                                 <span className="text-amber-600 dark:text-amber-400"> · {l.already} pehle wapas</span>
@@ -192,7 +192,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
                           </div>
 
                           {done ? (
-                            <span className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-500 text-[10px] font-black shrink-0">
+                            <span className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-500 text-[0.6875rem] font-black shrink-0">
                               Poora wapas ho chuka
                             </span>
                           ) : (
@@ -209,7 +209,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
                                 className="h-9 w-9 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:border-amber-400 transition">
                                 <Plus className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
                               </button>
-                              <span className="text-[10px] font-black text-slate-400 w-14 text-right">
+                              <span className="text-[0.6875rem] font-black text-slate-400 w-14 text-right">
                                 / {l.remaining}
                               </span>
                             </div>
@@ -223,7 +223,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
 
               {/* ── Paisa kaise wapas ── */}
               <div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
                   Paisa kaise wapas karein
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -236,12 +236,12 @@ export function ReturnModal({ sale, onClose, onDone }: {
                       }`}>
                       <m.icon className={`h-4 w-4 ${refundMethod === m.v ? 'text-amber-600' : 'text-slate-400'}`} />
                       <div className="text-xs font-black text-slate-900 dark:text-white mt-1">{m.label}</div>
-                      <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">{m.hint}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{m.hint}</div>
                     </button>
                   ))}
                 </div>
                 {hadCredit && (
-                  <div className="mt-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-2.5 text-[11px] font-bold text-blue-900 dark:text-blue-200 flex items-start gap-2">
+                  <div className="mt-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-2.5 text-[0.6875rem] font-bold text-blue-900 dark:text-blue-200 flex items-start gap-2">
                     <BookOpen className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                     <span>
                       Is bill par <strong>{formatPKR(sale.creditAmount)}</strong> udhaar tha — wo khud hi
@@ -253,13 +253,13 @@ export function ReturnModal({ sale, onClose, onDone }: {
 
               {/* ── Wajah ── */}
               <div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
                   Wapas kyun aaya
                 </div>
                 <div className="flex gap-1.5 flex-wrap mb-2">
                   {REASONS.map((r) => (
                     <button key={r} onClick={() => setReason(r)}
-                      className={`px-2.5 py-1.5 rounded-xl text-[11px] font-black border-2 transition ${
+                      className={`px-2.5 py-1.5 rounded-xl text-[0.6875rem] font-black border-2 transition ${
                         reason === r ? 'bg-amber-600 border-amber-600 text-white'
                                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400'
                       }`}>{r}</button>
@@ -281,14 +281,14 @@ export function ReturnModal({ sale, onClose, onDone }: {
                                : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
             }`}>
               <div>
-                <div className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500">
                   Wapas karna hai
                 </div>
                 <div className="text-2xl font-black tabular-nums text-slate-900 dark:text-white">
                   {formatPKR(refundAmount)}
                 </div>
               </div>
-              <div className="text-right text-[11px] font-bold text-slate-500 dark:text-slate-400">
+              <div className="text-right text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                 {selected.length > 0
                   ? <>{selected.length} cheez{selected.length > 1 ? 'ein' : ''} wapas</>
                   : 'Abhi kuch nahi chuna'}
@@ -296,7 +296,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
             </div>
 
             {refundAmount > 0 && (
-              <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-2.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-start gap-2">
+              <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-2.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 flex items-start gap-2">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-600" />
                 Maal stock me wapas aa jayega aur ye raqam din ki bikri me se kam ho jayegi.
               </div>

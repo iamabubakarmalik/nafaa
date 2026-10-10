@@ -29,7 +29,7 @@ export function PharmacyWizardSummary({ draft, stats, allValid }: Props) {
       <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-teal-900 to-cyan-700 text-white p-5 shadow-xl overflow-hidden relative">
         <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-teal-400/20 blur-2xl" />
         <div className="relative">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[10px] font-extrabold border border-white/20">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold border border-white/20">
             {allValid ? (
               <><CheckCircle2 className="h-3 w-3 text-emerald-300" /> Ready to Save</>
             ) : (
@@ -44,22 +44,22 @@ export function PharmacyWizardSummary({ draft, stats, allValid }: Props) {
           )}
           <div className="mt-2 flex flex-wrap gap-1.5">
             {draft.clinical.requiresPrescription && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 text-[9px] font-extrabold uppercase border border-amber-300/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-500/30 text-amber-200 text-[0.625rem] font-extrabold uppercase border border-amber-300/40">
                 Rx Only
               </span>
             )}
             {draft.clinical.isNarcotic && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/30 text-red-200 text-[9px] font-extrabold uppercase border border-red-300/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-500/30 text-red-200 text-[0.625rem] font-extrabold uppercase border border-red-300/40">
                 <ShieldAlert className="h-2 w-2" /> Narcotic
               </span>
             )}
             {draft.clinical.requiresColdChain && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-500/30 text-blue-200 text-[9px] font-extrabold uppercase border border-blue-300/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-500/30 text-blue-200 text-[0.625rem] font-extrabold uppercase border border-blue-300/40">
                 <Snowflake className="h-2 w-2" /> Cold Chain
               </span>
             )}
             {draft.basic.isGeneric && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/30 text-emerald-200 text-[9px] font-extrabold uppercase border border-emerald-300/40">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/30 text-emerald-200 text-[0.625rem] font-extrabold uppercase border border-emerald-300/40">
                 Generic
               </span>
             )}
@@ -78,7 +78,7 @@ export function PharmacyWizardSummary({ draft, stats, allValid }: Props) {
           <div className="border-t border-slate-100 p-4">
             <div className="flex items-center gap-1.5 mb-1">
               <Repeat className="h-3 w-3 text-violet-700" />
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700">Substitutes</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700">Substitutes</div>
             </div>
             <div className="text-2xl font-extrabold text-violet-900 tabular-nums">{stats.substituteCount}</div>
           </div>
@@ -86,7 +86,7 @@ export function PharmacyWizardSummary({ draft, stats, allValid }: Props) {
         <div className="border-t-2 border-slate-100 p-4 bg-gradient-to-br from-teal-50 to-white">
           <div className="flex items-center gap-1.5 mb-1">
             <Pill className="h-3 w-3 text-teal-700" />
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-teal-700">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-teal-700">
               Total Stock ({draft.basic.unit || 'unit'})
             </div>
           </div>
@@ -98,7 +98,7 @@ export function PharmacyWizardSummary({ draft, stats, allValid }: Props) {
 
       {(stats.expiringSoon > 0 || stats.expired > 0) && (
         <div className="rounded-2xl bg-white border-2 border-amber-300 shadow-sm p-4 space-y-2">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-amber-700 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-700 flex items-center gap-1">
             <Clock className="h-3 w-3" /> Expiry Alerts
           </div>
           {stats.expiringSoon > 0 && (
@@ -118,7 +118,7 @@ export function PharmacyWizardSummary({ draft, stats, allValid }: Props) {
 
       {stats.totalStock > 0 && (
         <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm p-4 space-y-2.5">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
             <DollarSign className="h-3 w-3" /> Finance
           </div>
           <Row label="Cost value" value={formatPKRFull(stats.stockCost)} tone="slate" />
@@ -134,7 +134,7 @@ export function PharmacyWizardSummary({ draft, stats, allValid }: Props) {
                 {formatPKRFull(stats.profit)}
               </div>
             </div>
-            <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
+            <div className="flex items-center justify-between text-[0.6875rem] font-bold text-slate-500">
               <span>Margin</span>
               <span className={stats.margin >= 0 ? 'text-emerald-700' : 'text-rose-700'}>
                 {stats.margin.toFixed(1)}%
@@ -144,7 +144,7 @@ export function PharmacyWizardSummary({ draft, stats, allValid }: Props) {
         </div>
       )}
 
-      <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-[10px] text-slate-500 font-semibold text-center">
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-[0.6875rem] text-slate-500 font-semibold text-center">
         💾 Draft auto-saves — safai se close karo, wapas mile ga
       </div>
     </aside>
@@ -159,10 +159,10 @@ function StatCell({ icon: Icon, label, value, tone, hint }: any) {
     <div className="p-4">
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={['h-3 w-3', tones[tone]].join(' ')} />
-        <div className={['text-[10px] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
+        <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold', tones[tone]].join(' ')}>{label}</div>
       </div>
       <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{value}</div>
-      {hint && <div className="text-[10px] text-slate-500 font-bold mt-0.5">{hint}</div>}
+      {hint && <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{hint}</div>}
     </div>
   );
 }

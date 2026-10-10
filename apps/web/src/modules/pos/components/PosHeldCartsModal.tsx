@@ -54,7 +54,7 @@ export function PosHeldCartsModal({ heldCarts, onResume, onDelete, onClose }: Pr
                 <Pause className="h-7 w-7 text-white" />
               </div>
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider mb-1 border border-white/20">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1 border border-white/20">
                   <Sparkles className="h-3 w-3 text-amber-300" />
                   Multi-Cart Manager
                 </div>

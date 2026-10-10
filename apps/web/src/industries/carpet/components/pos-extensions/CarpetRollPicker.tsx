@@ -251,7 +251,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                 <Layers className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
               </div>
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider mb-1 border border-white/20">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1 border border-white/20">
                   <Scissors className="h-2.5 w-2.5 text-amber-300" />
                   Cut from Roll
                 </div>
@@ -307,7 +307,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                       const active = sortBy === opt.v;
                       return (
                         <button key={opt.v} onClick={() => setSortBy(opt.v)}
-                          className={`shrink-0 px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold inline-flex items-center gap-1 transition active:scale-95 ${
+                          className={`shrink-0 px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition active:scale-95 ${
                             active ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                           }`}>
                           <Icon className="h-3 w-3" />
@@ -370,7 +370,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                                   </div>
                                 )}
                                 {isLowRoll && (
-                                  <span className="px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase animate-pulse">Low</span>
+                                  <span className="px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase animate-pulse">Low</span>
                                 )}
                               </div>
                               {(roll as any).variant && (
@@ -382,18 +382,18 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                                 </div>
                               )}
                               {(roll as any).designCode && (
-                                <div className="text-[10px] font-mono text-slate-500 mt-0.5">{(roll as any).designCode}</div>
+                                <div className="text-[0.6875rem] font-mono text-slate-500 mt-0.5">{(roll as any).designCode}</div>
                               )}
                             </div>
                             <div className="text-right shrink-0">
                               <div className="text-2xl font-extrabold text-emerald-700 leading-none tabular-nums">
                                 {Number(roll.remainingSqft).toFixed(0)}
                               </div>
-                              <div className="text-[10px] font-extrabold text-emerald-700">sqft</div>
+                              <div className="text-[0.6875rem] font-extrabold text-emerald-700">sqft</div>
                             </div>
                           </div>
 
-                          <div className="mt-2 flex items-center gap-1.5 text-[11px] font-bold text-slate-600 flex-wrap">
+                          <div className="mt-2 flex items-center gap-1.5 text-[0.6875rem] font-bold text-slate-600 flex-wrap">
                             <span className="inline-flex items-center gap-0.5">
                               <Ruler className="h-2.5 w-2.5 text-slate-500" />
                               <strong>{Number(roll.widthFt)}ft{Number((roll as any).widthInch || 0) > 0 ? ` ${Number((roll as any).widthInch)}in` : ''}</strong>
@@ -441,14 +441,14 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                               {(roll as any).variant?.name || product.name}
                               {(roll as any).designCode && <span className="text-slate-500 ml-1">({(roll as any).designCode})</span>}
                             </div>
-                            <div className="text-[10px] text-slate-500 font-bold">
+                            <div className="text-[0.6875rem] text-slate-500 font-bold">
                               {Number(roll.widthFt)}ft × {Number(roll.remainingLengthFt)}ft
                               {(roll as any).rackNumber && ` • ${(roll as any).rackNumber}`}
                             </div>
                           </div>
                           <div className="text-right shrink-0">
                             <div className="text-base font-extrabold text-emerald-700 tabular-nums">{Number(roll.remainingSqft).toFixed(0)} sqft</div>
-                            <div className="text-[10px] text-emerald-700 font-bold">{formatPKR(Number((roll as any).salePricePerSqft || 0))}/sqft</div>
+                            <div className="text-[0.6875rem] text-emerald-700 font-bold">{formatPKR(Number((roll as any).salePricePerSqft || 0))}/sqft</div>
                           </div>
                           {isSelected && <Check className="h-4 w-4 text-emerald-600 shrink-0" />}
                         </button>
@@ -490,14 +490,14 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                     <div className="font-mono font-extrabold text-xl sm:text-2xl leading-none">{selectedRoll.rollNumber}</div>
                     <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <div className="text-[10px] uppercase font-extrabold opacity-75">Roll Width</div>
+                        <div className="text-[0.6875rem] uppercase font-extrabold opacity-75">Roll Width</div>
                         <div className="font-extrabold tabular-nums text-base sm:text-lg">
                           {Number(selectedRoll.widthFt)}ft
                           {Number((selectedRoll as any).widthInch || 0) > 0 && ` ${Number((selectedRoll as any).widthInch)}in`}
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] uppercase font-extrabold opacity-75">Available</div>
+                        <div className="text-[0.6875rem] uppercase font-extrabold opacity-75">Available</div>
                         <div className="font-extrabold tabular-nums text-base sm:text-lg">
                           {Number(selectedRoll.remainingLengthFt)}ft
                           {Number((selectedRoll as any).remainingLengthInch || 0) > 0 && ` ${Number((selectedRoll as any).remainingLengthInch)}in`}
@@ -508,7 +508,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
 
                   {/* Unit Switcher */}
                   <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-2.5">
-                    <div className="text-[10px] uppercase font-extrabold text-blue-700 mb-1.5 flex items-center gap-1">
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1.5 flex items-center gap-1">
                       <Calculator className="h-3 w-3" />
                       Display Unit
                     </div>
@@ -534,13 +534,13 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                       <button onClick={() => {
                         setCustomerWidthFt(String(Number(selectedRoll.widthFt)));
                         setCustomerWidthInch(String(Number((selectedRoll as any).widthInch || 0)));
-                      }} className="text-[10px] font-extrabold text-emerald-700 inline-flex items-center gap-0.5">
+                      }} className="text-[0.6875rem] font-extrabold text-emerald-700 inline-flex items-center gap-0.5">
                         <RotateCcw className="h-2.5 w-2.5" /> Full roll
                       </button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[10px] font-extrabold text-slate-700 mb-1 uppercase">Feet</label>
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-700 mb-1 uppercase">Feet</label>
                         <input ref={widthInputRef} type="number" inputMode="decimal" step="1" min="0"
                           value={customerWidthFt} onChange={(e) => setCustomerWidthFt(e.target.value)}
                           onFocus={(e) => e.target.select()}
@@ -550,7 +550,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                           }`} />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-extrabold text-slate-700 mb-1 uppercase">Inches</label>
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-700 mb-1 uppercase">Inches</label>
                         <input type="number" inputMode="numeric" step="1" min="0" max="11"
                           value={customerWidthInch} onChange={(e) => setCustomerWidthInch(e.target.value)}
                           onFocus={(e) => e.target.select()}
@@ -568,7 +568,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[10px] font-extrabold text-slate-700 mb-1 uppercase">Feet</label>
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-700 mb-1 uppercase">Feet</label>
                         <input type="number" inputMode="decimal" step="1" min="0"
                           value={lengthFt} onChange={(e) => setLengthFt(e.target.value)}
                           onFocus={(e) => e.target.select()}
@@ -579,7 +579,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                           }`} />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-extrabold text-slate-700 mb-1 uppercase">Inches</label>
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-700 mb-1 uppercase">Inches</label>
                         <input type="number" inputMode="numeric" step="1" min="0" max="11"
                           value={lengthInch} onChange={(e) => setLengthInch(e.target.value)}
                           onFocus={(e) => e.target.select()}
@@ -587,7 +587,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                           className="h-13 sm:h-14 w-full rounded-xl border-2 border-emerald-200 bg-white px-3 text-xl sm:text-2xl font-extrabold focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition text-center" />
                       </div>
                     </div>
-                    <div className="text-[10px] font-bold text-slate-500 leading-relaxed">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 leading-relaxed">
                       💡 Stock book "29.6"? → Feet: <strong>29</strong>, Inches: <strong>6</strong>
                     </div>
                     {(calc?.widthError || calc?.lengthError) && (
@@ -607,7 +607,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                       </div>
                       {calc?.rateSource !== 'default' && (
                         <button onClick={resetRate}
-                          className="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-amber-700 hover:text-amber-900 hover:underline">
+                          className="inline-flex items-center gap-0.5 text-[0.6875rem] font-extrabold text-amber-700 hover:text-amber-900 hover:underline">
                           <RotateCcw className="h-2.5 w-2.5" /> Reset
                         </button>
                       )}
@@ -620,11 +620,11 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                         onFocus={(e) => e.target.select()}
                         placeholder={`Default: ${calc?.defaultRate.toFixed(2) ?? 0}`}
                         className="h-13 sm:h-14 w-full rounded-xl border-2 border-amber-300 bg-white pl-3 pr-20 sm:pr-24 text-xl sm:text-2xl font-extrabold text-amber-900 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition text-center" />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] sm:text-xs font-extrabold text-amber-700">Rs/sqft</div>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[0.6875rem] sm:text-xs font-extrabold text-amber-700">Rs/sqft</div>
                     </div>
 
                     {calc && calc.rateSource !== 'default' && (
-                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
                         calc.rateSource === 'custom' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700'
                       }`}>
                         <Tag className="h-2.5 w-2.5" />
@@ -661,17 +661,17 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                     }`}>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <div className="text-[10px] uppercase font-extrabold text-slate-600">Cut Area</div>
+                          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Cut Area</div>
                           <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tabular-nums">{calc.displaySqft.toFixed(2)}</div>
-                          <div className="text-[10px] font-extrabold text-slate-600">{calc.displayUnitLabel}</div>
+                          <div className="text-[0.6875rem] font-extrabold text-slate-600">{calc.displayUnitLabel}</div>
                           {unit !== 'sqft' && (
-                            <div className="text-[10px] text-slate-500 font-bold">= {calc.cutSqft.toFixed(2)} sqft</div>
+                            <div className="text-[0.6875rem] text-slate-500 font-bold">= {calc.cutSqft.toFixed(2)} sqft</div>
                           )}
                         </div>
                         <div className="text-right">
-                          <div className="text-[10px] uppercase font-extrabold text-slate-600">Total Price</div>
+                          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Total Price</div>
                           <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tabular-nums">{formatPKRFull(calc.totalPrice)}</div>
-                          <div className="text-[10px] font-extrabold text-slate-600">@ {formatPKR(calc.effectiveRate)}/sqft</div>
+                          <div className="text-[0.6875rem] font-extrabold text-slate-600">@ {formatPKR(calc.effectiveRate)}/sqft</div>
                         </div>
                       </div>
 
@@ -683,7 +683,7 @@ export function CarpetRollPicker({ product, variant, preSelectedRoll, onConfirm,
                               className="h-4 w-4 rounded mt-0.5" />
                             <div className="flex-1">
                               <div className="text-xs font-extrabold text-amber-900">Create leftover cut piece</div>
-                              <div className="text-[10px] text-amber-800 mt-0.5 font-semibold">
+                              <div className="text-[0.6875rem] text-amber-800 mt-0.5 font-semibold">
                                 {calc.widthDiff.toFixed(2)}ft × {calc.cutLength.toFixed(2)}ft = <strong>{calc.leftoverSqft.toFixed(2)} sqft</strong>
                               </div>
                             </div>

@@ -222,7 +222,7 @@ export default function HelpPage() {
             <div key={i} className="rounded-2xl bg-white/10 backdrop-blur border border-white/15 p-3">
               <s.icon className="h-4 w-4 text-white/80 mb-1" />
               <div className="text-lg font-extrabold">{s.label}</div>
-              <div className="text-[10px] text-white/70 font-medium">{s.sub}</div>
+              <div className="text-[0.6875rem] text-white/70 font-medium">{s.sub}</div>
             </div>
           ))}
         </div>
@@ -244,7 +244,7 @@ export default function HelpPage() {
             </div>
             <div className="text-white font-extrabold text-lg">WhatsApp</div>
             <div className="text-white/90 text-xs mt-0.5 font-medium">Fastest reply • 24/7</div>
-            <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-white">
+            <div className="mt-3 inline-flex items-center gap-1 text-[0.6875rem] font-bold text-white">
               Chat now <ArrowRight className="h-3 w-3" />
             </div>
           </div>
@@ -261,7 +261,7 @@ export default function HelpPage() {
             </div>
             <div className="text-white font-extrabold text-lg">Call Us</div>
             <div className="text-white/90 text-xs mt-0.5 font-medium">9 AM - 9 PM PKT</div>
-            <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-white">
+            <div className="mt-3 inline-flex items-center gap-1 text-[0.6875rem] font-bold text-white">
               {SUPPORT_PHONE} <ArrowRight className="h-3 w-3" />
             </div>
           </div>
@@ -278,7 +278,7 @@ export default function HelpPage() {
             </div>
             <div className="text-white font-extrabold text-lg">Email</div>
             <div className="text-white/90 text-xs mt-0.5 font-medium">24h response time</div>
-            <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-white">
+            <div className="mt-3 inline-flex items-center gap-1 text-[0.6875rem] font-bold text-white">
               Send email <ArrowRight className="h-3 w-3" />
             </div>
           </div>
@@ -297,7 +297,7 @@ export default function HelpPage() {
             </div>
             <div className="text-white font-extrabold text-lg">Website</div>
             <div className="text-white/90 text-xs mt-0.5 font-medium">Docs & guides</div>
-            <div className="mt-3 inline-flex items-center gap-1 text-[11px] font-bold text-white">
+            <div className="mt-3 inline-flex items-center gap-1 text-[0.6875rem] font-bold text-white">
               nafaa.pk <ArrowRight className="h-3 w-3" />
             </div>
           </div>
@@ -352,7 +352,7 @@ export default function HelpPage() {
               <Phone className="h-5 w-5 text-emerald-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] text-slate-500 font-bold uppercase">Phone</div>
+              <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">Phone</div>
               <div className="text-sm font-bold text-slate-900 truncate">{SUPPORT_PHONE}</div>
             </div>
             <ExternalLink className="h-4 w-4 text-slate-400 group-hover:text-emerald-600" />
@@ -366,7 +366,7 @@ export default function HelpPage() {
               <Mail className="h-5 w-5 text-violet-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] text-slate-500 font-bold uppercase">Email</div>
+              <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">Email</div>
               <div className="text-sm font-bold text-slate-900 truncate">{SUPPORT_EMAIL}</div>
             </div>
             <ExternalLink className="h-4 w-4 text-slate-400 group-hover:text-violet-600" />
@@ -382,7 +382,7 @@ export default function HelpPage() {
               <Globe className="h-5 w-5 text-cyan-600" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] text-slate-500 font-bold uppercase">Website</div>
+              <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">Website</div>
               <div className="text-sm font-bold text-slate-900 truncate">nafaa.pk</div>
             </div>
             <ExternalLink className="h-4 w-4 text-slate-400 group-hover:text-cyan-600" />

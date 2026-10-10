@@ -299,13 +299,13 @@ export default function GlobalImeiInventoryPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Smartphone className="h-3.5 w-3.5 text-amber-300" /> Mobile Industry
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
             {isScoped && (
               <Link to={`/mobile-products/${scopedProductId}`}
-                className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-extrabold text-white/80 hover:text-white transition">
+                className="mt-2 inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-white/80 hover:text-white transition">
                 <ArrowLeft className="h-3.5 w-3.5" /> Wapis product par
               </Link>
             )}
@@ -388,7 +388,7 @@ export default function GlobalImeiInventoryPage() {
           </div>
         </div>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>Esc</Kbd><span className="text-white/60">Clear / band</span>
@@ -434,7 +434,7 @@ export default function GlobalImeiInventoryPage() {
                       {count}
                     </span>
                   </div>
-                  <div className={`text-[10px] uppercase tracking-wider font-extrabold mt-1 ${colors.text}`}>
+                  <div className={`text-[0.6875rem] uppercase tracking-wider font-extrabold mt-1 ${colors.text}`}>
                     {PTA_STATUS_LABELS[status]}
                   </div>
                 </button>
@@ -469,7 +469,7 @@ export default function GlobalImeiInventoryPage() {
       {/* ═══ SHOP CHIPS — ab har device apni shop se juda hai ═══ */}
       {activeShops.length > 1 && (
         <section className="flex gap-1.5 overflow-x-auto pb-1 print:hidden items-center">
-          <span className="shrink-0 text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider inline-flex items-center gap-1 pr-1">
+          <span className="shrink-0 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider inline-flex items-center gap-1 pr-1">
             <Store className="h-3 w-3" /> Shop
           </span>
           <button
@@ -608,7 +608,7 @@ export default function GlobalImeiInventoryPage() {
                 onChange={toggleAllVisible}
                 className="h-4 w-4 rounded accent-blue-600"
               />
-              <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">Sab select karo</span>
+              <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400">Sab select karo</span>
             </div>
 
             <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
@@ -634,7 +634,7 @@ export default function GlobalImeiInventoryPage() {
                               size="sm"
                               taxPaid={imei.ptaTaxPaid}
                             />
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold inline-flex items-center gap-1 ${
+                            <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold inline-flex items-center gap-1 ${
                               imei.status === 'IN_STOCK' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
                               imei.status === 'SOLD' ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300' :
                               imei.status === 'RETURNED' ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300' :
@@ -643,7 +643,7 @@ export default function GlobalImeiInventoryPage() {
                               <StatusIcon className="h-2.5 w-2.5" /> {imei.status}
                             </span>
                             {imei.color && (
-                              <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[10px] font-extrabold">
+                              <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-extrabold">
                                 {imei.color}
                               </span>
                             )}
@@ -766,7 +766,7 @@ function ImeiTeacher({ onClose }: { onClose: () => void }) {
           </p>
 
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2.5">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
               🛡️ PTA Status kya hai?
             </div>
             <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -808,7 +808,7 @@ function GuideRow({ emoji, title, desc }: { emoji: string; title: string; desc: 
       <span className="text-lg shrink-0">{emoji}</span>
       <div className="min-w-0 flex-1">
         <div className="font-extrabold text-slate-900 dark:text-white text-xs">{title}</div>
-        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">{desc}</div>
       </div>
     </div>
   );
@@ -843,7 +843,7 @@ function Kpi({ icon: Icon, label, value, tone, isText }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-3 sm:p-4">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className={`mt-1.5 font-extrabold text-slate-900 dark:text-white tabular-nums truncate ${isText ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
             {value}
           </div>

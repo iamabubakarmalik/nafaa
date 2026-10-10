@@ -43,7 +43,7 @@ export function PosSettingsModal({
                 </div>
                 <div className="min-w-0">
                   <div className="font-extrabold text-slate-900 dark:text-white text-sm">🖨️ Auto-Print Receipt</div>
-                  <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold">Sale hote hi print dialog — receipt page nahi khulega</div>
+                  <div className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold">Sale hote hi print dialog — receipt page nahi khulega</div>
                 </div>
               </div>
               <button
@@ -56,7 +56,7 @@ export function PosSettingsModal({
             </div>
             {autoPrint && (
               <div className="mt-3 pt-3 border-t border-sky-200 dark:border-sky-500/30">
-                <div className="text-[10px] uppercase font-extrabold text-sky-700 dark:text-sky-300 tracking-wider mb-1.5">Printer width</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-sky-700 dark:text-sky-300 tracking-wider mb-1.5">Printer width</div>
                 <div className="grid grid-cols-2 gap-1.5">
                   {(['80', '58'] as const).map((w) => (
                     <button key={w} onClick={() => setPrinterWidth(w)}
@@ -81,7 +81,7 @@ export function PosSettingsModal({
                 </div>
                 <div className="min-w-0">
                   <div className="font-extrabold text-slate-900 dark:text-white text-sm">✅ Success Auto-Close</div>
-                  <div className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold">Sale ke baad modal 3 sec me khud band</div>
+                  <div className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold">Sale ke baad modal 3 sec me khud band</div>
                 </div>
               </div>
               <button
@@ -94,7 +94,7 @@ export function PosSettingsModal({
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300">
             💡 <strong>Popup blocked?</strong> Browser ke address bar me 🔒 icon pe click → "Pop-ups and redirects" → Allow. Tabhi auto-print chalega.
           </div>
         </div>

@@ -26,9 +26,9 @@ export function PosViewTab({ active, onClick, icon: Icon, label, count, color, s
       <Icon className="h-4 w-4" />
       <span>{label}</span>
       {count > 0 && (
-        <span className={['px-1.5 rounded-md text-[10px] tabular-nums', active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>{count}</span>
+        <span className={['px-1.5 rounded-md text-[0.6875rem] tabular-nums', active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>{count}</span>
       )}
-      <span className={['hidden lg:inline text-[9px] font-mono px-1 rounded', active ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'].join(' ')}>{shortcut}</span>
+      <span className={['hidden lg:inline text-[0.625rem] font-mono px-1 rounded', active ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'].join(' ')}>{shortcut}</span>
     </button>
   );
 }
@@ -61,10 +61,10 @@ export function PosProductTile({ product: p, cart, hidePrices, onClick }: any) {
           </div>
         )}
         {out && <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center"><span className="px-3 py-1 rounded-xl bg-rose-600 text-white text-xs sm:text-sm font-extrabold shadow-lg">KHATAM</span></div>}
-        {low && !out && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-extrabold shadow-lg animate-pulse">KAM</div>}
+        {low && !out && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-lg animate-pulse">KAM</div>}
         {p.isFeatured && !out && <div className="absolute top-1.5 left-1.5 h-7 w-7 rounded-full bg-amber-500 flex items-center justify-center shadow-lg"><Star className="h-3.5 w-3.5 fill-white text-white" /></div>}
         {isWeight && !out && (
-          <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-600/95 text-white text-[9px] font-extrabold shadow-lg inline-flex items-center gap-0.5">
+          <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-amber-600/95 text-white text-[0.625rem] font-extrabold shadow-lg inline-flex items-center gap-0.5">
             <Scale className="h-2.5 w-2.5" /> WAZAN
           </div>
         )}
@@ -74,7 +74,7 @@ export function PosProductTile({ product: p, cart, hidePrices, onClick }: any) {
         <div className="mt-1.5 sm:mt-2 flex items-end justify-between gap-1">
           <div>
             <div className="text-lg sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 leading-none tabular-nums">{hidePrices ? '•••' : formatPKR(p.price)}</div>
-            <div className="text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">per {p.unit}</div>
+            <div className="text-[0.6875rem] sm:text-xs font-bold text-slate-500 dark:text-slate-400 mt-0.5">per {p.unit}</div>
           </div>
           <div className={['text-xs sm:text-sm font-extrabold tabular-nums shrink-0',
             out ? 'text-rose-700 dark:text-rose-400' : low ? 'text-amber-700 dark:text-amber-400' : 'text-slate-600 dark:text-slate-300'].join(' ')}>
@@ -106,7 +106,7 @@ export function PosComboTile({ combo, cart, hidePrices, onClick }: any) {
         ) : (
           <div className="w-full h-full flex items-center justify-center"><span className="text-5xl sm:text-6xl">🎁</span></div>
         )}
-        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-violet-600 text-white text-[9px] font-extrabold uppercase tracking-wider shadow-lg">Combo</div>
+        <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-violet-600 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shadow-lg">Combo</div>
         {savingsPct > 0 && (
           <div className="absolute bottom-1.5 left-1.5 px-2 py-0.5 rounded-md bg-emerald-500 text-white text-xs font-extrabold shadow-lg tabular-nums">Save {savingsPct.toFixed(0)}%</div>
         )}
@@ -116,13 +116,13 @@ export function PosComboTile({ combo, cart, hidePrices, onClick }: any) {
       </div>
       <div className="p-2 sm:p-3">
         <div className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem]">{combo.name}</div>
-        {combo.tagLine && <div className="text-[10px] font-extrabold text-violet-700 dark:text-violet-400 uppercase mt-0.5 line-clamp-1">{combo.tagLine}</div>}
+        {combo.tagLine && <div className="text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-400 uppercase mt-0.5 line-clamp-1">{combo.tagLine}</div>}
         <div className="mt-1.5 flex items-end justify-between gap-1">
           <div>
             <div className="text-lg sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 leading-none tabular-nums">{hidePrices ? '•••' : formatPKR(combo.comboPrice)}</div>
-            {savings > 0 && !hidePrices && <div className="text-[10px] text-slate-500 dark:text-slate-400 line-through font-bold mt-0.5 tabular-nums">{formatPKR(combo.originalTotal)}</div>}
+            {savings > 0 && !hidePrices && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 line-through font-bold mt-0.5 tabular-nums">{formatPKR(combo.originalTotal)}</div>}
           </div>
-          <div className="text-[10px] font-extrabold text-violet-700 dark:text-violet-400 shrink-0">{combo.items.length} items</div>
+          <div className="text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-400 shrink-0">{combo.items.length} items</div>
         </div>
       </div>
     </button>
@@ -141,11 +141,11 @@ export function PosQuickKeyTile({ qk, products, combos, hidePrices, onClick }: a
         out ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60' : 'hover:shadow-xl hover:-translate-y-1'].join(' ')}
       style={{ borderColor: out ? undefined : (qk.color || '#f59e0b') }}>
       <div className="absolute inset-0 opacity-10 dark:opacity-15 pointer-events-none rounded-2xl" style={{ background: qk.color || '#f59e0b' }} />
-      {qk.hotkey && <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-mono font-extrabold z-10">{qk.hotkey}</div>}
+      {qk.hotkey && <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[0.625rem] font-mono font-extrabold z-10">{qk.hotkey}</div>}
       {qk.icon && <div className="text-3xl sm:text-4xl mb-1 relative">{qk.icon}</div>}
       <div className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm text-center leading-tight line-clamp-2 relative">{qk.label}</div>
       {price > 0 && <div className="mt-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums relative">{hidePrices ? '•••' : formatPKR(price)}</div>}
-      {combo && <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-violet-600 text-white text-[8px] font-extrabold uppercase">Combo</div>}
+      {combo && <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-violet-600 text-white text-[0.625rem] font-extrabold uppercase">Combo</div>}
     </button>
   );
 }

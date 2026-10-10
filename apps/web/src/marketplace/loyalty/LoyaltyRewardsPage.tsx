@@ -94,7 +94,7 @@ export default function LoyaltyRewardsPage() {
                 <div className={`relative bg-gradient-to-br ${meta.gradient} text-white p-5`}>
                   <div className="flex items-center justify-between">
                     <div className="text-4xl">{meta.badgeEmoji}</div>
-                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/25 backdrop-blur text-[10px] font-black`}>
+                    <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/25 backdrop-blur text-[0.6875rem] font-black`}>
                       <Users className="h-2.5 w-2.5" />
                       {tier.customerCount}
                     </div>
@@ -155,11 +155,11 @@ export default function LoyaltyRewardsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-black text-slate-900 truncate">{earner.fullName}</span>
-                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${meta.bgColor} ${meta.textColor}`}>
+                      <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${meta.bgColor} ${meta.textColor}`}>
                         {meta.badgeEmoji} {earner.tier}
                       </span>
                     </div>
-                    <div className="text-[10px] text-slate-500 font-bold mt-0.5">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">
                       {earner.lifetimeOrders} orders · Rs {formatPKR(earner.lifetimeSpend)}
                     </div>
                   </div>
@@ -168,7 +168,7 @@ export default function LoyaltyRewardsPage() {
                       <Coins className="h-4 w-4" />
                       {earner.lifetimePoints.toLocaleString()}
                     </div>
-                    <div className="text-[9px] text-slate-500 font-bold uppercase">points</div>
+                    <div className="text-[0.625rem] text-slate-500 font-bold uppercase">points</div>
                   </div>
                   <button
                     onClick={() => setShowAward(earner.customerId)}
@@ -204,7 +204,7 @@ export default function LoyaltyRewardsPage() {
                   <div className="flex-1 h-6 rounded-lg bg-slate-100 overflow-hidden relative flex">
                     <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600" style={{ width: `${issuedPct * 0.5}%` }} />
                     <div className="h-full bg-gradient-to-r from-rose-400 to-rose-600" style={{ width: `${redeemedPct * 0.5}%` }} />
-                    <div className="absolute inset-0 flex items-center px-2 text-[10px] font-black text-slate-700">
+                    <div className="absolute inset-0 flex items-center px-2 text-[0.6875rem] font-black text-slate-700">
                       +{day.issued} / -{day.redeemed}
                     </div>
                   </div>
@@ -212,7 +212,7 @@ export default function LoyaltyRewardsPage() {
               );
             })}
           </div>
-          <div className="mt-3 flex items-center gap-3 text-[10px] font-bold text-slate-600">
+          <div className="mt-3 flex items-center gap-3 text-[0.6875rem] font-bold text-slate-600">
             <span className="inline-flex items-center gap-1">
               <span className="h-2 w-4 rounded bg-emerald-500" /> Issued
             </span>
@@ -269,22 +269,22 @@ export default function LoyaltyRewardsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-black text-slate-900 truncate">{c.fullName}</div>
-                      <div className="text-[10px] text-slate-500 font-bold">{c.phone}</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</div>
                     </div>
                     <div className="text-right hidden md:block">
                       <div className="text-xs font-black text-slate-700">{c.lifetimeOrders} orders</div>
-                      <div className="text-[10px] text-slate-500 font-bold">Rs {formatPKR(c.lifetimeSpend)}</div>
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">Rs {formatPKR(c.lifetimeSpend)}</div>
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-black text-yellow-700 tabular-nums inline-flex items-center gap-1">
                         <Coins className="h-3 w-3" />
                         {c.lifetimePoints.toLocaleString()}
                       </div>
-                      <div className="text-[9px] text-slate-500 font-bold uppercase">points</div>
+                      <div className="text-[0.625rem] text-slate-500 font-bold uppercase">points</div>
                     </div>
                     {c.nextTier && (
                       <div className="hidden lg:block w-40">
-                        <div className="text-[9px] text-slate-500 font-bold mb-0.5">
+                        <div className="text-[0.625rem] text-slate-500 font-bold mb-0.5">
                           → {c.nextTier}: {c.progressToNext.toFixed(0)}%
                         </div>
                         <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
@@ -341,7 +341,7 @@ function HeroKpi({ label, value, icon: Icon, highlight, isText }: any) {
     }`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">{label}</div>
       </div>
       <div className={`font-black leading-none tabular-nums ${isText ? 'text-sm' : 'text-xl'}`}>{value}</div>
     </div>

@@ -22,7 +22,7 @@ export function CodeBlock({
   return (
     <div className={cn('relative group', className)}>
       {label && (
-        <div className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-1.5">
+        <div className="text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 mb-1.5">
           {label}
         </div>
       )}
@@ -38,7 +38,7 @@ export function CodeBlock({
           <Copy className="h-3.5 w-3.5 text-slate-300" />
         )}
       </button>
-      <pre className="p-3.5 rounded-xl bg-slate-900 dark:bg-neutral-950 text-slate-100 text-[10.5px] leading-relaxed font-mono overflow-x-auto ring-1 ring-slate-700/50">
+      <pre className="p-3.5 rounded-xl bg-slate-900 dark:bg-neutral-950 text-slate-100 text-[0.65625rem] leading-relaxed font-mono overflow-x-auto ring-1 ring-slate-700/50">
         <code>{code}</code>
       </pre>
     </div>
@@ -67,7 +67,7 @@ export function CopyField({
 
   return (
     <div>
-      <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 mb-1.5 block">
+      <label className="text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 mb-1.5 block">
         {label}
       </label>
       <div className="flex items-center gap-2">
@@ -86,7 +86,7 @@ export function CopyField({
           <button
             type="button"
             onClick={() => setRevealed(!revealed)}
-            className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-[10px] font-extrabold text-slate-600 shrink-0"
+            className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-[0.6875rem] font-extrabold text-slate-600 shrink-0"
           >
             {revealed ? 'HIDE' : 'SHOW'}
           </button>

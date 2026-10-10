@@ -83,7 +83,7 @@ export default function CarpetCustomerDetailPage() {
                   <Layers className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-emerald-700">Roll Cuts</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Roll Cuts</div>
                   <div className="text-xl font-extrabold text-emerald-900 tabular-nums">{rollCuts}</div>
                 </div>
               </div>
@@ -94,7 +94,7 @@ export default function CarpetCustomerDetailPage() {
                   <Scissors className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-violet-700">Cut Pieces</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700">Cut Pieces</div>
                   <div className="text-xl font-extrabold text-violet-900 tabular-nums">{cutPieceBuys}</div>
                 </div>
               </div>
@@ -125,7 +125,7 @@ export default function CarpetCustomerDetailPage() {
                       <span className="font-extrabold text-slate-900 text-sm flex-1 min-w-0 truncate">{d.name}</span>
                       <div className="text-right shrink-0">
                         <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{d.sqft.toFixed(0)} sqft</div>
-                        <div className="text-[10px] text-slate-500 font-semibold">{formatPKR(d.revenue)}</div>
+                        <div className="text-[0.6875rem] text-slate-500 font-semibold">{formatPKR(d.revenue)}</div>
                       </div>
                     </div>
                   );
@@ -139,7 +139,7 @@ export default function CarpetCustomerDetailPage() {
               <h4 className="font-extrabold text-slate-900 text-sm inline-flex items-center gap-2">
                 <Package className="h-4 w-4 text-emerald-600" /> Cut History (Last 20)
               </h4>
-              <span className="text-[10px] font-extrabold text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-300">
+              <span className="text-[0.6875rem] font-extrabold text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-300">
                 {carpetLines.length} total
               </span>
             </div>
@@ -154,21 +154,21 @@ export default function CarpetCustomerDetailPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {isRoll && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">
                               <Layers className="h-2.5 w-2.5" /> ROLL
                             </span>
                           )}
                           {isCutPiece && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold">
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold">
                               <Scissors className="h-2.5 w-2.5" /> PIECE
                             </span>
                           )}
                           <span className="font-extrabold text-slate-900 text-sm truncate">{line.product?.name}</span>
                         </div>
                         {line.note && (
-                          <div className="text-[10px] font-mono text-slate-600 mt-0.5 truncate">{line.note}</div>
+                          <div className="text-[0.6875rem] font-mono text-slate-600 mt-0.5 truncate">{line.note}</div>
                         )}
-                        <div className="text-[10px] text-slate-500 font-bold mt-0.5 inline-flex items-center gap-0.5">
+                        <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5 inline-flex items-center gap-0.5">
                           <Calendar className="h-2.5 w-2.5" />
                           {new Date(line.sale.soldAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </div>
@@ -177,7 +177,7 @@ export default function CarpetCustomerDetailPage() {
                         <div className="font-extrabold text-emerald-700 text-sm tabular-nums">
                           {Number(line.quantity).toFixed(2)} {line.product?.unit}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-semibold">{formatPKR(line.total)}</div>
+                        <div className="text-[0.6875rem] text-slate-500 font-semibold">{formatPKR(line.total)}</div>
                       </div>
                       <ArrowRight className="h-4 w-4 text-slate-400 shrink-0 group-hover:text-emerald-600 group-hover:translate-x-1 transition" />
                     </div>
@@ -212,7 +212,7 @@ function StatCard({ icon: Icon, label, value, color, isHighlight }: any) {
         <div className={`h-6 w-6 rounded-lg ${colors[color]} border flex items-center justify-center shrink-0`}>
           <Icon className="h-3 w-3" />
         </div>
-        <div className={`text-[9px] uppercase font-extrabold tracking-wider ${colors[color].split(' ')[2]}`}>{label}</div>
+        <div className={`text-[0.625rem] uppercase font-extrabold tracking-wider ${colors[color].split(' ')[2]}`}>{label}</div>
       </div>
       <div className="text-base sm:text-lg font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
     </div>

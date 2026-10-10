@@ -88,7 +88,7 @@ export default function MetalStockPage() {
                   <div className="text-xs uppercase font-extrabold text-white/80">{b.metalType.replace('_', ' ')}</div>
                   <div className="text-sm font-extrabold">{b.purity.replace('KARAT_', '').replace('SILVER_', 'S')}K</div>
                   <div className="mt-2 text-3xl font-extrabold tabular-nums">{b.balanceGrams.toFixed(2)}g</div>
-                  <div className="text-[10px] font-bold text-white/70 mt-1">
+                  <div className="text-[0.6875rem] font-bold text-white/70 mt-1">
                     Updated: {format(new Date(b.lastEntryDate), 'dd MMM')}
                   </div>
                 </div>
@@ -129,7 +129,7 @@ export default function MetalStockPage() {
         </div>
       ) : (
         <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-3 border-b border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-800/50 grid grid-cols-6 gap-2 text-[10px] uppercase font-extrabold text-slate-500">
+          <div className="px-6 py-3 border-b border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-800/50 grid grid-cols-6 gap-2 text-[0.6875rem] uppercase font-extrabold text-slate-500">
             <div>Entry #</div>
             <div>Type</div>
             <div>Metal / Purity</div>
@@ -153,7 +153,7 @@ export default function MetalStockPage() {
                     {isIn ? '+' : '-'}{e.grams.toFixed(2)}g
                   </div>
                   <div className="text-right font-extrabold text-slate-900 dark:text-white tabular-nums">{e.balanceGrams.toFixed(2)}g</div>
-                  <div className="text-right text-[10px] font-bold text-slate-500">{format(new Date(e.entryDate), 'dd MMM, HH:mm')}</div>
+                  <div className="text-right text-[0.6875rem] font-bold text-slate-500">{format(new Date(e.entryDate), 'dd MMM, HH:mm')}</div>
                 </div>
               );
             })}
@@ -194,7 +194,7 @@ function StockEntryForm({ onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-4">
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Entry Type *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Entry Type *</label>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {ENTRY_TYPES.map((t) => (
               <button key={t.value} onClick={() => setForm({ ...form, entryType: t.value })} className={
@@ -202,8 +202,8 @@ function StockEntryForm({ onClose, onSaved }: any) {
                 (form.entryType === t.value ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-cyan-300')
               }>
                 <div className="text-2xl mb-1">{t.emoji}</div>
-                <div className="text-[9px] font-extrabold">{t.label}</div>
-                <div className={'text-[9px] font-bold ' + (t.direction === 'in' ? 'text-emerald-700' : 'text-rose-700')}>{t.direction === 'in' ? '+ IN' : '- OUT'}</div>
+                <div className="text-[0.625rem] font-extrabold">{t.label}</div>
+                <div className={'text-[0.625rem] font-bold ' + (t.direction === 'in' ? 'text-emerald-700' : 'text-rose-700')}>{t.direction === 'in' ? '+ IN' : '- OUT'}</div>
               </button>
             ))}
           </div>

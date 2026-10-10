@@ -353,7 +353,7 @@ export default function ElectronicsProfitReportPage() {
               </div>
               <div>
                 <h3 className="font-extrabold text-slate-900">Rozana Bikri aur Munafa</h3>
-                <p className="text-[11px] font-bold text-slate-500">
+                <p className="text-[0.6875rem] font-bold text-slate-500">
                   {range.from} se {range.to} tak
                 </p>
               </div>
@@ -391,7 +391,7 @@ export default function ElectronicsProfitReportPage() {
                   </div>
                   <div>
                     <h3 className="font-extrabold text-slate-900">{DIM_LABEL[dim]} Ke Hisab Se Munafa</h3>
-                    <p className="text-[11px] font-bold text-slate-500">{rows.length} entries · zyada munafe wala upar</p>
+                    <p className="text-[0.6875rem] font-bold text-slate-500">{rows.length} entries · zyada munafe wala upar</p>
                   </div>
                 </div>
                 <div className="relative print:hidden">
@@ -415,7 +415,7 @@ export default function ElectronicsProfitReportPage() {
                         : 'bg-white border-slate-200 text-slate-600 hover:border-emerald-300'
                     }`}>
                     <k.icon className="h-3.5 w-3.5" /> {k.label}
-                    <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${dim === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
+                    <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${dim === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
                   </button>
                 ))}
               </div>
@@ -461,7 +461,7 @@ export default function ElectronicsProfitReportPage() {
                         <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-xl shrink-0">{r.emoji}</div>
                         <div className="flex-1 min-w-0">
                           <div className="font-extrabold text-slate-900 text-sm truncate">{r.label}</div>
-                          <div className="mt-0.5 flex items-center gap-2 text-[11px] font-bold text-slate-500 flex-wrap">
+                          <div className="mt-0.5 flex items-center gap-2 text-[0.6875rem] font-bold text-slate-500 flex-wrap">
                             {r.sub && <span className="truncate">{r.sub}</span>}
                             <span className="tabular-nums">{r.units} units</span>
                             <span className="tabular-nums">Bikri {formatPKR(r.revenue)}</span>
@@ -475,7 +475,7 @@ export default function ElectronicsProfitReportPage() {
                           <div className={`text-base font-extrabold tabular-nums ${r.profit >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
                             {hideCost ? '•••••' : formatPKR(r.profit)}
                           </div>
-                          <div className={`text-[10px] font-extrabold tabular-nums inline-flex items-center gap-0.5 ${
+                          <div className={`text-[0.6875rem] font-extrabold tabular-nums inline-flex items-center gap-0.5 ${
                             good ? 'text-emerald-600' : bad ? 'text-rose-600' : 'text-amber-600'
                           }`}>
                             {good ? <ArrowUpRight className="h-3 w-3" /> : bad ? <ArrowDownRight className="h-3 w-3" /> : null}
@@ -521,11 +521,11 @@ function HeroStat({ label, value, sub, icon: Icon, highlight }: any) {
     <div className={`rounded-2xl backdrop-blur border p-4 ${
       highlight ? 'bg-white/25 border-white/40 shadow-lg' : 'bg-white/10 border-white/20'
     }`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
       <div className="mt-1 text-2xl font-extrabold tabular-nums truncate">{value}</div>
-      {sub && <div className="mt-0.5 text-[11px] font-bold text-white/70 truncate">{sub}</div>}
+      {sub && <div className="mt-0.5 text-[0.6875rem] font-bold text-white/70 truncate">{sub}</div>}
     </div>
   );
 }
@@ -543,9 +543,9 @@ function InsightCard({ icon: Icon, tone, title, main, sub }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] uppercase font-extrabold text-slate-500 tracking-wider">{title}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider">{title}</div>
         <div className="font-extrabold text-slate-900 truncate">{main}</div>
-        {sub && <div className="text-[11px] font-bold text-slate-500 truncate">{sub}</div>}
+        {sub && <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{sub}</div>}
       </div>
     </div>
   );
@@ -585,7 +585,7 @@ function ProfitTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Profit Report Kaise Parhein?</h3>
             </div>
           </div>
@@ -604,7 +604,7 @@ function ProfitTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

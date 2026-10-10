@@ -139,7 +139,7 @@ export default function SettingsPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <SettingsIcon className="h-3.5 w-3.5 text-amber-300" />
               Settings & Configuration
               {isFetching && !isLoading && <Loader2 className="h-3 w-3 animate-spin text-emerald-300" />}
@@ -229,7 +229,7 @@ export default function SettingsPage() {
               <currentTab.icon className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-widest flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-widest flex items-center gap-1">
                 <span>{GROUP_META[currentTab.group].label}</span>
                 <ChevronRight className="h-3 w-3" />
                 <span className="text-emerald-600 dark:text-emerald-400">Active</span>
@@ -242,7 +242,7 @@ export default function SettingsPage() {
               </p>
             </div>
             {isFetching && !isLoading && (
-              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/15 border-2 border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 text-[10px] font-extrabold">
+              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/15 border-2 border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 text-[0.6875rem] font-extrabold">
                 <Loader2 className="h-3 w-3 animate-spin" /> Syncing
               </div>
             )}
@@ -326,7 +326,7 @@ function SidebarNav({
       </div>
 
       {search && (
-        <div className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1">
+        <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1">
           {totalMatches} match{totalMatches !== 1 ? 'es' : ''}
         </div>
       )}
@@ -338,7 +338,7 @@ function SidebarNav({
           const meta = GROUP_META[groupKey];
           return (
             <div key={groupKey}>
-              <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 px-2 flex items-center gap-1.5">
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 px-2 flex items-center gap-1.5">
                 <meta.icon className="h-3 w-3" />
                 {meta.label}
               </div>
@@ -377,7 +377,7 @@ function SidebarNav({
                         </div>
                         <div
                           className={[
-                            'text-[10px] font-semibold leading-tight mt-0.5 truncate',
+                            'text-[0.6875rem] font-semibold leading-tight mt-0.5 truncate',
                             active ? 'text-white/80' : 'text-slate-500 dark:text-slate-400',
                           ].join(' ')}
                         >
@@ -413,7 +413,7 @@ function SidebarNav({
       {!embedded && (
         <div className="mt-6 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 flex items-start gap-2">
           <Sparkles className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-          <div className="text-[11px] font-semibold text-emerald-900 dark:text-emerald-200 leading-snug">
+          <div className="text-[0.6875rem] font-semibold text-emerald-900 dark:text-emerald-200 leading-snug">
             <strong>Auto-save on:</strong> koi bhi change karo, 800ms baad khud save ho jayega. Save button ki zaroorat nahi.
           </div>
         </div>

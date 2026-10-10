@@ -10,7 +10,7 @@ interface Props {
 
 export function QuickColorChip({ name, hex, active, onClick, size = 'md' }: Props) {
   const sizeClasses = size === 'sm'
-    ? 'px-2 py-1 text-[10px] gap-1'
+    ? 'px-2 py-1 text-[0.6875rem] gap-1'
     : 'px-2.5 py-1.5 text-xs gap-1.5';
 
   return (

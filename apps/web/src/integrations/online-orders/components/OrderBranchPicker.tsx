@@ -30,20 +30,20 @@ export function OrderBranchPicker({ order, onChanged }: { order: OnlineOrderDeta
     <section className="rounded-2xl border border-slate-200 p-3 dark:border-neutral-800">
       <div className="flex flex-wrap items-center gap-2">
         <Store className="h-4 w-4 text-slate-400" />
-        <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200">Branch</span>
+        <span className="text-[0.8125rem] font-bold text-slate-700 dark:text-slate-200">Branch</span>
         <span className="flex-1" />
         <select
           value={current}
           disabled={move.isPending}
           onChange={(e) => e.target.value && e.target.value !== current && move.mutate(e.target.value)}
-          className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-[13px] font-semibold dark:border-neutral-700 dark:bg-neutral-900"
+          className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] font-semibold dark:border-neutral-700 dark:bg-neutral-900"
         >
           {!current && <option value="">— chunein —</option>}
           {active.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </div>
       {route && (
-        <label className="mt-2 flex items-center gap-2 text-[12px] text-slate-500">
+        <label className="mt-2 flex items-center gap-2 text-[0.75rem] text-slate-500">
           <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="h-3.5 w-3.5 accent-emerald-600" />
           Aage se is website branch ke orders bhi seedha isi branch me
         </label>

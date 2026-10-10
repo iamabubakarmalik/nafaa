@@ -335,7 +335,7 @@ export default function DeliveriesPage() {
             }`}>
             <t.icon className="h-4 w-4" /> {t.label}
             {t.n !== undefined && t.n > 0 && (
-              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
             )}
           </button>
         ))}
@@ -386,12 +386,12 @@ export default function DeliveriesPage() {
                   <div className="px-3 py-2.5 flex items-center justify-between gap-2 border-b-2 border-slate-200 dark:border-slate-800"
                     style={{ background: `${m.hex}18` }}>
                     <span className="text-xs font-black text-slate-800 dark:text-slate-100">{m.emoji} {m.label}</span>
-                    <span className="h-6 min-w-[24px] px-1.5 rounded-lg text-[11px] font-black text-white flex items-center justify-center tabular-nums"
+                    <span className="h-6 min-w-[24px] px-1.5 rounded-lg text-[0.6875rem] font-black text-white flex items-center justify-center tabular-nums"
                       style={{ background: m.hex }}>{items.length}</span>
                   </div>
                   <div className="p-2 space-y-2 max-h-[560px] overflow-y-auto">
                     {items.length === 0 ? (
-                      <div className="py-8 text-center text-[11px] font-bold text-slate-400">Khali</div>
+                      <div className="py-8 text-center text-[0.6875rem] font-bold text-slate-400">Khali</div>
                     ) : items.map((d) => (
                       <DeliveryCard key={d.id} d={d} money={money} compact
                         onVehicle={() => setVehicleFor(d)}
@@ -453,7 +453,7 @@ export default function DeliveriesPage() {
                   <div className="grid grid-cols-2 gap-1.5 mt-2">
                     {chargeData.map((c) => (
                       <div key={c.name} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 flex items-center justify-between">
-                        <span className="text-[11px] font-extrabold text-slate-600 dark:text-slate-300">{c.name}</span>
+                        <span className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">{c.name}</span>
                         <span className="text-xs font-black tabular-nums" style={{ color: c.hex }}>{money(c.value)}</span>
                       </div>
                     ))}
@@ -511,13 +511,13 @@ export default function DeliveriesPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{d.customerName}</div>
-                      <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 font-mono truncate">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 font-mono truncate">
                         {d.deliveryNumber} · di gayi {d.deliveredAt ? fmtDate(d.deliveredAt) : '—'}
                       </div>
                     </div>
                     {d.customerPhone && (
                       <a href={`tel:${d.customerPhone}`}
-                        className="h-9 px-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-[11px] font-extrabold inline-flex items-center gap-1 shrink-0 transition">
+                        className="h-9 px-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 shrink-0 transition">
                         <Phone className="h-3.5 w-3.5" /> Call
                       </a>
                     )}
@@ -614,7 +614,7 @@ function AlertBox({ tone, icon: Icon, n, title, desc }: {
         </div>
         <div className="min-w-0">
           <div className="font-black text-sm">{n} · {title}</div>
-          <p className="text-[11px] font-bold opacity-80 mt-0.5">{desc}</p>
+          <p className="text-[0.6875rem] font-bold opacity-80 mt-0.5">{desc}</p>
         </div>
       </div>
     </div>
@@ -639,14 +639,14 @@ function DeliveryCard({ d, money, compact, onVehicle, onConfirm, onStatus }: {
       <div className={compact ? 'p-2.5 space-y-2' : 'p-4 space-y-3'}>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className="font-mono text-[10px] font-extrabold text-slate-500 dark:text-slate-400">{d.deliveryNumber}</div>
+            <div className="font-mono text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400">{d.deliveryNumber}</div>
             <div className={`font-black text-slate-900 dark:text-white truncate ${compact ? 'text-sm' : ''}`}>{d.customerName}</div>
-            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">{d.customerPhone}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{d.customerPhone}</div>
           </div>
           {!compact && <StatusBadge meta={meta} size="xs" />}
         </div>
 
-        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
           <div className="flex items-start gap-1.5">
             <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5 text-slate-400" />
             <span className="min-w-0">{[d.deliveryAddress, d.area, d.city].filter(Boolean).join(', ') || 'Pata darj nahi'}</span>
@@ -665,7 +665,7 @@ function DeliveryCard({ d, money, compact, onVehicle, onConfirm, onStatus }: {
           )}
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap text-[10px] font-extrabold">
+        <div className="flex items-center gap-2 flex-wrap text-[0.6875rem] font-extrabold">
           {d.scheduledDate && (
             <span className={`px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
               overdue ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
@@ -702,13 +702,13 @@ function DeliveryCard({ d, money, compact, onVehicle, onConfirm, onStatus }: {
         <div className="flex items-center gap-1.5 flex-wrap">
           {!d.vehicleNumber && !['DELIVERED', 'CANCELLED'].includes(d.status) && (
             <button onClick={onVehicle}
-              className="flex-1 min-w-[110px] h-9 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-700 text-white text-[11px] font-extrabold inline-flex items-center justify-center gap-1 shadow transition">
+              className="flex-1 min-w-[110px] h-9 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 shadow transition">
               <Truck className="h-3.5 w-3.5" /> Gaari Lagayein
             </button>
           )}
           {d.status === 'ARRIVED' && (
             <button onClick={onConfirm}
-              className="flex-1 min-w-[110px] h-9 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[11px] font-extrabold inline-flex items-center justify-center gap-1 shadow transition">
+              className="flex-1 min-w-[110px] h-9 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 shadow transition">
               <ClipboardCheck className="h-3.5 w-3.5" /> De Diya
             </button>
           )}
@@ -716,7 +716,7 @@ function DeliveryCard({ d, money, compact, onVehicle, onConfirm, onStatus }: {
             const m = delStatusMeta(st);
             return (
               <button key={st} onClick={() => onStatus(st)}
-                className="h-9 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-extrabold transition">
+                className="h-9 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold transition">
                 {m.emoji} {m.label}
               </button>
             );
@@ -753,7 +753,7 @@ function VehicleSheet({ d, pending, onClose, onSubmit }: {
     <Sheet title="Gaari aur Driver" subtitle={`${d.deliveryNumber} · ${d.customerName}`} onClose={onClose}>
       <div className="space-y-3">
         {!d.hasLift && !!d.floorNumber && (
-          <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 text-[12px] font-bold text-amber-900 dark:text-amber-200">
+          <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
             ⚠️ {d.floorNumber} manzil aur lift nahi — do banday kam par sakte hain. Helper ki tadaad barha dein.
           </div>
         )}
@@ -803,7 +803,7 @@ function ConfirmSheet({ d, pending, onClose, onSubmit }: {
   return (
     <Sheet title="Delivery Mukammal" subtitle={`${d.deliveryNumber} · ${d.customerName}`} onClose={onClose}>
       <div className="space-y-3">
-        <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 text-[12px] font-bold text-emerald-900 dark:text-emerald-200">
+        <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200">
           Confirm karte hi serial number is customer ke naam ho jayega aur warranty ki ginti shuru ho jayegi.
           Lene wale ka naam aur CNIC darj karein — baad me kisi jhagre me yehi kaam aata hai.
         </div>
@@ -816,7 +816,7 @@ function ConfirmSheet({ d, pending, onClose, onSubmit }: {
             placeholder="35202-1234567-1" className={inputCls('font-mono')} />
         </Field>
         {d.requiresInstallation && !d.installationLinked && (
-          <div className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3 text-[12px] font-bold text-violet-900 dark:text-violet-200">
+          <div className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3 text-[0.75rem] font-bold text-violet-900 dark:text-violet-200">
             🔧 Is par installation bhi honi hai. Delivery ke foran baad installation book kar dein — warna ye paisa aksar zaya ho jata hai.
           </div>
         )}

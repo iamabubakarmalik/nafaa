@@ -570,7 +570,7 @@ export default function ElectronicsSalesPage() {
           style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Cpu className="h-3.5 w-3.5 text-cyan-300" /> Electronics · Bikri
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">🧾 Bikri ka Record</h1>
@@ -650,20 +650,20 @@ export default function ElectronicsSalesPage() {
                 <h3 className="font-black text-rose-900 dark:text-rose-200 text-sm">
                   {serialStats.gapQty} cheezein serial jore baghair bik gayin
                 </h3>
-                <p className="text-[12px] font-bold text-rose-800 dark:text-rose-300 mt-0.5">
+                <p className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300 mt-0.5">
                   In grahakon ki warranty ka koi saboot nahi bacha. Claim ke din jhagra hoga —
                   abhi bill khol kar serial jor dein, bil kul asaan hai.
                 </p>
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {serialStats.gapList.map((s) => (
                     <Link key={s.id} to={receiptLink(s.id, false)}
-                      className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[10px] font-black text-rose-800 dark:text-rose-200">
+                      className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[0.6875rem] font-black text-rose-800 dark:text-rose-200">
                       {s.saleNumber} · {serialGap(s)} baqi
                     </Link>
                   ))}
                 </div>
                 <button onClick={() => { setNoSerialOnly(true); setTab('list'); }}
-                  className="mt-1.5 text-[11px] font-black text-rose-700 dark:text-rose-300 underline">
+                  className="mt-1.5 text-[0.6875rem] font-black text-rose-700 dark:text-rose-300 underline">
                   Saare aise bill dekhein →
                 </button>
               </div>
@@ -676,19 +676,19 @@ export default function ElectronicsSalesPage() {
                 <h3 className="font-black text-amber-900 dark:text-amber-200 text-sm">
                   {warrantyEnding.length} cheezon ki warranty 30 din me khatam
                 </h3>
-                <p className="text-[12px] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
+                <p className="text-[0.75rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
                   Jis grahak ki warranty khatam hone wali hai, use pehle bata dein — kharabi ho to abhi
                   dikha jaye. Baad me aayega to kuch nahi ho sakta.
                 </p>
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {warrantyEnding.slice(0, 4).map((s: any) => (
-                    <span key={s.id} className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[10px] font-black text-amber-800 dark:text-amber-200">
+                    <span key={s.id} className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[0.6875rem] font-black text-amber-800 dark:text-amber-200">
                       {s.product?.name ?? 'Cheez'} · {fmtD(s.warrantyEndDate)}
                     </span>
                   ))}
                 </div>
                 <Link to="/electronics/serials?status=SOLD"
-                  className="mt-1.5 inline-block text-[11px] font-black text-amber-700 dark:text-amber-300 underline">
+                  className="mt-1.5 inline-block text-[0.6875rem] font-black text-amber-700 dark:text-amber-300 underline">
                   Saare serial dekhein →
                 </Link>
               </div>
@@ -718,10 +718,10 @@ export default function ElectronicsSalesPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-base sm:text-lg font-black truncate">{t.label}</span>
                     {t.n !== undefined && (
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-black tabular-nums ${on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums ${on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
                     )}
                   </div>
-                  <div className={`text-[11px] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.hint}</div>
+                  <div className={`text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.hint}</div>
                 </div>
               </div>
             </button>
@@ -759,7 +759,7 @@ export default function ElectronicsSalesPage() {
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setShowDate(false)} />
                 <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-2">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Tareekh chunein</div>
+                  <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Tareekh chunein</div>
                   <div className="grid grid-cols-2 gap-1.5">
                     {DATE_OPTS.map(([v, l]) => (
                       <button key={v} onClick={() => { setDateFilter(v); if (v !== 'custom') setShowDate(false); }}
@@ -773,14 +773,14 @@ export default function ElectronicsSalesPage() {
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       {([['Se', customStart, setCustomStart], ['Tak', customEnd, setCustomEnd]] as const).map(([l, v, set]) => (
                         <div key={l}>
-                          <label className="text-[10px] font-black uppercase text-slate-500 mb-1 block">{l}</label>
+                          <label className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1 block">{l}</label>
                           <input type="date" value={v} onChange={(e) => set(e.target.value)}
                             className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 [color-scheme:light] dark:[color-scheme:dark]" />
                         </div>
                       ))}
                     </div>
                   )}
-                  <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[11px] font-bold text-slate-500 text-center">{rangeLabel}</div>
+                  <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[0.6875rem] font-bold text-slate-500 text-center">{rangeLabel}</div>
                 </div>
               </>
             )}
@@ -795,7 +795,7 @@ export default function ElectronicsSalesPage() {
               }`}>
               <Filter className="h-4 w-4" /> Chaant
               {(payFilter !== 'all' || creditOnly || noSerialOnly) && (
-                <span className="h-5 w-5 rounded-full bg-amber-600 text-white text-[10px] flex items-center justify-center">
+                <span className="h-5 w-5 rounded-full bg-amber-600 text-white text-[0.6875rem] flex items-center justify-center">
                   {[payFilter !== 'all', creditOnly, noSerialOnly].filter(Boolean).length}
                 </span>
               )}
@@ -806,13 +806,13 @@ export default function ElectronicsSalesPage() {
                 <div className="fixed inset-0 z-30" onClick={() => setShowMore(false)} />
                 <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3">
                   <div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Paisa kaise aaya</div>
+                    <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Paisa kaise aaya</div>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button onClick={() => setPayFilter('all')}
-                        className={`h-10 rounded-xl text-[11px] font-black transition ${payFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>Sab</button>
+                        className={`h-10 rounded-xl text-[0.6875rem] font-black transition ${payFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>Sab</button>
                       {Object.entries(PAY).map(([k, v]) => (
                         <button key={k} onClick={() => setPayFilter(k as PaymentMethod)}
-                          className={`h-10 rounded-xl text-[11px] font-black inline-flex items-center justify-center gap-1 transition ${payFilter === k ? 'text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                          className={`h-10 rounded-xl text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${payFilter === k ? 'text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
                           style={payFilter === k ? { background: v.hex } : undefined}>
                           <v.icon className="h-3 w-3" /> {v.label}
                         </button>
@@ -823,14 +823,14 @@ export default function ElectronicsSalesPage() {
                     <input type="checkbox" checked={creditOnly} onChange={(e) => setCreditOnly(e.target.checked)} className="h-4 w-4 rounded accent-amber-600" />
                     <div className="min-w-0">
                       <div className="text-xs font-black text-amber-900 dark:text-amber-200">Sirf udhaar wale</div>
-                      <div className="text-[10px] font-bold text-amber-700 dark:text-amber-400">{stats.creditCount} bill par paisa baqi</div>
+                      <div className="text-[0.6875rem] font-bold text-amber-700 dark:text-amber-400">{stats.creditCount} bill par paisa baqi</div>
                     </div>
                   </label>
                   <label className="flex items-center gap-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 cursor-pointer">
                     <input type="checkbox" checked={noSerialOnly} onChange={(e) => setNoSerialOnly(e.target.checked)} className="h-4 w-4 rounded accent-rose-600" />
                     <div className="min-w-0">
                       <div className="text-xs font-black text-rose-900 dark:text-rose-200">Serial ke baghair bikri</div>
-                      <div className="text-[10px] font-bold text-rose-700 dark:text-rose-400">{serialStats.gapBills} bill par warranty ka saboot nahi</div>
+                      <div className="text-[0.6875rem] font-bold text-rose-700 dark:text-rose-400">{serialStats.gapBills} bill par warranty ka saboot nahi</div>
                     </div>
                   </label>
                 </div>
@@ -847,7 +847,7 @@ export default function ElectronicsSalesPage() {
         </div>
 
         {hasFilters && (
-          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[11px] font-black">
+          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[0.6875rem] font-black">
             <span className="text-slate-400">Chaant:</span>
             <span className="px-2 py-1 rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300">{rangeLabel}</span>
             {payFilter !== 'all' && <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{PAY[payFilter]?.label}</span>}
@@ -997,7 +997,7 @@ export default function ElectronicsSalesPage() {
                       </span>
                       <span className="flex-1 min-w-0">
                         <span className="block text-xs font-black text-slate-900 dark:text-white truncate">{c.name}</span>
-                        <span className="block text-[10px] font-bold text-slate-400">{c.bills} bill{c.phone ? ` · ${c.phone}` : ''}</span>
+                        <span className="block text-[0.6875rem] font-bold text-slate-400">{c.bills} bill{c.phone ? ` · ${c.phone}` : ''}</span>
                       </span>
                       <span className="text-sm font-black text-blue-600 dark:text-blue-400 tabular-nums shrink-0">
                         {showValue(formatPKR(c.value))}
@@ -1055,22 +1055,22 @@ export default function ElectronicsSalesPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-mono font-black text-sm text-slate-900 dark:text-white">{s.saleNumber}</span> <SaleSourceBadge sale={s as any} className="ml-1 align-middle" />
-                          <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md ${pay.chip}`}>{pay.label}</span>
-                          {voided && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-600 text-white">Void</span>}
+                          <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md ${pay.chip}`}>{pay.label}</span>
+                          {voided && <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-600 text-white">Void</span>}
                           {gap > 0 && (
-                            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-600 text-white inline-flex items-center gap-1">
+                            <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-600 text-white inline-flex items-center gap-1">
                               <ShieldAlert className="h-2.5 w-2.5" /> {gap} bina serial
                             </span>
                           )}
                           {mySerials.length > 0 && (
-                            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 inline-flex items-center gap-1">
+                            <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 inline-flex items-center gap-1">
                               <Hash className="h-2.5 w-2.5" /> {mySerials.length} serial
                             </span>
                           )}
-                          {full && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-500 text-white">Poori wapsi</span>}
-                          {part && <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-orange-500 text-white">Kuch wapsi</span>}
+                          {full && <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-500 text-white">Poori wapsi</span>}
+                          {part && <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-orange-500 text-white">Kuch wapsi</span>}
                           {credit && !voided && (
-                            <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 inline-flex items-center gap-1">
+                            <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 inline-flex items-center gap-1">
                               <BookOpen className="h-2.5 w-2.5" /> Udhaar
                             </span>
                           )}
@@ -1085,7 +1085,7 @@ export default function ElectronicsSalesPage() {
                           <span>{(s.items ?? []).length} cheezein · {Number(qty.toFixed(2))} qty</span>
                         </div>
 
-                        <div className="mt-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 flex-wrap">
+                        <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 flex-wrap">
                           <Clock className="h-2.5 w-2.5" />
                           <span className="text-slate-700 dark:text-slate-200">{fmtTime(s.soldAt)}</span>
                           <span className="text-slate-300">•</span>
@@ -1099,14 +1099,14 @@ export default function ElectronicsSalesPage() {
                             const prof = profByProduct.get(itemPid(it));
                             return (
                               <span key={it.id ?? n}
-                                className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[190px] truncate">
+                                className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[190px] truncate">
                                 {trackedIds.has(itemPid(it)) ? '🔢 ' : `${catMeta(prof?.categoryType).emoji} `}
                                 {it.product?.name} × {Number(Number(it.quantity).toFixed(2))}
                               </span>
                             );
                           })}
                           {(s.items?.length ?? 0) > 4 && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">
+                            <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">
                               +{s.items.length - 4} aur
                             </span>
                           )}
@@ -1115,13 +1115,13 @@ export default function ElectronicsSalesPage() {
                         {/* Serial / IMEI — claim ke din yehi kaam aata hai */}
                         {mySerials.length > 0 && (
                           <div className="mt-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 px-2 py-1.5">
-                            <div className="text-[9px] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300 mb-1 inline-flex items-center gap-1">
+                            <div className="text-[0.625rem] font-black uppercase tracking-wide text-sky-700 dark:text-sky-300 mb-1 inline-flex items-center gap-1">
                               <Hash className="h-2.5 w-2.5" /> Is bill ke serial / IMEI
                             </div>
                             <div className="flex flex-wrap gap-1">
                               {mySerials.slice(0, 6).map((x: any) => (
                                 <span key={x.id}
-                                  className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 font-mono text-[10px] font-black text-slate-700 dark:text-slate-200">
+                                  className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 font-mono text-[0.6875rem] font-black text-slate-700 dark:text-slate-200">
                                   {x.imei || x.serialNumber}
                                   {x.warrantyEndDate && (
                                     <span className="ml-1 font-sans text-emerald-600 dark:text-emerald-400">
@@ -1131,7 +1131,7 @@ export default function ElectronicsSalesPage() {
                                 </span>
                               ))}
                               {mySerials.length > 6 && (
-                                <span className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[10px] font-black text-slate-500">
+                                <span className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[0.6875rem] font-black text-slate-500">
                                   +{mySerials.length - 6} aur
                                 </span>
                               )}
@@ -1140,7 +1140,7 @@ export default function ElectronicsSalesPage() {
                         )}
 
                         {gap > 0 && (
-                          <p className="mt-1.5 text-[10px] font-black text-rose-700 dark:text-rose-400">
+                          <p className="mt-1.5 text-[0.6875rem] font-black text-rose-700 dark:text-rose-400">
                             ⚠️ {gap} cheez ka serial jora nahi gaya — is grahak ki warranty ka saboot nahi bacha
                           </p>
                         )}
@@ -1152,57 +1152,57 @@ export default function ElectronicsSalesPage() {
                         {showValue(formatPKR(s.total))}
                       </div>
                       {Number(s.changeAmount) > 0 && !voided && (
-                        <div className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
+                        <div className="text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
                           Wapis diya: {showValue(formatPKR(s.changeAmount))}
                         </div>
                       )}
                       {credit && !voided && (
-                        <div className="text-[10px] font-black text-amber-600 tabular-nums">{showValue(formatPKR(s.creditAmount))} baqi</div>
+                        <div className="text-[0.6875rem] font-black text-amber-600 tabular-nums">{showValue(formatPKR(s.creditAmount))} baqi</div>
                       )}
                     </div>
                   </div>
 
                   <div className="mt-2.5 flex items-center gap-1.5 flex-wrap print:hidden">
                     <Link to={receiptLink(s.id, false)}
-                      className="relative z-10 h-9 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 transition">
+                      className="relative z-10 h-9 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                       <Eye className="h-3.5 w-3.5" /> Bill dekhein
                     </Link>
                     <Link to={receiptLink(s.id, true)} title="Seedha print"
-                      className="relative z-10 h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-slate-700 dark:text-slate-200 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+                      className="relative z-10 h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                       <Printer className="h-3.5 w-3.5" /> Print
                     </Link>
                     {gap > 0 && (
                       <Link to={`/electronics/serials?sale=${s.id}`}
-                        className="relative z-10 h-9 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 transition">
+                        className="relative z-10 h-9 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                         <Hash className="h-3.5 w-3.5" /> Serial jorein
                       </Link>
                     )}
                     {mySerials.length > 0 && !voided && (
                       <Link to="/electronics/warranty-claims"
-                        className="relative z-10 h-9 px-3 rounded-xl bg-sky-50 dark:bg-sky-500/15 hover:bg-sky-100 text-sky-700 dark:text-sky-300 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+                        className="relative z-10 h-9 px-3 rounded-xl bg-sky-50 dark:bg-sky-500/15 hover:bg-sky-100 text-sky-700 dark:text-sky-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                         <ShieldCheck className="h-3.5 w-3.5" /> Claim
                       </Link>
                     )}
                     {wa && (
                       <a href={wa} target="_blank" rel="noreferrer" title="WhatsApp par bill bhejein"
-                        className="relative z-10 h-9 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 text-[11px] font-black inline-flex items-center gap-1.5 transition">
+                        className="relative z-10 h-9 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                         <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
                       </a>
                     )}
                     {!voided && !full && (
                       <button onClick={() => setReturnTarget(s)}
-                        className="relative z-10 h-9 px-3 rounded-xl border-2 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 text-[11px] font-black inline-flex items-center gap-1.5 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition">
+                        className="relative z-10 h-9 px-3 rounded-xl border-2 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition">
                         <Undo2 className="h-3.5 w-3.5" /> Wapsi
                       </button>
                     )}
                     {!voided && (
                       <button onClick={() => setVoidTarget(s)}
-                        className="relative z-10 h-9 px-3 rounded-xl border-2 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 text-[11px] font-black inline-flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 ml-auto transition">
+                        className="relative z-10 h-9 px-3 rounded-xl border-2 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 ml-auto transition">
                         <Trash2 className="h-3.5 w-3.5" /> Void
                       </button>
                     )}
                     {voided && (
-                      <span className="ml-auto text-[10px] font-black text-rose-600 inline-flex items-center gap-1">
+                      <span className="ml-auto text-[0.6875rem] font-black text-rose-600 inline-flex items-center gap-1">
                         Void{s.voidReason ? ` — ${s.voidReason}` : ''}
                       </span>
                     )}
@@ -1285,16 +1285,16 @@ function ReceiptPrefsPopover({ prefs, onChange, onClose, anchorRef }: {
   if (!pos) return null;
 
   const seg = (on: boolean) =>
-    `h-9 rounded-lg text-[11px] font-black transition ${on ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`;
+    `h-9 rounded-lg text-[0.6875rem] font-black transition ${on ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`;
 
   return createPortal(
     <>
       <div className="fixed inset-0 z-[70] print:hidden" onClick={onClose} />
       <div style={{ top: pos.top, right: pos.right }}
         className="fixed z-[71] w-64 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3 text-slate-900 dark:text-white print:hidden">
-        <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Receipt ki settings</div>
+        <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Receipt ki settings</div>
         <div>
-          <div className="text-[10px] font-black uppercase text-slate-500 mb-1">Kaghaz</div>
+          <div className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1">Kaghaz</div>
           <div className="grid grid-cols-2 gap-1.5">
             {(['58', '80'] as const).map((w) => (
               <button key={w} onClick={() => onChange({ paperWidth: w })} className={seg(prefs.paperWidth === w)}>{w}mm</button>
@@ -1302,7 +1302,7 @@ function ReceiptPrefsPopover({ prefs, onChange, onClose, anchorRef }: {
           </div>
         </div>
         <div>
-          <div className="text-[10px] font-black uppercase text-slate-500 mb-1">Tafseel</div>
+          <div className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1">Tafseel</div>
           <div className="grid grid-cols-2 gap-1.5">
             {([['short', 'Chhota'], ['full', 'Poora']] as const).map(([m, l]) => (
               <button key={m} onClick={() => onChange({ mode: m })} className={seg(prefs.mode === m)}>{l}</button>
@@ -1312,14 +1312,14 @@ function ReceiptPrefsPopover({ prefs, onChange, onClose, anchorRef }: {
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={prefs.autoPrint} onChange={(e) => onChange({ autoPrint: e.target.checked })}
             className="h-4 w-4 rounded accent-blue-600" />
-          <span className="text-[11px] font-black">Bill kholte hi print</span>
+          <span className="text-[0.6875rem] font-black">Bill kholte hi print</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={prefs.showLogo} onChange={(e) => onChange({ showLogo: e.target.checked })}
             className="h-4 w-4 rounded accent-blue-600" />
-          <span className="text-[11px] font-black">Logo dikhayein</span>
+          <span className="text-[0.6875rem] font-black">Logo dikhayein</span>
         </label>
-        <p className="text-[10px] font-bold text-slate-400">"Print" button hamesha seedha print karta hai.</p>
+        <p className="text-[0.6875rem] font-bold text-slate-400">"Print" button hamesha seedha print karta hai.</p>
       </div>
     </>,
     document.body,
@@ -1340,22 +1340,22 @@ function VoidModal({ sale, pending, serials, onClose, onConfirm }: any) {
               <AlertTriangle className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <div className="text-[10px] uppercase tracking-widest font-black text-white/80">Bill void karein</div>
+              <div className="text-[0.6875rem] uppercase tracking-widest font-black text-white/80">Bill void karein</div>
               <h3 className="font-black text-lg font-mono">{sale.saleNumber}</h3>
             </div>
           </div>
         </div>
         <div className="p-5 space-y-3">
-          <p className="text-[12px] font-bold text-slate-600 dark:text-slate-300">
+          <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
             Void karne se stock wapas aa jayega aur ye bill hisab se nikal jayega.
           </p>
 
           {serials?.length > 0 && (
             <div className="rounded-xl bg-sky-50 dark:bg-sky-500/10 border-2 border-sky-200 dark:border-sky-500/30 p-2.5">
-              <p className="text-[11px] font-black text-sky-900 dark:text-sky-200">
+              <p className="text-[0.6875rem] font-black text-sky-900 dark:text-sky-200">
                 Is bill ke sath {serials.length} serial gaye thay
               </p>
-              <p className="text-[11px] font-bold text-sky-800 dark:text-sky-300 mt-0.5">
+              <p className="text-[0.6875rem] font-bold text-sky-800 dark:text-sky-300 mt-0.5">
                 Void ke baad wo stock me wapas aane chahiyen. Ek baar Serial safhe par ja kar dekh lein
                 ke unki haalat "stock me" ho gayi hai.
               </p>
@@ -1363,7 +1363,7 @@ function VoidModal({ sale, pending, serials, onClose, onConfirm }: any) {
           )}
 
           <div>
-            <label className="block mb-1 text-[11px] font-black uppercase tracking-wide text-slate-500">
+            <label className="block mb-1 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500">
               Wajah <span className="text-rose-500">*</span>
             </label>
             <input autoFocus value={reason} onChange={(e) => setReason(e.target.value)}
@@ -1372,7 +1372,7 @@ function VoidModal({ sale, pending, serials, onClose, onConfirm }: any) {
             <div className="mt-1.5 flex flex-wrap gap-1">
               {quick.map((r) => (
                 <button key={r} onClick={() => setReason(r)}
-                  className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-black text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                  className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-black text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
                   {r}
                 </button>
               ))}
@@ -1417,12 +1417,12 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active, highlight }
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${KPI_TONES[tone] ?? KPI_TONES.blue} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
       </div>
       <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
-      {sub && <p className="mt-0.5 text-[10px] font-bold text-slate-400 truncate">{sub}</p>}
+      {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
     </Wrap>
   );
 }
@@ -1438,7 +1438,7 @@ function Panel({ icon: Icon, title, hint, children }: {
         </span>
         <div className="min-w-0">
           <h2 className="text-sm font-black text-slate-900 dark:text-white truncate">{title}</h2>
-          {hint && <p className="text-[10px] font-bold text-slate-400 truncate">{hint}</p>}
+          {hint && <p className="text-[0.6875rem] font-bold text-slate-400 truncate">{hint}</p>}
         </div>
       </header>
       <div className="p-4">{children}</div>
@@ -1488,15 +1488,15 @@ function Teacher({ onClose }: { onClose: () => void }) {
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-black text-slate-900 dark:text-white">{s.t}</p>
-                <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
               </div>
             </div>
           ))}
           <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
+            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['/', 'Dhoondein'], ['B', 'Scan'], ['A', 'Analytics'], ['G', 'Ye safha'], ['P', 'Print'], ['Esc', 'Band']].map(([k, l]) => (
-                <span key={k} className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/80">
+                <span key={k} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/80">
                   <kbd className="px-1.5 py-0.5 rounded bg-white/15 font-black">{k}</kbd> {l}
                 </span>
               ))}

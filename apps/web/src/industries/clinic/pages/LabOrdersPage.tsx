@@ -80,13 +80,13 @@ export default function LabOrdersPage() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-extrabold text-sm">{order.orderNumber}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + STATUS_COLORS[order.status]}>
+                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[order.status]}>
                           {order.status.replace(/_/g, ' ')}
                         </span>
-                        {order.urgency === 'STAT' && <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase animate-pulse">STAT</span>}
-                        {order.urgency === 'URGENT' && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase">URGENT</span>}
-                        {critical > 0 && <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><AlertCircle className="h-2 w-2" />{critical} CRITICAL</span>}
-                        {abnormal > 0 && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase">{abnormal} ABNORMAL</span>}
+                        {order.urgency === 'STAT' && <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">STAT</span>}
+                        {order.urgency === 'URGENT' && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase">URGENT</span>}
+                        {critical > 0 && <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><AlertCircle className="h-2 w-2" />{critical} CRITICAL</span>}
+                        {abnormal > 0 && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase">{abnormal} ABNORMAL</span>}
                       </div>
                       <div className="text-xs text-slate-500 font-semibold mt-1">
                         <Calendar className="h-3 w-3 inline mr-1" />
@@ -97,7 +97,7 @@ export default function LabOrdersPage() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(order.totalCost)}</div>
-                    {order.paymentStatus === 'PAID' && <div className="text-[10px] font-extrabold text-emerald-600">PAID</div>}
+                    {order.paymentStatus === 'PAID' && <div className="text-[0.6875rem] font-extrabold text-emerald-600">PAID</div>}
                   </div>
                 </div>
 
@@ -115,7 +115,7 @@ export default function LabOrdersPage() {
                           Result: <span className={t.isCritical ? 'text-red-700' : t.isAbnormal ? 'text-amber-700' : 'text-slate-700'}>
                             {t.result} {t.unit}
                           </span>
-                          {t.referenceRange && <span className="text-[10px] text-slate-500"> (Ref: {t.referenceRange})</span>}
+                          {t.referenceRange && <span className="text-[0.6875rem] text-slate-500"> (Ref: {t.referenceRange})</span>}
                         </div>
                       )}
                     </div>

@@ -110,7 +110,7 @@ export default function LayawayPage() {
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-slate-900 dark:text-white">{plan.planNumber}</span>
-                        <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + STATUS_COLORS[plan.status]}>
+                        <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[plan.status]}>
                           {plan.status}
                         </span>
                       </div>
@@ -143,21 +143,21 @@ export default function LayawayPage() {
 
                   <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
                     <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2">
-                      <div className="text-[9px] uppercase font-extrabold text-slate-500">Total</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Total</div>
                       <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(plan.totalAmount)}</div>
                     </div>
                     <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2">
-                      <div className="text-[9px] uppercase font-extrabold text-emerald-700">Paid</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Paid</div>
                       <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(plan.paidAmount)}</div>
                     </div>
                     <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2">
-                      <div className="text-[9px] uppercase font-extrabold text-amber-700">Remaining</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Remaining</div>
                       <div className="text-lg font-extrabold text-amber-700 tabular-nums">{formatPKR(plan.remainingAmount)}</div>
                     </div>
                   </div>
 
                   <div className="mt-3">
-                    <div className="flex items-center justify-between text-[10px] font-extrabold text-slate-500 mb-1">
+                    <div className="flex items-center justify-between text-[0.6875rem] font-extrabold text-slate-500 mb-1">
                       <span>Payment Progress</span>
                       <span>{progressPct.toFixed(0)}%</span>
                     </div>
@@ -169,7 +169,7 @@ export default function LayawayPage() {
 
                 {plan.installments.length > 0 && (
                   <div className="border-t border-slate-100 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-800/20 p-3">
-                    <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">Installments</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2">Installments</div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
                       {plan.installments.map((inst) => (
                         <div key={inst.id} className={
@@ -179,13 +179,13 @@ export default function LayawayPage() {
                            'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900')
                         }>
                           <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-extrabold text-slate-500">#{inst.installmentNo}</span>
-                            <span className={'px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase text-white ' + INSTALLMENT_COLORS[inst.status]}>
+                            <span className="text-[0.625rem] font-extrabold text-slate-500">#{inst.installmentNo}</span>
+                            <span className={'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' + INSTALLMENT_COLORS[inst.status]}>
                               {inst.status === 'PARTIALLY_PAID' ? 'PART' : inst.status}
                             </span>
                           </div>
                           <div className="mt-1 text-xs font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(inst.amount)}</div>
-                          <div className="text-[9px] font-bold text-slate-500">{format(new Date(inst.dueDate), 'dd MMM')}</div>
+                          <div className="text-[0.625rem] font-bold text-slate-500">{format(new Date(inst.dueDate), 'dd MMM')}</div>
                         </div>
                       ))}
                     </div>
@@ -237,22 +237,22 @@ function LayawayForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Total Amount *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Total Amount *</label>
             <input type="number" value={form.totalAmount} onChange={(e) => setForm({ ...form, totalAmount: e.target.value })} placeholder="0" className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-amber-700 mb-1 block">Deposit (Down Payment)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Deposit (Down Payment)</label>
             <input type="number" value={form.depositAmount} onChange={(e) => setForm({ ...form, depositAmount: e.target.value })} placeholder="0" className="h-14 w-full rounded-xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-4 text-xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block"># Installments *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block"># Installments *</label>
             <input type="number" min="1" value={form.installmentCount} onChange={(e) => setForm({ ...form, installmentCount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Frequency</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Frequency</label>
             <select value={form.frequency} onChange={(e) => setForm({ ...form, frequency: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
               <option>WEEKLY</option>
               <option>BIWEEKLY</option>
@@ -260,14 +260,14 @@ function LayawayForm({ onClose, onSaved }: any) {
             </select>
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
             <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
 
         {form.totalAmount > 0 && form.installmentCount > 0 && (
           <div className="rounded-xl bg-gradient-to-br from-slate-950 to-emerald-900 text-white p-4">
-            <div className="text-[10px] uppercase font-extrabold text-white/70 mb-2">Plan Preview</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-2">Plan Preview</div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><span className="text-white/70">Remaining:</span> <span className="font-extrabold text-cyan-300">{formatPKR(remaining)}</span></div>
               <div><span className="text-white/70">Per installment:</span> <span className="font-extrabold text-emerald-300">{formatPKR(perInstallment)}</span></div>
@@ -316,7 +316,7 @@ function PayInstallmentModal({ plan, onClose, onDone }: { plan: LayawayPlan; onC
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Installment</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Installment</label>
             <select value={installmentId} onChange={(e) => {
               setInstallmentId(e.target.value);
               const inst = plan.installments.find((i) => i.id === e.target.value);
@@ -331,12 +331,12 @@ function PayInstallmentModal({ plan, onClose, onDone }: { plan: LayawayPlan; onC
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Amount *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Amount *</label>
             <input type="number" step="0.01" value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
 
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Method</label>
             <div className="grid grid-cols-3 gap-2">
               {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
                 <button key={m} onClick={() => setMethod(m)} className={

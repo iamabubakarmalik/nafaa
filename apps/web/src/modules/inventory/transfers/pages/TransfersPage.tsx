@@ -414,7 +414,7 @@ export default function TransfersPage() {
                             <div className="flex items-center gap-2">
                               <div className="font-bold text-slate-900 text-sm truncate flex-1">{p.name}</div>
                               {isCarpet && (
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700">
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700">
                                   <Layers className="h-2.5 w-2.5" /> CARPET
                                 </span>
                               )}
@@ -470,7 +470,7 @@ export default function TransfersPage() {
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-bold text-slate-600">Purpose / Notes (optional)</label>
                   {industryStock.industryId && (
-                    <span className="text-[9px] font-extrabold text-cyan-700 bg-cyan-50 border border-cyan-200 rounded-full px-2 py-0.5 inline-flex items-center gap-1">
+                    <span className="text-[0.625rem] font-extrabold text-cyan-700 bg-cyan-50 border border-cyan-200 rounded-full px-2 py-0.5 inline-flex items-center gap-1">
                       <SparklesIcon className="h-2.5 w-2.5" />
                       {industryStock.industryEmoji} {industryStock.industryName}
                     </span>
@@ -486,7 +486,7 @@ export default function TransfersPage() {
 
                 {industryStock.transferPurposes.length > 0 && (
                   <div className="mt-2 p-2 rounded-lg bg-gradient-to-br from-cyan-50 to-blue-50 border-2 border-cyan-200">
-                    <div className="text-[9px] uppercase tracking-wider text-cyan-800 font-extrabold mb-1.5">
+                    <div className="text-[0.625rem] uppercase tracking-wider text-cyan-800 font-extrabold mb-1.5">
                       {industryStock.industryEmoji} Common Transfer Purposes
                     </div>
                     <div className="flex flex-wrap gap-1">
@@ -495,7 +495,7 @@ export default function TransfersPage() {
                           key={p.name}
                           type="button"
                           onClick={() => setNotes(`${p.emoji} ${p.name}${p.description ? ' — ' + p.description : ''}`)}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[10px] font-extrabold hover:shadow-md transition"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold hover:shadow-md transition"
                           style={{ borderColor: `${p.color}50`, backgroundColor: `${p.color}15`, color: p.color }}
                           title={p.description}
                         >
@@ -605,7 +605,7 @@ export default function TransfersPage() {
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-slate-900 text-sm truncate">{it.product?.name ?? 'Item'}</div>
                           {hasRoll && it.carpetRoll && (
-                            <div className="text-[11px] mt-0.5 font-mono font-bold text-emerald-700 flex items-center gap-1.5 flex-wrap">
+                            <div className="text-[0.6875rem] mt-0.5 font-mono font-bold text-emerald-700 flex items-center gap-1.5 flex-wrap">
                               <span>{it.carpetRoll.rollNumber}</span>
                               {it.carpetRoll.variant && (
                                 <span className="font-sans text-violet-700">
@@ -615,7 +615,7 @@ export default function TransfersPage() {
                             </div>
                           )}
                           {it.notes && (
-                            <div className="text-[10px] text-slate-500 italic mt-0.5">{it.notes}</div>
+                            <div className="text-[0.6875rem] text-slate-500 italic mt-0.5">{it.notes}</div>
                           )}
                         </div>
                         <div className="font-extrabold text-cyan-700">
@@ -782,11 +782,11 @@ export default function TransfersPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-bold text-slate-900 font-mono">{t.transferNumber}</span>
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg?.tone}`}>
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold border ${cfg?.tone}`}>
                               <Icon className="h-2.5 w-2.5" /> {cfg?.label}
                             </span>
                             {carpetRollCount > 0 && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-700">
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.6875rem] font-extrabold bg-emerald-100 text-emerald-700">
                                 <Layers className="h-2.5 w-2.5" /> {carpetRollCount} rolls
                               </span>
                             )}
@@ -800,7 +800,7 @@ export default function TransfersPage() {
                               <Building2 className="h-3 w-3" /> {t.toShop?.name || '—'}
                             </span>
                           </div>
-                          <div className="text-[10px] text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
+                          <div className="text-[0.6875rem] text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
                             <span className="inline-flex items-center gap-0.5">
                               <Package className="h-2.5 w-2.5" /> {t.items?.length || 0} items
                             </span>

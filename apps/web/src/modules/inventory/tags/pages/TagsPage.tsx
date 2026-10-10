@@ -224,7 +224,7 @@ export default function TagsPage() {
 
         <div className="relative flex items-start justify-between flex-wrap gap-4">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Hash className="h-3.5 w-3.5 text-amber-300" /> Smart Labels
               {industryPresets.industryId && (
                 <>
@@ -286,7 +286,7 @@ export default function TagsPage() {
         </div>
 
         {/* Keyboard hints */}
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>N</Kbd><span className="text-white/60">Naya tag</span>
@@ -319,7 +319,7 @@ export default function TagsPage() {
                 <h3 className="font-extrabold text-pink-900 dark:text-pink-200 text-sm">
                   {industryPresets.industryEmoji} {industryPresets.industryName} — Ready-Made Tags
                 </h3>
-                <p className="text-[11px] text-pink-700 dark:text-pink-300/80 font-bold">
+                <p className="text-[0.6875rem] text-pink-700 dark:text-pink-300/80 font-bold">
                   Click karo, naam+color pehle se bhara — bas save karo
                 </p>
               </div>
@@ -363,7 +363,7 @@ export default function TagsPage() {
               <Star className="h-5 w-5 text-amber-500" />
               <div>
                 <h3 className="font-extrabold text-pink-900 dark:text-pink-200">Top Tags</h3>
-                <p className="text-[11px] text-pink-700 dark:text-pink-300/80 font-bold">Sab se zyada use hone wale labels</p>
+                <p className="text-[0.6875rem] text-pink-700 dark:text-pink-300/80 font-bold">Sab se zyada use hone wale labels</p>
               </div>
             </div>
           </div>
@@ -385,7 +385,7 @@ export default function TagsPage() {
                   <div className="flex-1" />
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-pink-700 dark:text-pink-400 text-lg tabular-nums">{t._count?.products ?? 0}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">products</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">products</div>
                   </div>
                 </div>
               );
@@ -503,7 +503,7 @@ export default function TagsPage() {
               >
                 <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: t.color }} />
                 <span className="text-sm font-extrabold" style={{ color: t.color }}>{t.name}</span>
-                <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 bg-white/70 dark:bg-slate-800/80 rounded-full px-1.5 py-0.5 tabular-nums">
+                <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 bg-white/70 dark:bg-slate-800/80 rounded-full px-1.5 py-0.5 tabular-nums">
                   {t._count?.products ?? 0}
                 </span>
                 <div className="flex opacity-0 group-hover:opacity-100 transition">
@@ -566,7 +566,7 @@ export default function TagsPage() {
                 <span className="text-slate-300 dark:text-slate-600">•</span>
                 <button onClick={() => setSelectedPresets(new Set())} className="text-xs font-extrabold text-slate-600 dark:text-slate-400 hover:underline">Kuch nahi</button>
               </div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Jo pehle se hain, woh chhupe hain</div>
+              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Jo pehle se hain, woh chhupe hain</div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-5">
@@ -697,7 +697,7 @@ export default function TagsPage() {
 
               {/* Live preview */}
               <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-800/30 border-2 border-slate-200 dark:border-slate-700 p-4">
-                <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mb-2 flex items-center gap-1">
+                <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mb-2 flex items-center gap-1">
                   <Sparkles className="h-3 w-3" /> Live Preview
                 </div>
                 <div
@@ -778,7 +778,7 @@ function TagsTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Sab se important: 3 ka farq */}
           <div className="rounded-2xl border-2 border-pink-200 dark:border-pink-500/30 bg-pink-50/60 dark:bg-pink-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-pink-700 dark:text-pink-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-pink-700 dark:text-pink-300">
               🎯 Tag vs Category vs Brand — Sab Se Bara Confusion Clear!
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -851,9 +851,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

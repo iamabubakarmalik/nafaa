@@ -44,7 +44,7 @@ export function SizePickerModal({ product, onSelect, onClose }: Props) {
 
         {availableWidths.length > 1 && (
           <div className="shrink-0 px-4 py-3 border-b-2 border-slate-100 bg-slate-50">
-            <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">Width</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2">Width</div>
             <div className="flex gap-1.5">
               <button onClick={() => setWidthFilter('all')}
                 className={`h-10 px-3 rounded-xl text-xs font-extrabold ${widthFilter === 'all' ? 'bg-orange-600 text-white' : 'bg-white border-2 border-slate-200'}`}>
@@ -90,21 +90,21 @@ export function SizePickerModal({ product, onSelect, onClose }: Props) {
                           <div className={`text-2xl font-extrabold tabular-nums ${isOut ? 'text-rose-700' : isLow ? 'text-amber-700' : 'text-emerald-700'}`}>
                             {available}
                           </div>
-                          <div className="text-[9px] font-extrabold text-slate-500">pairs</div>
+                          <div className="text-[0.625rem] font-extrabold text-slate-500">pairs</div>
                         </div>
                       </div>
-                      <div className="text-[10px] font-extrabold text-slate-500">{v.sizeSystem} • {v.width.replace(/_/g, ' ')}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-slate-500">{v.sizeSystem} • {v.width.replace(/_/g, ' ')}</div>
                       {v.boxNumber && (
-                        <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-mono font-extrabold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
+                        <div className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-mono font-extrabold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
                           <Package className="h-2.5 w-2.5" /> {v.boxNumber}
                         </div>
                       )}
                       {v.shelfLocation && (
-                        <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-mono font-extrabold text-orange-700">
+                        <div className="mt-0.5 inline-flex items-center gap-1 text-[0.6875rem] font-mono font-extrabold text-orange-700">
                           <MapPin className="h-2.5 w-2.5" /> {v.shelfLocation}
                         </div>
                       )}
-                      {isOut && <div className="mt-1 text-[10px] font-extrabold text-rose-700 text-center">OUT</div>}
+                      {isOut && <div className="mt-1 text-[0.6875rem] font-extrabold text-rose-700 text-center">OUT</div>}
                     </button>
                   );
                 })}

@@ -44,7 +44,7 @@ export function PosSuccessModal({
       <h3 className="text-2xl font-extrabold">Sale Ho Gayi! 🎉</h3>
       <p className="text-xs font-bold text-white/90 mt-0.5 font-mono">{lastSale.number}</p>
       {autoPrint && (
-        <p className="text-[10px] font-bold text-emerald-100 mt-1 inline-flex items-center gap-1">
+        <p className="text-[0.6875rem] font-bold text-emerald-100 mt-1 inline-flex items-center gap-1">
           <Printer className="h-3 w-3" /> Receipt auto-print ho rahi hai
         </p>
       )}
@@ -77,7 +77,7 @@ export function PosSuccessModal({
       </button>
     </div>
     {autoClose && (
-      <div className="px-4 pb-2.5 text-center text-[10px] font-bold text-slate-400 dark:text-slate-500">
+      <div className="px-4 pb-2.5 text-center text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
         ⏱️ 3 sec me khud band — click karo foran band karne ke liye
       </div>
     )}

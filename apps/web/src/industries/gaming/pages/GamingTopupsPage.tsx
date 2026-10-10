@@ -159,21 +159,21 @@ export default function GamingTopupsPage() {
                     <span className="text-3xl">{providerMeta?.e || '💳'}</span>
                     <div>
                       <div className="font-extrabold text-slate-900 text-sm">{inv.provider.replace(/_/g, ' ')}</div>
-                      <div className="text-[10px] font-bold text-slate-500">{inv.topupType}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">{inv.topupType}</div>
                     </div>
                   </div>
                   <div className="mt-2 grid grid-cols-2 gap-2">
                     <div>
-                      <div className="text-[9px] uppercase font-extrabold text-slate-500">Value</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Value</div>
                       <div className="text-lg font-extrabold text-slate-900 tabular-nums">${inv.denomination}</div>
                     </div>
                     <div>
-                      <div className="text-[9px] uppercase font-extrabold text-slate-500">Stock</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Stock</div>
                       <div className="text-lg font-extrabold text-amber-700 tabular-nums">{inv.count}</div>
                     </div>
                   </div>
                   <div className="mt-2 pt-2 border-t border-amber-200 flex items-center justify-between">
-                    <div className="text-[10px] font-extrabold text-slate-600">Sell for</div>
+                    <div className="text-[0.6875rem] font-extrabold text-slate-600">Sell for</div>
                     <div className="text-base font-extrabold text-emerald-700 tabular-nums">{formatPKR(inv.sellingPrice)}</div>
                   </div>
                 </div>
@@ -218,11 +218,11 @@ export default function GamingTopupsPage() {
                       <td className="px-3 py-2.5 text-right font-extrabold text-emerald-700 tabular-nums">{formatPKR(t.sellingPrice)}</td>
                       <td className="px-3 py-2.5 text-center">
                         {t.isRedeemed ? (
-                          <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase">Redeemed</span>
+                          <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">Redeemed</span>
                         ) : t.soldAt ? (
-                          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase">Sold</span>
+                          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">Sold</span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase">Available</span>
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase">Available</span>
                         )}
                       </td>
                       <td className="px-3 py-2.5 text-xs font-bold text-slate-700">{t.customerName || '—'}</td>
@@ -343,7 +343,7 @@ function BulkAddTopupModal({ onClose, onAdded }: any) {
             <textarea rows={8} value={cardsText} onChange={(e) => setCardsText(e.target.value)}
               placeholder="One per line — Format: CODE | PIN | SERIAL&#10;ABCD-1234-EFGH-5678&#10;WXYZ-9999-QRST-1111 | 0000&#10;GIFT-0001 | 1234 | SN123456"
               className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-xs font-mono focus:outline-none focus:border-amber-500" />
-            <p className="mt-1 text-[10px] text-slate-500 font-bold">
+            <p className="mt-1 text-[0.6875rem] text-slate-500 font-bold">
               Separator: pipe (|), comma (,) or tab. PIN and serial are optional.
             </p>
           </div>
@@ -382,7 +382,7 @@ function StatCard({ label, value, icon: Icon, tone }: any) {
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
@@ -394,7 +394,7 @@ function StatCard({ label, value, icon: Icon, tone }: any) {
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
 }
 
 function Lbl({ children }: any) {

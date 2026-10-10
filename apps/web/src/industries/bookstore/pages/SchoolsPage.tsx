@@ -89,9 +89,9 @@ export default function SchoolsPage() {
                   <div className="min-w-0 flex-1">
                     <h3 className="font-extrabold text-slate-900 dark:text-white truncate">{s.name}</h3>
                     <div className="flex flex-wrap gap-1 mt-0.5">
-                      {s.type && <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[9px] font-extrabold uppercase">{s.type}</span>}
-                      {s.board && <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[9px] font-extrabold uppercase">{s.board}</span>}
-                      {s.medium && <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[9px] font-extrabold uppercase">{s.medium}</span>}
+                      {s.type && <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[0.625rem] font-extrabold uppercase">{s.type}</span>}
+                      {s.board && <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase">{s.board}</span>}
+                      {s.medium && <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[0.625rem] font-extrabold uppercase">{s.medium}</span>}
                     </div>
                     {s.city && (
                       <div className="flex items-center gap-1 text-xs text-slate-500 font-bold mt-0.5">
@@ -118,15 +118,15 @@ export default function SchoolsPage() {
 
               <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
                 <div className="text-center">
-                  <div className="text-[9px] uppercase font-extrabold text-slate-500">Lists</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Lists</div>
                   <div className="font-extrabold text-violet-700 tabular-nums">{s._count?.bookLists || 0}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-[9px] uppercase font-extrabold text-emerald-700">Orders</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Orders</div>
                   <div className="font-extrabold text-emerald-700 tabular-nums">{s.totalOrders}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-[9px] uppercase font-extrabold text-amber-700">Discount</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Discount</div>
                   <div className="font-extrabold text-amber-700 tabular-nums">{s.discountPct}%</div>
                 </div>
               </div>
@@ -221,22 +221,22 @@ function SchoolForm({ editing, onClose, onSaved }: any) {
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Discount %</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Discount %</label>
               <input type="number" step="0.1" value={form.discountPct} onChange={(e) => setForm({ ...form, discountPct: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Credit Days</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Credit Days</label>
               <input type="number" value={form.creditDays} onChange={(e) => setForm({ ...form, creditDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Credit Limit (Rs)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Credit Limit (Rs)</label>
               <input type="number" value={form.creditLimit} onChange={(e) => setForm({ ...form, creditLimit: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
           </div>
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Logo</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Logo</label>
           {form.logoUrl ? (
             <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-slate-200">
               <img src={form.logoUrl} alt="" className="w-full h-full object-cover" />

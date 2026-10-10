@@ -334,7 +334,7 @@ export function ManualEntryTable({
                     >
                       <td className="px-2 py-2 text-center">
                         <div className="flex flex-col items-center gap-0.5">
-                          <span className="font-mono font-extrabold text-slate-500 text-[10px]">{idx + 1}</span>
+                          <span className="font-mono font-extrabold text-slate-500 text-[0.6875rem]">{idx + 1}</span>
                           {!status.isEmpty && (
                             status.isValid
                               ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
@@ -366,12 +366,12 @@ export function ManualEntryTable({
                         {!row.productName ? (
                           <span className="px-2 py-1.5 text-xs text-slate-400 block">—</span>
                         ) : variantsLoading ? (
-                          <div className="inline-flex items-center gap-1 px-2 py-1.5 text-[10px] font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="inline-flex items-center gap-1 px-2 py-1.5 text-[0.6875rem] font-bold text-blue-700 bg-blue-50 rounded-lg border border-blue-200">
                             <RefreshCw className="h-2.5 w-2.5 animate-spin" />
                             Loading...
                           </div>
                         ) : !hasRealVariants ? (
-                          <span className="px-2 py-1.5 text-[10px] italic text-slate-500 block">
+                          <span className="px-2 py-1.5 text-[0.6875rem] italic text-slate-500 block">
                             (no variants)
                           </span>
                         ) : (
@@ -599,7 +599,7 @@ function StatPill({
   };
   return (
     <div className={`rounded-xl border-2 px-3 py-2 ${colors[color]}`}>
-      <div className="text-[10px] uppercase font-extrabold opacity-70">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold opacity-70">{label}</div>
       <div className="text-base font-extrabold mt-0.5 tabular-nums">{value}</div>
     </div>
   );

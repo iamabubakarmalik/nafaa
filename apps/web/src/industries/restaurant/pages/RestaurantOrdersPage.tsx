@@ -264,16 +264,16 @@ function OrderCard({ order, onStatusChange, isUpdating }: {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white text-lg">{order.orderNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
+              <span className={'px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
                 <StatusIcon className={'h-2.5 w-2.5 ' + (order.status === 'COOKING' ? 'animate-pulse' : '')} />
                 {statusCfg.label}
               </span>
-              <span className={'px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase ' + modeCfg.bg + ' ' + modeCfg.color}>
+              <span className={'px-2 py-0.5 rounded-md text-[0.6875rem] font-extrabold uppercase ' + modeCfg.bg + ' ' + modeCfg.color}>
                 {modeCfg.label}
               </span>
               {order.status !== 'COMPLETED' && order.status !== 'CANCELLED' && elapsed > 0 && (
                 <span className={
-                  'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold ' +
+                  'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[0.6875rem] font-extrabold ' +
                   (elapsed > 30 ? 'bg-rose-100 text-rose-700' : elapsed > 15 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600')
                 }>
                   <Clock className="h-2.5 w-2.5" />
@@ -310,12 +310,12 @@ function OrderCard({ order, onStatusChange, isUpdating }: {
             {/* Items preview */}
             <div className="mt-2 flex flex-wrap gap-1">
               {order.items?.slice(0, 4).map((item, i) => (
-                <span key={i} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                <span key={i} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.6875rem] font-bold text-slate-700 dark:text-slate-300">
                   {item.product?.name || 'Item'} × {item.quantity}
                 </span>
               ))}
               {(order.items?.length || 0) > 4 && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[10px] font-bold text-slate-500">
+                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.6875rem] font-bold text-slate-500">
                   +{(order.items?.length || 0) - 4} more
                 </span>
               )}
@@ -329,12 +329,12 @@ function OrderCard({ order, onStatusChange, isUpdating }: {
             {formatPKR(order.total)}
           </div>
           {order.paidAmount > 0 && order.paidAmount < order.total && (
-            <div className="text-[10px] font-extrabold text-amber-700 mt-1">
+            <div className="text-[0.6875rem] font-extrabold text-amber-700 mt-1">
               Paid: {formatPKR(order.paidAmount)}
             </div>
           )}
           {order.paidAmount >= order.total && (
-            <div className="text-[10px] font-extrabold text-emerald-600 mt-1 inline-flex items-center gap-0.5">
+            <div className="text-[0.6875rem] font-extrabold text-emerald-600 mt-1 inline-flex items-center gap-0.5">
               <CheckCircle2 className="h-2.5 w-2.5" />
               Paid
             </div>

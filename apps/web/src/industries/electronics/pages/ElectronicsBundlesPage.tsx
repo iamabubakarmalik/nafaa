@@ -262,7 +262,7 @@ export default function ElectronicsBundlesPage() {
                   : 'bg-white border-slate-200 text-slate-600 hover:border-pink-300'
               }`}>
               <k.icon className="h-3.5 w-3.5" /> {k.label}
-              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-100'}`}>{k.n}</span>
             </button>
           ))}
         </div>
@@ -353,7 +353,7 @@ function BundleCard({ bundle: b, busy, onToggleActive, onToggleFeatured, onDupli
         </button>
 
         {!b.isActive && (
-          <div className="absolute inset-x-0 bottom-0 py-1.5 bg-slate-900/80 text-center text-[11px] font-extrabold text-white backdrop-blur">
+          <div className="absolute inset-x-0 bottom-0 py-1.5 bg-slate-900/80 text-center text-[0.6875rem] font-extrabold text-white backdrop-blur">
             Band hai — POS par nazar nahi aata
           </div>
         )}
@@ -362,13 +362,13 @@ function BundleCard({ bundle: b, busy, onToggleActive, onToggleFeatured, onDupli
       <div className="p-3 space-y-2.5">
         <div>
           <h3 className="font-extrabold text-slate-900 text-sm truncate" title={b.name}>{b.name}</h3>
-          {b.description && <p className="text-[11px] font-semibold text-slate-500 line-clamp-2 mt-0.5">{b.description}</p>}
+          {b.description && <p className="text-[0.6875rem] font-semibold text-slate-500 line-clamp-2 mt-0.5">{b.description}</p>}
         </div>
 
         {(expired || noSaving) && (
           <div className="rounded-lg bg-amber-50 border border-amber-200 px-2 py-1.5 flex items-start gap-1.5">
             <AlertTriangle className="h-3 w-3 text-amber-600 shrink-0 mt-0.5" />
-            <span className="text-[10px] font-bold text-amber-800">
+            <span className="text-[0.6875rem] font-bold text-amber-800">
               {expired ? 'Is deal ki tareekh guzar chuki hai' : 'Is bundle me koi bachat nahi — customer ko faida nahi'}
             </span>
           </div>
@@ -376,22 +376,22 @@ function BundleCard({ bundle: b, busy, onToggleActive, onToggleFeatured, onDupli
 
         {/* Items */}
         <div className="rounded-xl bg-slate-50 border border-slate-200 p-2">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 mb-1">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 mb-1">
             {items.length} cheezein
           </div>
           <div className="space-y-0.5">
             {items.slice(0, 3).map((it: any, i: number) => (
-              <div key={i} className="flex items-center gap-1.5 text-[11px]">
+              <div key={i} className="flex items-center gap-1.5 text-[0.6875rem]">
                 <Package className="h-2.5 w-2.5 text-slate-400 shrink-0" />
                 <span className="font-bold text-slate-700 truncate flex-1">{it.product?.name ?? it.name ?? 'Product'}</span>
                 <span className="text-slate-500 font-bold shrink-0">× {it.quantity}</span>
               </div>
             ))}
             {items.length > 3 && (
-              <div className="text-[10px] font-extrabold text-pink-700">+ {items.length - 3} aur</div>
+              <div className="text-[0.6875rem] font-extrabold text-pink-700">+ {items.length - 3} aur</div>
             )}
             {items.length === 0 && (
-              <div className="text-[10px] font-bold text-rose-600">⚠️ Koi cheez nahi — edit karke daalein</div>
+              <div className="text-[0.6875rem] font-bold text-rose-600">⚠️ Koi cheez nahi — edit karke daalein</div>
             )}
           </div>
         </div>
@@ -400,7 +400,7 @@ function BundleCard({ bundle: b, busy, onToggleActive, onToggleFeatured, onDupli
         <div className="flex items-end justify-between gap-2">
           <div className="min-w-0">
             {(b.originalPrice ?? 0) > (b.bundlePrice ?? 0) && (
-              <div className="text-[11px] text-slate-400 line-through font-bold tabular-nums">
+              <div className="text-[0.6875rem] text-slate-400 line-through font-bold tabular-nums">
                 {formatPKR(b.originalPrice)}
               </div>
             )}
@@ -408,22 +408,22 @@ function BundleCard({ bundle: b, busy, onToggleActive, onToggleFeatured, onDupli
               {formatPKR(b.bundlePrice)}
             </div>
             {(b.savings ?? 0) > 0 && (
-              <div className="text-[10px] font-extrabold text-amber-700 mt-0.5">
+              <div className="text-[0.6875rem] font-extrabold text-amber-700 mt-0.5">
                 {formatPKR(b.savings)} ki bachat
               </div>
             )}
           </div>
           <div className="text-right shrink-0">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500">Bikay</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Bikay</div>
             <div className="text-lg font-extrabold text-slate-900 tabular-nums leading-none">{b.soldCount ?? 0}</div>
             {(b.totalRevenue ?? 0) > 0 && (
-              <div className="text-[10px] font-bold text-slate-500 tabular-nums">{formatPKR(b.totalRevenue!)}</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500 tabular-nums">{formatPKR(b.totalRevenue!)}</div>
             )}
           </div>
         </div>
 
         {b.validUntil && (
-          <div className="text-[10px] font-bold text-slate-500 inline-flex items-center gap-1">
+          <div className="text-[0.6875rem] font-bold text-slate-500 inline-flex items-center gap-1">
             <CalendarClock className="h-2.5 w-2.5" />
             {new Date(b.validUntil).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })} tak
           </div>
@@ -464,11 +464,11 @@ function HeroStat({ label, value, sub, icon: Icon, highlight }: any) {
     <div className={`rounded-2xl backdrop-blur border p-4 ${
       highlight ? 'bg-white/25 border-white/40 shadow-lg' : 'bg-white/10 border-white/20'
     }`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> <span className="truncate">{label}</span>
       </div>
       <div className="mt-1 text-2xl font-extrabold tabular-nums truncate">{value}</div>
-      {sub && <div className="mt-0.5 text-[11px] font-bold text-white/70 truncate">{sub}</div>}
+      {sub && <div className="mt-0.5 text-[0.6875rem] font-bold text-white/70 truncate">{sub}</div>}
     </div>
   );
 }
@@ -507,7 +507,7 @@ function BundlesTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Bundle Deals</h3>
             </div>
           </div>
@@ -526,7 +526,7 @@ function BundlesTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

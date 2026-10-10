@@ -129,13 +129,13 @@ export default function GarmentCustomersPage() {
               extraBadges={
                 <>
                   {c.measurementCount > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-bold">
                       <Ruler className="h-3 w-3" />
                       {c.measurementCount} measure
                     </div>
                   )}
                   {c.tailoringCount > 0 && (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[11px] font-bold">
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.6875rem] font-bold">
                       <Scissors className="h-3 w-3" />
                       {c.tailoringCount} tailored
                     </div>

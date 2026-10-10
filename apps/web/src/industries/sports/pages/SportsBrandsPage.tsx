@@ -212,19 +212,19 @@ export default function SportsBrandsPage() {
                         )}
                         <div>
                           <div className="font-extrabold text-slate-900 text-sm">{b.name}</div>
-                          {b.code && <div className="text-[10px] font-mono text-slate-500">{b.code}</div>}
+                          {b.code && <div className="text-[0.6875rem] font-mono text-slate-500">{b.code}</div>}
                         </div>
                       </div>
                     </td>
                     <td className="px-3 py-2.5">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${tier.bg} ${tier.color}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold uppercase ${tier.bg} ${tier.color}`}>
                         {tier.emoji} {tier.label}
                       </span>
                     </td>
                     <td className="px-3 py-2.5 text-xs font-bold text-slate-700">{b.countryOfOrigin || '—'}</td>
                     <td className="px-3 py-2.5 text-center">
                       <div className="inline-flex items-center gap-1">
-                        {b.authorizedDealer && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">AUTH</span>}
+                        {b.authorizedDealer && <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">AUTH</span>}
                         {b.isFeatured && <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />}
                       </div>
                     </td>
@@ -275,11 +275,11 @@ function BrandCard({ brand: b, onEdit, onDelete, onToggleFeatured }: any) {
             <div className="text-xs font-bold text-slate-500 mt-0.5">📍 {b.countryOfOrigin}</div>
           )}
           <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-            <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase ${tier.bg} ${tier.color}`}>
+            <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ${tier.bg} ${tier.color}`}>
               {tier.emoji} {tier.label}
             </span>
             {b.authorizedDealer && (
-              <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+              <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <CheckCircle2 className="h-2.5 w-2.5" /> Auth
               </span>
             )}
@@ -298,11 +298,11 @@ function BrandCard({ brand: b, onEdit, onDelete, onToggleFeatured }: any) {
 
       <div className="mt-3 grid grid-cols-2 gap-2 pt-3 border-t border-slate-100">
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Products</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Products</div>
           <div className="text-lg font-extrabold text-slate-900 tabular-nums">{b.productCount || b.totalProducts || 0}</div>
         </div>
         <div>
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Revenue</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
           <div className="text-sm font-extrabold text-violet-700 tabular-nums">{formatPKR(b.totalRevenue || 0)}</div>
         </div>
       </div>
@@ -310,17 +310,17 @@ function BrandCard({ brand: b, onEdit, onDelete, onToggleFeatured }: any) {
       {(b.supportPhone || b.supportEmail || b.websiteUrl) && (
         <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1.5 flex-wrap">
           {b.websiteUrl && (
-            <a href={b.websiteUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-[10px] font-extrabold">
+            <a href={b.websiteUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-[0.6875rem] font-extrabold">
               <Globe className="h-2.5 w-2.5" /> Web
             </a>
           )}
           {b.supportPhone && (
-            <a href={`tel:${b.supportPhone}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">
+            <a href={`tel:${b.supportPhone}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold">
               <Phone className="h-2.5 w-2.5" /> Call
             </a>
           )}
           {b.supportEmail && (
-            <a href={`mailto:${b.supportEmail}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 text-[10px] font-extrabold">
+            <a href={`mailto:${b.supportEmail}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 text-[0.6875rem] font-extrabold">
               <Mail className="h-2.5 w-2.5" /> Email
             </a>
           )}
@@ -406,7 +406,7 @@ function BrandFormModal({ editing, onClose, onSaved }: any) {
                     className={`p-3 rounded-xl border-2 transition flex flex-col items-center gap-1 ${
                       active ? 'border-violet-600 bg-violet-600 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-violet-400'}`}>
                     <span className="text-lg">{meta.emoji}</span>
-                    <span className="text-[10px] font-extrabold text-center">{meta.label}</span>
+                    <span className="text-[0.6875rem] font-extrabold text-center">{meta.label}</span>
                   </button>
                 );
               })}
@@ -524,7 +524,7 @@ function BrandFormModal({ editing, onClose, onSaved }: any) {
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 ${className}`}>{children}</th>;
 }
 
 function Kpi({ icon: Icon, label, value, tone, onClick }: any) {
@@ -538,7 +538,7 @@ function Kpi({ icon: Icon, label, value, tone, onClick }: any) {
     <C onClick={onClick} className={`rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm text-left w-full ${onClick ? 'hover:border-violet-300 hover:shadow-md transition' : ''}`}>
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>

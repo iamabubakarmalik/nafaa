@@ -275,7 +275,7 @@ export function BusinessConfigSection() {
           <div className="flex items-start gap-4 min-w-0 flex-1">
             <div className="text-5xl sm:text-6xl leading-none shrink-0">{config.template?.emoji || '🏬'}</div>
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5 text-[10px] font-extrabold border border-white/25 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest">
                 <Store className="h-3 w-3" />
                 Current Business Type
               </div>
@@ -291,14 +291,14 @@ export function BusinessConfigSection() {
                 {config.template?.description}
               </p>
               <div className="mt-3 flex items-center gap-1.5 flex-wrap">
-                <span className="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-200 text-[10px] font-extrabold border border-emerald-400/30">
+                <span className="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-200 text-[0.6875rem] font-extrabold border border-emerald-400/30">
                   Unit: {config.defaultUnit}
                 </span>
-                <span className="px-2 py-1 rounded-lg bg-white/10 text-[10px] font-extrabold border border-white/20">
+                <span className="px-2 py-1 rounded-lg bg-white/10 text-[0.6875rem] font-extrabold border border-white/20">
                   {enabledCount} / {FEATURE_META.length} features
                 </span>
                 {config.currency && (
-                  <span className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-200 text-[10px] font-extrabold border border-amber-400/30">
+                  <span className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-200 text-[0.6875rem] font-extrabold border border-amber-400/30">
                     {config.currency}
                   </span>
                 )}
@@ -390,7 +390,7 @@ export function BusinessConfigSection() {
             >
               All
               <span className={[
-                'px-1.5 py-0.5 rounded-md text-[10px] tabular-nums',
+                'px-1.5 py-0.5 rounded-md text-[0.6875rem] tabular-nums',
                 activeGroup === null ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700',
               ].join(' ')}>
                 {FEATURE_META.length}
@@ -413,7 +413,7 @@ export function BusinessConfigSection() {
                 >
                   {group}
                   <span className={[
-                    'px-1.5 py-0.5 rounded-md text-[10px] tabular-nums',
+                    'px-1.5 py-0.5 rounded-md text-[0.6875rem] tabular-nums',
                     active
                       ? 'bg-white/25'
                       : count.enabled > 0
@@ -449,12 +449,12 @@ export function BusinessConfigSection() {
               <div key={group}>
                 {!activeGroup && (
                   <div className="mb-3 flex items-center gap-2">
-                    <div className="text-[10px] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400">
+                    <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400">
                       {group}
                     </div>
                     <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
                     <span className={[
-                      'text-[10px] font-extrabold px-2 py-0.5 rounded-full tabular-nums',
+                      'text-[0.6875rem] font-extrabold px-2 py-0.5 rounded-full tabular-nums',
                       groupCounts[group]?.enabled > 0
                         ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
@@ -508,7 +508,7 @@ export function BusinessConfigSection() {
                               )}
                             </div>
                             <p className={[
-                              'text-[11px] mt-1 font-semibold leading-snug line-clamp-2',
+                              'text-[0.6875rem] mt-1 font-semibold leading-snug line-clamp-2',
                               enabled ? 'text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400',
                             ].join(' ')}>
                               {f.description}
@@ -525,7 +525,7 @@ export function BusinessConfigSection() {
         )}
 
         {updateFeaturesMutation.isPending && (
-          <div className="mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/15 border-2 border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 text-[11px] font-extrabold">
+          <div className="mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/15 border-2 border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 text-[0.6875rem] font-extrabold">
             <Loader2 className="h-3 w-3 animate-spin" /> Feature update ho raha hai...
           </div>
         )}

@@ -46,10 +46,10 @@ export function ConnectForm({ c, onDone }: { c: CourierAccount; onDone?: () => v
 
   return (
     <div className="space-y-4">
-      <ol className="space-y-1.5 rounded-lg bg-slate-50 p-3 text-[13px] text-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+      <ol className="space-y-1.5 rounded-lg bg-slate-50 p-3 text-[0.8125rem] text-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
         {(c.connect?.steps ?? []).map((s, i) => (
           <li key={i} className="flex gap-2">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-white dark:bg-white dark:text-slate-900">{i + 1}</span>
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[0.6875rem] font-semibold text-white dark:bg-white dark:text-slate-900">{i + 1}</span>
             <span>{s}</span>
           </li>
         ))}
@@ -81,7 +81,7 @@ export function ConnectForm({ c, onDone }: { c: CourierAccount; onDone?: () => v
         ))}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 text-[12px] text-slate-500"><Lock className="h-3.5 w-3.5" /> Keys encrypted save hoti hain · sirf malik / manager</span>
+        <span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Lock className="h-3.5 w-3.5" /> Keys encrypted save hoti hain · sirf malik / manager</span>
         <Btn variant="primary" loading={connect.isPending} disabled={missing} onClick={() => connect.mutate()} icon={<Zap className="h-4 w-4" />}>
           {c.connected ? 'Nayi key check karke lagayein' : 'Check karke jorein'}
         </Btn>
@@ -113,7 +113,7 @@ export function CourierSettingsForm({ c }: { c: CourierAccount }) {
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
-  if (!defs.length) return <p className="text-[13px] text-slate-500">Is courier ki koi setting nahi.</p>;
+  if (!defs.length) return <p className="text-[0.8125rem] text-slate-500">Is courier ki koi setting nahi.</p>;
 
   return (
     <div className="divide-y divide-slate-100 dark:divide-slate-800">

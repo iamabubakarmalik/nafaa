@@ -70,7 +70,7 @@ export default function PrescriptionDetailPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 {rx.type.replace('_', ' ')}
               </div>
@@ -196,13 +196,13 @@ export default function PrescriptionDetailPage() {
             <div className="rounded-3xl bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-200 dark:border-amber-800 p-4">
               {rx.chiefComplaint && (
                 <div className="mb-2">
-                  <div className="text-[10px] uppercase font-extrabold text-amber-700">Chief Complaint</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Chief Complaint</div>
                   <div className="text-sm font-bold text-slate-900 dark:text-white">{rx.chiefComplaint}</div>
                 </div>
               )}
               {rx.diagnosis && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-amber-700">Diagnosis</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Diagnosis</div>
                   <div className="text-sm font-semibold text-slate-900 dark:text-white">{rx.diagnosis}</div>
                 </div>
               )}
@@ -225,15 +225,15 @@ export default function PrescriptionDetailPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-slate-900 dark:text-white text-base">{it.medicineName}</span>
-                        {it.strength && <span className="px-2 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[10px] font-extrabold">{it.strength}</span>}
+                        {it.strength && <span className="px-2 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[0.6875rem] font-extrabold">{it.strength}</span>}
                         {it.isDispensed && (
-                          <span className="px-2 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                          <span className="px-2 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                             <CheckCircle2 className="h-2 w-2" />
                             Dispensed
                           </span>
                         )}
                         {it.isSubstituted && (
-                          <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[10px] font-extrabold uppercase">Substituted</span>
+                          <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.6875rem] font-extrabold uppercase">Substituted</span>
                         )}
                       </div>
                       {it.saltName && (
@@ -261,7 +261,7 @@ export default function PrescriptionDetailPage() {
                       <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">
                         {it.dispensedQty}/{it.prescribedQty}
                       </div>
-                      <div className="text-[10px] font-extrabold text-slate-500 uppercase">{it.unit}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase">{it.unit}</div>
                       {it.totalPrice > 0 && (
                         <div className="mt-1 text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(it.totalPrice)}</div>
                       )}
@@ -292,7 +292,7 @@ export default function PrescriptionDetailPage() {
           <div className="sticky top-4 space-y-4">
             {/* SUMMARY */}
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-violet-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">Bill Summary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">Bill Summary</div>
               <div className="text-3xl font-extrabold tabular-nums">{formatPKR(rx.totalAmount)}</div>
               <div className="mt-3 text-xs space-y-1">
                 <div className="flex justify-between">
@@ -307,10 +307,10 @@ export default function PrescriptionDetailPage() {
                 )}
                 {rx.isInsuranceClaim && (
                   <div className="pt-2 mt-2 border-t border-white/20">
-                    <div className="text-[10px] uppercase font-extrabold text-blue-300">Insurance</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-blue-300">Insurance</div>
                     <div className="text-xs font-bold">{rx.insuranceProvider}</div>
                     {rx.insuranceApprovalCode && (
-                      <div className="text-[10px] font-mono text-white/70">Code: {rx.insuranceApprovalCode}</div>
+                      <div className="text-[0.6875rem] font-mono text-white/70">Code: {rx.insuranceApprovalCode}</div>
                     )}
                   </div>
                 )}
@@ -430,7 +430,7 @@ function DispenseModal({ rx, onClose, onDone }: any) {
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Dispense Qty</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Dispense Qty</label>
                     <input
                       type="number" step="0.5" min="0" max={remaining}
                       value={state.dispensedQty}
@@ -442,7 +442,7 @@ function DispenseModal({ rx, onClose, onDone }: any) {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Unit Price (Rs)</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Unit Price (Rs)</label>
                     <input
                       type="number" step="0.01" min="0"
                       value={state.unitPrice}

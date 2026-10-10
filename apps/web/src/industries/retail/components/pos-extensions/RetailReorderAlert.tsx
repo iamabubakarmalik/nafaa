@@ -40,7 +40,7 @@ export function RetailReorderAlert() {
         <div className="text-sm font-extrabold text-rose-900 dark:text-rose-300">
           {critical.length} product{critical.length !== 1 ? 's' : ''} khatam hone wali hai
         </div>
-        <div className="text-[11px] font-semibold text-rose-700 dark:text-rose-400">
+        <div className="text-[0.6875rem] font-semibold text-rose-700 dark:text-rose-400">
           Less than 3 days stock — reorder karo abhi
         </div>
       </div>

@@ -51,7 +51,7 @@ export function CommissionCard({
           <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
             Bandon ki commission
           </h3>
-          <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400 truncate">
+          <p className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 truncate">
             {periodLabel(c.period)}
             {c.rules.length > 0 && ` · ${c.rules.filter((r) => r.isActive).length} rule chaalu`}
           </p>
@@ -66,7 +66,7 @@ export function CommissionCard({
           <p className="text-sm font-black text-slate-700 dark:text-slate-200">
             Commission set nahi hai
           </p>
-          <p className="mt-1 text-[12px] font-bold text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+          <p className="mt-1 text-[0.75rem] font-bold text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
             Agar aap apne bandon ko bikri par hissa dete hain, to ek dafa rule bana
             dein — phir har mahine ka hisab khud banta rahega.
           </p>
@@ -86,7 +86,7 @@ export function CommissionCard({
           <p className="text-sm font-black text-slate-700 dark:text-slate-200">
             Rule to bana hai, magar kisi bande par chaalu nahi
           </p>
-          <p className="mt-1 text-[12px] font-bold text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+          <p className="mt-1 text-[0.75rem] font-bold text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
             Har bande ko alag se chaalu karna parta hai — tabhi uski commission banti hai.
           </p>
           <Link to={to}
@@ -99,7 +99,7 @@ export function CommissionCard({
           <p className="text-sm font-black text-slate-700 dark:text-slate-200">
             Rule to bana hai, magar kisi bande par chaalu nahi
           </p>
-          <p className="mt-1 text-[12px] font-bold text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+          <p className="mt-1 text-[0.75rem] font-bold text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
             Har bande ko alag se chaalu karna parta hai — tabhi uski commission banti hai.
           </p>
           <Link to={to}
@@ -134,7 +134,7 @@ export function CommissionCard({
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-black text-slate-900 dark:text-white truncate">{r.name}</div>
-                  <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                     {r.bills} bill · {money(r.sale)}
                     {r.blockedByMin && ` · hadd se ${money(r.blockedByMin.short)} kam`}
                   </div>
@@ -143,7 +143,7 @@ export function CommissionCard({
                   <div className={`text-sm font-black tabular-nums ${r.earned > 0 ? t.text : 'text-slate-400'}`}>
                     {money(r.earned)}
                   </div>
-                  {r.paid && <div className="text-[9px] font-black text-emerald-600">Ada ho gayi</div>}
+                  {r.paid && <div className="text-[0.625rem] font-black text-emerald-600">Ada ho gayi</div>}
                 </div>
               </div>
             ))}
@@ -151,14 +151,14 @@ export function CommissionCard({
 
           {c.notEnrolled.length > 0 && (
             <div className="px-4 sm:px-5 py-2 border-t border-slate-100 dark:border-slate-800">
-              <Link to={to} className="text-[11px] font-black text-slate-500 dark:text-slate-400 hover:underline">
+              <Link to={to} className="text-[0.6875rem] font-black text-slate-500 dark:text-slate-400 hover:underline">
                 {c.notEnrolled.length} aur bandon ki bikri hai magar commission chaalu nahi →
               </Link>
             </div>
           )}
           {c.notEnrolled.length > 0 && (
             <div className="px-4 sm:px-5 py-2 border-t border-slate-100 dark:border-slate-800">
-              <Link to={to} className="text-[11px] font-black text-slate-500 dark:text-slate-400 hover:underline">
+              <Link to={to} className="text-[0.6875rem] font-black text-slate-500 dark:text-slate-400 hover:underline">
                 {c.notEnrolled.length} aur bandon ki bikri hai magar commission chaalu nahi →
               </Link>
             </div>
@@ -166,7 +166,7 @@ export function CommissionCard({
           {c.orphanBills > 0 && (
             <div className="px-4 sm:px-5 py-2.5 bg-amber-50 dark:bg-amber-500/10 border-t-2 border-amber-200 dark:border-amber-500/30 flex items-start gap-2">
               <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
-              <p className="text-[11px] font-bold text-amber-900 dark:text-amber-200">
+              <p className="text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
                 {c.orphanBills} bill par kisi bande ka naam nahi ({money(c.orphanSale)}) — in ki
                 commission kisi ko nahi mil rahi
               </p>
@@ -181,7 +181,7 @@ export function CommissionCard({
 function Mini({ label, value, tone }: { label: string; value: string; tone: string }) {
   return (
     <div className="min-w-0">
-      <div className="text-[9px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</div>
+      <div className="text-[0.625rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</div>
       <div className={`text-sm sm:text-base font-black tabular-nums truncate ${tone}`}>{value}</div>
     </div>
   );

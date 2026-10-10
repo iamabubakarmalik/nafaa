@@ -58,10 +58,10 @@ export default function PublicTrackPage() {
           <div className="text-sm font-bold text-slate-900">Mera order kahan hai?</div>
           <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_140px_auto]">
             <input value={no} onChange={(e) => setNo(e.target.value.toUpperCase())} placeholder="Order # (jaise NF1A2B3C4D)"
-              className="rounded-xl border border-slate-300 px-3 py-2.5 font-mono text-[15px] uppercase outline-none focus:border-slate-500" />
+              className="rounded-xl border border-slate-300 px-3 py-2.5 font-mono text-[0.9375rem] uppercase outline-none focus:border-slate-500" />
             <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone ke aakhri 4" inputMode="numeric" maxLength={11}
               onKeyDown={(e) => { if (e.key === 'Enter') check(); }}
-              className="rounded-xl border border-slate-300 px-3 py-2.5 text-[15px] outline-none focus:border-slate-500" />
+              className="rounded-xl border border-slate-300 px-3 py-2.5 text-[0.9375rem] outline-none focus:border-slate-500" />
             <button onClick={check} disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60" style={{ background: accent }}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Dekhein
             </button>

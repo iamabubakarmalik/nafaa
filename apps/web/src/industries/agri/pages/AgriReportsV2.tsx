@@ -362,7 +362,7 @@ export default function AgriReportsV2() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <BarChart3 className="h-3.5 w-3.5 text-lime-300" /> Agri · Report
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
@@ -420,7 +420,7 @@ export default function AgriReportsV2() {
             }`}>
             <t.icon className="h-4 w-4" />
             <span className="truncate">{t.label}</span>
-            <kbd className="hidden lg:inline text-[9px] opacity-60">{i + 1}</kbd>
+            <kbd className="hidden lg:inline text-[0.625rem] opacity-60">{i + 1}</kbd>
           </button>
         ))}
       </div>
@@ -515,7 +515,7 @@ function KhulasaTab({ reports, pl, money, days, hideAmounts, agg }: any) {
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <h3 className="font-black text-amber-900 dark:text-amber-200">Aadhi se zyada bikri udhaar par</h3>
           </div>
-          <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200 leading-relaxed">
+          <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200 leading-relaxed">
             In {days} din me <strong>{((pl.credit / pl.netRevenue) * 100).toFixed(0)}%</strong> maal
             udhaar par gaya. Agri me ye aam hai, magar itna paisa bahar hone par naya maal mangwane
             ke liye cash nahi bachta. "Udhaar" tab me dekhein ke kis ka waqt guzar chuka.
@@ -615,14 +615,14 @@ function QismTab({ agg, money, hideAmounts }: any) {
       <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {agg.kinds.map((k: any) => (
           <div key={k.v} className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 truncate">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">
               {k.e} {k.l}
             </div>
             <div className="mt-1 text-base font-black text-slate-900 dark:text-white tabular-nums truncate">
               {money(k.rev)}
             </div>
             {agg.haveCost && !hideAmounts && (
-              <div className={`text-[11px] font-black tabular-nums ${
+              <div className={`text-[0.6875rem] font-black tabular-nums ${
                 k.margin > 20 ? 'text-emerald-600 dark:text-emerald-400'
                   : k.margin > 0 ? 'text-amber-600 dark:text-amber-400'
                   : 'text-rose-600 dark:text-rose-400'
@@ -638,7 +638,7 @@ function QismTab({ agg, money, hideAmounts }: any) {
             <Award className="h-4 w-4 text-emerald-600" />
             <h3 className="font-black text-emerald-900 dark:text-emerald-200">Sab se behtar margin</h3>
           </div>
-          <p className="text-[12px] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
+          <p className="text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
             <strong>{best.e} {best.l}</strong> par <strong>{best.margin.toFixed(1)}%</strong> margin
             hai. Agri me dawa ka margin aksar khaad se kayi guna zyada hota hai — bikri bari lagti
             hai magar bacha kam. Stock aur counter ki jagah usi hisab se rakhein.
@@ -652,7 +652,7 @@ function QismTab({ agg, money, hideAmounts }: any) {
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <h3 className="font-black text-amber-900 dark:text-amber-200">Margin nahi nikal saka</h3>
           </div>
-          <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+          <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
             Kisi bhi bikri par cost darj nahi hui, is liye sirf bikri dikhai ja rahi hai. Product
             me cost bhar dein — phir har qism ka asal munafa nazar aayega.
           </p>
@@ -714,7 +714,7 @@ function MausamTab({ agg, money }: any) {
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <h3 className="font-black text-amber-900 dark:text-amber-200">Mausam ka hisab adhoora hai</h3>
           </div>
-          <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+          <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
             <strong>{noPct.toFixed(0)}%</strong> bikri aisi cheezon ki hai jin par mausam likha hi
             nahi. Product ke andar mausam bhar dein — phir ye chart bata payega ke Kharif aur Rabi
             me se kis se zyada kamai hoti hai, aur agle season ki kharidari usi hisab se hogi.{' '}
@@ -758,7 +758,7 @@ function MausamTab({ agg, money }: any) {
           <Calendar className="h-4 w-4 text-emerald-600" />
           <h3 className="font-black text-emerald-900 dark:text-emerald-200">Is se kya faida uthana hai</h3>
         </div>
-        <p className="text-[12px] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
+        <p className="text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
           Jis mausam aur fasal se sab se zyada kamai hui, agle saal usi ka stock pehle aur zyada
           rakhein. "Fasal ka calendar" me dekhein ke us ki bijai kab hai — season shuru hone se
           45 din pehle mangwana sab se behtar hota hai, us waqt rate bhi kam hota hai.
@@ -813,7 +813,7 @@ function UdhaarTab({ credit, money, days }: any) {
           <Wallet className="h-4 w-4 text-amber-600" />
           <h3 className="font-black text-amber-900 dark:text-amber-200">Ye chart kya batata hai</h3>
         </div>
-        <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200 leading-relaxed">
+        <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200 leading-relaxed">
           Jitna udhaar dayein taraf jata hai, us ke wapas aane ka imkaan utna kam. Teen mahine se
           purana paisa aksar season badalne tak nahi aata. Jo "waqt baqi" me hai us ki fikar nahi —
           asal kaam un logon se hai jo laal aur narangi me hain.
@@ -857,7 +857,7 @@ function FarmerTab({ data, money }: any) {
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <h3 className="font-black text-amber-900 dark:text-amber-200">{data.walkIn} bill par farmer nahi laga</h3>
           </div>
-          <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+          <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
             In bills ka kisi khate se ta'alluq nahi — na udhaar chal sakta hai, na ye pata chalega
             ke kaun kya le gaya. POS par farmer chunna aadat bana lein.
           </p>
@@ -918,9 +918,9 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -938,7 +938,7 @@ function Box({ label, value, tone }: any) {
   };
   return (
     <div className={`rounded-2xl border-2 p-3 ${tones[tone] ?? tones.slate}`}>
-      <div className="text-[10px] font-black uppercase tracking-widest opacity-70">{label}</div>
+      <div className="text-[0.6875rem] font-black uppercase tracking-widest opacity-70">{label}</div>
       <div className="mt-0.5 text-lg font-black tabular-nums break-words">{value}</div>
     </div>
   );
@@ -979,7 +979,7 @@ function ListCard({ icon: Icon, title, rows, emptyText, to }: any) {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.title}</span>
-                  <span className="block text-[11px] font-bold text-slate-400 truncate">{r.sub}</span>
+                  <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">{r.sub}</span>
                 </span>
                 <span className="text-sm font-black tabular-nums text-slate-900 dark:text-white shrink-0">{r.value}</span>
               </>
@@ -1054,8 +1054,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             wali taqseem yahin banti hai, is liye har jagah numbers mel khate hain.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-5</kbd> tabs</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">R</kbd> taaza</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
@@ -1076,8 +1076,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

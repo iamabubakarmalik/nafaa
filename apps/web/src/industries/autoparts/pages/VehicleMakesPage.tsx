@@ -156,7 +156,7 @@ function MakeForm({ editing, onClose, onSaved }: any) {
         <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Make name *" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
         <input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} placeholder="Country of origin" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Logo</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Logo</label>
           {form.logoUrl ? (
             <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-slate-200">
               <img src={form.logoUrl} alt="" className="w-full h-full object-cover" />

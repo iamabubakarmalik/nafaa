@@ -123,35 +123,35 @@ export default function KarigarsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-extrabold truncate">{k.fullName}</span>
-                    {k.isInHouse && <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-extrabold uppercase">IN-HOUSE</span>}
-                    {k.skillLevel && <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase">{k.skillLevel}</span>}
+                    {k.isInHouse && <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase">IN-HOUSE</span>}
+                    {k.skillLevel && <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">{k.skillLevel}</span>}
                   </div>
-                  <div className="text-[10px] font-mono font-bold text-slate-500">{k.karigarNumber}</div>
+                  <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{k.karigarNumber}</div>
                   <div className="flex items-center gap-1 text-xs text-slate-600 font-bold"><Phone className="h-3 w-3" />{k.phone}</div>
-                  {k.yearsExperience && <div className="text-[10px] font-bold text-slate-500">{k.yearsExperience} yrs experience</div>}
+                  {k.yearsExperience && <div className="text-[0.6875rem] font-bold text-slate-500">{k.yearsExperience} yrs experience</div>}
                 </div>
               </div>
 
               {k.specializations?.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {k.specializations.slice(0, 3).map((s: string, i: number) => (
-                    <span key={i} className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[9px] font-extrabold uppercase">{s}</span>
+                    <span key={i} className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase">{s}</span>
                   ))}
                 </div>
               )}
 
               <div className="grid grid-cols-3 gap-1 text-xs">
                 <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2 text-center">
-                  <div className="text-[9px] uppercase font-extrabold text-amber-700">Issued</div>
-                  <div className="font-extrabold text-amber-800 tabular-nums text-[10px]">{k.metalIssuedGrams.toFixed(1)}g</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Issued</div>
+                  <div className="font-extrabold text-amber-800 tabular-nums text-[0.6875rem]">{k.metalIssuedGrams.toFixed(1)}g</div>
                 </div>
                 <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2 text-center">
-                  <div className="text-[9px] uppercase font-extrabold text-emerald-700">Returned</div>
-                  <div className="font-extrabold text-emerald-800 tabular-nums text-[10px]">{k.metalReturnedGrams.toFixed(1)}g</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Returned</div>
+                  <div className="font-extrabold text-emerald-800 tabular-nums text-[0.6875rem]">{k.metalReturnedGrams.toFixed(1)}g</div>
                 </div>
                 <div className="rounded-lg bg-rose-50 dark:bg-rose-950/30 p-2 text-center">
-                  <div className="text-[9px] uppercase font-extrabold text-rose-700">Outstanding</div>
-                  <div className="font-extrabold text-rose-800 tabular-nums text-[10px]">{k.outstandingGrams.toFixed(1)}g</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-rose-700">Outstanding</div>
+                  <div className="font-extrabold text-rose-800 tabular-nums text-[0.6875rem]">{k.outstandingGrams.toFixed(1)}g</div>
                 </div>
               </div>
 
@@ -263,7 +263,7 @@ function KarigarForm({ editing, onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>
           {form.photoUrl ? (
             <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-slate-200">
               <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
@@ -296,7 +296,7 @@ function KarigarForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Specializations</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Specializations</label>
           <div className="flex flex-wrap gap-1">
             {SPECIALIZATIONS.map((s) => (
               <button key={s} onClick={() => toggleSpec(s)} className={
@@ -314,15 +314,15 @@ function KarigarForm({ editing, onClose, onSaved }: any) {
           </div>
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Hourly Rate</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Hourly Rate</label>
               <input type="number" value={form.hourlyRate} onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Per Gram (Rs)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Per Gram (Rs)</label>
               <input type="number" value={form.perGramRate} onChange={(e) => setForm({ ...form, perGramRate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Per Piece</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Per Piece</label>
               <input type="number" value={form.fixedRatePerPiece} onChange={(e) => setForm({ ...form, fixedRatePerPiece: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-white dark:bg-emerald-950/40 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
           </div>
@@ -374,7 +374,7 @@ function MetalTransferModal({ karigar, direction, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className={'text-[10px] uppercase font-extrabold mb-1 block ' + (direction === 'issue' ? 'text-amber-700' : 'text-emerald-700')}>Grams *</label>
+            <label className={'text-[0.6875rem] uppercase font-extrabold mb-1 block ' + (direction === 'issue' ? 'text-amber-700' : 'text-emerald-700')}>Grams *</label>
             <input type="number" step="0.01" autoFocus value={grams} onChange={(e) => setGrams(Number(e.target.value))} className={
               'h-16 w-full rounded-xl border-2 px-4 text-2xl font-extrabold tabular-nums focus:outline-none ' +
               (direction === 'issue' ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/30 focus:border-amber-500' : 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 focus:border-emerald-500')
@@ -382,7 +382,7 @@ function MetalTransferModal({ karigar, direction, onClose, onDone }: any) {
           </div>
           {direction === 'receive' && (
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Wastage (g)</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Wastage (g)</label>
               <input type="number" step="0.01" value={wastage} onChange={(e) => setWastage(Number(e.target.value))} className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 dark:bg-rose-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
             </div>
           )}

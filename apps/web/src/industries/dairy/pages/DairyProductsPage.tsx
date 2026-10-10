@@ -105,18 +105,18 @@ export default function DairyProductsPage() {
                   )}
                   <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {p.isFeatured && (
-                      <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                      <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                         <Star className="h-2 w-2 fill-current" />Featured
                       </span>
                     )}
                     {p.isBestSeller && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                         <TrendingUp className="h-2 w-2" />Best
                       </span>
                     )}
-                    {p.isFresh && <span className="px-1.5 py-0.5 rounded bg-cyan-500 text-white text-[9px] font-extrabold uppercase">Fresh</span>}
-                    {p.isPasteurized && <span className="px-1.5 py-0.5 rounded bg-blue-500 text-white text-[9px] font-extrabold uppercase">Past.</span>}
-                    {p.isOrganic && <span className="px-1.5 py-0.5 rounded bg-green-500 text-white text-[9px] font-extrabold uppercase">Organic</span>}
+                    {p.isFresh && <span className="px-1.5 py-0.5 rounded bg-cyan-500 text-white text-[0.625rem] font-extrabold uppercase">Fresh</span>}
+                    {p.isPasteurized && <span className="px-1.5 py-0.5 rounded bg-blue-500 text-white text-[0.625rem] font-extrabold uppercase">Past.</span>}
+                    {p.isOrganic && <span className="px-1.5 py-0.5 rounded bg-green-500 text-white text-[0.625rem] font-extrabold uppercase">Organic</span>}
                   </div>
                   <div className="absolute top-2 right-2 flex flex-col gap-1">
                     {p.availableMorning && <span className="h-6 w-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs shadow" title="Morning"><Sunrise className="h-3 w-3" /></span>}
@@ -134,13 +134,13 @@ export default function DairyProductsPage() {
                   <div className="grid grid-cols-2 gap-1 mt-2 text-xs">
                     {p.fatContent && (
                       <div className="rounded bg-amber-50 p-1.5">
-                        <div className="text-[8px] uppercase font-extrabold text-amber-700">Fat</div>
+                        <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Fat</div>
                         <div className="font-extrabold text-amber-900">{p.fatContent}%</div>
                       </div>
                     )}
                     {p.snfContent && (
                       <div className="rounded bg-blue-50 p-1.5">
-                        <div className="text-[8px] uppercase font-extrabold text-blue-700">SNF</div>
+                        <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">SNF</div>
                         <div className="font-extrabold text-blue-900">{p.snfContent}%</div>
                       </div>
                     )}
@@ -151,7 +151,7 @@ export default function DairyProductsPage() {
                       <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(prod?.price ?? 0)}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[10px] font-bold text-slate-500">Stock</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">Stock</div>
                       <div className="text-sm font-extrabold tabular-nums">{prod?.stock ?? 0}</div>
                     </div>
                   </div>

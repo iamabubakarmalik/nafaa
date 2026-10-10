@@ -63,7 +63,7 @@ export default function PrescriptionsPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-mono font-extrabold text-sm">{rx.prescriptionNumber}</span>
                       <span className={
-                        'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' +
+                        'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                         (rx.status === 'ACTIVE' ? 'bg-emerald-600' : rx.status === 'DISPENSED' ? 'bg-blue-600' : 'bg-slate-500')
                       }>{rx.status}</span>
                     </div>

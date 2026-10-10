@@ -173,12 +173,12 @@ export default function AutoPartsReportsV2() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 text-slate-600">
                   <tr>
-                    <th className="text-center px-3 py-3 font-bold text-[10px] uppercase w-12">#</th>
-                    <th className="text-left px-3 py-3 font-bold text-[10px] uppercase">Part</th>
-                    <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Qty Sold</th>
-                    <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Revenue</th>
-                    <th className="text-right px-3 py-3 font-bold text-[10px] uppercase">Profit</th>
-                    <th className="text-center px-3 py-3 font-bold text-[10px] uppercase">Margin</th>
+                    <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase w-12">#</th>
+                    <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase">Part</th>
+                    <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Qty Sold</th>
+                    <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Revenue</th>
+                    <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase">Profit</th>
+                    <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase">Margin</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

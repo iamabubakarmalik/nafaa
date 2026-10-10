@@ -332,26 +332,26 @@ export default function RestaurantPosPage() {
               </h3>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] uppercase font-extrabold text-slate-600 mb-1">Customer Name *</label>
+                  <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Customer Name *</label>
                   <input value={customerName} onChange={(e) => setCustomerName(e.target.value)}
                     placeholder="Customer name"
                     className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
                 </div>
                 <div>
-                  <label className="block text-[10px] uppercase font-extrabold text-slate-600 mb-1">Phone</label>
+                  <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Phone</label>
                   <input value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)}
                     placeholder="03XX..."
                     className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-extrabold text-slate-600 mb-1">Delivery Address *</label>
+                <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Delivery Address *</label>
                 <textarea rows={2} value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)}
                   placeholder="Full address with landmark"
                   className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500" />
               </div>
               <div>
-                <label className="block text-[10px] uppercase font-extrabold text-slate-600 mb-1">Notes</label>
+                <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1">Notes</label>
                 <input value={deliveryNotes} onChange={(e) => setDeliveryNotes(e.target.value)}
                   placeholder="Gate code, floor, etc."
                   className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
@@ -407,7 +407,7 @@ export default function RestaurantPosPage() {
             Back
           </button>
           <div className="flex items-center gap-3">
-            <div className="text-[10px] uppercase font-extrabold text-slate-500">Guests</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Guests</div>
             <div className="inline-flex items-center bg-white border-2 border-slate-200 rounded-xl overflow-hidden">
               <button onClick={() => setNumberOfGuests(Math.max(1, numberOfGuests - 1))} className="h-10 w-10 hover:bg-slate-100 font-extrabold">−</button>
               <span className="h-10 w-12 flex items-center justify-center font-extrabold tabular-nums">{numberOfGuests}</span>
@@ -448,7 +448,7 @@ export default function RestaurantPosPage() {
                       <div className={'absolute -top-1 -right-1 h-3 w-3 rounded-full ' + cfg.bg} />
                       <div className="text-3xl font-extrabold text-slate-900 tabular-nums">{table.tableNumber}</div>
                       <div className="text-xs font-bold text-slate-600 mt-0.5 truncate">{table.tableName || '—'}</div>
-                      <div className="mt-2 flex items-center justify-center gap-1 text-[10px] font-bold text-slate-500">
+                      <div className="mt-2 flex items-center justify-center gap-1 text-[0.6875rem] font-bold text-slate-500">
                         <Users className="h-2.5 w-2.5" />
                         {table.capacity}
                       </div>
@@ -458,7 +458,7 @@ export default function RestaurantPosPage() {
                         {table.isFamilyArea && <Baby className="h-2.5 w-2.5 text-pink-500" />}
                       </div>
                       {!isSelectable && (
-                        <div className={'mt-1 text-[9px] font-extrabold uppercase ' + cfg.text}>
+                        <div className={'mt-1 text-[0.625rem] font-extrabold uppercase ' + cfg.text}>
                           {cfg.label}
                         </div>
                       )}
@@ -516,7 +516,7 @@ export default function RestaurantPosPage() {
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                   <ChefHat className="h-2.5 w-2.5 text-amber-300" />
                   {MODES.find((m) => m.value === mode)?.label}
                   {selectedTable && ` • Table ${selectedTable.tableNumber}`}
@@ -605,13 +605,13 @@ export default function RestaurantPosPage() {
                       </div>
                     )}
                     {mi.isSpicy && (
-                      <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-red-600 text-white text-[8px] font-extrabold inline-flex items-center gap-0.5">
+                      <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-red-600 text-white text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                         <Flame className="h-2 w-2" />
                         {mi.spiceLevel}
                       </div>
                     )}
                     {mi.prepTimeMinutes && (
-                      <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-900/80 text-white text-[8px] font-extrabold inline-flex items-center gap-0.5">
+                      <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-900/80 text-white text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
                         <Clock className="h-2 w-2" />
                         {mi.prepTimeMinutes}m
                       </div>
@@ -633,7 +633,7 @@ export default function RestaurantPosPage() {
         <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <ReceiptText className="h-2.5 w-2.5 text-amber-300" />
                 Order Cart
               </div>
@@ -665,7 +665,7 @@ export default function RestaurantPosPage() {
                     {item.modifiers && item.modifiers.length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-1">
                         {item.modifiers.map((m, i) => (
-                          <span key={i} className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 text-[9px] font-extrabold">
+                          <span key={i} className="px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 text-[0.625rem] font-extrabold">
                             {m.optionName}
                             {m.priceAdjustment !== 0 && ` (${m.priceAdjustment > 0 ? '+' : ''}${formatPKR(m.priceAdjustment)})`}
                           </span>
@@ -673,10 +673,10 @@ export default function RestaurantPosPage() {
                       </div>
                     )}
                     {item.specialInstructions && (
-                      <div className="mt-1 text-[10px] italic text-amber-700">📝 {item.specialInstructions}</div>
+                      <div className="mt-1 text-[0.6875rem] italic text-amber-700">📝 {item.specialInstructions}</div>
                     )}
                     {item.spiceLevel && item.spiceLevel !== 'NONE' && (
-                      <div className="text-[10px] font-extrabold text-red-600">🌶️ {item.spiceLevel}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-red-600">🌶️ {item.spiceLevel}</div>
                     )}
                   </div>
                   <button onClick={() => setCart((prev) => prev.filter((c) => c.cartLineId !== item.cartLineId))}
@@ -693,7 +693,7 @@ export default function RestaurantPosPage() {
                       className="h-8 w-8 bg-orange-600 text-white hover:bg-orange-700 font-extrabold">+</button>
                   </div>
                   <button onClick={() => setNotePickerLine(notePickerLine === item.cartLineId ? null : item.cartLineId)}
-                    className="text-[10px] font-extrabold text-blue-600 inline-flex items-center gap-0.5">
+                    className="text-[0.6875rem] font-extrabold text-blue-600 inline-flex items-center gap-0.5">
                     <MessageSquare className="h-3 w-3" />
                     {notePickerLine === item.cartLineId ? 'Hide' : 'Note'}
                   </button>
@@ -780,7 +780,7 @@ export default function RestaurantPosPage() {
                 Pay & Print
               </Button>
             </div>
-            <p className="text-[10px] text-slate-500 font-semibold text-center">
+            <p className="text-[0.6875rem] text-slate-500 font-semibold text-center">
               "Send to Kitchen" — order create + KOT print (customer bench pe payment)
               <br />
               "Pay & Print" — complete + payment + receipt (immediate close)

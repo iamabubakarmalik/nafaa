@@ -287,8 +287,8 @@ export function ToyWizardStep1Basic({ basic, onChange, errors }: Props) {
                   <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-500" title="Safety-critical age" />
                 )}
                 <span className="text-2xl leading-none">{a.e}</span>
-                <span className="text-[10px] font-extrabold text-center leading-tight">{a.l}</span>
-                <span className={['text-[9px] font-bold', active ? 'text-white/80' : 'text-slate-500'].join(' ')}>{a.years}</span>
+                <span className="text-[0.6875rem] font-extrabold text-center leading-tight">{a.l}</span>
+                <span className={['text-[0.625rem] font-bold', active ? 'text-white/80' : 'text-slate-500'].join(' ')}>{a.years}</span>
               </button>
             );
           })}
@@ -386,7 +386,7 @@ export function ToyWizardStep1Basic({ basic, onChange, errors }: Props) {
         </div>
 
         <div className="flex flex-wrap gap-1.5">
-          <span className="text-[10px] uppercase font-extrabold text-slate-500 mr-1 self-center">Popular:</span>
+          <span className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mr-1 self-center">Popular:</span>
           {POPULAR_FRANCHISES.map((f) => (
             <button key={f} type="button" onClick={() => onChange({ characterFranchise: f })}
               className="px-2.5 py-1 rounded-full border-2 border-slate-200 hover:border-pink-400 bg-white text-xs font-extrabold text-slate-700">
@@ -417,7 +417,7 @@ export function ToyWizardStep1Basic({ basic, onChange, errors }: Props) {
 
         {cost > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Quick markup (toys: 25-50% typical)
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -438,7 +438,7 @@ export function ToyWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div className="flex items-center gap-2.5">
                 <TrendingUp className={['h-6 w-6', loss ? 'text-rose-700' : margin >= 25 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
                 <div>
-                  <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                  <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                     loss ? 'text-rose-700' : margin >= 25 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                     {loss ? 'Loss warning' : 'Profit per unit'}
                   </div>
@@ -497,7 +497,7 @@ export function ToyWizardStep1Basic({ basic, onChange, errors }: Props) {
             {basic.imageUrls.map((url, i) => (
               <div key={url + i} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt="" className="w-full h-full object-cover" />
-                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-pink-600 text-white text-[9px] font-extrabold">MAIN</div>}
+                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-pink-600 text-white text-[0.625rem] font-extrabold">MAIN</div>}
                 <button type="button" onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, x) => x !== i) })}
                   className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-extrabold">×</button>
               </div>
@@ -597,7 +597,7 @@ function Tog({ checked, onChange, icon: Icon, label, tone }: any) {
     <button type="button" onClick={() => onChange(!checked)}
       className={['flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition', tones[tone || 'default']].join(' ')}>
       <Icon className={['h-5 w-5', checked ? 'fill-current' : ''].join(' ')} />
-      <span className="text-[11px] font-extrabold">{label}</span>
+      <span className="text-[0.6875rem] font-extrabold">{label}</span>
     </button>
   );
 }

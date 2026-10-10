@@ -238,10 +238,10 @@ export default function LegalPage() {
 
       {/* Footer */}
       <div className="text-center pt-4">
-        <div className="text-[11px] text-slate-400 font-semibold">
+        <div className="text-[0.6875rem] text-slate-400 font-semibold">
           © 2026 Nafaa. All rights reserved.
         </div>
-        <div className="text-[11px] text-slate-400 mt-0.5">
+        <div className="text-[0.6875rem] text-slate-400 mt-0.5">
           Made in Pakistan 🇵🇰 with ❤️
         </div>
       </div>

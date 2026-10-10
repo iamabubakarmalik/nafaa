@@ -48,7 +48,7 @@ function UrlBox({ label, url }: { label: string; url: string }) {
   return (
     <Field label={label}>
       <div className="flex gap-2">
-        <input readOnly value={url} onFocus={(e) => e.target.select()} className={cn(inputCls, 'font-mono text-[12px]')} />
+        <input readOnly value={url} onFocus={(e) => e.target.select()} className={cn(inputCls, 'font-mono text-[0.75rem]')} />
         <Btn icon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(url)}>Copy</Btn>
       </div>
     </Field>
@@ -72,7 +72,7 @@ function MerchantCard({ data }: { data: GoogleOverview }) {
         </Banner>
       ) : !data.enabled ? (
         <div className="space-y-3">
-          <ol className="list-decimal space-y-1 pl-5 text-[13px] text-slate-700 dark:text-slate-200">
+          <ol className="list-decimal space-y-1 pl-5 text-[0.8125rem] text-slate-700 dark:text-slate-200">
             <li>Neeche "Feed chalu karein" — aap ko ek link milega</li>
             <li><a href="https://merchants.google.com" target="_blank" rel="noreferrer" className="font-semibold text-blue-700 underline">Google Merchant Center</a> me muft account (country: Pakistan, currency: PKR)</li>
             <li>Products → Add products → <b>File</b> → "Add file from link" → link paste → roz (daily) fetch</li>
@@ -84,9 +84,9 @@ function MerchantCard({ data }: { data: GoogleOverview }) {
           <UrlBox label="Product feed link (Merchant Center me)" url={data.productFeedUrl!} />
           {data.stats && (
             <div className="space-y-2">
-              <p className="text-[13px] text-slate-700 dark:text-slate-200"><b>{data.stats.items}</b> product Google ko ja rahe hain.</p>
+              <p className="text-[0.8125rem] text-slate-700 dark:text-slate-200"><b>{data.stats.items}</b> product Google ko ja rahe hain.</p>
               {data.stats.warnings.map((w) => (
-                <p key={w.code} className="flex items-start gap-1.5 text-[12.5px] text-amber-700 dark:text-amber-300"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {w.message}</p>
+                <p key={w.code} className="flex items-start gap-1.5 text-[0.78125rem] text-amber-700 dark:text-amber-300"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {w.message}</p>
               ))}
             </div>
           )}
@@ -124,7 +124,7 @@ function LocalCard({ data }: { data: GoogleOverview }) {
     <Card title={<span className="flex items-center gap-2"><MapPin className="h-4 w-4 text-emerald-600" /> Dukaan me maujood (Google Maps)</span>}
       description="Log Google Maps par dukaan dekhein to 'In stock' products bhi dikhein — har branch ka apna stock.">
       <div className="space-y-3">
-        <ol className="list-decimal space-y-1 pl-5 text-[13px] text-slate-700 dark:text-slate-200">
+        <ol className="list-decimal space-y-1 pl-5 text-[0.8125rem] text-slate-700 dark:text-slate-200">
           <li>Google Business Profile ko Merchant Center se jorein (Merchant Center → Settings → Business Profile)</li>
           <li>Har branch ka <b>store code</b> Business Profile me likha hota hai (Info → Advanced) — wahi neeche likhein</li>
           <li>Merchant Center → Products → Add → File → <b>Local inventory</b> → neeche wala link, roz</li>
@@ -157,7 +157,7 @@ function ReviewCard({ data }: { data: GoogleOverview }) {
         </Field>
         {data.reviewUrl && (
           <>
-            <div className="flex flex-wrap items-center gap-2 text-[13px]">
+            <div className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
               <a href={data.reviewUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold text-blue-700 hover:underline">Review link kholein <ExternalLink className="h-3.5 w-3.5" /></a>
               <Btn size="sm" icon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(data.reviewUrl!)}>Copy (WhatsApp ke liye)</Btn>
             </div>

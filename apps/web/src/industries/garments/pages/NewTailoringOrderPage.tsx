@@ -152,7 +152,7 @@ export default function NewTailoringOrderPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 New Tailoring Order
               </div>
@@ -221,7 +221,7 @@ export default function NewTailoringOrderPage() {
                         >
                           <User className="h-3.5 w-3.5 text-slate-400" />
                           <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                          <span className="text-[10px] text-slate-500 font-bold">{c.phone}</span>
+                          <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
                         </button>
                       ))}
                     </div>
@@ -248,7 +248,7 @@ export default function NewTailoringOrderPage() {
             {/* Measurement picker */}
             {form.customerId && customerMeasurements.length > 0 && (
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Measurement Profile</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Measurement Profile</label>
                 <select
                   value={form.measurementProfileId}
                   onChange={(e) => setForm({ ...form, measurementProfileId: e.target.value })}
@@ -276,7 +276,7 @@ export default function NewTailoringOrderPage() {
           {/* Priority + Delivery */}
           <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Priority</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Priority</label>
               <div className="grid grid-cols-4 gap-2">
                 {PRIORITIES.map((p) => (
                   <button
@@ -288,14 +288,14 @@ export default function NewTailoringOrderPage() {
                     }
                   >
                     <div className="text-xl">{p.emoji}</div>
-                    <div className="text-[10px] font-extrabold mt-0.5">{p.label}</div>
+                    <div className="text-[0.6875rem] font-extrabold mt-0.5">{p.label}</div>
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Promised Delivery Date</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Promised Delivery Date</label>
               <input
                 type="date"
                 value={form.promisedDate}
@@ -322,7 +322,7 @@ export default function NewTailoringOrderPage() {
               {items.map((item, i) => (
                 <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/30 p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-extrabold text-slate-600">Garment #{i + 1}</span>
+                    <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Garment #{i + 1}</span>
                     {items.length > 1 && (
                       <button onClick={() => removeItem(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
                         <Trash2 className="h-3 w-3" />
@@ -332,7 +332,7 @@ export default function NewTailoringOrderPage() {
 
                   {/* Category */}
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Type *</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Type *</label>
                     <div className="flex flex-wrap gap-1">
                       {CATEGORY_OPTIONS.map((c) => (
                         <button
@@ -351,7 +351,7 @@ export default function NewTailoringOrderPage() {
 
                   <div className="grid sm:grid-cols-6 gap-2">
                     <div className="sm:col-span-3">
-                      <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-0.5 block">Garment Name *</label>
+                      <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Garment Name *</label>
                       <input
                         value={item.garmentName}
                         onChange={(e) => updateItem(i, { garmentName: e.target.value })}
@@ -360,7 +360,7 @@ export default function NewTailoringOrderPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-extrabold text-purple-700 mb-0.5 block">Qty</label>
+                      <label className="text-[0.6875rem] uppercase font-extrabold text-purple-700 mb-0.5 block">Qty</label>
                       <input
                         type="number" step="1" min="1"
                         value={item.quantity}
@@ -369,7 +369,7 @@ export default function NewTailoringOrderPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-0.5 block">Size</label>
+                      <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Size</label>
                       <input
                         value={item.size}
                         onChange={(e) => updateItem(i, { size: e.target.value })}
@@ -378,7 +378,7 @@ export default function NewTailoringOrderPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-0.5 block">Color</label>
+                      <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Color</label>
                       <input
                         value={item.colorName}
                         onChange={(e) => updateItem(i, { colorName: e.target.value })}
@@ -465,7 +465,7 @@ export default function NewTailoringOrderPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-purple-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Order Summary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Order Summary</div>
 
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Fabric</span><span className="font-bold tabular-nums">{formatPKR(fabricTotal)}</span></div>
@@ -480,7 +480,7 @@ export default function NewTailoringOrderPage() {
 
               <div className="mt-3 space-y-2">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Discount (Rs)</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Discount (Rs)</label>
                   <input
                     type="number"
                     value={form.discount}
@@ -490,7 +490,7 @@ export default function NewTailoringOrderPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Tax (Rs)</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Tax (Rs)</label>
                   <input
                     type="number"
                     value={form.taxAmount}
@@ -533,7 +533,7 @@ function CostInput({ label, value, onChange, color }: { label: string; value: nu
   };
   return (
     <div>
-      <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-0.5 block">{label}</label>
+      <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">{label}</label>
       <input
         type="number" step="0.01" min="0"
         value={value}

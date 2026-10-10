@@ -117,7 +117,7 @@ export function CarpetWizardStep2Variants({
               <ToggleLeft className="h-5 w-5" />
               <span className="font-extrabold text-sm">Nahi — single color</span>
             </div>
-            <div className={['text-[11px] font-bold mt-1', !hasVariants ? 'text-white/70' : 'text-slate-500'].join(' ')}>
+            <div className={['text-[0.6875rem] font-bold mt-1', !hasVariants ? 'text-white/70' : 'text-slate-500'].join(' ')}>
               Ek hi color/design. Seedha Step 3 pe stock add karo.
             </div>
           </button>
@@ -133,7 +133,7 @@ export function CarpetWizardStep2Variants({
               <ToggleRight className="h-5 w-5" />
               <span className="font-extrabold text-sm">Haan — multiple colors</span>
             </div>
-            <div className={['text-[11px] font-bold mt-1', hasVariants ? 'text-white/70' : 'text-slate-500'].join(' ')}>
+            <div className={['text-[0.6875rem] font-bold mt-1', hasVariants ? 'text-white/70' : 'text-slate-500'].join(' ')}>
               Har color/design ka apna stock, price, image.
             </div>
           </button>
@@ -155,12 +155,12 @@ export function CarpetWizardStep2Variants({
           <section className="rounded-2xl border-2 border-slate-200 bg-white p-5 space-y-3">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
                   <Sparkles className="h-3 w-3 text-amber-500" /> Ek Click Se Add
                 </div>
                 <h4 className="font-extrabold text-slate-900 text-sm mt-0.5">Common carpet colors</h4>
               </div>
-              <div className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">
+              <div className="text-[0.6875rem] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">
                 {variants.length} added
               </div>
             </div>
@@ -191,7 +191,7 @@ export function CarpetWizardStep2Variants({
           {/* ═══ Custom color ═══ */}
           <section className="rounded-2xl border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-white p-5 space-y-3">
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 flex items-center gap-1">
                 <Plus className="h-3 w-3" /> Custom Color / Design
               </div>
               <h4 className="font-extrabold text-slate-900 text-sm mt-0.5">Apni marzi ka color, design code ke saath</h4>
@@ -233,19 +233,19 @@ export function CarpetWizardStep2Variants({
 
             {/* Design templates */}
             <div className="border-t border-violet-200 pt-3">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 mb-1.5 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 mb-1.5 flex items-center gap-1">
                 <Sparkles className="h-3 w-3" /> Design Code Templates
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {DESIGN_TEMPLATES.map((tpl) => (
                   <div key={tpl.pattern} className="inline-flex items-center gap-1">
-                    <span className="text-[10px] font-extrabold text-slate-600">{tpl.pattern}:</span>
+                    <span className="text-[0.6875rem] font-extrabold text-slate-600">{tpl.pattern}:</span>
                     {tpl.codes.map((code) => (
                       <button
                         key={code}
                         type="button"
                         onClick={() => setCustomDesignCode(code)}
-                        className="px-2 py-0.5 rounded-md bg-white border border-violet-200 hover:bg-violet-50 text-[10px] font-mono font-extrabold text-violet-800"
+                        className="px-2 py-0.5 rounded-md bg-white border border-violet-200 hover:bg-violet-50 text-[0.6875rem] font-mono font-extrabold text-violet-800"
                       >
                         {code}
                       </button>
@@ -261,14 +261,14 @@ export function CarpetWizardStep2Variants({
             <section className="rounded-2xl border-2 border-emerald-200 bg-white p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700">
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700">
                     Selected Colors
                   </div>
                   <h4 className="font-extrabold text-slate-900 text-sm mt-0.5">
                     {variants.length} variant{variants.length !== 1 ? 's' : ''} to create
                   </h4>
                 </div>
-                <div className="text-[10px] text-slate-500 font-bold text-right">
+                <div className="text-[0.6875rem] text-slate-500 font-bold text-right">
                   Click each variant to<br />edit price, code, image
                 </div>
               </div>
@@ -288,12 +288,12 @@ export function CarpetWizardStep2Variants({
                           onChange={(e) => onUpdateVariant(v.tempId, { name: e.target.value })}
                           className="w-full text-sm font-extrabold text-slate-900 bg-transparent focus:outline-none focus:bg-slate-50 rounded px-1"
                         />
-                        <div className="text-[10px] text-slate-500 font-bold px-1 mt-0.5 flex items-center gap-2 flex-wrap">
+                        <div className="text-[0.6875rem] text-slate-500 font-bold px-1 mt-0.5 flex items-center gap-2 flex-wrap">
                           {v.designCode && (<span className="font-mono">{v.designCode}</span>)}
                           {v.sku && (<span className="font-mono">SKU: {v.sku}</span>)}
                           <span className="text-slate-400">{v.colorHex}</span>
                           {basic.stockType === 'MIXED' && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[9px]">
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[0.625rem]">
                               {v.stockTypeOverride === 'PIECES' ? <Package className="h-2.5 w-2.5" />
                                 : v.stockTypeOverride === 'FT' ? <Ruler className="h-2.5 w-2.5" />
                                 : <Layers className="h-2.5 w-2.5" />}

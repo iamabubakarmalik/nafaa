@@ -108,7 +108,7 @@ export function RetailWizardStep3Stock({
             </div>
             <div className="flex-1">
               <div className="font-extrabold text-slate-900 dark:text-white text-sm">Variants (flavor/size)</div>
-              <div className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">Chocolate/Vanilla, S/M/L</div>
+              <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold">Chocolate/Vanilla, S/M/L</div>
             </div>
             {hasVariants ? <ToggleRight className="h-6 w-6 text-violet-600 dark:text-violet-400" /> : <ToggleLeft className="h-6 w-6 text-slate-400" />}
           </div>
@@ -122,7 +122,7 @@ export function RetailWizardStep3Stock({
             </div>
             <div className="flex-1">
               <div className="font-extrabold text-slate-900 dark:text-white text-sm">Batches / Expiry</div>
-              <div className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">Dawai, dairy, kharaab hone wale</div>
+              <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold">Dawai, dairy, kharaab hone wale</div>
             </div>
             {trackBatches ? <ToggleRight className="h-6 w-6 text-amber-600 dark:text-amber-400" /> : <ToggleLeft className="h-6 w-6 text-slate-400" />}
           </div>
@@ -174,7 +174,7 @@ export function RetailWizardStep3Stock({
               <input type="number" step="1" value={stock.lowStockAlert}
                 onChange={(e) => onUpdateStock({ lowStockAlert: Number(e.target.value || 0) })}
                 className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-1">Neeche is se → warning</p>
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-1">Neeche is se → warning</p>
             </div>
             <div>
               <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
@@ -202,24 +202,24 @@ export function RetailWizardStep3Stock({
               <h3 className="font-extrabold text-violet-900 dark:text-violet-200 text-base">Variants</h3>
               <p className="text-xs text-violet-700 dark:text-violet-400 font-semibold">Alag naam, alag stock</p>
             </div>
-            <span className="px-2.5 py-1 rounded-lg bg-violet-100 dark:bg-violet-500/20 text-violet-800 dark:text-violet-300 text-[10px] font-extrabold tabular-nums">
+            <span className="px-2.5 py-1 rounded-lg bg-violet-100 dark:bg-violet-500/20 text-violet-800 dark:text-violet-300 text-[0.6875rem] font-extrabold tabular-nums">
               {variants.length} variants • total {totalVariantStock} {U}
             </span>
           </div>
 
           {/* Presets */}
           <div className="rounded-xl bg-white dark:bg-slate-800/60 border-2 border-violet-200 dark:border-violet-500/30 p-3 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Aam variants — click karke add
             </div>
             {VARIANT_PRESETS.map((grp) => (
               <div key={grp.group} className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-extrabold uppercase text-slate-500 dark:text-slate-400 min-w-[45px]">{grp.group}:</span>
+                <span className="text-[0.6875rem] font-extrabold uppercase text-slate-500 dark:text-slate-400 min-w-[45px]">{grp.group}:</span>
                 {grp.items.map((it) => {
                   const ex = variants.some((v) => v.name.toLowerCase() === it.toLowerCase());
                   return (
                     <button key={it} type="button" disabled={ex} onClick={() => addVariant(it)}
-                      className={['px-2.5 py-1 rounded-lg border-2 text-[11px] font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed',
+                      className={['px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed',
                         ex ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-violet-400 dark:hover:border-violet-500/50'].join(' ')}>
                       {ex ? '✓ ' : '+ '}{it}
                     </button>
@@ -260,26 +260,26 @@ export function RetailWizardStep3Stock({
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Stock ({U})</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Stock ({U})</label>
                       <input type="number" step="0.01" value={v.stock}
                         onChange={(e) => onUpdateVariant(v.tempId, { stock: Number(e.target.value || 0) })}
                         className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-sm font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase mb-1">Rate override</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase mb-1">Rate override</label>
                       <input type="number" step="0.01" value={v.priceOverride ?? ''}
                         onChange={(e) => onUpdateVariant(v.tempId, { priceOverride: e.target.value === '' ? undefined : Number(e.target.value) })}
                         placeholder={String(sale)}
                         className="h-10 w-full rounded-lg border-2 border-emerald-200 dark:border-emerald-500/40 bg-white dark:bg-slate-800 px-2 text-sm font-bold tabular-nums text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">SKU</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">SKU</label>
                       <input value={v.sku ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { sku: e.target.value })}
                         placeholder="Optional"
                         className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-mono font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500 transition" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Barcode</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Barcode</label>
                       <input value={v.barcode ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { barcode: e.target.value })}
                         placeholder="Optional"
                         className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-mono font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500 transition" />
@@ -328,19 +328,19 @@ export function RetailWizardStep3Stock({
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60'].join(' ')}>
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-end">
                       <div className="sm:col-span-2">
-                        <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Batch Number</label>
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Batch Number</label>
                         <input value={b.batchNumber} onChange={(e) => onUpdateBatch(b.tempId, { batchNumber: e.target.value })}
                           placeholder="BATCH-001"
                           className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-sm font-mono font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 transition" />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Mfg Date</label>
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Mfg Date</label>
                         <input type="date" value={b.manufactureDate ?? ''}
                           onChange={(e) => onUpdateBatch(b.tempId, { manufactureDate: e.target.value })}
                           className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition dark:[color-scheme:dark]" />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1 items-center gap-1">
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1 items-center gap-1">
                           Expiry {expired && <AlertTriangle className="h-3 w-3 text-rose-600 dark:text-rose-400 inline" />}
                         </label>
                         <input type="date" value={b.expiryDate ?? ''}
@@ -352,13 +352,13 @@ export function RetailWizardStep3Stock({
                       </div>
                       <div className="grid grid-cols-2 gap-1 sm:col-span-5 sm:grid-cols-3">
                         <div>
-                          <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Qty ({U})</label>
+                          <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Qty ({U})</label>
                           <input type="number" step="0.01" value={b.quantity}
                             onChange={(e) => onUpdateBatch(b.tempId, { quantity: Number(e.target.value || 0) })}
                             className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-sm font-extrabold tabular-nums text-right text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Cost</label>
+                          <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Cost</label>
                           <input type="number" step="0.01" value={b.costPrice}
                             onChange={(e) => onUpdateBatch(b.tempId, { costPrice: Number(e.target.value || 0) })}
                             className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-sm font-bold tabular-nums text-right text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
@@ -402,17 +402,17 @@ export function RetailWizardStep3Stock({
           <div className="relative">
             <div className="flex items-center gap-2 mb-3">
               <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-              <span className="text-[10px] uppercase font-extrabold tracking-wider text-emerald-300">Total stock preview</span>
+              <span className="text-[0.6875rem] uppercase font-extrabold tracking-wider text-emerald-300">Total stock preview</span>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/60">Kul stock</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Kul stock</div>
                 <div className="text-3xl font-extrabold tabular-nums text-white leading-none mt-1">
                   {displayStock} <span className="text-sm text-white/60">{U}</span>
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/60">Stock value</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Stock value</div>
                 <div className="text-3xl font-extrabold tabular-nums text-emerald-300 leading-none mt-1">
                   {formatPKRFull(stockValue)}
                 </div>

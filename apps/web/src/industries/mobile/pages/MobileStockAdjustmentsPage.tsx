@@ -185,7 +185,7 @@ export default function MobileStockAdjustmentsPage() {
         <div className="relative">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
                 <SlidersHorizontal className="h-3.5 w-3.5 text-fuchsia-300" /> Stock Adjustment
               </div>
               <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold">Device ka status badlo</h1>
@@ -242,16 +242,16 @@ export default function MobileStockAdjustmentsPage() {
                   {picked.imei1}
                 </div>
                 <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold uppercase ${STATUS_TONE[picked.status] ?? STATUS_TONE.IN_STOCK}`}>
+                  <span className={`px-1.5 py-0.5 rounded text-[0.6875rem] font-extrabold uppercase ${STATUS_TONE[picked.status] ?? STATUS_TONE.IN_STOCK}`}>
                     {picked.status}
                   </span>
                   {picked.ptaStatus && (
-                    <span className={`px-1.5 py-0.5 rounded border text-[10px] font-extrabold uppercase ${PTA_STATUS_COLORS[picked.ptaStatus as PtaStatus]?.bg} ${PTA_STATUS_COLORS[picked.ptaStatus as PtaStatus]?.text} ${PTA_STATUS_COLORS[picked.ptaStatus as PtaStatus]?.border}`}>
+                    <span className={`px-1.5 py-0.5 rounded border text-[0.6875rem] font-extrabold uppercase ${PTA_STATUS_COLORS[picked.ptaStatus as PtaStatus]?.bg} ${PTA_STATUS_COLORS[picked.ptaStatus as PtaStatus]?.text} ${PTA_STATUS_COLORS[picked.ptaStatus as PtaStatus]?.border}`}>
                       {PTA_STATUS_LABELS[picked.ptaStatus as PtaStatus]}
                     </span>
                   )}
                   {!hideCost && (
-                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                    <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
                       Lagat {formatPKR(picked.costPrice ?? 0)}
                     </span>
                   )}
@@ -282,7 +282,7 @@ export default function MobileStockAdjustmentsPage() {
                   className="h-12 w-14 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0"
                 >
                   <Camera className="h-4 w-4" />
-                  <span className="text-[8px] font-extrabold uppercase">Scan</span>
+                  <span className="text-[0.625rem] font-extrabold uppercase">Scan</span>
                 </button>
               </div>
 
@@ -323,11 +323,11 @@ export default function MobileStockAdjustmentsPage() {
                               <span className="ml-1 text-violet-700 dark:text-violet-400">{im.variant.name}</span>
                             )}
                           </div>
-                          <div className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400">
+                          <div className="text-[0.6875rem] font-mono font-bold text-slate-500 dark:text-slate-400">
                             {im.imei1}
                           </div>
                         </div>
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase shrink-0 ${STATUS_TONE[im.status] ?? STATUS_TONE.IN_STOCK}`}>
+                        <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase shrink-0 ${STATUS_TONE[im.status] ?? STATUS_TONE.IN_STOCK}`}>
                           {im.status === 'SOLD' ? 'bik chuka' : im.status}
                         </span>
                       </button>
@@ -369,7 +369,7 @@ export default function MobileStockAdjustmentsPage() {
                       <a.icon className="h-4 w-4" />
                     </div>
                     <div className="font-extrabold text-slate-900 dark:text-white text-sm">{a.label}</div>
-                    <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                    <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
                       {a.desc}
                     </div>
                   </button>
@@ -389,7 +389,7 @@ export default function MobileStockAdjustmentsPage() {
                 <button
                   key={r}
                   onClick={() => setReason(r)}
-                  className={`px-2.5 h-8 rounded-lg text-[11px] font-extrabold border-2 transition ${
+                  className={`px-2.5 h-8 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${
                     reason === r
                       ? 'bg-violet-600 text-white border-transparent shadow'
                       : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-violet-300'
@@ -486,16 +486,16 @@ export default function MobileStockAdjustmentsPage() {
                         <span className="ml-1.5 text-violet-700 dark:text-violet-400">{h.variant.name}</span>
                       )}
                     </div>
-                    <div className="text-[11px] font-mono font-bold text-slate-600 dark:text-slate-400 mt-0.5">
+                    <div className="text-[0.6875rem] font-mono font-bold text-slate-600 dark:text-slate-400 mt-0.5">
                       {h.imei?.imei1}
                     </div>
                     <div className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">{h.reason}</div>
-                    <div className="mt-1 flex items-center gap-2 flex-wrap text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                    <div className="mt-1 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
                       <span>{formatDate(h.createdAt)}</span>
                       {h.createdBy && <span>· {h.createdBy.fullName}</span>}
                     </div>
                   </div>
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold uppercase shrink-0 ${STATUS_TONE[h.imei?.status ?? ''] ?? STATUS_TONE.IN_STOCK}`}>
+                  <span className={`px-1.5 py-0.5 rounded text-[0.6875rem] font-extrabold uppercase shrink-0 ${STATUS_TONE[h.imei?.status ?? ''] ?? STATUS_TONE.IN_STOCK}`}>
                     {h.imei?.status}
                   </span>
                 </div>
@@ -515,7 +515,7 @@ export default function MobileStockAdjustmentsPage() {
 function StepLabel({ n, text, done }: { n: number; text: string; done?: boolean }) {
   return (
     <div className="flex items-center gap-2 mb-2">
-      <span className={`h-6 w-6 rounded-lg flex items-center justify-center text-[11px] font-extrabold transition ${
+      <span className={`h-6 w-6 rounded-lg flex items-center justify-center text-[0.6875rem] font-extrabold transition ${
         done
           ? 'bg-emerald-600 text-white'
           : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
@@ -534,7 +534,7 @@ function HeroStat({ label, value, icon: Icon, accent }: any) {
     <div className={`rounded-2xl backdrop-blur-md border p-3 ${
       accent ? 'bg-emerald-400/20 border-emerald-300/40' : 'bg-white/10 border-white/20'
     }`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>
       <div className="mt-1 text-xl sm:text-2xl font-extrabold tabular-nums truncate">{value}</div>

@@ -32,15 +32,15 @@ export default function HotelCustomerDetailPage() {
 
           <div className="grid sm:grid-cols-3 gap-3">
             <div className="rounded-xl bg-white border-2 border-indigo-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-indigo-700">Total Bookings</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-indigo-700">Total Bookings</div>
               <div className="text-2xl font-extrabold text-slate-900 mt-1">{guestBookings.length}</div>
             </div>
             <div className="rounded-xl bg-white border-2 border-purple-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-purple-700">Total Nights</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-purple-700">Total Nights</div>
               <div className="text-2xl font-extrabold text-purple-900 mt-1">{totalNights}</div>
             </div>
             <div className="rounded-xl bg-white border-2 border-emerald-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-emerald-700">Revenue</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Revenue</div>
               <div className="text-lg font-extrabold text-emerald-900 mt-1">{formatPKR(totalRevenue)}</div>
             </div>
           </div>
@@ -55,7 +55,7 @@ export default function HotelCustomerDetailPage() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="font-mono font-extrabold text-sm text-slate-900">{b.bookingNumber}</div>
-                      <div className="text-[11px] text-slate-500 flex items-center gap-2 flex-wrap">
+                      <div className="text-[0.6875rem] text-slate-500 flex items-center gap-2 flex-wrap">
                         <Calendar className="h-2.5 w-2.5" />
                         {formatDate(b.checkInDate)} → {formatDate(b.checkOutDate)}
                         <span>•</span>
@@ -67,7 +67,7 @@ export default function HotelCustomerDetailPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-emerald-700 text-sm">{formatPKR(b.grandTotal)}</div>
-                      <div className="text-[10px] text-slate-500">{b.status.replace('_', ' ')}</div>
+                      <div className="text-[0.6875rem] text-slate-500">{b.status.replace('_', ' ')}</div>
                     </div>
                   </div>
                 </Link>

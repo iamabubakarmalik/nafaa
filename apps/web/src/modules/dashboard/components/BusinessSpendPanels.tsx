@@ -89,7 +89,7 @@ export function BusinessSpendPanels({ money, hideCost }: { money: any; hideCost?
                 <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">
                   {pu.supplier?.name || 'Supplier'}
                 </div>
-                <div className="text-[11px] text-slate-600 dark:text-slate-400 font-bold truncate font-mono">
+                <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold truncate font-mono">
                   {pu.purchaseNumber} • {formatDate(pu.purchasedAt)}
                 </div>
               </div>
@@ -98,7 +98,7 @@ export function BusinessSpendPanels({ money, hideCost }: { money: any; hideCost?
                   {formatPKR(pu.total)}
                 </div>
                 {due > 0 && (
-                  <div className="text-[10px] text-amber-700 dark:text-amber-400 font-extrabold">
+                  <div className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold">
                     Baqi: {formatPKR(due)}
                   </div>
                 )}
@@ -136,13 +136,13 @@ function ExpenseBars({ rows, total }: { rows: any[]; total: number }) {
                 <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">
                   {r.name}
                 </span>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 shrink-0">
                   ×{r.count}
                 </span>
               </div>
               <div className="text-xs font-extrabold text-slate-900 dark:text-white tabular-nums shrink-0">
                 {formatPKR(r.amount)}
-                <span className="ml-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                <span className="ml-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                   {pctOfTotal.toFixed(0)}%
                 </span>
               </div>
@@ -157,7 +157,7 @@ function ExpenseBars({ rows, total }: { rows: any[]; total: number }) {
         );
       })}
       <div className="pt-2 mt-1 border-t-2 border-slate-100 dark:border-slate-800 flex items-baseline justify-between">
-        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
           Kul kharcha
         </span>
         <span className="text-sm font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">

@@ -274,7 +274,7 @@ export default function StockMovementsPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Activity className="h-3.5 w-3.5 text-amber-300" /> Audit Trail
               {shopName && (
                 <>
@@ -333,7 +333,7 @@ export default function StockMovementsPage() {
               <Zap className="h-4 w-4" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Sab se bara movement</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Sab se bara movement</div>
               <div className="font-extrabold text-sm truncate">
                 {stats.biggest.product?.name} — <span className={stats.biggest.quantity > 0 ? 'text-emerald-300' : 'text-rose-300'}>
                   {stats.biggest.quantity > 0 ? '+' : ''}{formatQty(stats.biggest.quantity)} {stats.biggest.product?.unit}
@@ -347,7 +347,7 @@ export default function StockMovementsPage() {
         )}
 
         {/* Keyboard hints */}
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Search</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>R</Kbd><span className="text-white/60">Refresh</span>
@@ -376,7 +376,7 @@ export default function StockMovementsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">7-Din Movement Trend</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Stock IN vs OUT daily</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Stock IN vs OUT daily</p>
               </div>
               <BarChart3 className="h-5 w-5 text-blue-500" />
             </div>
@@ -409,7 +409,7 @@ export default function StockMovementsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Type Breakdown</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">Movement types split</p>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Movement types split</p>
               </div>
               <Filter className="h-5 w-5 text-violet-500" />
             </div>
@@ -470,7 +470,7 @@ export default function StockMovementsPage() {
               <button
                 key={o.v}
                 onClick={() => setDateFilter(o.v)}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold transition whitespace-nowrap ${
+                className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold transition whitespace-nowrap ${
                   dateFilter === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
@@ -560,15 +560,15 @@ export default function StockMovementsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm print:text-[10px]">
+            <table className="min-w-full text-sm print:text-[0.6875rem]">
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Type</th>
-                  <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Product</th>
-                  <th className="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Quantity</th>
-                  <th className="text-right px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Balance After</th>
-                  <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Reference</th>
-                  <th className="text-left px-4 py-3 text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Date</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Type</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Product</th>
+                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Quantity</th>
+                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Balance After</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Reference</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -595,18 +595,18 @@ export default function StockMovementsPage() {
                       <td className="px-4 py-3">
                         <Link to={`/products/${m.productId}`} className="hover:underline">
                           <div className="font-extrabold text-slate-900 dark:text-white">{m.product?.name}</div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{m.product?.sku || '—'}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">{m.product?.sku || '—'}</div>
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span className={`font-extrabold text-base tabular-nums ${
                           isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'
                         }`}>
-                          {isPositive ? '+' : ''}{formatQty(m.quantity)} <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{m.product?.unit}</span>
+                          {isPositive ? '+' : ''}{formatQty(m.quantity)} <span className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{m.product?.unit}</span>
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-white tabular-nums">
-                        {formatQty(m.balanceAfter)} <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{m.product?.unit}</span>
+                        {formatQty(m.balanceAfter)} <span className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{m.product?.unit}</span>
                       </td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-300 font-mono text-xs">{m.reference || '—'}</td>
                       <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs font-semibold">{formatDate(m.createdAt)}</td>
@@ -679,7 +679,7 @@ function MovementsTeacher({ onClose }: { onClose: () => void }) {
           </p>
 
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-1">
               📋 6 Types ka Ledger
             </div>
             <TypeRow emoji="📦" label="Purchase" color="text-emerald-700 dark:text-emerald-400" desc="Supplier se maal aaya → stock +" />
@@ -721,7 +721,7 @@ function TypeRow({ emoji, label, color, desc }: { emoji: string; label: string; 
       <span className="text-base shrink-0">{emoji}</span>
       <div className="min-w-0 flex-1">
         <div className={`text-xs font-extrabold ${color}`}>{label}</div>
-        <div className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold">{desc}</div>
       </div>
     </div>
   );
@@ -758,9 +758,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, isPositive, isNegative }: an
     ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

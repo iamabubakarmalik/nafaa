@@ -562,7 +562,7 @@ export default function RetailSalesPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Receipt className="h-3.5 w-3.5 text-amber-300" /> Retail · Bikri ka record
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">🧾 Bikri</h1>
@@ -666,12 +666,12 @@ export default function RetailSalesPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-base sm:text-lg font-black truncate">{t.label}</span>
                     {t.n !== undefined && (
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-black tabular-nums ${
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums ${
                         on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                       }`}>{t.n}</span>
                     )}
                   </div>
-                  <div className={`text-[11px] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.hint}</div>
+                  <div className={`text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.hint}</div>
                 </div>
               </div>
             </button>
@@ -716,7 +716,7 @@ export default function RetailSalesPage() {
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setShowDatePicker(false)} />
                 <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-2">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Tareekh chunein</div>
+                  <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Tareekh chunein</div>
                   <div className="grid grid-cols-2 gap-1.5">
                     {DATE_OPTIONS.map((d) => (
                       <button key={d.v}
@@ -730,18 +730,18 @@ export default function RetailSalesPage() {
                   {dateFilter === 'custom' && (
                     <div className="grid grid-cols-2 gap-2 pt-1">
                       <div>
-                        <label className="text-[10px] font-black uppercase text-slate-500 mb-1 block">Se</label>
+                        <label className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1 block">Se</label>
                         <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)}
                           className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" />
                       </div>
                       <div>
-                        <label className="text-[10px] font-black uppercase text-slate-500 mb-1 block">Tak</label>
+                        <label className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1 block">Tak</label>
                         <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)}
                           className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" />
                       </div>
                     </div>
                   )}
-                  <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[11px] font-bold text-slate-500 text-center">
+                  <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[0.6875rem] font-bold text-slate-500 text-center">
                     {rangeLabel}
                   </div>
                 </div>
@@ -759,7 +759,7 @@ export default function RetailSalesPage() {
               }`}>
               <Filter className="h-4 w-4" /> Payment Type
               {(paymentFilter !== 'all' || creditOnly) && (
-                <span className="h-5 w-5 rounded-full bg-amber-600 text-white text-[10px] flex items-center justify-center">
+                <span className="h-5 w-5 rounded-full bg-amber-600 text-white text-[0.6875rem] flex items-center justify-center">
                   {[paymentFilter !== 'all', creditOnly].filter(Boolean).length}
                 </span>
               )}
@@ -770,16 +770,16 @@ export default function RetailSalesPage() {
                 <div className="fixed inset-0 z-30" onClick={() => setShowMoreFilters(false)} />
                 <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3">
                   <div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Paisa kis tarah aaya</div>
+                    <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Paisa kis tarah aaya</div>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button onClick={() => setPaymentFilter('all')}
-                        className={`h-10 rounded-xl text-[11px] font-black transition ${
+                        className={`h-10 rounded-xl text-[0.6875rem] font-black transition ${
                           paymentFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
                                                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                         }`}>Sab</button>
                       {Object.entries(paymentConfig).map(([k, cfg]) => (
                         <button key={k} onClick={() => setPaymentFilter(k as PaymentMethod)}
-                          className={`h-10 rounded-xl text-[11px] font-black inline-flex items-center justify-center gap-1 transition ${
+                          className={`h-10 rounded-xl text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${
                             paymentFilter === k ? 'text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                           }`}
                           style={paymentFilter === k ? { background: cfg.hex } : undefined}>
@@ -793,7 +793,7 @@ export default function RetailSalesPage() {
                       className="h-4 w-4 rounded accent-amber-600" />
                     <div className="min-w-0">
                       <div className="text-xs font-black text-amber-900 dark:text-amber-200">Sirf udhaar wale</div>
-                      <div className="text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                      <div className="text-[0.6875rem] font-bold text-amber-700 dark:text-amber-400">
                         {stats.creditCount} bill par paisa baqi hai
                       </div>
                     </div>
@@ -813,7 +813,7 @@ export default function RetailSalesPage() {
 
         {/* Kya chaant lagi hai — ek line me */}
         {hasFilters && (
-          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[11px] font-black">
+          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[0.6875rem] font-black">
             <span className="text-slate-400">Payment Type:</span>
             <span className="px-2 py-1 rounded-lg bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300">{rangeLabel}</span>
             {paymentFilter !== 'all' && (
@@ -881,7 +881,7 @@ export default function RetailSalesPage() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-2">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-2">
                 Peela column sab se masroof ghanta hai — us waqt counter par zyada banda rakhein.
               </p>
             </Panel>
@@ -910,7 +910,7 @@ export default function RetailSalesPage() {
                   <div className="grid grid-cols-2 gap-1.5 mt-1">
                     {payData.map((p) => (
                       <div key={p.name} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 flex items-center justify-between">
-                        <span className="text-[11px] font-black text-slate-600 dark:text-slate-300">{p.name}</span>
+                        <span className="text-[0.6875rem] font-black text-slate-600 dark:text-slate-300">{p.name}</span>
                         <span className="text-xs font-black tabular-nums" style={{ color: p.hex }}>
                           {showValue(formatPKR(p.value))}
                         </span>
@@ -934,11 +934,11 @@ export default function RetailSalesPage() {
                     return (
                       <div key={p.name} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
                         <div className="flex items-center gap-2.5 mb-1.5">
-                          <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[11px] font-black shrink-0 ${
+                          <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[0.6875rem] font-black shrink-0 ${
                             i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                           }`}>{i === 0 ? '🏆' : i + 1}</span>
                           <span className="font-black text-sm text-slate-900 dark:text-white truncate flex-1">{p.name}</span>
-                          <span className="text-[11px] font-bold text-slate-400 shrink-0 tabular-nums">{p.qty.toFixed(0)} bikay</span>
+                          <span className="text-[0.6875rem] font-bold text-slate-400 shrink-0 tabular-nums">{p.qty.toFixed(0)} bikay</span>
                           <span className="text-sm font-black text-slate-900 dark:text-white tabular-nums shrink-0">
                             {showValue(formatPKR(p.revenue))}
                           </span>
@@ -969,7 +969,7 @@ export default function RetailSalesPage() {
                       }`}>{i === 0 ? '👑' : i + 1}</span>
                       <div className="min-w-0 flex-1">
                         <div className="font-black text-sm text-slate-900 dark:text-white truncate">{c.name}</div>
-                        <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                           {c.orders} bill{c.phone ? ` · ${c.phone}` : ''}
                         </div>
                       </div>
@@ -978,7 +978,7 @@ export default function RetailSalesPage() {
                           {showValue(formatPKR(c.total))}
                         </div>
                         {c.credit > 0 && (
-                          <div className="text-[10px] font-black text-amber-600 tabular-nums">
+                          <div className="text-[0.6875rem] font-black text-amber-600 tabular-nums">
                             {showValue(formatPKR(c.credit))} udhaar
                           </div>
                         )}
@@ -1069,22 +1069,22 @@ export default function RetailSalesPage() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-mono font-black text-slate-900 dark:text-white text-sm">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
                               {isVoided && (
-                                <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-black">
+                                <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-black">
                                   WAPAS LI GAYI
                                 </span>
                               )}
                               {sale.status === 'FULLY_RETURNED' && (
-                                <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-black">
+                                <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.6875rem] font-black">
                                   POORA WAPAS AAYA
                                 </span>
                               )}
                               {sale.status === 'PARTIALLY_RETURNED' && (
-                                <span className="px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 text-[10px] font-black">
+                                <span className="px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 text-[0.6875rem] font-black">
                                   KUCH WAPAS AAYA
                                 </span>
                               )}
                               {sale.creditAmount > 0 && !isVoided && (
-                                <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[10px] font-black inline-flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.6875rem] font-black inline-flex items-center gap-1">
                                   <BookOpen className="h-2.5 w-2.5" /> UDHAAR
                                 </span>
                               )}
@@ -1100,7 +1100,7 @@ export default function RetailSalesPage() {
                               <span>{sale.items.length} cheezein · {totalQty.toFixed(0)} qty</span>
                             </div>
                             {/* Waqt — poori tareekh aur "kitni der pehle" dono */}
-                            <div className="mt-1 text-[10px] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 flex-wrap">
+                            <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 flex-wrap">
                               <Clock className="h-2.5 w-2.5" />
                               <span className="text-slate-700 dark:text-slate-200">{fmtTime(sale.soldAt)}</span>
                               <span className="text-slate-300">•</span>
@@ -1111,13 +1111,13 @@ export default function RetailSalesPage() {
                             <div className="mt-2 flex flex-wrap gap-1">
                               {sale.items.slice(0, 4).map((it: any) => (
                                 <span key={it.id}
-                                  className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[180px] truncate inline-flex items-center gap-1">
+                                  className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[180px] truncate inline-flex items-center gap-1">
                                   {it.product?.barcode && <Barcode className="h-2.5 w-2.5 text-sky-600" />}
                                   {it.product?.name} × {Number(it.quantity).toFixed(Number(it.quantity) % 1 === 0 ? 0 : 2)}
                                 </span>
                               ))}
                               {sale.items.length > 4 && (
-                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">
+                                <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">
                                   +{sale.items.length - 4} aur
                                 </span>
                               )}
@@ -1132,12 +1132,12 @@ export default function RetailSalesPage() {
                             {showValue(formatPKR(sale.total))}
                           </div>
                           {sale.changeAmount > 0 && !isVoided && (
-                            <div className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 mt-0.5 tabular-nums">
+                            <div className="text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400 mt-0.5 tabular-nums">
                               Wapsi: {showValue(formatPKR(sale.changeAmount))}
                             </div>
                           )}
                           {sale.creditAmount > 0 && !isVoided && (
-                            <div className="text-[10px] font-black text-amber-700 dark:text-amber-400 mt-0.5 tabular-nums">
+                            <div className="text-[0.6875rem] font-black text-amber-700 dark:text-amber-400 mt-0.5 tabular-nums">
                               Udhaar: {showValue(formatPKR(sale.creditAmount))}
                             </div>
                           )}
@@ -1146,7 +1146,7 @@ export default function RetailSalesPage() {
                               <button
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setReturnTarget(sale); }}
                                 title="Customer maal wapas laya hai"
-                                className="relative z-10 inline-flex items-center gap-1 rounded-lg bg-amber-50 dark:bg-amber-500/15 hover:bg-amber-100 dark:hover:bg-amber-500/25 px-2 py-1 text-[10px] font-black text-amber-700 dark:text-amber-400 transition">
+                                className="relative z-10 inline-flex items-center gap-1 rounded-lg bg-amber-50 dark:bg-amber-500/15 hover:bg-amber-100 dark:hover:bg-amber-500/25 px-2 py-1 text-[0.6875rem] font-black text-amber-700 dark:text-amber-400 transition">
                                 <RotateCcw className="h-3 w-3" /> Wapsi
                               </button>
                             )}
@@ -1154,7 +1154,7 @@ export default function RetailSalesPage() {
                               <button
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setVoidTarget(sale); }}
                                 title="Ye bikri wapas lein — stock wapas aa jayega"
-                                className="relative z-10 inline-flex items-center gap-1 rounded-lg bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 px-2 py-1 text-[10px] font-black text-rose-600 dark:text-rose-400 transition">
+                                className="relative z-10 inline-flex items-center gap-1 rounded-lg bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 px-2 py-1 text-[0.6875rem] font-black text-rose-600 dark:text-rose-400 transition">
                                 <Undo2 className="h-3 w-3" /> Wapas lein
                               </button>
                             )}
@@ -1165,16 +1165,16 @@ export default function RetailSalesPage() {
                                 <a href={link} target="_blank" rel="noreferrer"
                                   onClick={(e) => e.stopPropagation()}
                                   title={`${sale.customer?.name} ko WhatsApp par bill bhejein`}
-                                  className="relative z-10 inline-flex items-center gap-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 px-2 py-1 text-[10px] font-black text-emerald-700 dark:text-emerald-400 transition">
+                                  className="relative z-10 inline-flex items-center gap-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 px-2 py-1 text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400 transition">
                                   <MessageCircle className="h-3 w-3" /> WhatsApp
                                 </a>
                               );
                             })()}
                             <Link to={receiptLink(sale.id, true)} onClick={(e) => e.stopPropagation()} title="Seedha print"
-                              className="relative z-10 inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-500/20 px-2 py-1 text-[10px] font-black text-slate-600 dark:text-slate-300 transition">
+                              className="relative z-10 inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-500/20 px-2 py-1 text-[0.6875rem] font-black text-slate-600 dark:text-slate-300 transition">
                               <Printer className="h-3 w-3" /> Print
                             </Link>
-                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-sky-600 dark:text-sky-400 group-hover:text-sky-700 transition">
+                            <span className="inline-flex items-center gap-1 text-[0.6875rem] font-black text-sky-600 dark:text-sky-400 group-hover:text-sky-700 transition">
                               <Eye className="h-3 w-3" /> Receipt <ArrowRight className="h-3 w-3" />
                             </span>
                           </div>
@@ -1215,7 +1215,7 @@ export default function RetailSalesPage() {
 
             <div className="p-5 space-y-3">
               <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3">
-                <div className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-1.5">
+                <div className="text-[0.6875rem] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-1.5">
                   Ye sab khud theek ho jayega
                 </div>
                 <ul className="text-xs font-bold text-emerald-900 dark:text-emerald-200 space-y-1">
@@ -1226,13 +1226,13 @@ export default function RetailSalesPage() {
                 </ul>
               </div>
 
-              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
                 Bill mitta nahi — us par <strong>WAPAS LI GAYI</strong> ka nishan lag jata hai.
                 Record rehta hai taake baad me pata chale ke kya hua tha.
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+                <label className="block text-[0.6875rem] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
                   Wajah (optional)
                 </label>
                 <input value={voidReason} onChange={(e) => setVoidReason(e.target.value)}
@@ -1339,7 +1339,7 @@ function Panel({ icon: Icon, title, hint, children }: {
         </div>
         <div className="min-w-0">
           <h3 className="font-black text-slate-900 dark:text-white text-base leading-tight">{title}</h3>
-          {hint && <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
+          {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
         </div>
       </div>
       {children}
@@ -1381,24 +1381,24 @@ function ReceiptPrefsPopover({ prefs, onChange, onClose, anchorRef }: {
         style={{ top: pos.top, right: pos.right }}
         className="fixed z-[71] w-64 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3 text-slate-900 dark:text-white print:hidden"
       >
-        <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">Receipt ki settings</div>
+        <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Receipt ki settings</div>
         <div>
-          <div className="text-[10px] font-black uppercase text-slate-500 mb-1">Kaghaz</div>
+          <div className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1">Kaghaz</div>
           <div className="grid grid-cols-2 gap-1.5">
             {(['58', '80'] as const).map((w) => (
               <button key={w} onClick={() => onChange({ paperWidth: w })}
-                className={`h-9 rounded-lg text-[11px] font-black transition ${
+                className={`h-9 rounded-lg text-[0.6875rem] font-black transition ${
                   prefs.paperWidth === w ? 'bg-sky-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                 }`}>{w}mm</button>
             ))}
           </div>
         </div>
         <div>
-          <div className="text-[10px] font-black uppercase text-slate-500 mb-1">Tafseel</div>
+          <div className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1">Tafseel</div>
           <div className="grid grid-cols-2 gap-1.5">
             {([['short', 'Chhota'], ['full', 'Poora']] as const).map(([m, l]) => (
               <button key={m} onClick={() => onChange({ mode: m })}
-                className={`h-9 rounded-lg text-[11px] font-black transition ${
+                className={`h-9 rounded-lg text-[0.6875rem] font-black transition ${
                   prefs.mode === m ? 'bg-sky-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                 }`}>{l}</button>
             ))}
@@ -1407,12 +1407,12 @@ function ReceiptPrefsPopover({ prefs, onChange, onClose, anchorRef }: {
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={prefs.autoPrint} onChange={(e) => onChange({ autoPrint: e.target.checked })}
             className="h-4 w-4 rounded accent-sky-600" />
-          <span className="text-[11px] font-black">Kholte hi print</span>
+          <span className="text-[0.6875rem] font-black">Kholte hi print</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={prefs.showLogo} onChange={(e) => onChange({ showLogo: e.target.checked })}
             className="h-4 w-4 rounded accent-sky-600" />
-          <span className="text-[11px] font-black">Logo dikhayein</span>
+          <span className="text-[0.6875rem] font-black">Logo dikhayein</span>
         </label>
       </div>
     </>,
@@ -1508,9 +1508,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight, onClick, active, 
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-tight break-words">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1 leading-snug">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-1 leading-snug">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1529,7 +1529,7 @@ function SummaryCell({ label, value, tone }: any) {
   };
   return (
     <div>
-      <div className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-slate-400">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400">{label}</div>
       <div className={`font-extrabold tabular-nums ${tones[tone]}`}>{value}</div>
     </div>
   );

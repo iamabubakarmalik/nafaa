@@ -69,7 +69,7 @@ export default function MarketplacePromotionsPage() {
             const meta = STATUS_META[s];
             return (
               <div key={s} className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-2.5">
-                <div className="text-[9px] uppercase tracking-wider font-black opacity-90">{s}</div>
+                <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90">{s}</div>
                 <div className="text-xl font-black tabular-nums mt-1">{counts[s] || 0}</div>
               </div>
             );
@@ -169,14 +169,14 @@ function PromotionCard({ promo: p, onActivate, onPause, onArchive, onDelete, onC
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+              <span className="text-[0.6875rem] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
                 {typeMeta.label}
               </span>
-              <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${statusMeta.bg} ${statusMeta.color}`}>
+              <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${statusMeta.bg} ${statusMeta.color}`}>
                 {statusMeta.label}
               </span>
               {p.isFlashSale && (
-                <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 inline-flex items-center gap-0.5">
+                <span className="text-[0.6875rem] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 inline-flex items-center gap-0.5">
                   <Zap className="h-2.5 w-2.5" />
                   FLASH
                 </span>
@@ -202,7 +202,7 @@ function PromotionCard({ promo: p, onActivate, onPause, onArchive, onDelete, onC
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <div className="rounded-lg bg-slate-50 border border-slate-200 p-2">
-            <div className="text-[9px] font-black uppercase text-slate-500">Discount</div>
+            <div className="text-[0.625rem] font-black uppercase text-slate-500">Discount</div>
             <div className="text-sm font-black text-slate-900 tabular-nums">
               {p.discountType === 'PERCENT' && `${p.discountValue}%`}
               {p.discountType === 'FIXED' && `Rs ${formatPKR(p.discountValue)}`}
@@ -211,14 +211,14 @@ function PromotionCard({ promo: p, onActivate, onPause, onArchive, onDelete, onC
             </div>
           </div>
           <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2">
-            <div className="text-[9px] font-black uppercase text-emerald-700">Used</div>
+            <div className="text-[0.625rem] font-black uppercase text-emerald-700">Used</div>
             <div className="text-sm font-black text-emerald-800 tabular-nums">
               {p.usageCount}{p.usageLimit ? ` / ${p.usageLimit}` : ''}
             </div>
           </div>
         </div>
 
-        <div className="mt-2 text-[10px] text-slate-500 font-bold flex items-center gap-1">
+        <div className="mt-2 text-[0.6875rem] text-slate-500 font-bold flex items-center gap-1">
           <Calendar className="h-2.5 w-2.5" />
           {new Date(p.startsAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
           {' → '}
@@ -227,19 +227,19 @@ function PromotionCard({ promo: p, onActivate, onPause, onArchive, onDelete, onC
 
         <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1 flex-wrap">
           {(p.status === 'DRAFT' || p.status === 'PAUSED') && (
-            <button onClick={onActivate} className="h-7 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black inline-flex items-center gap-1">
+            <button onClick={onActivate} className="h-7 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1">
               <Play className="h-2.5 w-2.5" />
               Activate
             </button>
           )}
           {p.status === 'ACTIVE' && (
-            <button onClick={onPause} className="h-7 px-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black inline-flex items-center gap-1">
+            <button onClick={onPause} className="h-7 px-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[0.6875rem] font-black inline-flex items-center gap-1">
               <Pause className="h-2.5 w-2.5" />
               Pause
             </button>
           )}
           {p.status !== 'ARCHIVED' && (
-            <button onClick={onArchive} className="h-7 px-2.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] font-black inline-flex items-center gap-1">
+            <button onClick={onArchive} className="h-7 px-2.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 text-[0.6875rem] font-black inline-flex items-center gap-1">
               <Archive className="h-2.5 w-2.5" />
               Archive
             </button>
@@ -327,7 +327,7 @@ function CreatePromotionModal({ onClose, onSuccess }: any) {
                     }`}
                   >
                     <Icon className={`h-5 w-5 mx-auto ${isSelected ? '' : 'text-slate-600'}`} />
-                    <div className={`text-[10px] font-black mt-1 ${isSelected ? '' : 'text-slate-700'}`}>{meta.label}</div>
+                    <div className={`text-[0.6875rem] font-black mt-1 ${isSelected ? '' : 'text-slate-700'}`}>{meta.label}</div>
                   </button>
                 );
               })}

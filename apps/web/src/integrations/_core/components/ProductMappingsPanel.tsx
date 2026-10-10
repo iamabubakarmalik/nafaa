@@ -111,7 +111,7 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
                   )}
                 >
                   <div className="font-bold">{p.name}</div>
-                  <div className="text-[10px] opacity-70">
+                  <div className="text-[0.6875rem] opacity-70">
                     SKU: {p.sku} · Rs {Number(p.price).toFixed(0)}
                   </div>
                 </button>
@@ -136,7 +136,7 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
         <div className="text-center py-8 text-sm text-slate-500">
           <Package className="h-8 w-8 mx-auto mb-2 opacity-30" />
           <div className="font-bold">Koi mapping nahi</div>
-          <div className="text-[11px] mt-1">Auto-match SKU ya name se hoga</div>
+          <div className="text-[0.6875rem] mt-1">Auto-match SKU ya name se hoga</div>
         </div>
       ) : (
         <div className="space-y-2">
@@ -150,13 +150,13 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
               </div>
               <div className="flex-1 min-w-0 grid grid-cols-2 gap-2 items-center">
                 <div>
-                  <div className="text-[9px] font-black uppercase text-slate-500">External SKU</div>
+                  <div className="text-[0.625rem] font-black uppercase text-slate-500">External SKU</div>
                   <div className="text-xs font-black text-slate-900 dark:text-white truncate font-mono">
                     {m.externalSku ?? m.externalProductId ?? '—'}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[9px] font-black uppercase text-slate-500">Nafaa Product</div>
+                  <div className="text-[0.625rem] font-black uppercase text-slate-500">Nafaa Product</div>
                   <div className="text-xs font-black text-slate-900 dark:text-white truncate">
                     {m.product?.name ?? m.productId}
                   </div>

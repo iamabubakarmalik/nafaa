@@ -396,7 +396,7 @@ export default function CustomerFormPage() {
         </button>
         <div className="flex items-center gap-2">
           {dirty && (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-500/15 border-2 border-amber-300 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 text-[11px] font-extrabold">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-500/15 border-2 border-amber-300 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 text-[0.6875rem] font-extrabold">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" /> Save nahi hua
             </span>
           )}
@@ -428,7 +428,7 @@ export default function CustomerFormPage() {
               )}
             </div>
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest">
                 <User className="h-3.5 w-3.5 text-amber-300" />
                 {isEdit ? 'Customer Edit' : 'Naya Customer'}
                 {birthdayInfo?.isThisMonth && (
@@ -481,7 +481,7 @@ export default function CustomerFormPage() {
           </div>
         </div>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Keyboard className="h-3 w-3 text-white/50" />
           <Kbd>Ctrl+S</Kbd><span className="text-white/60">Save</span>
           <span className="text-white/30 mx-1">•</span>
@@ -521,7 +521,7 @@ export default function CustomerFormPage() {
               size="xl"
               fallbackText={form.name || 'C'}
             />
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-3 text-center">
+            <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-3 text-center">
               Optional — POS pe pehchan asaan hoti hai
             </p>
           </div>
@@ -562,17 +562,17 @@ export default function CustomerFormPage() {
                 <MiniStat label="Points" value={Number(customer.loyaltyPoints ?? 0).toLocaleString()} tone="amber" />
               </div>
               {customer.stats?.averageSale > 0 && (
-                <p className="mt-2 text-[10px] font-bold text-slate-500 dark:text-slate-400 text-center">
+                <p className="mt-2 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 text-center">
                   Har bar ausatan {formatPKR(customer.stats.averageSale)} ka saudaa
                 </p>
               )}
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <Link to={`/customers/${id}`}
-                  className="h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
+                  className="h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
                   <Eye className="h-3.5 w-3.5" /> Poori Detail
                 </Link>
                 <Link to="/khata"
-                  className="h-9 rounded-xl bg-rose-100 dark:bg-rose-500/15 hover:bg-rose-200 dark:hover:bg-rose-500/25 text-rose-700 dark:text-rose-300 text-[11px] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
+                  className="h-9 rounded-xl bg-rose-100 dark:bg-rose-500/15 hover:bg-rose-200 dark:hover:bg-rose-500/25 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
                   <BookOpen className="h-3.5 w-3.5" /> Khata
                 </Link>
               </div>
@@ -599,7 +599,7 @@ export default function CustomerFormPage() {
                 style={{ width: `${completeness}%` }}
               />
             </div>
-            <div className="mt-3 space-y-1.5 text-[11px] font-bold">
+            <div className="mt-3 space-y-1.5 text-[0.6875rem] font-bold">
               <SummaryRow ok={!!form.phone} label="Phone (WhatsApp ke liye)" />
               <SummaryRow ok={!!form.dateOfBirth} label="Birthday (salgirah wishes)" />
               <SummaryRow ok={!!form.city} label="City / Area" />
@@ -608,10 +608,10 @@ export default function CustomerFormPage() {
             </div>
             {form.phone && (
               <div className="mt-3 rounded-xl bg-white/5 border border-white/10 p-2.5 space-y-1.5">
-                <div className="text-[10px] font-extrabold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                <div className="text-[0.6875rem] font-extrabold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                   <MessageCircle className="h-3 w-3" /> WhatsApp preview
                 </div>
-                <p className="text-[11px] font-semibold text-white/80 leading-relaxed">{waPreview}</p>
+                <p className="text-[0.6875rem] font-semibold text-white/80 leading-relaxed">{waPreview}</p>
               </div>
             )}
           </div>
@@ -716,7 +716,7 @@ export default function CustomerFormPage() {
                   />
                 </div>
                 {birthdayInfo && (
-                  <div className={`mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold ${
+                  <div className={`mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold ${
                     birthdayInfo.isToday
                       ? 'bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300'
                       : birthdayInfo.isThisMonth
@@ -755,13 +755,13 @@ export default function CustomerFormPage() {
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, gender: genderGuess })}
-                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-100 dark:bg-violet-500/15 border-2 border-violet-300 dark:border-violet-500/40 text-violet-800 dark:text-violet-200 text-[11px] font-extrabold hover:bg-violet-200 dark:hover:bg-violet-500/25 transition"
+                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-violet-100 dark:bg-violet-500/15 border-2 border-violet-300 dark:border-violet-500/40 text-violet-800 dark:text-violet-200 text-[0.6875rem] font-extrabold hover:bg-violet-200 dark:hover:bg-violet-500/25 transition"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
                   Naam se lagta hai {genderGuess === 'FEMALE' ? '👩 Female' : '👨 Male'} — set karein?
                 </button>
               ) : (
-                <div className="mt-1.5 text-[10px] font-bold text-slate-400 dark:text-slate-500">
+                <div className="mt-1.5 text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
                   💡 WhatsApp reminders me "bhai / baji" sahi lagane ke liye
                 </div>
               )}
@@ -831,7 +831,7 @@ export default function CustomerFormPage() {
                       key={v}
                       type="button"
                       onClick={() => setForm({ ...form, creditLimit: v })}
-                      className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border-2 transition ${
+                      className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
                         active
                           ? 'bg-emerald-600 border-emerald-600 text-white shadow'
                           : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
@@ -871,7 +871,7 @@ export default function CustomerFormPage() {
                       type="button"
                       onClick={() => addNoteChip(chip)}
                       disabled={used}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition ${
+                      className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition ${
                         used
                           ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-2 border-emerald-300 dark:border-emerald-500/40'
                           : 'bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400 dark:hover:border-blue-500/50'
@@ -1006,7 +1006,7 @@ function CustomerFormTeacher({ isEdit, onClose }: { isEdit: boolean; onClose: ()
           </div>
 
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[10px] uppercase tracking-widest font-black text-emerald-800 dark:text-emerald-200 mb-1">⚡ Tez Kaam</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-emerald-800 dark:text-emerald-200 mb-1">⚡ Tez Kaam</div>
             <TipRow><strong>💾 "Save + Naya"</strong> — purani copy/register se data daal rahe ho? Save hote hi form khali ho jata hai aur cursor naam pe aa jata hai. City/Area wahi rehte hain</TipRow>
             <TipRow><strong>🛡️ Bina save kiye</strong> page chhodne ki koshish karo to warning milti hai — mehnat zaya nahi hoti</TipRow>
             <TipRow><strong>📊 Edit mode me</strong> sidebar pe live kharch, khata, sales aur points nazar aate hain — sath hi khata page ka link</TipRow>
@@ -1039,7 +1039,7 @@ function Section({ icon, title, badge, children }: any) {
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-sm">{icon} {title}</h3>
         {badge && (
-          <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-extrabold uppercase tracking-wider">
+          <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[0.6875rem] font-extrabold uppercase tracking-wider">
             {badge}
           </span>
         )}
@@ -1082,7 +1082,7 @@ function FlagToggle({ checked, onChange, icon, title, sub, activeCls }: any) {
         {icon}
         <div>
           <div className="text-sm font-extrabold text-slate-900 dark:text-white">{title}</div>
-          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{sub}</div>
+          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{sub}</div>
         </div>
       </div>
       <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${checked ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
@@ -1102,7 +1102,7 @@ function MiniStat({ label, value, tone }: { label: string; value: string; tone: 
   };
   return (
     <div className={`rounded-xl border px-2.5 py-2 ${tones[tone]}`}>
-      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-80">{label}</div>
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-80">{label}</div>
       <div className="text-sm font-extrabold truncate tabular-nums">{value}</div>
     </div>
   );
@@ -1152,7 +1152,7 @@ function TipRow({ children }: { children: React.ReactNode }) {
  */
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-block px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[10px]">
+    <span className="inline-block px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[0.6875rem]">
       {children}
     </span>
   );

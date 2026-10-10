@@ -43,7 +43,7 @@ export default function MarketplaceMessagesPage() {
               <MessageCircle className="h-3.5 w-3.5" />
               Customer Messages
               {counts.unread > 0 && (
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] animate-pulse">
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem] animate-pulse">
                   {counts.unread} UNREAD
                 </span>
               )}
@@ -81,7 +81,7 @@ export default function MarketplaceMessagesPage() {
                   <button
                     key={s}
                     onClick={() => setStatusFilter(s)}
-                    className={`flex-1 h-8 rounded-lg text-[11px] font-black transition ${
+                    className={`flex-1 h-8 rounded-lg text-[0.6875rem] font-black transition ${
                       statusFilter === s
                         ? 'bg-emerald-600 text-white shadow'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -139,7 +139,7 @@ function KpiCard({ label, value, icon: Icon, highlight }: any) {
     }`}>
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-black opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90">{label}</div>
       </div>
       <div className="text-xl font-black tabular-nums">{value}</div>
     </div>
@@ -168,7 +168,7 @@ function ConversationRow({ conversation, isSelected, onClick }: any) {
             )}
           </div>
           {isUnread && (
-            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-amber-500 text-white text-[9px] font-black flex items-center justify-center border-2 border-white">
+            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-amber-500 text-white text-[0.625rem] font-black flex items-center justify-center border-2 border-white">
               {conversation.unreadCount}
             </div>
           )}
@@ -179,7 +179,7 @@ function ConversationRow({ conversation, isSelected, onClick }: any) {
             <span className={`text-sm truncate ${isUnread ? 'font-black text-slate-900' : 'font-bold text-slate-700'}`}>
               {conversation.customer?.fullName || 'Customer'}
             </span>
-            <span className="text-[10px] text-slate-500 font-bold shrink-0">
+            <span className="text-[0.6875rem] text-slate-500 font-bold shrink-0">
               {relativeTime(conversation.lastMessageAt)}
             </span>
           </div>
@@ -315,7 +315,7 @@ function MessageBubble({ message }: any) {
           : 'bg-white border-2 border-slate-200 text-slate-900'
       }`}>
         <p className="text-sm font-medium whitespace-pre-wrap break-words">{message.body}</p>
-        <div className={`text-[9px] font-bold mt-1 flex items-center gap-1 ${
+        <div className={`text-[0.625rem] font-bold mt-1 flex items-center gap-1 ${
           isOutbound ? 'text-emerald-100 justify-end' : 'text-slate-500'
         }`}>
           {relativeTime(message.createdAt)}

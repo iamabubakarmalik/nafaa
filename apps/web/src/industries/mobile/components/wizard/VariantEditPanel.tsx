@@ -44,11 +44,11 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
         ].join(' ')}
       >
         <div className="flex-1 min-w-0 flex items-center gap-2">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">
             Variant Details
           </div>
           {hasOverride && (
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[9px] font-extrabold">
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">
               <Sparkles className="h-2.5 w-2.5" /> Custom
             </span>
           )}
@@ -64,12 +64,12 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
         <div className="p-4 border-t-2 border-slate-100 space-y-4">
           {/* Identifiers */}
           <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3 space-y-2.5">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
               <Hash className="h-3 w-3" /> Identifiers
             </div>
             <div className="grid sm:grid-cols-3 gap-2">
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1 items-center gap-1">
+                <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1 items-center gap-1">
                   <HardDrive className="h-2.5 w-2.5" /> Storage
                 </label>
                 <input
@@ -80,7 +80,7 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1 items-center gap-1">
+                <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1 items-center gap-1">
                   <Cpu className="h-2.5 w-2.5" /> RAM
                 </label>
                 <input
@@ -108,7 +108,7 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
           {/* Price overrides */}
           <div className="rounded-xl bg-emerald-50 border-2 border-emerald-200 p-3 space-y-2.5">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-emerald-700 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-emerald-700 flex items-center gap-1">
                 <DollarSign className="h-3 w-3" /> Prices (per unit)
               </div>
               {(variant.costPriceOverride !== undefined ||
@@ -121,7 +121,7 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
                     salePriceOverride: undefined,
                     wholesalePriceOverride: undefined,
                   })}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white hover:bg-slate-100 text-[10px] font-extrabold text-slate-700 border border-slate-200"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white hover:bg-slate-100 text-[0.6875rem] font-extrabold text-slate-700 border border-slate-200"
                 >
                   <RotateCcw className="h-2.5 w-2.5" /> Reset to product default
                 </button>
@@ -150,7 +150,7 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
           {/* Mixed-mode: product type override */}
           {basic.productType === 'MIXED' && (
             <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3 space-y-2.5">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-amber-700 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-700 flex items-center gap-1">
                 <Sparkles className="h-3 w-3" /> Type for this variant
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -179,7 +179,7 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
 
           {/* Image + notes + active */}
           <div className="rounded-xl bg-white border-2 border-slate-200 p-3 space-y-2.5">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
               <ImageIcon className="h-3 w-3" /> Image & Notes
             </div>
             <div className="grid sm:grid-cols-[100px_1fr] gap-3">
@@ -206,7 +206,7 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
               </div>
               <div className="space-y-2">
                 <div>
-                  <label className="block text-[10px] font-extrabold text-slate-600 uppercase mb-1 items-center gap-1">
+                  <label className="block text-[0.6875rem] font-extrabold text-slate-600 uppercase mb-1 items-center gap-1">
                     <StickyNote className="h-2.5 w-2.5" /> Notes
                   </label>
                   <textarea
@@ -229,7 +229,7 @@ export function VariantEditPanel({ variant, basic, onChange }: Props) {
                     <div className="text-xs font-extrabold text-slate-900">
                       {variant.isActive ? 'Active' : 'Inactive'}
                     </div>
-                    <div className="text-[10px] text-slate-500 font-semibold">
+                    <div className="text-[0.6875rem] text-slate-500 font-semibold">
                       Show in POS & catalog
                     </div>
                   </div>
@@ -256,12 +256,12 @@ function OverrideInput({
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <label className="text-[10px] font-extrabold text-slate-600 uppercase">{label}</label>
+        <label className="text-[0.6875rem] font-extrabold text-slate-600 uppercase">{label}</label>
         {isOverride && (
           <button
             type="button"
             onClick={() => onChange(undefined)}
-            className="text-[9px] font-extrabold text-slate-500 hover:text-slate-700 underline"
+            className="text-[0.625rem] font-extrabold text-slate-500 hover:text-slate-700 underline"
           >
             use default
           </button>
@@ -280,7 +280,7 @@ function OverrideInput({
         ].join(' ')}
       />
       {!isOverride && fallback > 0 && (
-        <div className="text-[9px] text-slate-500 font-bold mt-0.5">Default: {fallback}</div>
+        <div className="text-[0.625rem] text-slate-500 font-bold mt-0.5">Default: {fallback}</div>
       )}
     </div>
   );

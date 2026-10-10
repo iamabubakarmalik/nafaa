@@ -304,7 +304,7 @@ export function AutoPartsWizardStep3Fitment({
                                 {f.makeName} {f.modelName}
                               </span>
                               {(f.yearFrom || f.yearTo) && (
-                                <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                                   <Calendar className="h-2.5 w-2.5" />
                                   {f.yearFrom || '?'} – {f.yearTo || 'Present'}
                                 </span>
@@ -313,7 +313,7 @@ export function AutoPartsWizardStep3Fitment({
                             {f.engineOptions.length > 0 && (
                               <div className="mt-1 flex flex-wrap gap-1">
                                 {f.engineOptions.map((e, i) => (
-                                  <span key={i} className="px-1.5 py-0.5 rounded bg-fuchsia-100 text-fuchsia-800 text-[10px] font-extrabold">
+                                  <span key={i} className="px-1.5 py-0.5 rounded bg-fuchsia-100 text-fuchsia-800 text-[0.6875rem] font-extrabold">
                                     {e}
                                   </span>
                                 ))}

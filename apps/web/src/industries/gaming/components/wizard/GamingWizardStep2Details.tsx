@@ -336,7 +336,7 @@ function Check2({ checked, onChange, icon: Icon, label, desc }: any) {
       <Icon className={['h-5 w-5', checked ? 'text-violet-600' : 'text-slate-400'].join(' ')} />
       <div className="min-w-0">
         <div className="font-extrabold text-sm text-slate-900">{label}</div>
-        <div className="text-[11px] text-slate-500 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-500 font-semibold">{desc}</div>
       </div>
     </label>
   );

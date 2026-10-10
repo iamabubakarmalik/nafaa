@@ -134,7 +134,7 @@ export function SalonWizardStep3Settings({ basic, onChange, errors }: Props) {
               placeholder="0"
               className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-pink-500"
             />
-            <div className="text-[10px] text-slate-500 font-bold mt-1">
+            <div className="text-[0.6875rem] text-slate-500 font-bold mt-1">
               Lower number = appears first in menu
             </div>
           </div>
@@ -162,22 +162,22 @@ export function SalonWizardStep3Settings({ basic, onChange, errors }: Props) {
 
         <div className="flex flex-wrap gap-1.5 pt-2 border-t border-pink-100">
           {basic.isFeatured && (
-            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold uppercase inline-flex items-center gap-1">
+            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold uppercase inline-flex items-center gap-1">
               <Star className="h-2.5 w-2.5 fill-current" /> Featured
             </span>
           )}
           {basic.isPopular && (
-            <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-extrabold uppercase inline-flex items-center gap-1">
+            <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[0.6875rem] font-extrabold uppercase inline-flex items-center gap-1">
               <TrendingUp className="h-2.5 w-2.5" /> Popular
             </span>
           )}
           {basic.isActive && (
-            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold uppercase inline-flex items-center gap-1">
+            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.6875rem] font-extrabold uppercase inline-flex items-center gap-1">
               <Eye className="h-2.5 w-2.5" /> Active
             </span>
           )}
           {basic.imageUrl && (
-            <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-extrabold uppercase inline-flex items-center gap-1">
+            <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.6875rem] font-extrabold uppercase inline-flex items-center gap-1">
               <ImageIcon className="h-2.5 w-2.5" /> Has Image
             </span>
           )}
@@ -209,7 +209,7 @@ function SectionHeader({ icon: Icon, title, desc, tone = 'slate' }: any) {
 function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-white border border-slate-200 p-2.5">
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-sm font-extrabold text-slate-900 capitalize truncate">{value}</div>
     </div>
   );

@@ -308,7 +308,7 @@ export default function SupplierFormPage() {
 
         {/* completeness */}
         <div className="relative mt-4">
-          <div className="flex items-center justify-between text-[11px] font-extrabold text-white/80 mb-1">
+          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold text-white/80 mb-1">
             <span>Tafseel kitni poori hai</span>
             <span className="tabular-nums">{completeness}%</span>
           </div>
@@ -332,9 +332,9 @@ export default function SupplierFormPage() {
               <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${k.tone} text-white flex items-center justify-center shadow`}>
                 <k.icon className="h-4 w-4" />
               </div>
-              <div className="mt-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">{k.label}</div>
+              <div className="mt-2 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500">{k.label}</div>
               <div className="text-base font-black text-slate-900 dark:text-white tabular-nums truncate">{k.value}</div>
-              <div className="text-[11px] font-bold text-slate-400 truncate">{k.sub}</div>
+              <div className="text-[0.6875rem] font-bold text-slate-400 truncate">{k.sub}</div>
             </div>
           ))}
         </div>
@@ -356,7 +356,7 @@ export default function SupplierFormPage() {
                 {duplicate && (
                   <div className="mt-1.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 flex items-start gap-2">
                     <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="text-[11px] font-bold text-amber-900 dark:text-amber-200">
+                    <div className="text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
                       Isi naam ka supplier pehle se mojood hai.{' '}
                       <Link to={`/suppliers/${duplicate.id}`} className="underline">Dekhein</Link>
                       {' '}— warna khata do jagah bat jayega.
@@ -379,7 +379,7 @@ export default function SupplierFormPage() {
                   <div className="flex gap-1.5 flex-wrap mt-1.5">
                     {PAYMENT_TERMS.slice(0, 5).map((t) => (
                       <button key={t} type="button" onClick={() => set('paymentTerms', t)}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold border-2 transition ${
+                        className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${
                           form.paymentTerms === t
                             ? 'bg-teal-600 border-teal-600 text-white'
                             : 'bg-[#ffffff] dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
@@ -397,7 +397,7 @@ export default function SupplierFormPage() {
                     <div className="text-sm font-extrabold text-slate-900 dark:text-white">
                       {form.isActive ? 'Chalu hai' : 'Band hai'}
                     </div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                       Band supplier naye bill ki list me nazar nahi aayega — purana record mehfooz rahega.
                     </div>
                   </div>
@@ -417,13 +417,13 @@ export default function SupplierFormPage() {
                   placeholder="0300-1234567" className={`${inputCls} font-mono ${touched.has('phone') && errors.phone ? 'border-rose-400' : ''}`} />
                 {touched.has('phone') && errors.phone && <Err>{errors.phone}</Err>}
                 {phoneDuplicate && (
-                  <div className="mt-1.5 text-[11px] font-bold text-amber-700 dark:text-amber-300">
+                  <div className="mt-1.5 text-[0.6875rem] font-bold text-amber-700 dark:text-amber-300">
                     ⚠️ Yehi number <Link to={`/suppliers/${phoneDuplicate.id}`} className="underline">{phoneDuplicate.name}</Link> ka bhi hai
                   </div>
                 )}
                 {wa && (
                   <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer"
-                    className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600 hover:underline">
+                    className="mt-1.5 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-emerald-600 hover:underline">
                     <MessageCircle className="h-3.5 w-3.5" /> WhatsApp: +{wa}
                   </a>
                 )}
@@ -526,7 +526,7 @@ export default function SupplierFormPage() {
               <div className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3.5 space-y-3">
                 <div className="flex items-start gap-2">
                   <Info className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0 mt-0.5" />
-                  <p className="text-[12px] font-bold text-violet-900 dark:text-violet-200 leading-relaxed">
+                  <p className="text-[0.75rem] font-bold text-violet-900 dark:text-violet-200 leading-relaxed">
                     Agar purani copy me is supplier ka koi baqi chal raha hai to abhi daal dein.
                     Khata usi number se shuru hoga aur aage ka hisab apne aap sahi banta rahega.
                     Baad me sab bhool jate hain.
@@ -548,11 +548,11 @@ export default function SupplierFormPage() {
                 </div>
                 {Number(opening) > 0 && (
                   <div className="rounded-xl bg-[#ffffff] dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 p-2.5 text-center">
-                    <div className="text-[10px] font-extrabold uppercase tracking-wider text-violet-600">Khata yahan se shuru hoga</div>
+                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-violet-600">Khata yahan se shuru hoga</div>
                     <div className="text-xl font-black text-violet-700 dark:text-violet-300 tabular-nums">
                       {formatPKR(Number(opening))}
                     </div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">itna hum ne dena hai</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">itna hum ne dena hai</div>
                   </div>
                 )}
               </div>
@@ -585,12 +585,12 @@ export default function SupplierFormPage() {
                     <div className="font-black text-slate-900 dark:text-white truncate">
                       {form.name || 'Supplier ka naam'}
                     </div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                       {form.contactPerson ? `👤 ${form.contactPerson}` : form.city ? `📍 ${form.city}` : 'Tafseel nahi'}
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-1.5 flex-wrap mt-2.5 text-[10px] font-extrabold">
+                <div className="flex gap-1.5 flex-wrap mt-2.5 text-[0.6875rem] font-extrabold">
                   {form.phone && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">{form.phone}</span>}
                   {form.city && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{form.city}</span>}
                   {form.paymentTerms && <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">{form.paymentTerms}</span>}
@@ -599,7 +599,7 @@ export default function SupplierFormPage() {
                 </div>
                 {!isEdit && Number(opening) > 0 && (
                   <div className="mt-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 p-2 text-center">
-                    <div className="text-[9px] font-extrabold uppercase text-rose-600">Hamara baqi</div>
+                    <div className="text-[0.625rem] font-extrabold uppercase text-rose-600">Hamara baqi</div>
                     <div className="text-sm font-black text-rose-700 dark:text-rose-300 tabular-nums">
                       {formatPKR(Number(opening))}
                     </div>
@@ -615,7 +615,7 @@ export default function SupplierFormPage() {
                 className="w-full h-12 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-700 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg transition">
                 <BookOpen className="h-4 w-4" /> Khata kholein
               </Link>
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-2 text-center">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-2 text-center">
                 Baqi yahan se nahi badalta — har tabdeeli khate me darj honi chahiye taake hisab saaf rahe.
               </p>
             </Panel>
@@ -637,7 +637,7 @@ export default function SupplierFormPage() {
               className="w-full h-11 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
               <X className="h-4 w-4" /> Cancel
             </Link>
-            <div className="flex items-center justify-center gap-2 pt-1 text-[10px] font-bold text-slate-400">
+            <div className="flex items-center justify-center gap-2 pt-1 text-[0.6875rem] font-bold text-slate-400">
               <Kbd>Ctrl</Kbd><span>+</span><Kbd>S</Kbd><span>save</span>
               {!isEdit && (<><span className="mx-1">·</span><Kbd>Ctrl</Kbd><span>+</span><Kbd>↵</Kbd><span>save + aik aur</span></>)}
             </div>
@@ -695,7 +695,7 @@ export default function SupplierFormPage() {
 /* ─────── chhote purzay ─────── */
 function Lbl({ children, hint, req }: { children: React.ReactNode; hint?: string; req?: boolean }) {
   return (
-    <label className="block text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
       {children}{req && <span className="text-rose-500 ml-0.5">*</span>}
       {hint && <span className="text-slate-400 normal-case font-bold ml-1">({hint})</span>}
     </label>
@@ -704,7 +704,7 @@ function Lbl({ children, hint, req }: { children: React.ReactNode; hint?: string
 
 function Err({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mt-1 text-[11px] font-extrabold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+    <div className="mt-1 text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 flex items-center gap-1">
       <AlertTriangle className="h-3 w-3" /> {children}
     </div>
   );

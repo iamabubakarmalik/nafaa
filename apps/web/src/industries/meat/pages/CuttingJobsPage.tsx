@@ -111,7 +111,7 @@ function JobCard({ job, onComplete }: { job: CuttingJob; onComplete: () => void 
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{job.jobNumber}</span>
               <span className={
-                'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' +
+                'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                 (isCompleted ? 'bg-emerald-600' : 'bg-amber-500')
               }>
                 {job.status.replace('_', ' ')}
@@ -123,7 +123,7 @@ function JobCard({ job, onComplete }: { job: CuttingJob; onComplete: () => void 
                 Butcher: {job.butcherName}
               </div>
             )}
-            <div className="text-[10px] text-slate-500 font-bold mt-0.5">
+            <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">
               Started: {format(new Date(job.startedAt), 'dd MMM, HH:mm')}
               {isCompleted && ' • Duration: ' + duration + 'min'}
             </div>
@@ -133,7 +133,7 @@ function JobCard({ job, onComplete }: { job: CuttingJob; onComplete: () => void 
         <div className="text-right shrink-0">
           {isCompleted && job.yieldPct && (
             <>
-              <div className="text-[10px] font-extrabold text-emerald-700 uppercase">Yield</div>
+              <div className="text-[0.6875rem] font-extrabold text-emerald-700 uppercase">Yield</div>
               <div className="text-2xl font-extrabold text-emerald-700 tabular-nums">{job.yieldPct.toFixed(1)}%</div>
             </>
           )}
@@ -148,15 +148,15 @@ function JobCard({ job, onComplete }: { job: CuttingJob; onComplete: () => void 
 
       <div className="grid grid-cols-3 gap-2 text-xs">
         <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2">
-          <div className="text-[9px] uppercase font-extrabold text-blue-700">Input</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Input</div>
           <div className="text-lg font-extrabold text-blue-800 tabular-nums">{job.inputWeightKg}kg</div>
         </div>
         <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2">
-          <div className="text-[9px] uppercase font-extrabold text-emerald-700">Output</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Output</div>
           <div className="text-lg font-extrabold text-emerald-800 tabular-nums">{job.outputWeightKg ?? '—'}kg</div>
         </div>
         <div className="rounded-lg bg-rose-50 dark:bg-rose-950/30 p-2">
-          <div className="text-[9px] uppercase font-extrabold text-rose-700">Waste</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-rose-700">Waste</div>
           <div className="text-lg font-extrabold text-rose-800 tabular-nums">{waste.toFixed(1)}kg</div>
         </div>
       </div>
@@ -211,7 +211,7 @@ function CuttingJobForm({ onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-3">
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Link to Slaughter (optional)</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Link to Slaughter (optional)</label>
           <select value={form.slaughterLogId} onChange={(e) => {
             const log = slaughterLogs.find((l) => l.id === e.target.value);
             setForm({ ...form, slaughterLogId: e.target.value, inputWeightKg: log?.dressedWeightKg || log?.liveWeightKg || form.inputWeightKg });
@@ -228,7 +228,7 @@ function CuttingJobForm({ onClose, onSaved }: any) {
         <input value={form.butcherName} onChange={(e) => setForm({ ...form, butcherName: e.target.value })} placeholder="Butcher name" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-1 block">Input Weight (kg) *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-1 block">Input Weight (kg) *</label>
           <input type="number" step="0.1" value={form.inputWeightKg} onChange={(e) => setForm({ ...form, inputWeightKg: e.target.value })} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
         </div>
 
@@ -277,11 +277,11 @@ function CompleteJobModal({ job, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Output Weight (kg) *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Output Weight (kg) *</label>
             <input type="number" step="0.1" value={output} onChange={(e) => { setOutput(Number(e.target.value)); setWaste(Math.max(job.inputWeightKg - Number(e.target.value), 0)); }} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Waste (kg)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Waste (kg)</label>
             <input type="number" step="0.1" value={waste} onChange={(e) => setWaste(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-rose-300 bg-rose-50 dark:bg-rose-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
           </div>
           <div className="rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 text-white p-4 text-center">

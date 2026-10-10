@@ -174,20 +174,20 @@ function OrderCard({ order, onAdvance }: any) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-extrabold text-slate-900 dark:text-white">{order.orderNumber}</span>
-              <span className={'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' + statusCfg.color}>
+              <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + statusCfg.color}>
                 {statusCfg.label}
               </span>
               {order.isDelivery && (
-                <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+                <span className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                   <Truck className="h-2 w-2" />
                   DELIVERY
                 </span>
               )}
               {order.paymentStatus === 'PAID' && (
-                <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase">PAID</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase">PAID</span>
               )}
               {order.occasion && (
-                <span className="px-2 py-0.5 rounded bg-fuchsia-100 dark:bg-fuchsia-950/40 text-fuchsia-700 text-[9px] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded bg-fuchsia-100 dark:bg-fuchsia-950/40 text-fuchsia-700 text-[0.625rem] font-extrabold uppercase">
                   {order.occasion}
                 </span>
               )}
@@ -210,19 +210,19 @@ function OrderCard({ order, onAdvance }: any) {
 
             <div className="mt-2 flex flex-wrap gap-1">
               {order.items?.slice(0, 3).map((it: any, i: number) => (
-                <span key={i} className="px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-950/40 text-orange-700 text-[10px] font-extrabold">
+                <span key={i} className="px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-950/40 text-orange-700 text-[0.6875rem] font-extrabold">
                   {it.productName} • {it.actualKg ?? it.requestedKg}kg
                 </span>
               ))}
               {(order.items?.length || 0) > 3 && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-500 text-[10px] font-extrabold">
+                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-500 text-[0.6875rem] font-extrabold">
                   +{(order.items?.length || 0) - 3} more
                 </span>
               )}
             </div>
 
             {order.deliveryAddress && (
-              <div className="mt-1 flex items-start gap-1 text-[10px] text-slate-500 font-bold">
+              <div className="mt-1 flex items-start gap-1 text-[0.6875rem] text-slate-500 font-bold">
                 <MapPin className="h-2.5 w-2.5 mt-0.5 shrink-0" />
                 <span className="line-clamp-1">{order.deliveryAddress}</span>
               </div>
@@ -231,15 +231,15 @@ function OrderCard({ order, onAdvance }: any) {
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">Total: {totalKg.toFixed(1)}kg</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total: {totalKg.toFixed(1)}kg</div>
           <div className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(order.total)}</div>
           {remaining > 0 && order.paymentStatus !== 'PAID' && (
-            <div className="text-[10px] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
+            <div className="text-[0.6875rem] font-extrabold text-amber-700">Due: {formatPKR(remaining)}</div>
           )}
           {statusCfg.next && !['CANCELLED', 'DELIVERED'].includes(order.status) && (
             <button
               onClick={(e) => { e.preventDefault(); onAdvance(statusCfg.next); }}
-              className={'mt-2 px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase text-white ' + STATUS_CONFIG[statusCfg.next].color}
+              className={'mt-2 px-3 py-1 rounded-lg text-[0.6875rem] font-extrabold uppercase text-white ' + STATUS_CONFIG[statusCfg.next].color}
             >
               → {STATUS_CONFIG[statusCfg.next].label}
             </button>

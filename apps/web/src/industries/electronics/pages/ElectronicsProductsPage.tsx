@@ -499,7 +499,7 @@ export default function ElectronicsProductsPage() {
                 <Trash2 className="h-6 w-6" />
               </div>
               <div className="min-w-0">
-                <div className="text-[10px] uppercase tracking-widest font-black text-white/80">
+                <div className="text-[0.6875rem] uppercase tracking-widest font-black text-white/80">
                   Hamesha ke liye — qadam {bulkDeleteStep}/2
                 </div>
                 <h3 className="font-black text-lg">{selected.size} cheezein</h3>
@@ -568,7 +568,7 @@ export default function ElectronicsProductsPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Banaya gaya</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Banaya gaya</div>
             <div className="text-xs font-bold text-slate-900">{printDate}</div>
           </div>
         </div>
@@ -583,7 +583,7 @@ export default function ElectronicsProductsPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Cpu className="h-3.5 w-3.5 text-cyan-300" /> Electronics
               {shopName && <><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>}
             </div>
@@ -653,7 +653,7 @@ export default function ElectronicsProductsPage() {
           </div>
         </div>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Dhoondein</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>B</Kbd><span className="text-white/60">Scan</span>
@@ -705,12 +705,12 @@ export default function ElectronicsProductsPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-base sm:text-lg font-black truncate">{t.label}</span>
                     {t.n !== undefined && (
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-black tabular-nums shrink-0 ${
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums shrink-0 ${
                         on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                       }`}>{t.n.toLocaleString()}</span>
                     )}
                   </div>
-                  <div className={`text-[11px] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400 dark:text-slate-500'}`}>
+                  <div className={`text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400 dark:text-slate-500'}`}>
                     {t.hint}
                   </div>
                 </div>
@@ -735,14 +735,14 @@ export default function ElectronicsProductsPage() {
               <h3 className="font-black text-rose-900 dark:text-rose-200 text-sm">
                 🔢 {stats.mismatchCount} cheezon me stock aur serial ki ginti barabar nahi
               </h3>
-              <p className="mt-0.5 text-[11px] font-bold text-rose-700 dark:text-rose-300/80">
+              <p className="mt-0.5 text-[0.6875rem] font-bold text-rose-700 dark:text-rose-300/80">
                 Jitna maal stock me hai, utne serial darj hone chahiye. Jo cheez serial ke baghair bik gayi,
                 uski warranty ka koi saboot nahi bachta.
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {stats.mismatchList.map((p) => (
                   <Link key={p.id} to={`/electronics-products/${p.id}`}
-                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[11px] font-black text-rose-900 dark:text-rose-200 transition">
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[0.6875rem] font-black text-rose-900 dark:text-rose-200 transition">
                     {p.name}{' '}
                     <span className="text-rose-600 dark:text-rose-400">
                       (stock {p._stock} · serial {p._serials})
@@ -779,7 +779,7 @@ export default function ElectronicsProductsPage() {
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {stats.lowList.map((p) => (
                   <button key={p.id} onClick={() => setStockModalProduct(p)}
-                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 text-[11px] font-black text-amber-900 dark:text-amber-200 transition">
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 text-[0.6875rem] font-black text-amber-900 dark:text-amber-200 transition">
                     {p.name} <span className="text-rose-700 dark:text-rose-400">({p._stock} {p.unit})</span>
                   </button>
                 ))}
@@ -797,14 +797,14 @@ export default function ElectronicsProductsPage() {
       {stats.overMrp.length > 0 && (
         <section className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3 flex items-start gap-2.5 flex-wrap print:hidden">
           <Star className="h-4 w-4 text-violet-600 shrink-0 mt-0.5" />
-          <p className="flex-1 min-w-[220px] text-[12px] font-bold text-violet-900 dark:text-violet-200">
+          <p className="flex-1 min-w-[220px] text-[0.75rem] font-bold text-violet-900 dark:text-violet-200">
             <strong>{stats.overMrp.length} cheezein</strong> company ke MRP se mehngi lagi hui hain.
             Kuch company walay is par aitraaz karte hain — rate ek baar dekh lein.
           </p>
           <div className="flex flex-wrap gap-1 shrink-0">
             {stats.overMrp.slice(0, 4).map((p) => (
               <Link key={p.id} to={`/electronics-products/${p.id}`}
-                className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-[10px] font-black text-violet-800 dark:text-violet-200 transition">
+                className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-[0.6875rem] font-black text-violet-800 dark:text-violet-200 transition">
                 {p.name} · {formatPKR(p.price)} &gt; {formatPKR(p._mrp)}
               </Link>
             ))}
@@ -816,7 +816,7 @@ export default function ElectronicsProductsPage() {
       {stats.noProfile > 0 && (
         <section className="rounded-2xl bg-sky-50 dark:bg-sky-500/10 border-2 border-sky-200 dark:border-sky-500/30 p-3 flex items-center gap-2.5 flex-wrap print:hidden">
           <Cpu className="h-4 w-4 text-sky-600 shrink-0" />
-          <p className="flex-1 min-w-[220px] text-[12px] font-bold text-sky-900 dark:text-sky-200">
+          <p className="flex-1 min-w-[220px] text-[0.75rem] font-bold text-sky-900 dark:text-sky-200">
             <strong>{stats.noProfile} cheezon</strong> ki electronics tafseel nahi bhari — na model, na warranty,
             na haalat. Grahak yehi poochta hai.
           </p>
@@ -879,7 +879,7 @@ export default function ElectronicsProductsPage() {
           {/* Haalat ki patti — electronics me ek hi model teen haalat me bikta hai */}
           <div className="flex gap-1.5 flex-wrap">
             <button onClick={() => setConditionType('all')}
-              className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black inline-flex items-center gap-1.5 transition active:scale-[0.97] ${
+              className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition active:scale-[0.97] ${
                 conditionType === 'all'
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300'
                   : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-400'
@@ -891,7 +891,7 @@ export default function ElectronicsProductsPage() {
               if (n === 0 && conditionType !== k) return null;
               return (
                 <button key={k} onClick={() => setConditionType(conditionType === k ? 'all' : k)} title={m.hint}
-                  className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black inline-flex items-center gap-1.5 transition active:scale-[0.97] ${
+                  className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition active:scale-[0.97] ${
                     conditionType === k
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300'
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-400'
@@ -912,7 +912,7 @@ export default function ElectronicsProductsPage() {
                 { v: 'mismatch' as const, l: '⚠️ Ginti ka farq', c: stats.mismatchCount },
               ]} />
             {stats.warrantyCount > 0 && (
-              <span className="text-[11px] font-black text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1">
+              <span className="text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1">
                 <ShieldCheck className="h-3.5 w-3.5" /> {stats.warrantyCount} par warranty likhi hai
               </span>
             )}
@@ -1008,7 +1008,7 @@ export default function ElectronicsProductsPage() {
       )}
 
       {/* ═══ NATEEJA ═══ */}
-      <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 print:hidden">
+      <p className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 print:hidden">
         {filtered.length} cheezein
         {filtered.length > visible.length && ` · ${visible.length} dikha rahe hain`}
       </p>
@@ -1089,30 +1089,30 @@ export default function ElectronicsProductsPage() {
                           <Link to={`/electronics-products/${p.id}`} className="flex items-center gap-2 min-w-0 group">
                             <Thumb p={p} />
                             <span className="min-w-0">
-                              <span className="block text-[13px] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-blue-600 transition">
+                              <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-blue-600 transition">
                                 {p.name}
                               </span>
-                              <span className="block text-[10px] font-bold text-slate-400 truncate">
+                              <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">
                                 {p._model || p.sku || p.barcode || '—'}
                                 {p._brandName && ` · ${p._brandName}`}
                               </span>
                             </span>
                           </Link>
                         </td>
-                        <td className="px-3 py-2.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        <td className="px-3 py-2.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 whitespace-nowrap">
                           {cm.emoji} {cm.label}
                         </td>
                         <td className="px-3 py-2.5">
                           {cond
-                            ? <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${cond.chip}`}>{cond.emoji} {cond.label}</span>
-                            : <span className="text-[10px] font-bold text-slate-300">—</span>}
+                            ? <span className={`px-1.5 py-0.5 rounded-md text-[0.6875rem] font-black ${cond.chip}`}>{cond.emoji} {cond.label}</span>
+                            : <span className="text-[0.6875rem] font-bold text-slate-300">—</span>}
                         </td>
                         <td className="px-3 py-2.5 text-right">
-                          <span className="block text-[13px] font-black text-slate-900 dark:text-white tabular-nums">
+                          <span className="block text-[0.8125rem] font-black text-slate-900 dark:text-white tabular-nums">
                             {formatPKR(p.price)}
                           </span>
                           {!hideCost && Number(p.costPrice) > 0 && (
-                            <span className="block text-[10px] font-bold text-slate-400 tabular-nums">
+                            <span className="block text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                               lagat {formatPKR(p.costPrice)}
                             </span>
                           )}
@@ -1127,9 +1127,9 @@ export default function ElectronicsProductsPage() {
                             <Pill tone={p._mismatch ? 'rose' : 'sky'}>
                               {p._serials}{p._mismatch && ` (${p._gap > 0 ? '−' : '+'}${Math.abs(p._gap)})`}
                             </Pill>
-                          ) : <span className="text-[10px] font-bold text-slate-300">—</span>}
+                          ) : <span className="text-[0.6875rem] font-bold text-slate-300">—</span>}
                         </td>
-                        <td className="px-3 py-2.5 text-right text-[11px] font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        <td className="px-3 py-2.5 text-right text-[0.6875rem] font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">
                           {p._warranty > 0 ? `🛡️ ${p._warranty} mah` : <span className="text-slate-300">—</span>}
                         </td>
                         <td className="px-3 py-2.5 print:hidden">
@@ -1195,7 +1195,7 @@ const BADGE_TONES: Record<string, string> = {
 
 function Badge({ tone, children }: any) {
   return (
-    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-black text-white shadow ${BADGE_TONES[tone]}`}>
+    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[0.625rem] font-black text-white shadow ${BADGE_TONES[tone]}`}>
       {children}
     </span>
   );
@@ -1211,7 +1211,7 @@ function Kbd({ children }: any) {
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-2.5 text-left text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -1226,7 +1226,7 @@ const PILL_TONES: Record<string, string> = {
 
 function Pill({ tone, children }: any) {
   return (
-    <span className={`inline-block px-2 py-0.5 rounded-lg text-[11px] font-black tabular-nums whitespace-nowrap ${PILL_TONES[tone]}`}>
+    <span className={`inline-block px-2 py-0.5 rounded-lg text-[0.6875rem] font-black tabular-nums whitespace-nowrap ${PILL_TONES[tone]}`}>
       {children}
     </span>
   );
@@ -1289,14 +1289,14 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${t.bg} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[10px] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">
           {label}
         </span>
       </div>
       <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
-      {sub && <p className="mt-0.5 text-[10px] font-bold text-slate-400 truncate">{sub}</p>}
+      {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
     </Wrap>
   );
 }
@@ -1363,11 +1363,11 @@ function ProductCard({ p, hideCost, selected, onToggle, onStock }: any) {
           </div>
 
           {p._mismatch ? (
-            <div className="absolute inset-x-0 bottom-0 py-1 text-center text-[10px] font-extrabold text-white tracking-wide bg-rose-600">
+            <div className="absolute inset-x-0 bottom-0 py-1 text-center text-[0.6875rem] font-extrabold text-white tracking-wide bg-rose-600">
               SERIAL {p._gap > 0 ? `${p._gap} KAM` : `${Math.abs(p._gap)} ZYADA`}
             </div>
           ) : (out || low) && (
-            <div className={`absolute inset-x-0 bottom-0 py-1 text-center text-[10px] font-extrabold text-white tracking-wide ${out ? 'bg-rose-600' : 'bg-amber-500'}`}>
+            <div className={`absolute inset-x-0 bottom-0 py-1 text-center text-[0.6875rem] font-extrabold text-white tracking-wide ${out ? 'bg-rose-600' : 'bg-amber-500'}`}>
               {out ? 'STOCK KHATAM' : `SIRF ${p._stock} ${p.unit} BACHA`}
             </div>
           )}
@@ -1380,15 +1380,15 @@ function ProductCard({ p, hideCost, selected, onToggle, onStock }: any) {
 
           <div className="mt-1 flex items-center gap-1 flex-wrap">
             {cond && (
-              <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${cond.chip}`}>
+              <span className={`text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md ${cond.chip}`}>
                 {cond.emoji} {cond.label}
               </span>
             )}
-            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 truncate max-w-[8rem]">
+            <span className="text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 truncate max-w-[8rem]">
               {cm.emoji} {cm.label}
             </span>
             {p.category && (
-              <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md text-white truncate max-w-[8rem]"
+              <span className="text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md text-white truncate max-w-[8rem]"
                 style={{ backgroundColor: p.category.color || '#64748b' }}>
                 {p.category.name}
               </span>
@@ -1396,7 +1396,7 @@ function ProductCard({ p, hideCost, selected, onToggle, onStock }: any) {
           </div>
 
           {(p._model || p._brandName) && (
-            <div className="mt-1 text-[9px] font-bold text-slate-400 truncate">
+            <div className="mt-1 text-[0.625rem] font-bold text-slate-400 truncate">
               {p._brandName}{p._brandName && p._model ? ' · ' : ''}{p._model}
             </div>
           )}
@@ -1406,7 +1406,7 @@ function ProductCard({ p, hideCost, selected, onToggle, onStock }: any) {
               <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">
                 {formatPKR(p.price || 0)}
               </div>
-              <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400 truncate">
                 {hideCost || !Number(p.costPrice)
                   ? `per ${p.unit}`
                   : `lagat ${formatPKR(p.costPrice)} · nafa ${formatPKR(Number(p.price || 0) - Number(p.costPrice || 0))}`}
@@ -1418,7 +1418,7 @@ function ProductCard({ p, hideCost, selected, onToggle, onStock }: any) {
                   : low ? 'text-amber-700 dark:text-amber-400'
                     : 'text-slate-700 dark:text-slate-300'
               }`}>{p._stock}</div>
-              <div className="text-[9px] font-bold text-slate-500 dark:text-slate-400">stock</div>
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">stock</div>
             </div>
           </div>
         </div>
@@ -1426,7 +1426,7 @@ function ProductCard({ p, hideCost, selected, onToggle, onStock }: any) {
 
       <div className="px-2.5 pb-2.5 flex items-center gap-1 print:hidden">
         <button onClick={onStock}
-          className="flex-1 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 text-[10px] font-extrabold inline-flex items-center justify-center gap-1 transition active:scale-[0.97]">
+          className="flex-1 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 transition active:scale-[0.97]">
           <Plus className="h-3 w-3" /> Stock
         </button>
         {p._tracked && (
@@ -1482,15 +1482,15 @@ function ProductsTeacher({ onClose }: any) {
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-black text-slate-900 dark:text-white">{s.t}</p>
-                <p className="text-[12px] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
               </div>
             </div>
           ))}
           <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
+            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['/', 'Dhoondein'], ['B', 'Scan'], ['G', 'Ye safha'], ['R', 'Refresh'], ['Esc', 'Band']].map(([k, l]) => (
-                <span key={k} className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white/80">
+                <span key={k} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/80">
                   <kbd className="px-1.5 py-0.5 rounded bg-white/15 font-black">{k}</kbd> {l}
                 </span>
               ))}

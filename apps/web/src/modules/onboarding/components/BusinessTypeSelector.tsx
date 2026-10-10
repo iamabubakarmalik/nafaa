@@ -309,7 +309,7 @@ export function BusinessTypeSelector({ value, options, onChange, onSelect }: Pro
                   </div>
                 )}
                 {opt.popular && !isSelected && (
-                  <div className="absolute -top-2 left-3 text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500 text-white shadow border border-white">
+                  <div className="absolute -top-2 left-3 text-[0.625rem] font-black px-2 py-0.5 rounded-full bg-amber-500 text-white shadow border border-white">
                     ⭐ POPULAR
                   </div>
                 )}
@@ -321,16 +321,16 @@ export function BusinessTypeSelector({ value, options, onChange, onSelect }: Pro
                 {opt.labelUrdu && (
                   <div className="text-xs text-slate-500 mt-0.5">{opt.labelUrdu}</div>
                 )}
-                <div className="text-[11px] text-slate-500 mt-1 line-clamp-2 font-medium">{opt.description}</div>
+                <div className="text-[0.6875rem] text-slate-500 mt-1 line-clamp-2 font-medium">{opt.description}</div>
 
                 <div className="mt-2 flex items-center gap-1 flex-wrap">
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-black ${
+                  <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-black ${
                     isSelected ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-100 text-slate-600'
                   }`}>
                     {opt.category}
                   </span>
                   {opt.defaultUnit && (
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-black ${
+                    <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-black ${
                       isSelected ? 'bg-teal-200 text-teal-800' : 'bg-teal-50 text-teal-700'
                     }`}>
                       {opt.defaultUnit}
@@ -371,7 +371,7 @@ export function BusinessTypeSelector({ value, options, onChange, onSelect }: Pro
 
           {selectedCard.highlights && selectedCard.highlights.length > 0 && (
             <div className="mt-4 pt-4 border-t border-white/10">
-              <div className="text-[10px] uppercase tracking-widest text-white/60 font-black mb-2">
+              <div className="text-[0.6875rem] uppercase tracking-widest text-white/60 font-black mb-2">
                 Features enabled automatically:
               </div>
               <div className="grid sm:grid-cols-2 gap-2">

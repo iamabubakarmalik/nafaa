@@ -65,7 +65,7 @@ export function SalonWizardStep2Targeting({ basic, onChange, errors }: Props) {
                 </span>
                 {active && (
                   <span className={[
-                    'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white',
+                    'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white',
                     g.color === 'blue' ? 'bg-blue-600' : g.color === 'pink' ? 'bg-pink-600' : 'bg-amber-600',
                   ].join(' ')}>
                     ✓ Available
@@ -117,7 +117,7 @@ export function SalonWizardStep2Targeting({ basic, onChange, errors }: Props) {
             <div className="flex items-center gap-2">
               <Award className="h-6 w-6 text-amber-700" />
               <div>
-                <div className="text-[10px] uppercase tracking-wider font-extrabold text-amber-700">
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-700">
                   Total Commission Per Service
                 </div>
                 <div className="text-2xl font-extrabold text-amber-900 tabular-nums leading-tight">
@@ -126,7 +126,7 @@ export function SalonWizardStep2Targeting({ basic, onChange, errors }: Props) {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-[10px] uppercase font-extrabold text-slate-500">Net to Salon</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Net to Salon</div>
               <div className="text-xl font-extrabold text-emerald-700 tabular-nums">
                 {formatPKRFull(price - totalCommission)}
               </div>
@@ -138,20 +138,20 @@ export function SalonWizardStep2Targeting({ basic, onChange, errors }: Props) {
           <div className="grid grid-cols-2 gap-2 text-xs">
             {commissionPct > 0 && (
               <div className="rounded-lg bg-white border border-amber-200 p-2">
-                <div className="text-[9px] uppercase font-extrabold text-amber-700">% Component</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">% Component</div>
                 <div className="font-extrabold text-amber-900 tabular-nums">
                   {formatPKRFull(price * commissionPct / 100)}
                 </div>
-                <div className="text-[9px] text-slate-500 font-bold">{commissionPct}% of {formatPKRFull(price)}</div>
+                <div className="text-[0.625rem] text-slate-500 font-bold">{commissionPct}% of {formatPKRFull(price)}</div>
               </div>
             )}
             {commissionFixed > 0 && (
               <div className="rounded-lg bg-white border border-amber-200 p-2">
-                <div className="text-[9px] uppercase font-extrabold text-amber-700">Fixed Component</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Fixed Component</div>
                 <div className="font-extrabold text-amber-900 tabular-nums">
                   {formatPKRFull(commissionFixed)}
                 </div>
-                <div className="text-[9px] text-slate-500 font-bold">Flat rate per service</div>
+                <div className="text-[0.625rem] text-slate-500 font-bold">Flat rate per service</div>
               </div>
             )}
           </div>

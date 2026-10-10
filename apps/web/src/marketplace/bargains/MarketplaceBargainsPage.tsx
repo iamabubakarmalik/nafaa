@@ -48,7 +48,7 @@ export default function MarketplaceBargainsPage() {
               <MessageSquare className="h-3.5 w-3.5" />
               Bargain Offers
               {(counts.PENDING || 0) > 0 && (
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[9px] animate-pulse">
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.625rem] animate-pulse">
                   {counts.PENDING} PENDING
                 </span>
               )}
@@ -68,7 +68,7 @@ export default function MarketplaceBargainsPage() {
               <div key={s} className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <StatusIcon className="h-3 w-3 opacity-80" />
-                  <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">{s.replace(/_/g, ' ')}</div>
+                  <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">{s.replace(/_/g, ' ')}</div>
                 </div>
                 <div className="text-xl font-black tabular-nums">{counts[s] || 0}</div>
               </div>
@@ -91,7 +91,7 @@ export default function MarketplaceBargainsPage() {
           >
             {s === 'ALL' ? 'All' : STATUS_META[s]?.label || s}
             {s !== 'ALL' && (counts[s] || 0) > 0 && (
-              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-black ${
+              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-black ${
                 filter === s ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
               }`}>
                 {counts[s]}
@@ -158,12 +158,12 @@ function BargainCard({ bargain, onOpen }: any) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${meta.bg} ${meta.color} inline-flex items-center gap-0.5`}>
+            <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${meta.bg} ${meta.color} inline-flex items-center gap-0.5`}>
               <StatusIcon className="h-2.5 w-2.5" />
               {meta.label}
             </span>
             {isPending && hoursLeft > 0 && (
-              <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+              <span className="text-[0.6875rem] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
                 ⏱ {hoursLeft}h left
               </span>
             )}
@@ -184,7 +184,7 @@ function BargainCard({ bargain, onOpen }: any) {
             <div className="text-sm font-black text-purple-700 tabular-nums">
               Rs {formatPKR(bargain.customerOffer)}
             </div>
-            <div className="text-[10px] font-black px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">
+            <div className="text-[0.6875rem] font-black px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">
               -{discount.toFixed(0)}%
             </div>
           </div>
@@ -195,7 +195,7 @@ function BargainCard({ bargain, onOpen }: any) {
             </div>
           )}
 
-          <div className="mt-2 text-[10px] text-slate-500 font-bold">
+          <div className="mt-2 text-[0.6875rem] text-slate-500 font-bold">
             Offer #{bargain.offerCount}/{bargain.maxOffers} · {relativeTime(bargain.createdAt)}
           </div>
         </div>
@@ -277,13 +277,13 @@ function BargainModal({ bargain, onClose, onSuccess }: any) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3 text-center">
-              <div className="text-[10px] font-black uppercase text-slate-500">Original</div>
+              <div className="text-[0.6875rem] font-black uppercase text-slate-500">Original</div>
               <div className="text-lg font-black text-slate-900 tabular-nums mt-1">Rs {formatPKR(bargain.originalPrice)}</div>
             </div>
             <div className="rounded-xl bg-purple-50 border-2 border-purple-300 p-3 text-center">
-              <div className="text-[10px] font-black uppercase text-purple-700">Customer Offer</div>
+              <div className="text-[0.6875rem] font-black uppercase text-purple-700">Customer Offer</div>
               <div className="text-lg font-black text-purple-700 tabular-nums mt-1">Rs {formatPKR(bargain.customerOffer)}</div>
-              <div className="text-[9px] font-black text-purple-600 mt-0.5">-{discount.toFixed(0)}% discount</div>
+              <div className="text-[0.625rem] font-black text-purple-600 mt-0.5">-{discount.toFixed(0)}% discount</div>
             </div>
           </div>
 
@@ -294,7 +294,7 @@ function BargainModal({ bargain, onClose, onSuccess }: any) {
 
           {bargain.customerMessage && (
             <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3">
-              <div className="text-[10px] font-black uppercase text-amber-700 mb-1">Customer Message</div>
+              <div className="text-[0.6875rem] font-black uppercase text-amber-700 mb-1">Customer Message</div>
               <p className="text-sm text-slate-700 font-medium">"{bargain.customerMessage}"</p>
             </div>
           )}
@@ -345,7 +345,7 @@ function BargainModal({ bargain, onClose, onSuccess }: any) {
                     onChange={(e) => setCounterOffer(Number(e.target.value))}
                     className="w-full h-11 px-3 rounded-xl border-2 border-blue-300 bg-white text-lg font-black outline-none focus:border-blue-500"
                   />
-                  <div className="text-[10px] font-bold text-blue-700">
+                  <div className="text-[0.6875rem] font-bold text-blue-700">
                     Suggested range: Rs {formatPKR(bargain.customerOffer + 100)} - Rs {formatPKR(bargain.originalPrice - 100)}
                   </div>
                 </div>

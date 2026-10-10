@@ -133,7 +133,7 @@ export function CosmeticsWizardStep2Ingredients({ ingredients, onChange, categor
                 className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center gap-1',
                   a ? 'border-violet-600 bg-violet-600 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-violet-400'].join(' ')}>
                 <span className="text-xl">{s.e}</span>
-                <span className="text-[10px] font-extrabold text-center">{s.l}</span>
+                <span className="text-[0.6875rem] font-extrabold text-center">{s.l}</span>
               </button>
             );
           })}
@@ -152,7 +152,7 @@ export function CosmeticsWizardStep2Ingredients({ ingredients, onChange, categor
                 className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center gap-1.5',
                   a ? 'border-pink-600 shadow-md ring-2 ring-pink-200' : 'border-slate-200 hover:border-pink-300'].join(' ')}>
                 <span className="h-8 w-8 rounded-full border-2 border-white shadow" style={{ backgroundColor: s.hex }} />
-                <span className={['text-[10px] font-extrabold', a ? 'text-pink-800' : 'text-slate-700'].join(' ')}>{s.l}</span>
+                <span className={['text-[0.6875rem] font-extrabold', a ? 'text-pink-800' : 'text-slate-700'].join(' ')}>{s.l}</span>
               </button>
             );
           })}
@@ -226,7 +226,7 @@ export function CosmeticsWizardStep2Ingredients({ ingredients, onChange, categor
           onChange={(e) => onChange({ fullIngredients: e.target.value })}
           placeholder="Aqua, Glycerin, Cyclopentasiloxane, Dimethicone, Niacinamide..."
           className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-xs font-mono focus:outline-none focus:border-slate-500" />
-        <p className="text-[10px] text-slate-500 font-bold">
+        <p className="text-[0.6875rem] text-slate-500 font-bold">
           💡 List ingredients in order of concentration (highest first) per INCI standard.
         </p>
       </section>

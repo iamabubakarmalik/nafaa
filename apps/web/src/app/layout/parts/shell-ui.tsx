@@ -58,7 +58,7 @@ export function Panel({
 export function Kbd({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <kbd className={cn(
-      'inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-slate-200 bg-slate-50 px-1.5 font-sans text-[10px] font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400',
+      'inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-slate-200 bg-slate-50 px-1.5 font-sans text-[0.6875rem] font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400',
       className,
     )}>
       {children}

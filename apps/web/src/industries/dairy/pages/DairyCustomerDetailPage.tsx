@@ -47,45 +47,45 @@ export default function DairyCustomerDetailPage() {
 
           <div className="grid sm:grid-cols-4 gap-3">
             <div className="rounded-xl bg-white border-2 border-amber-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-amber-700 inline-flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700 inline-flex items-center gap-1">
                 <Sunrise className="h-3 w-3" /> Morning
               </div>
               <div className="text-2xl font-extrabold text-amber-900 mt-1">{dairyProfile.morningQuantity}L</div>
-              <div className="text-[10px] font-bold text-slate-500">Daily quantity</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">Daily quantity</div>
             </div>
             <div className="rounded-xl bg-white border-2 border-indigo-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-indigo-700 inline-flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-indigo-700 inline-flex items-center gap-1">
                 <Sunset className="h-3 w-3" /> Evening
               </div>
               <div className="text-2xl font-extrabold text-indigo-900 mt-1">{dairyProfile.eveningQuantity}L</div>
-              <div className="text-[10px] font-bold text-slate-500">Daily quantity</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">Daily quantity</div>
             </div>
             <div className="rounded-xl bg-white border-2 border-emerald-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-emerald-700">Custom Rate</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Custom Rate</div>
               <div className="text-lg font-extrabold text-emerald-900 mt-1">{dairyProfile.customRate ? formatPKR(dairyProfile.customRate) : '—'}</div>
-              <div className="text-[10px] font-bold text-slate-500">per liter</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">per liter</div>
             </div>
             <div className="rounded-xl bg-white border-2 border-violet-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-violet-700 inline-flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 inline-flex items-center gap-1">
                 <RouteIcon className="h-3 w-3" /> Route
               </div>
               <div className="text-sm font-extrabold text-violet-900 mt-1 truncate">{dairyProfile.route?.name || 'Not assigned'}</div>
-              <div className="text-[10px] font-bold text-slate-500">{dairyProfile.deliveryFrequency}</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">{dairyProfile.deliveryFrequency}</div>
             </div>
           </div>
 
           <div className="grid sm:grid-cols-3 gap-3">
             <div className="rounded-xl bg-white border-2 border-slate-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-slate-600">Total Milk</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Total Milk</div>
               <div className="text-lg font-extrabold text-slate-900 mt-1">{totalLiters.toFixed(1)}L</div>
-              <div className="text-[10px] font-bold text-slate-500">All time</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500">All time</div>
             </div>
             <div className="rounded-xl bg-white border-2 border-amber-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-amber-700">Morning Sales</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Morning Sales</div>
               <div className="text-lg font-extrabold text-amber-900 mt-1">{morningSales.length}</div>
             </div>
             <div className="rounded-xl bg-white border-2 border-indigo-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-indigo-700">Evening Sales</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-indigo-700">Evening Sales</div>
               <div className="text-lg font-extrabold text-indigo-900 mt-1">{eveningSales.length}</div>
             </div>
           </div>
@@ -109,12 +109,12 @@ export default function DairyCustomerDetailPage() {
                           {!isMorning && !isEvening && <Milk className="h-4 w-4 text-fuchsia-600 shrink-0" />}
                           <div className="min-w-0">
                             <div className="font-mono font-extrabold text-sm text-slate-900">{sale.saleNumber}</div>
-                            <div className="text-[11px] text-slate-500 truncate">{sale.items.length} items</div>
+                            <div className="text-[0.6875rem] text-slate-500 truncate">{sale.items.length} items</div>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="font-extrabold text-emerald-700 text-sm">{formatPKR(sale.total)}</div>
-                          <div className="text-[10px] text-slate-500">{formatDateTime(sale.soldAt)}</div>
+                          <div className="text-[0.6875rem] text-slate-500">{formatDateTime(sale.soldAt)}</div>
                         </div>
                       </div>
                     </Link>

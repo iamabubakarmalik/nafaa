@@ -162,7 +162,7 @@ export default function ElectronicsDashboardPage() {
 
         <div className="relative flex flex-col sm:flex-row items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Cpu className="h-3.5 w-3.5 text-amber-300" /> Electronics Dashboard
               {shopName && (
                 <>
@@ -288,7 +288,7 @@ export default function ElectronicsDashboardPage() {
             subtitle={range === '30d' ? '30 din ka data' : '7 din ka data'}
             tone="sky"
             right={
-              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[11px] font-extrabold">
+              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[0.6875rem] font-extrabold">
                 {(['7d', '30d'] as Range[]).map((r) => (
                   <button
                     key={r}
@@ -639,7 +639,7 @@ export default function ElectronicsDashboardPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm group-hover:text-blue-700 dark:group-hover:text-blue-400">{p.product?.name || 'Unknown'}</div>
-                      <div className="text-[11px] text-slate-600 dark:text-slate-400 font-bold">
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">
                         {Number(p.quantitySold ?? 0).toFixed(0)} bike{(p as any).orderCount ? ` • ${(p as any).orderCount} orders` : ''}
                       </div>
                     </div>
@@ -696,9 +696,9 @@ export default function ElectronicsDashboardPage() {
                     <div className="font-extrabold text-sm truncate text-slate-900 dark:text-white group-hover:text-violet-700 dark:group-hover:text-violet-400">{b.name}</div>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       {b.authorizedDealer && (
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] font-extrabold">AUTHORIZED</span>
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.625rem] font-extrabold">AUTHORIZED</span>
                       )}
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{b.productCount || 0} products</span>
+                      <span className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{b.productCount || 0} products</span>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
@@ -742,14 +742,14 @@ export default function ElectronicsDashboardPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-extrabold text-slate-900 dark:text-white truncate font-mono text-xs">{sale.saleNumber}</div>
-                      <div className="text-[11px] text-slate-600 dark:text-slate-400 truncate font-bold">
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 truncate font-bold">
                         {sale.customer?.name || 'Walk-in'} • {formatDate(sale.soldAt)}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-emerald-700 dark:text-emerald-400 text-sm tabular-nums">{formatPKR(sale.total)}</div>
                       {sale.creditAmount > 0 && (
-                        <div className="text-[10px] text-amber-700 dark:text-amber-400 font-extrabold">
+                        <div className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold">
                           Udhaar: {formatPKR(sale.creditAmount)}
                         </div>
                       )}
@@ -785,11 +785,11 @@ export default function ElectronicsDashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-mono font-extrabold text-sm text-slate-900 dark:text-white truncate group-hover:text-blue-700 dark:group-hover:text-blue-400">{sr.serialNumber}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold truncate">
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold truncate">
                       {sr.product?.name} {sr.imei && `• IMEI: ${sr.imei}`}
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[9px] font-extrabold uppercase shrink-0">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.625rem] font-extrabold uppercase shrink-0">
                     In Stock
                   </span>
                 </Link>
@@ -838,13 +838,13 @@ export default function ElectronicsDashboardPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{p.name}</div>
-                      <div className="text-[11px] text-slate-600 dark:text-slate-400 font-bold">{formatPKR(p.price)}</div>
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">{formatPKR(p.price)}</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className={`text-lg font-extrabold tabular-nums ${isOut ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
                         {p.stock}
                       </div>
-                      <div className={`text-[9px] font-extrabold uppercase tracking-wider ${isOut ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                      <div className={`text-[0.625rem] font-extrabold uppercase tracking-wider ${isOut ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
                         {isOut ? 'OUT' : 'LOW'}
                       </div>
                     </div>
@@ -901,7 +901,7 @@ function CardHeader({ icon: Icon, title, subtitle, tone, right }: any) {
         </div>
         <div className="min-w-0">
           <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h3>
-          <p className="text-[11px] text-slate-600 dark:text-slate-400 font-bold">{subtitle}</p>
+          <p className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">{subtitle}</p>
         </div>
       </div>
       {right}
@@ -913,7 +913,7 @@ function ChartLegend({ items }: { items: { color: string; label: string }[] }) {
   return (
     <div className="mt-2 flex items-center justify-center gap-4 flex-wrap">
       {items.map((it) => (
-        <div key={it.label} className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-slate-600 dark:text-slate-300">
+        <div key={it.label} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">
           <span className="h-2.5 w-2.5 rounded-full shadow-sm" style={{ backgroundColor: it.color }} />
           {it.label}
         </div>
@@ -938,10 +938,10 @@ function HeroTile({ icon: Icon, label, value, sub, trend, tone, urgent }: any) {
     ].join(' ')}>
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className="h-3.5 w-3.5 text-white/90" />
-        <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/95">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/95">{label}</div>
       </div>
       <div className="text-lg sm:text-2xl font-extrabold text-white tabular-nums leading-tight truncate drop-shadow-sm">{value}</div>
-      <div className="text-[11px] font-bold text-white/85 mt-1 truncate">
+      <div className="text-[0.6875rem] font-bold text-white/85 mt-1 truncate">
         {trend !== undefined ? (
           <span className={`inline-flex items-center gap-0.5 ${trend >= 0 ? 'text-emerald-200' : 'text-rose-200'}`}>
             {trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -1011,10 +1011,10 @@ function PnLCell({ label, value, sub, tone, icon: Icon, highlight }: any) {
     ].join(' ')}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={`h-3 w-3 ${tones[tone]}`} />
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400">{label}</div>
       </div>
       <div className={`text-base sm:text-xl font-extrabold tabular-nums leading-tight ${tones[tone]}`}>{value}</div>
-      <div className="text-[10px] text-slate-600 dark:text-slate-400 font-bold mt-1 truncate">{sub}</div>
+      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-1 truncate">{sub}</div>
     </div>
   );
 }
@@ -1029,8 +1029,8 @@ function PeriodRow({ label, revenue, profit, orders, tone, hideCost }: any) {
     <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3">
       <div className="flex items-center gap-2 mb-1.5">
         <span className={`h-2 w-2 rounded-full ${tones[tone]}`} />
-        <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400">{label}</span>
-        <span className="ml-auto text-[10px] font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">{orders} orders</span>
+        <span className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400">{label}</span>
+        <span className="ml-auto text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">{orders} orders</span>
       </div>
       <div className="flex items-end justify-between gap-2">
         <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{formatPKR(revenue)}</div>
@@ -1068,7 +1068,7 @@ function OpsCard({ to, icon: Icon, title, desc, tone, primary }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm truncate">{title}</div>
-      <div className="text-[10px] sm:text-[11px] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{desc}</div>
+      <div className="text-[0.6875rem] sm:text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{desc}</div>
     </Link>
   );
 }
@@ -1084,7 +1084,7 @@ function StatBox({ label, value, icon: Icon, tone }: any) {
     <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold">{label}</div>
       </div>
       <div className="text-xl font-extrabold tabular-nums text-slate-900 dark:text-white">{value}</div>
     </div>
@@ -1114,9 +1114,9 @@ function StatCard({ title, value, icon: Icon, tone, link, alert, sub }: any) {
       )}
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold">{title}</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold">{title}</div>
           <div className="mt-1 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-10 w-10 rounded-2xl bg-gradient-to-br ${tones[tone] ?? tones.cyan} text-white flex items-center justify-center shadow-md shrink-0`}>
           <Icon className="h-4 w-4 sm:h-5 sm:w-5" />

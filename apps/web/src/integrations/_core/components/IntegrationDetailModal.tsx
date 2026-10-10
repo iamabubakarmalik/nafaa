@@ -230,7 +230,7 @@ export function IntegrationDetailModal({
           <div className="font-black text-sm text-slate-900 dark:text-white truncate">
             {integration.displayName}
           </div>
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+          <div className="text-[0.6875rem] font-bold text-slate-500 uppercase tracking-wider">
             {integration.type.replace(/_/g, ' ')} · {integration.category.replace(/_/g, ' ')}
           </div>
         </div>
@@ -308,7 +308,7 @@ export function IntegrationDetailModal({
 
           <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-xs text-blue-800 dark:text-blue-300">
             <div className="font-black mb-1">💡 Kaise Test Karein?</div>
-            <div className="space-y-1 text-[11px]">
+            <div className="space-y-1 text-[0.6875rem]">
               <div>1. <strong>Test Connection</strong> → check credentials real hain ya nahi</div>
               <div>2. <strong>Send Demo Order</strong> → fake order banao</div>
               <div>3. Modal band karo → <strong>Channel Orders</strong> tab kholo</div>
@@ -340,7 +340,7 @@ export function IntegrationDetailModal({
               <div className="font-black text-sm text-orange-900 dark:text-orange-300 mb-1">
                 Daraz Authorization
               </div>
-              <p className="text-[11px] text-orange-700 dark:text-orange-400 mb-3">
+              <p className="text-[0.6875rem] text-orange-700 dark:text-orange-400 mb-3">
                 Daraz ab Sales channel ke safhe se ek click me jurta hai — orders, stock aur label wahin.
               </p>
               <Button
@@ -409,7 +409,7 @@ export function IntegrationDetailModal({
           )}
 
           {integration.type === 'FOODPANDA' && (
-            <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-[11px] text-blue-700 dark:text-blue-400">
+            <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-[0.6875rem] text-blue-700 dark:text-blue-400">
               <div className="font-black mb-1">Foodpanda webhook setup:</div>
               Ye URL Foodpanda partner portal ke Webhooks section mein paste karein. Har naya order
               automatically Nafaa POS mein aa jayega.
@@ -466,13 +466,13 @@ export function IntegrationDetailModal({
                   <div className="text-xs font-black text-slate-900 dark:text-white">
                     {log.operation} · {log.direction}
                   </div>
-                  <div className="text-[10px] text-slate-500">
+                  <div className="text-[0.6875rem] text-slate-500">
                     {log.recordsProcessed} processed · {log.recordsSuccess} ok ·{' '}
                     {log.recordsFailed} failed
                     {log.errorMessage ? ' · ' + log.errorMessage : ''}
                   </div>
                 </div>
-                <div className="text-[10px] text-slate-400 font-bold shrink-0 text-right">
+                <div className="text-[0.6875rem] text-slate-400 font-bold shrink-0 text-right">
                   {new Date(log.startedAt).toLocaleString('en-PK', {
                     day: 'numeric',
                     month: 'short',
@@ -500,7 +500,7 @@ function MetricBox({
 }) {
   return (
     <div className="p-3 rounded-xl bg-slate-50 dark:bg-neutral-800 text-center">
-      <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500">
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-widest text-slate-500">
         {label}
       </div>
       <div

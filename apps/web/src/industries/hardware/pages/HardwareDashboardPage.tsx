@@ -139,11 +139,11 @@ export default function HardwareDashboardPage() {
 
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-white/10 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Total Sales (Credit)</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Total Sales (Credit)</div>
               <div className="text-lg font-extrabold text-cyan-300 tabular-nums">{formatPKR(creditSummary.totalPurchases)}</div>
             </div>
             <div className="rounded-xl bg-rose-500/20 border border-rose-400/40 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-rose-300">90+ Days Overdue</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-rose-300">90+ Days Overdue</div>
               <div className="text-lg font-extrabold text-rose-300 tabular-nums">{formatPKR(creditSummary.totalOverdue90Plus)}</div>
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function HardwareDashboardPage() {
           <div className="mt-1 text-xs text-white/60 font-semibold">{monthly.deliveryCount} deliveries completed</div>
 
           <div className="mt-4 rounded-xl bg-white/10 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Avg per delivery</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Avg per delivery</div>
             <div className="text-lg font-extrabold text-cyan-300 tabular-nums">
               {formatPKR(monthly.deliveryCount > 0 ? monthly.revenue / monthly.deliveryCount : 0)}
             </div>
@@ -220,7 +220,7 @@ export default function HardwareDashboardPage() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(proj.totalDelivered)}</div>
-                    <div className="text-[10px] font-bold text-slate-500">delivered</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">delivered</div>
                   </div>
                 </Link>
               ))
@@ -259,7 +259,7 @@ export default function HardwareDashboardPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm text-slate-900 dark:text-white">{d.deliveryNumber}</span>
                         <span className={
-                          'px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' +
+                          'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +
                           (d.status === 'PENDING' ? 'bg-amber-500' : d.status === 'SCHEDULED' ? 'bg-blue-500' : 'bg-slate-500')
                         }>
                           {d.status}
@@ -276,7 +276,7 @@ export default function HardwareDashboardPage() {
                           {daysLeft < 0 ? 'OVERDUE' : daysLeft === 0 ? 'TODAY' : daysLeft + 'd'}
                         </div>
                       )}
-                      <div className="text-[10px] font-bold text-emerald-700 tabular-nums">{formatPKR(d.totalCharges)}</div>
+                      <div className="text-[0.6875rem] font-bold text-emerald-700 tabular-nums">{formatPKR(d.totalCharges)}</div>
                     </div>
                   </Link>
                 );
@@ -320,7 +320,7 @@ export default function HardwareDashboardPage() {
                   <div className="text-right shrink-0">
                     <div className="text-sm font-extrabold text-rose-700 tabular-nums">{formatPKR(d.currentBalance)}</div>
                     {d.ageOver90Days > 0 && (
-                      <div className="text-[10px] font-extrabold text-rose-500">90+ days: {formatPKR(d.ageOver90Days)}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-rose-500">90+ days: {formatPKR(d.ageOver90Days)}</div>
                     )}
                   </div>
                 </Link>
@@ -367,11 +367,11 @@ export default function HardwareDashboardPage() {
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 text-white flex items-center justify-center font-extrabold text-xs shadow">
                     {i + 1}
                   </div>
-                  <div className="text-[9px] uppercase font-extrabold text-slate-500">{b.tier}</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">{b.tier}</div>
                 </div>
                 <div className="font-extrabold text-sm truncate">{b.name}</div>
                 <div className="mt-1 text-xs">
-                  <div className="text-[9px] uppercase font-extrabold text-slate-500">Revenue</div>
+                  <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
                   <div className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(b.totalRevenue)}</div>
                 </div>
               </div>

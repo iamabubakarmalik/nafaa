@@ -220,7 +220,7 @@ export default function RetailStockAdjustmentsPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <ClipboardCheck className="h-3.5 w-3.5 text-amber-300" /> Stock Control
               {shopName && (
                 <>
@@ -329,7 +329,7 @@ export default function RetailStockAdjustmentsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="font-bold text-sm text-slate-900 dark:text-white truncate">{p.name}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">
                           {p.sku || '—'} • Stock: <span className="font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatQty(p.stock)} {p.unit}</span>
                         </div>
                       </div>
@@ -414,7 +414,7 @@ export default function RetailStockAdjustmentsPage() {
                     key={r}
                     type="button"
                     onClick={() => setReason(r)}
-                    className={`px-2.5 py-1.5 rounded-lg border-2 text-[11px] font-extrabold transition ${
+                    className={`px-2.5 py-1.5 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                       reason === r
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300'
                         : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-500/50'
@@ -479,7 +479,7 @@ export default function RetailStockAdjustmentsPage() {
                   { v: '30d' as const, l: '30 Din' },
                 ]).map((o) => (
                   <button key={o.v} onClick={() => setDatePreset(o.v)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition ${
+                    className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition ${
                       datePreset === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400'
                     }`}>
                     {o.l}
@@ -488,7 +488,7 @@ export default function RetailStockAdjustmentsPage() {
               </div>
               {(Object.entries(TYPE_CONFIG) as [AdjustmentType, any][]).map(([key, c]) => (
                 <button key={key} onClick={() => setHistoryFilter(historyFilter === key ? 'all' : key)}
-                  className={`px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold transition border-2 ${
+                  className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold transition border-2 ${
                     historyFilter === key ? `${c.light} ${c.dark}` : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                   }`}>
                   {c.emoji} {c.label}
@@ -496,7 +496,7 @@ export default function RetailStockAdjustmentsPage() {
               ))}
               {hasHistoryFilters && (
                 <button onClick={() => { setHistorySearch(''); setHistoryFilter('all'); setDatePreset('all'); }}
-                  className="text-[11px] font-extrabold text-rose-600 dark:text-rose-400 inline-flex items-center gap-1 transition">
+                  className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 inline-flex items-center gap-1 transition">
                   <X className="h-3 w-3" /> Clear
                 </button>
               )}
@@ -530,13 +530,13 @@ export default function RetailStockAdjustmentsPage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{a.product?.name}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${c?.light} ${c?.dark}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold border ${c?.light} ${c?.dark}`}>
                               {c?.label}
                             </span>
                           </div>
                           <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-semibold">{a.reason}</div>
-                          {a.note && <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 italic">{a.note}</div>}
-                          <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
+                          {a.note && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 italic">{a.note}</div>}
+                          <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
                             <span className="inline-flex items-center gap-0.5">
                               <Calendar className="h-2.5 w-2.5" />{formatDate(a.createdAt)}
                             </span>
@@ -555,7 +555,7 @@ export default function RetailStockAdjustmentsPage() {
                         <div className={`font-extrabold text-lg tabular-nums ${isPos ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                           {isPos ? '+' : '−'}{formatQty(a.quantity)}
                         </div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{a.product?.unit}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{a.product?.unit}</div>
                       </div>
                     </div>
                   </div>
@@ -698,7 +698,7 @@ function TypeCard({
     <div className={`rounded-xl border p-3 ${toneMap[tone]}`}>
       <div className="text-lg">{emoji}</div>
       <div className="mt-1 text-sm font-extrabold">{title}</div>
-      <div className="mt-1 text-[11px] font-semibold opacity-90 leading-relaxed">{desc}</div>
+      <div className="mt-1 text-[0.6875rem] font-semibold opacity-90 leading-relaxed">{desc}</div>
     </div>
   );
 }
@@ -745,13 +745,13 @@ function Kpi({
     <div className={`rounded-2xl border-2 p-3 sm:p-4 ${c.wrap}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <div className="text-[0.6875rem] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             {label}
           </div>
           <div className={`mt-1 text-xl sm:text-2xl font-extrabold tabular-nums ${c.text}`}>
             {value}
           </div>
-          <div className="text-[10px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+          <div className="text-[0.6875rem] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
             {sub}
           </div>
         </div>

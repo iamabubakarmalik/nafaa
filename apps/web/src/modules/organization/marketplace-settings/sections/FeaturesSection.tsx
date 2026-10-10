@@ -94,7 +94,7 @@ function FeatureCard({ icon: Icon, gradient, title, description, checked, onChan
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="font-black text-slate-900">{title}</h4>
             {badge && (
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[9px] font-black">
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[0.625rem] font-black">
                 {badge}
               </span>
             )}

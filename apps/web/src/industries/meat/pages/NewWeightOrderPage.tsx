@@ -116,7 +116,7 @@ export default function NewWeightOrderPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 New Order
               </div>
@@ -161,7 +161,7 @@ export default function NewWeightOrderPage() {
                         <button key={c.id} onClick={() => { setForm({ ...form, customerId: c.id, customerName: c.name, customerPhone: c.phone || '' }); setShowCustomerPicker(false); }} className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white text-left">
                           <User className="h-3.5 w-3.5 text-slate-400" />
                           <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                          <span className="text-[10px] text-slate-500 font-bold">{c.phone}</span>
+                          <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
                         </button>
                       ))}
                     </div>
@@ -220,7 +220,7 @@ export default function NewWeightOrderPage() {
                 {items.map((item, i) => (
                   <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/30 p-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] uppercase font-extrabold text-slate-600">Item #{i + 1}</span>
+                      <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Item #{i + 1}</span>
                       <button onClick={() => removeItem(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -230,15 +230,15 @@ export default function NewWeightOrderPage() {
 
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="text-[10px] uppercase font-extrabold text-blue-700 mb-0.5 block">Weight (kg)</label>
+                        <label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 mb-0.5 block">Weight (kg)</label>
                         <input type="number" step="0.1" min="0.1" value={item.requestedKg} onChange={(e) => updateItem(i, { requestedKg: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
                       </div>
                       <div>
-                        <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-0.5 block">Price/kg</label>
+                        <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-0.5 block">Price/kg</label>
                         <input type="number" step="0.01" value={item.pricePerKg} onChange={(e) => updateItem(i, { pricePerKg: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-emerald-500" />
                       </div>
                       <div>
-                        <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-0.5 block">Total</label>
+                        <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Total</label>
                         <div className="h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 px-2 flex items-center justify-center text-sm font-extrabold text-emerald-800 tabular-nums">
                           {formatPKR(item.requestedKg * item.pricePerKg)}
                         </div>
@@ -267,11 +267,11 @@ export default function NewWeightOrderPage() {
                 <textarea rows={2} value={form.deliveryAddress} onChange={(e) => setForm({ ...form, deliveryAddress: e.target.value })} placeholder="Delivery address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
                 <div className="grid sm:grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Scheduled Delivery</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Scheduled Delivery</label>
                     <input type="datetime-local" value={form.scheduledDelivery} onChange={(e) => setForm({ ...form, scheduledDelivery: e.target.value })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Delivery Charges</label>
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Delivery Charges</label>
                     <input type="number" value={form.deliveryCharges} onChange={(e) => setForm({ ...form, deliveryCharges: e.target.value })} placeholder="0" className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
                   </div>
                 </div>
@@ -298,7 +298,7 @@ export default function NewWeightOrderPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-orange-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Summary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Summary</div>
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Items</span><span className="font-bold tabular-nums">{items.length}</span></div>
                 <div className="flex justify-between"><span className="text-white/70">Total kg</span><span className="font-bold tabular-nums">{items.reduce((s, it) => s + it.requestedKg, 0).toFixed(1)}kg</span></div>
@@ -309,11 +309,11 @@ export default function NewWeightOrderPage() {
               </div>
               <div className="mt-3 space-y-2">
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Tax</label>
                   <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
+                  <label className="text-[0.6875rem] uppercase font-extrabold text-white/70 mb-0.5 block">Discount</label>
                   <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} placeholder="0" className="h-9 w-full rounded-lg bg-white/10 border border-white/20 px-2 text-sm font-extrabold tabular-nums text-white placeholder-white/40 focus:outline-none focus:border-amber-400" />
                 </div>
               </div>
@@ -344,7 +344,7 @@ export default function NewWeightOrderPage() {
               {meatProducts.map((p) => (
                 <button key={p.id} onClick={() => addProduct(p)} className="p-3 rounded-xl border-2 border-slate-200 dark:border-neutral-700 hover:border-orange-500 hover:shadow-lg text-left">
                   <div className="font-extrabold text-sm truncate">{p.product?.name}</div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase">{p.animalType} • {p.cutCategory?.replace('_', ' ')}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{p.animalType} • {p.cutCategory?.replace('_', ' ')}</div>
                   <div className="mt-1 text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.pricePerKg)}/kg</div>
                 </button>
               ))}

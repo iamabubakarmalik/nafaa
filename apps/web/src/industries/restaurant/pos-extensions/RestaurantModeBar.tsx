@@ -86,7 +86,7 @@ export function RestaurantModeBar({
                 }
               >
                 <Icon className="h-4 w-4 mx-auto mb-1" />
-                <div className="text-[10px] font-extrabold">{m.label}</div>
+                <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
               </button>
             );
           })}
@@ -114,7 +114,7 @@ export function RestaurantModeBar({
                       Table {selectedTable.tableNumber}
                       {selectedTable.tableName && ' — ' + selectedTable.tableName}
                     </div>
-                    <div className="text-[10px] text-slate-500 font-bold">
+                    <div className="text-[0.6875rem] text-slate-500 font-bold">
                       {selectedTable.capacity} seats • {selectedTable.section || 'Main'}
                     </div>
                   </div>
@@ -174,7 +174,7 @@ export function RestaurantModeBar({
                         <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">
                           {t.tableNumber}
                         </div>
-                        <div className="text-[9px] font-bold text-slate-500 mt-0.5">
+                        <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">
                           {t.capacity} seats
                         </div>
                         {active && <Check className="absolute bottom-1 left-1 h-3 w-3 text-emerald-600" />}
@@ -192,7 +192,7 @@ export function RestaurantModeBar({
       {orderMode === 'DELIVERY' && (
         <div className="px-3 pb-3 space-y-2">
           <div>
-            <label className="text-[9px] uppercase font-extrabold text-slate-600 block mb-1">Delivery Address *</label>
+            <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 block mb-1">Delivery Address *</label>
             <div className="relative">
               <MapPin className="h-4 w-4 text-violet-500 absolute left-3 top-1/2 -translate-y-1/2" />
               <input

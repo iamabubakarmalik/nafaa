@@ -89,26 +89,26 @@ export default function HotelDashboardPage() {
 
           <div className="grid grid-cols-4 gap-3">
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Total</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Total</div>
               <div className="mt-1 text-2xl font-extrabold tabular-nums">{rooms.total}</div>
             </div>
             <div className="rounded-2xl bg-emerald-500/20 backdrop-blur border border-emerald-400/30 p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-emerald-200">Available</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-200">Available</div>
               <div className="mt-1 text-2xl font-extrabold tabular-nums text-emerald-200">{rooms.available}</div>
             </div>
             <div className="rounded-2xl bg-blue-500/20 backdrop-blur border border-blue-400/30 p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-blue-200">Occupied</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-blue-200">Occupied</div>
               <div className="mt-1 text-2xl font-extrabold tabular-nums text-blue-200">{rooms.occupied}</div>
             </div>
             <div className="rounded-2xl bg-amber-500/20 backdrop-blur border border-amber-400/30 p-3 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-amber-200">Cleaning</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-amber-200">Cleaning</div>
               <div className="mt-1 text-2xl font-extrabold tabular-nums text-amber-200">{rooms.cleaning}</div>
             </div>
           </div>
 
           {/* Occupancy trend */}
           <div className="mt-4">
-            <div className="text-[10px] uppercase font-extrabold text-white/60 mb-2">Last 7 Days</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/60 mb-2">Last 7 Days</div>
             <div className="flex items-end gap-1 h-24">
               {occupancyTrend.map((d: any, i: number) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
@@ -119,7 +119,7 @@ export default function HotelDashboardPage() {
                       title={d.date + ' - ' + d.pct.toFixed(0) + '%'}
                     />
                   </div>
-                  <div className="text-[9px] font-bold text-white/60">{format(new Date(d.date), 'dd')}</div>
+                  <div className="text-[0.625rem] font-bold text-white/60">{format(new Date(d.date), 'dd')}</div>
                 </div>
               ))}
             </div>
@@ -195,16 +195,16 @@ export default function HotelDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm">{booking.guestName}</span>
-                        {isToday && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">TODAY</span>}
+                        {isToday && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">TODAY</span>}
                       </div>
-                      <div className="text-[10px] font-mono font-bold text-slate-500">{booking.bookingNumber}</div>
+                      <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{booking.bookingNumber}</div>
                       <div className="text-xs text-slate-600 font-semibold">
                         {booking.nights} nights • {booking.bookedRooms.length} rooms
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-sm font-extrabold">{format(new Date(booking.checkInDate), 'dd MMM')}</div>
-                      <div className="text-[10px] font-bold text-slate-500">{format(new Date(booking.checkInDate), 'HH:mm')}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">{format(new Date(booking.checkInDate), 'HH:mm')}</div>
                     </div>
                   </Link>
                 );
@@ -242,18 +242,18 @@ export default function HotelDashboardPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-sm truncate">{b.guestName}</span>
                       <span className={
-                        'px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase text-white ' +
+                        'px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                         (b.status === 'CONFIRMED' ? 'bg-blue-500' :
                          b.status === 'CHECKED_IN' ? 'bg-emerald-600' :
                          b.status === 'CHECKED_OUT' ? 'bg-slate-500' :
                          b.status === 'CANCELLED' ? 'bg-rose-500' : 'bg-amber-500')
                       }>{b.status}</span>
                     </div>
-                    <div className="text-[10px] font-mono font-bold text-slate-500">{b.bookingNumber}</div>
+                    <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{b.bookingNumber}</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(b.grandTotal)}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{b.nights}n • {b.bookedRooms.length}r</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{b.nights}n • {b.bookedRooms.length}r</div>
                   </div>
                 </Link>
               ))
@@ -271,18 +271,18 @@ export default function HotelDashboardPage() {
           </h3>
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-2xl bg-teal-50 dark:bg-teal-950/30 p-4 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-teal-700">Total Guests</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-teal-700">Total Guests</div>
               <div className="mt-1 text-3xl font-extrabold text-teal-800 tabular-nums">{guests.total}</div>
             </div>
             <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/30 p-4 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-amber-700 inline-flex items-center gap-0.5">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700 inline-flex items-center gap-0.5">
                 <Star className="h-2.5 w-2.5 fill-current" />
                 VIP
               </div>
               <div className="mt-1 text-3xl font-extrabold text-amber-800 tabular-nums">{guests.vip}</div>
             </div>
             <div className="rounded-2xl bg-rose-50 dark:bg-rose-950/30 p-4 text-center">
-              <div className="text-[10px] uppercase font-extrabold text-rose-700 inline-flex items-center gap-0.5">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700 inline-flex items-center gap-0.5">
                 <Ban className="h-2.5 w-2.5" />
                 Blacklist
               </div>

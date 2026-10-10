@@ -191,7 +191,7 @@ export function SportsWizardStep2Specs({ specs, onChange, categoryType }: Props)
             <Sparkles className={['h-5 w-5', specs.hasCustomization ? 'text-violet-600' : 'text-slate-400'].join(' ')} />
             <div>
               <div className="font-extrabold text-sm text-slate-900">Supports Name & Number Printing</div>
-              <div className="text-[11px] text-slate-500 font-semibold">For team jerseys</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">For team jerseys</div>
             </div>
           </label>
         </section>
@@ -275,7 +275,7 @@ export function SportsWizardStep2Specs({ specs, onChange, categoryType }: Props)
               className="h-5 w-5 rounded" />
             <div>
               <div className="font-extrabold text-sm text-slate-900">Foldable for Storage</div>
-              <div className="text-[11px] text-slate-500 font-semibold">Saves space when not in use</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Saves space when not in use</div>
             </div>
           </label>
         </section>

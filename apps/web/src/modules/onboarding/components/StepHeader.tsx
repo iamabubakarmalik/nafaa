@@ -22,7 +22,7 @@ export function StepHeader({ step, estimatedMinutesLeft }: Props) {
           <Icon className="h-8 w-8" strokeWidth={2.2} />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-[10px] font-black uppercase tracking-widest text-white/70">
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-white/70">
             Step {step} of 8
           </div>
           <h1 className="text-2xl md:text-3xl font-black leading-tight mt-0.5">{cfg.title}</h1>

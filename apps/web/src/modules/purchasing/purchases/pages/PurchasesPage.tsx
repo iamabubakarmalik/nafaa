@@ -774,7 +774,7 @@ export default function PurchasesPage({
             }`}>
             <k.icon className="h-4 w-4" /> {k.label}
             {k.n != null && (
-              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-200'}`}>{k.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === k.v ? 'bg-black/20' : 'bg-slate-200'}`}>{k.n}</span>
             )}
           </button>
         ))}
@@ -790,7 +790,7 @@ export default function PurchasesPage({
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <Head n={1} icon={Building2} title="Supplier" desc="Kis se maal liya" tone="teal" />
                 <button onClick={() => setQuickSupplier('')}
-                  className="h-9 px-3 rounded-xl bg-teal-50 border-2 border-teal-200 text-teal-700 text-[11px] font-extrabold inline-flex items-center gap-1 hover:bg-teal-100 transition shrink-0 active:scale-95">
+                  className="h-9 px-3 rounded-xl bg-teal-50 border-2 border-teal-200 text-teal-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 hover:bg-teal-100 transition shrink-0 active:scale-95">
                   <Plus className="h-3.5 w-3.5" /> Naya
                 </button>
               </div>
@@ -803,7 +803,7 @@ export default function PurchasesPage({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-black text-slate-900 truncate">{selectedSupplier.name}</div>
-                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-600">
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-600">
                         {selectedSupplier.phone && <span>📞 {selectedSupplier.phone}</span>}
                         {selectedSupplier.contactPerson && <span>👤 {selectedSupplier.contactPerson}</span>}
                         {selectedSupplier.city && <span>📍 {selectedSupplier.city}</span>}
@@ -817,11 +817,11 @@ export default function PurchasesPage({
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <button onClick={() => setKhataOpen(true)} title="Is supplier ka khata"
-                        className="h-9 px-3 rounded-xl bg-violet-100 border-2 border-violet-200 text-[11px] font-extrabold text-violet-700 hover:bg-violet-200 transition inline-flex items-center gap-1 active:scale-95">
+                        className="h-9 px-3 rounded-xl bg-violet-100 border-2 border-violet-200 text-[0.6875rem] font-extrabold text-violet-700 hover:bg-violet-200 transition inline-flex items-center gap-1 active:scale-95">
                         <Receipt className="h-3.5 w-3.5" /> Khata
                       </button>
                       <button onClick={() => { setSupplierId(''); setSupOpen(true); }} title="Badlein"
-                        className="h-9 px-3 rounded-xl bg-white border-2 border-slate-200 text-[11px] font-extrabold text-slate-600 hover:border-teal-400 transition active:scale-95">
+                        className="h-9 px-3 rounded-xl bg-white border-2 border-slate-200 text-[0.6875rem] font-extrabold text-slate-600 hover:border-teal-400 transition active:scale-95">
                         Badlein
                       </button>
                     </div>
@@ -848,7 +848,7 @@ export default function PurchasesPage({
                             <p className="text-sm font-bold text-slate-700">
                               {supSearch ? `"${supSearch}" naam ka koi supplier nahi` : 'Abhi koi supplier nahi bana'}
                             </p>
-                            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Neeche se yahin bana lein</p>
+                            <p className="text-[0.6875rem] font-semibold text-slate-500 mt-0.5">Neeche se yahin bana lein</p>
                           </div>
                         ) : supplierResults.map((sp: any) => (
                           <button key={sp.id} onClick={() => chooseSupplier(sp)}
@@ -858,13 +858,13 @@ export default function PurchasesPage({
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="font-extrabold text-slate-900 text-sm truncate">{sp.name}</div>
-                              <div className="text-[11px] font-bold text-slate-500 flex items-center gap-2 flex-wrap">
+                              <div className="text-[0.6875rem] font-bold text-slate-500 flex items-center gap-2 flex-wrap">
                                 {sp.phone && <span className="font-mono">{sp.phone}</span>}
                                 {sp.city && <span>{sp.city}</span>}
                               </div>
                             </div>
                             {Number(sp.outstandingDue ?? 0) > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold tabular-nums shrink-0">
+                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold tabular-nums shrink-0">
                                 {formatPKR(sp.outstandingDue)} baqi
                               </span>
                             )}
@@ -880,7 +880,7 @@ export default function PurchasesPage({
                           <div className="text-sm font-black text-teal-900 truncate">
                             {supSearch.trim() ? `"${supSearch.trim()}" naam se naya supplier` : 'Naya supplier banayein'}
                           </div>
-                          <div className="text-[10px] font-bold text-teal-700">Yahin, page chhore baghair</div>
+                          <div className="text-[0.6875rem] font-bold text-teal-700">Yahin, page chhore baghair</div>
                         </div>
                       </button>
                     </div>
@@ -953,7 +953,7 @@ export default function PurchasesPage({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-slate-900 text-sm truncate">{p.name}</div>
-                      <div className="text-[11px] font-bold text-slate-500 flex items-center gap-2 flex-wrap">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 flex items-center gap-2 flex-wrap">
                         {p.sku && <span className="font-mono">{p.sku}</span>}
                         {p.barcode && <span className="font-mono text-slate-400">{p.barcode}</span>}
                         <span className={(p.stock ?? 0) > 0 ? 'text-emerald-600' : 'text-rose-600'}>
@@ -966,7 +966,7 @@ export default function PurchasesPage({
                       <div className="text-xs font-extrabold text-slate-700 tabular-nums">
                         {hideCost ? '•••' : formatPKR(p.costPrice ?? 0)}
                       </div>
-                      <div className="text-[9px] font-bold text-slate-400">pichli lagat</div>
+                      <div className="text-[0.625rem] font-bold text-slate-400">pichli lagat</div>
                     </div>
                     <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100 transition">
                       <Plus className="h-4 w-4" />
@@ -998,13 +998,13 @@ export default function PurchasesPage({
                                 ? <img src={l.imageUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
                                 : '📦'}
                             </div>
-                            <span className="absolute -top-1.5 -left-1.5 h-5 w-5 rounded-full bg-slate-800 text-white text-[9px] font-black flex items-center justify-center">
+                            <span className="absolute -top-1.5 -left-1.5 h-5 w-5 rounded-full bg-slate-800 text-white text-[0.625rem] font-black flex items-center justify-center">
                               {idx + 1}
                             </span>
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="font-extrabold text-slate-900 text-sm truncate">{l.name}</div>
-                            <div className="text-[11px] font-bold text-slate-500 flex items-center gap-2 flex-wrap">
+                            <div className="text-[0.6875rem] font-bold text-slate-500 flex items-center gap-2 flex-wrap">
                               {l.sku && <span className="font-mono">{l.sku}</span>}
                               {draftLineExtra?.({ productId: l.productId })}
                             </div>
@@ -1022,7 +1022,7 @@ export default function PurchasesPage({
 
                         <div className="flex items-end gap-2 flex-wrap pl-12">
                           <div>
-                            <div className="text-[9px] uppercase font-extrabold text-slate-500 mb-0.5">Ginti</div>
+                            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 mb-0.5">Ginti</div>
                             <div className="inline-flex items-center bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
                               <button onClick={() => patchLine(l.productId, { quantity: Math.max(1, l.quantity - 1) })}
                                 className="h-9 w-9 hover:bg-slate-200 transition flex items-center justify-center active:scale-95">
@@ -1038,7 +1038,7 @@ export default function PurchasesPage({
                             </div>
                           </div>
                           <div>
-                            <div className="text-[9px] uppercase font-extrabold text-slate-500 mb-0.5">Per unit rate</div>
+                            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 mb-0.5">Per unit rate</div>
                             <input type="number" min={0} value={l.costPrice || ''}
                               onChange={(e) => patchLine(l.productId, { costPrice: Number(e.target.value || 0) })}
                               placeholder="0"
@@ -1051,7 +1051,7 @@ export default function PurchasesPage({
                               rate bhi abhi theek kar dein; warna purane rate
                               par bikta rehta hai aur munafa kha jata hai. */}
                           <div>
-                            <div className="text-[9px] uppercase font-extrabold text-emerald-700 mb-0.5">
+                            <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 mb-0.5">
                               Bechne ka rate
                             </div>
                             <input type="number" min={0} value={l.sellPrice || ''}
@@ -1068,7 +1068,7 @@ export default function PurchasesPage({
 
                           {/* Munafa fi unit */}
                           {l.sellPrice > 0 && l.costPrice > 0 && (
-                            <div className={`px-2 py-1 rounded-lg text-[10px] font-extrabold ${
+                            <div className={`px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold ${
                               l.sellPrice < l.costPrice ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
                             }`}>
                               {l.sellPrice < l.costPrice
@@ -1084,7 +1084,7 @@ export default function PurchasesPage({
                                 <button key={pct}
                                   onClick={() => patchLine(l.productId, { sellPrice: Math.round(l.costPrice * (1 + pct / 100)) })}
                                   title={`Lagat + ${pct}%`}
-                                  className="h-7 px-2 rounded-lg bg-slate-100 hover:bg-emerald-100 text-[10px] font-extrabold text-slate-600 transition">
+                                  className="h-7 px-2 rounded-lg bg-slate-100 hover:bg-emerald-100 text-[0.6875rem] font-extrabold text-slate-600 transition">
                                   +{pct}%
                                 </button>
                               ))}
@@ -1092,13 +1092,13 @@ export default function PurchasesPage({
                           )}
 
                           {l.sellPrice !== l.oldSellPrice && l.oldSellPrice > 0 && (
-                            <div className="px-2 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-extrabold">
+                            <div className="px-2 py-1 rounded-lg bg-amber-100 text-amber-800 text-[0.6875rem] font-extrabold">
                               Rate badlega: {formatPKR(l.oldSellPrice)} → {formatPKR(l.sellPrice)}
                             </div>
                           )}
 
                           {l.lastCost > 0 && Math.abs(diffPct) >= 1 && (
-                            <div className={`px-2 py-1 rounded-lg text-[10px] font-extrabold ${
+                            <div className={`px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold ${
                               diff > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'
                             }`}>
                               {diff > 0 ? '▲' : '▼'} Lagat {Math.abs(diffPct).toFixed(0)}% — pichli baar {formatPKR(l.lastCost)}
@@ -1150,7 +1150,7 @@ export default function PurchasesPage({
                       placeholder="0"
                       className="h-11 w-full rounded-xl border-2 border-emerald-300 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/10 transition" />
                     <button onClick={() => setPaidAmount(total)}
-                      className="mt-1.5 text-[11px] font-extrabold text-emerald-700 hover:underline">
+                      className="mt-1.5 text-[0.6875rem] font-extrabold text-emerald-700 hover:underline">
                       Poora ada kiya ({formatPKR(total)})
                     </button>
                   </div>
@@ -1172,11 +1172,11 @@ export default function PurchasesPage({
               <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-emerald-400/15 blur-3xl" />
               <div className="relative">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="text-[10px] uppercase font-extrabold tracking-wider text-emerald-300">
+                  <div className="text-[0.6875rem] uppercase font-extrabold tracking-wider text-emerald-300">
                     Bill Ka Khulasa
                   </div>
                   {lines.length > 0 && (
-                    <span className="text-[10px] font-extrabold text-white/60 tabular-nums">
+                    <span className="text-[0.6875rem] font-extrabold text-white/60 tabular-nums">
                       {lines.length} items • {totalQty} qty
                     </span>
                   )}
@@ -1202,12 +1202,12 @@ export default function PurchasesPage({
                   Kharidari Darj Karein
                 </Button>
 
-                <p className="mt-2 text-[10px] font-bold text-white/50 text-center">
+                <p className="mt-2 text-[0.6875rem] font-bold text-white/50 text-center">
                   Save hote hi receipt khul jayegi — print ready 🖨️
                 </p>
 
                 {!canSave && lines.length > 0 && (
-                  <p className="mt-1.5 text-[11px] font-bold text-amber-300 text-center">
+                  <p className="mt-1.5 text-[0.6875rem] font-bold text-amber-300 text-center">
                     {!supplierId ? 'Supplier chunein' : 'Har cheez ka rate likhein'}
                   </p>
                 )}
@@ -1240,7 +1240,7 @@ export default function PurchasesPage({
         <div className="xl:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t-2 border-slate-200 p-3 print:hidden">
           <div className="flex items-center gap-3 max-w-3xl mx-auto">
             <div className="min-w-0">
-              <div className="text-[10px] font-extrabold text-slate-500 uppercase">{lines.length} items • {totalQty} qty</div>
+              <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase">{lines.length} items • {totalQty} qty</div>
               <div className="text-lg font-black text-slate-900 tabular-nums leading-tight">{formatPKR(total)}</div>
             </div>
             <Button onClick={() => create.mutate()} disabled={!canSave || create.isPending}
@@ -1291,7 +1291,7 @@ export default function PurchasesPage({
                     }`}>📦</div>
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-slate-900 text-sm truncate">{r.name}</div>
-                      <div className="text-[11px] font-bold text-slate-500 flex items-center gap-2 flex-wrap">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 flex items-center gap-2 flex-wrap">
                         {r.sku && <span className="font-mono">{r.sku}</span>}
                         {draftLineExtra?.({ productId: r.productId })}
                       </div>
@@ -1303,7 +1303,7 @@ export default function PurchasesPage({
                     </div>
                     <div className="text-right shrink-0 hidden sm:block">
                       <div className="text-sm font-extrabold text-slate-900 tabular-nums">{need}</div>
-                      <div className="text-[10px] font-bold text-slate-400">mangwao</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-400">mangwao</div>
                     </div>
                     <button onClick={() => { if (p) { addProduct(p, need); toast.success(`${p.name} bill me aa gaya`); } }}
                       disabled={!p}
@@ -1411,14 +1411,14 @@ export default function PurchasesPage({
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-slate-900 text-sm truncate">{s.name}</div>
-                        <div className="text-[11px] font-bold text-slate-500">{s.bills} bills</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500">{s.bills} bills</div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="font-extrabold text-slate-900 tabular-nums text-sm">
                           {hideCost ? '•••' : formatPKR(s.total)}
                         </div>
                         {s.due > 0 && (
-                          <div className="text-[10px] font-extrabold text-rose-600">{formatPKR(s.due)} baqi</div>
+                          <div className="text-[0.6875rem] font-extrabold text-rose-600">{formatPKR(s.due)} baqi</div>
                         )}
                       </div>
                     </div>
@@ -1471,12 +1471,12 @@ export default function PurchasesPage({
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-slate-900 text-sm font-mono">{p.purchaseNumber}</span>
                             {due > 0 && (
-                              <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold">
+                              <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">
                                 Baqi {formatPKR(due)}
                               </span>
                             )}
                           </div>
-                          <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500">
+                          <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500">
                             <span className="inline-flex items-center gap-1"><Building2 className="h-3 w-3" />{p.supplier.name}</span>
                             <span className="inline-flex items-center gap-1"><CalendarClock className="h-3 w-3" />
                               {new Date(p.purchasedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -1499,7 +1499,7 @@ export default function PurchasesPage({
                           <div className="text-base font-extrabold text-slate-900 tabular-nums">
                             {hideCost ? '•••••' : formatPKR(p.total ?? 0)}
                           </div>
-                          <div className={`text-[10px] font-extrabold ${due > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                          <div className={`text-[0.6875rem] font-extrabold ${due > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
                             {due > 0 ? `${formatPKR(due)} baqi` : 'Poora ada ✅'}
                           </div>
                         </div>
@@ -1518,7 +1518,7 @@ export default function PurchasesPage({
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="font-extrabold text-slate-900 text-sm truncate">{it.product.name}</div>
-                                  <div className="text-[11px] font-bold text-slate-500 tabular-nums">
+                                  <div className="text-[0.6875rem] font-bold text-slate-500 tabular-nums">
                                     {it.quantity} {it.product.unit} × {hideCost ? '•••' : formatPKR(it.costPrice)}
                                   </div>
                                 </div>
@@ -1642,7 +1642,7 @@ function PurchaseReceiptModal({
               <ReceiptText className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <div className="text-[9px] uppercase tracking-wider text-emerald-600 font-extrabold">Kharidari darj ho gayi ✅</div>
+              <div className="text-[0.625rem] uppercase tracking-wider text-emerald-600 font-extrabold">Kharidari darj ho gayi ✅</div>
               <h3 className="font-extrabold text-slate-900 text-sm truncate">Bill {data.shortNo}</h3>
             </div>
           </div>
@@ -1650,18 +1650,18 @@ function PurchaseReceiptModal({
           <div className="ml-auto flex items-center gap-1.5 flex-wrap">
             <div className="flex rounded-xl border overflow-hidden">
               <button onClick={() => setMode('short')}
-                className={`px-2.5 py-1.5 text-[11px] font-extrabold flex items-center gap-1 ${!full ? 'bg-slate-900 text-white' : ''}`}>
+                className={`px-2.5 py-1.5 text-[0.6875rem] font-extrabold flex items-center gap-1 ${!full ? 'bg-slate-900 text-white' : ''}`}>
                 <Minimize2 className="h-3 w-3" /> Short
               </button>
               <button onClick={() => setMode('full')}
-                className={`px-2.5 py-1.5 text-[11px] font-extrabold flex items-center gap-1 ${full ? 'bg-slate-900 text-white' : ''}`}>
+                className={`px-2.5 py-1.5 text-[0.6875rem] font-extrabold flex items-center gap-1 ${full ? 'bg-slate-900 text-white' : ''}`}>
                 <Maximize2 className="h-3 w-3" /> Full
               </button>
             </div>
             <div className="flex rounded-xl border overflow-hidden">
               {(['58', '80'] as const).map((w) => (
                 <button key={w} onClick={() => setPaperWidth(w)}
-                  className={`px-2.5 py-1.5 text-[11px] font-extrabold tabular-nums ${paperWidth === w ? 'bg-slate-900 text-white' : ''}`}>
+                  className={`px-2.5 py-1.5 text-[0.6875rem] font-extrabold tabular-nums ${paperWidth === w ? 'bg-slate-900 text-white' : ''}`}>
                   {w}mm
                 </button>
               ))}
@@ -1922,11 +1922,11 @@ function HeroStat({ label, value, sub, icon: Icon, highlight }: any) {
     <div className={`rounded-2xl backdrop-blur border p-4 transition hover:scale-[1.02] ${
       highlight ? 'bg-white/25 border-white/40 shadow-lg' : 'bg-white/10 border-white/20'
     }`}>
-      <div className="flex items-center gap-1.5 text-[10px] uppercase font-extrabold text-white/70 tracking-wider">
+      <div className="flex items-center gap-1.5 text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
         <Icon className="h-3.5 w-3.5" /> <span className="truncate">{label}</span>
       </div>
       <div className="mt-1 text-2xl font-extrabold tabular-nums truncate">{value}</div>
-      {sub && <div className="mt-0.5 text-[11px] font-bold text-white/70 truncate">{sub}</div>}
+      {sub && <div className="mt-0.5 text-[0.6875rem] font-bold text-white/70 truncate">{sub}</div>}
     </div>
   );
 }
@@ -1957,7 +1957,7 @@ function Kpi({ label, value, icon: Icon, tone }: any) {
   return (
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm flex items-center justify-between gap-2 hover:shadow-md transition">
       <div className="min-w-0">
-        <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
         <div className="mt-1 text-xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
       </div>
       <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${KPI_TONES[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
@@ -1998,8 +1998,8 @@ function Detail({ label, value, strong, tone = 'slate' }: any) {
   if (value === null || value === undefined || value === '') return null;
   return (
     <div className="flex items-baseline justify-between gap-3 py-1 border-b border-slate-100 last:border-0">
-      <span className="text-[11px] font-bold text-slate-500 shrink-0">{label}</span>
-      <span className={`text-[12px] tabular-nums truncate ${strong ? 'font-extrabold' : 'font-bold'} ${DETAIL_TONES[tone]}`}>
+      <span className="text-[0.6875rem] font-bold text-slate-500 shrink-0">{label}</span>
+      <span className={`text-[0.75rem] tabular-nums truncate ${strong ? 'font-extrabold' : 'font-bold'} ${DETAIL_TONES[tone]}`}>
         {value}
       </span>
     </div>
@@ -2040,7 +2040,7 @@ function PurchasesTeacher({ onClose }: { onClose: () => void }) {
               <GraduationCap className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 font-extrabold">Guide</div>
               <h3 className="font-extrabold text-slate-900">Kharidari Ka Tareeqa</h3>
             </div>
           </div>
@@ -2059,7 +2059,7 @@ function PurchasesTeacher({ onClose }: { onClose: () => void }) {
                 <div className="text-xs font-semibold text-slate-600 mt-1 leading-relaxed">{st.body}</div>
                 <ul className="mt-2 space-y-1">
                   {st.tips.map((tp, j) => (
-                    <li key={j} className="text-[11px] font-semibold text-slate-500 flex items-start gap-1.5">
+                    <li key={j} className="text-[0.6875rem] font-semibold text-slate-500 flex items-start gap-1.5">
                       <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                     </li>
                   ))}

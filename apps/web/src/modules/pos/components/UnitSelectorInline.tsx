@@ -37,7 +37,7 @@ export function UnitSelectorInline({ productId, variantId, currentUnitId, onSele
         }}
         className={
           'inline-flex items-center gap-1 rounded-lg border-2 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 font-extrabold transition hover:bg-emerald-100 dark:hover:bg-emerald-950/60 ' +
-          (compact ? 'text-[10px] px-2 py-0.5' : 'text-xs px-2.5 py-1')
+          (compact ? 'text-[0.6875rem] px-2 py-0.5' : 'text-xs px-2.5 py-1')
         }
       >
         <Layers className={compact ? 'h-2.5 w-2.5' : 'h-3 w-3'} />
@@ -52,7 +52,7 @@ export function UnitSelectorInline({ productId, variantId, currentUnitId, onSele
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-full mt-1 z-50 min-w-[240px] rounded-xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 shadow-2xl overflow-hidden">
             <div className="px-3 py-2 border-b border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-800/50">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400">
                 Select Unit
               </div>
             </div>
@@ -79,20 +79,20 @@ export function UnitSelectorInline({ productId, variantId, currentUnitId, onSele
                           {unit.unitName}
                         </span>
                         {unit.isBase && (
-                          <span className="px-1 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-700 text-[8px] font-extrabold uppercase">
+                          <span className="px-1 rounded bg-emerald-100 dark:bg-emerald-900 text-emerald-700 text-[0.625rem] font-extrabold uppercase">
                             Base
                           </span>
                         )}
                         {unit.isDefault && !unit.isBase && (
-                          <span className="px-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-700 text-[8px] font-extrabold uppercase">
+                          <span className="px-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-700 text-[0.625rem] font-extrabold uppercase">
                             Default
                           </span>
                         )}
                       </div>
                       {unit.unitLabel && (
-                        <div className="text-[10px] text-slate-500 font-semibold">{unit.unitLabel}</div>
+                        <div className="text-[0.6875rem] text-slate-500 font-semibold">{unit.unitLabel}</div>
                       )}
-                      <div className="text-[10px] text-slate-500 font-bold mt-0.5">
+                      <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">
                         1 {unit.unitName} = {unit.conversionRate} base
                       </div>
                     </div>

@@ -18,12 +18,12 @@ export function RiskBadge({ risk }: { risk?: CustomerRisk | null }) {
   return (
     <>
       {risk.level !== 'OK' && (
-        <span title={risk.reason} className={cn('rounded-md px-1.5 py-0.5 text-[10px] font-black', TONE[risk.level])}>
+        <span title={risk.reason} className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-black', TONE[risk.level])}>
           {risk.level === 'HIGH' ? '⚠ ' : risk.level === 'TRUSTED' ? '★ ' : risk.level === 'BLOCKED' ? '⛔ ' : ''}{risk.label}
         </span>
       )}
       {(risk.duplicateOpen ?? 0) > 0 && (
-        <span title="Isi customer ka pehle se ek order khula hai" className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[10px] font-black text-violet-800 dark:bg-violet-500/15 dark:text-violet-300">
+        <span title="Isi customer ka pehle se ek order khula hai" className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[0.6875rem] font-black text-violet-800 dark:bg-violet-500/15 dark:text-violet-300">
           Dobara order ({risk.duplicateOpen})
         </span>
       )}
@@ -48,7 +48,7 @@ export function RiskCard({ risk }: { risk?: CustomerRisk | null }) {
         <div className="mt-1 text-xs font-black">⚠ Isi customer ke {risk.duplicateOpen} aur order abhi khule hain — dobara to nahi bheja?</div>
       )}
       {risk.total > 0 && (
-        <div className="mt-1.5 flex flex-wrap gap-x-3 text-[11px] font-bold opacity-80">
+        <div className="mt-1.5 flex flex-wrap gap-x-3 text-[0.6875rem] font-bold opacity-80">
           <span>{risk.total} pichhle order</span>
           <span>{risk.delivered} liye</span>
           {risk.returned > 0 && <span>{risk.returned} wapas</span>}

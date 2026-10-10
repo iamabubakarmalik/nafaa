@@ -124,36 +124,36 @@ export default function ExchangesPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold">{ex.exchangeNumber}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-violet-500 text-white text-[9px] font-extrabold uppercase">{type?.label}</span>
-                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[9px] font-extrabold uppercase">{ex.metalType}</span>
+                        <span className="px-2 py-0.5 rounded-full bg-violet-500 text-white text-[0.625rem] font-extrabold uppercase">{type?.label}</span>
+                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">{ex.metalType}</span>
                       </div>
                       <div className="mt-1 text-sm font-bold text-slate-900">{ex.customerName}</div>
                       <div className="text-xs text-slate-600 font-bold inline-flex items-center gap-1"><Phone className="h-3 w-3" />{ex.customerPhone}</div>
-                      {ex.customerCnic && <div className="text-[10px] font-mono font-bold text-slate-500">CNIC: {ex.customerCnic}</div>}
+                      {ex.customerCnic && <div className="text-[0.6875rem] font-mono font-bold text-slate-500">CNIC: {ex.customerCnic}</div>}
                       <div className="mt-1 text-xs italic text-slate-600 line-clamp-1">{ex.itemDescription}</div>
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(ex.netValue)}</div>
-                    <div className="text-[10px] font-bold text-slate-500">{format(new Date(ex.exchangeDate), 'dd MMM yyyy')}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500">{format(new Date(ex.exchangeDate), 'dd MMM yyyy')}</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-4 gap-2 text-xs">
                   <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-slate-500">Gross</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Gross</div>
                     <div className="font-extrabold tabular-nums">{ex.grossWeight}g</div>
                   </div>
                   <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-emerald-700">Net</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Net</div>
                     <div className="font-extrabold text-emerald-800 tabular-nums">{ex.netWeight ?? '—'}g</div>
                   </div>
                   <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-amber-700">Fine</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Fine</div>
                     <div className="font-extrabold text-amber-800 tabular-nums">{ex.fineGoldEquivalent?.toFixed(2) ?? '—'}g</div>
                   </div>
                   <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2 text-center">
-                    <div className="text-[9px] uppercase font-extrabold text-blue-700">Rate</div>
-                    <div className="font-extrabold text-blue-800 tabular-nums text-[10px]">Rs {ex.ratePerGram.toLocaleString()}</div>
+                    <div className="text-[0.625rem] uppercase font-extrabold text-blue-700">Rate</div>
+                    <div className="font-extrabold text-blue-800 tabular-nums text-[0.6875rem]">Rs {ex.ratePerGram.toLocaleString()}</div>
                   </div>
                 </div>
                 {ex.testedPurity && (
@@ -232,7 +232,7 @@ function ExchangeForm({ onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-2 block">Exchange Type *</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Exchange Type *</label>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {EXCHANGE_TYPES.map((t) => (
               <button key={t.value} onClick={() => setForm({ ...form, exchangeType: t.value })} className={
@@ -240,7 +240,7 @@ function ExchangeForm({ onClose, onSaved }: any) {
                 (form.exchangeType === t.value ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-violet-300')
               }>
                 <div className="text-2xl mb-1">{t.emoji}</div>
-                <div className="text-[10px] font-extrabold">{t.label}</div>
+                <div className="text-[0.6875rem] font-extrabold">{t.label}</div>
               </button>
             ))}
           </div>
@@ -281,15 +281,15 @@ function ExchangeForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Gross Weight (g) *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Gross Weight (g) *</label>
             <input type="number" step="0.01" value={form.grossWeight} onChange={(e) => setForm({ ...form, grossWeight: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Stone Weight (g)</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Stone Weight (g)</label>
             <input type="number" step="0.01" value={form.stoneWeight} onChange={(e) => setForm({ ...form, stoneWeight: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Rate/gram *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Rate/gram *</label>
             <input type="number" value={form.ratePerGram} onChange={(e) => setForm({ ...form, ratePerGram: e.target.value })} className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
@@ -301,7 +301,7 @@ function ExchangeForm({ onClose, onSaved }: any) {
         </div>
 
         <div>
-          <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block flex items-center gap-1"><Camera className="h-3 w-3" />Item Photos</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block flex items-center gap-1"><Camera className="h-3 w-3" />Item Photos</label>
           {form.photoUrls.length > 0 && (
             <div className="grid grid-cols-4 gap-1 mb-2">
               {form.photoUrls.map((url: string, i: number) => (

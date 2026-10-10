@@ -370,7 +370,7 @@ export default function SeasonalPlansPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
               <Calendar className="h-3.5 w-3.5 text-lime-300" /> Fasal ka calendar
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
@@ -417,14 +417,14 @@ export default function SeasonalPlansPage() {
             <h3 className="font-extrabold text-rose-900 dark:text-rose-200 text-sm">
               ⚠️ {stats.risky} fasalon ki bijai aa rahi hai magar maal poora nahi
             </h3>
-            <p className="text-[11px] font-bold text-rose-800 dark:text-rose-300 mt-0.5">
+            <p className="text-[0.6875rem] font-bold text-rose-800 dark:text-rose-300 mt-0.5">
               Bijai ka waqt hi wo waqt hai jab farmer sab se zyada kharch karta hai. Maal na
               hua to wo doosri dukaan chala jayega — aur agle season bhi wahin jayega.
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {stats.riskyCrops.map((r: any) => (
                 <span key={r.id}
-                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 text-[11px] font-extrabold text-rose-900 dark:text-rose-200">
+                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 text-[0.6875rem] font-extrabold text-rose-900 dark:text-rose-200">
                   🌾 {r.cropName}
                   <span className="text-rose-600 dark:text-rose-400">
                     {' '}({r.items.length === 0 ? 'koi maal nahi' : `${r.out.length} khatam`})
@@ -472,11 +472,11 @@ export default function SeasonalPlansPage() {
             <Icon className="h-4 w-4" />
             <span className="truncate">{label}</span>
             {count !== undefined && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-lg tabular-nums ${
+              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
                 tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
               }`}>{count}</span>
             )}
-            <kbd className="hidden sm:inline text-[9px] opacity-60">{key}</kbd>
+            <kbd className="hidden sm:inline text-[0.625rem] opacity-60">{key}</kbd>
           </button>
         ))}
       </div>
@@ -508,7 +508,7 @@ export default function SeasonalPlansPage() {
           </div>
           <div className="flex gap-1.5 flex-wrap">
             <button onClick={() => setSeasonFilter('all')}
-              className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black transition ${
+              className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                 seasonFilter === 'all' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                   : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
               }`}>Har mausam ({rows.length})</button>
@@ -516,7 +516,7 @@ export default function SeasonalPlansPage() {
               const n = rows.filter((r) => r.season === s.value).length;
               return (
                 <button key={s.value} onClick={() => setSeasonFilter(s.value)}
-                  className={`h-10 px-3 rounded-xl border-2 text-[11px] font-black transition ${
+                  className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     seasonFilter === s.value ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
                   }`}>{s.emoji} {s.label} ({n})</button>
@@ -628,7 +628,7 @@ function Group({ icon: Icon, tone, title, desc, rows, onRemove }: any) {
         </div>
         <div className="min-w-0">
           <h3 className="font-black text-sm leading-tight">{title} · {rows.length}</h3>
-          <p className="text-[11px] font-bold opacity-80">{desc}</p>
+          <p className="text-[0.6875rem] font-bold opacity-80">{desc}</p>
         </div>
       </div>
       <div className="p-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -668,33 +668,33 @@ function PlanCard({ r, onRemove }: { r: any; onRemove: (p: any) => void }) {
         <div className="flex items-start justify-between gap-2">
           <div className="text-3xl">{season?.emoji}</div>
           <div className="flex items-center gap-1.5">
-            <span className="px-2 py-0.5 rounded bg-white/20 text-white text-[10px] font-extrabold uppercase">{r.year}</span>
+            <span className="px-2 py-0.5 rounded bg-white/20 text-white text-[0.6875rem] font-extrabold uppercase">{r.year}</span>
             <button onClick={() => onRemove(r)} title="Hatao"
               className="h-7 w-7 rounded-lg bg-white/15 hover:bg-white/30 flex items-center justify-center transition print:hidden">
               <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>
-        <div className="mt-2 text-[10px] uppercase font-extrabold text-white/80 tracking-widest">{season?.label}</div>
+        <div className="mt-2 text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-widest">{season?.label}</div>
         <div className="text-xl font-black">{r.cropName}</div>
       </div>
 
       <div className="p-4 space-y-3">
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-black ${toneCls[status.tone]}`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[0.6875rem] font-black ${toneCls[status.tone]}`}>
           <Clock className="h-3 w-3" /> {status.text}
         </span>
 
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 p-2">
-            <div className="text-[9px] uppercase font-black tracking-widest text-emerald-700 dark:text-emerald-400">Bijai</div>
-            <div className="text-[11px] font-extrabold text-slate-900 dark:text-white">
+            <div className="text-[0.625rem] uppercase font-black tracking-widest text-emerald-700 dark:text-emerald-400">Bijai</div>
+            <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white">
               {r.sowStart?.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })} –{' '}
               {r.sowEnd?.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}
             </div>
           </div>
           <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 p-2">
-            <div className="text-[9px] uppercase font-black tracking-widest text-amber-700 dark:text-amber-400">Katai</div>
-            <div className="text-[11px] font-extrabold text-slate-900 dark:text-white">
+            <div className="text-[0.625rem] uppercase font-black tracking-widest text-amber-700 dark:text-amber-400">Katai</div>
+            <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white">
               {r.harvStart?.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })} –{' '}
               {r.harvEnd?.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}
             </div>
@@ -708,22 +708,22 @@ function PlanCard({ r, onRemove }: { r: any; onRemove: (p: any) => void }) {
             : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
         }`}>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Is fasal ka maal</span>
+            <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Is fasal ka maal</span>
             {r.stockValue > 0 && (
-              <span className="text-[11px] font-black tabular-nums text-slate-700 dark:text-slate-200">
+              <span className="text-[0.6875rem] font-black tabular-nums text-slate-700 dark:text-slate-200">
                 {formatPKR(r.stockValue)}
               </span>
             )}
           </div>
 
           {r.items.length === 0 ? (
-            <p className="text-[11px] font-bold text-rose-800 dark:text-rose-300 mt-1 leading-snug">
+            <p className="text-[0.6875rem] font-bold text-rose-800 dark:text-rose-300 mt-1 leading-snug">
               Koi cheez is fasal se juri nahi. Product ke andar "kis fasal par chalta hai"
               bhar dein — phir yahan khud aa jayegi.
             </p>
           ) : (
             <>
-              <div className="mt-1 flex items-center gap-2 text-[11px] font-extrabold">
+              <div className="mt-1 flex items-center gap-2 text-[0.6875rem] font-extrabold">
                 <span className="text-slate-700 dark:text-slate-200">{r.items.length} cheezein</span>
                 {r.out.length > 0 && <span className="text-rose-600 dark:text-rose-400">{r.out.length} khatam</span>}
                 {r.low.length > 0 && <span className="text-amber-600 dark:text-amber-400">{r.low.length} kam</span>}
@@ -736,7 +736,7 @@ function PlanCard({ r, onRemove }: { r: any; onRemove: (p: any) => void }) {
               <div className="mt-1.5 flex flex-wrap gap-1">
                 {r.items.slice(0, 4).map((i: any) => (
                   <Link key={i.productId} to={`/agri-products/${i.productId}`}
-                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-extrabold transition hover:underline ${
+                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[0.6875rem] font-extrabold transition hover:underline ${
                       i.isOut ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                         : i.isLow ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
                         : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300'
@@ -745,7 +745,7 @@ function PlanCard({ r, onRemove }: { r: any; onRemove: (p: any) => void }) {
                   </Link>
                 ))}
                 {r.items.length > 4 && (
-                  <span className="text-[10px] font-extrabold text-slate-400">+{r.items.length - 4}</span>
+                  <span className="text-[0.6875rem] font-extrabold text-slate-400">+{r.items.length - 4}</span>
                 )}
               </div>
             </>
@@ -780,7 +780,7 @@ function CalendarTab({ rows, onRemove }: { rows: any[]; onRemove: (p: any) => vo
         <div className="flex items-center gap-2 mb-3">
           <Calendar className="h-4 w-4 text-emerald-600" />
           <h3 className="font-black text-slate-900 dark:text-white">Saal bhar ki patti</h3>
-          <div className="ml-auto flex items-center gap-3 text-[10px] font-black">
+          <div className="ml-auto flex items-center gap-3 text-[0.6875rem] font-black">
             <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
               <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" /> Bijai
             </span>
@@ -800,7 +800,7 @@ function CalendarTab({ rows, onRemove }: { rows: any[]; onRemove: (p: any) => vo
               <div className="w-32 shrink-0" />
               <div className="flex-1 grid grid-cols-12 gap-0">
                 {MONTHS.map((m) => (
-                  <div key={m} className="text-[9px] font-black uppercase tracking-wider text-slate-400 text-center">
+                  <div key={m} className="text-[0.625rem] font-black uppercase tracking-wider text-slate-400 text-center">
                     {m}
                   </div>
                 ))}
@@ -811,10 +811,10 @@ function CalendarTab({ rows, onRemove }: { rows: any[]; onRemove: (p: any) => vo
               {rows.map((r) => (
                 <div key={r.id} className="flex gap-2 items-center group">
                   <div className="w-32 shrink-0 min-w-0">
-                    <div className="text-[12px] font-extrabold text-slate-900 dark:text-white truncate">
+                    <div className="text-[0.75rem] font-extrabold text-slate-900 dark:text-white truncate">
                       {r.cropName}
                     </div>
-                    <div className="text-[9px] font-bold text-slate-400 truncate">
+                    <div className="text-[0.625rem] font-bold text-slate-400 truncate">
                       {SEASONS.find((s) => s.value === r.season)?.emoji}{' '}
                       {r.items.length > 0
                         ? `${r.items.length} cheezein${r.out.length > 0 ? ` · ${r.out.length} khatam` : ''}`
@@ -915,7 +915,7 @@ function Analytics({ stats, seasonPie, monthChart, cropStockChart, rows }: any) 
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             <h3 className="font-black text-amber-900 dark:text-amber-200">Ye safha aadha khali chal raha hai</h3>
           </div>
-          <p className="text-[12px] font-bold text-amber-900 dark:text-amber-200">
+          <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
             <strong>{stats.noStock}</strong> fasalon ka koi product juda hua nahi hai. Har cheez
             ke andar <strong>"kis fasal par chalta hai"</strong> bhar dein — phir ye safha khud
             bata dega ke bijai se pehle kya kya mangwana hai.{' '}
@@ -989,12 +989,12 @@ function Analytics({ stats, seasonPie, monthChart, cropStockChart, rows }: any) 
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.cropName}</div>
-                  <div className="text-[11px] font-bold text-slate-400">
+                  <div className="text-[0.6875rem] font-bold text-slate-400">
                     {r.items.length > 0 ? `${r.items.length} cheezein juri hain` : 'koi maal juda nahi'}
                     {r.out.length > 0 && <span className="text-rose-500"> · {r.out.length} khatam</span>}
                   </div>
                 </div>
-                <span className={`text-[11px] font-black tabular-nums shrink-0 px-2 py-1 rounded-lg ${
+                <span className={`text-[0.6875rem] font-black tabular-nums shrink-0 px-2 py-1 rounded-lg ${
                   r.toSow === 0 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                     : r.toSow <= 45 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
@@ -1048,7 +1048,7 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
       </div>
 
       <div className="p-5 space-y-4">
-        <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 text-[12px] font-bold text-slate-600 dark:text-slate-300">
+        <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
           Fasal ka naam wohi likhein jo aap product ke andar "kis fasal par chalta hai" me
           likhte hain — tabhi dono aapas me jur payenge.
         </div>
@@ -1082,7 +1082,7 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
         </div>
 
         {SEASONS.find((s) => s.value === form.season) && (
-          <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
             {SEASONS.find((s) => s.value === form.season)!.hint}
           </p>
         )}
@@ -1091,7 +1091,7 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
           <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 space-y-2">
             <div className="flex items-center gap-1.5">
               <Sprout className="h-4 w-4 text-emerald-600" />
-              <span className="text-[11px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">
+              <span className="text-[0.6875rem] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">
                 Bijai ka waqt
               </span>
             </div>
@@ -1105,7 +1105,7 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
                   onChange={(e) => setForm({ ...form, sowingEnd: e.target.value })} className={inp} />
               </Field>
             </div>
-            <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+            <p className="text-[0.6875rem] font-bold text-emerald-700 dark:text-emerald-400">
               Isi waqt farmer beej aur khaad kharidta hai
             </p>
           </div>
@@ -1113,7 +1113,7 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
           <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 space-y-2">
             <div className="flex items-center gap-1.5">
               <Scissors className="h-4 w-4 text-amber-600" />
-              <span className="text-[11px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300">
+              <span className="text-[0.6875rem] font-black uppercase tracking-widest text-amber-700 dark:text-amber-300">
                 Katai ka waqt
               </span>
             </div>
@@ -1127,7 +1127,7 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
                   onChange={(e) => setForm({ ...form, harvestEnd: e.target.value })} className={inp} />
               </Field>
             </div>
-            <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400">
+            <p className="text-[0.6875rem] font-bold text-amber-700 dark:text-amber-400">
               Isi waqt farmer ke paas paisa aata hai — udhaar wusool karein
             </p>
           </div>
@@ -1135,12 +1135,12 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
 
         {!valid && (
           <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3">
-            <div className="text-[11px] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300 mb-1">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-rose-700 dark:text-rose-300 mb-1">
               Ye reh gaya hai
             </div>
             <ul className="space-y-0.5">
               {errors.map((e) => (
-                <li key={e} className="text-[12px] font-bold text-rose-800 dark:text-rose-300">• {e}</li>
+                <li key={e} className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">• {e}</li>
               ))}
             </ul>
           </div>
@@ -1173,7 +1173,7 @@ function RemoveModal({ plan, onClose, onConfirm, saving }: any) {
             <Trash2 className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-white/80">Plan hatayein</div>
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-white/80">Plan hatayein</div>
             <h3 className="font-extrabold text-lg truncate">{plan.cropName}</h3>
           </div>
         </div>
@@ -1202,7 +1202,7 @@ const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-
 function Field({ label, req, children }: any) {
   return (
     <div>
-      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
+      <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1">
         {label}{req && <span className="text-rose-500"> *</span>}
       </label>
       {children}
@@ -1227,9 +1227,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1248,10 +1248,10 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-4 w-4 ${tones[tone] ?? tones.emerald}`} />
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
       </div>
       <div className="mt-1.5 text-xl font-black text-slate-900 dark:text-white tabular-nums break-words">{value}</div>
-      {sub && <div className="text-[11px] font-bold text-slate-400 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -1311,7 +1311,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-5 space-y-3 text-sm">
           <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3">
-            <p className="text-[12px] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
+            <p className="text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
               Ye sirf tareekhon ki list nahi hai. Har fasal apne aap ko <strong>aap ke stock se
               milati hai</strong> — aur bata deti hai ke bijai se pehle kya kya mangwana hai.
             </p>
@@ -1340,8 +1340,8 @@ function Teacher({ onClose }: { onClose: () => void }) {
             behtar waqt hai — is ke baad paisa kahin aur lag jata hai.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+            <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> nayi fasal</div>
               <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-3</kbd> tabs</div>
@@ -1362,8 +1362,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[13px]">{title}</div>
-        <p className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
       </div>
     </div>
   );

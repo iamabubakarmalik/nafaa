@@ -291,7 +291,7 @@ export default function HardwarePosPage() {
                         </div>
                       )}
                       {p.stock <= (p.lowStockAlert ?? 10) && p.stock > 0 && (
-                        <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[9px] font-extrabold shadow">
+                        <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-extrabold shadow">
                           LOW
                         </div>
                       )}
@@ -301,12 +301,12 @@ export default function HardwarePosPage() {
                       <div className="mt-1 flex items-baseline justify-between">
                         <div className="text-sm font-extrabold text-emerald-700 tabular-nums">
                           {formatPKR(p.price)}
-                          <span className="text-[9px] text-slate-500 ml-0.5">/{p.unit}</span>
+                          <span className="text-[0.625rem] text-slate-500 ml-0.5">/{p.unit}</span>
                         </div>
-                        <div className="text-[9px] font-bold text-slate-500">{p.stock} {p.unit}</div>
+                        <div className="text-[0.625rem] font-bold text-slate-500">{p.stock} {p.unit}</div>
                       </div>
                       {p.wholesalePrice && p.wholesalePrice < p.price && (
-                        <div className="mt-0.5 text-[9px] font-bold text-violet-700">
+                        <div className="mt-0.5 text-[0.625rem] font-bold text-violet-700">
                           W: {formatPKR(p.wholesalePrice)}
                         </div>
                       )}
@@ -323,7 +323,7 @@ export default function HardwarePosPage() {
           <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-amber-900 to-orange-700 text-white px-4 py-3">
             <div className="flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+                <div className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                   <Package className="h-2.5 w-2.5" />
                   Hardware Cart
                 </div>
@@ -393,7 +393,7 @@ export default function HardwarePosPage() {
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-sm text-slate-900 truncate">{item.name}</div>
                         {item.note && (
-                          <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-700 bg-amber-100 rounded px-1.5 py-0.5">
+                          <div className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-amber-700 bg-amber-100 rounded px-1.5 py-0.5">
                             <Layers className="h-2.5 w-2.5" />
                             {item.note}
                           </div>
@@ -416,7 +416,7 @@ export default function HardwarePosPage() {
                         <div className="font-extrabold text-emerald-700 tabular-nums">
                           {formatPKR((item.priceOverride ?? item.basePrice) * item.quantity)}
                         </div>
-                        <div className="text-[9px] font-bold text-slate-500">
+                        <div className="text-[0.625rem] font-bold text-slate-500">
                           {formatPKR(item.priceOverride ?? item.basePrice)}/{item.unit}
                         </div>
                       </div>
@@ -446,7 +446,7 @@ export default function HardwarePosPage() {
                 {(['FULL_PAYMENT', 'PARTIAL_CREDIT', 'FULL_CREDIT'] as const).map((m) => (
                   <button key={m} onClick={() => setSaleMode(m)}
                     className={[
-                      'py-2 rounded-lg text-[10px] font-extrabold transition',
+                      'py-2 rounded-lg text-[0.6875rem] font-extrabold transition',
                       saleMode === m ? 'bg-amber-600 text-white shadow' : 'bg-white border border-slate-200 text-slate-700',
                     ].join(' ')}>
                     {m === 'FULL_PAYMENT' ? 'Full Pay' : m === 'PARTIAL_CREDIT' ? 'Partial' : 'Udhaar'}

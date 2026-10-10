@@ -65,7 +65,7 @@ export default function MarketplaceGroupBuysPage() {
               <div key={s} className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <StatusIcon className="h-3 w-3 opacity-80" />
-                  <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">{s}</div>
+                  <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">{s}</div>
                 </div>
                 <div className="text-xl font-black tabular-nums">{counts[s] || 0}</div>
               </div>
@@ -156,12 +156,12 @@ function GroupBuyCard({ groupBuy: gb, onCancel }: any) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${meta.bg} ${meta.color} inline-flex items-center gap-0.5`}>
+            <span className={`text-[0.6875rem] font-black px-1.5 py-0.5 rounded ${meta.bg} ${meta.color} inline-flex items-center gap-0.5`}>
               <StatusIcon className="h-2.5 w-2.5" />
               {meta.label}
             </span>
             {isActive && daysLeft > 0 && (
-              <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
+              <span className="text-[0.6875rem] font-black px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">
                 ⏱ {daysLeft}d {hoursLeft % 24}h left
               </span>
             )}
@@ -172,7 +172,7 @@ function GroupBuyCard({ groupBuy: gb, onCancel }: any) {
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             <span className="text-xs text-slate-500 font-bold line-through">Rs {formatPKR(gb.originalPrice)}</span>
             <span className="text-sm font-black text-orange-700 tabular-nums">Rs {formatPKR(gb.groupPrice)}</span>
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">
+            <span className="text-[0.6875rem] font-black px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">
               -{discount.toFixed(0)}%
             </span>
           </div>
@@ -194,7 +194,7 @@ function GroupBuyCard({ groupBuy: gb, onCancel }: any) {
           />
         </div>
         {gb.maxParticipants && (
-          <div className="text-[10px] font-bold text-slate-500">
+          <div className="text-[0.6875rem] font-bold text-slate-500">
             Max cap: {gb.maxParticipants}
           </div>
         )}
@@ -208,7 +208,7 @@ function GroupBuyCard({ groupBuy: gb, onCancel }: any) {
                 {p.avatarUrl ? (
                   <img src={p.avatarUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-slate-500">
+                  <div className="w-full h-full flex items-center justify-center text-[0.6875rem] font-black text-slate-500">
                     {p.fullName.charAt(0)}
                   </div>
                 )}
@@ -216,13 +216,13 @@ function GroupBuyCard({ groupBuy: gb, onCancel }: any) {
             ))}
           </div>
           {gb.currentCount > 5 && (
-            <span className="text-[10px] font-bold text-slate-500">+{gb.currentCount - 5} more</span>
+            <span className="text-[0.6875rem] font-bold text-slate-500">+{gb.currentCount - 5} more</span>
           )}
         </div>
       )}
 
       {isActive && (
-        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-500">
+        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[0.6875rem] font-bold text-slate-500">
           <span>Started {relativeTime(gb.createdAt)}</span>
           <button onClick={onCancel} className="text-rose-600 hover:text-rose-700 font-black">Cancel</button>
         </div>
@@ -353,7 +353,7 @@ function CreateGroupBuyModal({ onClose, onSuccess }: any) {
                 onChange={(e) => setForm({ ...form, minParticipants: Number(e.target.value) })}
                 className="w-full h-11 px-3 rounded-xl border-2 border-slate-200 text-sm font-black outline-none focus:border-orange-500"
               />
-              <p className="text-[10px] text-slate-500 font-medium mt-1">Target hit hone tak wait</p>
+              <p className="text-[0.6875rem] text-slate-500 font-medium mt-1">Target hit hone tak wait</p>
             </div>
             <div>
               <label className="text-sm font-black text-slate-700 mb-1.5 block">Max Participants</label>
@@ -364,7 +364,7 @@ function CreateGroupBuyModal({ onClose, onSuccess }: any) {
                 onChange={(e) => setForm({ ...form, maxParticipants: Number(e.target.value) })}
                 className="w-full h-11 px-3 rounded-xl border-2 border-slate-200 text-sm font-black outline-none focus:border-orange-500"
               />
-              <p className="text-[10px] text-slate-500 font-medium mt-1">Cap for total buyers</p>
+              <p className="text-[0.6875rem] text-slate-500 font-medium mt-1">Cap for total buyers</p>
             </div>
           </div>
 

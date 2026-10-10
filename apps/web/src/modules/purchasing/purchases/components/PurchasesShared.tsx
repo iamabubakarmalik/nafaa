@@ -43,7 +43,7 @@ export function PurchasesHero({
           <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/20">
             <span className="text-base">{emoji}</span>
             <Sparkles className="h-3 w-3 text-amber-300" />
-            <span className={`px-1.5 py-0.5 rounded ${industryBadgeColor} text-[10px] font-extrabold uppercase`}>
+            <span className={`px-1.5 py-0.5 rounded ${industryBadgeColor} text-[0.6875rem] font-extrabold uppercase`}>
               {industryLabel}
             </span>
           </div>
@@ -149,7 +149,7 @@ export function PurchaseStatCard({ label, value, sub, icon: Icon, color, trend, 
           <div className="mt-2 text-2xl font-extrabold text-slate-900 tabular-nums truncate">{value}</div>
           {sub && <div className="text-xs text-slate-600 font-semibold mt-1">{sub}</div>}
           {trend !== undefined && trend !== 0 && (
-            <div className={`mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-extrabold ${
+            <div className={`mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[0.6875rem] font-extrabold ${
               trend >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
             }`}>
               {trend >= 0 ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
@@ -200,11 +200,11 @@ export function ComparisonCard({ title, currentLabel, currentValue, previousLabe
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className={`rounded-xl bg-gradient-to-br ${bg} border ${border} p-3`}>
-          <div className={`text-[10px] uppercase font-bold ${textLabel}`}>{currentLabel}</div>
+          <div className={`text-[0.6875rem] uppercase font-bold ${textLabel}`}>{currentLabel}</div>
           <div className={`text-xl font-extrabold mt-1 tabular-nums ${textValue}`}>{formatPKR(currentValue)}</div>
         </div>
         <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-          <div className="text-[10px] uppercase font-bold text-slate-600">{previousLabel}</div>
+          <div className="text-[0.6875rem] uppercase font-bold text-slate-600">{previousLabel}</div>
           <div className="text-xl font-extrabold text-slate-900 mt-1 tabular-nums">{formatPKR(previousValue)}</div>
         </div>
       </div>

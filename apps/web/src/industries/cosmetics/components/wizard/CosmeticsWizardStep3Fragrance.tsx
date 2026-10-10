@@ -121,7 +121,7 @@ export function CosmeticsWizardStep3Fragrance({ fragrance, onChange, categoryTyp
                   a ? 'border-violet-600 bg-violet-600 text-white shadow-md scale-[1.02]'
                     : 'border-slate-200 bg-white text-slate-700 hover:border-violet-400'].join(' ')}>
                 <span className="text-2xl">{f.e}</span>
-                <span className="text-[10px] font-extrabold text-center">{f.l}</span>
+                <span className="text-[0.6875rem] font-extrabold text-center">{f.l}</span>
               </button>
             );
           })}
@@ -138,7 +138,7 @@ export function CosmeticsWizardStep3Fragrance({ fragrance, onChange, categoryTyp
             <Sun className="h-5 w-5 text-amber-700" />
             <div>
               <h4 className="font-extrabold text-amber-900">Top Notes</h4>
-              <p className="text-[10px] font-bold text-amber-700">First impression — first 15 minutes</p>
+              <p className="text-[0.6875rem] font-bold text-amber-700">First impression — first 15 minutes</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -146,7 +146,7 @@ export function CosmeticsWizardStep3Fragrance({ fragrance, onChange, categoryTyp
               const a = fragrance.topNotes?.includes(n);
               return (
                 <button key={n} type="button" onClick={() => tog('topNotes', n)}
-                  className={['px-2.5 py-1 rounded-full border-2 text-[11px] font-extrabold transition',
+                  className={['px-2.5 py-1 rounded-full border-2 text-[0.6875rem] font-extrabold transition',
                     a ? 'border-amber-500 bg-amber-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-amber-400'].join(' ')}>
                   {n}
                 </button>
@@ -171,7 +171,7 @@ export function CosmeticsWizardStep3Fragrance({ fragrance, onChange, categoryTyp
             <Sparkles className="h-5 w-5 text-pink-700" />
             <div>
               <h4 className="font-extrabold text-pink-900">Middle / Heart Notes</h4>
-              <p className="text-[10px] font-bold text-pink-700">Character — 1 to 4 hours</p>
+              <p className="text-[0.6875rem] font-bold text-pink-700">Character — 1 to 4 hours</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -179,7 +179,7 @@ export function CosmeticsWizardStep3Fragrance({ fragrance, onChange, categoryTyp
               const a = fragrance.middleNotes?.includes(n);
               return (
                 <button key={n} type="button" onClick={() => tog('middleNotes', n)}
-                  className={['px-2.5 py-1 rounded-full border-2 text-[11px] font-extrabold transition',
+                  className={['px-2.5 py-1 rounded-full border-2 text-[0.6875rem] font-extrabold transition',
                     a ? 'border-pink-500 bg-pink-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-pink-400'].join(' ')}>
                   {n}
                 </button>
@@ -204,7 +204,7 @@ export function CosmeticsWizardStep3Fragrance({ fragrance, onChange, categoryTyp
             <Leaf className="h-5 w-5 text-orange-700" />
             <div>
               <h4 className="font-extrabold text-orange-900">Base Notes</h4>
-              <p className="text-[10px] font-bold text-orange-700">Foundation — 4+ hours, dry-down</p>
+              <p className="text-[0.6875rem] font-bold text-orange-700">Foundation — 4+ hours, dry-down</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -212,7 +212,7 @@ export function CosmeticsWizardStep3Fragrance({ fragrance, onChange, categoryTyp
               const a = fragrance.baseNotes?.includes(n);
               return (
                 <button key={n} type="button" onClick={() => tog('baseNotes', n)}
-                  className={['px-2.5 py-1 rounded-full border-2 text-[11px] font-extrabold transition',
+                  className={['px-2.5 py-1 rounded-full border-2 text-[0.6875rem] font-extrabold transition',
                     a ? 'border-orange-500 bg-orange-500 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-orange-400'].join(' ')}>
                   {n}
                 </button>
@@ -286,7 +286,7 @@ export function CosmeticsWizardStep3Fragrance({ fragrance, onChange, categoryTyp
                 className={['p-2.5 rounded-xl border-2 transition flex flex-col items-center gap-1',
                   a ? 'border-pink-500 bg-pink-500 text-white shadow-md' : 'border-slate-200 bg-white text-slate-700 hover:border-pink-400'].join(' ')}>
                 <span className="text-xl">{o.e}</span>
-                <span className="text-[10px] font-extrabold text-center">{o.l}</span>
+                <span className="text-[0.6875rem] font-extrabold text-center">{o.l}</span>
               </button>
             );
           })}

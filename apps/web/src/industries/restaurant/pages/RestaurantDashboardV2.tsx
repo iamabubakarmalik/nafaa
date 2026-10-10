@@ -218,10 +218,10 @@ export default function RestaurantDashboardV2() {
                     <div className="h-8 w-8 rounded-lg text-white flex items-center justify-center shrink-0" style={{ backgroundColor: m.color }}>
                       <Icon className="h-4 w-4" />
                     </div>
-                    <div className="text-[10px] uppercase font-extrabold" style={{ color: m.color }}>{m.label}</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold" style={{ color: m.color }}>{m.label}</div>
                   </div>
                   <div className="text-2xl font-extrabold text-slate-900 tabular-nums">{m.count}</div>
-                  <div className="text-[10px] font-bold text-slate-500">{formatPKR(m.revenue)}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500">{formatPKR(m.revenue)}</div>
                 </div>
               );
             })}
@@ -259,7 +259,7 @@ export default function RestaurantDashboardV2() {
                 >
                   <div className={`absolute -top-1 -right-1 h-3 w-3 rounded-full ring-2 ring-white ${cfg} ${table.status === 'OCCUPIED' ? 'animate-pulse' : ''}`} />
                   <div className="text-lg font-extrabold text-slate-900 tabular-nums">{table.tableNumber}</div>
-                  <div className="text-[9px] font-bold text-slate-500 flex items-center justify-center gap-0.5 mt-0.5">
+                  <div className="text-[0.625rem] font-bold text-slate-500 flex items-center justify-center gap-0.5 mt-0.5">
                     <Users className="h-2 w-2" />
                     {table.capacity}
                   </div>
@@ -414,9 +414,9 @@ export default function RestaurantDashboardV2() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-mono font-extrabold text-slate-900 text-sm">{order.orderNumber}</span>
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold ${statusColor}`}>{order.status}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${statusColor}`}>{order.status}</span>
                         {order.table && (
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold">
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">
                             T-{order.table.tableNumber}
                           </span>
                         )}
@@ -428,7 +428,7 @@ export default function RestaurantDashboardV2() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 tabular-nums">{formatPKR(order.total)}</div>
-                    <div className="text-[10px] text-slate-500 font-bold mt-0.5">{formatDate(order.createdAt)}</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-bold mt-0.5">{formatDate(order.createdAt)}</div>
                   </div>
                 </Link>
               );

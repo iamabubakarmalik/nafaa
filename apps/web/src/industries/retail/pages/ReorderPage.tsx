@@ -261,7 +261,7 @@ export default function ReorderPage() {
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Generated</div>
+            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
             <div className="text-xs font-bold text-slate-900">{printDate}</div>
           </div>
         </div>
@@ -274,7 +274,7 @@ export default function ReorderPage() {
 
         <div className="relative flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Sparkles className="h-3.5 w-3.5 text-amber-300" /> Smart Reorder
               {shopName && (
                 <>
@@ -533,7 +533,7 @@ export default function ReorderPage() {
                           {group.supplier?.name || 'Koi supplier nahi'}
                         </h3>
                         {groupCritical > 0 && (
-                          <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-extrabold uppercase animate-pulse shrink-0">
+                          <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse shrink-0">
                             🔴 {groupCritical} foran
                           </span>
                         )}
@@ -658,7 +658,7 @@ function ReorderTeacher({ onClose, onStart }: { onClose: () => void; onStart: ()
 
           {/* How it works visual */}
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-3">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
               🧠 Misal: Lay's Chips
             </div>
             <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -717,8 +717,8 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
   return (
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[11px] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[9px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -730,7 +730,7 @@ function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; des
 function StepPill({ n, label, state }: { n: number; label: string; state: 'done' | 'active' | 'todo' }) {
   return (
     <div className={[
-      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-extrabold border backdrop-blur-md transition',
+      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.6875rem] font-extrabold border backdrop-blur-md transition',
       state === 'done'
         ? 'bg-emerald-400/25 border-emerald-300/50 text-emerald-200'
         : state === 'active'
@@ -741,7 +741,7 @@ function StepPill({ n, label, state }: { n: number; label: string; state: 'done'
         <CheckCircle2 className="h-3.5 w-3.5" />
       ) : (
         <span className={[
-          'h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-black',
+          'h-4 w-4 rounded-full flex items-center justify-center text-[0.625rem] font-black',
           state === 'active' ? 'bg-slate-900 text-amber-300' : 'bg-white/20 text-white/60',
         ].join(' ')}>
           {n}
@@ -812,7 +812,7 @@ function SuggestionRow({ suggestion, hideCost, selected, onToggleSelect, onMarkO
             </Link>
             {suggestion.status === 'PENDING' && (
               <span className={[
-                'px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider',
+                'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase tracking-wider',
                 isCritical ? 'bg-rose-500 text-white animate-pulse' :
                 isLow ? 'bg-amber-500 text-white' :
                 'bg-emerald-500 text-white',
@@ -821,7 +821,7 @@ function SuggestionRow({ suggestion, hideCost, selected, onToggleSelect, onMarkO
               </span>
             )}
             {suggestion.status !== 'PENDING' && statusMeta && (
-              <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${statusMeta.color}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase tracking-wider ${statusMeta.color}`}>
                 {statusMeta.label}
               </span>
             )}
@@ -852,14 +852,14 @@ function SuggestionRow({ suggestion, hideCost, selected, onToggleSelect, onMarkO
         </div>
 
         <div className="text-right shrink-0 min-w-[110px]">
-          <div className="text-[10px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Order Value</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Order Value</div>
           {!hideCost ? (
             <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(orderValue)}</div>
           ) : (
             <div className="text-lg font-extrabold text-slate-400 dark:text-slate-600">••••</div>
           )}
           {!hideCost && (
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold tabular-nums">
+            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold tabular-nums">
               @ {formatPKR(suggestion.lastPurchasePrice)}
             </div>
           )}
@@ -912,7 +912,7 @@ function MiniCell({ label, value, tone }: { label: string; value: string; tone: 
   };
   return (
     <div>
-      <div className="text-[9px] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
       <div className={`font-extrabold tabular-nums ${tones[tone]}`}>{value}</div>
     </div>
   );
@@ -933,9 +933,9 @@ function Kpi({ label, value, sub, icon: Icon, tone, urgent }: any) {
       {urgent && <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-rose-500 animate-ping" />}
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
           <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

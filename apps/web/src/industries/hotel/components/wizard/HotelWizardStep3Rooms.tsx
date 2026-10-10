@@ -134,7 +134,7 @@ export function HotelWizardStep3Rooms({
                 </div>
                 <div className="flex-1">
                   <div className="font-extrabold text-slate-900 text-sm">Auto Generate</div>
-                  <div className="text-[11px] text-slate-600 font-semibold">Floor range + rooms per floor</div>
+                  <div className="text-[0.6875rem] text-slate-600 font-semibold">Floor range + rooms per floor</div>
                 </div>
               </div>
             </button>
@@ -157,7 +157,7 @@ export function HotelWizardStep3Rooms({
                 </div>
                 <div className="flex-1">
                   <div className="font-extrabold text-slate-900 text-sm">Manual Entry</div>
-                  <div className="text-[11px] text-slate-600 font-semibold">One room at a time</div>
+                  <div className="text-[0.6875rem] text-slate-600 font-semibold">One room at a time</div>
                 </div>
               </div>
             </button>
@@ -262,16 +262,16 @@ export function HotelWizardStep3Rooms({
                 <div className="rounded-xl bg-indigo-100 border-2 border-indigo-300 p-3">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <div className="text-[10px] uppercase font-extrabold text-indigo-700">Preview</div>
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-indigo-700">Preview</div>
                       <div className="text-2xl font-extrabold text-indigo-900 tabular-nums">
                         {totalPreview} rooms
                       </div>
-                      <div className="text-[10px] font-bold text-indigo-700">
+                      <div className="text-[0.6875rem] font-bold text-indigo-700">
                         Across {previewCount} floor{previewCount !== 1 ? 's' : ''}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[10px] uppercase font-extrabold text-emerald-700">Est. daily revenue</div>
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Est. daily revenue</div>
                       <div className="text-xl font-extrabold text-emerald-700 tabular-nums">
                         {formatPKRFull(totalPreview * Number(basic.basePrice || 0))}
                       </div>
@@ -350,7 +350,7 @@ export function HotelWizardStep3Rooms({
             <section className="rounded-2xl border-2 border-slate-200 bg-white overflow-hidden">
               <div className="px-5 py-3 border-b-2 border-slate-100 bg-slate-50 flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-600">Rooms to Create</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Rooms to Create</div>
                   <h4 className="font-extrabold text-slate-900 text-sm mt-0.5">
                     {rooms.rooms.length} room{rooms.rooms.length !== 1 ? 's' : ''} ready
                   </h4>
@@ -367,12 +367,12 @@ export function HotelWizardStep3Rooms({
                 <table className="w-full text-xs">
                   <thead className="bg-slate-50 sticky top-0">
                     <tr>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Room #</th>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Floor</th>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Building</th>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Wing</th>
-                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">View</th>
-                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[9px]">Custom Price</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Room #</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Floor</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Building</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Wing</th>
+                      <th className="px-2 py-2 text-left font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">View</th>
+                      <th className="px-2 py-2 text-right font-extrabold uppercase tracking-wider text-slate-700 text-[0.625rem]">Custom Price</th>
                       <th className="px-2 py-2"></th>
                     </tr>
                   </thead>

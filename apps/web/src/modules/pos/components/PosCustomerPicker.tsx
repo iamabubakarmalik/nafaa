@@ -123,7 +123,7 @@ export function PosCustomerPicker({
             {selectedCustomer ? selectedCustomer.name : 'Walk-in Customer'}
           </span>
           {selectedCustomer?.balance > 0 && (
-            <span className="block text-[11px] font-extrabold text-amber-600 dark:text-amber-400">
+            <span className="block text-[0.6875rem] font-extrabold text-amber-600 dark:text-amber-400">
               Udhaar {formatPKR(selectedCustomer.balance)}
             </span>
           )}
@@ -159,7 +159,7 @@ export function PosCustomerPicker({
                   </button>
                 )}
               </div>
-              <div className="mt-1.5 flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider">
+              <div className="mt-1.5 flex items-center justify-between text-[0.6875rem] font-extrabold uppercase tracking-wider">
                 <span className="text-slate-500 dark:text-slate-400">{filtered.length} customer</span>
                 {totalUdhaar > 0 && (
                   <span className="text-amber-600 dark:text-amber-400">Kul udhaar {formatPKR(totalUdhaar)}</span>
@@ -185,7 +185,7 @@ export function PosCustomerPicker({
               {filtered.length === 0 ? (
                 <div className="px-3 py-8 text-center">
                   <p className="text-sm font-extrabold text-slate-600 dark:text-slate-300">Koi customer nahi mila</p>
-                  <p className="text-[11px] font-bold text-slate-400 mt-1">"{q}" ke naam se kuch nahi</p>
+                  <p className="text-[0.6875rem] font-bold text-slate-400 mt-1">"{q}" ke naam se kuch nahi</p>
                   <button
                     onClick={() => { setOpen(false); onAddCustomer(); }}
                     className="mt-3 h-10 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5"
@@ -212,11 +212,11 @@ export function PosCustomerPicker({
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-extrabold text-slate-900 dark:text-white">{c.name}</span>
                         {c.phone && (
-                          <span className="block text-[11px] font-bold text-slate-400 tabular-nums">{c.phone}</span>
+                          <span className="block text-[0.6875rem] font-bold text-slate-400 tabular-nums">{c.phone}</span>
                         )}
                       </span>
                       {bal > 0 && (
-                        <span className="shrink-0 text-[11px] font-black text-amber-600 dark:text-amber-400 tabular-nums">
+                        <span className="shrink-0 text-[0.6875rem] font-black text-amber-600 dark:text-amber-400 tabular-nums">
                           {formatPKR(bal)}
                         </span>
                       )}

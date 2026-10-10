@@ -116,26 +116,26 @@ export default function ArtSuppliesPage() {
                     <div className="w-full h-full flex items-center justify-center text-6xl">{cat?.emoji || '🎨'}</div>
                   )}
                   {item.color && item.colorCode && (
-                    <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-900/70 backdrop-blur text-white text-[10px] font-bold shadow">
+                    <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-900/70 backdrop-blur text-white text-[0.6875rem] font-bold shadow">
                       <div className="h-3 w-3 rounded-full ring-2 ring-white" style={{ backgroundColor: item.colorCode }} />
                       {item.color}
                     </div>
                   )}
                   {item.isProfessional && (
-                    <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-purple-500 text-white text-[9px] font-extrabold uppercase shadow">PRO</span>
+                    <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-purple-500 text-white text-[0.625rem] font-extrabold uppercase shadow">PRO</span>
                   )}
                 </div>
                 <div className="p-3 space-y-1">
                   <h3 className="font-extrabold text-sm text-slate-900 dark:text-white line-clamp-1">{item.product?.name}</h3>
-                  <div className="text-[10px] font-extrabold uppercase text-fuchsia-600">{cat?.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase text-fuchsia-600">{cat?.label}</div>
                   <div className="flex flex-wrap gap-1">
-                    {item.brand && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-extrabold uppercase">{item.brand}</span>}
-                    {item.grade && <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold uppercase">{item.grade}</span>}
-                    {item.volume && <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-extrabold uppercase">{item.volume}</span>}
+                    {item.brand && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">{item.brand}</span>}
+                    {item.grade && <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold uppercase">{item.grade}</span>}
+                    {item.volume && <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">{item.volume}</span>}
                   </div>
                   <div className="pt-1 flex items-end justify-between">
                     <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(item.product?.price ?? 0)}</div>
-                    <div className="text-[10px] font-extrabold text-slate-500">Stock: {item.product?.stock ?? 0}</div>
+                    <div className="text-[0.6875rem] font-extrabold text-slate-500">Stock: {item.product?.stock ?? 0}</div>
                   </div>
                 </div>
               </Link>

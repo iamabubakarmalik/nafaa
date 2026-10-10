@@ -170,7 +170,7 @@ export default function ClinicServiceDetailPage() {
 
               {service?.basePrice && (
                 <div className="rounded-2xl bg-white/15 backdrop-blur border border-white/20 p-4">
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70">Base Price</div>
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70">Base Price</div>
                   <div className="text-4xl font-extrabold tabular-nums text-emerald-300 mt-1">
                     {formatPKRFull(service.basePrice)}
                   </div>
@@ -198,7 +198,7 @@ export default function ClinicServiceDetailPage() {
               </div>
               <div>
                 <h3 className="font-extrabold text-lg text-slate-900">Pricing Tiers</h3>
-                <p className="text-[11px] text-slate-500 font-semibold">{priceOptions.length} tier(s) available</p>
+                <p className="text-[0.6875rem] text-slate-500 font-semibold">{priceOptions.length} tier(s) available</p>
               </div>
             </div>
             <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -226,7 +226,7 @@ export default function ClinicServiceDetailPage() {
               </div>
               <div>
                 <h3 className="font-extrabold text-lg text-slate-900">Requirements</h3>
-                <p className="text-[11px] text-slate-500 font-semibold">What is needed</p>
+                <p className="text-[0.6875rem] text-slate-500 font-semibold">What is needed</p>
               </div>
             </div>
             <div className="mt-4 grid sm:grid-cols-3 gap-3">
@@ -259,7 +259,7 @@ export default function ClinicServiceDetailPage() {
               </div>
               <div>
                 <h3 className="font-extrabold text-lg text-slate-900">Package Includes</h3>
-                <p className="text-[11px] text-slate-500 font-semibold">{service.packageIncludes.length} items</p>
+                <p className="text-[0.6875rem] text-slate-500 font-semibold">{service.packageIncludes.length} items</p>
               </div>
             </div>
             <div className="mt-4 grid sm:grid-cols-2 gap-2">
@@ -319,7 +319,7 @@ export default function ClinicServiceDetailPage() {
 
 function Badge({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-white/20 backdrop-blur border border-white/30 px-2.5 py-1 text-[11px] font-extrabold">
+    <span className="inline-flex items-center rounded-full bg-white/20 backdrop-blur border border-white/30 px-2.5 py-1 text-[0.6875rem] font-extrabold">
       {label}
     </span>
   );
@@ -340,7 +340,7 @@ function ReqBadge({ active, label, emoji }: any) {
 function MetaRow({ label, value, mono }: any) {
   return (
     <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-      <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
       <div className={'mt-1 text-sm font-extrabold text-slate-900 ' + (mono ? 'font-mono' : '')}>{value}</div>
     </div>
   );

@@ -223,12 +223,12 @@ function MeasurementCard({ measurement, onEdit, onDelete }: {
           <div className="flex items-center gap-1.5 flex-wrap">
             <h3 className="font-extrabold text-slate-900 dark:text-white">{measurement.profileName}</h3>
             {measurement.isDefault && (
-              <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+              <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <Award className="h-2 w-2" />
                 Default
               </span>
             )}
-            <span className="px-1.5 py-0.5 rounded bg-cyan-100 dark:bg-cyan-950/40 text-cyan-700 text-[9px] font-extrabold uppercase">
+            <span className="px-1.5 py-0.5 rounded bg-cyan-100 dark:bg-cyan-950/40 text-cyan-700 text-[0.625rem] font-extrabold uppercase">
               {measurement.unit}
             </span>
           </div>
@@ -238,7 +238,7 @@ function MeasurementCard({ measurement, onEdit, onDelete }: {
               {measurement.customer.name}
             </div>
           )}
-          <div className="text-[10px] text-slate-500 font-semibold mt-0.5">
+          <div className="text-[0.6875rem] text-slate-500 font-semibold mt-0.5">
             <Calendar className="h-2.5 w-2.5 inline mr-0.5" />
             {format(new Date(measurement.measuredAt), 'dd MMM yyyy')}
           </div>
@@ -249,7 +249,7 @@ function MeasurementCard({ measurement, onEdit, onDelete }: {
         <div className="grid grid-cols-4 gap-1.5">
           {filled.slice(0, 8).map((f) => (
             <div key={f.key} className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
-              <div className="text-[8px] uppercase font-extrabold text-slate-500">{f.label}</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">{f.label}</div>
               <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">
                 {measurement[f.key] as number}
               </div>
@@ -266,7 +266,7 @@ function MeasurementCard({ measurement, onEdit, onDelete }: {
             </a>
           ))}
           {measurement.imageUrls.length > 4 && (
-            <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-[10px] font-extrabold text-slate-600">
+            <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-[0.6875rem] font-extrabold text-slate-600">
               +{measurement.imageUrls.length - 4}
             </div>
           )}
@@ -382,7 +382,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
         {/* Customer picker */}
         {(!form.customerId || showCustomerPicker) ? (
           <div>
-            <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Select Customer *</label>
+            <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Select Customer *</label>
             <div className="relative mb-2">
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -429,7 +429,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
             {/* Basic info */}
             <div className="grid sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Profile Name *</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Profile Name *</label>
                 <input
                   value={form.profileName}
                   onChange={(e) => setForm({ ...form, profileName: e.target.value })}
@@ -438,7 +438,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                 />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Gender</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Gender</label>
                 <select
                   value={form.gender}
                   onChange={(e) => setForm({ ...form, gender: e.target.value })}
@@ -449,7 +449,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                 </select>
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Unit</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Unit</label>
                 <div className="grid grid-cols-2 gap-1">
                   <button
                     type="button"
@@ -490,7 +490,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                   <div className="p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                     {group.fields.map((f) => (
                       <div key={f.key}>
-                        <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-0.5 block">{f.label}</label>
+                        <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-0.5 block">{f.label}</label>
                         <div className="relative">
                           <input
                             type="number"
@@ -500,7 +500,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                             placeholder="0"
                             className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-3 pr-8 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500"
                           />
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-extrabold text-slate-400 uppercase">{form.unit === 'INCH' ? 'in' : 'cm'}</span>
+                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[0.625rem] font-extrabold text-slate-400 uppercase">{form.unit === 'INCH' ? 'in' : 'cm'}</span>
                         </div>
                       </div>
                     ))}
@@ -512,7 +512,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
             {/* Notes */}
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Posture Notes</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Posture Notes</label>
                 <textarea
                   rows={2}
                   value={form.postureNotes}
@@ -522,7 +522,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                 />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Fitting Notes</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Fitting Notes</label>
                 <textarea
                   rows={2}
                   value={form.fittingNotes}
@@ -535,7 +535,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
 
             {/* Images */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Reference Photos</label>
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Reference Photos</label>
               {form.imageUrls.length > 0 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-1 mb-2">
                   {form.imageUrls.map((url: string, i: number) => (

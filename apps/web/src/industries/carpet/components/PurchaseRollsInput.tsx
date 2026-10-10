@@ -167,22 +167,22 @@ export function PurchaseRollsInput({
       {rolls.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <div className="rounded-lg bg-white border-2 border-emerald-200 p-2.5">
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Total Sqft</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Total Sqft</div>
             <div className="text-lg font-extrabold text-emerald-900 tabular-nums">{stats.totalSqft.toFixed(2)}</div>
             {expectedTotalSqft !== undefined && !stats.matches && (
-              <div className="text-[10px] text-rose-600 font-bold mt-0.5">Expected: {expectedTotalSqft}</div>
+              <div className="text-[0.6875rem] text-rose-600 font-bold mt-0.5">Expected: {expectedTotalSqft}</div>
             )}
           </div>
           <div className="rounded-lg bg-white border-2 border-emerald-200 p-2.5">
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Total Cost</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Total Cost</div>
             <div className="text-lg font-extrabold text-slate-900 tabular-nums">{formatPKRFull(stats.totalCost)}</div>
           </div>
           <div className="rounded-lg bg-white border-2 border-emerald-200 p-2.5">
-            <div className="text-[10px] uppercase font-extrabold text-emerald-700">Sale Value</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Sale Value</div>
             <div className="text-lg font-extrabold text-blue-900 tabular-nums">{formatPKRFull(stats.totalSaleValue)}</div>
           </div>
           <div className="rounded-lg bg-amber-50 border-2 border-amber-200 p-2.5">
-            <div className="text-[10px] uppercase font-extrabold text-amber-700">Profit Est.</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Profit Est.</div>
             <div className="text-lg font-extrabold text-amber-900 tabular-nums">{formatPKRFull(stats.expectedProfit)}</div>
           </div>
         </div>
@@ -344,7 +344,7 @@ export function PurchaseRollsInput({
 function Field({ label, children }: { label: string; children: any }) {
   return (
     <div>
-      <label className="block text-[10px] font-extrabold text-slate-500 uppercase mb-0.5">{label}</label>
+      <label className="block text-[0.6875rem] font-extrabold text-slate-500 uppercase mb-0.5">{label}</label>
       {children}
     </div>
   );

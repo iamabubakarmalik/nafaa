@@ -73,7 +73,7 @@ export function MobileInventorySection({
             <Smartphone className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[10px] uppercase tracking-wider text-blue-700 font-bold">
+            <div className="text-[0.6875rem] uppercase tracking-wider text-blue-700 font-bold">
               Mobile Industry
             </div>
             <h3 className="font-extrabold text-blue-900 text-lg">IMEI-Based Inventory</h3>
@@ -99,7 +99,7 @@ export function MobileInventorySection({
             placeholder="50000"
             className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
           />
-          <div className="text-[10px] text-slate-500 mt-1">
+          <div className="text-[0.6875rem] text-slate-500 mt-1">
             Auto-applied when adding new IMEIs
           </div>
         </div>
@@ -115,7 +115,7 @@ export function MobileInventorySection({
             className="h-11 w-full rounded-xl border-2 border-slate-200 bg-slate-50 px-3 text-sm font-bold cursor-not-allowed"
             placeholder="12"
           />
-          <div className="text-[10px] text-slate-500 mt-1">
+          <div className="text-[0.6875rem] text-slate-500 mt-1">
             Set per-IMEI when adding stock
           </div>
         </div>
@@ -131,7 +131,7 @@ export function MobileInventorySection({
             placeholder="5"
             className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
           />
-          <div className="text-[10px] text-slate-500 mt-1">
+          <div className="text-[0.6875rem] text-slate-500 mt-1">
             Alert when stock falls below
           </div>
         </div>
@@ -163,14 +163,14 @@ export function MobileInventorySection({
                 title={PTA_STATUS_LABELS[status]}
               >
                 <Icon className={`h-4 w-4 ${active ? colors.text : 'text-slate-400'}`} />
-                <span className={`text-[9px] font-bold uppercase ${active ? colors.text : 'text-slate-500'}`}>
+                <span className={`text-[0.625rem] font-bold uppercase ${active ? colors.text : 'text-slate-500'}`}>
                   {PTA_STATUS_LABELS[status].split(' ')[0]}
                 </span>
               </button>
             );
           })}
         </div>
-        <div className="text-[10px] text-emerald-800 font-bold mt-2">
+        <div className="text-[0.6875rem] text-emerald-800 font-bold mt-2">
           💡 Pre-selected hota hai jab bulk IMEI add karein. Har IMEI per individually override kar saktay hain.
         </div>
       </div>
@@ -202,15 +202,15 @@ export function MobileInventorySection({
           {/* Stock Stats */}
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-3 text-center">
-              <div className="text-[10px] uppercase tracking-wider text-blue-700 font-bold">Total</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-blue-700 font-bold">Total</div>
               <div className="text-2xl font-extrabold text-blue-900">{stats.total}</div>
             </div>
             <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 p-3 text-center">
-              <div className="text-[10px] uppercase tracking-wider text-emerald-700 font-bold">In Stock</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-emerald-700 font-bold">In Stock</div>
               <div className="text-2xl font-extrabold text-emerald-900">{stats.inStock}</div>
             </div>
             <div className="rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 p-3 text-center">
-              <div className="text-[10px] uppercase tracking-wider text-violet-700 font-bold">Sold</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider text-violet-700 font-bold">Sold</div>
               <div className="text-2xl font-extrabold text-violet-900">{stats.sold}</div>
             </div>
           </div>
@@ -218,7 +218,7 @@ export function MobileInventorySection({
           {/* PTA Breakdown — only show if has IMEIs */}
           {stats.total > 0 && (
             <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-              <div className="text-[10px] uppercase tracking-wider text-slate-600 font-bold mb-2">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 font-bold mb-2">
                 PTA Status Breakdown
               </div>
               <div className="grid grid-cols-5 gap-1.5">
@@ -237,7 +237,7 @@ export function MobileInventorySection({
                       <div className={`text-base font-extrabold ${count > 0 ? colors.text : 'text-slate-400'}`}>
                         {count}
                       </div>
-                      <div className={`text-[8px] font-bold uppercase ${count > 0 ? colors.text : 'text-slate-400'}`}>
+                      <div className={`text-[0.625rem] font-bold uppercase ${count > 0 ? colors.text : 'text-slate-400'}`}>
                         {PTA_STATUS_LABELS[status].split(' ')[0]}
                       </div>
                     </div>
@@ -250,7 +250,7 @@ export function MobileInventorySection({
           {/* Variant-level IMEI quick selector */}
           {variants.length > 0 && (
             <div className="mt-4 pt-4 border-t border-slate-200">
-              <div className="text-[10px] uppercase tracking-wider text-slate-600 font-bold mb-2">
+              <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 font-bold mb-2">
                 Quick Add for Variant
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -270,7 +270,7 @@ export function MobileInventorySection({
                       )}
                       {v.name}
                       {count > 0 && (
-                        <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[9px] font-extrabold">
+                        <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">
                           {count}
                         </span>
                       )}

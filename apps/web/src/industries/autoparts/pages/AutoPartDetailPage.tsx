@@ -142,12 +142,12 @@ export default function AutoPartDetailPage() {
               </div>
             )}
             {profile?.isFastMoving && (
-              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-red-500 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-red-500 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <Zap className="h-3 w-3" /> FAST MOVING
               </div>
             )}
             {profile?.isCritical && (
-              <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-rose-600 text-white text-[10px] font-extrabold shadow-lg inline-flex items-center gap-1">
+              <div className="absolute top-12 right-3 px-2 py-1 rounded-lg bg-rose-600 text-white text-[0.6875rem] font-extrabold shadow-lg inline-flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" /> CRITICAL
               </div>
             )}
@@ -206,7 +206,7 @@ export default function AutoPartDetailPage() {
 
             <div className="mt-5 flex items-center gap-4 flex-wrap">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Sale Price</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Sale Price</div>
                 <div className="text-3xl font-extrabold tabular-nums leading-none mt-1">
                   {formatPKRFull(product.price)}
                   <span className="text-sm font-bold text-white/70 ml-1">/ {product.unit}</span>
@@ -214,7 +214,7 @@ export default function AutoPartDetailPage() {
               </div>
               {product.costPrice > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Cost</div>
                   <div className="text-xl font-extrabold tabular-nums text-white/80 leading-none mt-1">
                     {formatPKRFull(product.costPrice)}
                   </div>
@@ -222,7 +222,7 @@ export default function AutoPartDetailPage() {
               )}
               {product.wholesalePrice && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Wholesale</div>
                   <div className="text-xl font-extrabold tabular-nums text-amber-300 leading-none mt-1">
                     {formatPKRFull(product.wholesalePrice)}
                   </div>
@@ -248,20 +248,20 @@ export default function AutoPartDetailPage() {
           <div className="grid sm:grid-cols-2 gap-3">
             {profile?.partNumber && (
               <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-3">
-                <div className="text-[10px] uppercase font-extrabold text-blue-700">Part Number</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700">Part Number</div>
                 <div className="mt-1 text-lg font-mono font-extrabold text-blue-900">{profile.partNumber}</div>
               </div>
             )}
             {profile?.oemNumber && (
               <div className="rounded-xl bg-cyan-50 border-2 border-cyan-200 p-3">
-                <div className="text-[10px] uppercase font-extrabold text-cyan-700">OEM Number</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-cyan-700">OEM Number</div>
                 <div className="mt-1 text-lg font-mono font-extrabold text-cyan-900">{profile.oemNumber}</div>
               </div>
             )}
           </div>
           {profile?.alternateNumbers && profile.alternateNumbers.length > 0 && (
             <div className="mt-3">
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 mb-2">Cross-Reference Numbers</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2">Cross-Reference Numbers</div>
               <div className="flex flex-wrap gap-1.5">
                 {profile.alternateNumbers.map((num) => (
                   <span key={num} className="px-2 py-1 rounded-lg bg-slate-100 text-slate-800 text-xs font-mono font-bold">
@@ -312,14 +312,14 @@ export default function AutoPartDetailPage() {
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <div className="rounded-xl bg-white border-2 border-emerald-200 p-3">
-              <div className="text-[10px] uppercase font-extrabold text-emerald-700">Duration</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Duration</div>
               <div className="mt-1 text-2xl font-extrabold text-emerald-900">
                 {profile.warrantyMonths} <span className="text-sm">months</span>
               </div>
             </div>
             {profile.warrantyKm && (
               <div className="rounded-xl bg-white border-2 border-emerald-200 p-3">
-                <div className="text-[10px] uppercase font-extrabold text-emerald-700">Mileage Limit</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-700">Mileage Limit</div>
                 <div className="mt-1 text-2xl font-extrabold text-emerald-900 tabular-nums">
                   {profile.warrantyKm.toLocaleString()} km
                 </div>
@@ -370,7 +370,7 @@ export default function AutoPartDetailPage() {
                         {f.makeName} {f.modelName}
                       </div>
                       {(f.yearFrom || f.yearTo) && (
-                        <div className="text-[10px] font-bold text-slate-500 inline-flex items-center gap-0.5">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 inline-flex items-center gap-0.5">
                           <Calendar className="h-2.5 w-2.5" />
                           {f.yearFrom || '?'} – {f.yearTo || 'Present'}
                         </div>
@@ -380,14 +380,14 @@ export default function AutoPartDetailPage() {
                   {f.engineOptions && f.engineOptions.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {f.engineOptions.map((e: string, i: number) => (
-                        <span key={i} className="px-1.5 py-0.5 rounded bg-fuchsia-100 text-fuchsia-800 text-[9px] font-extrabold">
+                        <span key={i} className="px-1.5 py-0.5 rounded bg-fuchsia-100 text-fuchsia-800 text-[0.625rem] font-extrabold">
                           {e}
                         </span>
                       ))}
                     </div>
                   )}
                   {f.notes && (
-                    <div className="mt-1 text-[10px] italic text-slate-600 font-semibold">{f.notes}</div>
+                    <div className="mt-1 text-[0.6875rem] italic text-slate-600 font-semibold">{f.notes}</div>
                   )}
                 </div>
               ))}
@@ -411,7 +411,7 @@ export default function AutoPartDetailPage() {
           <div className="grid sm:grid-cols-3 gap-3">
             {profile.installationMinutes && (
               <div className="rounded-xl bg-orange-50 border-2 border-orange-200 p-3">
-                <div className="text-[10px] uppercase font-extrabold text-orange-700 flex items-center gap-1">
+                <div className="text-[0.6875rem] uppercase font-extrabold text-orange-700 flex items-center gap-1">
                   <Clock className="h-2.5 w-2.5" /> Estimated Time
                 </div>
                 <div className="mt-1 text-xl font-extrabold text-orange-900">{profile.installationMinutes} min</div>
@@ -419,13 +419,13 @@ export default function AutoPartDetailPage() {
             )}
             {profile.installationDifficulty && (
               <div className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3">
-                <div className="text-[10px] uppercase font-extrabold text-amber-700">Difficulty</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Difficulty</div>
                 <div className="mt-1 text-xl font-extrabold text-amber-900">{profile.installationDifficulty}</div>
               </div>
             )}
             {profile.requiresSpecialTool && (
               <div className="rounded-xl bg-rose-50 border-2 border-rose-200 p-3">
-                <div className="text-[10px] uppercase font-extrabold text-rose-700">⚠️ Special Tool</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700">⚠️ Special Tool</div>
                 <div className="mt-1 text-sm font-extrabold text-rose-900">Required</div>
               </div>
             )}
@@ -441,7 +441,7 @@ export default function AutoPartDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Parts Catalog</div>
-            <div className="text-[10px] text-slate-500 font-semibold">All auto parts</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">All auto parts</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -451,7 +451,7 @@ export default function AutoPartDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Use in Job</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Add to workshop job</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Add to workshop job</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -461,7 +461,7 @@ export default function AutoPartDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Vehicles</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Customer vehicles</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Customer vehicles</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -471,7 +471,7 @@ export default function AutoPartDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 text-sm">Go to POS</div>
-            <div className="text-[10px] text-slate-500 font-semibold">Sell this part</div>
+            <div className="text-[0.6875rem] text-slate-500 font-semibold">Sell this part</div>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-400" />
         </Link>
@@ -512,7 +512,7 @@ export default function AutoPartDetailPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <div className="font-mono font-extrabold text-sm text-slate-900">{s.saleNumber}</div>
-                        <span className="text-[10px] text-slate-500 font-bold">
+                        <span className="text-[0.6875rem] text-slate-500 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       </div>
@@ -545,10 +545,10 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
     <div className={`rounded-xl bg-gradient-to-br ${tones[tone]} backdrop-blur border p-3`}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className="h-3 w-3 opacity-80" />
-        <div className="text-[9px] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
+        <div className="text-[0.625rem] uppercase tracking-wider font-extrabold opacity-90">{label}</div>
       </div>
       <div className="text-xl font-extrabold text-white tabular-nums leading-none">{value}</div>
-      {sub && <div className="text-[10px] font-bold text-white/70 mt-0.5">{sub}</div>}
+      {sub && <div className="text-[0.6875rem] font-bold text-white/70 mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -556,7 +556,7 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
 function SpecCell({ label, value, icon: Icon }: any) {
   return (
     <div className="rounded-xl bg-slate-50 border-2 border-slate-200 p-3">
-      <div className="text-[10px] uppercase font-extrabold text-slate-600 flex items-center gap-1">
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 flex items-center gap-1">
         {Icon && <Icon className="h-2.5 w-2.5" />}
         {label}
       </div>

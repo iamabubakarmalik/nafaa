@@ -268,7 +268,7 @@ export function GamingWizardStep1Basic({ basic, onChange, errors }: Props) {
                   a ? 'border-fuchsia-600 bg-fuchsia-600 text-white shadow-md scale-[1.02]'
                     : 'border-slate-200 bg-white text-slate-700 hover:border-fuchsia-400'].join(' ')}>
                 <span className="text-xl">{p.e}</span>
-                <span className="text-[10px] font-extrabold">{p.l}</span>
+                <span className="text-[0.6875rem] font-extrabold">{p.l}</span>
               </button>
             );
           })}
@@ -293,7 +293,7 @@ export function GamingWizardStep1Basic({ basic, onChange, errors }: Props) {
                 className={['p-3 rounded-xl border-2 transition flex flex-col items-center gap-1',
                   a ? `${tones[c.tone]} shadow-md scale-[1.02]` : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400'].join(' ')}>
                 <span className="text-2xl">{c.e}</span>
-                <span className="text-[10px] font-extrabold text-center">{c.l}</span>
+                <span className="text-[0.6875rem] font-extrabold text-center">{c.l}</span>
               </button>
             );
           })}
@@ -321,7 +321,7 @@ export function GamingWizardStep1Basic({ basic, onChange, errors }: Props) {
 
         {cost > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Quick markup
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -342,7 +342,7 @@ export function GamingWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div className="flex items-center gap-2.5">
                 <TrendingUp className={['h-6 w-6', loss ? 'text-rose-700' : margin >= 15 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
                 <div>
-                  <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                  <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                     loss ? 'text-rose-700' : margin >= 15 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                     {loss ? 'Loss warning' : 'Profit per unit'}
                   </div>
@@ -415,7 +415,7 @@ export function GamingWizardStep1Basic({ basic, onChange, errors }: Props) {
             {basic.imageUrls.map((url, i) => (
               <div key={url + i} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt="" className="w-full h-full object-cover" />
-                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-violet-600 text-white text-[9px] font-extrabold">COVER</div>}
+                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-violet-600 text-white text-[0.625rem] font-extrabold">COVER</div>}
                 <button type="button" onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, x) => x !== i) })}
                   className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-extrabold">×</button>
               </div>
@@ -487,7 +487,7 @@ function Tog({ checked, onChange, icon: Icon, label }: any) {
       className={['flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition',
         checked ? 'border-violet-500 bg-violet-50 text-violet-800' : 'border-slate-200 bg-white text-slate-600 hover:border-violet-300'].join(' ')}>
       <Icon className={['h-5 w-5', checked ? 'text-violet-600 fill-violet-100' : 'text-slate-500'].join(' ')} />
-      <span className="text-[11px] font-extrabold">{label}</span>
+      <span className="text-[0.6875rem] font-extrabold">{label}</span>
     </button>
   );
 }

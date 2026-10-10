@@ -161,12 +161,12 @@ export function ConnectIntegrationModal({
                     <div className="font-extrabold text-sm text-slate-900 dark:text-white">
                       {avail.name}
                     </div>
-                    <div className="text-[10px] text-slate-500 mt-1 line-clamp-2">
+                    <div className="text-[0.6875rem] text-slate-500 mt-1 line-clamp-2">
                       {avail.description}
                     </div>
                     {avail.popular && (
                       <div className="mt-2">
-                        <span className="inline-flex items-center gap-1 text-[9px] font-extrabold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1 text-[0.625rem] font-extrabold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
                           <Sparkles className="h-2.5 w-2.5" /> Popular
                         </span>
                       </div>
@@ -247,7 +247,7 @@ export function ConnectIntegrationModal({
                   <li><strong>Webhook URL</strong> — jahan orders bhejne hain</li>
                   <li><strong>Product API</strong> — GET se products fetch karein</li>
                 </ul>
-                <div className="mt-2 p-2 rounded-lg bg-white dark:bg-neutral-900 font-mono text-[10px] text-slate-700 dark:text-slate-300">
+                <div className="mt-2 p-2 rounded-lg bg-white dark:bg-neutral-900 font-mono text-[0.6875rem] text-slate-700 dark:text-slate-300">
                   fetch('https://api.nafaa.pk/api/integrations/webhooks/custom-website/YOUR_API_KEY', {'{'}<br/>
                   &nbsp;&nbsp;method: 'POST',<br/>
                   &nbsp;&nbsp;headers: {'{'} 'Content-Type': 'application/json' {'}'},<br/>

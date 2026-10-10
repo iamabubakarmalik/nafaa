@@ -190,24 +190,24 @@ function GroomerCard({ groomer: g, onView, onEdit, onDelete }: any) {
           )}
           <div className="flex-1 min-w-0">
             <div className="font-extrabold text-slate-900 truncate">{g.name}</div>
-            <div className="text-[10px] font-mono text-slate-500">{g.employeeCode}</div>
+            <div className="text-[0.6875rem] font-mono text-slate-500">{g.employeeCode}</div>
             <div className="flex items-center gap-1 text-xs font-bold text-slate-600 mt-0.5">
               <Phone className="h-3 w-3" /> {g.phone}
             </div>
             <div className="flex items-center gap-1 flex-wrap mt-1.5">
               {g.isActive && worksToday && (
-                <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-extrabold uppercase">Today</span>
+                <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase">Today</span>
               )}
               {!g.isActive && (
-                <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-extrabold uppercase">Inactive</span>
+                <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">Inactive</span>
               )}
               {g.avgRating && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-extrabold">
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">
                   <Star className="h-2.5 w-2.5 fill-current" /> {g.avgRating.toFixed(1)}
                 </span>
               )}
               {g.experienceYears && (
-                <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-extrabold uppercase">
+                <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold uppercase">
                   {g.experienceYears}y exp
                 </span>
               )}
@@ -217,10 +217,10 @@ function GroomerCard({ groomer: g, onView, onEdit, onDelete }: any) {
 
         {g.specializations?.length > 0 && (
           <div className="mt-3">
-            <div className="text-[9px] uppercase font-extrabold text-slate-500 mb-1">Specializes in</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 mb-1">Specializes in</div>
             <div className="flex flex-wrap gap-1">
               {g.specializations.map((s: string) => (
-                <span key={s} className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] font-extrabold">{s}</span>
+                <span key={s} className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[0.6875rem] font-extrabold">{s}</span>
               ))}
             </div>
           </div>
@@ -228,16 +228,16 @@ function GroomerCard({ groomer: g, onView, onEdit, onDelete }: any) {
 
         <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-2 gap-2">
           <div>
-            <div className="text-[9px] uppercase font-extrabold text-slate-500">Appointments</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Appointments</div>
             <div className="text-lg font-extrabold text-slate-900 tabular-nums">{g.completedAppointments}</div>
           </div>
           <div>
-            <div className="text-[9px] uppercase font-extrabold text-slate-500">Revenue</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Revenue</div>
             <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(g.totalRevenue || 0)}</div>
           </div>
         </div>
 
-        <div className="mt-2 flex items-center gap-2 text-[10px] font-bold text-slate-500">
+        <div className="mt-2 flex items-center gap-2 text-[0.6875rem] font-bold text-slate-500">
           <Clock className="h-3 w-3" />
           {g.workStartTime} — {g.workEndTime}
           <span>•</span>
@@ -522,7 +522,7 @@ function GroomerDetailModal({ groomerId, onClose }: { groomerId: string; onClose
               </div>
             )}
             <div>
-              <div className="text-[10px] uppercase font-extrabold text-white/70">{groomer.employeeCode}</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">{groomer.employeeCode}</div>
               <h3 className="font-extrabold text-2xl">{groomer.name}</h3>
               <div className="flex items-center gap-2 text-sm font-bold text-white/85 mt-0.5">
                 <Phone className="h-3.5 w-3.5" /> {groomer.phone}
@@ -559,13 +559,13 @@ function GroomerDetailModal({ groomerId, onClose }: { groomerId: string; onClose
                       <div className="font-extrabold text-sm text-slate-900">
                         {a.petName} <span className="text-slate-500 font-bold">({a.petSpecies})</span>
                       </div>
-                      <div className="text-[10px] font-bold text-slate-500">
+                      <div className="text-[0.6875rem] font-bold text-slate-500">
                         {a.customerName} • {a.scheduledSlot}
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="font-extrabold text-emerald-700 tabular-nums text-sm">{formatPKR(a.totalFee)}</div>
-                      <div className="text-[9px] font-bold text-slate-500 uppercase">{a.status}</div>
+                      <div className="text-[0.625rem] font-bold text-slate-500 uppercase">{a.status}</div>
                     </div>
                   </div>
                 ))}
@@ -608,7 +608,7 @@ function GroomerDetailModal({ groomerId, onClose }: { groomerId: string; onClose
                 {WEEKDAYS.map((d) => {
                   const active = groomer.workingDays?.includes(d.v);
                   return (
-                    <div key={d.v} className={`flex-1 h-8 rounded-lg text-[10px] font-extrabold flex items-center justify-center ${
+                    <div key={d.v} className={`flex-1 h-8 rounded-lg text-[0.6875rem] font-extrabold flex items-center justify-center ${
                       active ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
                       {d.l}
                     </div>
@@ -629,7 +629,7 @@ function GroomerDetailModal({ groomerId, onClose }: { groomerId: string; onClose
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-sm text-slate-900 truncate">{a.petName} — {a.serviceType?.replace(/_/g, ' ')}</div>
-                      <div className="text-[10px] font-bold text-slate-500">
+                      <div className="text-[0.6875rem] font-bold text-slate-500">
                         {a.completedAt && new Date(a.completedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}
                         {a.customerRating && (
                           <span className="ml-1 inline-flex items-center gap-0.5 text-amber-500">
@@ -663,7 +663,7 @@ function StatCard({ label, value, icon: Icon, tone }: any) {
     <div className="rounded-2xl bg-white border-2 border-slate-200 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div>
-          <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
           <div className="text-xl font-extrabold text-slate-900 tabular-nums mt-1 truncate">{value}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md shrink-0`}>
@@ -677,7 +677,7 @@ function StatCard({ label, value, icon: Icon, tone }: any) {
 function TileStat({ label, value }: any) {
   return (
     <div className="rounded-xl bg-white/15 backdrop-blur border border-white/20 p-3">
-      <div className="text-[10px] uppercase font-extrabold text-white/70">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">{label}</div>
       <div className="text-lg font-extrabold text-white tabular-nums mt-0.5 truncate">{value}</div>
     </div>
   );

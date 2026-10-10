@@ -105,7 +105,7 @@ export function PosQuickCash({
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl" />
           <div className="relative flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-[11px] uppercase font-extrabold text-emerald-200 tracking-wider">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-200 tracking-wider">
                 Payment • {itemCount} items
               </div>
               <div className="text-4xl sm:text-5xl font-extrabold tabular-nums leading-none mt-1">
@@ -150,7 +150,7 @@ export function PosQuickCash({
                 <div className={`text-sm font-extrabold mt-1 ${mode === 'full' ? 'text-emerald-800' : 'text-slate-700'}`}>
                   Pura Paisa
                 </div>
-                <div className="text-[10px] font-bold text-slate-500 mt-0.5">100% payment</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">100% payment</div>
               </button>
 
               <button
@@ -166,7 +166,7 @@ export function PosQuickCash({
                 <div className={`text-sm font-extrabold mt-1 ${mode === 'partial' ? 'text-amber-800' : 'text-slate-700'}`}>
                   Kuch Cash
                 </div>
-                <div className="text-[10px] font-bold text-slate-500 mt-0.5">Baqi udhaar</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Baqi udhaar</div>
               </button>
 
               <button
@@ -183,7 +183,7 @@ export function PosQuickCash({
                 <div className={`text-sm font-extrabold mt-1 ${mode === 'credit' ? 'text-rose-800' : 'text-slate-700'}`}>
                   Pura Udhaar
                 </div>
-                <div className="text-[10px] font-bold text-slate-500 mt-0.5">
+                <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">
                   {hasCustomer ? 'Khaate mein' : 'Customer chunein'}
                 </div>
               </button>
@@ -193,7 +193,7 @@ export function PosQuickCash({
           {/* ═══ PAYMENT METHOD (only if not full credit) ═══ */}
           {mode !== 'credit' && (
             <div className="px-4 sm:px-5 pt-4">
-              <div className="text-[10px] uppercase font-extrabold text-slate-600 tracking-wider mb-2">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 tracking-wider mb-2">
                 Payment Method
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
@@ -212,7 +212,7 @@ export function PosQuickCash({
                       ].join(' ')}
                     >
                       <Icon className="h-5 w-5" />
-                      <span className="text-[11px] font-extrabold">{m.label}</span>
+                      <span className="text-[0.6875rem] font-extrabold">{m.label}</span>
                     </button>
                   );
                 })}
@@ -225,13 +225,13 @@ export function PosQuickCash({
             <div className="px-4 sm:px-5 pt-4 space-y-3">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-[10px] uppercase font-extrabold text-slate-600 tracking-wider">
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 tracking-wider">
                     Kitna paisa diya?
                   </div>
                   <button
                     onClick={() => setShowCalculator(!showCalculator)}
                     className={[
-                      'h-7 px-2 rounded-lg text-[10px] font-extrabold inline-flex items-center gap-1',
+                      'h-7 px-2 rounded-lg text-[0.6875rem] font-extrabold inline-flex items-center gap-1',
                       showCalculator ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
                     ].join(' ')}
                   >
@@ -262,7 +262,7 @@ export function PosQuickCash({
 
               {/* Quick amount buttons */}
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-slate-600 tracking-wider mb-1.5">
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 tracking-wider mb-1.5">
                   Fatafat add karo
                 </div>
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
@@ -336,7 +336,7 @@ export function PosQuickCash({
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-5 w-5" />
                     <div>
-                      <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">Customer ko wapis</div>
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Customer ko wapis</div>
                       <div className="text-2xl font-extrabold tabular-nums leading-none">{formatPKR(change)}</div>
                     </div>
                   </div>
@@ -351,7 +351,7 @@ export function PosQuickCash({
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-5 w-5" />
                     <div>
-                      <div className="text-[10px] uppercase font-extrabold text-white/80 tracking-wider">
+                      <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">
                         {hasCustomer ? 'Khaate mein udhaar' : '⚠️ Customer chahiye'}
                       </div>
                       <div className="text-2xl font-extrabold tabular-nums leading-none">{formatPKR(creditAmount)}</div>
@@ -385,7 +385,7 @@ export function PosQuickCash({
             ].join(' ')}
           >
             <div className="text-left">
-              <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
+              <div className="text-[0.6875rem] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
                 {loading ? 'Save ho raha...' : isCredit ? '📔 Khaate mein daalo' : '💰 Sale complete karo'}
               </div>
               <div className="text-xl sm:text-2xl tabular-nums leading-none mt-0.5">
@@ -398,7 +398,7 @@ export function PosQuickCash({
               <ArrowRight className="h-6 w-6 sm:h-8 sm:w-8" />
             </div>
           </button>
-          <div className="mt-2 text-center text-[10px] font-bold text-slate-400">
+          <div className="mt-2 text-center text-[0.6875rem] font-bold text-slate-400">
             Enter = confirm • Esc = cancel • F1/F3/F4/F5 = payment • F6 = udhaar
           </div>
         </div>

@@ -51,7 +51,7 @@ export function ApplianceCartPanel(props: Props) {
       <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[10px] sm:text-[11px] uppercase font-extrabold text-white/70 tracking-wider">
+            <div className="text-[0.6875rem] sm:text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
               Cart • {props.itemCount} lines • {props.totalQty} qty
               {props.installsBooked > 0 && ` • ${props.installsBooked} install`}
             </div>
@@ -133,10 +133,10 @@ export function ApplianceCartPanel(props: Props) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-extrabold text-sm sm:text-base text-slate-900 leading-tight line-clamp-2">{l.name}</div>
-                  {l.capacity && <div className="text-[10px] font-mono font-bold text-cyan-700">{l.capacity}</div>}
+                  {l.capacity && <div className="text-[0.6875rem] font-mono font-bold text-cyan-700">{l.capacity}</div>}
                   <div className="text-xs sm:text-sm font-bold text-cyan-700 mt-0.5">{formatPKR(l.unitPrice)}</div>
                   {l.warrantyMonths && (
-                    <div className="text-[10px] font-extrabold text-cyan-700 mt-1 inline-flex items-center gap-0.5">
+                    <div className="text-[0.6875rem] font-extrabold text-cyan-700 mt-1 inline-flex items-center gap-0.5">
                       <Shield className="h-2.5 w-2.5" /> {l.warrantyMonths}m warranty
                     </div>
                   )}
@@ -158,12 +158,12 @@ export function ApplianceCartPanel(props: Props) {
                       {l.bookInstallation ? '✓ Installation Booked' : 'Book Installation'}
                     </div>
                     {l.bookInstallation && l.installationScheduledDate && (
-                      <div className="text-[10px] text-amber-700 font-bold">
+                      <div className="text-[0.6875rem] text-amber-700 font-bold">
                         {new Date(l.installationScheduledDate).toLocaleDateString('en-PK')} • {l.installationTimeSlot}
                       </div>
                     )}
                     {!l.bookInstallation && (
-                      <div className="text-[10px] text-slate-500 font-bold">
+                      <div className="text-[0.6875rem] text-slate-500 font-bold">
                         {l.installationCovered ? 'Free with product' : `Charge: ${formatPKR(l.installationCharge)}`}
                       </div>
                     )}
@@ -243,7 +243,7 @@ export function ApplianceCartPanel(props: Props) {
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'flex items-center justify-between px-5 sm:px-6'].join(' ')}>
             <div className="text-left">
-              <div className="text-[10px] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
+              <div className="text-[0.6875rem] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
                 Checkout <span className="hidden sm:inline">(F9)</span>
               </div>
               <div className="text-2xl sm:text-3xl tabular-nums leading-none mt-0.5">{formatPKR(props.total)}</div>

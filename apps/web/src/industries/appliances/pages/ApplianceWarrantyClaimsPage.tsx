@@ -390,7 +390,7 @@ export default function ApplianceWarrantyClaimsPage() {
                   <tbody>
                     {(summary?.byBrand ?? []).map((b) => (
                       <tr key={b.brand} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                        <td className="px-3 py-2.5 text-[13px] font-extrabold text-slate-900 dark:text-white">{b.brand}</td>
+                        <td className="px-3 py-2.5 text-[0.8125rem] font-extrabold text-slate-900 dark:text-white">{b.brand}</td>
                         <td className="px-3 py-2.5 text-center text-xs font-bold tabular-nums text-slate-600 dark:text-slate-300">{b.claims}</td>
                         <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums text-slate-700 dark:text-slate-200 whitespace-nowrap">{formatPKR(b.claimed)}</td>
                         <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{formatPKR(b.received)}</td>
@@ -398,7 +398,7 @@ export default function ApplianceWarrantyClaimsPage() {
                           {formatPKR(Math.max(b.claimed - b.received, 0))}
                         </td>
                         <td className="px-3 py-2.5 pr-4 text-center">
-                          <span className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold ${
+                          <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
                             b.recoveryRate >= 80 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                               : b.recoveryRate >= 40 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
                               : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
@@ -425,7 +425,7 @@ function TabBtn({ active, onClick, icon: Icon, label, badge, alert }: any) {
       }`}>
       <Icon className="h-4 w-4" /> {label}
       {badge ? (
-        <span className={`px-1.5 rounded-full text-[9px] tabular-nums ${
+        <span className={`px-1.5 rounded-full text-[0.625rem] tabular-nums ${
           active ? 'bg-white/25' : alert ? 'bg-rose-500 text-white' : 'bg-slate-200 dark:bg-slate-700'
         }`}>{badge}</span>
       ) : null}
@@ -435,7 +435,7 @@ function TabBtn({ active, onClick, icon: Icon, label, badge, alert }: any) {
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -458,26 +458,26 @@ function ClaimCard({ c, onOpen }: { c: WarrantyClaim; onOpen: () => void }) {
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-mono text-xs font-extrabold text-cyan-700 dark:text-cyan-400">{c.claimNumber}</span>
             <StatusBadge meta={st} size="xs" />
-            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
               {wk.emoji} {wk.label}
             </span>
             {stale && (
-              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white">
+              <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-rose-600 text-white">
                 {c.ageDays} DIN SE LATKA
               </span>
             )}
           </div>
-          <div className="mt-1 text-[13px] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+          <div className="mt-1 text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
             {c.productName}
           </div>
-          <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
             {c.brandName ? `${c.brandName} • ` : ''}{c.customerName}
             {c.serialNumber ? ` • 🔖 ${c.serialNumber}` : ''}
             {c.serviceRequestNumber ? ` • ${c.serviceRequestNumber}` : ''}
           </div>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">Claim</div>
+          <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">Claim</div>
           <div className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-white">{formatPKR(c.claimedAmount)}</div>
         </div>
       </div>
@@ -492,7 +492,7 @@ function ClaimCard({ c, onOpen }: { c: WarrantyClaim; onOpen: () => void }) {
         />
       </div>
 
-      <div className="mt-2 flex items-center gap-2 flex-wrap text-[10px] font-bold text-slate-400 dark:text-slate-500">
+      <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
         <span className="inline-flex items-center gap-1"><CalendarDays className="h-3 w-3" />{fmtDate(c.claimDate)}</span>
         {c.brandRef && <span className="inline-flex items-center gap-1"><Building2 className="h-3 w-3" />{c.brandRef}</span>}
         {c.approvedAmount > 0 && c.approvedAmount < c.claimedAmount && (
@@ -514,8 +514,8 @@ function Cell({ label, value, tone = 'slate' }: { label: string; value: string; 
   };
   return (
     <div className={`rounded-lg border px-2 py-1.5 ${tones[tone]}`}>
-      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
-      <div className="text-[11px] font-extrabold tabular-nums truncate">{value}</div>
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold tabular-nums truncate">{value}</div>
     </div>
   );
 }
@@ -527,26 +527,26 @@ function MissingCard({ r, pending, onMake }: { r: MissingClaim; pending: boolean
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-mono text-[11px] font-extrabold text-amber-700 dark:text-amber-400">{r.requestNumber}</span>
+            <span className="font-mono text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-400">{r.requestNumber}</span>
             {r.serialNumber && (
-              <span className="font-mono text-[9px] font-bold text-slate-400">🔖 {r.serialNumber}</span>
+              <span className="font-mono text-[0.625rem] font-bold text-slate-400">🔖 {r.serialNumber}</span>
             )}
             {r.ageDays > 60 && (
-              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white">
+              <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-rose-600 text-white">
                 {r.ageDays} DIN PURANA
               </span>
             )}
           </div>
-          <div className="mt-1 text-[13px] font-extrabold text-slate-900 dark:text-white truncate">{r.productName}</div>
-          <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+          <div className="mt-1 text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate">{r.productName}</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
             {r.customerName} • {r.issueCategory || r.reportedIssue}
             {r.technicianName ? ` • ${r.technicianName}` : ''}
           </div>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-[9px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Wapas mil sakta</div>
+          <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Wapas mil sakta</div>
           <div className="text-xl font-extrabold tabular-nums text-emerald-700 dark:text-emerald-300">{formatPKR(r.recoverable)}</div>
-          <div className="text-[9px] font-bold text-slate-400">
+          <div className="text-[0.625rem] font-bold text-slate-400">
             parts {formatPKR(r.partsCharge)} + labor {formatPKR(r.laborCharge + r.visitCharge)}
           </div>
         </div>
@@ -842,7 +842,7 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
                   <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">{t.label}</div>
-                  <div className="text-[10px] font-bold text-slate-400 shrink-0">{fmtDate(t.at)}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-400 shrink-0">{fmtDate(t.at)}</div>
                 </div>
               ))}
             </div>
@@ -855,13 +855,13 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
                 {c.brandHistory.map((h) => (
                   <div key={h.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
                     <div className="min-w-0 flex-1">
-                      <div className="text-[11px] font-extrabold text-slate-800 dark:text-slate-100 truncate">
+                      <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-slate-100 truncate">
                         {h.claimNumber} — {h.productName}
                       </div>
-                      <div className="text-[10px] font-bold text-slate-400">{fmtDate(h.claimDate)}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-400">{fmtDate(h.claimDate)}</div>
                     </div>
                     <StatusBadge meta={claimStatusMeta(h.status)} size="xs" />
-                    <div className="text-[11px] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0 w-20 text-right">
+                    <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0 w-20 text-right">
                       {formatPKR(h.receivedAmount)}<span className="text-slate-400">/{formatPKR(h.claimedAmount)}</span>
                     </div>
                   </div>
@@ -872,7 +872,7 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
 
           {c.notes && (
             <Panel icon={Pencil} title="Notes" tone="slate">
-              <pre className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 whitespace-pre-wrap font-sans">{c.notes}</pre>
+              <pre className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 whitespace-pre-wrap font-sans">{c.notes}</pre>
             </Panel>
           )}
         </div>
@@ -884,7 +884,7 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</div>
       <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 whitespace-pre-wrap break-words">{value}</div>
     </div>
   );
@@ -900,7 +900,7 @@ function Box({ label, value, tone = 'slate' }: { label: string; value: string; t
   };
   return (
     <div className={`rounded-xl border px-2.5 py-2 ${tones[tone]}`}>
-      <div className="text-[9px] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider opacity-75">{label}</div>
       <div className="text-sm font-extrabold tabular-nums truncate">{value}</div>
     </div>
   );
@@ -1011,7 +1011,7 @@ function ResponseForm({ claim, pending, onCancel, onSubmit }: any) {
             ] as const).map(([v, label]) => (
               <button key={v} type="button"
                 onClick={() => { setStatus(v); if (v === 'APPROVED') setApproved(String(claim.claimedAmount)); if (v === 'REJECTED') setApproved('0'); }}
-                className={`h-11 rounded-xl text-[11px] font-extrabold border-2 transition ${
+                className={`h-11 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
                   status === v ? 'bg-cyan-600 border-cyan-600 text-white shadow'
                     : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
                 }`}>{label}</button>
@@ -1026,7 +1026,7 @@ function ResponseForm({ claim, pending, onCancel, onSubmit }: any) {
               className={inputCls('h-12 text-base font-extrabold tabular-nums', tooMuch)}
               value={approved} onChange={(e) => setApproved(e.target.value)} />
             {!tooMuch && n < claim.claimedAmount && (
-              <div className="mt-1 text-[11px] font-extrabold text-amber-600 dark:text-amber-400">
+              <div className="mt-1 text-[0.6875rem] font-extrabold text-amber-600 dark:text-amber-400">
                 ➗ Brand {formatPKR(claim.claimedAmount - n)} kaat raha hai
               </div>
             )}
@@ -1090,7 +1090,7 @@ function SettleForm({ claim, pending, onCancel, onSubmit }: any) {
             value={amount} onChange={(e) => setAmount(e.target.value)} />
         </Field>
         {claim.approvedAmount > 0 && (
-          <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
             Brand ne {formatPKR(claim.approvedAmount)} manzoor kiya tha
           </div>
         )}
@@ -1158,7 +1158,7 @@ function ClaimTeacher({ onClose }: { onClose: () => void }) {
           tone: 'amber',
           tips: [
             <><strong>30 din se latke</strong> claims ka KPI upar hai — inhe dekh kar brand ko phone karein</>,
-            <>Card par <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[9px] font-black">DIN SE LATKA</span> ka laal tag lagta hai</>,
+            <>Card par <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-black">DIN SE LATKA</span> ka laal tag lagta hai</>,
             <><strong>Ausat kitne din</strong> lagte hain — is se andaza hota hai ke brand kitna sust hai</>,
           ],
         },

@@ -243,7 +243,7 @@ export default function SuppliersListPage() {
         <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-emerald-400/20 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[11px] font-black border border-white/30">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[0.6875rem] font-black border border-white/30">
               <Truck className="h-3.5 w-3.5" /> Jin se maal aata hai
             </div>
             <h1 className="text-2xl sm:text-3xl font-black mt-2">🚚 Suppliers</h1>
@@ -323,7 +323,7 @@ export default function SuppliersListPage() {
             }`}>
             <t.icon className="h-4 w-4" /> {t.label}
             {t.n !== undefined && (
-              <span className={`px-1.5 rounded-full text-[10px] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
             )}
           </button>
         ))}
@@ -354,7 +354,7 @@ export default function SuppliersListPage() {
                 }`}>
                 <Filter className="h-4 w-4" /> Chaant
                 {(dues !== 'all' || status !== 'all' || !!city) && (
-                  <span className="h-5 w-5 rounded-full bg-teal-600 text-white text-[10px] flex items-center justify-center">
+                  <span className="h-5 w-5 rounded-full bg-teal-600 text-white text-[0.6875rem] flex items-center justify-center">
                     {[dues !== 'all', status !== 'all', !!city].filter(Boolean).length}
                   </span>
                 )}
@@ -382,36 +382,36 @@ export default function SuppliersListPage() {
             {showFilters && (
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
                 <div>
-                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Khata</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Khata</div>
                   <div className="flex gap-1.5">
                     {([['all', 'Sab'], ['due', 'Baqi hai'], ['clear', 'Saaf']] as const).map(([v, l]) => (
                       <button key={v} onClick={() => setDues(v as DueFilter)}
-                        className={`flex-1 h-10 rounded-xl text-[11px] font-extrabold border-2 transition ${
+                        className={`flex-1 h-10 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
                           dues === v ? 'bg-teal-600 border-teal-600 text-white' : 'bg-[#ffffff] dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                         }`}>{l}</button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Halat</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Halat</div>
                   <div className="flex gap-1.5">
                     {([['all', 'Sab'], ['active', 'Chalu'], ['inactive', 'Band']] as const).map(([v, l]) => (
                       <button key={v} onClick={() => setStatus(v as StatusFilter)}
-                        className={`flex-1 h-10 rounded-xl text-[11px] font-extrabold border-2 transition ${
+                        className={`flex-1 h-10 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
                           status === v ? 'bg-teal-600 border-teal-600 text-white' : 'bg-[#ffffff] dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
                         }`}>{l}</button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Sheher</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Sheher</div>
                   <select value={city} onChange={(e) => setCity(e.target.value)} className={`${inputCls} h-10`}>
                     <option value="">Sab sheher</option>
                     {cities.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
-                  <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Tarteeb</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Tarteeb</div>
                   <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={`${inputCls} h-10`}>
                     {SORTS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
                   </select>
@@ -494,7 +494,7 @@ export default function SuppliersListPage() {
             </div>
           ) : (
             <div className="rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 overflow-hidden">
-              <div className="hidden lg:grid grid-cols-[40px_1fr_150px_120px_130px_130px_220px] gap-2 px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-800 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <div className="hidden lg:grid grid-cols-[40px_1fr_150px_120px_130px_130px_220px] gap-2 px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-800 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 <button onClick={selectAll} className="flex items-center justify-center">
                   <span className={`h-4 w-4 rounded border-2 flex items-center justify-center ${
                     allSelected ? 'bg-teal-600 border-teal-600' : 'border-slate-300 dark:border-slate-600'
@@ -608,7 +608,7 @@ function SupplierRow({ s, hideCost, selected, onToggle, onKhata, onDelete, onTog
             <Link to={`/suppliers/${s.id}`} className="font-black text-slate-900 dark:text-white hover:text-teal-600 truncate block">
               {s.name}
             </Link>
-            <div className="flex items-center gap-2 flex-wrap text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
               {s.contactPerson && <span>👤 {s.contactPerson}</span>}
               {s.city && <span className="inline-flex items-center gap-0.5"><MapPin className="h-3 w-3" />{s.city}</span>}
               {!s.isActive && <span className="px-1.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Band</span>}
@@ -622,16 +622,16 @@ function SupplierRow({ s, hideCost, selected, onToggle, onKhata, onDelete, onTog
         </div>
 
         {/* contact */}
-        <div className="text-[11px] font-bold text-slate-600 dark:text-slate-300 lg:pl-0 pl-8">
+        <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 lg:pl-0 pl-8">
           {s.phone ? <span className="font-mono">{s.phone}</span> : <span className="text-slate-400">—</span>}
           {s.email && <div className="truncate text-slate-400">{s.email}</div>}
         </div>
 
         {/* bills */}
-        <div className="lg:text-right text-[11px] font-extrabold text-slate-600 dark:text-slate-300 tabular-nums lg:pl-0 pl-8">
+        <div className="lg:text-right text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 tabular-nums lg:pl-0 pl-8">
           <span className="lg:hidden text-slate-400 font-bold">Bill: </span>
           {s._count?.purchases ?? 0}
-          {s.lastPurchaseAt && <div className="text-[10px] font-bold text-slate-400">{daysPhrase(days)}</div>}
+          {s.lastPurchaseAt && <div className="text-[0.6875rem] font-bold text-slate-400">{daysPhrase(days)}</div>}
         </div>
 
         {/* purchased */}
@@ -655,7 +655,7 @@ function SupplierRow({ s, hideCost, selected, onToggle, onKhata, onDelete, onTog
         {/* actions — hamesha nazar aate hain, hover par chhupte nahi */}
         <div className="flex items-center gap-1.5 lg:justify-end flex-wrap lg:pl-0 pl-8">
           <button onClick={onKhata} title="Khata"
-            className="h-9 px-2.5 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[11px] font-extrabold inline-flex items-center gap-1 hover:bg-violet-200 dark:hover:bg-violet-500/30 transition">
+            className="h-9 px-2.5 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 hover:bg-violet-200 dark:hover:bg-violet-500/30 transition">
             <BookOpen className="h-3.5 w-3.5" /> Khata
           </button>
           {wa && (
@@ -726,7 +726,7 @@ function SupplierCard({ s, hideCost, selected, onToggle, onKhata, onDelete, onTo
             <Link to={`/suppliers/${s.id}`} className="font-black text-slate-900 dark:text-white hover:text-teal-600 truncate block">
               {s.name}
             </Link>
-            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
               {s.contactPerson ? `👤 ${s.contactPerson}` : s.city ? `📍 ${s.city}` : 'Tafseel nahi'}
             </div>
           </div>
@@ -734,26 +734,26 @@ function SupplierCard({ s, hideCost, selected, onToggle, onKhata, onDelete, onTo
 
         <div className="grid grid-cols-2 gap-2 mt-3">
           <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
-            <div className="text-[9px] font-extrabold uppercase tracking-wider text-slate-500">Kul kharidari</div>
+            <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500">Kul kharidari</div>
             <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums truncate">
               {hideCost ? '•••' : formatPKR(Number(s.totalPurchased ?? 0))}
             </div>
-            <div className="text-[10px] font-bold text-slate-400">{s._count?.purchases ?? 0} bill</div>
+            <div className="text-[0.6875rem] font-bold text-slate-400">{s._count?.purchases ?? 0} bill</div>
           </div>
           <div className={`rounded-xl p-2.5 ${due > 0 ? 'bg-rose-50 dark:bg-rose-500/10' : 'bg-emerald-50 dark:bg-emerald-500/10'}`}>
-            <div className={`text-[9px] font-extrabold uppercase tracking-wider ${due > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+            <div className={`text-[0.625rem] font-extrabold uppercase tracking-wider ${due > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
               Hamara baqi
             </div>
             <div className={`text-sm font-black tabular-nums truncate ${due > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
               {hideCost ? '•••' : formatPKR(due)}
             </div>
-            <div className="text-[10px] font-bold text-slate-400">
+            <div className="text-[0.6875rem] font-bold text-slate-400">
               {s.lastPaymentAt ? `Adaigi ${fmtDate(s.lastPaymentAt)}` : due > 0 ? 'Kabhi adaigi nahi' : 'Saaf'}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-wrap mt-2 text-[10px] font-extrabold">
+        <div className="flex items-center gap-1.5 flex-wrap mt-2 text-[0.6875rem] font-extrabold">
           {s.phone && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">{s.phone}</span>}
           {s.city && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{s.city}</span>}
           {s.paymentTerms && <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">{s.paymentTerms}</span>}
@@ -863,11 +863,11 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
               <div className="grid grid-cols-4 gap-1.5 mt-2">
                 {(summary.dueAging ?? []).map((a: any, i: number) => (
                   <div key={a.bucket} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-center">
-                    <div className="text-[9px] font-extrabold uppercase text-slate-500">{a.bucket}</div>
+                    <div className="text-[0.625rem] font-extrabold uppercase text-slate-500">{a.bucket}</div>
                     <div className="text-xs font-black tabular-nums" style={{ color: ['#10b981', '#f59e0b', '#f97316', '#e11d48'][i] }}>
                       {money(a.amount)}
                     </div>
-                    <div className="text-[10px] font-bold text-slate-400">{a.count} supplier</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-400">{a.count} supplier</div>
                   </div>
                 ))}
               </div>
@@ -907,12 +907,12 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
               {summary.topDebtors.map((d: any, i: number) => (
                 <Link key={d.id} to={`/suppliers/${d.id}`}
                   className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition">
-                  <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[11px] font-black shrink-0 ${
+                  <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[0.6875rem] font-black shrink-0 ${
                     i === 0 ? 'bg-rose-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                   }`}>{i + 1}</span>
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{d.name}</div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                       {d.orderCount} bill · adaigi {daysPhrase(d.daysSincePayment)}
                     </div>
                   </div>
@@ -935,21 +935,21 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
               {summary.topSuppliers.map((t: any, i: number) => (
                 <Link key={t.supplierId} to={`/suppliers/${t.supplierId}`}
                   className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition">
-                  <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[11px] font-black shrink-0 ${
+                  <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[0.6875rem] font-black shrink-0 ${
                     i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                   }`}>{i === 0 ? '👑' : i + 1}</span>
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
                       {t.supplier?.name ?? 'Supplier'}
                     </div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                       {t.orderCount} bill{t.supplier?.city ? ` · ${t.supplier.city}` : ''}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-xs font-black text-slate-900 dark:text-white tabular-nums">{money(t.totalSpent)}</div>
                     {t.outstanding > 0 && (
-                      <div className="text-[10px] font-extrabold text-rose-600 tabular-nums">{money(t.outstanding)} baqi</div>
+                      <div className="text-[0.6875rem] font-extrabold text-rose-600 tabular-nums">{money(t.outstanding)} baqi</div>
                     )}
                   </div>
                 </Link>
@@ -990,17 +990,17 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
               {summary.dormantSuppliers.map((d: any) => (
                 <Link key={d.id} to={`/suppliers/${d.id}`}
                   className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition">
-                  <div className="h-8 w-8 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-black text-[11px] shrink-0">
+                  <div className="h-8 w-8 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-black text-[0.6875rem] shrink-0">
                     {initials(d.name)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{d.name}</div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                       {daysPhrase(d.daysSincePurchase)} · {money(d.totalPurchased)} ka maal liya tha
                     </div>
                   </div>
                   {d.outstandingDue > 0 && (
-                    <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[10px] font-extrabold tabular-nums shrink-0">
+                    <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold tabular-nums shrink-0">
                       {money(d.outstandingDue)} baqi
                     </span>
                   )}
@@ -1026,13 +1026,13 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{p.product?.name ?? '—'}</div>
-                  <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                     {p.quantity} {p.product?.unit ?? ''} · {p.orderCount} bill
                   </div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-xs font-black text-slate-900 dark:text-white tabular-nums">{money(p.total)}</div>
-                  <div className="text-[10px] font-bold text-slate-400">#{i + 1}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-400">#{i + 1}</div>
                 </div>
               </div>
             ))}
@@ -1079,15 +1079,15 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
                     <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
                       {p.supplier?.name ?? 'Supplier'}
                     </div>
-                    <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 font-mono truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 font-mono truncate">
                       {p.purchaseNumber} · {fmtDate(p.purchasedAt)}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-xs font-black text-slate-900 dark:text-white tabular-nums">{money(p.total)}</div>
                     {due > 0
-                      ? <div className="text-[10px] font-extrabold text-rose-600 tabular-nums">{money(due)} udhaar</div>
-                      : <div className="text-[10px] font-extrabold text-emerald-600">Poora diya</div>}
+                      ? <div className="text-[0.6875rem] font-extrabold text-rose-600 tabular-nums">{money(due)} udhaar</div>
+                      : <div className="text-[0.6875rem] font-extrabold text-emerald-600">Poora diya</div>}
                   </div>
                 </div>
               );

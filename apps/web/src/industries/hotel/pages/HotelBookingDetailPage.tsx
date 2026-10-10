@@ -66,7 +66,7 @@ export default function BookingDetailPage() {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[10px] font-extrabold border border-white/20">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2 py-0.5 text-[0.6875rem] font-extrabold border border-white/20">
                 <Sparkles className="h-2.5 w-2.5 text-amber-300" />
                 {booking.bookingNumber}
               </div>
@@ -129,31 +129,31 @@ export default function BookingDetailPage() {
             </h3>
             <div className="grid sm:grid-cols-2 gap-3 text-sm">
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-slate-500">Name</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Name</div>
                 <div className="font-extrabold">{booking.guestName}</div>
               </div>
               {booking.guestPhone && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500">Phone</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Phone</div>
                   <a href={'tel:' + booking.guestPhone} className="font-extrabold text-blue-700 hover:underline">{booking.guestPhone}</a>
                 </div>
               )}
               {booking.guestEmail && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-slate-500">Email</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Email</div>
                   <a href={'mailto:' + booking.guestEmail} className="font-extrabold text-blue-700 hover:underline">{booking.guestEmail}</a>
                 </div>
               )}
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-slate-500">Guests</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Guests</div>
                 <div className="font-extrabold">{booking.totalAdults} Adults, {booking.totalChildren} Children</div>
               </div>
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-slate-500">Meal Plan</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Meal Plan</div>
                 <div className="font-extrabold">{booking.mealPlan.replace('_', ' ')}</div>
               </div>
               <div>
-                <div className="text-[10px] uppercase font-extrabold text-slate-500">Source</div>
+                <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Source</div>
                 <div className="font-extrabold">{booking.source.replace('_', ' ')}</div>
               </div>
             </div>
@@ -185,7 +185,7 @@ export default function BookingDetailPage() {
                     </div>
                     <div className="text-right">
                       {br.discount > 0 && (
-                        <div className="text-[10px] font-bold text-rose-700">-{formatPKR(br.discount)}</div>
+                        <div className="text-[0.6875rem] font-bold text-rose-700">-{formatPKR(br.discount)}</div>
                       )}
                       <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(br.totalAmount - br.discount)}</div>
                     </div>
@@ -221,9 +221,9 @@ export default function BookingDetailPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-extrabold">{c.description}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[9px] font-extrabold uppercase">{c.chargeType}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">{c.chargeType}</span>
                       </div>
-                      <div className="text-[10px] font-mono font-bold text-slate-500">{c.chargeNumber} • {format(new Date(c.chargeDate), 'dd MMM HH:mm')}</div>
+                      <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{c.chargeNumber} • {format(new Date(c.chargeDate), 'dd MMM HH:mm')}</div>
                     </div>
                     <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(c.totalAmount)}</div>
                   </div>
@@ -243,7 +243,7 @@ export default function BookingDetailPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 text-white p-5 shadow-xl">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/70 mb-3">💰 Bill Summary</div>
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-white/70">Room Total</span><span className="font-bold tabular-nums">{formatPKR(booking.roomTotal)}</span></div>
                 {booking.extraCharges > 0 && <div className="flex justify-between"><span className="text-white/70">Extras</span><span className="font-bold tabular-nums">{formatPKR(booking.extraCharges)}</span></div>}
@@ -310,7 +310,7 @@ function PaymentModal({ bookingId, balance, onClose, onDone }: any) {
         </div>
         <div className="p-5 space-y-3">
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-emerald-700 mb-1 block">Amount</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Amount</label>
             <input type="number" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div className="flex gap-2">
@@ -395,7 +395,7 @@ function ExtendModal({ bookingId, currentCheckOut, onClose, onDone }: any) {
         <div className="p-5 space-y-3">
           <div className="text-xs text-slate-600">Current checkout: <span className="font-extrabold">{format(new Date(currentCheckOut), 'dd MMM yyyy')}</span></div>
           <div>
-            <label className="text-[10px] uppercase font-extrabold text-violet-700 mb-1 block">New Check-out Date *</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1 block">New Check-out Date *</label>
             <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} min={currentCheckOut.slice(0, 10)} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
           </div>
           <div className="flex gap-2">

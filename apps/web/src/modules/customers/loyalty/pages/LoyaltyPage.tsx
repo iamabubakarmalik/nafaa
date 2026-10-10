@@ -144,7 +144,7 @@ export default function LoyaltyPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Award className="h-3.5 w-3.5 text-amber-300" /> Rewards Program
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">🏆 Loyalty & Rewards</h1>
@@ -187,7 +187,7 @@ export default function LoyaltyPage() {
           </div>
         </div>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           <Kbd>/</Kbd><span className="text-white/60">Customer dhundo</span>
           <span className="text-white/30 mx-1">•</span>
           <Kbd>T</Kbd><span className="text-white/60">Guide</span>
@@ -213,7 +213,7 @@ export default function LoyaltyPage() {
             </div>
             <div>
               <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Tier Distribution</h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">Click karo → us tier ke customers filter honge</p>
+              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">Click karo → us tier ke customers filter honge</p>
             </div>
           </div>
           {tierFilter !== 'all' && (
@@ -237,9 +237,9 @@ export default function LoyaltyPage() {
                 }`}
               >
                 <div className="text-2xl sm:text-3xl mb-1">{tier.icon}</div>
-                <div className="text-[10px] uppercase tracking-widest font-extrabold opacity-90">{tier.name}</div>
+                <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold opacity-90">{tier.name}</div>
                 <div className="text-xl sm:text-2xl font-extrabold mt-1 tabular-nums">{tier.count}</div>
-                <div className="text-[9px] opacity-75 mt-0.5 font-bold">≥ {tier.min.toLocaleString()} pts</div>
+                <div className="text-[0.625rem] opacity-75 mt-0.5 font-bold">≥ {tier.min.toLocaleString()} pts</div>
               </button>
             );
           })}
@@ -335,7 +335,7 @@ export default function LoyaltyPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <div className="font-extrabold text-slate-900 dark:text-white truncate">{customer.name}</div>
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r ${tier.color} text-white text-[10px] font-extrabold shadow shrink-0`}>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r ${tier.color} text-white text-[0.6875rem] font-extrabold shadow shrink-0`}>
                             <span>{tier.icon}</span>
                             {tier.name}
                           </span>
@@ -345,7 +345,7 @@ export default function LoyaltyPage() {
                         </div>
                         {nextTier && (
                           <div className="mt-1.5 max-w-xs">
-                            <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">
+                            <div className="flex items-center justify-between text-[0.6875rem] text-slate-500 dark:text-slate-400 mb-0.5">
                               <span className="font-bold">→ {nextTier.name}</span>
                               <span className="font-extrabold text-amber-700 dark:text-amber-400">{(nextTier.min - customer.loyaltyPoints).toLocaleString()} pts to go</span>
                             </div>
@@ -361,7 +361,7 @@ export default function LoyaltyPage() {
                         <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
                         <span className="text-2xl font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">{customer.loyaltyPoints.toLocaleString()}</span>
                       </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">loyalty points</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">loyalty points</div>
                     </div>
                   </div>
                 </div>
@@ -402,7 +402,7 @@ export default function LoyaltyPage() {
                 <div className={`h-10 w-10 rounded-xl ${tones[step.tone]} flex items-center justify-center mb-3`}>
                   <Icon className="h-5 w-5" />
                 </div>
-                <div className="text-[10px] font-extrabold text-amber-700 dark:text-amber-400 uppercase tracking-widest">Step {step.num}</div>
+                <div className="text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-400 uppercase tracking-widest">Step {step.num}</div>
                 <div className="font-extrabold text-slate-900 dark:text-white mt-0.5">{step.title}</div>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed font-semibold">{step.desc}</p>
               </div>
@@ -471,7 +471,7 @@ function LoyaltyTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Tier System */}
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300">
               🏆 6-Tier System
             </div>
             <div className="space-y-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -481,18 +481,18 @@ function LoyaltyTeacher({ onClose }: { onClose: () => void }) {
                     <span className="text-lg">{t.icon}</span>
                     <strong>{t.name}</strong>
                   </span>
-                  <span className="font-mono text-[11px] text-amber-700 dark:text-amber-400 font-extrabold">≥ {t.min.toLocaleString()} pts</span>
+                  <span className="font-mono text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold">≥ {t.min.toLocaleString()} pts</span>
                 </div>
               ))}
             </div>
-            <p className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold pt-1">
+            <p className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold pt-1">
               Customer jitna kharche, tier upar. Higher tier = zyada perks (VIP treatment, exclusive discounts).
             </p>
           </div>
 
           {/* Earn/Burn Ratio */}
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
               <Percent className="h-3 w-3" /> Earn / Burn Ratio — Kaise Set Karein
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -567,13 +567,13 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight }: any) {
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className={`text-[10px] uppercase tracking-widest font-extrabold ${
+          <div className={`text-[0.6875rem] uppercase tracking-widest font-extrabold ${
             highlight ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'
           }`}>{label}</div>
           <div className={`mt-1.5 text-xl sm:text-2xl font-extrabold tabular-nums truncate ${
             highlight ? 'text-white' : 'text-slate-900 dark:text-white'
           }`}>{value}</div>
-          {sub && <div className={`text-[10px] font-bold mt-0.5 truncate ${
+          {sub && <div className={`text-[0.6875rem] font-bold mt-0.5 truncate ${
             highlight ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'
           }`}>{sub}</div>}
         </div>

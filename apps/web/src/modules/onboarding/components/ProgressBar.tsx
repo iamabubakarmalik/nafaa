@@ -53,7 +53,7 @@ export function ProgressBar({ currentStep, completedSteps = [], onStepClick }: P
                 {done ? <Check className="h-4 w-4" strokeWidth={3} /> : <StepIcon className="h-4 w-4" />}
               </div>
               <span
-                className={`text-[10px] font-bold hidden sm:block text-center leading-tight max-w-[70px] ${
+                className={`text-[0.6875rem] font-bold hidden sm:block text-center leading-tight max-w-[70px] ${
                   current ? cfg.textColor : done ? 'text-slate-700' : 'text-slate-400'
                 }`}
               >

@@ -44,7 +44,7 @@ export function Step8Finish({ data, onChange, progress }: Props) {
             <div key={i} className="flex items-center gap-3 p-3 rounded-2xl bg-white border-2 border-slate-100">
               <span className="text-2xl">{s.icon}</span>
               <div className="flex-1">
-                <div className="text-[10px] font-black uppercase text-slate-500 tracking-wider">{s.label}</div>
+                <div className="text-[0.6875rem] font-black uppercase text-slate-500 tracking-wider">{s.label}</div>
                 <div className="text-sm font-black text-slate-900 truncate">{s.value}</div>
               </div>
               <CheckCircle2 className="h-5 w-5 text-emerald-500" />

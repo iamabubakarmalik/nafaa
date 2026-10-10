@@ -273,7 +273,7 @@ export default function CashRegisterPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
               <Wallet className="h-3.5 w-3.5 text-amber-300" /> Daily Cash Management
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">💰 Cash Register</h1>
@@ -288,8 +288,8 @@ export default function CashRegisterPage() {
                   <span className="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" />
                   <span className="text-xs font-extrabold uppercase tracking-wider">OPEN</span>
                 </div>
-                <div className="text-[10px] text-white/70 mt-0.5 font-mono">{current.registerNumber}</div>
-                <div className="text-[10px] text-amber-300 mt-0.5 flex items-center gap-1 font-extrabold">
+                <div className="text-[0.6875rem] text-white/70 mt-0.5 font-mono">{current.registerNumber}</div>
+                <div className="text-[0.6875rem] text-amber-300 mt-0.5 flex items-center gap-1 font-extrabold">
                   <Timer className="h-2.5 w-2.5" />
                   {hoursOpen}h {minutesOpen}m
                 </div>
@@ -318,7 +318,7 @@ export default function CashRegisterPage() {
           </div>
         </div>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[10px] font-bold items-center">
+        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
           {!current && <><Kbd>O</Kbd><span className="text-white/60">Open</span><span className="text-white/30 mx-1">•</span></>}
           {current && <>
             <Kbd>I</Kbd><span className="text-white/60">Cash In</span>
@@ -368,7 +368,7 @@ export default function CashRegisterPage() {
                   placeholder="5000"
                   className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-lg font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition tabular-nums"
                 />
-                <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
                   Drawer me jitna cash hai woh count karke likho
                 </div>
               </div>
@@ -452,7 +452,7 @@ export default function CashRegisterPage() {
               </div>
               <div>
                 <h3 className="font-black text-slate-900 dark:text-white">Golak Ka Poora Hisab</h3>
-                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
                   Register khulne se ab tak — har paisa
                 </p>
               </div>
@@ -490,13 +490,13 @@ export default function CashRegisterPage() {
             {/* Golak ke bahar ka paisa — taake ghalat-fehmi na ho */}
             {(current.live?.nonCashCollected ?? 0) > 0 || (current.live?.creditGiven ?? 0) > 0 ? (
               <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3">
-                <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">
                   Ye golak me nahi aaya
                 </div>
                 <div className="grid sm:grid-cols-2 gap-2">
                   {(current.live?.nonCashCollected ?? 0) > 0 && (
                     <div className="rounded-xl bg-white dark:bg-slate-900 p-2.5">
-                      <div className="text-[10px] font-bold text-slate-500">Card / wallet / bank</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">Card / wallet / bank</div>
                       <div className="text-base font-black text-blue-700 dark:text-blue-400 tabular-nums">
                         {formatPKR(current.live?.nonCashCollected ?? 0)}
                       </div>
@@ -504,14 +504,14 @@ export default function CashRegisterPage() {
                   )}
                   {(current.live?.creditGiven ?? 0) > 0 && (
                     <div className="rounded-xl bg-white dark:bg-slate-900 p-2.5">
-                      <div className="text-[10px] font-bold text-slate-500">Udhaar par gaya</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">Udhaar par gaya</div>
                       <div className="text-base font-black text-amber-700 dark:text-amber-400 tabular-nums">
                         {formatPKR(current.live?.creditGiven ?? 0)}
                       </div>
                     </div>
                   )}
                 </div>
-                <p className="text-[10px] font-bold text-slate-400 mt-2">
+                <p className="text-[0.6875rem] font-bold text-slate-400 mt-2">
                   Kul bikri {formatPKR(current.live?.allSalesTotal ?? 0)} me se sirf cash wala hissa golak me aata hai.
                 </p>
               </div>
@@ -525,12 +525,12 @@ export default function CashRegisterPage() {
                 <TrendingUp className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-[10px] font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Today's Sales</div>
+                <div className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Today's Sales</div>
                 <div className="text-xl sm:text-2xl font-extrabold text-blue-700 dark:text-blue-400 tabular-nums">{formatPKR(current.totalSales)}</div>
               </div>
               <div className="h-8 w-px bg-blue-200 dark:bg-blue-500/30 hidden sm:block" />
               <div>
-                <div className="text-[10px] font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Net Flow</div>
+                <div className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Net Flow</div>
                 <div className={`text-sm sm:text-base font-extrabold tabular-nums ${netCashFlow >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                   {netCashFlow >= 0 ? '+' : ''}{formatPKR(netCashFlow)}
                 </div>
@@ -538,12 +538,12 @@ export default function CashRegisterPage() {
             </div>
             <div className="flex items-center gap-4 text-xs">
               <div className="text-right">
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase">Started</div>
+                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase">Started</div>
                 <div className="font-extrabold text-slate-900 dark:text-white">{formatDate(current.openedAt)}</div>
               </div>
               {current.openedBy && (
                 <div className="text-right">
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase">By</div>
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase">By</div>
                   <div className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1">
                     <UserIcon className="h-3 w-3" />
                     {current.openedBy.fullName}
@@ -638,7 +638,7 @@ export default function CashRegisterPage() {
                           <div className="min-w-0 flex-1">
                             <div className="font-extrabold text-slate-900 dark:text-white text-sm">{cfg.label}</div>
                             {tx.reason && <div className="text-xs text-slate-600 dark:text-slate-400 truncate font-semibold">{tx.reason}</div>}
-                            <div className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">{formatRelative(tx.createdAt)}</div>
+                            <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold">{formatRelative(tx.createdAt)}</div>
                           </div>
                           <div className={`font-extrabold text-sm shrink-0 tabular-nums ${cfg.isIncome ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                             {cfg.isIncome ? '+' : '-'}{formatPKR(Math.abs(tx.amount))}
@@ -733,7 +733,7 @@ export default function CashRegisterPage() {
                         {closingDiff > 0 ? '+' : ''}{formatPKR(closingDiff)}
                       </div>
                     </div>
-                    <div className="mt-1.5 text-[11px] text-slate-600 dark:text-slate-300 font-semibold">
+                    <div className="mt-1.5 text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold">
                       Expected: <strong>{formatPKR(current.expectedBalance)}</strong> • Actual: <strong>{formatPKR(Number(closingBalance) || 0)}</strong>
                     </div>
                   </div>
@@ -778,14 +778,14 @@ export default function CashRegisterPage() {
             <table className="min-w-full text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300">
                 <tr>
-                  <th className="text-left px-4 sm:px-6 py-3 font-extrabold text-[10px] uppercase tracking-widest">Register #</th>
-                  <th className="text-left px-4 sm:px-6 py-3 font-extrabold text-[10px] uppercase tracking-widest">Opened By</th>
-                  <th className="text-left px-4 sm:px-6 py-3 font-extrabold text-[10px] uppercase tracking-widest">Date</th>
-                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[10px] uppercase tracking-widest">Opening</th>
-                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[10px] uppercase tracking-widest">Sales</th>
-                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[10px] uppercase tracking-widest">Closing</th>
-                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[10px] uppercase tracking-widest">Diff</th>
-                  <th className="text-center px-4 sm:px-6 py-3 font-extrabold text-[10px] uppercase tracking-widest">Status</th>
+                  <th className="text-left px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Register #</th>
+                  <th className="text-left px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Opened By</th>
+                  <th className="text-left px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Date</th>
+                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Opening</th>
+                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Sales</th>
+                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Closing</th>
+                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Diff</th>
+                  <th className="text-center px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -806,7 +806,7 @@ export default function CashRegisterPage() {
                       </span>
                     </td>
                     <td className="px-4 sm:px-6 py-3 text-center">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
                         r.status === 'OPEN'
                           ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                           : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
@@ -971,7 +971,7 @@ function CashRegisterTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Daily workflow */}
           <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300">
               📅 Daily Workflow — 3 Steps
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -989,7 +989,7 @@ function CashRegisterTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Formula */}
           <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-1">
               <Calculator className="h-3 w-3" /> Expected Balance Formula
             </div>
             <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2.5 font-mono text-xs text-slate-800 dark:text-slate-200 space-y-0.5">
@@ -1003,7 +1003,7 @@ function CashRegisterTeacher({ onClose }: { onClose: () => void }) {
 
           {/* Short/Surplus troubleshooting */}
           <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" /> Short/Surplus — Kya Karein?
             </div>
             <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -1085,7 +1085,7 @@ function LedgerRow({ label, value, sign, tone, note, big }: any) {
           <div className={`font-black ${big ? 'text-sm text-white' : 'text-sm text-slate-700 dark:text-slate-200'}`}>
             {label}
           </div>
-          {note && <div className={`text-[10px] font-bold ${big ? 'text-white/60' : 'text-slate-400'}`}>{note}</div>}
+          {note && <div className={`text-[0.6875rem] font-bold ${big ? 'text-white/60' : 'text-slate-400'}`}>{note}</div>}
         </div>
       </div>
       <div className={`font-black tabular-nums shrink-0 ${big ? 'text-xl text-white' : `text-base ${map[tone]}`}`}>
@@ -1122,14 +1122,14 @@ function StatCard({ label, value, sub, subIcon: SubIcon, icon: Icon, tone, tinte
     }`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className={`text-[10px] uppercase tracking-widest font-extrabold ${
+          <div className={`text-[0.6875rem] uppercase tracking-widest font-extrabold ${
             highlight ? 'text-white/80' : tinted ? textAccent[tone] : 'text-slate-500 dark:text-slate-400'
           } opacity-90`}>{label}</div>
           <div className={`mt-1.5 text-lg sm:text-xl lg:text-2xl font-extrabold tabular-nums truncate ${
             highlight ? 'text-white' : tinted ? textAccent[tone] : 'text-slate-900 dark:text-white'
           }`}>{value}</div>
           {sub && (
-            <div className={`text-[10px] font-bold mt-0.5 truncate flex items-center gap-1 ${
+            <div className={`text-[0.6875rem] font-bold mt-0.5 truncate flex items-center gap-1 ${
               highlight ? 'text-white/80' : tinted ? textAccent[tone] + ' opacity-80' : 'text-slate-500 dark:text-slate-400'
             }`}>
               {SubIcon && <SubIcon className="h-2.5 w-2.5 shrink-0" />}

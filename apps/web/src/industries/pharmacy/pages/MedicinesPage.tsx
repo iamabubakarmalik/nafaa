@@ -77,17 +77,17 @@ export default function MedicinesPage() {
                 <div className="flex-1 min-w-0">
                   <h3 className="font-extrabold text-slate-900 dark:text-white truncate">{m.product?.name}</h3>
                   {m.product?.productSalts?.[0] && (
-                    <div className="text-[10px] font-bold text-cyan-600">{m.product.productSalts[0].salt?.name} {m.product.productSalts[0].strength}</div>
+                    <div className="text-[0.6875rem] font-bold text-cyan-600">{m.product.productSalts[0].salt?.name} {m.product.productSalts[0].strength}</div>
                   )}
-                  {m.manufacturer && <div className="text-[10px] text-slate-500 font-semibold truncate">{m.manufacturer}</div>}
+                  {m.manufacturer && <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">{m.manufacturer}</div>}
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-1">
-                {m.requiresPrescription && <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[9px] font-extrabold uppercase">Rx</span>}
-                {m.isNarcotic && <span className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/40 text-red-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><ShieldAlert className="h-2 w-2" />Narcotic</span>}
-                {m.requiresColdChain && <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5"><Snowflake className="h-2 w-2" />Cold</span>}
-                {m.isGeneric && <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[9px] font-extrabold uppercase">Generic</span>}
+                {m.requiresPrescription && <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase">Rx</span>}
+                {m.isNarcotic && <span className="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/40 text-red-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><ShieldAlert className="h-2 w-2" />Narcotic</span>}
+                {m.requiresColdChain && <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5"><Snowflake className="h-2 w-2" />Cold</span>}
+                {m.isGeneric && <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[0.625rem] font-extrabold uppercase">Generic</span>}
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -96,13 +96,13 @@ export default function MedicinesPage() {
               </div>
 
               {m.registrationNumber && (
-                <div className="text-[10px] font-mono text-slate-500">DRAP: {m.registrationNumber}</div>
+                <div className="text-[0.6875rem] font-mono text-slate-500">DRAP: {m.registrationNumber}</div>
               )}
 
               <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
                 <div>
                   <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(m.product?.price ?? 0)}</div>
-                  <div className="text-[10px] font-extrabold text-slate-500">Stock: {m.product?.stock ?? 0}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-500">Stock: {m.product?.stock ?? 0}</div>
                 </div>
                 <Eye className="h-4 w-4 text-slate-400" />
               </div>

@@ -252,7 +252,7 @@ export function CarpetCutPiecePicker({ product, variant, onSelect, onClose }: Pr
 
                       {/* Dimensions box */}
                       <div className="rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 p-2.5">
-                        <div className="text-[10px] uppercase font-extrabold text-violet-700 flex items-center gap-0.5">
+                        <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 flex items-center gap-0.5">
                           <Ruler className="h-2.5 w-2.5" />
                           Size
                         </div>
@@ -273,14 +273,14 @@ export function CarpetCutPiecePicker({ product, variant, onSelect, onClose }: Pr
                           <div className="text-lg font-extrabold text-emerald-700 leading-none tabular-nums">
                             {formatPKRFull(salePrice)}
                           </div>
-                          <div className="text-[10px] font-bold text-slate-500 mt-0.5">
+                          <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">
                             {formatPKR(pricePerSqft)}/sqft
                           </div>
                         </div>
                         {(piece as any).sourceRoll && (
                           <div className="text-right shrink-0">
-                            <div className="text-[9px] font-extrabold text-slate-500 uppercase">From</div>
-                            <div className="text-[10px] font-mono font-extrabold text-emerald-700 truncate max-w-[80px]">
+                            <div className="text-[0.625rem] font-extrabold text-slate-500 uppercase">From</div>
+                            <div className="text-[0.6875rem] font-mono font-extrabold text-emerald-700 truncate max-w-[80px]">
                               {(piece as any).sourceRoll.rollNumber}
                             </div>
                           </div>
@@ -291,13 +291,13 @@ export function CarpetCutPiecePicker({ product, variant, onSelect, onClose }: Pr
                       {((piece as any).rackNumber || isSpecialCondition) && (
                         <div className="flex items-center gap-1 flex-wrap">
                           {(piece as any).rackNumber && (
-                            <div className="inline-flex items-center gap-0.5 text-[10px] text-slate-700 font-bold bg-slate-100 rounded-md px-1.5 py-0.5">
+                            <div className="inline-flex items-center gap-0.5 text-[0.6875rem] text-slate-700 font-bold bg-slate-100 rounded-md px-1.5 py-0.5">
                               <MapPin className="h-2.5 w-2.5" />
                               {(piece as any).rackNumber}
                             </div>
                           )}
                           {isSpecialCondition && (
-                            <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[10px] font-extrabold uppercase tracking-wider">
+                            <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[0.6875rem] font-extrabold uppercase tracking-wider">
                               {condition}
                             </div>
                           )}

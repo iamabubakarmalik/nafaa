@@ -62,7 +62,7 @@ export const inputCls =
 
 export function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 font-mono text-[11px] font-extrabold text-slate-700 dark:text-slate-300">
+    <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 font-mono text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300">
       {children}
     </span>
   );
@@ -97,9 +97,9 @@ export function Kpi({ icon: Icon, label, value, sub, tone = 'slate', onClick, ac
       <div className={`relative h-9 w-9 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow`}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className="relative mt-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="relative mt-2 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
       <div className="relative text-lg sm:text-xl font-black text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-      {sub && <div className="relative text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">{sub}</div>}
+      {sub && <div className="relative text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{sub}</div>}
     </Tag>
   );
 }
@@ -125,7 +125,7 @@ export function Panel({ icon: Icon, title, desc, tone = 'teal', right, children,
           )}
           <div className="min-w-0">
             <h3 className="font-black text-slate-900 dark:text-white truncate">{title}</h3>
-            {desc && <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate">{desc}</p>}
+            {desc && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{desc}</p>}
           </div>
         </div>
         {right}
@@ -198,7 +198,7 @@ export function Teacher({ title, subtitle, steps, tips, onClose }: {
             </div>
             <div className="min-w-0">
               <div className="font-black text-slate-900 dark:text-white text-sm">{s.head}</div>
-              <p className="text-[13px] font-semibold text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">{s.body}</p>
+              <p className="text-[0.8125rem] font-semibold text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">{s.body}</p>
             </div>
           </div>
         ))}
@@ -207,7 +207,7 @@ export function Teacher({ title, subtitle, steps, tips, onClose }: {
             <div className="text-xs font-black text-amber-900 dark:text-amber-200 uppercase tracking-wider mb-2">💡 Kaam ki baatein</div>
             <ul className="space-y-1.5">
               {tips.map((t, i) => (
-                <li key={i} className="text-[13px] font-semibold text-amber-900 dark:text-amber-100 flex gap-2">
+                <li key={i} className="text-[0.8125rem] font-semibold text-amber-900 dark:text-amber-100 flex gap-2">
                   <span className="text-amber-500">•</span><span>{t}</span>
                 </li>
               ))}

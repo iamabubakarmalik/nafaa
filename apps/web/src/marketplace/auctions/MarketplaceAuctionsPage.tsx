@@ -46,7 +46,7 @@ export default function MarketplaceAuctionsPage() {
               <Gavel className="h-3.5 w-3.5" />
               Live Auctions
               {(counts.LIVE || 0) > 0 && (
-                <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-white text-[9px] animate-pulse">
+                <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-white text-[0.625rem] animate-pulse">
                   🔴 {counts.LIVE} LIVE
                 </span>
               )}
@@ -68,7 +68,7 @@ export default function MarketplaceAuctionsPage() {
               <div key={s} className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <StatusIcon className="h-3 w-3 opacity-80" />
-                  <div className="text-[9px] uppercase tracking-wider font-black opacity-90 truncate">{s}</div>
+                  <div className="text-[0.625rem] uppercase tracking-wider font-black opacity-90 truncate">{s}</div>
                 </div>
                 <div className="text-xl font-black tabular-nums">{counts[s] || 0}</div>
               </div>
@@ -150,13 +150,13 @@ function AuctionCard({ auction: a, onCancel }: any) {
             <Gavel className="h-12 w-12" />
           </div>
         )}
-        <div className={`absolute top-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-full ${meta.bg} ${meta.color} inline-flex items-center gap-1 shadow`}>
+        <div className={`absolute top-2 left-2 text-[0.6875rem] font-black px-2 py-0.5 rounded-full ${meta.bg} ${meta.color} inline-flex items-center gap-1 shadow`}>
           <StatusIcon className="h-2.5 w-2.5" />
           {meta.label}
           {isLive && <span className="ml-1 h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse" />}
         </div>
         {isLive && (
-          <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-slate-900/80 text-white text-[10px] font-black backdrop-blur">
+          <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-slate-900/80 text-white text-[0.6875rem] font-black backdrop-blur">
             ⏱ {hoursLeft}h {minsLeft}m
           </div>
         )}
@@ -170,14 +170,14 @@ function AuctionCard({ auction: a, onCancel }: any) {
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <div className="rounded-lg bg-slate-50 border border-slate-200 p-2">
-            <div className="text-[9px] font-black uppercase text-slate-500">Start Price</div>
+            <div className="text-[0.625rem] font-black uppercase text-slate-500">Start Price</div>
             <div className="text-sm font-black text-slate-900 tabular-nums">Rs {formatPKR(a.startPrice)}</div>
           </div>
           <div className="rounded-lg bg-red-50 border border-red-200 p-2">
-            <div className="text-[9px] font-black uppercase text-red-700">Current</div>
+            <div className="text-[0.625rem] font-black uppercase text-red-700">Current</div>
             <div className="text-sm font-black text-red-700 tabular-nums">Rs {formatPKR(a.currentPrice)}</div>
             {priceIncrease > 0 && (
-              <div className="text-[9px] font-black text-emerald-600">+{priceIncrease.toFixed(0)}%</div>
+              <div className="text-[0.625rem] font-black text-emerald-600">+{priceIncrease.toFixed(0)}%</div>
             )}
           </div>
         </div>
@@ -194,7 +194,7 @@ function AuctionCard({ auction: a, onCancel }: any) {
 
         {a.recentBids && a.recentBids.length > 0 && (
           <div className="mt-3 pt-3 border-t border-slate-100 space-y-1">
-            <div className="text-[10px] font-black uppercase text-slate-500 mb-1">Recent Bids</div>
+            <div className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1">Recent Bids</div>
             {a.recentBids.slice(0, 2).map((bid: any) => (
               <div key={bid.id} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1">
@@ -202,7 +202,7 @@ function AuctionCard({ auction: a, onCancel }: any) {
                     {bid.customer?.avatarUrl ? (
                       <img src={bid.customer.avatarUrl} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[9px] font-black text-slate-500">
+                      <div className="w-full h-full flex items-center justify-center text-[0.625rem] font-black text-slate-500">
                         {bid.customer?.fullName?.charAt(0) || 'U'}
                       </div>
                     )}
@@ -217,8 +217,8 @@ function AuctionCard({ auction: a, onCancel }: any) {
 
         {isLive && (
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-            <span className="text-[10px] text-slate-500 font-bold">Started {relativeTime(a.createdAt)}</span>
-            <button onClick={onCancel} className="text-[10px] text-rose-600 hover:text-rose-700 font-black">Cancel</button>
+            <span className="text-[0.6875rem] text-slate-500 font-bold">Started {relativeTime(a.createdAt)}</span>
+            <button onClick={onCancel} className="text-[0.6875rem] text-rose-600 hover:text-rose-700 font-black">Cancel</button>
           </div>
         )}
       </div>
@@ -340,7 +340,7 @@ function CreateAuctionModal({ onClose, onSuccess }: any) {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-sm font-black text-slate-700">Images</label>
-              <button onClick={addImage} className="h-7 px-2 rounded-lg bg-red-600 text-white text-[10px] font-black inline-flex items-center gap-1">
+              <button onClick={addImage} className="h-7 px-2 rounded-lg bg-red-600 text-white text-[0.6875rem] font-black inline-flex items-center gap-1">
                 <Plus className="h-3 w-3" /> Add
               </button>
             </div>

@@ -290,12 +290,12 @@ export default function MobilePurchasesV2() {
                           <div className="flex items-center gap-2">
                             <div className="font-bold text-sm text-slate-900 truncate flex-1">{p.name}</div>
                             {isPhone && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-blue-100 text-blue-700">
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-blue-100 text-blue-700">
                                 <Smartphone className="h-2.5 w-2.5" /> PHONE
                               </span>
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-mono">
+                          <div className="text-[0.6875rem] text-slate-500 font-mono">
                             Stock: <span className="font-bold text-emerald-700">{formatQty(p.stock)} {p.unit}</span>
                             {p.costPrice > 0 && <> • Cost: <span className="font-bold">{formatPKR(p.costPrice)}</span></>}
                           </div>
@@ -312,7 +312,7 @@ export default function MobilePurchasesV2() {
                     <div className="flex items-center gap-2">
                       <div className="font-bold text-sm text-slate-900 flex-1">{selectedProduct.name}</div>
                       {isSelectedPhone && (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-blue-100 text-blue-700">
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-blue-100 text-blue-700">
                           <Smartphone className="h-2.5 w-2.5" /> PHONE
                         </span>
                       )}
@@ -321,18 +321,18 @@ export default function MobilePurchasesV2() {
                       Current stock: <span className="font-bold text-emerald-700">{formatQty(selectedProduct.stock)} {selectedProduct.unit}</span>
                     </div>
                     {isSelectedPhone && (
-                      <div className="mt-2 text-[10px] text-blue-800 font-bold bg-blue-50 border border-blue-200 rounded-lg px-2 py-1">
+                      <div className="mt-2 text-[0.6875rem] text-blue-800 font-bold bg-blue-50 border border-blue-200 rounded-lg px-2 py-1">
                         💡 Purchase save karne ke baad IMEIs bulk add kar sakte hain (IMEI Manager se)
                       </div>
                     )}
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Qty * ({selectedProduct.unit})</label>
+                      <label className="block text-[0.6875rem] font-bold text-slate-600 mb-1">Qty * ({selectedProduct.unit})</label>
                       <input type="number" step="0.01" value={qty} onChange={(e) => setQty(e.target.value)} className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm font-bold" />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-600 mb-1">Cost/unit *</label>
+                      <label className="block text-[0.6875rem] font-bold text-slate-600 mb-1">Cost/unit *</label>
                       <input type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm font-bold" />
                     </div>
                     <div className="flex items-end">
@@ -372,7 +372,7 @@ export default function MobilePurchasesV2() {
                         <div className="flex items-center gap-2">
                           <div className="font-bold text-slate-900 truncate">{line.name}</div>
                           {line.isPhone && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-blue-100 text-blue-700">
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-blue-100 text-blue-700">
                               <Smartphone className="h-2.5 w-2.5" /> PHONE
                             </span>
                           )}
@@ -464,11 +464,11 @@ export default function MobilePurchasesV2() {
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <div className="font-bold text-slate-900 font-mono text-xs">{p.purchaseNumber}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold truncate">{p.supplierName}</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">{p.supplierName}</div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="font-extrabold text-blue-700 text-sm tabular-nums">{formatPKR(p.total)}</div>
-                          <div className="text-[10px] text-slate-500">{formatDate(p.purchasedAt)}</div>
+                          <div className="text-[0.6875rem] text-slate-500">{formatDate(p.purchasedAt)}</div>
                         </div>
                       </div>
                     </Link>
@@ -485,7 +485,7 @@ export default function MobilePurchasesV2() {
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <div>
-                  <div className="text-[10px] uppercase tracking-wider font-extrabold text-white/80">Post-Purchase</div>
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/80">Post-Purchase</div>
                   <h3 className="text-lg font-bold">Add IMEIs</h3>
                 </div>
               </div>
@@ -577,7 +577,7 @@ export default function MobilePurchasesV2() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-bold text-slate-900 text-sm truncate">{ts.supplier?.name}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold">{ts.orderCount} orders</div>
+                          <div className="text-[0.6875rem] text-slate-500 font-semibold">{ts.orderCount} orders</div>
                         </div>
                         <div className="font-extrabold text-blue-700 text-sm tabular-nums">{formatPKR(ts.totalSpent)}</div>
                       </Link>
@@ -605,7 +605,7 @@ export default function MobilePurchasesV2() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-bold text-slate-900 text-sm truncate">{tp.product?.name}</div>
-                          <div className="text-[11px] text-slate-500 font-semibold">
+                          <div className="text-[0.6875rem] text-slate-500 font-semibold">
                             {formatQty(tp.quantityPurchased)} units • {tp.orderCount} orders
                           </div>
                         </div>
@@ -682,12 +682,12 @@ export default function MobilePurchasesV2() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-extrabold text-slate-900 font-mono text-sm">{p.purchaseNumber}</span>
                             {hasPhones && (
-                              <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-extrabold inline-flex items-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
                                 <ShieldCheck className="h-2.5 w-2.5" /> IMEI TRACKED
                               </span>
                             )}
                             {balance > 0 && (
-                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold">
+                              <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.6875rem] font-extrabold">
                                 Due {formatPKR(balance)}
                               </span>
                             )}
@@ -710,7 +710,7 @@ export default function MobilePurchasesV2() {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-2xl font-extrabold text-blue-700 tabular-nums">{formatPKR(p.total)}</div>
-                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-extrabold text-blue-600">
+                        <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-blue-600">
                           <Eye className="h-3 w-3" /> Details <ArrowRight className="h-3 w-3" />
                         </div>
                       </div>

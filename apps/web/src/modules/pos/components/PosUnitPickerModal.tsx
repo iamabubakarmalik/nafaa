@@ -94,7 +94,7 @@ export function PosUnitPickerModal({ product, units, onConfirm, onClose }: {
                     active ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-500/40'
                     : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:border-emerald-400 shadow-sm'].join(' ')}>
                   {p}
-                  <div className={['text-[10px] font-bold uppercase', active ? 'text-emerald-100' : 'text-slate-500'].join(' ')}>{unit.unitName}</div>
+                  <div className={['text-[0.6875rem] font-bold uppercase', active ? 'text-emerald-100' : 'text-slate-500'].join(' ')}>{unit.unitName}</div>
                 </button>
               );
             })}

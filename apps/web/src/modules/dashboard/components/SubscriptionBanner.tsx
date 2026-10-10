@@ -24,7 +24,7 @@ export function SubscriptionBanner() {
               <Clock className="h-6 w-6" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-extrabold uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1">
                 <Clock className="h-2.5 w-2.5" />
                 Payment Verification
               </div>
@@ -57,7 +57,7 @@ export function SubscriptionBanner() {
               <XCircle className="h-6 w-6" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/20 backdrop-blur text-[10px] font-extrabold uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/20 backdrop-blur text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1">
                 <AlertTriangle className="h-2.5 w-2.5" />
                 Action Required
               </div>
@@ -90,7 +90,7 @@ export function SubscriptionBanner() {
               <Zap className="h-6 w-6" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/20 backdrop-blur text-[10px] font-extrabold uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/20 backdrop-blur text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1">
                 <Clock className="h-2.5 w-2.5" />
                 Trial Expiring
               </div>
@@ -125,7 +125,7 @@ export function SubscriptionBanner() {
               <Sparkles className="h-6 w-6" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/20 backdrop-blur text-[10px] font-extrabold uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/20 backdrop-blur text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1">
                 <Crown className="h-2.5 w-2.5" />
                 Free Trial Active
               </div>

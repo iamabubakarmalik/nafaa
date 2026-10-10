@@ -273,7 +273,7 @@ export function ShoeWizardStep1Basic({ basic, onChange, errors }: Props) {
                 className={['p-3 rounded-xl border-2 transition flex flex-col items-center gap-1',
                   a ? `${tones[g.color]} shadow-md scale-[1.02]` : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400'].join(' ')}>
                 <span className="text-2xl">{g.e}</span>
-                <span className="text-[10px] font-extrabold">{g.l}</span>
+                <span className="text-[0.6875rem] font-extrabold">{g.l}</span>
               </button>
             );
           })}
@@ -351,7 +351,7 @@ export function ShoeWizardStep1Basic({ basic, onChange, errors }: Props) {
           </div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 mb-2">Quick presets</div>
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2">Quick presets</div>
           <div className="flex flex-wrap gap-1.5">
             {COLOR_PRESETS.map((c) => (
               <button key={c.hex} type="button" onClick={() => onChange({ colorName: c.name, colorHex: c.hex })}
@@ -407,7 +407,7 @@ export function ShoeWizardStep1Basic({ basic, onChange, errors }: Props) {
             {basic.imageUrls.map((url, i) => (
               <div key={url + i} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200">
                 <img src={url} alt="" className="w-full h-full object-cover" />
-                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-orange-600 text-white text-[9px] font-extrabold">MAIN</div>}
+                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-orange-600 text-white text-[0.625rem] font-extrabold">MAIN</div>}
                 <button type="button" onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, x) => x !== i) })}
                   className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-extrabold">×</button>
               </div>
@@ -480,7 +480,7 @@ function Tog({ checked, onChange, icon: Icon, label }: any) {
       className={['flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition',
         checked ? 'border-orange-500 bg-orange-50 text-orange-800' : 'border-slate-200 bg-white text-slate-600 hover:border-orange-300'].join(' ')}>
       <Icon className={['h-5 w-5', checked ? 'text-orange-600 fill-orange-100' : 'text-slate-500'].join(' ')} />
-      <span className="text-[11px] font-extrabold">{label}</span>
+      <span className="text-[0.6875rem] font-extrabold">{label}</span>
     </button>
   );
 }

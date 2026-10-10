@@ -173,7 +173,7 @@ export function ElectronicsWizardStep3Warranty({
                         {a && <Check className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />}
                         <span className="font-extrabold text-sm text-slate-900 dark:text-white">{t.v}</span>
                       </div>
-                      <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{t.hint}</div>
+                      <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{t.hint}</div>
                     </button>
                   );
                 })}
@@ -189,13 +189,13 @@ export function ElectronicsWizardStep3Warranty({
                   onChange={(e) => onChange({ warrantyEndDate: e.target.value })}
                   className={`${IN} focus:border-blue-500`} />
                 {computedEnd && !warranty.warrantyEndDate && (
-                  <p className="mt-1.5 text-[11px] font-bold text-blue-700 dark:text-blue-400 inline-flex items-center gap-1">
+                  <p className="mt-1.5 text-[0.6875rem] font-bold text-blue-700 dark:text-blue-400 inline-flex items-center gap-1">
                     <CalendarClock className="h-3 w-3" /> {months} mahine ke hisab se khud nikala gaya
                   </p>
                 )}
                 {warranty.warrantyEndDate && computedEnd && warranty.warrantyEndDate !== computedEnd && (
                   <button type="button" onClick={() => onChange({ warrantyEndDate: '' })}
-                    className="mt-1.5 text-[11px] font-extrabold text-slate-500 dark:text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 underline">
+                    className="mt-1.5 text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 underline">
                     Wapas khud-ba-khud par le jayen
                   </button>
                 )}
@@ -294,7 +294,7 @@ export function ElectronicsWizardStep3Warranty({
 
         {BOX_GROUPS.map((g) => (
           <div key={g.label}>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
               {g.emoji} {g.label}
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -356,7 +356,7 @@ export function ElectronicsWizardStep3Warranty({
           </div>
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Customer Ki Receipt Par</h3>
-            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Aise nazar aayega</p>
+            <p className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">Aise nazar aayega</p>
           </div>
         </div>
 
@@ -368,19 +368,19 @@ export function ElectronicsWizardStep3Warranty({
             </span>
           </div>
           {!noWarranty && warranty.warrantyType && (
-            <div className="flex justify-between text-[11px]">
+            <div className="flex justify-between text-[0.6875rem]">
               <span className="text-slate-500 dark:text-slate-400">Type</span>
               <span>{warranty.warrantyType}{warranty.hasInternationalWarranty ? ' + International' : ''}</span>
             </div>
           )}
           {(warranty.boxContents ?? []).length > 0 && (
             <div className="pt-1.5 border-t border-dashed border-slate-300 dark:border-slate-600">
-              <div className="text-slate-500 dark:text-slate-400 text-[11px] mb-0.5">Dabbe me:</div>
-              <div className="text-[11px] leading-relaxed">{(warranty.boxContents ?? []).join(' · ')}</div>
+              <div className="text-slate-500 dark:text-slate-400 text-[0.6875rem] mb-0.5">Dabbe me:</div>
+              <div className="text-[0.6875rem] leading-relaxed">{(warranty.boxContents ?? []).join(' · ')}</div>
             </div>
           )}
           {(warranty.boxContents ?? []).length === 0 && (
-            <div className="text-[11px] text-slate-400 dark:text-slate-500 italic">Dabbe ki cheezein abhi nahi chuni</div>
+            <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 italic">Dabbe ki cheezein abhi nahi chuni</div>
           )}
         </div>
       </section>

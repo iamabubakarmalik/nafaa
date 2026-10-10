@@ -204,13 +204,13 @@ function ProfileCard({ profile, onView, onEdit }: any) {
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-extrabold text-slate-900 dark:text-white truncate">{c?.name || 'Customer'}</span>
             {isVIP && (
-              <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+              <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <Star className="h-2 w-2 fill-current" />
                 VIP
               </span>
             )}
             {hasAlerts && (
-              <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5">
+              <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <AlertCircle className="h-2 w-2" />
                 ALERT
               </span>
@@ -223,7 +223,7 @@ function ProfileCard({ profile, onView, onEdit }: any) {
             </div>
           )}
           {profile.lastVisitAt && (
-            <div className="text-[10px] text-slate-500 font-semibold mt-0.5">
+            <div className="text-[0.6875rem] text-slate-500 font-semibold mt-0.5">
               Last visit: {format(new Date(profile.lastVisitAt), 'dd MMM yyyy')}
             </div>
           )}
@@ -234,16 +234,16 @@ function ProfileCard({ profile, onView, onEdit }: any) {
       <div className="grid grid-cols-2 gap-1.5">
         {profile.hairType && (
           <div className="rounded-lg bg-pink-50 dark:bg-pink-950/30 p-2">
-            <div className="text-[9px] uppercase font-extrabold text-pink-700">Hair</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-pink-700">Hair</div>
             <div className="text-xs font-extrabold text-pink-900 dark:text-pink-300 truncate">{profile.hairType}</div>
-            {profile.hairLength && <div className="text-[9px] font-bold text-pink-600">{profile.hairLength}</div>}
+            {profile.hairLength && <div className="text-[0.625rem] font-bold text-pink-600">{profile.hairLength}</div>}
           </div>
         )}
         {profile.skinType && (
           <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 p-2">
-            <div className="text-[9px] uppercase font-extrabold text-amber-700">Skin</div>
+            <div className="text-[0.625rem] uppercase font-extrabold text-amber-700">Skin</div>
             <div className="text-xs font-extrabold text-amber-900 dark:text-amber-300 truncate">{profile.skinType}</div>
-            {profile.skinTone && <div className="text-[9px] font-bold text-amber-600">{profile.skinTone}</div>}
+            {profile.skinTone && <div className="text-[0.625rem] font-bold text-amber-600">{profile.skinTone}</div>}
           </div>
         )}
       </div>
@@ -251,18 +251,18 @@ function ProfileCard({ profile, onView, onEdit }: any) {
       {/* Allergies alert */}
       {profile.allergies?.length > 0 && (
         <div className="rounded-lg bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 p-2">
-          <div className="text-[9px] uppercase font-extrabold text-rose-700 mb-1 flex items-center gap-1">
+          <div className="text-[0.625rem] uppercase font-extrabold text-rose-700 mb-1 flex items-center gap-1">
             <AlertCircle className="h-2.5 w-2.5" />
             Allergies
           </div>
           <div className="flex flex-wrap gap-1">
             {profile.allergies.slice(0, 3).map((a: string, i: number) => (
-              <span key={i} className="px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950/40 text-rose-700 text-[9px] font-extrabold">
+              <span key={i} className="px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-950/40 text-rose-700 text-[0.625rem] font-extrabold">
                 {a}
               </span>
             ))}
             {profile.allergies.length > 3 && (
-              <span className="text-[9px] text-rose-500 font-extrabold">+{profile.allergies.length - 3}</span>
+              <span className="text-[0.625rem] text-rose-500 font-extrabold">+{profile.allergies.length - 3}</span>
             )}
           </div>
         </div>
@@ -271,15 +271,15 @@ function ProfileCard({ profile, onView, onEdit }: any) {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-slate-500">Visits</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Visits</div>
           <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{profile.totalVisits}</div>
         </div>
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-emerald-700">Spent</div>
-          <div className="font-extrabold text-emerald-700 tabular-nums text-[10px]">{formatPKR(profile.totalSpent).replace('Rs', '').trim()}</div>
+          <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Spent</div>
+          <div className="font-extrabold text-emerald-700 tabular-nums text-[0.6875rem]">{formatPKR(profile.totalSpent).replace('Rs', '').trim()}</div>
         </div>
         <div className="text-center">
-          <div className="text-[9px] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
+          <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 inline-flex items-center justify-center gap-0.5">
             <Star className="h-2 w-2 fill-current" />
             Rating
           </div>
@@ -337,15 +337,15 @@ function CustomerProfileModal({ profile, onClose, onEdit }: any) {
 
           <div className="mt-4 grid grid-cols-3 gap-2">
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
-              <div className="text-[9px] uppercase font-extrabold text-white/70">Visits</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-white/70">Visits</div>
               <div className="text-xl font-extrabold tabular-nums">{profile.totalVisits}</div>
             </div>
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
-              <div className="text-[9px] uppercase font-extrabold text-white/70">Total Spent</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-white/70">Total Spent</div>
               <div className="text-xl font-extrabold tabular-nums text-emerald-300">{formatPKR(profile.totalSpent)}</div>
             </div>
             <div className="rounded-xl bg-white/10 backdrop-blur border border-white/20 p-3 text-center">
-              <div className="text-[9px] uppercase font-extrabold text-white/70 inline-flex items-center justify-center gap-0.5">
+              <div className="text-[0.625rem] uppercase font-extrabold text-white/70 inline-flex items-center justify-center gap-0.5">
                 <Star className="h-2 w-2 fill-current" />
                 Rating
               </div>
@@ -366,7 +366,7 @@ function CustomerProfileModal({ profile, onClose, onEdit }: any) {
               </div>
               {profile.allergies?.length > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-rose-700 mb-1">Allergies</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1">Allergies</div>
                   <div className="flex flex-wrap gap-1">
                     {profile.allergies.map((a: string, i: number) => (
                       <span key={i} className="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/40 text-rose-700 text-xs font-extrabold">
@@ -378,13 +378,13 @@ function CustomerProfileModal({ profile, onClose, onEdit }: any) {
               )}
               {profile.medicalConditions && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-rose-700 mb-1">Medical Conditions</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1">Medical Conditions</div>
                   <p className="text-xs font-bold text-slate-900">{profile.medicalConditions}</p>
                 </div>
               )}
               {profile.medications && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-rose-700 mb-1">Current Medications</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1">Current Medications</div>
                   <p className="text-xs font-bold text-slate-900">{profile.medications}</p>
                 </div>
               )}
@@ -434,7 +434,7 @@ function CustomerProfileModal({ profile, onClose, onEdit }: any) {
               </div>
               {profile.preferredServices?.length > 0 && (
                 <div className="mb-2">
-                  <div className="text-[10px] uppercase font-extrabold text-violet-700 mb-1">Favorite Services</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1">Favorite Services</div>
                   <div className="flex flex-wrap gap-1">
                     {profile.preferredServices.map((s: string, i: number) => (
                       <span key={i} className="px-2 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-800 text-xs font-extrabold">
@@ -446,7 +446,7 @@ function CustomerProfileModal({ profile, onClose, onEdit }: any) {
               )}
               {profile.favoriteBrands?.length > 0 && (
                 <div>
-                  <div className="text-[10px] uppercase font-extrabold text-violet-700 mb-1">Favorite Brands</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1">Favorite Brands</div>
                   <div className="flex flex-wrap gap-1">
                     {profile.favoriteBrands.map((b: string, i: number) => (
                       <span key={i} className="px-2 py-0.5 rounded bg-white dark:bg-neutral-800 border border-violet-300 text-violet-800 text-xs font-extrabold">
@@ -492,7 +492,7 @@ function CustomerProfileModal({ profile, onClose, onEdit }: any) {
 function ProfileField({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
-      <div className="text-[10px] uppercase font-extrabold text-slate-500">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-sm font-extrabold text-slate-900 dark:text-white">{value || '—'}</div>
     </div>
   );
@@ -577,7 +577,7 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
             </div>
           ) : (
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Select Customer *</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Select Customer *</label>
               <input autoFocus value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="Search by name/phone..." className="h-11 w-full rounded-xl border-2 border-cyan-200 bg-cyan-50 dark:bg-cyan-950/30 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
               <div className="mt-2 max-h-52 overflow-y-auto space-y-1 rounded-xl border border-slate-200 dark:border-neutral-700 p-1">
                 {(customersData?.items ?? []).map((c) => (
@@ -588,7 +588,7 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
                   >
                     <User className="h-3.5 w-3.5 text-slate-400" />
                     <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
-                    <span className="text-[10px] text-slate-500 font-bold">{c.phone}</span>
+                    <span className="text-[0.6875rem] text-slate-500 font-bold">{c.phone}</span>
                   </button>
                 ))}
               </div>
@@ -631,19 +631,19 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
                 Medical & Safety
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Allergies (comma separated)</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Allergies (comma separated)</label>
                 <input value={form.allergies} onChange={(e) => setForm({ ...form, allergies: e.target.value })} placeholder="Nuts, Ammonia, Perfume..." className="h-11 w-full rounded-xl border-2 border-rose-300 bg-white dark:bg-rose-950/40 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Medical Conditions</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Medical Conditions</label>
                 <textarea rows={2} value={form.medicalConditions} onChange={(e) => setForm({ ...form, medicalConditions: e.target.value })} placeholder="Diabetes, sensitive scalp, eczema..." className="w-full rounded-xl border-2 border-rose-300 bg-white dark:bg-rose-950/40 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Current Medications</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Current Medications</label>
                 <input value={form.medications} onChange={(e) => setForm({ ...form, medications: e.target.value })} placeholder="Optional" className="h-11 w-full rounded-xl border-2 border-rose-300 bg-white dark:bg-rose-950/40 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-rose-700 mb-1 block">Pregnancy Status</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Pregnancy Status</label>
                 <select value={form.pregnancyStatus} onChange={(e) => setForm({ ...form, pregnancyStatus: e.target.value })} className="h-11 w-full rounded-xl border-2 border-rose-300 bg-white dark:bg-rose-950/40 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
                   <option value="">-- Optional --</option>
                   {PREGNANCY_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
@@ -658,7 +658,7 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
                 Preferences
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-violet-700 mb-1 block">Preferred Staff</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1 block">Preferred Staff</label>
                 <select value={form.preferredStaffId} onChange={(e) => setForm({ ...form, preferredStaffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-white dark:bg-violet-950/40 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
                   <option value="">Any staff</option>
                   {staffList.map((s) => {
@@ -668,24 +668,24 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
                 </select>
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-violet-700 mb-1 block">Favorite Services (comma separated)</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1 block">Favorite Services (comma separated)</label>
                 <input value={form.preferredServices} onChange={(e) => setForm({ ...form, preferredServices: e.target.value })} placeholder="Hair Color, Facial, Manicure..." className="h-11 w-full rounded-xl border-2 border-violet-300 bg-white dark:bg-violet-950/40 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
               </div>
               <div>
-                <label className="text-[10px] uppercase font-extrabold text-violet-700 mb-1 block">Favorite Brands (comma separated)</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1 block">Favorite Brands (comma separated)</label>
                 <input value={form.favoriteBrands} onChange={(e) => setForm({ ...form, favoriteBrands: e.target.value })} placeholder="L'Oreal, MAC, Wella..." className="h-11 w-full rounded-xl border-2 border-violet-300 bg-white dark:bg-violet-950/40 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
               </div>
             </div>
 
             {/* Notes */}
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block">Internal Notes</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Internal Notes</label>
               <textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Any special instructions, preferences, past reactions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
             </div>
 
             {/* Photos */}
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block items-center gap-1">
                 <Camera className="h-3 w-3" />
                 Reference Photos
               </label>
@@ -742,7 +742,7 @@ function SelectField({ label, value, options, onChange, color }: {
   };
   return (
     <div>
-      <label className={'text-[10px] uppercase font-extrabold mb-1 block ' + (color === 'pink' ? 'text-pink-700' : 'text-amber-700')}>{label}</label>
+      <label className={'text-[0.6875rem] uppercase font-extrabold mb-1 block ' + (color === 'pink' ? 'text-pink-700' : 'text-amber-700')}>{label}</label>
       <select value={value} onChange={(e) => onChange(e.target.value)} className={'h-11 w-full rounded-xl border-2 px-3 text-sm font-bold focus:outline-none ' + (colors[color] || colors.pink)}>
         <option value="">-- Select --</option>
         {options.map((o: string) => <option key={o} value={o}>{o}</option>)}

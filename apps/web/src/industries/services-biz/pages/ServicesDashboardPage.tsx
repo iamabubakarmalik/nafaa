@@ -136,19 +136,19 @@ export default function ServicesDashboardPage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Total Revenue</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Total Revenue</div>
               <div className="mt-1 text-2xl font-extrabold text-emerald-300 tabular-nums">{formatPKR(monthly.revenue)}</div>
             </div>
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Collected</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Collected</div>
               <div className="mt-1 text-2xl font-extrabold text-cyan-300 tabular-nums">{formatPKR(monthly.collected)}</div>
             </div>
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Labour</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Labour</div>
               <div className="mt-1 text-2xl font-extrabold text-amber-300 tabular-nums">{formatPKR(monthly.labour)}</div>
             </div>
             <div className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-4">
-              <div className="text-[10px] uppercase font-extrabold text-white/70">Parts Sold</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Parts Sold</div>
               <div className="mt-1 text-2xl font-extrabold text-purple-300 tabular-nums">{formatPKR(monthly.parts)}</div>
             </div>
           </div>
@@ -176,7 +176,7 @@ export default function ServicesDashboardPage() {
             {quality.ratedJobs} rated jobs (30d)
           </div>
           <div className="mt-4 rounded-xl bg-white/15 backdrop-blur border border-white/20 p-3">
-            <div className="text-[10px] uppercase font-extrabold text-white/70">Overall Status</div>
+            <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Overall Status</div>
             <div className="mt-1 font-extrabold flex items-center gap-1">
               {(quality.avgRating ?? 0) >= 4.5 ? (
                 <><Award className="h-4 w-4" /> Excellent</>
@@ -251,19 +251,19 @@ export default function ServicesDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm text-slate-900 dark:text-white">{job.jobNumber}</span>
-                        {isSoon && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase animate-pulse">SOON</span>}
-                        <span className={'px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' + (PRIORITY_COLORS[job.priority] || 'bg-blue-500')}>
+                        {isSoon && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">SOON</span>}
+                        <span className={'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' + (PRIORITY_COLORS[job.priority] || 'bg-blue-500')}>
                           {job.priority}
                         </span>
                       </div>
                       <div className="text-xs text-slate-600 font-bold truncate">{job.customerName} • {job.serviceName}</div>
-                      {job.area && <div className="text-[10px] text-slate-500 font-semibold truncate">📍 {job.area}</div>}
+                      {job.area && <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">📍 {job.area}</div>}
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-sm font-extrabold text-slate-900 dark:text-white">
                         {job.scheduledStart && format(new Date(job.scheduledStart), 'HH:mm')}
                       </div>
-                      <div className="text-[10px] font-bold text-slate-500 uppercase">{job.status}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{job.status}</div>
                     </div>
                   </Link>
                 );
@@ -304,14 +304,14 @@ export default function ServicesDashboardPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-sm">{job.jobNumber}</span>
-                      <span className={'px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase text-white ' + (PRIORITY_COLORS[job.priority] || 'bg-red-500')}>
+                      <span className={'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' + (PRIORITY_COLORS[job.priority] || 'bg-red-500')}>
                         {job.priority}
                       </span>
                     </div>
                     <div className="text-xs text-slate-700 dark:text-slate-300 font-bold truncate">{job.customerName}</div>
-                    <div className="text-[10px] text-slate-500 font-semibold truncate">{job.serviceName}</div>
+                    <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">{job.serviceName}</div>
                     {job.urgencyReason && (
-                      <div className="text-[10px] italic text-red-700 truncate">⚠️ {job.urgencyReason}</div>
+                      <div className="text-[0.6875rem] italic text-red-700 truncate">⚠️ {job.urgencyReason}</div>
                     )}
                   </div>
                   <ArrowRight className="h-4 w-4 text-red-600" />
@@ -357,7 +357,7 @@ export default function ServicesDashboardPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-extrabold text-sm truncate">{name}</div>
-                      <div className="text-[10px] font-bold text-slate-500">{t.completedJobs} completed jobs</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500">{t.completedJobs} completed jobs</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-emerald-700 tabular-nums text-sm">{formatPKR(t.revenue)}</div>
@@ -400,7 +400,7 @@ export default function ServicesDashboardPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm">{amc.amcNumber}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[9px] font-extrabold uppercase">{amc.type}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase">{amc.type}</span>
                       </div>
                       <div className="text-xs text-slate-700 dark:text-slate-300 font-bold truncate">{amc.customerName}</div>
                     </div>
@@ -411,7 +411,7 @@ export default function ServicesDashboardPage() {
                       }>
                         {daysLeft}d left
                       </div>
-                      <div className="text-[10px] font-bold text-slate-500">
+                      <div className="text-[0.6875rem] font-bold text-slate-500">
                         {format(new Date(amc.endDate), 'dd MMM')}
                       </div>
                     </div>
@@ -440,11 +440,11 @@ export default function ServicesDashboardPage() {
               .map((b: any) => (
                 <div key={b.businessType} className="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-neutral-800 dark:to-neutral-800/50 p-4 border-2 border-slate-200 dark:border-neutral-700 text-center">
                   <div className="text-4xl mb-2">{BIZ_EMOJI[b.businessType] || '🛠️'}</div>
-                  <div className="text-[10px] font-extrabold uppercase text-slate-700 dark:text-slate-300 mb-1 truncate">
+                  <div className="text-[0.6875rem] font-extrabold uppercase text-slate-700 dark:text-slate-300 mb-1 truncate">
                     {b.businessType.replace(/_/g, ' ')}
                   </div>
                   <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{b._count._all}</div>
-                  <div className="text-[10px] font-bold text-slate-500">jobs</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500">jobs</div>
                   {b._sum.totalCharge > 0 && (
                     <div className="mt-1 text-xs font-extrabold text-emerald-700 tabular-nums">
                       {formatPKR(b._sum.totalCharge)}
@@ -505,7 +505,7 @@ function MiniKpi({ label, value, icon: Icon, color, to }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-      <div className="text-[10px] font-extrabold uppercase text-slate-500 mt-0.5">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold uppercase text-slate-500 mt-0.5">{label}</div>
     </Link>
   );
 }

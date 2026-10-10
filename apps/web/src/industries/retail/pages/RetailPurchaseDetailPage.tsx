@@ -145,7 +145,7 @@ export default function RetailPurchaseDetailPage() {
 
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg print:hidden">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg print:hidden">
               <Truck className="h-3.5 w-3.5 text-amber-300" /> Purchase Invoice
             </div>
             <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold font-mono break-all">{purchase.purchaseNumber}</h1>
@@ -174,7 +174,7 @@ export default function RetailPurchaseDetailPage() {
             <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full border-2 text-xs font-extrabold ${status.cls}`}>
               {status.emoji} {status.label}
             </span>
-            <div className="mt-2 text-[10px] uppercase tracking-wider text-white/60 print:text-slate-500 font-extrabold">Payment</div>
+            <div className="mt-2 text-[0.6875rem] uppercase tracking-wider text-white/60 print:text-slate-500 font-extrabold">Payment</div>
             <div className="text-sm font-extrabold mt-0.5 inline-flex items-center gap-1.5">
               {paymentEmoji[purchase.paymentMethod]} {paymentLabels[purchase.paymentMethod] || purchase.paymentMethod}
             </div>
@@ -221,7 +221,7 @@ export default function RetailPurchaseDetailPage() {
             style={{ width: `${paidPercent}%` }}
           />
         </div>
-        <div className="mt-2 flex items-center justify-between text-[11px] font-extrabold">
+        <div className="mt-2 flex items-center justify-between text-[0.6875rem] font-extrabold">
           <span className="text-emerald-700 dark:text-emerald-400 tabular-nums">{paidPercent.toFixed(0)}% paid</span>
           {balance > 0 ? (
             <span className="text-rose-600 dark:text-rose-400 inline-flex items-center gap-1 tabular-nums">
@@ -242,7 +242,7 @@ export default function RetailPurchaseDetailPage() {
             <Building2 className="h-6 w-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">Supplier</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">Supplier</div>
             <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5">{purchase.supplier?.name}</h3>
             <div className="mt-2 grid sm:grid-cols-2 gap-2 text-xs">
               {purchase.supplier?.phone && (
@@ -292,11 +292,11 @@ export default function RetailPurchaseDetailPage() {
           <table className="w-full text-sm min-w-[560px]">
             <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="px-4 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 w-12">#</th>
-                <th className="px-4 py-3 text-left text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Product</th>
-                <th className="px-4 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Qty</th>
-                <th className="px-4 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Cost</th>
-                <th className="px-4 py-3 text-right text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Total</th>
+                <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 w-12">#</th>
+                <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Product</th>
+                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Qty</th>
+                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Cost</th>
+                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Total</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -314,13 +314,13 @@ export default function RetailPurchaseDetailPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="font-extrabold text-slate-900 dark:text-white text-sm">{item.product.name}</div>
-                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono uppercase">{item.product.unit}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono uppercase">{item.product.unit}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatQty(item.quantity)}</div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase">{item.product.unit}</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold uppercase">{item.product.unit}</div>
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-bold text-slate-700 dark:text-slate-200 tabular-nums">
                     {formatPKR(item.costPrice)}
@@ -370,7 +370,7 @@ export default function RetailPurchaseDetailPage() {
             <FileText className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-amber-900 dark:text-amber-300">Note</div>
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-900 dark:text-amber-300">Note</div>
             <div className="text-sm text-amber-900 dark:text-amber-200 mt-0.5 font-semibold leading-relaxed">{purchase.notes}</div>
           </div>
         </div>
@@ -383,7 +383,7 @@ export default function RetailPurchaseDetailPage() {
           Stock Receive Ho Kar Update Ho Gaya
           <Award className="h-4 w-4 text-amber-500" />
         </div>
-        <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 inline-flex items-center gap-1 font-semibold">
+        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-2 inline-flex items-center gap-1 font-semibold">
           <Sparkles className="h-2.5 w-2.5" />
           Powered by Nafaa POS • Generated {formatDate(new Date().toISOString())}
         </div>
@@ -506,7 +506,7 @@ function StatBox({
     <div className={`rounded-2xl bg-gradient-to-br border-2 p-3.5 sm:p-4 ${toneMap[tone]} ${highlight ? 'shadow-lg' : ''}`}>
       <div className="flex items-center gap-1.5 mb-1.5 opacity-80">
         <Icon className="h-3.5 w-3.5" />
-        <div className="text-[10px] uppercase tracking-wider font-extrabold">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold">{label}</div>
       </div>
       <div className={`font-extrabold tabular-nums break-all ${highlight ? 'text-xl sm:text-2xl' : 'text-lg sm:text-xl'}`}>{value}</div>
     </div>

@@ -47,7 +47,7 @@ export default function AllShopsDashboard() {
       <div className="rounded-3xl bg-gradient-to-br from-violet-700 via-indigo-700 to-indigo-900 text-white p-6 shadow-xl">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wider">
               <Layers className="h-3.5 w-3.5" />
               All Shops
             </div>
@@ -120,7 +120,7 @@ export default function AllShopsDashboard() {
                 <div className="font-bold text-slate-900 text-sm">{n.name}</div>
                 <ul className="mt-1 space-y-0.5">
                   {n.reasons.map((r) => (
-                    <li key={r} className="text-[11px] text-amber-800 font-semibold">• {r}</li>
+                    <li key={r} className="text-[0.6875rem] text-amber-800 font-semibold">• {r}</li>
                   ))}
                 </ul>
               </div>
@@ -180,15 +180,15 @@ function BranchRow({ shop }: { shop: ShopAnalyticsRow }) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-extrabold text-slate-900">{shop.name}</span>
             {shop.isMain && (
-              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-100 text-emerald-700">
+              <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700">
                 MAIN
               </span>
             )}
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600">
+            <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-bold bg-slate-100 text-slate-600">
               {shop.type}
             </span>
             <span
-              className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold inline-flex items-center gap-1 ${
+              className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold inline-flex items-center gap-1 ${
                 shop.registerOpen
                   ? 'bg-emerald-100 text-emerald-700'
                   : 'bg-slate-200 text-slate-600'
@@ -207,12 +207,12 @@ function BranchRow({ shop }: { shop: ShopAnalyticsRow }) {
                 style={{ width: `${Math.min(shop.monthShare, 100)}%` }}
               />
             </div>
-            <span className="text-[11px] font-extrabold text-slate-600 tabular-nums">
+            <span className="text-[0.6875rem] font-extrabold text-slate-600 tabular-nums">
               {shop.monthShare.toFixed(0)}% share
             </span>
           </div>
 
-          <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1.5 text-[11px]">
+          <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1.5 text-[0.6875rem]">
             <Metric label="Aaj" value={formatPKR(shop.todaySales)} />
             <Metric label="Aaj net" value={formatPKR(shop.todayNetProfit)} />
             <Metric label="7 din" value={formatPKR(shop.weekSales)} />
@@ -233,8 +233,8 @@ function BranchRow({ shop }: { shop: ShopAnalyticsRow }) {
             <Arrow className="h-4 w-4" />
             {Math.abs(shop.growthVsYesterday).toFixed(0)}%
           </div>
-          <div className="text-[10px] text-slate-500 font-semibold">kal ke muqable</div>
-          <div className="mt-1 text-[11px] text-slate-600 font-bold inline-flex items-center gap-1">
+          <div className="text-[0.6875rem] text-slate-500 font-semibold">kal ke muqable</div>
+          <div className="mt-1 text-[0.6875rem] text-slate-600 font-bold inline-flex items-center gap-1">
             <Receipt className="h-3 w-3" />
             {shop.todayOrders} orders
           </div>
@@ -255,7 +255,7 @@ function Metric({
 }) {
   return (
     <div>
-      <div className="text-slate-400 font-bold uppercase tracking-wide text-[9px] inline-flex items-center gap-1">
+      <div className="text-slate-400 font-bold uppercase tracking-wide text-[0.625rem] inline-flex items-center gap-1">
         {Icon && <Icon className="h-2.5 w-2.5" />}
         {label}
       </div>
@@ -288,13 +288,13 @@ function Tile({
     <div className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500">
             {label}
           </div>
           <div className="mt-1 text-2xl font-extrabold text-slate-900 tabular-nums truncate">
             {value}
           </div>
-          <div className="text-[11px] text-slate-500 font-semibold truncate">{sub}</div>
+          <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">{sub}</div>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${TONES[tone]} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-5 w-5" />

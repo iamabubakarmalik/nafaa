@@ -54,7 +54,7 @@ export function JewelryWizardStep3Certify({ certify, onChange, errors }: Props) 
             <Sparkles className={['h-4 w-4', certify.isCustomOrder ? 'text-purple-600' : 'text-slate-400'].join(' ')} />
             <div className="flex-1">
               <div className="text-sm font-extrabold text-slate-900">Custom Order</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Made-to-order</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Made-to-order</div>
             </div>
           </label>
           <label className={['flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition',
@@ -64,7 +64,7 @@ export function JewelryWizardStep3Certify({ certify, onChange, errors }: Props) 
             <Crown className={['h-4 w-4', certify.isBespoke ? 'text-rose-600' : 'text-slate-400'].join(' ')} />
             <div className="flex-1">
               <div className="text-sm font-extrabold text-slate-900">Bespoke</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Fully customized</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Fully customized</div>
             </div>
           </label>
           <label className={['flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition',
@@ -74,7 +74,7 @@ export function JewelryWizardStep3Certify({ certify, onChange, errors }: Props) 
             <Award className={['h-4 w-4', certify.isAntique ? 'text-amber-600' : 'text-slate-400'].join(' ')} />
             <div className="flex-1">
               <div className="text-sm font-extrabold text-slate-900">Antique</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Heritage piece</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Heritage piece</div>
             </div>
           </label>
         </div>
@@ -157,7 +157,7 @@ export function JewelryWizardStep3Certify({ certify, onChange, errors }: Props) 
             <RefreshCw className={['h-5 w-5', certify.isBuyBackEligible ? 'text-emerald-600' : 'text-slate-400'].join(' ')} />
             <div className="flex-1">
               <div className="font-extrabold text-sm">Buyback Eligible</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Store will buy back at % of value</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Store will buy back at % of value</div>
             </div>
           </label>
           <label className={['flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition',
@@ -167,7 +167,7 @@ export function JewelryWizardStep3Certify({ certify, onChange, errors }: Props) 
             <Package className={['h-5 w-5', certify.isReturnable ? 'text-blue-600' : 'text-slate-400'].join(' ')} />
             <div className="flex-1">
               <div className="font-extrabold text-sm">Returnable</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Return within X days</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Return within X days</div>
             </div>
           </label>
         </div>
@@ -252,7 +252,7 @@ export function JewelryWizardStep3Certify({ certify, onChange, errors }: Props) 
             <div className="flex items-center gap-2">
               <TrendingUp className={['h-5 w-5', isLoss ? 'text-rose-700' : margin >= 30 ? 'text-emerald-700' : 'text-amber-700'].join(' ')} />
               <div>
-                <div className={['text-[10px] uppercase tracking-wider font-extrabold',
+                <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold',
                   isLoss ? 'text-rose-700' : margin >= 30 ? 'text-emerald-700' : 'text-amber-700'].join(' ')}>
                   {isLoss ? '⚠️ Loss Alert' : 'Expected Profit'}
                 </div>
@@ -289,7 +289,7 @@ export function JewelryWizardStep3Certify({ certify, onChange, errors }: Props) 
             <span className="text-xl">👰</span>
             <div className="flex-1">
               <div className="font-extrabold text-sm">Bridal Collection</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Wedding jewelry</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Wedding jewelry</div>
             </div>
           </label>
           <label className={['flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition',
@@ -299,7 +299,7 @@ export function JewelryWizardStep3Certify({ certify, onChange, errors }: Props) 
             <span className="text-xl">🎉</span>
             <div className="flex-1">
               <div className="font-extrabold text-sm">Festival Special</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Eid / Diwali / etc</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Eid / Diwali / etc</div>
             </div>
           </label>
           <label className={['flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition',
@@ -309,7 +309,7 @@ export function JewelryWizardStep3Certify({ certify, onChange, errors }: Props) 
             <TrendingUp className={['h-5 w-5', certify.isBestSeller ? 'text-emerald-600' : 'text-slate-400'].join(' ')} />
             <div className="flex-1">
               <div className="font-extrabold text-sm">Best Seller</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Popular item</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Popular item</div>
             </div>
           </label>
           <label className={['flex items-center gap-3 cursor-pointer p-3 rounded-xl border-2 transition',
@@ -319,7 +319,7 @@ export function JewelryWizardStep3Certify({ certify, onChange, errors }: Props) 
             <Star className={['h-5 w-5', certify.isPopular ? 'text-amber-500 fill-amber-500' : 'text-slate-400'].join(' ')} />
             <div className="flex-1">
               <div className="font-extrabold text-sm">Popular</div>
-              <div className="text-[10px] text-slate-500 font-semibold">Trending now</div>
+              <div className="text-[0.6875rem] text-slate-500 font-semibold">Trending now</div>
             </div>
           </label>
         </div>

@@ -169,7 +169,7 @@ export function RetailWizardStep1Basic({ basic, onChange, errors }: Props) {
                   a ? 'border-sky-600 bg-sky-600 text-white shadow-lg shadow-sky-500/40 scale-[1.03]' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-400 dark:hover:border-sky-500/50'].join(' ')}>
                 <span className="text-2xl leading-none">{u.e}</span>
                 <span className="text-xs font-extrabold">{u.l}</span>
-                <span className={['text-[9px] font-bold', a ? 'text-white/80' : 'text-slate-400 dark:text-slate-500'].join(' ')}>{u.h}</span>
+                <span className={['text-[0.625rem] font-bold', a ? 'text-white/80' : 'text-slate-400 dark:text-slate-500'].join(' ')}>{u.h}</span>
               </button>
             );
           })}
@@ -189,7 +189,7 @@ export function RetailWizardStep1Basic({ basic, onChange, errors }: Props) {
             <input type="number" step="0.01" inputMode="decimal" value={basic.costPrice}
               onChange={(e) => onChange({ costPrice: e.target.value === '' ? '' : Number(e.target.value) })} placeholder="0"
               className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-slate-500 dark:focus:border-slate-400 transition" />
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-1">Jo aapne diya</p>
+            <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-1">Jo aapne diya</p>
           </div>
           <div>
             <Lbl tone="emerald">Bikri Rate (Sale) *</Lbl>
@@ -203,7 +203,7 @@ export function RetailWizardStep1Basic({ basic, onChange, errors }: Props) {
                   ? 'border-rose-400 dark:border-rose-500/60 focus:border-rose-600 focus:ring-rose-200 dark:focus:ring-rose-500/30'
                   : 'border-emerald-400 dark:border-emerald-500/50 focus:border-emerald-600 dark:focus:border-emerald-400 focus:ring-emerald-200 dark:focus:ring-emerald-500/30',
               ].join(' ')} />
-            <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-bold mt-1">
+            <p className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-bold mt-1">
               {saleError ? '⚠️ Bikri rate zaroori hai' : 'Customer se lena'}
             </p>
           </div>
@@ -211,7 +211,7 @@ export function RetailWizardStep1Basic({ basic, onChange, errors }: Props) {
 
         {cost > 0 && (
           <div>
-            <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-300 mb-1.5 flex items-center gap-1">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-300 mb-1.5 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Profit % lagao — rate khud ban jayega
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -234,7 +234,7 @@ export function RetailWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div className="flex items-center gap-2.5">
                 <TrendingUp className={['h-6 w-6', loss ? 'text-rose-700 dark:text-rose-400' : margin >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'].join(' ')} />
                 <div>
-                  <div className={['text-[10px] uppercase tracking-wider font-extrabold', loss ? 'text-rose-700 dark:text-rose-400' : margin >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'].join(' ')}>
+                  <div className={['text-[0.6875rem] uppercase tracking-wider font-extrabold', loss ? 'text-rose-700 dark:text-rose-400' : margin >= 20 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'].join(' ')}>
                     {loss ? '⚠️ NUQSAAN HO RAHA HAI' : `Faida per ${U}`}
                   </div>
                   <div className={['text-2xl font-extrabold tabular-nums', loss ? 'text-rose-900 dark:text-rose-200' : 'text-slate-900 dark:text-white'].join(' ')}>{formatPKRFull(profit)}</div>
@@ -248,7 +248,7 @@ export function RetailWizardStep1Basic({ basic, onChange, errors }: Props) {
               <div className={['h-full rounded-full transition-all', loss ? 'bg-rose-500' : margin >= 20 ? 'bg-emerald-500' : 'bg-amber-500'].join(' ')}
                 style={{ width: `${Math.min(Math.max(margin, 0), 100)}%` }} />
             </div>
-            <p className={['text-[11px] font-bold mt-1.5', loss ? 'text-rose-800 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300'].join(' ')}>
+            <p className={['text-[0.6875rem] font-bold mt-1.5', loss ? 'text-rose-800 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300'].join(' ')}>
               {loss ? 'Bikri rate kharid se kam hai — rate barhao'
                 : margin < 10 ? 'Faida bohat kam hai'
                 : margin < 20 ? 'Theek hai, thora behtar ho sakta hai'
@@ -385,7 +385,7 @@ export function RetailWizardStep1Basic({ basic, onChange, errors }: Props) {
             {basic.imageUrls.map((url, i) => (
               <div key={url + i} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
                 <img src={url} alt="" className="w-full h-full object-cover" />
-                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-sky-600 text-white text-[9px] font-extrabold">MAIN</div>}
+                {i === 0 && <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-sky-600 text-white text-[0.625rem] font-extrabold">MAIN</div>}
                 <button type="button" onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, x) => x !== i) })}
                   className="absolute top-1 right-1 h-6 w-6 rounded-full bg-slate-900/80 hover:bg-rose-600 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center font-extrabold transition">×</button>
               </div>
@@ -448,7 +448,7 @@ function Tog({ checked, onChange, icon: Icon, t, d }: { checked: boolean; onChan
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-extrabold text-slate-900 dark:text-white text-sm">{t}</div>
-        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">{d}</div>
+        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">{d}</div>
       </div>
       <div className={['h-7 w-12 rounded-full transition relative shrink-0', checked ? 'bg-sky-600' : 'bg-slate-300 dark:bg-slate-600'].join(' ')}>
         <div className={['absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all', checked ? 'left-6' : 'left-1'].join(' ')} />

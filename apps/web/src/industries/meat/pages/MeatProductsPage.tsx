@@ -296,22 +296,22 @@ function ProductCard({ profile, onDelete }: any) {
 
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {profile.isHalalCertified && (
-            <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[9px] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
+            <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5 shadow">
               <ShieldCheck className="h-2 w-2" /> HALAL
             </span>
           )}
           {profile.isFeatured && (
-            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-extrabold uppercase shadow">
+            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase shadow">
               <Star className="h-2 w-2 fill-current inline" /> Featured
             </span>
           )}
           {profile.isOnSale && (
-            <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[9px] font-extrabold uppercase shadow">
+            <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase shadow">
               <Zap className="h-2 w-2 inline" /> SALE
             </span>
           )}
           {profile.isPopular && (
-            <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[9px] font-extrabold uppercase shadow">
+            <span className="px-1.5 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase shadow">
               <TrendingUp className="h-2 w-2 inline" /> POPULAR
             </span>
           )}
@@ -324,7 +324,7 @@ function ProductCard({ profile, onDelete }: any) {
             </span>
           )}
           {profile.isBoneless && (
-            <span className="px-1.5 py-0.5 rounded bg-slate-900/80 backdrop-blur text-white text-[9px] font-extrabold uppercase shadow">
+            <span className="px-1.5 py-0.5 rounded bg-slate-900/80 backdrop-blur text-white text-[0.625rem] font-extrabold uppercase shadow">
               Boneless
             </span>
           )}
@@ -332,8 +332,8 @@ function ProductCard({ profile, onDelete }: any) {
 
         <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between">
           <div className="text-white">
-            <div className="text-[10px] font-extrabold uppercase text-white/80">{animal?.label}</div>
-            <div className="text-[10px] font-bold text-white/70">{profile.cutCategory?.replace('_', ' ')}</div>
+            <div className="text-[0.6875rem] font-extrabold uppercase text-white/80">{animal?.label}</div>
+            <div className="text-[0.6875rem] font-bold text-white/70">{profile.cutCategory?.replace('_', ' ')}</div>
           </div>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity">
             <button
@@ -351,20 +351,20 @@ function ProductCard({ profile, onDelete }: any) {
 
         <div className="flex flex-wrap gap-1">
           {profile.qualityGrade && (
-            <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[9px] font-extrabold uppercase">
+            <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase">
               {profile.qualityGrade.replace('_', ' ')}
             </span>
           )}
           {profile.isOrganic && (
-            <span className="px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-950/40 text-green-700 text-[9px] font-extrabold uppercase">ORGANIC</span>
+            <span className="px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-950/40 text-green-700 text-[0.625rem] font-extrabold uppercase">ORGANIC</span>
           )}
           {profile.isFreeRange && (
-            <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[9px] font-extrabold uppercase">FREE RANGE</span>
+            <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase">FREE RANGE</span>
           )}
         </div>
 
         {profile.halalCertNumber && (
-          <div className="text-[10px] font-mono text-emerald-700 font-bold">
+          <div className="text-[0.6875rem] font-mono text-emerald-700 font-bold">
             <ShieldCheck className="h-2.5 w-2.5 inline mr-0.5" />
             Cert: {profile.halalCertNumber}
           </div>
@@ -384,7 +384,7 @@ function ProductCard({ profile, onDelete }: any) {
           </div>
           {profile.totalSoldKg > 0 && (
             <div className="text-right">
-              <div className="text-[10px] font-extrabold text-slate-500">Sold</div>
+              <div className="text-[0.6875rem] font-extrabold text-slate-500">Sold</div>
               <div className="text-xs font-extrabold text-slate-700 tabular-nums">{profile.totalSoldKg.toFixed(1)}kg</div>
             </div>
           )}
