@@ -1,0 +1,115 @@
+/**
+ * Writes a resolved appearance to the document.
+ *
+ * This is the only code that touches <html> for theming: the `dark` class,
+ * CSS custom properties, data attributes, the root font size, `lang`/`dir`,
+ * and the web-font <link> tags. Keeping it in one place is what stops the
+ * old problem of three different modules toggling dark mode independently.
+ *
+ * The computed variables are also cached in localStorage so the inline boot
+ * script in index.html can paint the right colors before React loads.
+ */
+
+import { buildScale, readableOn, SCALE_STEPS } from '../tokens/color';
+import { DENSITIES, RADII } from '../tokens/layout';
+import { findLatinFont, findUrduFont, MONO_STACK, TEXT_SCALES } from '../tokens/typography';
+import type { ResolvedAppearance } from './appearance';
+
+export const BOOT_CACHE_KEY = 'nafaa-appearance-boot';
+
+/**
+ * Right-to-left layout for Urdu script. Off until screens are translated and
+ * converted to logical (start/end) spacing; turning it on earlier would flip
+ * untranslated layouts for businesses that already saved "Urdu" as language.
+ */
+export const RTL_ENABLED = false;
+
+export interface BootCache {
+  dark: boolean;
+  vars: Record<string, string>;
+  rootFontSize: string;
+  density: string;
+  radius: string;
+  lang: string;
+  dir: 'ltr' | 'rtl';
+}
+
+/** Builds every CSS variable the theme controls. Pure; safe to unit test. */
+export function themeVariables(a: ResolvedAppearance): Record<string, string> {
+  const vars: Record<string, string> = {};
+  const scale = buildScale(a.accentHex);
+  for (const step of SCALE_STEPS) vars[`--brand-${step}`] = scale[step];
+  vars['--brand-fg'] = readableOn(a.accentHex);
+  vars['--brand-hex'] = a.accentHex;
+  vars['--ring-color'] = scale[500];
+
+  vars['--font-latin'] = findLatinFont(a.latinFont).stack;
+  vars['--font-urdu'] = findUrduFont(a.urduFont).stack;
+  vars['--font-mono'] = MONO_STACK;
+
+  const density = DENSITIES[a.density] ?? DENSITIES.comfortable;
+  vars['--control-height'] = density.controlHeight;
+  vars['--layout-gap'] = density.gap;
+  vars['--radius-base'] = (RADII[a.radius] ?? RADII.default).base;
+  return vars;
+}
+
+export function isDarkMode(a: ResolvedAppearance, systemPrefersDark: boolean): boolean {
+  return a.mode === 'dark' || (a.mode === 'system' && systemPrefersDark);
+}
+
+const FONT_LINK_ATTR = 'data-ds-font';
+
+/** Adds a Google Fonts stylesheet once per font; unused fonts are never fetched. */
+function ensureFont(family: string | null, id: string) {
+  if (!family || typeof document === 'undefined') return;
+  if (document.head.querySelector(`link[${FONT_LINK_ATTR}="${id}"]`)) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${family}&display=swap`;
+  link.setAttribute(FONT_LINK_ATTR, id);
+  document.head.appendChild(link);
+}
+
+export function applyAppearance(a: ResolvedAppearance, systemPrefersDark: boolean): void {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  const dark = isDarkMode(a, systemPrefersDark);
+  const vars = themeVariables(a);
+
+  root.classList.toggle('dark', dark);
+  root.style.colorScheme = dark ? 'dark' : 'light';
+  for (const [name, value] of Object.entries(vars)) root.style.setProperty(name, value);
+
+  const rootFontSize = `${(TEXT_SCALES[a.textScale] ?? TEXT_SCALES.md).rootPercent}%`;
+  root.style.fontSize = rootFontSize;
+  root.dataset.density = a.density;
+  root.dataset.radius = a.radius;
+  root.dataset.motion = a.reduceMotion ? 'reduce' : 'full';
+
+  const lang = a.language === 'ur' ? 'ur' : a.language === 'roman_ur' ? 'ur-Latn' : 'en';
+  const dir = RTL_ENABLED && a.language === 'ur' ? 'rtl' : 'ltr';
+  root.lang = lang;
+  root.dir = dir;
+
+  const latin = findLatinFont(a.latinFont);
+  ensureFont(latin.google, latin.id);
+  if (a.language === 'ur') {
+    const urdu = findUrduFont(a.urduFont);
+    ensureFont(urdu.google, urdu.id);
+  }
+
+  updateThemeColorMeta(dark ? '#0b1220' : a.accentHex);
+
+  try {
+    const cache: BootCache = { dark, vars, rootFontSize, density: a.density, radius: a.radius, lang, dir };
+    localStorage.setItem(BOOT_CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // Storage can be unavailable (private mode); the theme still applies.
+  }
+}
+
+function updateThemeColorMeta(color: string) {
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (meta) meta.content = color;
+}

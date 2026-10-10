@@ -1,3 +1,14 @@
+/**
+ * Tailwind configuration.
+ *
+ * Brand colors, fonts and radius come from CSS variables defined by the
+ * design system (src/design-system), so the theme can change at runtime
+ * without rebuilding CSS. Do not hard-code brand hex values here.
+ */
+
+const STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const brandScale = Object.fromEntries(STEPS.map((step) => [step, `rgb(var(--brand-${step}) / <alpha-value>)`]));
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class',
@@ -5,19 +16,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50:  '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#34d399',
-          500: '#10b981',
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
-          950: '#022c22',
-        },
+        // `text-brand-fg` is the readable text color on top of brand backgrounds.
+        brand: { ...brandScale, fg: 'var(--brand-fg)' },
+        // Existing screens use `emerald-*` as the primary color; it follows the brand too.
+        emerald: brandScale,
         accent: {
           50:  '#fffbeb',
           100: '#fef3c7',
@@ -68,27 +70,10 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: [
-          '"Segoe UI Variable Text"',
-          '"Segoe UI"',
-          '"Inter var"',
-          'Inter',
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'sans-serif',
-        ],
-        urdu: ['"Noto Nastaliq Urdu"', 'serif'],
-        mono: [
-          '"Cascadia Code"',
-          '"Cascadia Mono"',
-          '"JetBrains Mono"',
-          '"SF Mono"',
-          'Consolas',
-          'ui-monospace',
-          'monospace',
-        ],
-        display: ['"Segoe UI Variable Display"', '"Segoe UI"', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-latin)'],
+        display: ['var(--font-latin)'],
+        urdu: ['var(--font-urdu)'],
+        mono: ['var(--font-mono)'],
       },
       fontSize: {
         '2xs':  ['0.6875rem', { lineHeight: '1rem' }],
@@ -100,22 +85,23 @@ module.exports = {
         'soft':       '0 4px 20px -6px rgba(15, 23, 42, 0.12)',
         'soft-lg':    '0 10px 40px -10px rgba(15, 23, 42, 0.18)',
         'soft-xl':    '0 20px 60px -12px rgba(15, 23, 42, 0.22)',
-        'brand':      '0 8px 24px -6px rgba(16, 185, 129, 0.4)',
-        'brand-lg':   '0 12px 40px -8px rgba(16, 185, 129, 0.45)',
+        'brand':      '0 8px 24px -6px rgb(var(--brand-500) / 0.4)',
+        'brand-lg':   '0 12px 40px -8px rgb(var(--brand-500) / 0.45)',
         'inset-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
         'card':       '0 2px 4px -1px rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.06)',
         'card-lg':    '0 8px 16px -4px rgba(0,0,0,0.12), 0 4px 8px -2px rgba(0,0,0,0.08)',
       },
       backgroundImage: {
-        'brand-gradient':  'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
+        'brand-gradient':  'linear-gradient(135deg, rgb(var(--brand-500)) 0%, rgb(var(--brand-600)) 50%, rgb(var(--brand-700)) 100%)',
         'sunset-gradient': 'linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)',
         'sky-gradient':    'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
         'rose-gradient':   'linear-gradient(135deg, #f43f5e 0%, #e11d48 50%, #be123c 100%)',
         'purple-gradient': 'linear-gradient(135deg, #a855f7 0%, #9333ea 50%, #7e22ce 100%)',
-        'mesh-emerald':    'radial-gradient(at 20% 20%, #10b981 0px, transparent 50%), radial-gradient(at 80% 80%, #f59e0b 0px, transparent 50%)',
+        'mesh-emerald':    'radial-gradient(at 20% 20%, rgb(var(--brand-500)) 0px, transparent 50%), radial-gradient(at 80% 80%, #f59e0b 0px, transparent 50%)',
       },
       borderRadius: {
         'xs':  '0.25rem',
+        'theme': 'var(--radius-base)',
         '4xl': '2rem',
         '5xl': '2.5rem',
       },

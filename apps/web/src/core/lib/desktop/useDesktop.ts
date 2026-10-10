@@ -125,13 +125,8 @@ export function useDesktopTheme() {
 
     if (electron.onThemeChanged) {
       return electron.onThemeChanged((newTheme: 'light' | 'dark') => {
+        // Theme is applied by the design-system AppearanceProvider; this hook only reports it.
         setTheme(newTheme);
-        // Apply to document
-        if (newTheme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
       });
     }
   }, []);

@@ -5,7 +5,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { queryCachePersister } from '@core/lib/offline/queryPersister';
 import { Toaster } from 'sonner';
 import { useEffect, type ReactElement } from 'react';
-import { useThemeStore } from '@core/stores/theme.store';
+import { AppearanceBridge, AppearanceProvider } from '@/design-system';
 import { useLocaleStore } from '@core/stores/locale.store';
 
 // ─── Notifications ─────────────────────────────────────────────
@@ -553,13 +553,11 @@ const persistOptions = {
 };
 
 export default function App() {
-  const initTheme = useThemeStore((s) => s.initialize);
   const initLocale = useLocaleStore((s) => s.initialize);
 
   useEffect(() => {
-    initTheme();
     initLocale();
-  }, [initTheme, initLocale]);
+  }, [initLocale]);
 
   const secure = (permission: any, node: ReactElement) => (
     <PermissionRoute permission={permission}>{node}</PermissionRoute>
@@ -574,8 +572,9 @@ export default function App() {
         queryClient.resumePausedMutations().catch(() => {});
       }}
     >
-      <>
+      <AppearanceProvider>
         <IndustryProvider>
+          <AppearanceBridge />
           <OfflineBanner />
           <Routes>
             {/* ═══ BILKUL PUBLIC — login ho ya na ho (customer ka order form, developer link) ═══ */}
@@ -1293,7 +1292,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </IndustryProvider>
-      </>
+      </AppearanceProvider>
 
       <Toaster
         position="top-right"

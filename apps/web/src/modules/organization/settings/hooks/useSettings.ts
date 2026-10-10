@@ -2,11 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { settingsApi, type TenantSettings } from '@modules/organization/settings/api/settings.api';
 import { toast } from 'sonner';
 
-export function useSettings() {
+export function useSettings(options: { enabled?: boolean; retry?: boolean | number } = {}) {
   return useQuery({
     queryKey: ['settings'],
     queryFn: settingsApi.get,
     staleTime: 30_000,
+    ...options,
   });
 }
 

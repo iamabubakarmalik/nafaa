@@ -10,12 +10,12 @@ interface LocaleState {
   initialize: () => void;
 }
 
-const applyDOM = (locale: Locale) => {
-  if (typeof document === 'undefined') return;
-  const isRTL = locale === 'ur';
-  document.documentElement.lang = locale;
-  document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-};
+/**
+ * `<html lang>` and `dir` are owned by the design-system AppearanceProvider,
+ * which also gates right-to-left layout until screens are translated.
+ * This store only remembers the chosen locale.
+ */
+const applyDOM = (_locale: Locale) => undefined;
 
 export const useLocaleStore = create<LocaleState>()(
   persist(

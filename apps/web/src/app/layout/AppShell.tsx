@@ -14,7 +14,7 @@ import { useRealtimeNotifications } from '@core/hooks/useRealtimeNotifications';
 import { ErrorBoundary } from '@core/components/ErrorBoundary';
 import { PageLockGate } from '@core/security/PageLockGate';
 import { usePrivacyStore } from '@core/stores/privacy.store';
-import { useDesktopNavigation, useDesktopShortcuts, useDesktopTheme } from '@core/lib/desktop/useDesktop';
+import { useDesktopNavigation, useDesktopShortcuts } from '@core/lib/desktop/useDesktop';
 import { useDesktopScanner } from '@core/hooks/useDesktopScanner';
 import { useHardwareBoot } from '@core/hardware/HardwareBoot';
 import { usePayQrs } from '@core/payments/payQr';
@@ -32,7 +32,6 @@ export default function AppShell() {
   useRealtimeNotifications();
   useDesktopNavigation();
   useDesktopShortcuts();
-  useDesktopTheme();
   useDesktopScanner();
   useHardwareBoot();
   usePayQrs(); // bill par QR chhapne ke liye pehle se tayyar

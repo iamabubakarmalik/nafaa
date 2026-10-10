@@ -1,0 +1,77 @@
+/*
+ * Design tokens — CSS custom properties.
+ *
+ * These are the defaults painted before JavaScript runs. At runtime the
+ * AppearanceProvider overwrites the brand scale, fonts, radius and density on
+ * <html> from the user's appearance settings (see theme/apply.ts).
+ *
+ * Brand values are bare RGB channels so Tailwind opacity modifiers work:
+ *   color: rgb(var(--brand-600) / 0.2)
+ */
+
+:root {
+  /* Brand scale — default is the Nafaa emerald. */
+  --brand-50: 236 253 245;
+  --brand-100: 209 250 229;
+  --brand-200: 167 243 208;
+  --brand-300: 110 231 183;
+  --brand-400: 52 211 153;
+  --brand-500: 16 185 129;
+  --brand-600: 5 150 105;
+  --brand-700: 4 120 87;
+  --brand-800: 6 95 70;
+  --brand-900: 6 78 59;
+  --brand-950: 2 44 34;
+  --brand-fg: #ffffff;
+  --brand-hex: #059669;
+
+  /* Typography */
+  --font-latin: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-urdu: 'Noto Naskh Arabic', 'Segoe UI', Tahoma, serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'SF Mono', Consolas, ui-monospace, monospace;
+
+  /* Shape and spacing */
+  --radius-base: 0.75rem;
+  --control-height: 2.5rem;
+  --layout-gap: 1rem;
+}
+
+/* Urdu script uses its own font family and a taller line height. */
+:lang(ur) {
+  font-family: var(--font-urdu);
+}
+html[lang='ur'] body {
+  line-height: 1.9;
+}
+
+/*
+ * iOS zooms into any focused field smaller than 16px. Zoom is allowed for
+ * accessibility, so fields on touch devices are kept at 16px or larger.
+ */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
+
+/* Respect the user's "reduce motion" setting as well as the OS preference. */
+html[data-motion='reduce'] *,
+html[data-motion='reduce'] *::before,
+html[data-motion='reduce'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/*
+ * Printed output (receipts, labels, invoices) is sized for fixed paper widths.
+ * The on-screen text-size preference must not change it.
+ */
+@media print {
+  html {
+    font-size: 100% !important;
+  }
+}

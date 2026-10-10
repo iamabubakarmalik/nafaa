@@ -5,14 +5,51 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <link rel="icon" type="image/png" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#16a34a" />
+    <!-- Pinch-zoom stays enabled for accessibility; inputs use 16px on touch devices so iOS does not auto-zoom. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#059669" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Nafaa" />
     <meta name="mobile-web-app-capable" content="yes" />
     <title>Nafaa - Pakistan's Easiest POS</title>
     <meta name="description" content="Nafaa.pk - Pakistan ka sabse aasaan POS aur shop management system. Offline first, sync anywhere." />
+
+    <!-- Default UI font. Other fonts chosen in Settings → Appearance are loaded on demand. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" data-ds-font="inter" />
+
+    <!--
+      Theme boot: applies the last saved appearance before the app loads, so a
+      dark-mode user never sees a white flash. Values are written by
+      src/design-system/theme/apply.ts (key: nafaa-appearance-boot).
+    -->
+    <script>
+      (function () {
+        var root = document.documentElement;
+        try {
+          var cache = JSON.parse(localStorage.getItem('nafaa-appearance-boot') || 'null');
+          if (cache) {
+            if (cache.dark) root.classList.add('dark');
+            root.style.colorScheme = cache.dark ? 'dark' : 'light';
+            for (var name in cache.vars) root.style.setProperty(name, cache.vars[name]);
+            if (cache.rootFontSize) root.style.fontSize = cache.rootFontSize;
+            if (cache.density) root.dataset.density = cache.density;
+            if (cache.radius) root.dataset.radius = cache.radius;
+            if (cache.lang) root.lang = cache.lang;
+            if (cache.dir) root.dir = cache.dir;
+            return;
+          }
+        } catch (e) {}
+        // First visit: follow the operating system.
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          root.classList.add('dark');
+          root.style.colorScheme = 'dark';
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
