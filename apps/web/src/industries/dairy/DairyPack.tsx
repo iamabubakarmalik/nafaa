@@ -22,7 +22,6 @@ export const DairyPack: IndustryPack = {
   name: 'Dairy / Milk',
   shortName: 'Dairy',
   emoji: '🥛',
-  themeColor: '#d946ef',
   priority: 65,
   description:
     'Milk supply chain — farmers, subscribers, delivery routes, quality testing, monthly billing.',

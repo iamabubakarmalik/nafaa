@@ -25,7 +25,6 @@ export const ClinicPack: IndustryPack = {
   name: 'Clinic / Doctor',
   shortName: 'Clinic',
   emoji: '🩺',
-  themeColor: '#0891b2',
   priority: 66,
   description:
     'Appointments, patient records, prescriptions, lab orders, vaccinations, live token queue.',

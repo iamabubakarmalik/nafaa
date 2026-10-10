@@ -16,7 +16,6 @@ export const SportsPack: IndustryPack = {
   name: 'Sports Shop',
   shortName: 'Sports',
   emoji: '🏏',
-  themeColor: '#10b981',
   priority: 76,
   description: 'Cricket bats, footballs, gym equipment, team orders with jerseys, repair services.',
 

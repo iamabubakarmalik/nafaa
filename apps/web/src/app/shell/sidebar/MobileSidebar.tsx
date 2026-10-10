@@ -1,26 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@core/lib/cn';
-import { Sidebar } from './Sidebar';
-
-interface Props {
-  open: boolean;
-  onClose: () => void;
-  tenantName?: string;
-  tenantSlug?: string;
-  businessType?: string;
-  role?: any;
-  permissions?: string[];
-}
+import { Sidebar, type SidebarProps } from './Sidebar';
 
 /**
- * Phone / tablet menu. Slides in from the left, closes on backdrop tap,
- * Escape, a link tap, or a swipe to the left.
+ * Phone and tablet menu. Slides in from the left and closes on a backdrop
+ * tap, Escape, a link tap, or a swipe to the left.
  */
+
+type Props = Omit<SidebarProps, 'collapsed' | 'onToggleCollapse' | 'onItemClick' | 'onClose'> & {
+  open: boolean;
+  onClose: () => void;
+};
 export function MobileSidebar({ open, onClose, ...rest }: Props) {
   const [drag, setDrag] = useState(0);
   const start = useRef<{ x: number; y: number; horizontal: boolean | null } | null>(null);
 
-  // Lock page scroll while open
+  // Lock page scroll while open.
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -72,7 +67,7 @@ export function MobileSidebar({ open, onClose, ...rest }: Props) {
           transform: open ? `translateX(${drag}px)` : 'translateX(-105%)',
           transition: drag ? 'none' : 'transform 320ms cubic-bezier(.32,.72,0,1)',
         }}
-        className="absolute inset-y-0 left-0 flex w-[86vw] max-w-[320px] flex-col bg-[#eef0f3] pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] shadow-2xl dark:bg-slate-950"
+        className="absolute inset-y-0 left-0 flex w-[86vw] max-w-[320px] flex-col bg-shell-sidebar pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] shadow-2xl"
       >
         <Sidebar {...rest} onItemClick={onClose} onClose={onClose} />
       </aside>

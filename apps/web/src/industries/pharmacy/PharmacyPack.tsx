@@ -19,7 +19,6 @@ export const PharmacyPack: IndustryPack = {
   name: 'Pharmacy / Medical Store',
   shortName: 'Pharmacy',
   emoji: '💊',
-  themeColor: '#0891b2',
   priority: 65,
   description:
     'Prescriptions, salts, doctors, batch tracking, expiry alerts, controlled substance register, cold chain temperature logs.',

@@ -110,31 +110,6 @@ export function useAutoUpdate() {
 }
 
 /**
- * Native theme sync — desktop theme changes to OS theme.
- */
-export function useDesktopTheme() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-  useEffect(() => {
-    const electron = getElectron() as any;
-    if (!electron?.isDarkMode) return;
-
-    electron.isDarkMode().then((isDark: boolean) => {
-      setTheme(isDark ? 'dark' : 'light');
-    });
-
-    if (electron.onThemeChanged) {
-      return electron.onThemeChanged((newTheme: 'light' | 'dark') => {
-        // Theme is applied by the design-system AppearanceProvider; this hook only reports it.
-        setTheme(newTheme);
-      });
-    }
-  }, []);
-
-  return theme;
-}
-
-/**
  * Desktop reload helpers.
  */
 export function useDesktopReload() {

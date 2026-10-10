@@ -18,6 +18,13 @@ module.exports = {
       colors: {
         // `text-brand-fg` is the readable text color on top of brand backgrounds.
         brand: { ...brandScale, fg: 'var(--brand-fg)' },
+        // App shell surfaces: page canvas, sidebar, top bar and their dividers.
+        shell: {
+          canvas: 'rgb(var(--shell-canvas) / <alpha-value>)',
+          sidebar: 'rgb(var(--shell-sidebar) / <alpha-value>)',
+          bar: 'rgb(var(--shell-bar) / <alpha-value>)',
+          line: 'rgb(var(--shell-line) / <alpha-value>)',
+        },
         // Existing screens use `emerald-*` as the primary color; it follows the brand too.
         emerald: brandScale,
         accent: {

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { getIndustryStockPresets, type IndustryStockPresets } from './stock-presets';
+import { industryIdentity } from '@/design-system';
 
 /**
  * Returns industry-specific Stock Management presets:
@@ -20,7 +21,7 @@ export function useIndustryStockPresets() {
       industryId: industry?.id ?? null,
       industryName: industry?.name ?? 'General',
       industryEmoji: industry?.emoji ?? '🏪',
-      industryColor: industry?.themeColor ?? '#3b82f6',
+      industryColor: industryIdentity(industry?.id).color,
     };
   }, [industry]);
 }

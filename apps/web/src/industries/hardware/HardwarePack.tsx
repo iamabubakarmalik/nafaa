@@ -19,7 +19,6 @@ export const HardwarePack: IndustryPack = {
   name: 'Hardware / Building Materials',
   shortName: 'Hardware',
   emoji: '🔨',
-  themeColor: '#a16207',
   priority: 48,
   description:
     'Bulk pricing tiers, project tracking, quotations, delivery dispatch, credit khata, reorder alerts.',

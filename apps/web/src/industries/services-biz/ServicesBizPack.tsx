@@ -29,7 +29,6 @@ export const ServicesBizPack: IndustryPack = {
   name: 'Services Business',
   shortName: 'Services',
   emoji: '🛠️',
-  themeColor: '#0ea5e9',
   priority: 56,
   description:
     'Field service jobs, technician dispatch, quotes, AMC contracts, warranty — plumbers, electricians, AC techs, IT support, cleaners.',

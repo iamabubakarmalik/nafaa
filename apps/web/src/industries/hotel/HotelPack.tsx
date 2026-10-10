@@ -35,7 +35,6 @@ export const HotelPack: IndustryPack = {
   name: 'Hotel / Guest House',
   shortName: 'Hotel',
   emoji: '🏨',
-  themeColor: '#4f46e5',
   description:
     'Rooms, bookings, guests, housekeeping, folio & rate plans — for hotels, guest houses, motels & resorts.',
   priority: 75,

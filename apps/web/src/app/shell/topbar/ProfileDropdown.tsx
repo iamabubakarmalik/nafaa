@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useAppearanceStore } from '@/design-system';
 import { cn } from '@core/lib/cn';
-import { Avatar, Panel, useDismiss } from './shell-ui';
+import { Avatar, Panel, useDismiss } from '../ui';
 
 interface Props {
   user: any;
@@ -40,18 +40,18 @@ export function ProfileDropdown({ user, tenant, onLogout }: Props) {
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-label="Account menu"
-        className={cn('flex items-center gap-2 rounded-xl p-1 transition md:pr-2',
-          open ? 'bg-slate-100 dark:bg-slate-800' : 'hover:bg-slate-100 dark:hover:bg-slate-800')}
+        className={cn('flex items-center gap-2 rounded-xl p-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 xl:pr-2',
+          open ? 'bg-slate-100 dark:bg-white/[0.07]' : 'hover:bg-slate-100 dark:hover:bg-white/[0.05]')}
       >
         <span className="relative">
           <Avatar name={user?.fullName} url={user?.avatarUrl} size={32} />
-          <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500 dark:border-slate-900" />
+          <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-shell-bar bg-success-500" aria-label="Online" />
         </span>
-        <span className="hidden min-w-0 text-left md:block">
+        <span className="hidden min-w-0 text-left xl:block">
           <span className="block max-w-[140px] truncate text-[0.8125rem] font-semibold leading-tight text-slate-900 dark:text-white">{user?.fullName || 'User'}</span>
           <span className="block text-[0.6875rem] leading-tight text-slate-500">{role.label}</span>
         </span>
-        <ChevronDown className={cn('hidden h-3.5 w-3.5 text-slate-400 transition-transform md:block', open && 'rotate-180')} />
+        <ChevronDown className={cn('hidden h-3.5 w-3.5 text-slate-400 transition-transform xl:block', open && 'rotate-180')} />
       </button>
 
       <Panel open={open} onClose={close} widthClass="sm:w-[320px]" label="Account menu">
@@ -72,7 +72,7 @@ export function ProfileDropdown({ user, tenant, onLogout }: Props) {
           {tenant && (
             <Link to="/settings" onClick={close}
               className="mx-3 mb-3 flex items-center gap-3 rounded-xl border border-slate-200 p-2.5 transition hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/60">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300">
                 <Store className="h-4 w-4" />
               </span>
               <span className="min-w-0 flex-1">

@@ -20,7 +20,6 @@ export const GamingPack: IndustryPack = {
   name: 'Gaming Shop & Cyber Cafe',
   shortName: 'Gaming',
   emoji: '🎮',
-  themeColor: '#7c3aed',
   priority: 78,
   description:
     'Consoles, games, PC parts, console rentals, PSN/Xbox/PUBG top-ups, LAN cafe live billing, tournaments.',

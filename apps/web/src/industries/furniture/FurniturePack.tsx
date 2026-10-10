@@ -19,7 +19,6 @@ export const FurniturePack: IndustryPack = {
   name: 'Furniture Store',
   shortName: 'Furniture',
   emoji: '🪑',
-  themeColor: '#a16207',
   priority: 76,
   description:
     'Custom furniture, showroom + workshop, deposit-based custom orders, carpenter workload, large-vehicle deliveries with assembly.',

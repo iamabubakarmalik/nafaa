@@ -23,7 +23,6 @@ export const AutoPartsPack: IndustryPack = {
   name: 'Auto Parts / Workshop',
   shortName: 'Auto Parts',
   emoji: '🔧',
-  themeColor: '#475569',
   priority: 58,
   description:
     'Vehicle makes/models, customer vehicles, part fitment, workshop jobs, mechanics, service reminders (oil/token/insurance).',

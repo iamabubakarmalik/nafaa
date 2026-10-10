@@ -25,7 +25,6 @@ export const BakeryPack: IndustryPack = {
   name: 'Bakery / Cake Shop',
   shortName: 'Bakery',
   emoji: '🍰',
-  themeColor: '#f472b6',
   priority: 72,
   description:
     'Cake customizer, production batches, freshness / expiry, ingredient inventory, wedding & event bulk orders.',

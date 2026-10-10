@@ -18,7 +18,6 @@ export const FloristPack: IndustryPack = {
   name: 'Florist / Flower Shop',
   shortName: 'Florist',
   emoji: '🌸',
-  themeColor: '#ec4899',
   priority: 75,
   description:
     'Bouquets, wedding contracts, delivery scheduling, freshness tracking, subscriptions, occasion-based orders.',

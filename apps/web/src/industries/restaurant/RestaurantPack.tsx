@@ -36,7 +36,6 @@ export const RestaurantPack: IndustryPack = {
   name: 'Restaurant / Café',
   shortName: 'Restaurant',
   emoji: '🍽️',
-  themeColor: '#ea580c',
   priority: 70,
   description:
     'Dine-in, takeaway & delivery. Tables, KOT, modifiers, recipes, kitchen stations, riders, happy hours.',

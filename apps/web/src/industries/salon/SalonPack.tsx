@@ -24,7 +24,6 @@ export const SalonPack: IndustryPack = {
   name: 'Salon / Beauty Parlour',
   shortName: 'Salon',
   emoji: '💇',
-  themeColor: '#db2777',
   priority: 55,
   description:
     'Appointment booking, service catalog, staff commissions, memberships, prepaid packages, customer profiles.',

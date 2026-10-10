@@ -20,7 +20,6 @@ export const ToystorePack: IndustryPack = {
   name: 'Toy Store',
   shortName: 'Toys',
   emoji: '🧸',
-  themeColor: '#ec4899',
   priority: 76,
   description:
     'Age-appropriate filtering, safety certifications, gift packs, birthday reminders, RC toys, educational focus.',

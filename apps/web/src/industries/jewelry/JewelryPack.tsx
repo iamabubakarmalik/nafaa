@@ -21,7 +21,6 @@ export const JewelryPack: IndustryPack = {
   name: 'Jewelry / Sonar',
   shortName: 'Jewelry',
   emoji: '💎',
-  themeColor: '#d97706',
   priority: 65,
   description:
     'Gold/silver/platinum, live metal rates, hallmark, gemstones, karigar tracking, custom orders, exchanges.',

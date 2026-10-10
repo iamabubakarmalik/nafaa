@@ -6,8 +6,8 @@ import {
 } from 'lucide-react';
 import { hasPermission, PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
 import { cn } from '@core/lib/cn';
-import { useVisibleNav } from './Sidebar';
-import { hasHover, Kbd, Panel, useDismiss } from './shell-ui';
+import { useVisibleNav } from '../navigation/useVisibleNav';
+import { hasHover, Kbd, Panel, useDismiss } from '../ui';
 
 interface Props {
   role: any;
@@ -15,12 +15,12 @@ interface Props {
   businessType?: string;
 }
 
-type Tone = 'emerald' | 'blue' | 'violet' | 'pink' | 'amber' | 'rose' | 'cyan' | 'orange' | 'slate';
+type Tone = 'brand' | 'blue' | 'violet' | 'pink' | 'amber' | 'rose' | 'cyan' | 'orange' | 'slate';
 type Action = { key: string; to: string; label: string; sub?: string; icon: any; tone: Tone; permission?: string; keywords?: string };
 type Section = { title: string; items: Action[]; tiles?: boolean };
 
 const TONE: Record<Tone, string> = {
-  emerald: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+  brand: 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300',
   blue: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
   violet: 'bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
   pink: 'bg-pink-50 text-pink-700 dark:bg-pink-500/15 dark:text-pink-300',
@@ -72,7 +72,7 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
 
   const sections = useMemo<Section[]>(() => {
     const start: Action[] = [
-      { key: 'sale', to: '/pos', label: 'New sale', sub: 'Open the POS counter', icon: ShoppingCart, tone: 'emerald', permission: PERMISSIONS.POS_USE, keywords: 'bill checkout' },
+      { key: 'sale', to: '/pos', label: 'New sale', sub: 'Open the POS counter', icon: ShoppingCart, tone: 'brand', permission: PERMISSIONS.POS_USE, keywords: 'bill checkout' },
       { key: 'booking', to: '/bookings/new', label: 'New booking', sub: 'Advance or reserve', icon: BookmarkPlus, tone: 'blue', permission: PERMISSIONS.SALES_VIEW },
     ];
     const create: Action[] = [
@@ -86,14 +86,14 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
     const industry: Action[] = [];
     if (isCarpet) {
       industry.push(
-        { key: 'rolls', to: '/carpet-rolls', label: 'Carpet rolls', sub: 'Manage rolls', icon: Layers, tone: 'emerald' },
+        { key: 'rolls', to: '/carpet-rolls', label: 'Carpet rolls', sub: 'Manage rolls', icon: Layers, tone: 'brand' },
         { key: 'cuts', to: '/carpet-cut-pieces', label: 'Cut pieces', sub: 'Leftover pieces', icon: Tag, tone: 'violet' },
       );
     }
     if (isMobileShop) industry.push({ key: 'imei', to: '/imei-inventory', label: 'IMEI inventory', sub: 'Add IMEIs', icon: Smartphone, tone: 'blue' });
     const daily: Action[] = [
       { key: 'attendance', to: '/staff/attendance', label: 'Mark attendance', icon: CheckCircle2, tone: 'cyan', permission: PERMISSIONS.STAFF_VIEW },
-      { key: 'register', to: '/cash-register', label: 'Cash register', icon: Wallet, tone: 'emerald', permission: PERMISSIONS.CASH_REGISTER_VIEW, keywords: 'till close day' },
+      { key: 'register', to: '/cash-register', label: 'Cash register', icon: Wallet, tone: 'brand', permission: PERMISSIONS.CASH_REGISTER_VIEW, keywords: 'till close day' },
     ];
     const jump: Action[] = [
       { key: 'online', to: '/online-orders', label: 'Online orders', icon: ShoppingBag, tone: 'slate', permission: PERMISSIONS.SALES_VIEW },
@@ -163,12 +163,12 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
         aria-expanded={open}
         aria-label="Create and quick actions"
         className={cn(
-          'inline-flex h-10 items-center gap-1.5 rounded-xl px-2.5 text-[0.8125rem] font-semibold text-white shadow-sm transition sm:px-3',
-          open ? 'bg-emerald-800' : 'bg-emerald-600 hover:bg-emerald-700',
+          'inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-brand-fg shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 lg:px-3 dark:focus-visible:ring-offset-slate-900',
+          open ? 'bg-brand-800' : 'bg-brand-600 hover:bg-brand-700',
         )}
       >
         <Plus className="h-4 w-4" />
-        <span className="hidden sm:inline">Create</span>
+        <span className="hidden lg:inline">Create</span>
         <Kbd className="ml-0.5 hidden border-white/25 bg-white/15 text-white/90 xl:inline-flex dark:border-white/25 dark:bg-white/15 dark:text-white/90">⌥N</Kbd>
       </button>
 
@@ -183,7 +183,7 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
               onKeyDown={onKeyDown}
               placeholder="Search actions, pages, settings…"
               aria-label="Search actions"
-              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-[0.875rem] text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-[0.875rem] text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             />
           </div>
         </div>
@@ -201,7 +201,7 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
                     return (
                       <button key={a.key} data-idx={i} onClick={() => go(a)} onMouseEnter={() => setIdx(i)}
                         className={cn('flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition',
-                          idx === i ? 'border-emerald-500/50 bg-emerald-50/70 dark:border-emerald-500/40 dark:bg-emerald-500/10'
+                          idx === i ? 'border-brand-500/50 bg-brand-50/70 dark:border-brand-500/40 dark:bg-brand-500/10'
                             : 'border-slate-200 hover:border-slate-300 dark:border-slate-700')}>
                         <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', TONE[a.tone])}><Icon className="h-[18px] w-[18px]" /></span>
                         <span>

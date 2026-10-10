@@ -19,7 +19,6 @@ export const ShoePack: IndustryPack = {
   name: 'Shoe Store & Footwear',
   shortName: 'Shoe Store',
   emoji: '👟',
-  themeColor: '#f97316',
   priority: 76,
   description:
     'Size variants with box+shelf tracking, try-on requests, exchanges, brand catalogue, size charts for men/women/kids/sports.',

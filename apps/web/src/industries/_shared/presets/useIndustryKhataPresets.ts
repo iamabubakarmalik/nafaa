@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { getIndustryKhataPresets, type IndustryKhataPresets } from './khata-presets';
+import { industryIdentity } from '@/design-system';
 
 /**
  * Returns industry-specific Khata presets:
@@ -18,7 +19,7 @@ export function useIndustryKhataPresets() {
       industryId: industry?.id ?? null,
       industryName: industry?.name ?? 'General',
       industryEmoji: industry?.emoji ?? '🏪',
-      industryColor: industry?.themeColor ?? '#3b82f6',
+      industryColor: industryIdentity(industry?.id).color,
     };
   }, [industry]);
 }

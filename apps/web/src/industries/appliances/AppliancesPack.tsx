@@ -26,7 +26,6 @@ export const AppliancesPack: IndustryPack = {
   name: 'Home Appliances',
   shortName: 'Appliances',
   emoji: '🏠',
-  themeColor: '#0891b2',
   priority: 82,
   description:
     'Installation scheduling, service requests, technician management, AMC contracts, heavy delivery tracking, warranty & serial tracking.',

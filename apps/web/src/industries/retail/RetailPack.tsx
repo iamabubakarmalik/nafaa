@@ -29,7 +29,6 @@ export const RetailPack: IndustryPack = {
   name: 'Retail / Kirana / General Store',
   shortName: 'Retail',
   emoji: '🛒',
-  themeColor: '#0ea5e9',
   priority: 60,
   description:
     'Multi-unit pricing (piece/dozen/carton), combos, quick-keys, damage tracking, smart reorder.',

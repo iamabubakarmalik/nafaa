@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useWorkspaceStore, WORKSPACES, type WorkspaceId } from '@core/stores/workspace.store';
 import { cn } from '@core/lib/cn';
-import { Kbd, Panel, useDismiss } from './shell-ui';
+import { Kbd, Panel, useDismiss } from '../ui';
 
 /** ⌥W opens it (⌘⇧W would close the browser window) */
 export function WorkspaceSwitcher() {
@@ -49,12 +49,12 @@ export function WorkspaceSwitcher() {
         aria-expanded={open}
         aria-label={`Workspace: ${current.label}. Switch workspace`}
         className={cn(
-          'flex h-10 items-center gap-2 rounded-xl border px-1.5 pr-2 transition sm:pr-2.5',
-          open ? 'border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800'
-            : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800',
+          'flex h-9 items-center gap-2 rounded-lg border px-1 pr-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 sm:pr-2.5',
+          open ? 'border-slate-300 bg-slate-50 dark:border-white/20 dark:bg-white/[0.07]'
+            : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.07]',
         )}
       >
-        <span className={cn('flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br text-[0.9375rem] leading-none shadow-sm', current.gradient)}>
+        <span className={cn('flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br text-[0.9375rem] leading-none shadow-sm', current.gradient)}>
           {current.emoji}
         </span>
         <span className="hidden text-left sm:block">
@@ -78,17 +78,17 @@ export function WorkspaceSwitcher() {
             return (
               <button key={ws.id} onClick={() => switchTo(ws.id)}
                 className={cn('flex w-full items-start gap-3 rounded-xl border p-3 text-left transition',
-                  active ? 'border-emerald-500/60 bg-emerald-50/60 dark:border-emerald-500/40 dark:bg-emerald-500/10'
+                  active ? 'border-brand-500/60 bg-brand-50/60 dark:border-brand-500/40 dark:bg-brand-500/10'
                     : 'border-transparent hover:border-slate-200 hover:bg-slate-50 dark:hover:border-slate-700 dark:hover:bg-slate-800/60')}>
                 <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-xl shadow-sm', ws.gradient)}>{ws.emoji}</span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className="text-[0.875rem] font-semibold">{ws.label}</span>
-                    {active && <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-white">Current</span>}
+                    {active && <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-white">Current</span>}
                   </span>
                   <span className="mt-0.5 block text-[0.78125rem] leading-snug text-slate-500 dark:text-slate-400">{ws.description}</span>
                 </span>
-                {active && <Check className="mt-1 h-4 w-4 shrink-0 text-emerald-600" />}
+                {active && <Check className="mt-1 h-4 w-4 shrink-0 text-brand-600" />}
               </button>
             );
           })}

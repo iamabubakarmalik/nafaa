@@ -20,7 +20,6 @@ export const CosmeticsPack: IndustryPack = {
   name: 'Cosmetics & Beauty',
   shortName: 'Cosmetics',
   emoji: '💄',
-  themeColor: '#ec4899',
   priority: 76,
   description:
     'Makeup, skincare, fragrances, haircare with shade matching, batch expiry tracking, gift bundles, and 5-tier loyalty program.',

@@ -528,7 +528,7 @@ import ToystoreSafetyReviewPage from '@industries/toystore/pages/ToySafetyReview
 import { ProtectedRoute, PublicOnlyRoute } from '@app/router/ProtectedRoute';
 import { queryClient } from '@core/lib/queryClient';
 import OnboardingGate from '@app/router/OnboardingGate';
-import AppShell from '@app/layout/AppShell';
+import AppShell from '@app/shell/AppShell';
 import PermissionRoute from '@app/router/PermissionRoute';
 import { PERMISSIONS } from '@core/lib/permissions';
 

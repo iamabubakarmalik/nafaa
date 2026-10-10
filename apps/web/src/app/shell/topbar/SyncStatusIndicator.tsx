@@ -10,15 +10,14 @@ import { useOnlineStatus } from '@core/lib/offline/useOnlineStatus';
 import { db } from '@core/lib/offline/db';
 import { toast } from 'sonner';
 
-/* ═════════════════════════════════════════════════════════════
-   SYNC STATUS INDICATOR — PREMIUM v2
-   ─────────────────────────────────────────────────────────────
-   🎨 Gradient glow states + live pulse ring
-   📊 Sync progress bar (23/50 syncing…) — button ke andar
-   ❌ Failed count badge (rose) — alag se dikhta hai
-   ⚡ Dropdown: data snapshot + quick actions + /sync deep-link
-   🌙 Dark mode complete
-   ═════════════════════════════════════════════════════════════ */
+/**
+ * Offline sync status in the top bar.
+ *
+ * The pill shows the current state (synced, syncing with progress, pending,
+ * offline, failed) and a pending-count badge. Clicking it opens a panel with
+ * a snapshot of local data, a manual sync button and a link to the full
+ * Sync Center (/sync).
+ */
 
 function formatRelativeTime(ts: number | null): string {
   if (!ts) return 'Never';
@@ -74,37 +73,30 @@ export function SyncStatusIndicator() {
   const hasError = !!status.lastError || hasFailed;
 
   // ═══ STATE → VISUALS ═══
-  let icon = <Check className="h-3.5 w-3.5" />;
-  let btnClass = 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-500/40 ring-emerald-300/60';
+  let icon = <Check className="h-3.5 w-3.5 text-success-600 dark:text-success-400" />;
+  let btnClass = 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.07]';
   let label = 'Synced';
-  let pulse = false;
-  let glow = false;
 
   if (status.isSyncing) {
     icon = <RefreshCw className="h-3.5 w-3.5 animate-spin" />;
-    btnClass = 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/40 ring-blue-300/60';
+    btnClass = 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300';
     label = status.progress
       ? `${status.progress.done}/${status.progress.total}`
       : 'Syncing…';
-    pulse = true;
   } else if (!isOnline) {
     icon = <WifiOff className="h-3.5 w-3.5" />;
     btnClass = hasPending
-      ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/40 ring-amber-300/60'
-      : 'bg-gradient-to-br from-slate-500 to-slate-600 shadow-slate-500/40 ring-slate-300/60';
+      ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300'
+      : 'border-slate-200 bg-slate-100 text-slate-600 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-300';
     label = hasPending ? `Offline • ${totalPending}` : 'Offline';
-    pulse = hasPending;
-    glow = hasPending;
   } else if (hasError) {
     icon = <AlertCircle className="h-3.5 w-3.5" />;
-    btnClass = 'bg-gradient-to-br from-rose-500 to-rose-600 shadow-rose-500/40 ring-rose-300/60';
+    btnClass = 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300';
     label = hasFailed ? `${status.failedTotal} failed` : 'Sync error';
-    glow = true;
   } else if (hasPending) {
     icon = <CloudUpload className="h-3.5 w-3.5" />;
-    btnClass = 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/40 ring-amber-300/60';
+    btnClass = 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300';
     label = `${totalPending} pending`;
-    pulse = true;
   }
 
   const handleManualSync = async () => {
@@ -127,22 +119,17 @@ export function SyncStatusIndicator() {
       <button
         ref={btnRef}
         onClick={() => setOpen(!open)}
-        className={`relative inline-flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 rounded-xl text-white text-xs font-extrabold shadow-lg ${btnClass} hover:scale-[1.03] active:scale-95 transition-all duration-200 ring-2 overflow-hidden`}
+        className={`relative inline-flex h-9 items-center gap-1.5 overflow-visible rounded-lg border px-2.5 text-[0.8125rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${btnClass}`}
         title={label}
       >
-        {/* Glow animation (jab pending/failed ho) */}
-        {glow && (
-          <span className="absolute inset-0 rounded-xl bg-white/20 animate-ping opacity-30 pointer-events-none" />
-        )}
-
         {icon}
-        <span className="hidden sm:inline tabular-nums relative z-10">{label}</span>
+        <span className="hidden tabular-nums xl:inline">{label}</span>
 
         {/* Mini progress bar — syncing ke waqt button ke neeche */}
         {status.isSyncing && status.progress && status.progress.total > 0 && (
-          <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-black/20">
+          <span className="absolute inset-x-1 bottom-0.5 h-0.5 overflow-hidden rounded-full bg-current/15">
             <span
-              className="block h-full bg-white/90 transition-all duration-300"
+              className="block h-full bg-current transition-all duration-300"
               style={{ width: `${progressPct}%` }}
             />
           </span>
@@ -162,9 +149,6 @@ export function SyncStatusIndicator() {
           </span>
         )}
 
-        {pulse && !glow && (
-          <span className="absolute inset-0 rounded-xl ring-2 ring-white/40 animate-pulse pointer-events-none" />
-        )}
       </button>
 
       {/* ═══ DROPDOWN PANEL ═══ */}
@@ -176,7 +160,7 @@ export function SyncStatusIndicator() {
             {/* ── Header (gradient) ── */}
             <div className={`px-4 py-3.5 text-white relative overflow-hidden ${
               isOnline
-                ? 'bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800'
+                ? 'bg-gradient-to-br from-success-600 via-success-700 to-success-800'
                 : 'bg-gradient-to-br from-amber-500 via-orange-600 to-orange-700'
             }`}>
               <div className="absolute -top-8 -right-8 h-24 w-24 rounded-full bg-white/15 blur-2xl pointer-events-none" />
@@ -242,7 +226,7 @@ export function SyncStatusIndicator() {
                   <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">
                     Offline Data Cached
                   </span>
-                  <ShieldCheck className="h-3 w-3 text-emerald-500 ml-auto" />
+                  <ShieldCheck className="h-3 w-3 text-success-500 ml-auto" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="flex items-center gap-2">
@@ -345,7 +329,7 @@ export function SyncStatusIndicator() {
               <button
                 onClick={handleManualSync}
                 disabled={!isOnline || status.isSyncing}
-                className="w-full h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 active:scale-[0.98] disabled:from-slate-300 disabled:to-slate-400 dark:disabled:from-slate-700 dark:disabled:to-slate-800 disabled:cursor-not-allowed text-white font-extrabold text-sm transition-all shadow-md shadow-emerald-500/30 inline-flex items-center justify-center gap-2"
+                className="w-full h-10 rounded-xl bg-gradient-to-br from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 active:scale-[0.98] disabled:from-slate-300 disabled:to-slate-400 dark:disabled:from-slate-700 dark:disabled:to-slate-800 disabled:cursor-not-allowed text-white font-extrabold text-sm transition-all shadow-md shadow-brand-500/30 inline-flex items-center justify-center gap-2"
               >
                 {status.isSyncing ? (
                   <>

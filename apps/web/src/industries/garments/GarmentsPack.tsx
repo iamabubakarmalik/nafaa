@@ -24,7 +24,6 @@ export const GarmentsPack: IndustryPack = {
   name: 'Garments / Boutique / Fashion',
   shortName: 'Garments',
   emoji: '👗',
-  themeColor: '#ec4899',
   priority: 65,
   description:
     'Ready-made & custom stitching. Size × color variants, measurements, alterations, tailoring, layaway.',

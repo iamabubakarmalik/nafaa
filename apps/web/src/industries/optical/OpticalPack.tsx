@@ -24,7 +24,6 @@ export const OpticalPack: IndustryPack = {
   name: 'Optical & Eyewear',
   shortName: 'Optical',
   emoji: '👓',
-  themeColor: '#06b6d4',
   priority: 76,
   description:
     'Prescriptions (SPH/CYL/AXIS), frames, lenses, contact lenses, eye tests with optometrists, lab lens orders.',

@@ -24,7 +24,6 @@ export const CarpetPack: IndustryPack = {
   name: 'Carpet / Flooring',
   shortName: 'Carpet',
   emoji: '🧶',
-  themeColor: '#059669',
   priority: 90,
   description:
     'Roll-based inventory, cut pieces, length × width calculator, sqft pricing — for carpet, flooring, and matting businesses.',

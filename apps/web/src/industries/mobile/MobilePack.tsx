@@ -24,7 +24,6 @@ export const MobilePack: IndustryPack = {
   name: 'Mobile Shop',
   shortName: 'Mobile',
   emoji: '📱',
-  themeColor: '#2563eb',
   priority: 80,
   description:
     'IMEI tracking, PTA compliance, used phone trade-in, repair tickets, EMI installment plans.',

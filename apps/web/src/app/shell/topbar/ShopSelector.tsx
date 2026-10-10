@@ -7,7 +7,16 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { ALL_SHOPS } from '@core/lib/shopScope';
 import { toast } from 'sonner';
 
-export default function ShopSelector() {
+/**
+ * Branch switcher in the top bar.
+ *
+ * Owners pick a branch or "All Shops"; other staff see the branch they are
+ * locked to. `variant="row"` is the full-width version shown under the top
+ * bar on phones, where the branch name must always be visible.
+ */
+export default function ShopSelector({ variant = 'bar' }: { variant?: 'bar' | 'row' }) {
+  const nameClass = variant === 'row' ? 'max-w-[60vw] truncate' : 'hidden max-w-[130px] truncate lg:inline';
+  const tagClass = variant === 'row' ? 'inline' : 'hidden 2xl:inline';
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { currentShopId, setCurrentShop, user } = useAuthStore();
@@ -51,27 +60,23 @@ export default function ShopSelector() {
   if (!isOwner) {
     if (!user?.assignedShop) {
       return (
-        <div className="h-10 inline-flex items-center gap-2 px-3 rounded-xl border-2 border-amber-300 bg-amber-50 text-amber-800">
+        <div className="inline-flex h-9 items-center gap-2 rounded-lg border px-2.5 text-[0.8125rem] font-semibold transition border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
           <Lock className="h-4 w-4" />
-          <span className="text-sm font-bold">No shop assigned</span>
+          <span>No shop assigned</span>
         </div>
       );
     }
 
     return (
       <div
-        className={`h-10 inline-flex items-center gap-2 px-3 rounded-xl border-2 text-sm font-bold cursor-not-allowed ${
-          user.assignedShop.isMain
-            ? 'border-emerald-400 bg-emerald-50 text-emerald-900'
-            : 'border-indigo-300 bg-indigo-50 text-indigo-900'
-        }`}
+        className="inline-flex h-9 items-center gap-2 rounded-lg border px-2.5 text-[0.8125rem] font-semibold transition cursor-default border-slate-200 bg-white text-slate-800 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
         title="Aap is shop pe locked hain — sirf Owner switch kar sakta hai"
       >
         <Lock className="h-3.5 w-3.5 opacity-60" />
-        <Store className={`h-4 w-4 ${user.assignedShop.isMain ? 'text-emerald-600' : 'text-indigo-600'}`} />
-        <span className="hidden sm:inline max-w-[140px] truncate">{user.assignedShop.name}</span>
+        <Store className="h-4 w-4 text-brand-600 dark:text-brand-400" />
+        <span className={nameClass}>{user.assignedShop.name}</span>
         {user.assignedShop.isMain && (
-          <span className="hidden md:inline px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-600 text-white">
+          <span className={`${tagClass} rounded bg-brand-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-brand-fg`}>
             MAIN
           </span>
         )}
@@ -112,43 +117,43 @@ export default function ShopSelector() {
   };
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={variant === 'row' ? 'relative w-full' : 'relative'}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`h-10 inline-flex items-center gap-2 px-3 rounded-xl border-2 text-sm font-bold transition ${
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={`inline-flex h-9 items-center gap-2 rounded-lg border px-2.5 text-[0.8125rem] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${variant === 'row' ? 'w-full' : ''} ${
           open
-            ? 'border-brand-500 bg-brand-50 text-brand-900'
+            ? 'border-brand-400 bg-brand-50 text-brand-900 dark:border-brand-500/50 dark:bg-brand-500/10 dark:text-white'
             : isAll
-            ? 'border-violet-400 bg-violet-50 text-violet-900 hover:border-violet-500'
-            : currentShop?.isMain
-            ? 'border-emerald-400 bg-emerald-50 text-emerald-900 hover:border-emerald-500'
-            : 'border-slate-200 bg-white hover:border-brand-400 text-slate-900'
+            ? 'border-violet-200 bg-violet-50 text-violet-800 hover:border-violet-300 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-200'
+            : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 dark:hover:border-white/20'
         }`}
         title="Switch shop"
       >
         {isAll ? (
-          <Layers className="h-4 w-4 text-violet-600" />
+          <Layers className="h-4 w-4 text-violet-600 dark:text-violet-300" />
         ) : (
-          <Store className={`h-4 w-4 ${currentShop?.isMain ? 'text-emerald-600' : 'text-brand-600'}`} />
+          <Store className="h-4 w-4 text-brand-600 dark:text-brand-400" />
         )}
-        <span className="hidden sm:inline max-w-[140px] truncate">
+        <span className={nameClass}>
           {isAll ? 'All Shops' : currentShop?.name || 'Select Shop'}
         </span>
         {isAll && (
-          <span className="hidden md:inline px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-violet-600 text-white">
+          <span className={`${tagClass} rounded bg-violet-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white`}>
             {activeShops.length}
           </span>
         )}
         {!isAll && currentShop?.isMain && (
-          <span className="hidden md:inline px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-600 text-white">
+          <span className={`${tagClass} rounded bg-brand-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-brand-fg`}>
             MAIN
           </span>
         )}
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${variant === 'row' ? 'ml-auto' : ''} ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className={`absolute top-full z-50 mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150 dark:border-slate-800 dark:bg-slate-900 ${variant === 'row' ? 'inset-x-0' : 'right-0 w-80'}`}>
           <div className="px-4 py-3 border-b border-slate-100 bg-gradient-to-br from-slate-50 to-white">
             <div className="text-[0.6875rem] uppercase tracking-wider font-bold text-slate-500">
               Switch Shop
@@ -201,7 +206,7 @@ export default function ShopSelector() {
                   <div
                     className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
                       shop.isMain
-                        ? 'bg-gradient-to-br from-emerald-500 to-emerald-700 shadow'
+                        ? 'bg-gradient-to-br from-brand-500 to-brand-700 shadow'
                         : active
                         ? 'bg-brand-600'
                         : 'bg-slate-100'
@@ -214,7 +219,7 @@ export default function ShopSelector() {
                     <div className="flex items-center gap-1.5">
                       <span className="font-bold text-slate-900 truncate text-sm">{shop.name}</span>
                       {shop.isMain && (
-                        <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700">
+                        <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-brand-100 text-brand-700">
                           MAIN
                         </span>
                       )}

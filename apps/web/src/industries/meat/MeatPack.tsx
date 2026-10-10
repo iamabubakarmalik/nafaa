@@ -24,7 +24,6 @@ export const MeatPack: IndustryPack = {
   name: 'Meat / Butcher / Halal',
   shortName: 'Meat',
   emoji: '🥩',
-  themeColor: '#dc2626',
   priority: 65,
   description:
     'Halal certification, livestock tracking, slaughter logs, cutting jobs, weight-based orders, wholesale accounts.',

@@ -28,7 +28,6 @@ export const BookstorePack: IndustryPack = {
   name: 'Bookstore / Stationery / Art Supplies',
   shortName: 'Bookstore',
   emoji: '📚',
-  themeColor: '#d97706',
   priority: 65,
   description:
     'Books with ISBN/authors/publishers, textbooks (grade/board), stationery, art supplies, school lists, book rentals.',

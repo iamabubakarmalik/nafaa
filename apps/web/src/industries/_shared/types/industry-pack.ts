@@ -223,7 +223,7 @@ export interface IndustryPack {
   name: string;
   shortName?: string;
   emoji: string;
-  themeColor: string;
+  // Color and icon live in the design system: industryIdentity(id) in src/design-system.
   description?: string;
 
   // ── Detection ───────────────────────────────────────────────

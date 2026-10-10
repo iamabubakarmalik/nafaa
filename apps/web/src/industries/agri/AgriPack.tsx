@@ -22,7 +22,6 @@ export const AgriPack: IndustryPack = {
   name: 'Agri / Feed Store',
   shortName: 'Agri',
   emoji: '🌾',
-  themeColor: '#65a30d',
   priority: 42,
   description:
     'Seeds, fertilizer, pesticides, animal feed. Farmer credit, bulk orders, crop advisory, seasonal plans, subsidy claims.',

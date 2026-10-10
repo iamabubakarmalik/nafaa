@@ -21,7 +21,6 @@ export const PetshopPack: IndustryPack = {
   name: 'Pet Shop & Vet Store',
   shortName: 'Pet Shop',
   emoji: '🐾',
-  themeColor: '#f59e0b',
   priority: 76,
   description:
     'Pet food, accessories, aquarium, vet medicine, live animals with health tracking, grooming appointments.',

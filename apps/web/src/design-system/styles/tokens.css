@@ -30,10 +30,23 @@
   --font-urdu: 'Noto Naskh Arabic', 'Segoe UI', Tahoma, serif;
   --font-mono: 'JetBrains Mono', 'Cascadia Code', 'SF Mono', Consolas, ui-monospace, monospace;
 
+  /* App shell surfaces (RGB channels). */
+  --shell-canvas: 246 247 249;
+  --shell-sidebar: 238 240 243;
+  --shell-bar: 255 255 255;
+  --shell-line: 226 232 240;
+
   /* Shape and spacing */
   --radius-base: 0.75rem;
   --control-height: 2.5rem;
   --layout-gap: 1rem;
+}
+
+html.dark {
+  --shell-canvas: 9 13 24;
+  --shell-sidebar: 6 10 20;
+  --shell-bar: 15 23 42;
+  --shell-line: 30 41 59;
 }
 
 /* Urdu script uses its own font family and a taller line height. */

@@ -27,7 +27,6 @@ export const GymPack: IndustryPack = {
   name: 'Gym / Fitness',
   shortName: 'Gym',
   emoji: '💪',
-  themeColor: '#dc2626',
   priority: 54,
   description:
     'Members, check-in attendance, membership plans, personal training sessions, group classes, equipment.',

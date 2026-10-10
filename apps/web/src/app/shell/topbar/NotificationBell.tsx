@@ -35,14 +35,14 @@ const typeIcons: Record<NotificationType, any> = {
 
 const typeColors: Record<NotificationType, { bg: string; text: string; gradient: string }> = {
   INFO:                  { bg: 'bg-blue-100',    text: 'text-blue-700',    gradient: 'from-blue-500 to-blue-600' },
-  SUCCESS:               { bg: 'bg-emerald-100', text: 'text-emerald-700', gradient: 'from-emerald-500 to-emerald-600' },
+  SUCCESS:               { bg: 'bg-success-100', text: 'text-success-700', gradient: 'from-success-500 to-success-600' },
   WARNING:               { bg: 'bg-amber-100',   text: 'text-amber-700',   gradient: 'from-amber-500 to-amber-600' },
   ERROR:                 { bg: 'bg-rose-100',    text: 'text-rose-700',    gradient: 'from-rose-500 to-rose-600' },
   LOW_STOCK:             { bg: 'bg-amber-100',   text: 'text-amber-700',   gradient: 'from-amber-500 to-amber-600' },
   OUT_OF_STOCK:          { bg: 'bg-rose-100',    text: 'text-rose-700',    gradient: 'from-rose-500 to-rose-600' },
-  NEW_SALE:              { bg: 'bg-emerald-100', text: 'text-emerald-700', gradient: 'from-emerald-500 to-emerald-600' },
-  PAYMENT_RECEIVED:      { bg: 'bg-emerald-100', text: 'text-emerald-700', gradient: 'from-emerald-500 to-emerald-600' },
-  PAYMENT_APPROVED:      { bg: 'bg-emerald-100', text: 'text-emerald-700', gradient: 'from-emerald-500 to-emerald-600' },
+  NEW_SALE:              { bg: 'bg-success-100', text: 'text-success-700', gradient: 'from-success-500 to-success-600' },
+  PAYMENT_RECEIVED:      { bg: 'bg-success-100', text: 'text-success-700', gradient: 'from-success-500 to-success-600' },
+  PAYMENT_APPROVED:      { bg: 'bg-success-100', text: 'text-success-700', gradient: 'from-success-500 to-success-600' },
   PAYMENT_REJECTED:      { bg: 'bg-rose-100',    text: 'text-rose-700',    gradient: 'from-rose-500 to-rose-600' },
   RETURN_PROCESSED:      { bg: 'bg-violet-100',  text: 'text-violet-700',  gradient: 'from-violet-500 to-violet-600' },
   NEW_CUSTOMER:          { bg: 'bg-blue-100',    text: 'text-blue-700',    gradient: 'from-blue-500 to-blue-600' },
@@ -198,7 +198,7 @@ export default function NotificationBell() {
         <div className="absolute right-0 mt-2 w-[420px] max-w-[calc(100vw-2rem)] bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header — gradient */}
           <div className="relative bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 px-5 py-4 text-white overflow-hidden">
-            <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl" />
+            <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-brand-400/20 blur-2xl" />
             <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-amber-400/10 blur-2xl" />
 
             <div className="relative flex items-center justify-between gap-3">

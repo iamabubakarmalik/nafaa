@@ -26,7 +26,6 @@ export const ElectronicsPack: IndustryPack = {
   name: 'Electronics & Gadgets',
   shortName: 'Electronics',
   emoji: '🔌',
-  themeColor: '#3b82f6',
   priority: 62,
   description:
     'Serial/IMEI tracking, warranty claims, brand management, tech specs, bundles, condition grading.',
