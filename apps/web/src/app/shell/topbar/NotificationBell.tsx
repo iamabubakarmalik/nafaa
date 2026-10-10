@@ -1,386 +1,276 @@
-import { useEffect, useRef, useState } from 'react';
+/**
+ * Notification bell and panel.
+ *
+ * Polls the unread count and the latest 20 notifications every 30 seconds,
+ * plays a sound when new ones arrive (a distinct sound for urgent types), and
+ * shows them in a panel with All / Unread tabs grouped into Today and Earlier.
+ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Bell, BellOff, CheckCheck, AlertTriangle, ShoppingCart, DollarSign,
-  Wallet, Info, Trash2, Volume2, VolumeX, Sparkles, ArrowRight,
-  Package, UserPlus, ArrowLeftRight, Receipt, AlertCircle, Crown,
-  Settings as SettingsIcon, X,
+  AlertCircle, AlertTriangle, ArrowLeftRight, Bell, BellOff, CheckCheck, Crown, DollarSign, Info,
+  Package, Receipt, Settings as SettingsIcon, ShoppingCart, Trash2, UserPlus, Volume2, VolumeX, Wallet,
+  type LucideIcon,
 } from 'lucide-react';
-import { notificationsApi, type NotificationType, type Notification } from '@modules/notifications/api/notifications.api';
+import { notificationsApi, type Notification, type NotificationType } from '@modules/notifications/api/notifications.api';
 import { useNotificationSound } from '@core/hooks/useNotificationSound';
+import { cn } from '@core/lib/cn';
+import { IconButton, Panel, useDismiss } from '../ui';
 
-const typeIcons: Record<NotificationType, any> = {
-  INFO: Info,
-  SUCCESS: CheckCheck,
-  WARNING: AlertTriangle,
-  ERROR: AlertCircle,
-  LOW_STOCK: AlertTriangle,
-  OUT_OF_STOCK: AlertCircle,
-  NEW_SALE: ShoppingCart,
-  PAYMENT_RECEIVED: DollarSign,
-  PAYMENT_APPROVED: CheckCheck,
-  PAYMENT_REJECTED: AlertCircle,
-  RETURN_PROCESSED: Package,
-  NEW_CUSTOMER: UserPlus,
-  STOCK_TRANSFER: ArrowLeftRight,
-  EXPENSE_ADDED: Receipt,
-  INVOICE_DUE: AlertTriangle,
-  SUBSCRIPTION_EXPIRING: Crown,
-  REGISTER_OPENED: Wallet,
-  REGISTER_CLOSED: Wallet,
-  CREDIT_ALERT: AlertTriangle,
-  SYSTEM: Info,
+type Tone = 'info' | 'success' | 'warning' | 'danger' | 'violet' | 'cyan' | 'orange' | 'neutral';
+
+const TYPE_META: Record<NotificationType, { icon: LucideIcon; tone: Tone }> = {
+  INFO: { icon: Info, tone: 'info' },
+  SUCCESS: { icon: CheckCheck, tone: 'success' },
+  WARNING: { icon: AlertTriangle, tone: 'warning' },
+  ERROR: { icon: AlertCircle, tone: 'danger' },
+  LOW_STOCK: { icon: AlertTriangle, tone: 'warning' },
+  OUT_OF_STOCK: { icon: AlertCircle, tone: 'danger' },
+  NEW_SALE: { icon: ShoppingCart, tone: 'success' },
+  PAYMENT_RECEIVED: { icon: DollarSign, tone: 'success' },
+  PAYMENT_APPROVED: { icon: CheckCheck, tone: 'success' },
+  PAYMENT_REJECTED: { icon: AlertCircle, tone: 'danger' },
+  RETURN_PROCESSED: { icon: Package, tone: 'violet' },
+  NEW_CUSTOMER: { icon: UserPlus, tone: 'info' },
+  STOCK_TRANSFER: { icon: ArrowLeftRight, tone: 'cyan' },
+  EXPENSE_ADDED: { icon: Receipt, tone: 'orange' },
+  INVOICE_DUE: { icon: AlertTriangle, tone: 'warning' },
+  SUBSCRIPTION_EXPIRING: { icon: Crown, tone: 'warning' },
+  REGISTER_OPENED: { icon: Wallet, tone: 'info' },
+  REGISTER_CLOSED: { icon: Wallet, tone: 'neutral' },
+  CREDIT_ALERT: { icon: AlertTriangle, tone: 'danger' },
+  SYSTEM: { icon: Info, tone: 'neutral' },
 };
 
-const typeColors: Record<NotificationType, { bg: string; text: string; gradient: string }> = {
-  INFO:                  { bg: 'bg-blue-100',    text: 'text-blue-700',    gradient: 'from-blue-500 to-blue-600' },
-  SUCCESS:               { bg: 'bg-success-100', text: 'text-success-700', gradient: 'from-success-500 to-success-600' },
-  WARNING:               { bg: 'bg-amber-100',   text: 'text-amber-700',   gradient: 'from-amber-500 to-amber-600' },
-  ERROR:                 { bg: 'bg-rose-100',    text: 'text-rose-700',    gradient: 'from-rose-500 to-rose-600' },
-  LOW_STOCK:             { bg: 'bg-amber-100',   text: 'text-amber-700',   gradient: 'from-amber-500 to-amber-600' },
-  OUT_OF_STOCK:          { bg: 'bg-rose-100',    text: 'text-rose-700',    gradient: 'from-rose-500 to-rose-600' },
-  NEW_SALE:              { bg: 'bg-success-100', text: 'text-success-700', gradient: 'from-success-500 to-success-600' },
-  PAYMENT_RECEIVED:      { bg: 'bg-success-100', text: 'text-success-700', gradient: 'from-success-500 to-success-600' },
-  PAYMENT_APPROVED:      { bg: 'bg-success-100', text: 'text-success-700', gradient: 'from-success-500 to-success-600' },
-  PAYMENT_REJECTED:      { bg: 'bg-rose-100',    text: 'text-rose-700',    gradient: 'from-rose-500 to-rose-600' },
-  RETURN_PROCESSED:      { bg: 'bg-violet-100',  text: 'text-violet-700',  gradient: 'from-violet-500 to-violet-600' },
-  NEW_CUSTOMER:          { bg: 'bg-blue-100',    text: 'text-blue-700',    gradient: 'from-blue-500 to-blue-600' },
-  STOCK_TRANSFER:        { bg: 'bg-cyan-100',    text: 'text-cyan-700',    gradient: 'from-cyan-500 to-cyan-600' },
-  EXPENSE_ADDED:         { bg: 'bg-orange-100',  text: 'text-orange-700',  gradient: 'from-orange-500 to-orange-600' },
-  INVOICE_DUE:           { bg: 'bg-amber-100',   text: 'text-amber-700',   gradient: 'from-amber-500 to-amber-600' },
-  SUBSCRIPTION_EXPIRING: { bg: 'bg-amber-100',   text: 'text-amber-700',   gradient: 'from-amber-500 to-amber-600' },
-  REGISTER_OPENED:       { bg: 'bg-blue-100',    text: 'text-blue-700',    gradient: 'from-blue-500 to-blue-600' },
-  REGISTER_CLOSED:       { bg: 'bg-slate-100',   text: 'text-slate-700',   gradient: 'from-slate-500 to-slate-600' },
-  CREDIT_ALERT:          { bg: 'bg-rose-100',    text: 'text-rose-700',    gradient: 'from-rose-500 to-rose-600' },
-  SYSTEM:                { bg: 'bg-slate-100',   text: 'text-slate-700',   gradient: 'from-slate-500 to-slate-600' },
+const TONE_CLASS: Record<Tone, string> = {
+  info: 'bg-blue-50 text-blue-600',
+  success: 'bg-success-50 text-success-600',
+  warning: 'bg-amber-50 text-amber-600',
+  danger: 'bg-rose-50 text-rose-600',
+  violet: 'bg-violet-50 text-violet-600',
+  cyan: 'bg-cyan-50 text-cyan-600',
+  orange: 'bg-orange-50 text-orange-600',
+  neutral: 'bg-slate-100 text-slate-600',
 };
 
-const URGENT_TYPES: NotificationType[] = [
-  'OUT_OF_STOCK', 'PAYMENT_REJECTED', 'CREDIT_ALERT', 'ERROR', 'INVOICE_DUE',
-];
+const URGENT_TYPES: NotificationType[] = ['OUT_OF_STOCK', 'PAYMENT_REJECTED', 'CREDIT_ALERT', 'ERROR', 'INVOICE_DUE'];
 
-const formatTime = (value: string) => {
+function formatTime(value: string) {
   const date = new Date(value);
-  const diff = Date.now() - date.getTime();
-  const mins = Math.floor(diff / 60000);
+  const mins = Math.floor((Date.now() - date.getTime()) / 60000);
   if (mins < 1) return 'Just now';
   if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
-  return new Intl.DateTimeFormat('en-PK', { dateStyle: 'short' }).format(date);
-};
+  return new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(date);
+}
+
+const isToday = (value: string) => new Date(value).toDateString() === new Date().toDateString();
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
-  const [muted, setMutedState] = useState(false);
+  const [tab, setTab] = useState<'all' | 'unread'>('all');
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { play, playUrgent, isMuted, setMuted } = useNotificationSound();
-  const lastSeenIdsRef = useRef<Set<string>>(new Set());
-  const initializedRef = useRef(false);
+  const [muted, setMutedState] = useState(false);
+  const seenIds = useRef<Set<string>>(new Set());
+  const initialized = useRef(false);
 
-  useEffect(() => {
-    setMutedState(isMuted());
-  }, [isMuted]);
+  const close = useCallback(() => setOpen(false), []);
+  useDismiss(ref, open, close);
+  useEffect(() => { setMutedState(isMuted()); }, [isMuted]);
 
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['notifications', 'count'],
     queryFn: () => notificationsApi.unreadCount(),
-    refetchInterval: 30000,
+    refetchInterval: 30_000,
     refetchOnWindowFocus: true,
   });
-
-  const { data: notifData } = useQuery({
+  const { data } = useQuery({
     queryKey: ['notifications', 'list', { limit: 20 }],
     queryFn: () => notificationsApi.list({ limit: 20 }),
-    refetchInterval: 30000,
+    refetchInterval: 30_000,
   });
+  const notifications: Notification[] = useMemo(() => data?.items ?? [], [data]);
 
-  const notifications: Notification[] = notifData?.items ?? [];
-  const hasUnread = unreadCount > 0;
-
-  // Sound + visual cue on new notification
+  // Play a sound for notifications that arrived since the last poll.
   useEffect(() => {
     if (!notifications.length) return;
-    if (!initializedRef.current) {
-      notifications.forEach((n) => lastSeenIdsRef.current.add(n.id));
-      initializedRef.current = true;
+    if (!initialized.current) {
+      notifications.forEach((n) => seenIds.current.add(n.id));
+      initialized.current = true;
       return;
     }
-    const newUnread = notifications.filter(
-      (n) => !lastSeenIdsRef.current.has(n.id) && !n.isRead,
-    );
-    if (newUnread.length > 0) {
-      const hasUrgent = newUnread.some((n) => URGENT_TYPES.includes(n.type));
-      if (hasUrgent) playUrgent();
+    const fresh = notifications.filter((n) => !seenIds.current.has(n.id) && !n.isRead);
+    if (fresh.length) {
+      if (fresh.some((n) => URGENT_TYPES.includes(n.type))) playUrgent();
       else play();
     }
-    notifications.forEach((n) => lastSeenIdsRef.current.add(n.id));
+    notifications.forEach((n) => seenIds.current.add(n.id));
   }, [notifications, play, playUrgent]);
 
-  const markReadMutation = useMutation({
-    mutationFn: (id: string) => notificationsApi.markRead(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
-  });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['notifications'] });
+  const markRead = useMutation({ mutationFn: (id: string) => notificationsApi.markRead(id), onSuccess: invalidate });
+  const markAll = useMutation({ mutationFn: () => notificationsApi.markAllRead(), onSuccess: invalidate });
+  const remove = useMutation({ mutationFn: (id: string) => notificationsApi.remove(id), onSuccess: invalidate });
 
-  const markAllMutation = useMutation({
-    mutationFn: () => notificationsApi.markAllRead(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => notificationsApi.remove(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
-  });
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    if (open) document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  const toggleMute = () => {
+  const toggleSound = () => {
     const next = !muted;
     setMuted(next);
     setMutedState(next);
+    if (!next) play();
   };
 
-  const handleNotificationClick = (n: Notification) => {
-    if (!n.isRead) markReadMutation.mutate(n.id);
+  const openNotification = (n: Notification) => {
+    if (!n.isRead) markRead.mutate(n.id);
     if (n.link) {
-      navigate(n.link);
       setOpen(false);
+      navigate(n.link);
     }
   };
 
+  const shown = tab === 'unread' ? notifications.filter((n) => !n.isRead) : notifications;
+  const groups = [
+    { label: 'Today', items: shown.filter((n) => isToday(n.createdAt)) },
+    { label: 'Earlier', items: shown.filter((n) => !isToday(n.createdAt)) },
+  ].filter((g) => g.items.length);
+
   return (
     <div className="relative" ref={ref}>
-      {/* Bell button — premium pulsing design */}
-      <button
-        onClick={() => setOpen(!open)}
-        className={`relative h-10 w-10 rounded-xl flex items-center justify-center transition-all ${
-          open
-            ? 'bg-brand-100 text-brand-700 ring-2 ring-brand-500/30'
-            : hasUnread
-            ? 'bg-gradient-to-br from-rose-500 to-amber-500 text-white hover:scale-105 shadow-md shadow-rose-500/30'
-            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-        }`}
-        aria-label="Notifications"
+      <IconButton
+        label={unreadCount ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className={cn('relative h-9 w-9', open && 'bg-slate-900/5 text-slate-900')}
       >
-        <Bell className={`h-5 w-5 ${hasUnread ? 'animate-pulse' : ''}`} />
-        {hasUnread && (
-          <>
-            <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-rose-600 text-white text-[0.6875rem] font-extrabold flex items-center justify-center ring-2 ring-white shadow-md">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-            {/* Ping ring */}
-            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-400 animate-ping opacity-75" />
-          </>
+        <Bell className="h-[1.125rem] w-[1.125rem]" />
+        {unreadCount > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-rose-600 px-1 text-[0.625rem] font-bold tabular-nums text-white ring-2 ring-shell-bar">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
         )}
-      </button>
+      </IconButton>
 
-      {/* Dropdown panel */}
-      {open && (
-        <div className="absolute right-0 mt-2 w-[420px] max-w-[calc(100vw-2rem)] bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* Header — gradient */}
-          <div className="relative bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 px-5 py-4 text-white overflow-hidden">
-            <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-brand-400/20 blur-2xl" />
-            <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-amber-400/10 blur-2xl" />
-
-            <div className="relative flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shadow-lg ring-1 ring-white/20">
-                  <Bell className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="font-extrabold text-white text-base">Notifications</h3>
-                    {hasUnread && (
-                      <span className="px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[0.625rem] font-extrabold">
-                        {unreadCount} NEW
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[0.6875rem] text-white/70 mt-0.5">
-                    {hasUnread ? 'Keep your business running smoothly' : 'You are all caught up'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => play()}
-                  className="h-8 px-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur flex items-center gap-1 text-white transition text-[0.6875rem] font-black"
-                  title="Test notification sound"
-                >
-                  🔊 TEST
-                </button>
-                <button
-                  onClick={toggleMute}
-                  className="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur flex items-center justify-center text-white transition"
-                  title={muted ? 'Unmute sounds' : 'Mute sounds'}
-                >
-                  {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                </button>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur flex items-center justify-center text-white transition"
-                  title="Close"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Mark all read button */}
-            {hasUnread && (
-              <div className="relative mt-3 flex items-center justify-between">
-                <button
-                  onClick={() => markAllMutation.mutate()}
-                  disabled={markAllMutation.isPending}
-                  className="text-[0.6875rem] text-white/90 hover:text-white font-bold inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition disabled:opacity-50"
-                >
-                  <CheckCheck className="h-3 w-3" />
-                  Mark all read
-                </button>
-                <Link
-                  to="/settings"
-                  onClick={() => setOpen(false)}
-                  className="text-[0.6875rem] text-white/70 hover:text-white inline-flex items-center gap-1"
-                >
-                  <SettingsIcon className="h-3 w-3" />
-                  Preferences
-                </Link>
-              </div>
-            )}
+      <Panel open={open} onClose={close} widthClass="sm:w-[24rem]" label="Notifications">
+        <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-3">
+          <div className="flex items-baseline gap-2">
+            <h2 className="text-[0.9375rem] font-semibold text-slate-900">Notifications</h2>
+            {unreadCount > 0 && <span className="text-[0.75rem] font-medium text-slate-500">{unreadCount} unread</span>}
           </div>
-
-          {/* List */}
-          <div className="max-h-[480px] overflow-y-auto">
-            {notifications.length === 0 ? (
-              <div className="p-12 text-center">
-                <div className="h-20 w-20 mx-auto rounded-3xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center mb-4 shadow-inner">
-                  <BellOff className="h-9 w-9 text-slate-400" />
-                </div>
-                <h4 className="text-sm font-extrabold text-slate-900">No notifications yet</h4>
-                <p className="text-xs text-slate-500 mt-1 max-w-[260px] mx-auto leading-relaxed">
-                  Sales, stock alerts, payments — sab updates yahan dikhenge
-                </p>
-              </div>
-            ) : (
-              <div>
-                {notifications.map((n, i) => {
-                  const Icon = typeIcons[n.type] || Info;
-                  const color = typeColors[n.type] || typeColors.SYSTEM;
-                  const isUrgent = URGENT_TYPES.includes(n.type);
-
-                  return (
-                    <div
-                      key={n.id}
-                      onClick={() => handleNotificationClick(n)}
-                      className={`group relative px-4 py-3 cursor-pointer transition-all ${
-                        !n.isRead
-                          ? 'bg-gradient-to-r from-blue-50/40 to-transparent hover:from-blue-50/70'
-                          : 'hover:bg-slate-50'
-                      } ${i !== 0 ? 'border-t border-slate-100' : ''}`}
-                    >
-                      {/* Unread indicator strip */}
-                      {!n.isRead && (
-                        <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${color.gradient}`} />
-                      )}
-
-                      <div className="flex items-start gap-3 pl-1">
-                        {/* Icon */}
-                        <div
-                          className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
-                            !n.isRead
-                              ? `bg-gradient-to-br ${color.gradient} text-white`
-                              : `${color.bg} ${color.text}`
-                          } ${isUrgent && !n.isRead ? 'animate-pulse' : ''}`}
-                        >
-                          <Icon className="h-4 w-4" />
-                        </div>
-
-                        {/* Body */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="font-bold text-slate-900 text-sm leading-snug">
-                              {n.title}
-                            </div>
-                            {!n.isRead && (
-                              <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-1.5 shadow-sm" />
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-600 mt-0.5 line-clamp-2 leading-relaxed">
-                            {n.message}
-                          </p>
-
-                          <div className="flex items-center gap-3 mt-2">
-                            <span className="text-[0.6875rem] text-slate-500 font-semibold">
-                              {formatTime(n.createdAt)}
-                            </span>
-                            {n.link && (
-                              <span className="text-[0.6875rem] text-brand-700 font-extrabold inline-flex items-center gap-0.5 group-hover:gap-1 transition-all">
-                                View <ArrowRight className="h-2.5 w-2.5" />
-                              </span>
-                            )}
-                            {isUrgent && !n.isRead && (
-                              <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-rose-100 text-rose-700">
-                                URGENT
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Delete button — visible on hover */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteMutation.mutate(n.id);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-all shrink-0"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+          <div className="flex items-center gap-0.5">
+            <IconButton label={muted ? 'Turn sound on' : 'Turn sound off'} onClick={toggleSound} className="h-8 w-8">
+              {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </IconButton>
+            <Link to="/settings" onClick={close} aria-label="Notification settings" title="Notification settings"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-900/5 hover:text-slate-900">
+              <SettingsIcon className="h-4 w-4" />
+            </Link>
           </div>
+        </div>
 
-          {/* Footer */}
-          {notifications.length > 0 && (
-            <div className="px-5 py-3 border-t border-slate-100 bg-gradient-to-br from-slate-50 to-white">
-              <Link
-                to="/notifications"
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-center gap-1.5 text-xs font-extrabold text-brand-700 hover:text-brand-800 transition group"
+        <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4">
+          <div className="flex gap-4" role="tablist">
+            {(['all', 'unread'] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                role="tab"
+                aria-selected={tab === t}
+                onClick={() => setTab(t)}
+                className={cn(
+                  '-mb-px border-b-2 py-2 text-[0.8125rem] font-semibold transition',
+                  tab === t ? 'border-brand-600 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800',
+                )}
               >
-                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                View all notifications
-                <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            </div>
+                {t === 'all' ? 'All' : `Unread${unreadCount ? ` (${unreadCount})` : ''}`}
+              </button>
+            ))}
+          </div>
+          {unreadCount > 0 && (
+            <button type="button" onClick={() => markAll.mutate()} disabled={markAll.isPending}
+              className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700 transition hover:text-brand-800 disabled:opacity-50">
+              <CheckCheck className="h-3.5 w-3.5" /> Mark all read
+            </button>
           )}
         </div>
-      )}
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain sm:max-h-[28rem]">
+          {groups.length === 0 ? (
+            <div className="px-6 py-14 text-center">
+              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                <BellOff className="h-5 w-5" />
+              </span>
+              <div className="mt-3 text-[0.875rem] font-semibold text-slate-900">
+                {tab === 'unread' ? 'You are all caught up' : 'No notifications yet'}
+              </div>
+              <p className="mx-auto mt-1 max-w-[16rem] text-[0.8125rem] text-slate-500">
+                Sales, stock alerts and payments will show up here.
+              </p>
+            </div>
+          ) : (
+            groups.map((g) => (
+              <div key={g.label}>
+                <div className="px-4 pb-1 pt-3 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">{g.label}</div>
+                <ul>
+                  {g.items.map((n) => {
+                    const meta = TYPE_META[n.type] ?? TYPE_META.SYSTEM;
+                    const Icon = meta.icon;
+                    const urgent = URGENT_TYPES.includes(n.type) && !n.isRead;
+                    return (
+                      <li key={n.id}>
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => openNotification(n)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') openNotification(n); }}
+                          className="group relative flex cursor-pointer gap-3 px-4 py-2.5 transition-colors hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none"
+                        >
+                          <span className={cn('mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', TONE_CLASS[meta.tone])}>
+                            <Icon className="h-4 w-4" />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start gap-2">
+                              <span className={cn('min-w-0 flex-1 text-[0.8125rem] leading-snug', n.isRead ? 'font-medium text-slate-700' : 'font-semibold text-slate-900')}>
+                                {n.title}
+                              </span>
+                              {!n.isRead && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-600" aria-label="Unread" />}
+                            </div>
+                            {n.message && <p className="mt-0.5 line-clamp-2 text-[0.75rem] leading-relaxed text-slate-500">{n.message}</p>}
+                            <div className="mt-1 flex items-center gap-2 text-[0.6875rem] text-slate-400">
+                              <span>{formatTime(n.createdAt)}</span>
+                              {urgent && <span className="rounded bg-rose-50 px-1.5 py-0.5 font-semibold text-rose-700">Urgent</span>}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); remove.mutate(n.id); }}
+                            aria-label="Delete notification"
+                            title="Delete"
+                            className="h-7 w-7 shrink-0 self-center rounded-md text-slate-400 opacity-0 transition hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-60"
+                          >
+                            <Trash2 className="mx-auto h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))
+          )}
+        </div>
+
+        <Link to="/notifications" onClick={close}
+          className="block border-t border-slate-200 px-4 py-2.5 text-center text-[0.8125rem] font-semibold text-brand-700 transition hover:bg-slate-50">
+          View all notifications
+        </Link>
+      </Panel>
     </div>
   );
 }

@@ -1,41 +1,76 @@
 /**
- * Popover used by the top-bar menus: an anchored dropdown on larger screens
- * and a bottom sheet on phones. Render it inside a `relative` wrapper that
- * also contains the trigger button.
+ * Popover used by the top-bar menus: an anchored dropdown from 640px up and a
+ * bottom sheet on phones.
+ *
+ * Render it inside a `relative` wrapper that also contains the trigger. On
+ * phones the sheet is portalled to <body>, so no ancestor with a transform,
+ * filter or overflow can trap or clip it.
  */
 
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@core/lib/cn';
 
 interface PanelProps {
   open: boolean;
   onClose: () => void;
   align?: 'left' | 'right';
-  /** Width on larger screens. Must be a literal class (e.g. "sm:w-[360px]") so Tailwind keeps it. */
+  /** Width from 640px up. Must be a literal class (e.g. "sm:w-[360px]") so Tailwind keeps it. */
   widthClass?: string;
   label: string;
   children: ReactNode;
 }
 
+const PHONE_QUERY = '(max-width: 639px)';
+
+function useIsPhone() {
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && window.matchMedia(PHONE_QUERY).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(PHONE_QUERY);
+    const onChange = () => setPhone(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return phone;
+}
+
 export function Panel({ open, onClose, align = 'right', widthClass = 'sm:w-[360px]', label, children }: PanelProps) {
+  const phone = useIsPhone();
+
+  useEffect(() => {
+    if (!open || !phone) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previous; };
+  }, [open, phone]);
+
   if (!open) return null;
+
+  if (phone) {
+    return createPortal(
+      <div data-shell-panel className="fixed inset-0 z-[85]" role="dialog" aria-modal="true" aria-label={label}>
+        <div className="absolute inset-0 bg-slate-950/50 animate-in fade-in duration-150" onClick={onClose} aria-hidden />
+        <div className="absolute inset-x-0 bottom-0 flex max-h-[88dvh] flex-col overflow-hidden rounded-t-3xl border-t border-slate-200 bg-white pb-[env(safe-area-inset-bottom)] text-slate-900 shadow-2xl animate-in slide-in-from-bottom duration-200">
+          <div className="mx-auto mb-1 mt-2.5 h-1.5 w-10 shrink-0 rounded-full bg-slate-300" aria-hidden />
+          {children}
+        </div>
+      </div>,
+      document.body,
+    );
+  }
+
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-slate-950/40 animate-in fade-in duration-150 sm:hidden" onClick={onClose} aria-hidden />
-      <div
-        role="dialog"
-        aria-label={label}
-        className={cn(
-          'z-50 flex flex-col overflow-hidden border border-slate-200 bg-white text-slate-900 shadow-2xl dark:border-slate-800 dark:bg-slate-900 dark:text-white',
-          'fixed inset-x-0 bottom-0 max-h-[88dvh] rounded-t-3xl pb-[env(safe-area-inset-bottom)] animate-in slide-in-from-bottom duration-200',
-          'sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-full sm:mt-2 sm:max-h-[min(80dvh,680px)] sm:rounded-2xl sm:pb-0 sm:fade-in sm:slide-in-from-top-1',
-          align === 'right' ? 'sm:right-0' : 'sm:left-0',
-          widthClass,
-        )}
-      >
-        <div className="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-slate-300 dark:bg-slate-700 sm:hidden" />
-        {children}
-      </div>
-    </>
+    <div
+      role="dialog"
+      aria-label={label}
+      className={cn(
+        'absolute top-full z-50 mt-2 flex max-h-[min(80dvh,42rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl',
+        'animate-in fade-in slide-in-from-top-1 duration-150',
+        align === 'right' ? 'right-0' : 'left-0',
+        widthClass,
+      )}
+    >
+      {children}
+    </div>
   );
 }

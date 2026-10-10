@@ -116,8 +116,8 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
         <div className="flex min-w-0 flex-1 items-center gap-2.5 p-1.5">
           <BrandMark industryId={industry?.id} marketplace={isMarketplace} />
           <div className="min-w-0">
-            <div className="truncate text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-white">{tenantName || 'My store'}</div>
-            <div className="truncate text-[0.75rem] capitalize text-slate-500 dark:text-slate-400">
+            <div className="truncate text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-ink-white">{tenantName || 'My store'}</div>
+            <div className="truncate text-[0.75rem] capitalize text-slate-500 dark:text-ink-400">
               {subtitle}{tenantSlug ? <span className="normal-case"> · @{tenantSlug}</span> : null}
             </div>
           </div>
@@ -141,14 +141,14 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
             onKeyDown={(e) => { if (e.key === 'Escape') { setSearch(''); searchRef.current?.blur(); } }}
             placeholder="Search menu"
             aria-label="Search menu"
-            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-[0.8125rem] text-slate-900 transition placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
+            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-[0.8125rem] text-slate-900 transition placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-ink-white/10 dark:bg-ink-white/[0.04] dark:text-ink-white"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch('')}
               aria-label="Clear search"
-              className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10"
+              className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-ink-white/10"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -223,8 +223,8 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
 
         {query && total === 0 && (
           <div className="px-4 py-10 text-center">
-            <Search className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-700" />
-            <div className="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Nothing found for “{search}”</div>
+            <Search className="mx-auto h-8 w-8 text-slate-300 dark:text-ink-700" />
+            <div className="mt-2 text-sm font-semibold text-slate-700 dark:text-ink-200">Nothing found for “{search}”</div>
             <button type="button" onClick={() => setSearch('')} className="mt-2 text-[0.8125rem] font-medium text-brand-700 hover:underline dark:text-brand-400">
               Clear search
             </button>

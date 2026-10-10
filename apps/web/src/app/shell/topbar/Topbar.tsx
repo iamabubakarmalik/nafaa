@@ -16,7 +16,7 @@ import { Menu, Search } from 'lucide-react';
 import { DesktopReloadButton } from '@modules/desktop/components/DesktopReloadButton';
 import { useWorkspaceStore } from '@core/stores/workspace.store';
 import { IconButton } from '../ui';
-import GlobalSearch from './GlobalSearch';
+import { GlobalSearchTrigger, useGlobalSearch } from './GlobalSearch';
 import NotificationBell from './NotificationBell';
 import ShopSelector from './ShopSelector';
 import { SyncStatusIndicator } from './SyncStatusIndicator';
@@ -37,12 +37,10 @@ const greetingFor = (hour: number) =>
       : hour >= 17 && hour < 21 ? 'Good evening'
         : 'Working late';
 
-/** Opens GlobalSearch, which listens for Ctrl/⌘+K. */
-const openSearch = () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }));
-
 export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: TopbarProps) {
   const [now, setNow] = useState(() => new Date());
   const isMarketplace = useWorkspaceStore((s) => s.activeWorkspace) === 'marketplace';
+  const openSearch = useGlobalSearch((s) => s.setOpen);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
@@ -51,11 +49,13 @@ export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: TopbarPr
 
   const firstName = user?.fullName?.split(' ')[0] || 'there';
 
+  // No backdrop-filter or transform on the header: either makes it the
+  // containing block for the menus' fixed-position phone sheets.
   return (
-    <header className="sticky top-0 z-30 shrink-0 border-b border-shell-line bg-shell-bar/95 backdrop-blur supports-[backdrop-filter]:bg-shell-bar/85 print:hidden">
+    <header className="sticky top-0 z-30 shrink-0 border-b border-shell-line bg-shell-bar print:hidden">
       <div className="flex h-14 items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-4 xl:px-5">
         <div className="flex shrink-0 items-center gap-2">
-          <IconButton label="Open menu" onClick={onOpenMobileSidebar} className="h-9 w-9 border border-slate-200 lg:hidden dark:border-white/10">
+          <IconButton label="Open menu" onClick={onOpenMobileSidebar} className="h-9 w-9 border border-slate-200 lg:hidden dark:border-ink-white/10">
             <Menu className="h-5 w-5" />
           </IconButton>
           <WorkspaceSwitcher />
@@ -63,16 +63,16 @@ export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: TopbarPr
             <div className="text-[0.6875rem] font-medium text-slate-500">
               {greetingFor(now.getHours())} · {now.toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit', hour12: true })}
             </div>
-            <div className="whitespace-nowrap text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-white">Hi, {firstName}</div>
+            <div className="whitespace-nowrap text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-ink-white">Hi, {firstName}</div>
           </div>
         </div>
 
         <div className="hidden min-w-0 flex-1 justify-center px-1 md:flex xl:px-2">
-          <div className="w-full max-w-[35rem]"><GlobalSearch /></div>
+          <div className="w-full max-w-[35rem]"><GlobalSearchTrigger /></div>
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
-          <IconButton label="Search (Ctrl+K)" onClick={openSearch} className="h-9 w-9 md:hidden">
+          <IconButton label="Search (Ctrl+K)" onClick={() => openSearch(true)} className="h-9 w-9 md:hidden">
             <Search className="h-[1.125rem] w-[1.125rem]" />
           </IconButton>
           {!isMarketplace && <div className="hidden sm:block"><ShopSelector /></div>}

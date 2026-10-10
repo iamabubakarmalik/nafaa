@@ -76,8 +76,8 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
   const railButton = (active: boolean) => cn(
     'relative flex h-10 w-10 items-center justify-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
     active
-      ? 'bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 dark:bg-white/[0.08] dark:text-brand-400 dark:ring-white/10'
-      : 'text-slate-500 hover:bg-white/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white',
+      ? 'bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 dark:bg-ink-white/[0.08] dark:text-brand-400 dark:ring-ink-white/10'
+      : 'text-slate-500 hover:bg-white/80 hover:text-slate-900 dark:text-ink-400 dark:hover:bg-ink-white/[0.06] dark:hover:text-ink-white',
   );
 
   return (
@@ -115,7 +115,7 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
           );
         })}
         {pinned.length > MAX_PINNED_VISIBLE && (
-          <button type="button" onClick={() => setPinnedOpen((v) => !v)} className="h-5 text-[0.6875rem] font-semibold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+          <button type="button" onClick={() => setPinnedOpen((v) => !v)} className="h-5 text-[0.6875rem] font-semibold text-slate-400 hover:text-slate-700 dark:hover:text-ink-200">
             {pinnedOpen ? 'less' : `+${pinned.length - MAX_PINNED_VISIBLE}`}
           </button>
         )}
@@ -131,7 +131,7 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
               key={g.id}
               aria-label={g.label}
               aria-expanded={openNow}
-              className={cn(railButton(active), openNow && !active && 'bg-white/80 text-slate-900 dark:bg-white/[0.06] dark:text-white')}
+              className={cn(railButton(active), openNow && !active && 'bg-white/80 text-slate-900 dark:bg-ink-white/[0.06] dark:text-ink-white')}
               onMouseEnter={(e) => show(g.id, e.currentTarget, g.label, g)}
               onMouseLeave={hideSoon}
               onClick={(e) => (openNow ? setFly(null) : show(g.id, e.currentTarget, g.label, g))}
@@ -163,13 +163,13 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
           className={cn(
             'fixed z-[80] animate-in fade-in slide-in-from-left-1 duration-100',
             fly.group
-              ? 'w-60 rounded-xl border border-slate-200 bg-white p-1.5 text-slate-900 shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:text-white'
-              : 'pointer-events-none whitespace-pre rounded-lg bg-slate-900 px-2.5 py-1.5 text-[0.75rem] font-medium text-white shadow-lg dark:bg-white dark:text-slate-900',
+              ? 'w-60 rounded-xl border border-slate-200 bg-white p-1.5 text-slate-900 shadow-xl dark:border-ink-800 dark:bg-ink-900 dark:text-ink-white'
+              : 'pointer-events-none whitespace-pre rounded-lg bg-slate-900 px-2.5 py-1.5 text-[0.75rem] font-medium text-white shadow-lg dark:bg-ink-white dark:text-ink-900',
           )}
         >
           {fly.group ? (
             <>
-              <div className="flex items-center gap-2 px-2.5 pb-1.5 pt-1 text-[0.75rem] font-semibold text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-2 px-2.5 pb-1.5 pt-1 text-[0.75rem] font-semibold text-slate-500 dark:text-ink-400">
                 <fly.group.icon className="h-3.5 w-3.5" style={fly.group.color ? { color: fly.group.color } : undefined} /> {fly.group.label}
               </div>
               <div className="space-y-0.5">
@@ -184,8 +184,8 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
                       className={cn(
                         'flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[0.84375rem] transition-colors',
                         active
-                          ? 'bg-brand-50 font-semibold text-slate-900 dark:bg-brand-500/10 dark:text-white'
-                          : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white',
+                          ? 'bg-brand-50 font-semibold text-slate-900 dark:bg-brand-500/10 dark:text-ink-white'
+                          : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-ink-300 dark:hover:bg-ink-800/60 dark:hover:text-ink-white',
                       )}
                     >
                       <Icon className={cn('h-4 w-4 shrink-0', active && 'text-brand-600 dark:text-brand-400')} />

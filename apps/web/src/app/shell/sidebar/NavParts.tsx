@@ -16,8 +16,8 @@ type IconType = ComponentType<{ className?: string; style?: CSSProperties }>;
 export const EXACT_MATCH_PATHS = new Set(['/staff', '/products', '/fbr', '/sales', '/online-orders']);
 
 const ROW = 'group/item relative flex h-9 items-center gap-2.5 rounded-lg pl-2.5 pr-1 text-[0.84375rem] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-500';
-const ROW_ACTIVE = 'bg-white font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200/80 dark:bg-white/[0.07] dark:text-white dark:ring-white/10';
-const ROW_IDLE = 'font-medium text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/[0.05] dark:hover:text-white';
+const ROW_ACTIVE = 'bg-white font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200/80 dark:bg-ink-white/[0.07] dark:text-ink-white dark:ring-ink-white/10';
+const ROW_IDLE = 'font-medium text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-ink-400 dark:hover:bg-ink-white/[0.05] dark:hover:text-ink-white';
 
 /** Brand-colored bar on the left edge of the active row. */
 function ActiveBar() {
@@ -27,7 +27,7 @@ function ActiveBar() {
 export function NavSection({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
   return (
     <div>
-      <div className="flex items-center gap-2 px-2.5 py-1.5 text-[0.75rem] font-semibold text-slate-500 dark:text-slate-400">
+      <div className="flex items-center gap-2 px-2.5 py-1.5 text-[0.75rem] font-semibold text-slate-500 dark:text-ink-400">
         {icon}<span>{title}</span>
       </div>
       <div className="space-y-0.5">{children}</div>
@@ -43,7 +43,7 @@ export function GroupHeader({ label, icon: Icon, color, open, dot, live, onClick
       type="button"
       onClick={onClick}
       aria-expanded={open}
-      className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[0.75rem] font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+      className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[0.75rem] font-semibold text-slate-500 transition hover:text-slate-900 dark:text-ink-400 dark:hover:text-ink-white"
     >
       <Icon className="h-3.5 w-3.5 shrink-0" style={color ? { color } : undefined} />
       <span className="flex-1 truncate">{label}</span>
@@ -64,7 +64,7 @@ export function NavRow({ item, fav, muted, hideStar, onToggleFav, onItemClick }:
       to={item.to}
       end={EXACT_MATCH_PATHS.has(item.to)}
       onClick={onItemClick}
-      className={({ isActive }) => cn(ROW, isActive ? ROW_ACTIVE : muted ? cn(ROW_IDLE, 'text-slate-500 dark:text-slate-500') : ROW_IDLE)}
+      className={({ isActive }) => cn(ROW, isActive ? ROW_ACTIVE : muted ? cn(ROW_IDLE, 'text-slate-500 dark:text-ink-500') : ROW_IDLE)}
     >
       {({ isActive }) => (
         <>
@@ -86,7 +86,7 @@ export function NavRow({ item, fav, muted, hideStar, onToggleFav, onItemClick }:
                 'flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition',
                 fav
                   ? 'text-amber-500 hover:bg-amber-500/10'
-                  : 'text-slate-400 opacity-0 hover:bg-slate-900/5 hover:text-amber-500 focus-visible:opacity-100 group-hover/item:opacity-100 [@media(hover:none)]:opacity-40 dark:hover:bg-white/10',
+                  : 'text-slate-400 opacity-0 hover:bg-slate-900/5 hover:text-amber-500 focus-visible:opacity-100 group-hover/item:opacity-100 [@media(hover:none)]:opacity-40 dark:hover:bg-ink-white/10',
               )}
             >
               <Star className={cn('h-3.5 w-3.5', fav && 'fill-current')} />

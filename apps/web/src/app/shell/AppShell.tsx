@@ -25,6 +25,7 @@ import { isSettingsPath, LAST_APP_PATH_KEY } from './navigation/nav-config';
 import { Sidebar } from './sidebar/Sidebar';
 import { MobileSidebar } from './sidebar/MobileSidebar';
 import { Topbar } from './topbar/Topbar';
+import { GlobalSearchDialog } from './topbar/GlobalSearch';
 import { SettingsShell } from './settings/SettingsShell';
 import { useShellBoot } from './useShellBoot';
 import { useSidebarState } from './useSidebarState';
@@ -119,6 +120,7 @@ export default function AppShell() {
         </div>
       </div>
 
+      <GlobalSearchDialog />
       {/* New online order: popup and sound on every page. */}
       <OnlineOrderAlert />
     </div>
