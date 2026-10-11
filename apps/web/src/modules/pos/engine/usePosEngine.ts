@@ -20,7 +20,8 @@ import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.
 import { productUnitsApi } from '@modules/inventory/products/api/product-units.api';
 import { productVariantsApi, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
-import type { VoiceCommand } from '@core/components/voice/VoiceSaleButton';
+import type { VoiceCommand, VoiceFeedback } from '@core/components/voice/VoiceSaleButton';
+import { matchScore } from '@core/components/voice/voiceMatch';
 import { quickKeysApi, type QuickKey } from '../api/quick-keys.api';
 import { usePosPreferences } from '../hooks/usePosPreferences';
 import { emptyDelivery, deliveryAmount, deliveryRiderAmount, deliveryServiceCharge, type PosDeliveryState } from '../components/PosDeliveryPanel';
@@ -46,6 +47,10 @@ const BASE_VOICE_ALIASES: Record<string, string> = {
   chai: 'tea chai patti', patti: 'patti tea chai', chawal: 'rice chawal', aata: 'aata atta flour', atta: 'aata atta flour',
   tel: 'oil tel', namak: 'salt namak', anda: 'egg anda anday', anday: 'egg anda anday', sabun: 'soap sabun',
   daal: 'daal dal', aloo: 'potato aloo', pyaz: 'onion pyaz', tamatar: 'tomato tamatar', dahi: 'yogurt dahi', paani: 'water paani',
+  sugar: 'cheeni sugar', milk: 'doodh milk', egg: 'anday eggs', eggs: 'anday eggs', bread: 'bread double roti', rice: 'chawal rice',
+  'چینی': 'cheeni sugar', 'دودھ': 'doodh milk', 'انڈے': 'anday eggs', 'انڈا': 'anday eggs', 'چائے': 'chai tea', 'پتی': 'patti tea',
+  'آٹا': 'aata flour', 'چاول': 'chawal rice', 'تیل': 'tel oil', 'گھی': 'ghee', 'نمک': 'namak salt', 'صابن': 'sabun soap',
+  'دال': 'daal', 'دہی': 'dahi yogurt', 'پانی': 'paani water', 'ڈبل روٹی': 'bread double roti', 'بسکٹ': 'biscuit',
 };
 
 export type PosView = 'products' | 'combos' | 'quickkeys';
@@ -427,53 +432,62 @@ export function usePosEngine(config: PosIndustryConfig) {
 
   /* ── Voice ── */
   const aliases = useMemo(() => ({ ...BASE_VOICE_ALIASES, ...(config.voiceAliases ?? {}) }), [config.voiceAliases]);
-  const findVoice = useCallback((spoken: string): PosItem | null => {
-    const q = spoken.toLowerCase().trim();
-    if (!q) return null;
-    let terms = q;
-    Object.entries(aliases).forEach(([a, t]) => { if (q.includes(a)) terms = `${q} ${t}`; });
-    const words = terms.split(/\s+/).filter((w) => w.length >= 2);
-    let best: PosItem | null = null;
-    let bestScore = 0;
+  /** Best catalog match for a spoken product name, with its score. */
+  const findVoice = useCallback((spoken: string): { item: PosItem; score: number } | null => {
+    const raw = spoken.toLowerCase().trim();
+    if (!raw) return null;
+    // Add catalog words people say for a thing ("cheeni" → "sugar").
+    let phrase = raw;
+    Object.entries(aliases).forEach(([a, t]) => { if (raw.includes(a)) phrase = `${raw} ${t}`; });
+    let best: { item: PosItem; score: number } | null = null;
     for (const it of items) {
-      const n = it.name.toLowerCase();
-      let score = n === q ? 100 : n.startsWith(q) ? 60 : n.includes(q) ? 40 : 0;
-      for (const w of words) if (n.includes(w)) score += 10;
-      if (score > bestScore) { bestScore = score; best = it; }
+      const score = Math.max(matchScore(raw, it.name, `${it.searchText ?? ''} ${it.categoryName ?? ''}`), matchScore(phrase, it.name, it.searchText ?? ''));
+      if (score > (best?.score ?? 0)) best = { item: it, score };
     }
-    return bestScore >= 20 ? best : null;
+    return best && best.score >= 14 ? best : null;
   }, [items, aliases]);
 
-  const onVoice = useCallback(async (cmd: VoiceCommand) => {
+  const onVoice = useCallback(async (cmd: VoiceCommand, alternatives: VoiceCommand[] = []): Promise<VoiceFeedback> => {
     if (cmd.kind === 'add') {
-      const it = findVoice(cmd.productQuery);
-      if (!it) { toast.error(`"${cmd.productQuery}" nahi mila`); return; }
+      // The recogniser's other hearings may name the product better; take the strongest match.
+      const tries = [cmd, ...alternatives.filter((a): a is Extract<VoiceCommand, { kind: 'add' }> => a.kind === 'add')];
+      let pick: { cmd: Extract<VoiceCommand, { kind: 'add' }>; item: PosItem; score: number } | null = null;
+      for (const c of tries) {
+        const m = findVoice(c.productQuery);
+        if (m && m.score > (pick?.score ?? 0)) pick = { cmd: c, ...m };
+      }
+      if (!pick) return { ok: false, text: `"${cmd.productQuery}" nahi mila` };
+      const { item: it, cmd: c } = pick;
       const units = await unitsFor(it);
       let unit = units[0];
-      if (cmd.unit) unit = units.find((u) => unitKeyOf(u.unitName) === cmd.unit) ?? unit;
-      if (cmd.byMoney) {
-        if (isWeightUnit(unit.unitName) && unit.price > 0) pushLine(it, unit, Number((cmd.byMoney / unit.price).toFixed(3)), {});
-        else setWeigh({ item: it, unit, opts: {}, prefillMoney: cmd.byMoney });
-        return;
+      if (c.unit) unit = units.find((u) => unitKeyOf(u.unitName) === c.unit) ?? unit;
+      if (c.byMoney) {
+        if (isWeightUnit(unit.unitName) && unit.price > 0) {
+          const q = Number((c.byMoney / unit.price).toFixed(3));
+          pushLine(it, unit, q, {});
+          return { ok: true, text: `${it.name} — Rs ${c.byMoney} ka (${q} ${unit.unitName})` };
+        }
+        setWeigh({ item: it, unit, opts: {}, prefillMoney: c.byMoney });
+        return { ok: true, text: `${it.name} — wazan check karein` };
       }
-      if (units.length > 1 && !cmd.unit) { setUnitPicker({ item: it, units, opts: {} }); return; }
-      pushLine(it, unit, cmd.qty || 1, {});
-      return;
+      if (units.length > 1 && !c.unit) { setUnitPicker({ item: it, units, opts: {} }); return { ok: true, text: `${it.name} — unit chunein` }; }
+      pushLine(it, unit, c.qty || 1, {});
+      return { ok: true, text: `${c.qty || 1} ${unit.unitName} ${it.name}` };
     }
     if (cmd.kind === 'checkout') {
-      if (!cart.length) { toast.error('Bill khaali hai'); return; }
-      const credit = (cmd as { mode?: string }).mode === 'credit';
-      if (credit && !customerId) { toast.error('Udhaar ke liye pehle customer chunein'); return; }
+      if (!cart.length) return { ok: false, text: 'Bill khaali hai' };
+      const credit = cmd.mode === 'credit';
+      if (credit && !customerId) return { ok: false, text: 'Udhaar ke liye pehle customer chunein' };
       setCheckout({ mode: credit ? 'credit' : 'full' });
-      return;
+      return { ok: true, text: credit ? 'Udhaar — checkout khul gaya' : 'Checkout khul gaya' };
     }
     if (cmd.kind === 'discount') {
-      if (cmd.pct) { setDiscountMode('pct'); setDiscountPct(Math.min(cmd.pct, 100)); setDiscountRs(0); }
-      else if (cmd.rs) { setDiscountMode('rs'); setDiscountRs(cmd.rs); setDiscountPct(0); }
-      return;
+      if (cmd.pct) { setDiscountMode('pct'); setDiscountPct(Math.min(cmd.pct, 100)); setDiscountRs(0); return { ok: true, text: `${cmd.pct}% discount laga` }; }
+      if (cmd.rs) { setDiscountMode('rs'); setDiscountRs(cmd.rs); setDiscountPct(0); return { ok: true, text: `Rs ${cmd.rs} discount laga` }; }
+      return { ok: false, text: 'Discount ki raqam samajh nahi aayi' };
     }
-    if (cmd.kind === 'clear') { clearCart(); toast.success('Bill saaf'); return; }
-    toast.warning(`Samjha nahi: "${cmd.text}"`);
+    if (cmd.kind === 'clear') { clearCart(); return { ok: true, text: 'Bill saaf' }; }
+    return { ok: false, text: `Samjha nahi: "${cmd.text}"` };
   }, [findVoice, unitsFor, pushLine, cart.length, customerId, clearCart]);
 
   /* ── Checkout ── */

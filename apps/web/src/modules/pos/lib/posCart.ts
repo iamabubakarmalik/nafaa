@@ -95,5 +95,3 @@ export const POS_PAYMENT_METHODS: PosPaymentMethodOption[] = [
   { id: 'BANK_TRANSFER', label: 'Bank',      icon: Building2,  color: '#7c3aed', key: 'F7' },
 ];
 
-/** Cash ke aam note — counter par sab se zyada yehi chalte hain. */
-export const POS_QUICK_AMOUNTS = [100, 200, 500, 1000, 2000, 5000];

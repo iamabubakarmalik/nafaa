@@ -88,8 +88,13 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
   const { hidePrices, setHidePrices, autoPrint, printerWidth } = e.prefs;
   const clock = useClock();
   const { data: overview } = useOverview();
-  const { sales: maskSales } = useMasked();
-  const today = { sales: maskSales(overview?.stats.salesToday ?? 0), bills: overview?.stats.ordersToday ?? 0 };
+  const { costHidden, salesHidden } = useMasked();
+  // Hidden under the privacy lock as well: the counter faces customers.
+  const statsHidden = costHidden || salesHidden || hidePrices;
+  const today = {
+    sales: statsHidden ? '••••' : formatPKR(overview?.stats.salesToday ?? 0),
+    bills: statsHidden ? '•' : overview?.stats.ordersToday ?? 0,
+  };
   const [layout, setLayoutState] = useState<'grid' | 'list'>(() => {
     try { return localStorage.getItem(LAYOUT_KEY) === 'list' ? 'list' : 'grid'; } catch { return 'grid'; }
   });

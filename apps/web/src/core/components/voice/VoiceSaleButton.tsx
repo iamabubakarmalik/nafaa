@@ -1,20 +1,13 @@
-import { useRef, useState } from 'react';
-import {
-  Mic, X, RotateCcw, AlertTriangle, ShoppingCart,
-  Banknote, BookOpen, Tag, Trash2, Volume2, CheckCircle2,
-} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { AlertTriangle, CheckCircle2, Mic } from 'lucide-react';
+import { Button, Modal, Segmented } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
 
-/* ═════════════════════════════════════════════════════════════
-   🎤 NAfaa VOICE SALE — CORE REUSABLE COMPONENT
-   ─────────────────────────────────────────────────────────────
-   ✅ NO backend • NO API key • 100% FREE (Web Speech API)
-   🗣️  ur-PK (اردو) + Roman Urdu dono samajhta hai
-   🛒 "2 kilo chini" • "sau ka doodh" • "dedh kilo aata"
-   💰 "udhaar" • "nagad" • "bill banao"
-   🏷️  "5 percent discount" • "sau rupay discount"
-   🧹 "cart clear karo"
-   📍 Kisi bhi page pe use karo: <VoiceSaleButton onCommand={fn} />
-   ═════════════════════════════════════════════════════════════ */
+/**
+ * Voice billing on the Web Speech API (no server, no key). Understands
+ * Urdu script and Roman Urdu: "2 kilo cheeni", "sau ka doodh",
+ * "dedh kilo aata", "udhaar", "5 percent discount", "bill saaf karo".
+ */
 
 export type VoiceCommand =
   | { kind: 'add'; productQuery: string; qty: number; unit?: string; byMoney?: number }
@@ -187,215 +180,146 @@ export function parseVoiceCommand(text: string): VoiceCommand {
   return { kind: 'unknown', text };
 }
 
-/* ─── Human-readable description ─────────────────────────── */
-export function describeCommand(cmd: VoiceCommand): { icon: any; text: string; tone: string } {
+/** Several commands in one breath: "do kilo cheeni aur ek doodh". */
+export function parseVoiceCommands(text: string): VoiceCommand[] {
+  const parts = text.split(/\s+(?:aur|or|phir|and|اور|پھر)\s+|[،,]/i).map((p) => p.trim()).filter(Boolean);
+  return parts.map(parseVoiceCommand);
+}
+
+export function describeCommand(cmd: VoiceCommand): string {
   switch (cmd.kind) {
-    case 'add':
-      return cmd.byMoney
-        ? { icon: ShoppingCart, text: `⚖️ Rs ${cmd.byMoney} ka "${cmd.productQuery}"`, tone: 'emerald' }
-        : { icon: ShoppingCart, text: `➕ ${cmd.qty} ${cmd.unit || ''} × "${cmd.productQuery}"`, tone: 'emerald' };
-    case 'checkout':
-      return cmd.mode === 'credit'
-        ? { icon: BookOpen, text: '📔 Udhaar — checkout khol raha', tone: 'amber' }
-        : { icon: Banknote, text: '💵 Cash checkout khol raha', tone: 'emerald' };
-    case 'discount':
-      return { icon: Tag, text: cmd.pct ? `🏷️ ${cmd.pct}% discount` : `🏷️ Rs ${cmd.rs} discount`, tone: 'amber' };
-    case 'clear':
-      return { icon: Trash2, text: '🧹 Cart clear', tone: 'rose' };
-    default:
-      return { icon: AlertTriangle, text: `❓ Samjha nahi: "${cmd.text}"`, tone: 'rose' };
+    case 'add': return cmd.byMoney ? `Rs ${cmd.byMoney} ka ${cmd.productQuery}` : `${cmd.qty} ${cmd.unit ?? ''} ${cmd.productQuery}`.replace(/\s+/g, ' ');
+    case 'checkout': return cmd.mode === 'credit' ? 'Udhaar — checkout' : 'Checkout';
+    case 'discount': return cmd.pct ? `${cmd.pct}% discount` : `Rs ${cmd.rs} discount`;
+    case 'clear': return 'Bill saaf';
+    default: return `Samjha nahi: "${cmd.text}"`;
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   🎤 VoiceSaleButton — reusable mic button + overlay
-   ═══════════════════════════════════════════════════════════ */
-const EXAMPLES = [
-  '"2 kilo chini"', '"sau ka doodh"', '"dedh kilo aata"',
-  '"ek dozen anday"', '"udhaar"', '"5 percent discount"',
-];
+/** What the page did with a command: shown in the voice panel. */
+export interface VoiceFeedback { ok: boolean; text: string }
 
-export function VoiceSaleButton({
-  onCommand,
-  lang = 'ur-PK',
-  className = '',
-}: {
-  onCommand: (cmd: VoiceCommand) => void;
-  lang?: string;
+type Lang = 'ur-PK' | 'en-IN';
+const LANG_KEY = 'nafaa-voice-lang';
+const EXAMPLES = ['2 kilo cheeni', 'sau ka doodh', 'dedh kilo aata', 'ek dozen anday aur ek bread', '5 percent discount', 'nagad'];
+
+/**
+ * Mic button and voice panel. Each phrase is parsed (several items joined by
+ * "aur"), handed to `onCommand` with the recogniser's alternative hearings,
+ * and the panel keeps listening for the next item until the user is done.
+ */
+export function VoiceSaleButton({ onCommand, className = '' }: {
+  onCommand: (cmd: VoiceCommand, alternatives: VoiceCommand[]) => VoiceFeedback | Promise<VoiceFeedback> | void | Promise<void>;
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [listening, setListening] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [result, setResult] = useState<VoiceCommand | null>(null);
+  const [heard, setHeard] = useState('');
+  const [log, setLog] = useState<VoiceFeedback[]>([]);
   const [error, setError] = useState('');
+  const [lang, setLangState] = useState<Lang>(() => { try { return (localStorage.getItem(LANG_KEY) as Lang) || 'ur-PK'; } catch { return 'ur-PK'; } });
   const recRef = useRef<any>(null);
+  const keepRef = useRef(false);
 
-  const supported = typeof window !== 'undefined' &&
-    (!!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition);
+  const supported = typeof window !== 'undefined' && (!!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition);
 
-  const stop = () => { try { recRef.current?.stop(); } catch {} setListening(false); };
-  const close = () => { stop(); setOpen(false); setTranscript(''); setResult(null); setError(''); };
+  const stop = () => { keepRef.current = false; try { recRef.current?.abort(); } catch { /* not started */ } setListening(false); };
+  const close = () => { stop(); setOpen(false); setHeard(''); setError(''); setLog([]); };
+  const setLang = (l: Lang) => { setLangState(l); try { localStorage.setItem(LANG_KEY, l); } catch { /* private window */ } if (listening) { stop(); setTimeout(() => start(l), 200); } };
 
-  const start = () => {
-    if (!supported) { setError('Is browser mein voice nahi — Chrome ya Edge use karo'); return; }
+  const handle = async (texts: string[]) => {
+    const [first, ...rest] = texts;
+    const cmds = parseVoiceCommands(first);
+    const altCmds = rest.map(parseVoiceCommand);
+    for (const cmd of cmds) {
+      const fb = await onCommand(cmd, cmds.length === 1 ? altCmds : []);
+      const entry = fb ?? { ok: cmd.kind !== 'unknown', text: describeCommand(cmd) };
+      setLog((l) => [entry, ...l].slice(0, 8));
+      if (cmd.kind === 'checkout' || cmd.kind === 'clear') { close(); return; }
+    }
+  };
+
+  const start = (l: Lang = lang) => {
+    if (!supported) { setError('Is browser mein awaaz ka feature nahi — Chrome ya Edge istemal karein'); return; }
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const rec = new SR();
-    rec.lang = lang;
+    rec.lang = l;
     rec.interimResults = true;
-    rec.maxAlternatives = 1;
+    rec.maxAlternatives = 5;
     rec.continuous = false;
-
-    rec.onstart = () => { setListening(true); setError(''); setTranscript(''); setResult(null); };
+    keepRef.current = true;
+    rec.onstart = () => { setListening(true); setError(''); setHeard(''); };
     rec.onresult = (e: any) => {
-      let final = '', interim = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) final += t; else interim += t;
-      }
-      const text = (final || interim).trim();
-      if (text) setTranscript(text);
-      if (final) {
-        const cmd = parseVoiceCommand(final);
-        setResult(cmd);
-        setListening(false);
-        setTimeout(() => { onCommand(cmd); close(); }, cmd.kind === 'unknown' ? 1500 : 700);
+      const r = e.results[e.results.length - 1];
+      setHeard(r[0].transcript);
+      if (r.isFinal) {
+        const texts = Array.from({ length: r.length }, (_, i) => String(r[i].transcript)).filter(Boolean);
+        void handle(texts);
       }
     };
     rec.onerror = (e: any) => {
-      setListening(false);
-      setError(
-        e.error === 'not-allowed' ? '🎤 Mic ki ijazat chahiye — browser mein Allow dabao'
-        : e.error === 'no-speech' ? 'Kuch sunai nahi diya — dobara bolo'
-        : 'Voice error — dobara try karo'
-      );
+      if (e.error === 'aborted') return;
+      if (e.error === 'no-speech') return; // keep listening quietly
+      keepRef.current = false;
+      setError(e.error === 'not-allowed' ? 'Mic ki ijazat chahiye — browser mein Allow dabayein' : 'Awaaz nahi suni ja saki — dobara koshish karein');
     };
-    rec.onend = () => setListening(false);
+    // Keep the session going: start again after each phrase until the user stops.
+    rec.onend = () => { setListening(false); if (keepRef.current) setTimeout(() => { if (keepRef.current) { try { rec.start(); } catch { /* already running */ } } }, 250); };
     recRef.current = rec;
-    try { rec.start(); } catch { setError('Mic start nahi hua'); }
+    try { rec.start(); } catch { setError('Mic shuru nahi hua'); }
   };
 
-  const openAndStart = () => { setOpen(true); setTimeout(start, 150); };
-
-  const preview = result ? describeCommand(result) : null;
+  useEffect(() => () => { keepRef.current = false; try { recRef.current?.abort(); } catch { /* */ } }, []);
 
   return (
     <>
-      <button
-        onClick={openAndStart}
-        title="Voice Sale (bol ke becho)"
-        className={className || 'h-10 w-10 sm:h-11 sm:w-11 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 active:scale-95 text-white flex items-center justify-center shadow-lg shadow-rose-500/40 transition'}
-      >
+      <button type="button" onClick={() => { setOpen(true); setTimeout(() => start(), 150); }} title="Awaaz se bill (F6)" aria-label="Awaaz se bill"
+        className={className || 'flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-brand-fg shadow-sm transition hover:bg-brand-700'}>
         <Mic className="h-5 w-5" />
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[60] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4" onClick={close}>
-          <div
-            className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="px-5 py-4 bg-gradient-to-br from-rose-600 via-pink-600 to-fuchsia-700 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Volume2 className="h-5 w-5" />
-                <h3 className="font-extrabold text-lg">🎤 Bol Ke Becho</h3>
-              </div>
-              <button onClick={close} className="h-10 w-10 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+      <Modal open={open} onClose={close} size="md" title="Awaaz se bill" description="Bolte jayein — har cheez bill mein judti jayegi">
+        <div className="space-y-5">
+          <div className="flex justify-center">
+            <Segmented label="Zabaan" value={lang} onChange={setLang}
+              items={[{ value: 'ur-PK', label: 'اردو / Urdu' }, { value: 'en-IN', label: 'English / Roman' }]} />
+          </div>
 
-            <div className="p-6 space-y-5">
-              {/* Mic visual */}
-              <div className="flex justify-center">
-                <div className="relative">
-                  {listening && (
-                    <>
-                      <span className="absolute inset-0 rounded-full bg-rose-500/40 animate-ping" />
-                      <span className="absolute -inset-4 rounded-full bg-rose-500/20 animate-ping [animation-delay:300ms]" />
-                    </>
-                  )}
-                  <button
-                    onClick={listening ? stop : start}
-                    className={[
-                      'relative h-24 w-24 rounded-full flex items-center justify-center transition-all active:scale-95 shadow-2xl',
-                      listening
-                        ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-rose-500/50 scale-110'
-                        : 'bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-slate-500/40 hover:scale-105',
-                    ].join(' ')}
-                  >
-                    <Mic className="h-10 w-10" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="text-center">
-                <div className={[
-                  'text-xs font-extrabold uppercase tracking-widest',
-                  listening ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-ink-400',
-                ].join(' ')}>
-                  {listening ? '🔴 Sun raha hoon... bolo!' : error ? '⚠️ Masla hua' : result ? '✓ Samajh gaya!' : 'Mic dabao aur bolo'}
-                </div>
-
-                {/* Transcript */}
-                {(transcript || error) && (
-                  <div className={[
-                    'mt-3 rounded-2xl border-2 p-4 min-h-[60px] flex items-center justify-center',
-                    error
-                      ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/40'
-                      : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700',
-                  ].join(' ')}>
-                    <p className={[
-                      'text-lg font-extrabold',
-                      error ? 'text-rose-700 dark:text-rose-300' : 'text-slate-900 dark:text-ink-white',
-                    ].join(' ')}>
-                      {error || transcript}
-                    </p>
-                  </div>
-                )}
-
-                {/* Parsed preview */}
-                {preview && !error && (
-                  <div className={[
-                    'mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-extrabold border-2',
-                    preview.tone === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-300 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300'
-                    : preview.tone === 'amber' ? 'bg-amber-50 dark:bg-amber-500/15 border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300'
-                    : 'bg-rose-50 dark:bg-rose-500/15 border-rose-300 dark:border-rose-500/40 text-rose-800 dark:text-rose-300',
-                  ].join(' ')}>
-                    <preview.icon className="h-4 w-4" />
-                    {preview.text}
-                  </div>
-                )}
-              </div>
-
-              {/* Retry */}
-              {(error || (result && result.kind === 'unknown')) && (
-                <button
-                  onClick={start}
-                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 text-white font-extrabold inline-flex items-center justify-center gap-2 shadow-lg shadow-rose-500/40 active:scale-95 transition"
-                >
-                  <RotateCcw className="h-4 w-4" /> Dobara Bolo
-                </button>
-              )}
-
-              {/* Examples */}
-              <div>
-                <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-ink-400 mb-2 flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" /> Aise bolo
-                </div>
-                <div className="flex flex-wrap gap-1.5 justify-center">
-                  {EXAMPLES.map((ex) => (
-                    <span key={ex} className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
-                      {ex}
-                    </span>
-                  ))}
-                </div>
-              </div>
+          <div className="flex flex-col items-center">
+            <button type="button" onClick={() => (listening ? stop() : start())} aria-label={listening ? 'Rokein' : 'Sunna shuru karein'}
+              className={cn('relative flex h-24 w-24 items-center justify-center rounded-full text-white shadow-xl transition',
+                listening ? 'bg-gradient-to-br from-brand-500 to-brand-700 shadow-brand-600/40' : 'bg-slate-800 hover:bg-slate-700')}>
+              {listening && <span className="absolute inset-0 animate-ping rounded-full bg-brand-500/30" aria-hidden />}
+              {listening && <span className="absolute -inset-3 rounded-full border-2 border-brand-300/60" aria-hidden />}
+              <Mic className="relative h-10 w-10" />
+            </button>
+            <p className={cn('mt-4 text-[0.875rem] font-medium', listening ? 'text-brand-700' : 'text-slate-500')}>
+              {listening ? 'Sun raha hoon…' : error ? 'Ruk gaya' : 'Mic dabayein aur bolein'}
+            </p>
+            <div className="mt-2 min-h-[3rem] w-full rounded-xl bg-slate-50 px-4 py-3 text-center text-lg font-semibold text-slate-900" dir="auto">
+              {error ? <span className="text-[0.875rem] font-medium text-rose-700">{error}</span> : heard || <span className="text-[0.875rem] font-normal text-slate-400">Jo aap bolenge woh yahan likha aayega</span>}
             </div>
           </div>
+
+          {log.length > 0 && (
+            <ul className="space-y-1.5">
+              {log.map((f, i) => (
+                <li key={i} className={cn('flex items-center gap-2 rounded-lg px-3 py-2 text-[0.8125rem] font-medium', f.ok ? 'bg-success-50 text-success-800' : 'bg-rose-50 text-rose-800')}>
+                  {f.ok ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <AlertTriangle className="h-4 w-4 shrink-0" />}{f.text}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div>
+            <p className="mb-2 text-[0.75rem] font-medium text-slate-500">Aise bolein</p>
+            <div className="flex flex-wrap gap-1.5">
+              {EXAMPLES.map((ex) => <span key={ex} className="rounded-full bg-slate-100 px-2.5 py-1 text-[0.75rem] text-slate-600">“{ex}”</span>)}
+            </div>
+          </div>
+          <Button fullWidth variant="secondary" onClick={close}>Ho gaya</Button>
         </div>
-      )}
+      </Modal>
     </>
   );
 }
