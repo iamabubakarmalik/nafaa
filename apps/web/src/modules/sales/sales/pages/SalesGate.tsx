@@ -1,15 +1,20 @@
+/**
+ * Picks the sales history for the current industry. Retail, Bakery,
+ * Electronics and businesses without an industry use the shared history
+ * (modules/sales/history); the rest keep their own pages for now.
+ */
 import { lazy, Suspense } from 'react';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
-import SalesPage from './SalesPage';
 
 const RestaurantSalesPage = lazy(() => import('@industries/restaurant/pages/RestaurantSalesPage'));
 const MobileSalesPage = lazy(() => import('@industries/mobile/pages/MobileSalesPage'));
-const ElectronicsSalesPage = lazy(() => import('@industries/electronics/pages/ElectronicsSalesPage'));
+const ElectronicsSales = lazy(() => import('@industries/electronics/sales/ElectronicsSales'));
+const GeneralSales = lazy(() => import('@modules/sales/history/general/GeneralSales'));
 const AppliancesSalesPage = lazy(() => import('@industries/appliances/pages/AppliancesSalesPage'));
 const CarpetSalesPage = lazy(() => import('@industries/carpet/pages/CarpetSalesPage'));
-const RetailSalesPage = lazy(() => import('@industries/retail/pages/RetailSalesPage'));
+const RetailSales = lazy(() => import('@industries/retail/sales/RetailSales'));
 const GarmentSalesPage = lazy(() => import('@industries/garments/pages/GarmentSalesPage'));
-const BakerySalesPage = lazy(() => import('@industries/bakery/pages/BakerySalesPage'));
+const BakerySales = lazy(() => import('@industries/bakery/sales/BakerySales'));
 const GymSalesPage = lazy(() => import('@industries/gym/pages/GymSalesPage'));
 const ClinicSalesPage = lazy(() => import('@industries/clinic/pages/ClinicSalesPage'));
 const ServicesBizSalesPage = lazy(() => import('@industries/services-biz/pages/ServicesBizSalesPage'));
@@ -37,12 +42,12 @@ export default function SalesGate() {
 
   if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantSalesPage /></Suspense>;
   if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileSalesPage /></Suspense>;
-  if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsSalesPage /></Suspense>;
+  if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsSales /></Suspense>;
   if (industry?.id === 'appliances') return <Suspense fallback={<Loader />}><AppliancesSalesPage /></Suspense>;
   if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetSalesPage /></Suspense>;
-  if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailSalesPage /></Suspense>;
+  if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailSales /></Suspense>;
   if (industry?.id === 'garments') return <Suspense fallback={<Loader />}><GarmentSalesPage /></Suspense>;
-  if (industry?.id === 'bakery') return <Suspense fallback={<Loader />}><BakerySalesPage /></Suspense>;
+  if (industry?.id === 'bakery') return <Suspense fallback={<Loader />}><BakerySales /></Suspense>;
   if (industry?.id === 'gym') return <Suspense fallback={<Loader />}><GymSalesPage /></Suspense>;
   if (industry?.id === 'clinic') return <Suspense fallback={<Loader />}><ClinicSalesPage /></Suspense>;
   if (industry?.id === 'services-biz') return <Suspense fallback={<Loader />}><ServicesBizSalesPage /></Suspense>;
@@ -57,5 +62,5 @@ export default function SalesGate() {
   if (industry?.id === 'salon') return <Suspense fallback={<Loader />}><SalonSalesPage /></Suspense>;
   if (industry?.id === 'hotel') return <Suspense fallback={<Loader />}><HotelSalesPage /></Suspense>;
 
-  return <SalesPage />;
+  return <Suspense fallback={<Loader />}><GeneralSales /></Suspense>;
 }

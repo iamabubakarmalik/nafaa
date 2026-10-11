@@ -39,7 +39,7 @@ import { printReceiptDirect, type ReceiptPayload } from '../lib/thermalReceipt';
 import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem } from './types';
 
 /** Customers refresh after a sale (balances change). */
-const SALE_REFRESH = ['customers-for-pos', 'sales-list', 'dashboard-overview', 'dashboard-day-report', 'retail-money-map', 'dashboard-list'];
+const SALE_REFRESH = ['customers-for-pos', 'sales-list', 'sales-history', 'dashboard-overview', 'dashboard-day-report', 'retail-money-map', 'dashboard-list'];
 
 /** Common Urdu/Roman words for everyday goods, for voice search. */
 const BASE_VOICE_ALIASES: Record<string, string> = {
@@ -51,6 +51,18 @@ const BASE_VOICE_ALIASES: Record<string, string> = {
   'چینی': 'cheeni sugar', 'دودھ': 'doodh milk', 'انڈے': 'anday eggs', 'انڈا': 'anday eggs', 'چائے': 'chai tea', 'پتی': 'patti tea',
   'آٹا': 'aata flour', 'چاول': 'chawal rice', 'تیل': 'tel oil', 'گھی': 'ghee', 'نمک': 'namak salt', 'صابن': 'sabun soap',
   'دال': 'daal', 'دہی': 'dahi yogurt', 'پانی': 'paani water', 'ڈبل روٹی': 'bread double roti', 'بسکٹ': 'biscuit',
+  // Everyday goods, Urdu script → catalog words
+  'مکھن': 'makhan butter', 'پنیر': 'paneer cheese', 'شہد': 'shahad honey', 'جام': 'jam', 'کیچپ': 'ketchup sauce',
+  'سرف': 'surf detergent', 'سرخ مرچ': 'lal mirch chilli', 'مرچ': 'mirch chilli', 'ہلدی': 'haldi turmeric', 'دھنیا': 'dhania coriander',
+  'زیرہ': 'zeera cumin', 'گرم مصالحہ': 'garam masala', 'مصالحہ': 'masala', 'سویاں': 'sewaiyan vermicelli', 'نوڈلز': 'noodles',
+  'چپس': 'chips', 'ٹافی': 'toffee candy', 'چاکلیٹ': 'chocolate', 'جوس': 'juice', 'کولڈ ڈرنک': 'cold drink cola',
+  'بوتل': 'bottle drink', 'سگریٹ': 'cigarette', 'ماچس': 'machis matches', 'موم بتی': 'candle', 'شیمپو': 'shampoo',
+  'ٹوتھ پیسٹ': 'toothpaste', 'برش': 'brush', 'ٹشو': 'tissue', 'چنے': 'chanay chickpeas', 'بیسن': 'besan gram flour',
+  'میدہ': 'maida flour', 'سوجی': 'suji semolina', 'کیلا': 'kela banana', 'سیب': 'seb apple', 'پیاز': 'pyaz onion',
+  'ٹماٹر': 'tamatar tomato', 'آلو': 'aloo potato', 'لہسن': 'lehsan garlic', 'ادرک': 'adrak ginger', 'لیموں': 'lemon',
+  'کیک': 'cake', 'پیٹیز': 'patties', 'سموسہ': 'samosa', 'رس': 'rusk', 'بن': 'bun', 'پیزا': 'pizza', 'کوکیز': 'cookies',
+  makhan: 'makhan butter', butter: 'makhan butter', surf: 'surf detergent', mirch: 'mirch chilli', haldi: 'haldi turmeric',
+  machis: 'machis matches', besan: 'besan', maida: 'maida', suji: 'suji', kela: 'kela banana', seb: 'seb apple', lehsan: 'lehsan garlic',
 };
 
 export type PosView = 'products' | 'combos' | 'quickkeys';

@@ -23,7 +23,8 @@ const FORMATS: Array<{ id: PrintFormat; label: string; hint: string; icon: typeo
 ];
 
 export function PrintButton({ doc, disabled, label = 'Print', size = 'md', className }: {
-  doc: () => PrintDoc;
+  /** Builds the document; may fetch first (async). */
+  doc: () => PrintDoc | Promise<PrintDoc>;
   disabled?: boolean;
   label?: string;
   size?: 'sm' | 'md';
@@ -35,7 +36,7 @@ export function PrintButton({ doc, disabled, label = 'Print', size = 'md', class
   useDismissible(ref, open, () => setOpen(false));
   const current = FORMATS.find((f) => f.id === format) ?? FORMATS[0];
   // Picking from the menu makes that format the new one-click default.
-  const run = (f: PrintFormat, remember = false) => { setOpen(false); if (remember) usePrintSettings.getState().set({ format: f }); void print(doc(), f); };
+  const run = (f: PrintFormat, remember = false) => { setOpen(false); if (remember) usePrintSettings.getState().set({ format: f }); void Promise.resolve(doc()).then((d) => print(d, f)); };
   const CurIcon = current.icon;
   const h = size === 'sm' ? 'h-8' : 'h-9';
 

@@ -206,7 +206,7 @@ const isNetFail = (e: any): boolean => {
 };
 
 /** Pending local sales ko Sale[] shape me lao */
-async function getPendingAsSales(): Promise<Sale[]> {
+export async function getPendingAsSales(): Promise<Sale[]> {
   try {
     const { db } = await import('@core/lib/offline/db');
     const { pendingSaleToSale } = await import('@core/lib/offline/offlineSales');

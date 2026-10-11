@@ -18,7 +18,7 @@ import {
 import { toast } from 'sonner';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
-import { ReturnModal } from '@industries/retail/components/ReturnModal';
+import { ReturnModal } from '@modules/sales/returns/components/ReturnModal';
 import { resolveTemplates, fillTemplate, waLink } from '@core/lib/whatsapp/templates';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { formatPKR } from '@core/lib/format';

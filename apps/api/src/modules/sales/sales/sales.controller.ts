@@ -6,13 +6,17 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CurrentShop, ShopIdParam, ShopScope } from '../../../common/shop-scope';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { SalesService } from './sales.service';
+import { SalesHistoryService, type SalesHistoryQuery } from './sales-history.service';
 
 @ApiTags('Sales')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('sales')
 export class SalesController {
-  constructor(private readonly salesService: SalesService) {}
+  constructor(
+    private readonly salesService: SalesService,
+    private readonly history: SalesHistoryService,
+  ) {}
 
   @Post()
   create(
@@ -30,6 +34,18 @@ export class SalesController {
     @ShopIdParam() shopId?: string,
   ) {
     return this.salesService.findAll(user, shop, shopId);
+  }
+
+  /** Filtered, paginated bills with totals for the whole filter. Before `:id`. */
+  @Get('history')
+  historyList(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId: string | undefined, @Query() q: SalesHistoryQuery) {
+    return this.history.list(user, shopId, q);
+  }
+
+  /** Trend, hours, weekdays, payments, top products/customers and staff for the same filter. */
+  @Get('history/analytics')
+  historyAnalytics(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId: string | undefined, @Query() q: SalesHistoryQuery) {
+    return this.history.analytics(user, shopId, q);
   }
 
   @Get('summary')
