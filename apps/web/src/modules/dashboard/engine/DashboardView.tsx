@@ -22,6 +22,7 @@ import { GuideDialog } from './GuideDialog';
 import { DashboardLayoutContext, useDashboardLayout, type CustomizeTab } from './useDashboardLayout';
 import { WidgetBoundary } from './WidgetBoundary';
 import type { DashboardConfig, WidgetSize } from './types';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 
 const SPAN: Record<WidgetSize, string> = {
   full: 'md:col-span-2 lg:col-span-12',
@@ -63,9 +64,7 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
-      const el = document.activeElement as HTMLElement | null;
-      if (el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))) return;
-      if (document.querySelector('[role="dialog"]')) return;
+      if (isTyping() || isDialogOpen()) return;
       const k = e.key.toLowerCase();
       if (k === 'r') refresh();
       if (k === 'g' && config.guide) setGuide(true);

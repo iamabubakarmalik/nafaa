@@ -42,6 +42,7 @@ import { SaleDrawer } from './components/SaleDrawer';
 import { ROW_GRID, SaleRow } from './components/SaleRow';
 import { SalesAnalytics } from './components/SalesAnalytics';
 import { VoidSaleModal } from './components/VoidSaleModal';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 
 export interface SalesHistoryConfig {
   label: string;
@@ -60,7 +61,7 @@ const SORTS: Array<FilterOption<HistorySort>> = [
   { value: 'new', label: 'Naye pehle' }, { value: 'old', label: 'Purane pehle' },
   { value: 'high', label: 'Bari raqam pehle' }, { value: 'low', label: 'Chhoti raqam pehle' },
 ];
-const heroBtn = 'inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-3 text-[0.8125rem] font-semibold ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25 disabled:opacity-60';
+const heroBtn = 'inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25 disabled:opacity-60';
 const heroIcon = 'flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 transition hover:bg-white/25';
 
 function FilterChip({ children, onRemove }: { children: ReactNode; onRemove: () => void }) {
@@ -80,13 +81,13 @@ function Kpi({ icon: Icon, color, label, value, hint, onClick, active }: {
   const Tag = onClick ? 'button' : 'div';
   return (
     <Tag type={onClick ? 'button' : undefined} onClick={onClick}
-      className={cn('flex min-w-0 flex-col rounded-2xl bg-white p-4 text-left shadow-sm ring-1 transition',
+      className={cn('flex min-w-0 flex-col rounded-2xl bg-white px-4 py-3 text-left shadow-sm ring-1 transition',
         active ? 'ring-2 ring-brand-500' : 'ring-slate-200/80', onClick && 'hover:-translate-y-0.5 hover:shadow-md')}>
       <div className="flex items-center justify-between gap-2">
         <span className="truncate text-[0.8125rem] font-medium text-slate-500">{label}</span>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-4 w-4" /></span>
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-3.5 w-3.5" /></span>
       </div>
-      <div className="mt-1 truncate text-[1.375rem] font-bold tabular-nums tracking-tight text-slate-900">{value}</div>
+      <div className="mt-0.5 truncate text-[1.1875rem] font-bold tabular-nums tracking-tight text-slate-900">{value}</div>
       {hint && <div className="mt-0.5 truncate text-[0.75rem] text-slate-500">{hint}</div>}
     </Tag>
   );
@@ -169,9 +170,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (document.querySelector('[role="dialog"]') || e.metaKey || e.ctrlKey || e.altKey) return;
-      const t = (document.activeElement as HTMLElement | null)?.tagName;
-      if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
       const k = e.key.toLowerCase();
       if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
       if (k === 'b') { e.preventDefault(); setScanner(true); }
@@ -219,22 +218,21 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
 
       {/* Header */}
       {/* Hero: the glow sits in its own clipped layer so the print menu can drop below. */}
-      <div className="relative z-20 rounded-[1.75rem] bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-5 text-white shadow-xl shadow-brand-900/20 sm:p-7">
-        <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-[1.75rem]" aria-hidden>
-          <span className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-          <span className="absolute -bottom-32 left-1/4 h-64 w-64 rounded-full bg-fuchsia-300/10 blur-3xl" />
-          <svg className="absolute inset-0 h-full w-full opacity-[0.07]"><defs><pattern id="sh-dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.5" fill="white" /></pattern></defs><rect width="100%" height="100%" fill="url(#sh-dots)" /></svg>
+      <div className="relative z-20 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 px-4 py-4 text-white shadow-lg shadow-brand-900/15 sm:px-6">
+        <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl" aria-hidden>
+          <span className="absolute -right-20 -top-24 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+          <svg className="absolute inset-0 h-full w-full opacity-[0.06]"><defs><pattern id="sh-dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.5" fill="white" /></pattern></defs><rect width="100%" height="100%" fill="url(#sh-dots)" /></svg>
         </span>
-        <div className="relative flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[0.8125rem] font-medium text-white/70">{config.label} · {shopName ?? tenantName}</p>
-            <h1 className="mt-0.5 text-2xl font-bold tracking-tight sm:text-[1.875rem]">Bikri ka record</h1>
-            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[0.8125rem] font-medium text-white/90 ring-1 ring-white/20">
+        <div className="relative flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+            <h1 className="text-xl font-bold tracking-tight sm:text-[1.375rem]">Bikri ka record</h1>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-0.5 text-[0.75rem] font-medium text-white/90 ring-1 ring-white/20">
               <CalendarRange className="h-3.5 w-3.5" />{label}
-              {h.fetching && !h.loading && <span className="ml-1 h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-label="Taaza ho raha hai" />}
-            </p>
+              {h.fetching && !h.loading && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-label="Taaza ho raha hai" />}
+            </span>
+            <span className="hidden text-[0.75rem] text-white/60 md:inline">{config.label} · {shopName ?? tenantName}</span>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-1.5">
             <PrivacyToggle compact />
             <button type="button" onClick={() => setScanner(true)} title="Bill ka barcode scan (B)" className={heroBtn}>
               <ScanLine className="h-4 w-4" /> <span className="hidden sm:inline">Bill scan</span>
@@ -248,28 +246,22 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
           </div>
         </div>
 
-        <div className="relative mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:items-end">
-          <div className="sm:col-span-2 lg:col-span-1">
-            <p className="text-[0.8125rem] font-medium text-white/70">Kul bikri</p>
-            {h.loading || !st ? <span className="mt-1 block h-11 w-48 animate-pulse rounded-xl bg-white/15" /> : (
-              <>
-                <p className="mt-0.5 text-[2.25rem] font-bold leading-tight tracking-tight tabular-nums sm:text-[2.75rem]">{money(st.total)}</p>
-                <p className="text-[0.8125rem] text-white/75">{st.bills} bill · {Number(st.qty.toFixed(2))} cheezein{st.voided ? ` · ${st.voided} void` : ''}</p>
-              </>
-            )}
+        <div className="relative mt-3 flex flex-wrap items-end gap-x-6 gap-y-3 sm:gap-x-8">
+          <div>
+            <p className="text-[0.75rem] font-medium text-white/70">Kul bikri · {st ? `${st.bills} bill` : '…'}</p>
+            {h.loading || !st
+              ? <span className="mt-1 block h-9 w-40 animate-pulse rounded-lg bg-white/15" />
+              : <p className="text-[1.875rem] font-bold leading-tight tracking-tight tabular-nums">{money(st.total)}</p>}
           </div>
           {[
             { label: 'Haath mein aaya', value: st ? money(st.paid) : '', hint: st?.change ? `wapsi ${money(st.change)}` : 'cash + online' },
-            { label: 'Munafa', value: st ? cost(st.profit) : '', hint: costHidden ? 'Cost lock hai' : st ? `${st.margin.toFixed(1)}% margin` : '' },
-            { label: 'Ausat bill', value: st ? money(st.average) : '', hint: st ? `${st.lines} lines` : '' },
+            { label: 'Munafa', value: st ? cost(st.profit) : '', hint: costHidden ? 'Cost lock' : st ? `${st.margin.toFixed(1)}% margin` : '' },
+            { label: 'Ausat bill', value: st ? money(st.average) : '', hint: st ? `${Number(st.qty.toFixed(2))} cheezein` : '' },
           ].map((x) => (
-            <div key={x.label} className="rounded-2xl bg-white/10 p-3.5 ring-1 ring-white/15 backdrop-blur-sm">
+            <div key={x.label} className="border-l border-white/20 pl-4 sm:pl-6">
               <p className="text-[0.75rem] font-medium text-white/70">{x.label}</p>
-              {h.loading || !st ? <span className="mt-1 block h-7 w-24 animate-pulse rounded-lg bg-white/15" /> : (
-                <>
-                  <p className="mt-0.5 truncate text-[1.25rem] font-bold tabular-nums">{x.value}</p>
-                  <p className="truncate text-[0.6875rem] text-white/65">{x.hint}</p>
-                </>
+              {h.loading || !st ? <span className="mt-1 block h-6 w-24 animate-pulse rounded-md bg-white/15" /> : (
+                <p className="text-[1.125rem] font-bold leading-tight tabular-nums">{x.value} <span className="text-[0.6875rem] font-medium text-white/60">{x.hint}</span></p>
               )}
             </div>
           ))}
@@ -278,7 +270,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
 
       {/* Secondary numbers */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        {h.loading || !st ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[6.5rem] rounded-2xl" />) : (
+        {h.loading || !st ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
             <Kpi icon={BookOpen} color="#d97706" label="Udhaar" value={money(st.credit)} hint={`${st.creditCount} bill · dabayein`}
               onClick={() => h.setStatus(h.status === 'credit' ? 'all' : 'credit')} active={h.status === 'credit'} />

@@ -32,6 +32,7 @@ import { isWeightUnit } from '../lib/posUnits';
 import { printReceiptDirect } from '../lib/thermalReceipt';
 import type { PosIndustryConfig } from './types';
 import { usePosEngine } from './usePosEngine';
+import { isDialogOpen } from '@core/lib/shortcuts';
 
 function useOnline() {
   const [online, setOnline] = useState(navigator.onLine);
@@ -126,7 +127,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
   }, [anyModal, e.cart.length]);
 
   const onKey = useCallback((ev: KeyboardEvent) => {
-    if (document.querySelector('[role="dialog"]')) return;
+    if (isDialogOpen()) return;
     const a = document.activeElement as HTMLElement | null;
     const typing = !!a && a !== searchRef.current && (['INPUT', 'TEXTAREA', 'SELECT'].includes(a.tagName) || a.isContentEditable);
     const map: Record<string, () => void> = {

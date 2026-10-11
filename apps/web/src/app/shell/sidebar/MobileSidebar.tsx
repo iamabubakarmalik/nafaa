@@ -60,8 +60,8 @@ export function MobileSidebar({ open, onClose, dark, surface, ...rest }: Props) 
         style={open && drag ? { opacity: Math.max(0.2, 1 + drag / 320) } : undefined}
       />
       <aside
-        role="dialog"
-        aria-modal="true"
+        role={open ? 'dialog' : undefined}
+        aria-modal={open || undefined}
         aria-label="Main menu"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
