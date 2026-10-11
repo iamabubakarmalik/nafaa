@@ -1,2 +1,0 @@
-// Barrel for dashboard
-export {};

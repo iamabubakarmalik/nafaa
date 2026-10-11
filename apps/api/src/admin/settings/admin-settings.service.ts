@@ -8,8 +8,8 @@ export class AdminSettingsService {
 
   list() {
     return this.prisma.systemSetting.findMany({
-      // Appearance rows (one per business and per user) have their own screen.
-      where: { category: { not: 'appearance' } },
+      // Appearance and per-user preference rows are not platform settings.
+      where: { category: { notIn: ['appearance', 'preferences'] } },
       orderBy: [{ category: 'asc' }, { key: 'asc' }],
       include: {
         updatedBy: { select: { id: true, fullName: true } },

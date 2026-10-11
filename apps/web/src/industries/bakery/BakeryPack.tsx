@@ -12,7 +12,7 @@ import FreshnessPage from './pages/FreshnessPage';
 import BakeryBulkOrdersPage from './pages/BakeryBulkOrdersPage';
 import BakeryProductWizardPage from './pages/BakeryProductWizardPage';
 import BakeryProductsListPage from './pages/BakeryProductsListPage';
-import BakeryDashboardV2 from './pages/BakeryDashboard';
+import BakeryDashboard from './dashboard/BakeryDashboard';
 import BakeryBulkOrderFormPage from './pages/BakeryBulkOrderFormPage';
 
 /**
@@ -66,8 +66,8 @@ export const BakeryPack: IndustryPack = {
     /* Dono safhe naye wale par. Pehle ye purane BakeryDashboardPage
        par jate thay, jabke naya V2 sirf /dashboard se khulta tha —
        yani sidebar se hamesha purana hi milta. */
-    { path: '/bakery', element: BakeryDashboardV2 },
-    { path: '/bakery/dashboard', element: BakeryDashboardV2 },
+    { path: '/bakery', element: BakeryDashboard },
+    { path: '/bakery/dashboard', element: BakeryDashboard },
     { path: '/bakery/cake-orders/new', element: CakeCustomizerPage },
     { path: '/bakery/cake-orders/:id', element: CakeOrderDetailPage },
     { path: '/bakery/cake-orders', element: CakeOrdersPage },
@@ -83,7 +83,7 @@ export const BakeryPack: IndustryPack = {
     { path: '/bakery/bulk-orders', element: BakeryBulkOrdersPage },
   ],
 
-  dashboardComponent: BakeryDashboardV2,
+  dashboardComponent: BakeryDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

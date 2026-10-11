@@ -78,6 +78,7 @@ import { SmsModule } from './modules/sms/sms.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { NotificationPrefsModule } from './modules/notification-prefs/notification-prefs.module';
 import { AppearanceModule } from './modules/appearance/appearance.module';
+import { PreferencesModule } from './modules/preferences/preferences.module';
 import { TenantDigestsModule } from './modules/tenant-digests/tenant-digests.module';
 import { FeatureGatingModule } from './modules/feature-gating/feature-gating.module';
 
@@ -160,6 +161,7 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     NotificationsModule,
     NotificationPrefsModule,
     AppearanceModule,
+    PreferencesModule,
     TenantDigestsModule,
     ReferralsModule,
     FeatureGatingModule,

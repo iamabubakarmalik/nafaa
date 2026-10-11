@@ -298,7 +298,7 @@ import EquipmentPage from '@industries/gym/pages/EquipmentPage';
 import MemberDetailPage from '@industries/gym/pages/MemberDetailPage';
 
 // ─── Bakery Industry ───────────────────────────────────────────
-import BakeryDashboardV2 from '@/industries/bakery/pages/BakeryDashboard';
+import BakeryDashboard from '@/industries/bakery/dashboard/BakeryDashboard';
 import CakeCustomizerPage from '@industries/bakery/pages/CakeCustomizerPage';
 import CakeOrdersPage from '@industries/bakery/pages/CakeOrdersPage';
 import CakeOrderDetailPage from '@industries/bakery/pages/CakeOrderDetailPage';
@@ -923,8 +923,8 @@ export default function App() {
                       inhi par safha khulta hai. Pack me naye safhe lagane
                       ke bawajood yahan purane rah gaye thay — is liye
                       sidebar se hamesha purana hi milta tha. */}
-                  <Route path="/bakery" element={secure(PERMISSIONS.DASHBOARD_VIEW, <BakeryDashboardV2 />)} />
-                  <Route path="/bakery/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <BakeryDashboardV2 />)} />
+                  <Route path="/bakery" element={secure(PERMISSIONS.DASHBOARD_VIEW, <BakeryDashboard />)} />
+                  <Route path="/bakery/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <BakeryDashboard />)} />
                   <Route path="/bakery/cake-orders/new" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeCustomizerPage />)} />
                   <Route path="/bakery/cake-orders/:id" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeOrderDetailPage />)} />
                   <Route path="/bakery/cake-orders" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeOrdersPage />)} />

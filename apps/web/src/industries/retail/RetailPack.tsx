@@ -1,7 +1,7 @@
 import { LayoutDashboard, Sparkles, Layers, AlertTriangle, Zap, Download, RefreshCw } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import RetailDashboardPage from './pages/RetailDashboard';
+import RetailDashboard from './dashboard/RetailDashboard';
 import RetailPosPage from './pages/RetailPosPage';
 import CombosPage from './pages/CombosPage';
 import ComboFormPage from './pages/ComboFormPage';
@@ -74,8 +74,8 @@ export const RetailPack: IndustryPack = {
     { path: '/retail-products/:id',       element: RetailProductDetailPage },
 
     // Retail Dashboard
-    { path: '/retail',            element: RetailDashboardPage },
-    { path: '/retail/dashboard',  element: RetailDashboardPage },
+    { path: '/retail',            element: RetailDashboard },
+    { path: '/retail/dashboard',  element: RetailDashboard },
 
     // Combos
     { path: '/retail/combos/new',       element: ComboFormPage },
@@ -91,7 +91,7 @@ export const RetailPack: IndustryPack = {
     { path: '/retail/barcode-labels', element: BarcodeLabelsPage },
   ],
 
-  dashboardComponent: RetailDashboardPage,
+  dashboardComponent: RetailDashboard,
 
   productForm: {
     defaultUnit: 'pcs',
