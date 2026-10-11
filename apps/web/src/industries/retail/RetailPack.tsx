@@ -11,7 +11,7 @@ import QuickKeysPage from './pages/QuickKeysPage';
 import BulkImportPage from './pages/BulkImportPage';
 import ReorderPage from './pages/ReorderPage';
 import BarcodeLabelsPage from './pages/BarcodeLabelsPage';
-import RetailProductWizardPage from './pages/RetailProductWizardPage';
+import RetailProductEditor from './products/RetailProductEditor';
 import RetailProductDetailPage from './pages/RetailProductDetailPage';
 
 /**
@@ -69,8 +69,8 @@ export const RetailPack: IndustryPack = {
     { path: '/pos', element: RetailPos },
 
     // Retail product wizard (Products page se "+ Add" pe redirect hoga)
-    { path: '/retail-products/new',       element: RetailProductWizardPage },
-    { path: '/retail-products/:id/edit',  element: RetailProductWizardPage },
+    { path: '/retail-products/new',       element: RetailProductEditor },
+    { path: '/retail-products/:id/edit',  element: RetailProductEditor },
     { path: '/retail-products/:id',       element: RetailProductDetailPage },
 
     // Retail Dashboard

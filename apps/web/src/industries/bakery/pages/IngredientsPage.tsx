@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Wheat, Plus, X, Search, RefreshCw, AlertTriangle, CheckCircle2,
   Snowflake, Truck, Phone, Trash2, Edit3, BarChart3, GraduationCap,
@@ -78,7 +78,9 @@ export default function IngredientsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [showTeacher, setShowTeacher] = useState(false);
   const [editing, setEditing] = useState<Ingredient | null>(null);
-  const [creating, setCreating] = useState(false);
+  // ?new=1 (from the product editor's "raw material" choice) opens the add form straight away.
+  const [params] = useSearchParams();
+  const [creating, setCreating] = useState(params.get('new') === '1');
   const [stockOn, setStockOn] = useState<{ item: Ingredient; mode: 'purchase' | 'waste' | 'adjust' } | null>(null);
   const [copied, setCopied] = useState(false);
 

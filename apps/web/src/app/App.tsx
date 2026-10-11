@@ -309,7 +309,7 @@ import ProductionPage from '@industries/bakery/pages/ProductionPage';
 import IngredientsPage from '@industries/bakery/pages/IngredientsPage';
 import FreshnessPage from '@industries/bakery/pages/FreshnessPage';
 import BakeryBulkOrdersPage from '@industries/bakery/pages/BakeryBulkOrdersPage';
-import BakeryProductWizardPage from '@industries/bakery/pages/BakeryProductWizardPage';
+import BakeryProductEditor from '@industries/bakery/products/BakeryProductEditor';
 import BakeryProductDetailPage from '@industries/bakery/pages/BakeryProductDetailPage';
 import GymMemberWizardPage from '@industries/gym/pages/GymMemberWizardPage';
 import GymMemberDetailPage from '@industries/gym/pages/GymMemberDetailPage';
@@ -375,7 +375,7 @@ import CarpetProductWizardPage from '@industries/carpet/pages/CarpetProductWizar
 import CarpetProductDetailPage from '@industries/carpet/pages/CarpetProductDetailPage';
 import MobileProductWizardPage from '@/industries/mobile/pages/MobileProductWizardPage';
 import MobileProductDetailPage from '@industries/mobile/pages/MobileProductDetailPage';
-import RetailProductWizardPage from '@industries/retail/pages/RetailProductWizardPage';
+import RetailProductEditor from '@industries/retail/products/RetailProductEditor';
 import RetailProductDetailPage from '@industries/retail/pages/RetailProductDetailPage';
 import RestaurantMenuItemWizardPage from '@industries/restaurant/pages/RestaurantMenuItemWizardPage';
 import RestaurantMenuItemDetailPage from '@industries/restaurant/pages/RestaurantMenuItemDetailPage';
@@ -417,7 +417,7 @@ import ApplianceProductDetailPage from '@industries/appliances/pages/AppliancePr
 // ─── Electronics Industry ──────────────────────────────────────
 import ElectronicsDashboard from '@industries/electronics/dashboard/ElectronicsDashboard';
 import ElectronicsProducts from '@industries/electronics/products/ElectronicsProducts';
-import ElectronicsProductWizardPage from '@industries/electronics/pages/ElectronicsProductWizardPage';
+import ElectronicsProductEditor from '@industries/electronics/products/ElectronicsProductEditor';
 import ElectronicsProductDetailPage from '@industries/electronics/pages/ElectronicsProductDetailPage';
 import ElectronicsBundlesPage from '@industries/electronics/pages/ElectronicsBundlesPage';
 import ElectronicsBundleFormPage from '@industries/electronics/pages/BundleFormPage';
@@ -1126,8 +1126,8 @@ export default function App() {
                   <Route path="/mobile-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <MobileProductDetailPage />)} />
 
                   {/* Retail */}
-                  <Route path="/retail-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <RetailProductWizardPage />)} />
-                  <Route path="/retail-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <RetailProductWizardPage />)} />
+                  <Route path="/retail-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <RetailProductEditor />)} />
+                  <Route path="/retail-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <RetailProductEditor />)} />
                   <Route path="/retail-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <RetailProductDetailPage />)} />
 
                   {/* Restaurant */}
@@ -1141,8 +1141,8 @@ export default function App() {
                   <Route path="/pharmacy-medicines/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <PharmacyMedicineDetailPage />)} />
 
                   {/* Bakery */}
-                  <Route path="/bakery-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <BakeryProductWizardPage />)} />
-                  <Route path="/bakery-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <BakeryProductWizardPage />)} />
+                  <Route path="/bakery-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <BakeryProductEditor />)} />
+                  <Route path="/bakery-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <BakeryProductEditor />)} />
                   <Route path="/bakery-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BakeryProductDetailPage />)} />
 
                   {/* Gym Member */}
@@ -1227,8 +1227,8 @@ export default function App() {
                   <Route path="/appliance-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <AppliancesProductsPage />)} />
 
                   {/* Electronics */}
-                  <Route path="/electronics-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ElectronicsProductWizardPage />)} />
-                  <Route path="/electronics-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ElectronicsProductWizardPage />)} />
+                  <Route path="/electronics-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ElectronicsProductEditor />)} />
+                  <Route path="/electronics-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ElectronicsProductEditor />)} />
                   <Route path="/electronics-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsProductDetailPage />)} />
                   <Route path="/electronics-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsProducts />)} />
 

@@ -10,7 +10,7 @@ import ProductionPage from './pages/ProductionPage';
 import IngredientsPage from './pages/IngredientsPage';
 import FreshnessPage from './pages/FreshnessPage';
 import BakeryBulkOrdersPage from './pages/BakeryBulkOrdersPage';
-import BakeryProductWizardPage from './pages/BakeryProductWizardPage';
+import BakeryProductEditor from './products/BakeryProductEditor';
 import BakeryProducts from './products/BakeryProducts';
 import BakeryDashboard from './dashboard/BakeryDashboard';
 import BakeryBulkOrderFormPage from './pages/BakeryBulkOrderFormPage';
@@ -62,7 +62,7 @@ export const BakeryPack: IndustryPack = {
   ],
 
   routes: [
-    { path: '/bakery/products/new', element: BakeryProductWizardPage },
+    { path: '/bakery/products/new', element: BakeryProductEditor },
     /* Dono safhe naye wale par. Pehle ye purane BakeryDashboardPage
        par jate thay, jabke naya V2 sirf /dashboard se khulta tha —
        yani sidebar se hamesha purana hi milta. */

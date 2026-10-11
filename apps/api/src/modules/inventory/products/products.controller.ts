@@ -8,6 +8,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ProductsService } from './products.service';
 import { ProductCatalogService, type CatalogQuery } from './product-catalog.service';
+import { ProductInsightsService } from './product-insights.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProductsDto } from './dto/query-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -23,6 +24,7 @@ export class ProductsController {
     private readonly productsService: ProductsService,
     private readonly prisma: PrismaService,
     private readonly catalog: ProductCatalogService,
+    private readonly insights: ProductInsightsService,
   ) {}
 
   @Post()
@@ -241,6 +243,17 @@ export class ProductsController {
     }
 
     return product;
+  }
+
+  /** Sales by day, recent bills, stock log and branch stock for one product. */
+  @Get(':id/insights')
+  productInsights(
+    @GetUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Query('days') days?: string,
+    @ShopIdParam() shopId?: string,
+  ) {
+    return this.insights.get(user, id, days, shopId);
   }
 
   @Get(':id')

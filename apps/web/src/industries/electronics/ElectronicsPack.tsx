@@ -7,7 +7,7 @@ import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import ElectronicsDashboard from './dashboard/ElectronicsDashboard';
 import ElectronicsProducts from './products/ElectronicsProducts';
-import ElectronicsProductWizardPage from './pages/ElectronicsProductWizardPage';
+import ElectronicsProductEditor from './products/ElectronicsProductEditor';
 import ElectronicsProductDetailPage from './pages/ElectronicsProductDetailPage';
 import ElectronicsPos from './pos/ElectronicsPos';
 import WarrantyClaimsPage from './pages/WarrantyClaimsPage';
@@ -84,8 +84,8 @@ export const ElectronicsPack: IndustryPack = {
   routes: [
     { path: '/pos', element: ElectronicsPos },
 
-    { path: '/electronics-products/new', element: ElectronicsProductWizardPage },
-    { path: '/electronics-products/:id/edit', element: ElectronicsProductWizardPage },
+    { path: '/electronics-products/new', element: ElectronicsProductEditor },
+    { path: '/electronics-products/:id/edit', element: ElectronicsProductEditor },
     { path: '/electronics-products/:id', element: ElectronicsProductDetailPage },
     { path: '/electronics-products', element: ElectronicsProducts },
 

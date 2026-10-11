@@ -128,6 +128,11 @@ export class ProductCatalogService {
       };
     });
 
+    // The editor saves made/bought on the product; trust it over the profile guess.
+    for (const r of rows) {
+      const b = ext.bakery.get(r.id);
+      if (b && (r.productType === 'MADE' || r.productType === 'BOUGHT')) b.kind = r.productType === 'MADE' ? 'made' : 'bought';
+    }
     return { rows, ext };
 
   }

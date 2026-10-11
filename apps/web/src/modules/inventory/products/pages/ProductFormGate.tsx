@@ -2,6 +2,7 @@
 import { Navigate, useParams } from 'react-router-dom';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import ProductFormPage from './ProductFormPage';
+import GeneralProductEditor from '../editor/general/GeneralProductEditor';
 
 /**
  * ProductFormGate — routes /products/new and /products/:id/edit to the
@@ -71,8 +72,12 @@ export default function ProductFormGate() {
     case 'toystore':
       return <Navigate to={edit ? `/toystore-products/${id}/edit` : '/toystore-products/new'} replace />;
 
+    case undefined:
+      // No industry: the shared product editor.
+      return <GeneralProductEditor />;
+
     default:
-      // gym, services-biz — no wizard yet, use generic form
+      // gym, services-biz — no wizard yet; this form carries their plugin sections.
       return <ProductFormPage />;
   }
 }
