@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Clock, Snowflake, Wheat } from 'lucide-react';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
+import { heroButton } from '@/design-system/components';
 import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
 import BakeryRawMaterials from './BakeryRawMaterials';
@@ -14,7 +15,7 @@ const shelfLife = (days: number | null, hours: number | null) =>
 
 function IngredientsLink() {
   return (
-    <Link to="/bakery/ingredients" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25">
+    <Link to="/bakery/ingredients" className={heroButton}>
       <Wheat className="h-4 w-4" /><span className="hidden sm:inline">Kachcha maal</span>
     </Link>
   );

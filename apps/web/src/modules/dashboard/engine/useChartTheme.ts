@@ -10,11 +10,13 @@ import { buildScale, useAppearance } from '@/design-system';
 export function useChartTheme() {
   const { accentHex, isDark } = useAppearance();
   return useMemo(() => {
-    const brand = buildScale(accentHex);
+    // The scale holds "r g b" channel strings for CSS variables; SVG fills need a full color.
+    const scale = buildScale(accentHex);
+    const brand = (step: keyof typeof scale) => `rgb(${scale[step]})`;
     return {
       isDark,
-      primary: isDark ? brand[400] : brand[600],
-      primarySoft: isDark ? brand[800] : brand[200],
+      primary: isDark ? brand(400) : brand(600),
+      primarySoft: isDark ? brand(800) : brand(200),
       highlight: isDark ? '#fbbf24' : '#f59e0b',
       profit: isDark ? '#4ade80' : '#16a34a',
       grid: isDark ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.25)',

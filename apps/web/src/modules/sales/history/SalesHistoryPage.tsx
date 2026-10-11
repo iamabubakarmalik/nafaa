@@ -16,7 +16,7 @@ import {
   ListChecks, ListFilter, MousePointerClick, Package, RotateCcw, ScanLine, Search, Settings2, ShoppingCart, Sparkles,
   Trophy, UserRound, Wallet, X, type LucideIcon,
 } from 'lucide-react';
-import { Button, FilterMenu, Kbd, Modal, Skeleton, type FilterOption } from '@/design-system/components';
+import { Button, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, type FilterOption } from '@/design-system/components';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
@@ -60,8 +60,6 @@ const SORTS: Array<FilterOption<HistorySort>> = [
   { value: 'new', label: 'Naye pehle' }, { value: 'old', label: 'Purane pehle' },
   { value: 'high', label: 'Bari raqam pehle' }, { value: 'low', label: 'Chhoti raqam pehle' },
 ];
-const heroBtn = 'inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25 disabled:opacity-60';
-const heroIcon = 'flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 transition hover:bg-white/25';
 
 function FilterChip({ children, onRemove }: { children: ReactNode; onRemove: () => void }) {
   return (
@@ -216,56 +214,31 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
       {guide && <SalesGuide onClose={() => setGuide(false)} />}
 
       {/* Header */}
-      {/* Hero: the glow sits in its own clipped layer so the print menu can drop below. */}
-      <div className="relative z-20 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 px-4 py-4 text-white shadow-lg shadow-brand-900/15 sm:px-6">
-        <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl" aria-hidden>
-          <span className="absolute -right-20 -top-24 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-          <svg className="absolute inset-0 h-full w-full opacity-[0.06]"><defs><pattern id="sh-dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.5" fill="white" /></pattern></defs><rect width="100%" height="100%" fill="url(#sh-dots)" /></svg>
-        </span>
-        <div className="relative flex flex-wrap items-center justify-between gap-3">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-            <h1 className="text-xl font-bold tracking-tight sm:text-[1.375rem]">Bikri ka record</h1>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-0.5 text-[0.75rem] font-medium text-white/90 ring-1 ring-white/20">
-              <CalendarRange className="h-3.5 w-3.5" />{label}
-              {h.fetching && !h.loading && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-label="Taaza ho raha hai" />}
-            </span>
-            <span className="hidden text-[0.75rem] text-white/60 md:inline">{config.label} · {shopName ?? tenantName}</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <PrivacyToggle compact />
-            <button type="button" onClick={() => setScanner(true)} title="Bill ka barcode scan (B)" className={heroBtn}>
-              <ScanLine className="h-4 w-4" /> <span className="hidden sm:inline">Bill scan</span>
-            </button>
-            <button type="button" onClick={() => void exportAll('csv')} disabled={exporting} className={heroBtn}>
-              <Download className="h-4 w-4" /> {exporting ? 'Ban raha…' : 'CSV'}
-            </button>
-            <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-            <button type="button" onClick={() => setPrefs(true)} title="Receipt settings" className={heroIcon}><Settings2 className="h-4 w-4" /></button>
-            <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIcon}><GraduationCap className="h-4 w-4" /></button>
-          </div>
-        </div>
-
-        <div className="relative mt-3 flex flex-wrap items-end gap-x-6 gap-y-3 sm:gap-x-8">
-          <div>
-            <p className="text-[0.75rem] font-medium text-white/70">Kul bikri · {st ? `${st.bills} bill` : '…'}</p>
-            {h.loading || !st
-              ? <span className="mt-1 block h-9 w-40 animate-pulse rounded-lg bg-white/15" />
-              : <p className="text-[1.875rem] font-bold leading-tight tracking-tight tabular-nums">{money(st.total)}</p>}
-          </div>
-          {[
-            { label: 'Haath mein aaya', value: st ? money(st.paid) : '', hint: st?.change ? `wapsi ${money(st.change)}` : 'cash + online' },
-            { label: 'Munafa', value: st ? cost(st.profit) : '', hint: costHidden ? 'Cost lock' : st ? `${st.margin.toFixed(1)}% margin` : '' },
-            { label: 'Ausat bill', value: st ? money(st.average) : '', hint: st ? `${Number(st.qty.toFixed(2))} cheezein` : '' },
-          ].map((x) => (
-            <div key={x.label} className="border-l border-white/20 pl-4 sm:pl-6">
-              <p className="text-[0.75rem] font-medium text-white/70">{x.label}</p>
-              {h.loading || !st ? <span className="mt-1 block h-6 w-24 animate-pulse rounded-md bg-white/15" /> : (
-                <p className="text-[1.125rem] font-bold leading-tight tabular-nums">{x.value} <span className="text-[0.6875rem] font-medium text-white/60">{x.hint}</span></p>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      <PageHero
+        title="Bikri ka record"
+        chip={<><CalendarRange />{label}</>}
+        busy={h.fetching && !h.loading}
+        meta={`${config.label} · ${shopName ?? tenantName ?? ''}`}
+        loading={h.loading || !st}
+        actions={<>
+          <PrivacyToggle compact />
+          <button type="button" onClick={() => setScanner(true)} title="Bill ka barcode scan (B)" className={heroButton}>
+            <ScanLine className="h-4 w-4" /> <span className="hidden sm:inline">Bill scan</span>
+          </button>
+          <button type="button" onClick={() => void exportAll('csv')} disabled={exporting} className={heroButton}>
+            <Download className="h-4 w-4" /> {exporting ? 'Ban raha…' : 'CSV'}
+          </button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
+          <button type="button" onClick={() => setPrefs(true)} title="Receipt settings" className={heroIconButton}><Settings2 className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={st ? [
+          { label: `Kul bikri · ${st.bills} bill`, value: money(st.total) },
+          { label: 'Haath mein aaya', value: money(st.paid), hint: st.change ? `wapsi ${money(st.change)}` : 'cash + online' },
+          { label: 'Munafa', value: cost(st.profit), hint: costHidden ? 'Cost lock' : `${st.margin.toFixed(1)}% margin` },
+          { label: 'Ausat bill', value: money(st.average), hint: `${Number(st.qty.toFixed(2))} cheezein` },
+        ] : [{ label: 'Kul bikri', value: '' }, { label: 'Haath mein aaya', value: '' }, { label: 'Munafa', value: '' }, { label: 'Ausat bill', value: '' }]}
+      />
 
       {/* Secondary numbers */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">

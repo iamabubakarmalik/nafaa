@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
+import { heroButton } from '@/design-system/components';
 import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
 import { QuickSetupCatalogModal } from '@modules/inventory/products/components/QuickSetupCatalogModal';
@@ -14,7 +15,7 @@ function QuickSetup() {
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} title="2000+ tayyar cheezon mein se chunein"
-        className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25">
+        className={heroButton}>
         <Sparkles className="h-4 w-4" /><span className="hidden sm:inline">Quick Setup</span>
       </button>
       {open && <QuickSetupCatalogModal onClose={() => setOpen(false)} />}
