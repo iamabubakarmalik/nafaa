@@ -1,7 +1,7 @@
 import { Building, LayoutDashboard, Award, Package, FileText, Truck, CreditCard, AlertTriangle, Sparkles } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import HardwareDashboardPage from './pages/HardwareDashboardPage';
+import HardwareDashboard from './dashboard/HardwareDashboard';
 import HardwareBrandsPage from './pages/BrandsPage';
 import HardwareProductsPage from './pages/ProductsPage';
 import HardwareProjectsPage from './pages/ProjectsPage';
@@ -65,8 +65,8 @@ export const HardwarePack: IndustryPack = {
     { path: '/hardware-products/new', element: HardwareProductWizardPage },
     { path: '/hardware-products/:id/edit', element: HardwareProductWizardPage },
 
-    { path: '/hardware', element: HardwareDashboardPage },
-    { path: '/hardware/dashboard', element: HardwareDashboardPage },
+    { path: '/hardware', element: HardwareDashboard },
+    { path: '/hardware/dashboard', element: HardwareDashboard },
     { path: '/hardware/brands', element: HardwareBrandsPage },
     { path: '/hardware/products', element: HardwareProductsPage },
 
@@ -82,7 +82,7 @@ export const HardwarePack: IndustryPack = {
     { path: '/hardware/reorder-rules', element: HardwareReorderRulesPage },
   ],
 
-  dashboardComponent: HardwareDashboardPage,
+  dashboardComponent: HardwareDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

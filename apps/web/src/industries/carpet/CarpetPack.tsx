@@ -8,6 +8,7 @@ import CarpetReportsPage from './pages/CarpetReportsPage';
 import CarpetBulkImportPage from './pages/CarpetBulkImportPage';
 import CarpetProductWizardPage from './pages/CarpetProductWizardPage';
 import CarpetProductDetailPage from './pages/CarpetProductDetailPage';
+import CarpetDashboard from './dashboard/CarpetDashboard';
 
 /**
  * Carpet / Flooring industry pack.
@@ -71,6 +72,8 @@ export const CarpetPack: IndustryPack = {
     { path: '/carpet-reports',      element: CarpetReportsPage },
     { path: '/carpet-bulk-import',  element: CarpetBulkImportPage },
   ],
+
+  dashboardComponent: CarpetDashboard,
 
 
   productForm: {

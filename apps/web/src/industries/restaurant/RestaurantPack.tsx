@@ -1,7 +1,7 @@
 import { ChefHat, ShoppingBag, Utensils, Sparkles, Timer, Bike, Zap, BookOpen, Flame, MapPin, LayoutDashboard } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import RestaurantDashboardPage from './pages/RestaurantDashboardPage';
+import RestaurantDashboard from './dashboard/RestaurantDashboard';
 import RestaurantOrdersPage from './pages/RestaurantOrdersPage';
 import NewOrderPage from './pages/NewOrderPage';
 import OrderDetailPage from './pages/OrderDetailPage';
@@ -111,8 +111,8 @@ export const RestaurantPack: IndustryPack = {
     { path: '/restaurant-menu-items/:id/edit', element: RestaurantMenuItemWizardPage },
     { path: '/restaurant-menu-items/:id', element: RestaurantMenuItemDetailPage },
 
-    { path: '/restaurant', element: RestaurantDashboardPage },
-    { path: '/restaurant/dashboard', element: RestaurantDashboardPage },
+    { path: '/restaurant', element: RestaurantDashboard },
+    { path: '/restaurant/dashboard', element: RestaurantDashboard },
     { path: '/restaurant/orders/new', element: NewOrderPage },
     { path: '/restaurant/orders/:id', element: OrderDetailPage },
     { path: '/restaurant/orders', element: RestaurantOrdersPage },
@@ -144,7 +144,7 @@ export const RestaurantPack: IndustryPack = {
     whatsappLines: restaurantWhatsappLines,
   },
 
-  dashboardComponent: RestaurantDashboardPage,
+  dashboardComponent: RestaurantDashboard,
 
   productForm: {
     defaultUnit: 'plate',

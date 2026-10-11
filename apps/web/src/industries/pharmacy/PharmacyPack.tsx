@@ -1,7 +1,7 @@
 import { Pill, LayoutDashboard, AlertTriangle, Beaker, Stethoscope, ShieldAlert, Thermometer, Sparkles } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import PharmacyDashboardPage from './pages/PharmacyDashboardPage';
+import PharmacyDashboard from './dashboard/PharmacyDashboard';
 import PrescriptionsPage from './pages/PrescriptionsPage';
 import NewPrescriptionPage from './pages/NewPrescriptionPage';
 import PrescriptionDetailPage from './pages/PrescriptionDetailPage';
@@ -60,8 +60,8 @@ export const PharmacyPack: IndustryPack = {
     { path: '/pharmacy-medicines/new', element: PharmacyMedicineWizardPage },
     { path: '/pharmacy-medicines/:id/edit', element: PharmacyMedicineWizardPage },
 
-    { path: '/pharmacy', element: PharmacyDashboardPage },
-    { path: '/pharmacy/dashboard', element: PharmacyDashboardPage },
+    { path: '/pharmacy', element: PharmacyDashboard },
+    { path: '/pharmacy/dashboard', element: PharmacyDashboard },
     { path: '/pharmacy/prescriptions/new', element: NewPrescriptionPage },
     { path: '/pharmacy/prescriptions/:id', element: PrescriptionDetailPage },
     { path: '/pharmacy/prescriptions', element: PrescriptionsPage },
@@ -77,7 +77,7 @@ export const PharmacyPack: IndustryPack = {
     { path: '/pharmacy/temperature-log', element: TemperatureLogPage },
   ],
 
-  dashboardComponent: PharmacyDashboardPage,
+  dashboardComponent: PharmacyDashboard,
 
   productForm: {
     defaultUnit: 'tablet',

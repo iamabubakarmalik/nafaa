@@ -14,6 +14,7 @@ import WholesalePage from './pages/WholesalePage';
 // Wizard + Detail
 import MeatProductWizardPage from './pages/MeatProductWizardPage';
 import MeatProductDetailPage from './pages/MeatProductDetailPage';
+import MeatDashboard from './dashboard/MeatDashboard';
 
 /**
  * Meat / Butcher / Halal industry pack.
@@ -64,6 +65,9 @@ export const MeatPack: IndustryPack = {
     { path: '/meat-products/:id/edit', element: MeatProductWizardPage },
     { path: '/meat-products/:id', element: MeatProductDetailPage },
 
+    { path: '/meat', element: MeatDashboard },
+    { path: '/meat/dashboard', element: MeatDashboard },
+
     // Existing pages
     { path: '/meat/products', element: MeatProductsPage },
     { path: '/meat/live-animals', element: LiveAnimalsPage },
@@ -71,6 +75,8 @@ export const MeatPack: IndustryPack = {
     { path: '/meat/cutting', element: CuttingJobsPage },
     { path: '/meat/wholesale', element: WholesalePage },
   ],
+
+  dashboardComponent: MeatDashboard,
 
   productForm: {
     defaultUnit: 'kg',

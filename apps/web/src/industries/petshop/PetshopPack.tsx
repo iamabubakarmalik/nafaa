@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import PetshopDashboardPage from './pages/PetshopDashboardPage';
+import PetshopDashboard from './dashboard/PetshopDashboard';
 import PetshopProductsPage from './pages/PetshopProductsPage';
 import PetshopProductWizardPage from './pages/PetshopProductWizardPage';
 import PetshopProductDetailPage from './pages/PetshopProductDetailPage';
@@ -58,8 +58,8 @@ export const PetshopPack: IndustryPack = {
     { path: '/petshop-products/:id', element: PetshopProductDetailPage },
     { path: '/petshop-products', element: PetshopProductsPage },
 
-    { path: '/petshop', element: PetshopDashboardPage },
-    { path: '/petshop/dashboard', element: PetshopDashboardPage },
+    { path: '/petshop', element: PetshopDashboard },
+    { path: '/petshop/dashboard', element: PetshopDashboard },
 
     { path: '/petshop/live-animals/new', element: LiveAnimalFormPage },
     { path: '/petshop/live-animals/:id/edit', element: LiveAnimalFormPage },
@@ -73,7 +73,7 @@ export const PetshopPack: IndustryPack = {
     { path: '/petshop/groomers', element: GroomersPage },
   ],
 
-  dashboardComponent: PetshopDashboardPage,
+  dashboardComponent: PetshopDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

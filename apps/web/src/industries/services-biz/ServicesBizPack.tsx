@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import ServicesDashboardPage from './pages/ServicesDashboardPage';
+import ServicesBizDashboard from './dashboard/ServicesBizDashboard';
 import ServicesBizServiceWizardPage from './pages/ServicesBizServiceWizardPage';
 import ServicesBizServiceDetailPage from './pages/ServicesBizServiceDetailPage';
 import CatalogPage from './pages/CatalogPage';
@@ -79,8 +79,8 @@ export const ServicesBizPack: IndustryPack = {
     { path: '/services-biz-services/new', element: ServicesBizServiceWizardPage },
     { path: '/services-biz-services/:id/edit', element: ServicesBizServiceWizardPage },
     { path: '/services-biz-services/:id', element: ServicesBizServiceDetailPage },
-    { path: '/services-biz', element: ServicesDashboardPage },
-    { path: '/services-biz/dashboard', element: ServicesDashboardPage },
+    { path: '/services-biz', element: ServicesBizDashboard },
+    { path: '/services-biz/dashboard', element: ServicesBizDashboard },
     { path: '/services-biz/jobs/new', element: NewJobPage },
     { path: '/services-biz/jobs/:id', element: JobDetailPage },
     { path: '/services-biz/jobs', element: JobsListPage },
@@ -92,7 +92,7 @@ export const ServicesBizPack: IndustryPack = {
     { path: '/services-biz/warranty', element: WarrantyPage },
   ],
 
-  dashboardComponent: ServicesDashboardPage,
+  dashboardComponent: ServicesBizDashboard,
 
   productForm: {
     defaultUnit: 'service',

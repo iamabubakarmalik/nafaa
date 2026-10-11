@@ -3,7 +3,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import FurnitureDashboardPage from './pages/FurnitureDashboardPage';
+import FurnitureDashboard from './dashboard/FurnitureDashboard';
 import FurnitureProductsPage from './pages/FurnitureProductsPage';
 import FurnitureProductWizardPage from './pages/FurnitureProductWizardPage';
 import FurnitureProductDetailPage from './pages/FurnitureProductDetailPage';
@@ -55,8 +55,8 @@ export const FurniturePack: IndustryPack = {
     { path: '/furniture-products/:id', element: FurnitureProductDetailPage },
     { path: '/furniture-products', element: FurnitureProductsPage },
 
-    { path: '/furniture', element: FurnitureDashboardPage },
-    { path: '/furniture/dashboard', element: FurnitureDashboardPage },
+    { path: '/furniture', element: FurnitureDashboard },
+    { path: '/furniture/dashboard', element: FurnitureDashboard },
 
     { path: '/furniture/custom-orders', element: CustomOrdersPage },
     { path: '/furniture/custom-orders/new', element: CustomOrderFormPage },
@@ -67,7 +67,7 @@ export const FurniturePack: IndustryPack = {
     { path: '/furniture/deliveries', element: DeliveriesPage },
   ],
 
-  dashboardComponent: FurnitureDashboardPage,
+  dashboardComponent: FurnitureDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

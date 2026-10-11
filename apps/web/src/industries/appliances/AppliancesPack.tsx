@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import AppliancesDashboardPage from './pages/AppliancesDashboardPage';
+import AppliancesDashboard from './dashboard/AppliancesDashboard';
 import AppliancesPosPage from './pages/AppliancesPosPage';
 import InstallationsPage from './pages/InstallationsPage';
 import ServiceRequestsPage from './pages/ServiceRequestsPage';
@@ -71,8 +71,8 @@ export const AppliancesPack: IndustryPack = {
     // Yahan se dobara register karne par wohi safha BIN-PEHRA bhi
     // khul jata tha: cashier cost price dekh sakta tha.
 
-    { path: '/appliances', element: AppliancesDashboardPage },
-    { path: '/appliances/dashboard', element: AppliancesDashboardPage },
+    { path: '/appliances', element: AppliancesDashboard },
+    { path: '/appliances/dashboard', element: AppliancesDashboard },
 
     // /appliances/brands hata diya gaya — global /brands istemal hota hai.
     // ApplianceBrandsPage file apni jagah pari hai, sirf route nahi raha.
@@ -98,7 +98,7 @@ export const AppliancesPack: IndustryPack = {
     { path: '/appliances/profit-report', element: AppliancesProfitReportPage },
   ],
 
-  dashboardComponent: AppliancesDashboardPage,
+  dashboardComponent: AppliancesDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

@@ -1,7 +1,7 @@
 import { Milk, Users, Truck, Beaker, FileText, Route as RouteIcon, Package, Sparkles, LayoutDashboard } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import DairyDashboardPage from './pages/DairyDashboardPage';
+import DairyDashboard from './dashboard/DairyDashboard';
 import DairyProductsPage from './pages/DairyProductsPage';
 import DairyCustomersPage from './pages/DairyCustomersPage';
 import FarmersPage from './pages/FarmersPage';
@@ -64,8 +64,8 @@ export const DairyPack: IndustryPack = {
     { path: '/dairy-products/:id/edit', element: DairyProductWizardPage },
     { path: '/dairy-products/:id', element: DairyProductDetailPage },
 
-    { path: '/dairy', element: DairyDashboardPage },
-    { path: '/dairy/dashboard', element: DairyDashboardPage },
+    { path: '/dairy', element: DairyDashboard },
+    { path: '/dairy/dashboard', element: DairyDashboard },
     { path: '/dairy/products', element: DairyProductsPage },
     { path: '/dairy/customers', element: DairyCustomersPage },
     { path: '/dairy/farmers', element: FarmersPage },
@@ -76,7 +76,7 @@ export const DairyPack: IndustryPack = {
     { path: '/dairy/quality-tests', element: QualityTestsPage },
   ],
 
-  dashboardComponent: DairyDashboardPage,
+  dashboardComponent: DairyDashboard,
 
   productForm: {
     defaultUnit: 'liter',

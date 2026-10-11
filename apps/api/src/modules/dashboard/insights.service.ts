@@ -1,21 +1,22 @@
 /**
- * Dashboard insights over a period: sales by category, by staff member, by
- * weekday, best customers and a six-month comparison.
+ * Dashboard insights over a period: daily trend, payment mix, sales by
+ * category, by staff member, by weekday, best customers, and a 6 or 12
+ * month comparison.
  *
  * Unlike the older /reports endpoints these use the tenant's timezone and
- * business-day start, and only read the selected period (7, 30 or 90 days).
+ * business-day start, and only read the selected period (1, 7, 30 or 90 days).
  */
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import {
-  startOfBusinessDayTz, startOfBusinessMonthTz, subDaysTz, tzParts, weekdayInTz,
+  dateKeyTz, startOfBusinessDayTz, startOfBusinessMonthTz, subDaysTz, tzParts, weekdayInTz,
 } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 
 const SOLD = ['COMPLETED', 'PARTIALLY_RETURNED'] as const;
-const PERIODS = [7, 30, 90] as const;
+const PERIODS = [1, 7, 30, 90] as const;
 const n = (v: unknown) => Number(v ?? 0);
 
 export type InsightPeriod = (typeof PERIODS)[number];
@@ -31,7 +32,7 @@ export class InsightsService {
     private readonly tz: TenantTimezoneService,
   ) {}
 
-  async insights(user: AuthenticatedUser, shopId: string | undefined, days: InsightPeriod) {
+  async insights(user: AuthenticatedUser, shopId: string | undefined, days: InsightPeriod, months: 6 | 12 = 6) {
     const { tz, dayStartHour } = await this.tz.clock(user.tenantId);
     const todayStart = startOfBusinessDayTz(new Date(), tz, dayStartHour);
     const from = subDaysTz(todayStart, days - 1, tz);
@@ -55,9 +56,9 @@ export class InsightsService {
         _sum: { total: true },
         _count: { _all: true },
         orderBy: { _sum: { total: 'desc' } },
-        take: 8,
+        take: 20,
       }),
-      this.prisma.sale.findMany({ where: saleWhere, select: { soldAt: true, total: true } }),
+      this.prisma.sale.findMany({ where: saleWhere, select: { soldAt: true, total: true, costOfGoods: true, paymentMethod: true, paidAmount: true, creditAmount: true } }),
     ]);
 
     const productIds = [...new Set(lines.map((l) => l.productId!))];
@@ -124,13 +125,39 @@ export class InsightsService {
     }
     weekday.forEach((w) => { w.average = w.occurrences ? w.total / w.occurrences : 0; });
 
-    return { days, from, categories, staff, topCustomers, weekday, monthly: await this.monthly(tenantId, shopId, tz, dayStartHour) };
+    // Daily series for the trend chart, one bucket per business day.
+    const trendMap = new Map<string, { date: string; sales: number; profit: number; bills: number }>();
+    for (let i = days - 1; i >= 0; i--) {
+      const key = dateKeyTz(subDaysTz(todayStart, i, tz), tz);
+      trendMap.set(key, { date: key, sales: 0, profit: 0, bills: 0 });
+    }
+    // Money in by payment method (credit kept apart as udhaar).
+    const payMap = new Map<string, { method: string; collected: number; bills: number }>();
+    let credit = 0;
+    for (const s of saleTimes) {
+      const key = dateKeyTz(new Date(s.soldAt.getTime() - dayStartHour * 3600_000), tz);
+      const t = trendMap.get(key);
+      if (t) { t.sales += s.total; t.profit += s.total - s.costOfGoods; t.bills += 1; }
+      const p = payMap.get(s.paymentMethod) ?? { method: s.paymentMethod, collected: 0, bills: 0 };
+      p.collected += s.paidAmount;
+      p.bills += 1;
+      payMap.set(s.paymentMethod, p);
+      credit += s.creditAmount;
+    }
+    const payments = [...payMap.values()].sort((a, b) => b.collected - a.collected);
+
+    return {
+      days, from, categories, staff, topCustomers, weekday,
+      trend: [...trendMap.values()],
+      payments, credit,
+      monthly: await this.monthly(tenantId, shopId, tz, dayStartHour, months),
+    };
   }
 
-  private async monthly(tenantId: string, shopId: string | undefined, tz: string, dayStartHour: number) {
+  private async monthly(tenantId: string, shopId: string | undefined, tz: string, dayStartHour: number, count: number) {
     const now = tzParts(new Date(), tz);
-    const months = Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(Date.UTC(now.year, now.month - 1 - (5 - i), 1));
+    const months = Array.from({ length: count }, (_, i) => {
+      const d = new Date(Date.UTC(now.year, now.month - 1 - (count - 1 - i), 1));
       return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1 };
     });
     const bounds = months.map((m, i) => {

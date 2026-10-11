@@ -11,6 +11,7 @@ import { formatPKR } from '@core/lib/format';
 import { useMoneyMap } from '../data/queries';
 import { IconBubble, MetricTile, WidgetCard } from '../engine/parts';
 import { Skeleton } from '@/design-system/components';
+import { PrintButton } from '@core/print';
 
 export type MoneyTileProps = ComponentProps<typeof MetricTile> & { key: string };
 
@@ -74,7 +75,12 @@ export function MoneyMap({ useExtraTiles = noTiles, useNotes = noNotes, products
   ];
 
   return (
-    <WidgetCard title="Paisa kahan hai" description="Maal, kharcha, lena aur dena — sab ek nazar me">
+    <WidgetCard title="Paisa kahan hai" icon={Wallet} description="Maal, kharcha, lena aur dena — sab ek nazar me"
+      actions={<PrintButton size="sm" doc={() => ({
+        title: 'Paisa kahan hai',
+        sections: [{ kind: 'rows', rows: tiles.map((t) => ({ label: `${t.label}${typeof t.hint === 'string' ? ` (${t.hint})` : ''}`, value: String(t.value) })) },
+          ...(m.inventory.deadStockValue > 0 ? [{ kind: 'text' as const, text: `${formatPKR(m.inventory.deadStockValue)} ka maal 60 din se atka hua hai (${m.inventory.deadStockCount} cheezein)` }] : [])],
+      })} />}>
       <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
         {tiles.map(({ key, ...t }) => <MetricTile key={key} {...t} />)}
       </div>

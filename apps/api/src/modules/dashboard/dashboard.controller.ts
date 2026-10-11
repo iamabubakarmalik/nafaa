@@ -40,14 +40,15 @@ export class DashboardController {
     return this.dayReport.report(user, shopId, date);
   }
 
-  /** Category, staff, weekday, customer and six-month figures for 7, 30 or 90 days. */
+  /** Trend, payments, category, staff, weekday, customer and monthly figures for 1, 7, 30 or 90 days. */
   @Get('insights')
   getInsights(
     @GetUser() user: AuthenticatedUser,
     @ShopIdParam() shopId?: string,
     @Query('days') days?: string,
+    @Query('months') months?: string,
   ) {
-    return this.insightsService.insights(user, shopId, toPeriod(days));
+    return this.insightsService.insights(user, shopId, toPeriod(days), months === '12' ? 12 : 6);
   }
 
   /** Widget lists: ?kind=top|slow|low|recent with days, sort, limit, categoryId, filter, method. */

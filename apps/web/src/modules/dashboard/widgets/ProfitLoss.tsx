@@ -11,6 +11,7 @@ import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { useMoneyMap, useOverview } from '../data/queries';
 import { Change, MetricTile, WidgetCard } from '../engine/parts';
+import { WidgetToolbar } from './WidgetToolbar';
 
 export function ProfitLoss() {
   const { data: o } = useOverview();
@@ -31,8 +32,24 @@ export function ProfitLoss() {
       description="Is mahine — bechne se haath me bachne tak"
       to="/profit-report"
       linkLabel="Report"
+      icon={Target}
       actions={<Change value={s?.salesGrowthVsLastMonth ?? 0} suffix="pichhle mahine se" />}
     >
+      <WidgetToolbar inset={false}
+        print={() => ({
+          title: 'Nafa aur nuqsan', subtitle: 'Is mahine',
+          sections: [{ kind: 'rows', rows: [
+            { label: `Bikri (${s?.ordersMonth ?? 0} bill)`, value: formatPKR(revenue) },
+            { label: '- Maal ki lagat', value: formatPKR(cogs) },
+            { label: '= Seedha munafa', value: formatPKR(gross), strong: true },
+            { label: '- Kharche', value: formatPKR(expenses) },
+            { label: '= Haath me bacha', value: formatPKR(net), strong: true },
+          ] }, { kind: 'rows', title: 'Aaj', rows: [
+            { label: 'Bikri', value: formatPKR(s?.salesToday ?? 0) },
+            { label: 'Kharcha', value: formatPKR(money?.expenses.today ?? s?.expensesToday ?? 0) },
+            { label: 'Bacha', value: formatPKR(todayNet), strong: true },
+          ] }],
+        })} />
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
         <MetricTile icon={TrendingUp} tone="brand" label="Bikri" value={formatPKR(revenue)} hint={`${s?.ordersMonth ?? 0} bill`} />
         <MetricTile icon={TrendingDown} tone="danger" label="− Maal ki lagat" value={formatPKR(cogs)} />

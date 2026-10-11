@@ -18,6 +18,7 @@ import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/
 import IntegrationHubPage from '@integrations/pages/IntegrationHubPage';
 import AccountingPage from '@integrations/accounting/AccountingPage';
 import HardwarePage from '@core/hardware/HardwarePage';
+import PrintSettingsPage from '@core/print/PrintSettingsPage';
 import AppearancePage from '@modules/appearance/pages/AppearancePage';
 import DeveloperPage from '@integrations/developer/DeveloperPage';
 import PayQrPage from '@core/payments/PayQrPage';
@@ -67,7 +68,6 @@ import GoogleErrorPage from '@modules/auth/pages/GoogleErrorPage';
 import EmailVerifyPage from '@modules/auth/pages/EmailVerifyPage';
 
 // ─── Dashboard ─────────────────────────────────────────────────
-import DashboardPage from '@modules/dashboard/pages/DashboardPage';
 import DashboardGate from '@modules/dashboard/pages/DashboardGate';
 
 // ─── Onboarding ────────────────────────────────────────────────
@@ -187,7 +187,7 @@ import BulkImportPage from '@industries/retail/pages/BulkImportPage';
 import ReorderPage from '@industries/retail/pages/ReorderPage';
 
 // ─── Restaurant Industry ───────────────────────────────────────
-import RestaurantDashboardPage from '@industries/restaurant/pages/RestaurantDashboardPage';
+import RestaurantDashboard from '@industries/restaurant/dashboard/RestaurantDashboard';
 import RestaurantOrdersPage from '@industries/restaurant/pages/RestaurantOrdersPage';
 import TablesLayoutPage from '@industries/restaurant/pages/TablesLayoutPage';
 import MenuItemsPage from '@industries/restaurant/pages/MenuItemsPage';
@@ -202,7 +202,7 @@ import StationsPage from '@industries/restaurant/pages/StationsPage';
 import DeliveryTrackingPage from '@industries/restaurant/pages/DeliveryTrackingPage';
 
 // ─── Pharmacy Industry ─────────────────────────────────────────
-import PharmacyDashboardPage from '@industries/pharmacy/pages/PharmacyDashboardPage';
+import PharmacyDashboard from '@industries/pharmacy/dashboard/PharmacyDashboard';
 import PrescriptionsPage from '@industries/pharmacy/pages/PrescriptionsPage';
 import NewPrescriptionPage from '@industries/pharmacy/pages/NewPrescriptionPage';
 import PrescriptionDetailPage from '@industries/pharmacy/pages/PrescriptionDetailPage';
@@ -214,7 +214,7 @@ import ControlledLogPage from '@industries/pharmacy/pages/ControlledLogPage';
 import TemperatureLogPage from '@industries/pharmacy/pages/TemperatureLogPage';
 
 // ─── Garments Industry ─────────────────────────────────────────
-import GarmentsDashboardPage from '@industries/garments/pages/GarmentsDashboardPage';
+import GarmentsDashboard from '@industries/garments/dashboard/GarmentsDashboard';
 import CollectionsPage from '@industries/garments/pages/CollectionsPage';
 import SizeChartsPage from '@industries/garments/pages/SizeChartsPage';
 import MeasurementsPage from '@industries/garments/pages/MeasurementsPage';
@@ -227,7 +227,7 @@ import ReservationsPage from '@industries/garments/pages/ReservationsPage';
 import LayawayPage from '@industries/garments/pages/LayawayPage';
 
 // ─── Salon Industry ────────────────────────────────────────────
-import SalonDashboardPage from '@industries/salon/pages/SalonDashboardPage';
+import SalonDashboard from '@industries/salon/dashboard/SalonDashboard';
 import ServicesPage from '@industries/salon/pages/ServicesPage';
 import StaffPage from '@industries/salon/pages/StaffPage';
 import AppointmentsPage from '@industries/salon/pages/AppointmentsPage';
@@ -239,7 +239,7 @@ import CalendarViewPage from '@industries/salon/pages/CalendarViewPage';
 import CustomersPage from '@industries/salon/pages/CustomersPage';
 
 // ─── Hardware Industry ─────────────────────────────────────────
-import HardwareDashboardPage from '@industries/hardware/pages/HardwareDashboardPage';
+import HardwareDashboard from '@industries/hardware/dashboard/HardwareDashboard';
 import HardwareBrandsPage from '@industries/hardware/pages/BrandsPage';
 import HardwareProductsPage from '@industries/hardware/pages/ProductsPage';
 import HardwareProjectsPage from '@industries/hardware/pages/ProjectsPage';
@@ -251,7 +251,7 @@ import HardwareCreditAccountsPage from '@industries/hardware/pages/CreditAccount
 import HardwareReorderRulesPage from '@industries/hardware/pages/ReorderRulesPage';
 
 // ─── Dairy Industry ────────────────────────────────────────────
-import DairyDashboardPage from '@industries/dairy/pages/DairyDashboardPage';
+import DairyDashboard from '@industries/dairy/dashboard/DairyDashboard';
 import DairyFarmersPage from '@industries/dairy/pages/FarmersPage';
 import DairyCustomersPage from '@industries/dairy/pages/DairyCustomersPage';
 import DairyRoutesPage from '@industries/dairy/pages/RoutesPage';
@@ -262,7 +262,7 @@ import DairyQualityTestsPage from '@industries/dairy/pages/QualityTestsPage';
 import DairyProductsPage from '@industries/dairy/pages/DairyProductsPage';
 
 // ─── Meat Industry ─────────────────────────────────────────────
-import MeatDashboardPage from '@industries/meat/pages/MeatDashboardPage';
+import MeatDashboard from '@industries/meat/dashboard/MeatDashboard';
 import MeatProductsPage from '@industries/meat/pages/MeatProductsPage';
 import LiveAnimalsPage from '@industries/meat/pages/LiveAnimalsPage';
 import SlaughterLogPage from '@industries/meat/pages/SlaughterLogPage';
@@ -274,7 +274,7 @@ import SubscriptionsPage from '@industries/meat/pages/SubscriptionsPage';
 import WholesalePage from '@industries/meat/pages/WholesalePage';
 
 // ─── Clinic Industry ───────────────────────────────────────────
-import ClinicDashboardPage from '@industries/clinic/pages/ClinicDashboardPage';
+import ClinicDashboard from '@industries/clinic/dashboard/ClinicDashboard';
 import DoctorsPage from '@industries/clinic/pages/DoctorsPage';
 import PatientsPage from '@industries/clinic/pages/PatientsPage';
 import ClinicAppointmentsPage from '@industries/clinic/pages/ClinicAppointmentsPage';
@@ -286,7 +286,7 @@ import LabOrdersPage from '@industries/clinic/pages/LabOrdersPage';
 import VaccinationsPage from '@industries/clinic/pages/VaccinationsPage';
 
 // ─── Gym Industry ──────────────────────────────────────────────
-import GymDashboardPage from '@industries/gym/pages/GymDashboardPage';
+import GymDashboard from '@industries/gym/dashboard/GymDashboard';
 import GymMembersPage from '@industries/gym/pages/MembersPage';
 import GymPlansPage from '@industries/gym/pages/PlansPage';
 import GymMembershipsPage from '@industries/gym/pages/MembershipsPage';
@@ -317,7 +317,7 @@ import ClinicServiceWizardPage from '@industries/clinic/pages/ClinicServiceWizar
 import ClinicServiceDetailPage from '@industries/clinic/pages/ClinicServiceDetailPage';
 
 // ─── Agri Industry ─────────────────────────────────────────────
-import AgriDashboardPage from '@industries/agri/pages/AgriDashboardPage';
+import AgriDashboard from '@industries/agri/dashboard/AgriDashboard';
 import AgriProductsListPage from '@industries/agri/pages/AgriProductsListPage';
 import FarmersPage from '@industries/agri/pages/FarmersPage';
 import BulkOrdersPage from '@industries/agri/pages/BulkOrdersPage';
@@ -327,7 +327,7 @@ import SeasonalPlansPage from '@industries/agri/pages/SeasonalPlansPage';
 import SubsidyPage from '@industries/agri/pages/SubsidyPage';
 
 // ─── Hotel Industry ────────────────────────────────────────────
-import HotelDashboardPage from '@industries/hotel/pages/HotelDashboardPage';
+import HotelDashboard from '@industries/hotel/dashboard/HotelDashboard';
 import RoomTypesPage from '@industries/hotel/pages/RoomTypesPage';
 import RoomsPage from '@industries/hotel/pages/RoomsPage';
 import GuestsPage from '@industries/hotel/pages/GuestsPage';
@@ -337,7 +337,7 @@ import HotelBookingDetailPage from '@industries/hotel/pages/HotelBookingDetailPa
 import HousekeepingPage from '@industries/hotel/pages/HousekeepingPage';
 
 // ─── Jewelry Industry ──────────────────────────────────────────
-import JewelryDashboardPage from '@industries/jewelry/pages/JewelryDashboardPage';
+import JewelryDashboard from '@industries/jewelry/dashboard/JewelryDashboard';
 import MetalRatesPage from '@industries/jewelry/pages/MetalRatesPage';
 import JewelryProductsPage from '@industries/jewelry/pages/JewelryProductsPage';
 import JewelrySalesPage from '@industries/jewelry/pages/JewelrySalesPage';
@@ -348,7 +348,7 @@ import KarigarsPage from '@industries/jewelry/pages/KarigarsPage';
 import MetalStockPage from '@industries/jewelry/pages/MetalStockPage';
 
 // ─── Auto Parts Industry ───────────────────────────────────────
-import AutoPartsDashboardPage from '@industries/autoparts/pages/AutoPartsDashboardPage';
+import AutoPartsDashboard from '@industries/autoparts/dashboard/AutoPartsDashboard';
 import VehicleMakesPage from '@industries/autoparts/pages/VehicleMakesPage';
 import VehicleModelsPage from '@industries/autoparts/pages/VehicleModelsPage';
 import CustomerVehiclesPage from '@industries/autoparts/pages/CustomerVehiclesPage';
@@ -360,7 +360,7 @@ import MechanicsPage from '@industries/autoparts/pages/MechanicsPage';
 import ServiceRemindersPage from '@industries/autoparts/pages/ServiceRemindersPage';
 
 // ─── Bookstore Industry ────────────────────────────────────────
-import BookstoreDashboardPage from '@industries/bookstore/pages/BookstoreDashboardPage';
+import BookstoreDashboard from '@industries/bookstore/dashboard/BookstoreDashboard';
 import PublishersPage from '@industries/bookstore/pages/PublishersPage';
 import AuthorsPage from '@industries/bookstore/pages/AuthorsPage';
 import BooksPage from '@industries/bookstore/pages/BooksPage';
@@ -415,7 +415,7 @@ import ApplianceProductWizardPage from '@industries/appliances/pages/AppliancePr
 import ApplianceProductDetailPage from '@industries/appliances/pages/ApplianceProductDetailPage';
 
 // ─── Electronics Industry ──────────────────────────────────────
-import ElectronicsDashboardPage from '@industries/electronics/pages/ElectronicsDashboardPage';
+import ElectronicsDashboard from '@industries/electronics/dashboard/ElectronicsDashboard';
 import ElectronicsProductsPage from '@industries/electronics/pages/ElectronicsProductsPage';
 import ElectronicsProductWizardPage from '@industries/electronics/pages/ElectronicsProductWizardPage';
 import ElectronicsProductDetailPage from '@industries/electronics/pages/ElectronicsProductDetailPage';
@@ -425,7 +425,7 @@ import ElectronicsSerialTrackingPage from '@industries/electronics/pages/SerialT
 import ElectronicsWarrantyClaimsPage from '@industries/electronics/pages/WarrantyClaimsPage';
 
 // ─── Cosmetics Industry ────────────────────────────────────────
-import CosmeticsDashboardPage from '@industries/cosmetics/pages/CosmeticsDashboardPage';
+import CosmeticsDashboard from '@industries/cosmetics/dashboard/CosmeticsDashboard';
 import CosmeticsProductsPage from '@industries/cosmetics/pages/CosmeticsProductsPage';
 import CosmeticsProductWizardPage from '@industries/cosmetics/pages/CosmeticsProductWizardPage';
 import CosmeticsProductDetailPage from '@industries/cosmetics/pages/CosmeticsProductDetailPage';
@@ -436,7 +436,7 @@ import CosmeticsBundleFormPage from '@industries/cosmetics/pages/BundleFormPage'
 import CosmeticsLoyaltyPage from '@industries/cosmetics/pages/CosmeticsLoyaltyPage';
 
 // ─── Florist Industry ──────────────────────────────────────────
-import FloristDashboardPage from '@industries/florist/pages/FloristDashboardPage';
+import FloristDashboard from '@industries/florist/dashboard/FloristDashboard';
 import FloristProductsPage from '@industries/florist/pages/FloristProductsPage';
 import FloristProductWizardPage from '@industries/florist/pages/FloristProductWizardPage';
 import FloristProductDetailPage from '@industries/florist/pages/FloristProductDetailPage';
@@ -446,7 +446,7 @@ import FloristSubscriptionsPage from '@industries/florist/pages/FloristSubscript
 import FloristFreshnessPage from '@industries/florist/pages/FloristFreshnessPage';
 
 // ─── Furniture Industry ────────────────────────────────────────
-import FurnitureDashboardPage from '@industries/furniture/pages/FurnitureDashboardPage';
+import FurnitureDashboard from '@industries/furniture/dashboard/FurnitureDashboard';
 import FurnitureProductsPage from '@industries/furniture/pages/FurnitureProductsPage';
 import FurnitureProductWizardPage from '@industries/furniture/pages/FurnitureProductWizardPage';
 import FurnitureProductDetailPage from '@industries/furniture/pages/FurnitureProductDetailPage';
@@ -457,7 +457,7 @@ import FurnitureDeliveriesPage from '@industries/furniture/pages/DeliveriesPage'
 import CarpentersPage from '@industries/furniture/pages/CarpentersPage';
 
 // ─── Gaming Industry ───────────────────────────────────────────
-import GamingDashboardPage from '@industries/gaming/pages/GamingDashboardPage';
+import GamingDashboard from '@industries/gaming/dashboard/GamingDashboard';
 import GamingProductsPage from '@industries/gaming/pages/GamingProductsPage';
 import GamingProductWizardPage from '@industries/gaming/pages/GamingProductWizardPage';
 import GamingProductDetailPage from '@industries/gaming/pages/GamingProductDetailPage';
@@ -468,7 +468,7 @@ import GamingTopupsPage from '@industries/gaming/pages/GamingTopupsPage';
 import GamingTournamentsPage from '@industries/gaming/pages/GamingTournamentsPage';
 
 // ─── Optical Industry ──────────────────────────────────────────
-import OpticalDashboardPage from '@industries/optical/pages/OpticalDashboardPage';
+import OpticalDashboard from '@industries/optical/dashboard/OpticalDashboard';
 import OpticalProductsPage from '@industries/optical/pages/OpticalProductsPage';
 import OpticalProductWizardPage from '@industries/optical/pages/OpticalProductWizardPage';
 import OpticalProductDetailPage from '@industries/optical/pages/OpticalProductDetailPage';
@@ -483,7 +483,7 @@ import LensOrderFormPage from '@industries/optical/pages/LensOrderFormPage';
 import LensOrderDetailPage from '@industries/optical/pages/LensOrderDetailPage';
 
 // ─── Petshop Industry ──────────────────────────────────────────
-import PetshopDashboardPage from '@industries/petshop/pages/PetshopDashboardPage';
+import PetshopDashboard from '@industries/petshop/dashboard/PetshopDashboard';
 import PetshopProductsPage from '@industries/petshop/pages/PetshopProductsPage';
 import PetshopProductWizardPage from '@industries/petshop/pages/PetshopProductWizardPage';
 import PetshopProductDetailPage from '@industries/petshop/pages/PetshopProductDetailPage';
@@ -495,7 +495,7 @@ import PetshopGroomingFormPage from '@industries/petshop/pages/GroomingFormPage'
 import PetshopGroomersPage from '@industries/petshop/pages/GroomersPage';
 
 // ─── Shoe Industry ─────────────────────────────────────────────
-import ShoeDashboardPage from '@industries/shoe/pages/ShoeDashboardPage';
+import ShoeDashboard from '@industries/shoe/dashboard/ShoeDashboard';
 import ShoeProductsPage from '@industries/shoe/pages/ShoeProductsPage';
 import ShoeProductWizardPage from '@industries/shoe/pages/ShoeProductWizardPage';
 import ShoeProductDetailPage from '@industries/shoe/pages/ShoeProductDetailPage';
@@ -505,7 +505,7 @@ import ShoeExchangesPage from '@industries/shoe/pages/ShoeExchangesPage';
 import ShoeTryOnPage from '@industries/shoe/pages/ShoeTryOnPage';
 
 // ─── Sports Industry ───────────────────────────────────────────
-import SportsDashboardPage from '@industries/sports/pages/SportsDashboardPage';
+import SportsDashboard from '@industries/sports/dashboard/SportsDashboard';
 import SportsProductsPage from '@industries/sports/pages/SportsProductsPage';
 import SportsProductWizardPage from '@industries/sports/pages/SportsProductWizardPage';
 import SportsProductDetailPage from '@industries/sports/pages/SportsProductDetailPage';
@@ -515,7 +515,7 @@ import SportsTeamOrderFormPage from '@industries/sports/pages/TeamOrderFormPage'
 import SportsRepairServicesPage from '@industries/sports/pages/RepairServicesPage';
 
 // ─── Toystore Industry ─────────────────────────────────────────
-import ToystoreDashboardPage from '@industries/toystore/pages/ToystoreDashboardPage';
+import ToystoreDashboard from '@industries/toystore/dashboard/ToystoreDashboard';
 import ToystoreProductsPage from '@industries/toystore/pages/ToyProductsPage';
 import ToystoreProductWizardPage from '@industries/toystore/pages/ToyProductWizardPage';
 import ToystoreProductDetailPage from '@industries/toystore/pages/ToyProductDetailPage';
@@ -692,6 +692,7 @@ export default function App() {
                   <Route path="/online-store/foodpanda" element={secure(PERMISSIONS.SETTINGS_VIEW, <FoodpandaPage />)} />
                   <Route path="/settings/accounting" element={secure(PERMISSIONS.SETTINGS_VIEW, <AccountingPage />)} />
                   <Route path="/settings/hardware" element={secure(PERMISSIONS.POS_USE, <HardwarePage />)} />
+                  <Route path="/settings/printing" element={<PrintSettingsPage />} />
                   {/* Every signed-in user can change their own look; business defaults are checked inside. */}
                   <Route path="/settings/appearance" element={<AppearancePage />} />
                   <Route path="/settings/developer" element={secure(PERMISSIONS.SETTINGS_VIEW, <DeveloperPage />)} />
@@ -801,8 +802,8 @@ export default function App() {
                   <Route path="/retail/barcode-labels" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BarcodeLabelsPage />)} />
 
                   {/* Restaurant */}
-                  <Route path="/restaurant" element={secure(PERMISSIONS.DASHBOARD_VIEW, <RestaurantDashboardPage />)} />
-                  <Route path="/restaurant/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <RestaurantDashboardPage />)} />
+                  <Route path="/restaurant" element={secure(PERMISSIONS.DASHBOARD_VIEW, <RestaurantDashboard />)} />
+                  <Route path="/restaurant/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <RestaurantDashboard />)} />
                   <Route path="/restaurant/orders/new" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <NewOrderPage />)} />
                   <Route path="/restaurant/orders/:id" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <OrderDetailPage />)} />
                   <Route path="/restaurant/orders" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <RestaurantOrdersPage />)} />
@@ -817,8 +818,8 @@ export default function App() {
                   <Route path="/restaurant/delivery" element={secure(PERMISSIONS.RESTAURANT_ORDERS_VIEW, <DeliveryTrackingPage />)} />
 
                   {/* Pharmacy */}
-                  <Route path="/pharmacy" element={<PharmacyDashboardPage />} />
-                  <Route path="/pharmacy/dashboard" element={<PharmacyDashboardPage />} />
+                  <Route path="/pharmacy" element={<PharmacyDashboard />} />
+                  <Route path="/pharmacy/dashboard" element={<PharmacyDashboard />} />
                   <Route path="/pharmacy/prescriptions/new" element={<NewPrescriptionPage />} />
                   <Route path="/pharmacy/prescriptions/:id" element={<PrescriptionDetailPage />} />
                   <Route path="/pharmacy/prescriptions" element={<PrescriptionsPage />} />
@@ -830,8 +831,8 @@ export default function App() {
                   <Route path="/pharmacy/temperature-log" element={<TemperatureLogPage />} />
 
                   {/* Garments */}
-                  <Route path="/garments" element={<GarmentsDashboardPage />} />
-                  <Route path="/garments/dashboard" element={<GarmentsDashboardPage />} />
+                  <Route path="/garments" element={<GarmentsDashboard />} />
+                  <Route path="/garments/dashboard" element={<GarmentsDashboard />} />
                   <Route path="/garments/collections" element={<CollectionsPage />} />
                   <Route path="/garments/size-charts" element={<SizeChartsPage />} />
                   <Route path="/garments/measurements" element={<MeasurementsPage />} />
@@ -844,8 +845,8 @@ export default function App() {
                   <Route path="/garments/layaway" element={<LayawayPage />} />
 
                   {/* Salon */}
-                  <Route path="/salon" element={<SalonDashboardPage />} />
-                  <Route path="/salon/dashboard" element={<SalonDashboardPage />} />
+                  <Route path="/salon" element={<SalonDashboard />} />
+                  <Route path="/salon/dashboard" element={<SalonDashboard />} />
                   <Route path="/salon/services" element={<ServicesPage />} />
                   <Route path="/salon/staff" element={<StaffPage />} />
                   <Route path="/salon/appointments/new" element={<NewAppointmentPage />} />
@@ -857,8 +858,8 @@ export default function App() {
                   <Route path="/salon/customers" element={<CustomersPage />} />
 
                   {/* Hardware */}
-                  <Route path="/hardware" element={<HardwareDashboardPage />} />
-                  <Route path="/hardware/dashboard" element={<HardwareDashboardPage />} />
+                  <Route path="/hardware" element={<HardwareDashboard />} />
+                  <Route path="/hardware/dashboard" element={<HardwareDashboard />} />
                   <Route path="/hardware/brands" element={<HardwareBrandsPage />} />
                   <Route path="/hardware/products" element={<HardwareProductsPage />} />
                   <Route path="/hardware/projects" element={<HardwareProjectsPage />} />
@@ -870,8 +871,8 @@ export default function App() {
                   <Route path="/hardware/reorder-rules" element={<HardwareReorderRulesPage />} />
 
                   {/* Dairy */}
-                  <Route path="/dairy" element={<DairyDashboardPage />} />
-                  <Route path="/dairy/dashboard" element={<DairyDashboardPage />} />
+                  <Route path="/dairy" element={<DairyDashboard />} />
+                  <Route path="/dairy/dashboard" element={<DairyDashboard />} />
                   <Route path="/dairy/farmers" element={<DairyFarmersPage />} />
                   <Route path="/dairy/customers" element={<DairyCustomersPage />} />
                   <Route path="/dairy/routes" element={<DairyRoutesPage />} />
@@ -882,8 +883,8 @@ export default function App() {
                   <Route path="/dairy/products" element={<DairyProductsPage />} />
 
                   {/* Meat */}
-                  <Route path="/meat" element={<MeatDashboardPage />} />
-                  <Route path="/meat/dashboard" element={<MeatDashboardPage />} />
+                  <Route path="/meat" element={<MeatDashboard />} />
+                  <Route path="/meat/dashboard" element={<MeatDashboard />} />
                   <Route path="/meat/products" element={<MeatProductsPage />} />
                   <Route path="/meat/live-animals" element={<LiveAnimalsPage />} />
                   <Route path="/meat/slaughter" element={<SlaughterLogPage />} />
@@ -895,8 +896,8 @@ export default function App() {
                   <Route path="/meat/wholesale" element={<WholesalePage />} />
 
                   {/* Clinic */}
-                  <Route path="/clinic" element={<ClinicDashboardPage />} />
-                  <Route path="/clinic/dashboard" element={<ClinicDashboardPage />} />
+                  <Route path="/clinic" element={<ClinicDashboard />} />
+                  <Route path="/clinic/dashboard" element={<ClinicDashboard />} />
                   <Route path="/clinic/doctors" element={<DoctorsPage />} />
                   <Route path="/clinic/patients" element={<PatientsPage />} />
                   <Route path="/clinic/appointments/new" element={<ClinicNewAppointmentPage />} />
@@ -908,8 +909,8 @@ export default function App() {
                   <Route path="/clinic/queue" element={<QueuePage />} />
 
                   {/* Gym */}
-                  <Route path="/gym" element={<GymDashboardPage />} />
-                  <Route path="/gym/dashboard" element={<GymDashboardPage />} />
+                  <Route path="/gym" element={<GymDashboard />} />
+                  <Route path="/gym/dashboard" element={<GymDashboard />} />
                   <Route path="/gym/members/:id" element={<GymMemberDetailPage />} />
                   <Route path="/gym/members" element={<GymMembersPage />} />
                   <Route path="/gym/plans" element={<GymPlansPage />} />
@@ -939,8 +940,8 @@ export default function App() {
                   <Route path="/bakery/bulk-orders" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <BakeryBulkOrdersPage />)} />
 
                   {/* Agri */}
-                  <Route path="/agri" element={secure(PERMISSIONS.DASHBOARD_VIEW, <AgriDashboardPage />)} />
-                  <Route path="/agri/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <AgriDashboardPage />)} />
+                  <Route path="/agri" element={secure(PERMISSIONS.DASHBOARD_VIEW, <AgriDashboard />)} />
+                  <Route path="/agri/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <AgriDashboard />)} />
                   <Route path="/agri/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <AgriProductsListPage />)} />
                   <Route path="/agri/farmers" element={secure(PERMISSIONS.AGRI_FARMERS_VIEW, <FarmersPage />)} />
                   <Route path="/agri/bulk-orders/new" element={secure(PERMISSIONS.AGRI_ORDERS_VIEW, <NewBulkOrderPage />)} />
@@ -950,8 +951,8 @@ export default function App() {
                   <Route path="/agri/subsidy" element={secure(PERMISSIONS.AGRI_ORDERS_VIEW, <SubsidyPage />)} />
 
                   {/* Hotel */}
-                  <Route path="/hotel" element={<HotelDashboardPage />} />
-                  <Route path="/hotel/dashboard" element={<HotelDashboardPage />} />
+                  <Route path="/hotel" element={<HotelDashboard />} />
+                  <Route path="/hotel/dashboard" element={<HotelDashboard />} />
                   <Route path="/hotel/room-types" element={<RoomTypesPage />} />
                   <Route path="/hotel/rooms" element={<RoomsPage />} />
                   <Route path="/hotel/guests" element={<GuestsPage />} />
@@ -961,8 +962,8 @@ export default function App() {
                   <Route path="/hotel/housekeeping" element={<HousekeepingPage />} />
 
                   {/* Jewelry */}
-                  <Route path="/jewelry" element={<JewelryDashboardPage />} />
-                  <Route path="/jewelry/dashboard" element={<JewelryDashboardPage />} />
+                  <Route path="/jewelry" element={<JewelryDashboard />} />
+                  <Route path="/jewelry/dashboard" element={<JewelryDashboard />} />
                   <Route path="/jewelry/metal-rates" element={<MetalRatesPage />} />
                   <Route path="/jewelry/products" element={<JewelryProductsPage />} />
                   <Route path="/jewelry/sales/new" element={<NewSalePage />} />
@@ -973,8 +974,8 @@ export default function App() {
                   <Route path="/jewelry/metal-stock" element={<MetalStockPage />} />
 
                   {/* AutoParts */}
-                  <Route path="/autoparts" element={<AutoPartsDashboardPage />} />
-                  <Route path="/autoparts/dashboard" element={<AutoPartsDashboardPage />} />
+                  <Route path="/autoparts" element={<AutoPartsDashboard />} />
+                  <Route path="/autoparts/dashboard" element={<AutoPartsDashboard />} />
                   <Route path="/autoparts/makes" element={<VehicleMakesPage />} />
                   <Route path="/autoparts/models" element={<VehicleModelsPage />} />
                   <Route path="/autoparts/vehicles" element={<CustomerVehiclesPage />} />
@@ -986,8 +987,8 @@ export default function App() {
                   <Route path="/autoparts/reminders" element={<ServiceRemindersPage />} />
 
                   {/* Bookstore */}
-                  <Route path="/bookstore" element={<BookstoreDashboardPage />} />
-                  <Route path="/bookstore/dashboard" element={<BookstoreDashboardPage />} />
+                  <Route path="/bookstore" element={<BookstoreDashboard />} />
+                  <Route path="/bookstore/dashboard" element={<BookstoreDashboard />} />
                   <Route path="/bookstore/publishers" element={<PublishersPage />} />
                   <Route path="/bookstore/authors" element={<AuthorsPage />} />
                   <Route path="/bookstore/books" element={<BooksPage />} />
@@ -1010,8 +1011,8 @@ export default function App() {
                   <Route path="/appliances/brands" element={<Navigate to="/brands" replace />} />
 
                   {/* Electronics */}
-                  <Route path="/electronics" element={secure(PERMISSIONS.DASHBOARD_VIEW, <ElectronicsDashboardPage />)} />
-                  <Route path="/electronics/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <ElectronicsDashboardPage />)} />
+                  <Route path="/electronics" element={secure(PERMISSIONS.DASHBOARD_VIEW, <ElectronicsDashboard />)} />
+                  <Route path="/electronics/dashboard" element={secure(PERMISSIONS.DASHBOARD_VIEW, <ElectronicsDashboard />)} />
                   <Route path="/electronics/bundles/new" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsBundleFormPage />)} />
                   <Route path="/electronics/bundles/:id/edit" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsBundleFormPage />)} />
                   <Route path="/electronics/bundles" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsBundlesPage />)} />
@@ -1019,8 +1020,8 @@ export default function App() {
                   <Route path="/electronics/warranty-claims" element={secure(PERMISSIONS.ELECTRONICS_WARRANTY_VIEW, <ElectronicsWarrantyClaimsPage />)} />
 
                   {/* Cosmetics */}
-                  <Route path="/cosmetics" element={<CosmeticsDashboardPage />} />
-                  <Route path="/cosmetics/dashboard" element={<CosmeticsDashboardPage />} />
+                  <Route path="/cosmetics" element={<CosmeticsDashboard />} />
+                  <Route path="/cosmetics/dashboard" element={<CosmeticsDashboard />} />
                   <Route path="/cosmetics/brands" element={<CosmeticsBrandsPage />} />
                   <Route path="/cosmetics/batches" element={<CosmeticsBatchesPage />} />
                   <Route path="/cosmetics/gift-bundles/new" element={<CosmeticsBundleFormPage />} />
@@ -1029,16 +1030,16 @@ export default function App() {
                   <Route path="/cosmetics/loyalty" element={<CosmeticsLoyaltyPage />} />
 
                   {/* Florist */}
-                  <Route path="/florist" element={<FloristDashboardPage />} />
-                  <Route path="/florist/dashboard" element={<FloristDashboardPage />} />
+                  <Route path="/florist" element={<FloristDashboard />} />
+                  <Route path="/florist/dashboard" element={<FloristDashboard />} />
                   <Route path="/florist/orders" element={<FloristOrdersPage />} />
                   <Route path="/florist/weddings" element={<FloristWeddingsPage />} />
                   <Route path="/florist/subscriptions" element={<FloristSubscriptionsPage />} />
                   <Route path="/florist/freshness" element={<FloristFreshnessPage />} />
 
                   {/* Furniture */}
-                  <Route path="/furniture" element={<FurnitureDashboardPage />} />
-                  <Route path="/furniture/dashboard" element={<FurnitureDashboardPage />} />
+                  <Route path="/furniture" element={<FurnitureDashboard />} />
+                  <Route path="/furniture/dashboard" element={<FurnitureDashboard />} />
                   <Route path="/furniture/custom-orders/new" element={<FurnitureCustomOrderFormPage />} />
                   <Route path="/furniture/custom-orders/:id/edit" element={<FurnitureCustomOrderFormPage />} />
                   <Route path="/furniture/custom-orders/:id" element={<FurnitureCustomOrderDetailPage />} />
@@ -1047,8 +1048,8 @@ export default function App() {
                   <Route path="/furniture/carpenters" element={<CarpentersPage />} />
 
                   {/* Gaming */}
-                  <Route path="/gaming" element={<GamingDashboardPage />} />
-                  <Route path="/gaming/dashboard" element={<GamingDashboardPage />} />
+                  <Route path="/gaming" element={<GamingDashboard />} />
+                  <Route path="/gaming/dashboard" element={<GamingDashboard />} />
                   <Route path="/gaming/cafe" element={<GamingCafeLivePage />} />
                   <Route path="/gaming/stations" element={<GamingStationsPage />} />
                   <Route path="/gaming/rentals" element={<GamingRentalsPage />} />
@@ -1056,8 +1057,8 @@ export default function App() {
                   <Route path="/gaming/tournaments" element={<GamingTournamentsPage />} />
 
                   {/* Optical */}
-                  <Route path="/optical" element={<OpticalDashboardPage />} />
-                  <Route path="/optical/dashboard" element={<OpticalDashboardPage />} />
+                  <Route path="/optical" element={<OpticalDashboard />} />
+                  <Route path="/optical/dashboard" element={<OpticalDashboard />} />
                   <Route path="/optical/prescriptions/new" element={<OpticalPrescriptionFormPage />} />
                   <Route path="/optical/prescriptions/:id/edit" element={<OpticalPrescriptionFormPage />} />
                   <Route path="/optical/prescriptions/:id" element={<OpticalPrescriptionDetailPage />} />
@@ -1071,8 +1072,8 @@ export default function App() {
                   <Route path="/optical/lens-orders" element={<LensOrdersPage />} />
 
                   {/* Petshop */}
-                  <Route path="/petshop" element={<PetshopDashboardPage />} />
-                  <Route path="/petshop/dashboard" element={<PetshopDashboardPage />} />
+                  <Route path="/petshop" element={<PetshopDashboard />} />
+                  <Route path="/petshop/dashboard" element={<PetshopDashboard />} />
                   <Route path="/petshop/live-animals/new" element={<PetshopLiveAnimalFormPage />} />
                   <Route path="/petshop/live-animals/:id/edit" element={<PetshopLiveAnimalFormPage />} />
                   <Route path="/petshop/live-animals/:id" element={<PetshopLiveAnimalDetailPage />} />
@@ -1083,16 +1084,16 @@ export default function App() {
                   <Route path="/petshop/groomers" element={<PetshopGroomersPage />} />
 
                   {/* Shoe */}
-                  <Route path="/shoe" element={<ShoeDashboardPage />} />
-                  <Route path="/shoe/dashboard" element={<ShoeDashboardPage />} />
+                  <Route path="/shoe" element={<ShoeDashboard />} />
+                  <Route path="/shoe/dashboard" element={<ShoeDashboard />} />
                   <Route path="/shoe/brands" element={<ShoeBrandsPage />} />
                   <Route path="/shoe/size-charts" element={<ShoeSizeChartsPage />} />
                   <Route path="/shoe/exchanges" element={<ShoeExchangesPage />} />
                   <Route path="/shoe/try-on" element={<ShoeTryOnPage />} />
 
                   {/* Sports */}
-                  <Route path="/sports" element={<SportsDashboardPage />} />
-                  <Route path="/sports/dashboard" element={<SportsDashboardPage />} />
+                  <Route path="/sports" element={<SportsDashboard />} />
+                  <Route path="/sports/dashboard" element={<SportsDashboard />} />
                   <Route path="/sports/brands" element={<SportsBrandsPage />} />
                   <Route path="/sports/team-orders/new" element={<SportsTeamOrderFormPage />} />
                   <Route path="/sports/team-orders/:id/edit" element={<SportsTeamOrderFormPage />} />
@@ -1100,8 +1101,8 @@ export default function App() {
                   <Route path="/sports/repair-services" element={<SportsRepairServicesPage />} />
 
                   {/* Toystore */}
-                  <Route path="/toystore" element={<ToystoreDashboardPage />} />
-                  <Route path="/toystore/dashboard" element={<ToystoreDashboardPage />} />
+                  <Route path="/toystore" element={<ToystoreDashboard />} />
+                  <Route path="/toystore/dashboard" element={<ToystoreDashboard />} />
                   <Route path="/toystore/gift-packs/new" element={<ToystoreGiftPackFormPage />} />
                   <Route path="/toystore/gift-packs/:id/edit" element={<ToystoreGiftPackFormPage />} />
                   <Route path="/toystore/gift-packs" element={<ToystoreGiftPacksPage />} />

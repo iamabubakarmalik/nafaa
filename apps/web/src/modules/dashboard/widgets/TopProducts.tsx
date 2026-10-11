@@ -7,7 +7,7 @@ import { useDashboardList, type TopList } from '../data/queries';
 import { LIMIT_OPTIONS, MiniSelect, useWidgetState } from '../engine/controls';
 import { useMasked } from '../engine/useMasked';
 import { fmtQty, ListRow, RowList, WidgetCard } from '../engine/parts';
-import { CategorySelect, ListToolbar } from './ListToolbar';
+import { CategorySelect, WidgetToolbar } from './WidgetToolbar';
 
 const PERIODS = [
   { value: '1', label: 'Aaj' }, { value: '7', label: '7 din' }, { value: '30', label: '30 din' }, { value: '90', label: '90 din' },
@@ -24,7 +24,7 @@ export function TopProducts({ productPath, hint }: { productPath: (id: string) =
 
   return (
     <WidgetCard title="Sab se zyada bika" icon={Crown} description={hint ?? `${PERIOD_LABEL[s.days]} · ${data?.total ?? 0} cheezein biki`} flush>
-      <ListToolbar
+      <WidgetToolbar
         print={() => ({
           title: 'Sab se zyada bika',
           subtitle: `${PERIOD_LABEL[s.days]} · ${sortOptions.find((o) => o.value === sort)?.label}`,
@@ -39,7 +39,7 @@ export function TopProducts({ productPath, hint }: { productPath: (id: string) =
         <MiniSelect label="Tarteeb" value={sort} onChange={(v) => set({ sort: v })} options={sortOptions} />
         <MiniSelect label="Kitne" value={s.limit} onChange={(limit) => set({ limit })} options={LIMIT_OPTIONS} />
         <CategorySelect value={s.categoryId} onChange={(categoryId) => set({ categoryId })} />
-      </ListToolbar>
+      </WidgetToolbar>
       {isLoading ? (
         <div className="space-y-2 px-5 pb-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-10" />)}</div>
       ) : (

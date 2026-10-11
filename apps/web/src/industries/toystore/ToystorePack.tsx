@@ -3,7 +3,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import ToystoreDashboardPage from './pages/ToystoreDashboardPage';
+import ToystoreDashboard from './dashboard/ToystoreDashboard';
 import ToyProductsPage from './pages/ToyProductsPage';
 import ToyProductWizardPage from './pages/ToyProductWizardPage';
 import ToyProductDetailPage from './pages/ToyProductDetailPage';
@@ -55,8 +55,8 @@ export const ToystorePack: IndustryPack = {
     { path: '/toy-products/:id', element: ToyProductDetailPage },
     { path: '/toy-products', element: ToyProductsPage },
 
-    { path: '/toystore', element: ToystoreDashboardPage },
-    { path: '/toystore/dashboard', element: ToystoreDashboardPage },
+    { path: '/toystore', element: ToystoreDashboard },
+    { path: '/toystore/dashboard', element: ToystoreDashboard },
 
     { path: '/toystore/gift-finder', element: GiftFinderPage },
 
@@ -70,7 +70,7 @@ export const ToystorePack: IndustryPack = {
     { path: '/toystore/safety-review', element: ToySafetyReviewPage },
   ],
 
-  dashboardComponent: ToystoreDashboardPage,
+  dashboardComponent: ToystoreDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

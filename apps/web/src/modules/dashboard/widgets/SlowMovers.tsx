@@ -6,7 +6,7 @@ import { useDashboardList, type SlowList } from '../data/queries';
 import { LIMIT_OPTIONS, MiniSelect, useWidgetState } from '../engine/controls';
 import { useMasked } from '../engine/useMasked';
 import { fmtDateTime, fmtQty, ListRow, RowList, WidgetCard } from '../engine/parts';
-import { CategorySelect, ListToolbar } from './ListToolbar';
+import { CategorySelect, WidgetToolbar } from './WidgetToolbar';
 
 const DAYS = [{ value: '30', label: '30 din se' }, { value: '60', label: '60 din se' }, { value: '90', label: '90 din se' }];
 
@@ -23,7 +23,7 @@ export function SlowMovers({ productPath }: { productPath: (id: string) => strin
       description={data ? `${data.total} cheezein ${s.days} din se nahi biki · ${cost(data.totalValue)} ka maal` : `${s.days} din se nahi bika`}
       flush
     >
-      <ListToolbar
+      <WidgetToolbar
         print={() => ({
           title: 'Atka hua maal',
           subtitle: `${s.days} din se nahi bika`,
@@ -39,7 +39,7 @@ export function SlowMovers({ productPath }: { productPath: (id: string) => strin
         <MiniSelect label="Tarteeb" value={s.sort} onChange={(sort) => set({ sort })} options={[{ value: 'value', label: 'Maal ki qeemat' }, { value: 'stock', label: 'Stock ginti' }]} />
         <MiniSelect label="Kitne" value={s.limit} onChange={(limit) => set({ limit })} options={LIMIT_OPTIONS} />
         <CategorySelect value={s.categoryId} onChange={(categoryId) => set({ categoryId })} />
-      </ListToolbar>
+      </WidgetToolbar>
       {isLoading ? (
         <div className="space-y-2 px-5 pb-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-10" />)}</div>
       ) : (

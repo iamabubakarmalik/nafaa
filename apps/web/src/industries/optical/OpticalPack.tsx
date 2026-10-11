@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import OpticalDashboardPage from './pages/OpticalDashboardPage';
+import OpticalDashboard from './dashboard/OpticalDashboard';
 import OpticalProductsPage from './pages/OpticalProductsPage';
 import OpticalProductWizardPage from './pages/OpticalProductWizardPage';
 import OpticalProductDetailPage from './pages/OpticalProductDetailPage';
@@ -62,8 +62,8 @@ export const OpticalPack: IndustryPack = {
     { path: '/optical-products/:id', element: OpticalProductDetailPage },
     { path: '/optical-products', element: OpticalProductsPage },
 
-    { path: '/optical', element: OpticalDashboardPage },
-    { path: '/optical/dashboard', element: OpticalDashboardPage },
+    { path: '/optical', element: OpticalDashboard },
+    { path: '/optical/dashboard', element: OpticalDashboard },
 
     { path: '/optical/prescriptions/new', element: PrescriptionFormPage },
     { path: '/optical/prescriptions/:id/edit', element: PrescriptionFormPage },
@@ -80,7 +80,7 @@ export const OpticalPack: IndustryPack = {
     { path: '/optical/lens-orders', element: LensOrdersPage },
   ],
 
-  dashboardComponent: OpticalDashboardPage,
+  dashboardComponent: OpticalDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

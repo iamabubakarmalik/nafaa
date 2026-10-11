@@ -1,8 +1,7 @@
 import { Scissors, LayoutDashboard, Calendar, Timer, UserCheck, Award, BookmarkPlus, Heart, Sparkles } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import SalonDashboardPage from './pages/SalonDashboardPage';
-import SalonDashboardV2 from './pages/SalonDashboardV2';
+import SalonDashboard from './dashboard/SalonDashboard';
 import AppointmentsPage from './pages/AppointmentsPage';
 import CalendarViewPage from './pages/CalendarViewPage';
 import ServicesPage from './pages/ServicesPage';
@@ -67,8 +66,8 @@ export const SalonPack: IndustryPack = {
     { path: '/salon-services/new', element: SalonServiceWizardPage },
     { path: '/salon-services/:id/edit', element: SalonServiceWizardPage },
 
-    { path: '/salon', element: SalonDashboardV2 },
-    { path: '/salon/dashboard', element: SalonDashboardV2 },
+    { path: '/salon', element: SalonDashboard },
+    { path: '/salon/dashboard', element: SalonDashboard },
     { path: '/salon/appointments/new', element: NewAppointmentPage },
     { path: '/salon/appointments/:id', element: AppointmentDetailPage },
     { path: '/salon/appointments', element: AppointmentsPage },
@@ -85,7 +84,7 @@ export const SalonPack: IndustryPack = {
     { path: '/salon/customers', element: CustomersPage },
   ],
 
-  dashboardComponent: SalonDashboardV2,
+  dashboardComponent: SalonDashboard,
 
   productForm: {
     defaultUnit: 'service',

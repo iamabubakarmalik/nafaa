@@ -12,8 +12,10 @@ modules/dashboard/
               headline-number catalog (commonKpis)
   day-report/ end-of-day report: widget, /day-report page, WhatsApp/print export
   data/       React Query hooks shared by widgets
+  general/    dashboard for businesses without an industry pack
   components/ AllShopsDashboard (owner's cross-branch view), SubscriptionBanner
-  pages/      DashboardGate (picks the industry dashboard), legacy DashboardPage
+  pages/      DashboardGate (industry id → lazy dashboard)
+  createDashboard.ts  builds a config from the few industry-specific parts
 industries/<id>/dashboard/
   config.ts   widgets in default order, header action, guide
   widgets.tsx widgets only this industry needs
@@ -21,15 +23,21 @@ industries/<id>/dashboard/
 
 ## Adding an industry
 
-1. Create `industries/<id>/dashboard/config.ts` exporting a `DashboardConfig`:
-   industry KPIs (`KpiDef`) plus `commonKpiList`, the default KPI ids, an
-   `attention` widget of your own, then widgets from `commonWidgets`.
+1. Create `industries/<id>/dashboard/` with `config.ts` calling
+   `createDashboard({...})`: label, productPath, industry KPIs, a
+   `useAttention` hook, industry widgets, quick actions, and `omit` for
+   standard widgets that do not apply. Put data hooks in `use<Name>Ops.ts`
+   and widgets in `widgets.tsx` (see bakery).
 2. Add `<Name>Dashboard.tsx` that renders `<DashboardView config={...} />`.
-3. Point the industry pack's `dashboardComponent` and the `DashboardGate`
-   entry at it, then delete the old dashboard page.
+3. Add it to the map in `pages/DashboardGate.tsx`.
 
-Migrated so far: **bakery**, **retail**. Other industries still use their
-old pages until they are moved.
+All 30 industries use the engine; anything else falls back to `general/`.
+
+## Widget controls
+
+Every widget has a toolbar (`widgets/WidgetToolbar.tsx`) with compact
+selects (`engine/controls.tsx`: `MiniSelect`, `useWidgetState`) and a print
+button. Control choices are remembered per user on the device.
 
 ## Rules
 
@@ -41,6 +49,9 @@ old pages until they are moved.
 - Use the shared query hooks in `data/` so widgets share requests and the
   app's cache invalidation after a sale keeps them fresh.
 - Call widget factories at module level, not inside components.
+- Every widget gets a `WidgetToolbar` with its controls (`MiniSelect`, state
+  kept with `useWidgetState`) and a `print` document for the shared
+  print module (`@core/print`).
 
 ## What users can change
 
@@ -52,8 +63,10 @@ config's `kpis`. **Target**: daily sales target shown as a ring on the hero.
 
 - `GET /dashboard/day-report?date=YYYY-MM-DD` — one business day: cash
   drawer, items and categories sold, payments, expenses, staff.
-- `GET /dashboard/insights?days=7|30|90` — categories, staff, weekdays,
-  top customers, last six months.
+- `GET /dashboard/insights?days=1|7|30|90&months=6|12` — daily trend,
+  payments, categories, staff, weekdays, top customers, monthly comparison.
+- `GET /dashboard/lists?kind=top|slow|low|recent` — list widgets with
+  period, sort, limit, category and payment filters.
 - Both use the tenant timezone and business-day start hour.
 
 ## Layout storage

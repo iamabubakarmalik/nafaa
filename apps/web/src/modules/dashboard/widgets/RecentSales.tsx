@@ -8,7 +8,7 @@ import { LIMIT_OPTIONS, MiniSelect, useWidgetState } from '../engine/controls';
 import { PAYMENT_COLORS, PAYMENT_LABELS } from '../engine/useChartTheme';
 import { useMasked } from '../engine/useMasked';
 import { fmtDateTime, ListRow, RowList, WidgetCard } from '../engine/parts';
-import { ListToolbar } from './ListToolbar';
+import { WidgetToolbar } from './WidgetToolbar';
 
 const METHODS = ['', 'CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK_TRANSFER'];
 
@@ -20,7 +20,7 @@ export function RecentSales() {
 
   return (
     <WidgetCard title="Haaliya bikri" icon={Receipt} description="Aakhri bill" to="/sales" flush>
-      <ListToolbar
+      <WidgetToolbar
         print={() => ({
           title: 'Haaliya bikri',
           subtitle: s.method ? PAYMENT_LABELS[s.method] : 'Sab payments',
@@ -36,7 +36,7 @@ export function RecentSales() {
           options={METHODS.map((m) => ({ value: m, label: m ? PAYMENT_LABELS[m] : 'Sab payments' }))} />
         <MiniSelect label="Kitne" value={s.limit} onChange={(limit) => set({ limit })}
           options={LIMIT_OPTIONS.map((o) => ({ ...o, label: o.label.replace('Top', 'Aakhri') }))} />
-      </ListToolbar>
+      </WidgetToolbar>
       {isLoading ? (
         <div className="space-y-2 px-5 pb-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-10" />)}</div>
       ) : (

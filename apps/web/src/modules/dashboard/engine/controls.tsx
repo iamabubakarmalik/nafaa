@@ -54,3 +54,9 @@ export function useWidgetState<T extends Record<string, string>>(widgetId: strin
 export const LIMIT_OPTIONS: MiniOption[] = [
   { value: '5', label: 'Top 5' }, { value: '10', label: 'Top 10' }, { value: '20', label: 'Top 20' }, { value: '50', label: 'Top 50' },
 ];
+
+export const PERIOD_OPTIONS: MiniOption[] = [
+  { value: '1', label: 'Aaj' }, { value: '7', label: '7 din' }, { value: '30', label: '30 din' }, { value: '90', label: '90 din' },
+];
+
+export const periodLabel = (days: string) => (days === '1' ? 'Aaj' : `Pichhle ${days} din`);

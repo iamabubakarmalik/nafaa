@@ -12,7 +12,7 @@ import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 import { useIsHotelBusiness } from './hooks/useIsHotelBusiness';
 
 // ── Pages ─────────────────────────────────────────────────────
-import HotelDashboardPage from './pages/HotelDashboardPage';
+import HotelDashboard from './dashboard/HotelDashboard';
 import RoomTypesPage from './pages/RoomTypesPage';
 import RoomsPage from './pages/RoomsPage';
 import GuestsPage from './pages/GuestsPage';
@@ -87,8 +87,8 @@ export const HotelPack: IndustryPack = {
     { path: '/hotel-room-types/:id', element: HotelRoomTypeDetailPage },
 
     // Existing pages
-    { path: '/hotel', element: HotelDashboardPage },
-    { path: '/hotel/dashboard', element: HotelDashboardPage },
+    { path: '/hotel', element: HotelDashboard },
+    { path: '/hotel/dashboard', element: HotelDashboard },
     { path: '/hotel/room-types', element: RoomTypesPage },
     { path: '/hotel/rooms', element: RoomsPage },
     { path: '/hotel/guests', element: GuestsPage },
@@ -98,7 +98,7 @@ export const HotelPack: IndustryPack = {
     { path: '/hotel/housekeeping', element: HousekeepingPage },
   ],
 
-  dashboardComponent: HotelDashboardPage,
+  dashboardComponent: HotelDashboard,
 
   pos: {
     checkoutExtension: HotelPosCheckoutExtension,

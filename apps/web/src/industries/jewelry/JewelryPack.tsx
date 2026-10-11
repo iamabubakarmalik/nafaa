@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import JewelryDashboardPage from './pages/JewelryDashboardPage';
+import JewelryDashboard from './dashboard/JewelryDashboard';
 import JewelryProductsPage from './pages/JewelryProductsPage';
 import JewelrySalesPage from './pages/JewelrySalesPage';
 import NewSalePage from './pages/NewSalePage';
@@ -63,8 +63,8 @@ export const JewelryPack: IndustryPack = {
     { path: '/jewelry-items/new', element: JewelryItemWizardPage },
     { path: '/jewelry-items/:id/edit', element: JewelryItemWizardPage },
     { path: '/jewelry-items/:id', element: JewelryItemDetailPage },
-    { path: '/jewelry', element: JewelryDashboardPage },
-    { path: '/jewelry/dashboard', element: JewelryDashboardPage },
+    { path: '/jewelry', element: JewelryDashboard },
+    { path: '/jewelry/dashboard', element: JewelryDashboard },
     { path: '/jewelry/products', element: JewelryProductsPage },
     { path: '/jewelry/sales/new', element: NewSalePage },
     { path: '/jewelry/sales', element: JewelrySalesPage },
@@ -75,7 +75,7 @@ export const JewelryPack: IndustryPack = {
     { path: '/jewelry/metal-stock', element: MetalStockPage },
   ],
 
-  dashboardComponent: JewelryDashboardPage,
+  dashboardComponent: JewelryDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

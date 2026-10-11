@@ -284,6 +284,7 @@ export const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
     items: [
       { to: '/settings/google', label: 'Google', icon: Search, permission: P.SETTINGS_VIEW, desc: 'Google Shopping, Maps par stock, reviews', keywords: 'google merchant center shopping maps business profile review local inventory feed' },
       { to: '/settings/payment-qr', label: 'Payment QR (Raast)', icon: QrCode, permission: P.SETTINGS_VIEW, desc: 'Raast, JazzCash, Easypaisa QR — bill ki raqam ke saath', keywords: 'raast qr jazzcash easypaisa bank qr code scan pay till' },
+      { to: '/settings/printing', label: 'Printing', icon: FileText, desc: 'A4, PDF, thermal 80/58mm, colour ya black & white, header/footer', keywords: 'print printer pdf a4 thermal receipt colour black white header footer logo' },
       { to: '/settings/hardware', label: 'POS hardware', icon: Printer, permission: P.POS_USE, desc: 'Printer direct, cash drawer, tarazu, customer screen', keywords: 'printer thermal escpos drawer scale tarazu weighing customer display hardware usb bluetooth' },
       { to: '/settings/developer', label: 'API & Webhooks', icon: Plug, permission: P.SETTINGS_VIEW, desc: 'Zapier, Make, Google Sheets, apna software', keywords: 'api key webhook zapier make n8n google sheets developer erp integration' },
       { to: '/settings/accounting', label: 'Accounting', icon: Wallet2, permission: P.SETTINGS_VIEW, desc: 'Zoho Books, QuickBooks, Xero, Tally — roz ka hisaab', keywords: 'accounting zoho books quickbooks xero tally tallyprime journal accountant' },

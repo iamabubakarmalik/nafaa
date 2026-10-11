@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import GymDashboardPage from './pages/GymDashboardPage';
+import GymDashboard from './dashboard/GymDashboard';
 import MembersPage from './pages/MembersPage';
 import MemberDetailPage from './pages/MemberDetailPage';
 import AttendancePage from './pages/AttendancePage';
@@ -68,8 +68,8 @@ export const GymPack: IndustryPack = {
   ],
 
   routes: [
-    { path: '/gym', element: GymDashboardPage },
-    { path: '/gym/dashboard', element: GymDashboardPage },
+    { path: '/gym', element: GymDashboard },
+    { path: '/gym/dashboard', element: GymDashboard },
     { path: '/gym/members/:id', element: MemberDetailPage },
     { path: '/gym/members', element: MembersPage },
     { path: '/gym/attendance', element: AttendancePage },
@@ -81,7 +81,7 @@ export const GymPack: IndustryPack = {
     { path: '/gym/equipment', element: EquipmentPage },
   ],
 
-  dashboardComponent: GymDashboardPage,
+  dashboardComponent: GymDashboard,
 
   productForm: {
     defaultUnit: 'month',

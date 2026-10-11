@@ -5,7 +5,7 @@ import { Badge, Skeleton } from '@/design-system/components';
 import { useDashboardList, type LowList } from '../data/queries';
 import { LIMIT_OPTIONS, MiniSelect, useWidgetState } from '../engine/controls';
 import { fmtQty, IconBubble, ListRow, RowList, WidgetCard } from '../engine/parts';
-import { CategorySelect, ListToolbar } from './ListToolbar';
+import { CategorySelect, WidgetToolbar } from './WidgetToolbar';
 
 export function LowStock({ productPath, title = 'Kam stock', hint = 'dobara mangwane ka waqt' }: {
   productPath: (id: string) => string; title?: string; hint?: string;
@@ -22,7 +22,7 @@ export function LowStock({ productPath, title = 'Kam stock', hint = 'dobara mang
       to="/low-stock"
       flush
     >
-      <ListToolbar
+      <WidgetToolbar
         print={() => ({
           title,
           subtitle: 'Mangwane ki list',
@@ -37,7 +37,7 @@ export function LowStock({ productPath, title = 'Kam stock', hint = 'dobara mang
           options={[{ value: 'all', label: 'Sab' }, { value: 'out', label: 'Sirf khatam' }, { value: 'low', label: 'Sirf kam' }]} />
         <MiniSelect label="Kitne" value={s.limit} onChange={(limit) => set({ limit })} options={LIMIT_OPTIONS} />
         <CategorySelect value={s.categoryId} onChange={(categoryId) => set({ categoryId })} />
-      </ListToolbar>
+      </WidgetToolbar>
       {isLoading ? (
         <div className="space-y-2 px-5 pb-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-10" />)}</div>
       ) : (

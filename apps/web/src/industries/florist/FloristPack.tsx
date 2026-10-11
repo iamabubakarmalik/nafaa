@@ -3,7 +3,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import FloristDashboardPage from './pages/FloristDashboardPage';
+import FloristDashboard from './dashboard/FloristDashboard';
 import FloristProductsPage from './pages/FloristProductsPage';
 import FloristProductWizardPage from './pages/FloristProductWizardPage';
 import FloristProductDetailPage from './pages/FloristProductDetailPage';
@@ -57,8 +57,8 @@ export const FloristPack: IndustryPack = {
     { path: '/florist-products/:id', element: FloristProductDetailPage },
     { path: '/florist-products', element: FloristProductsPage },
 
-    { path: '/florist', element: FloristDashboardPage },
-    { path: '/florist/dashboard', element: FloristDashboardPage },
+    { path: '/florist', element: FloristDashboard },
+    { path: '/florist/dashboard', element: FloristDashboard },
 
     { path: '/florist/orders', element: FloristOrdersPage },
     { path: '/florist/deliveries', element: FloristOrdersPage },
@@ -67,7 +67,7 @@ export const FloristPack: IndustryPack = {
     { path: '/florist/freshness', element: FloristFreshnessPage },
   ],
 
-  dashboardComponent: FloristDashboardPage,
+  dashboardComponent: FloristDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

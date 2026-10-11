@@ -1,7 +1,7 @@
 import { LayoutDashboard, Trophy, Users, Wrench, Package, Dumbbell, ShoppingBag } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import SportsDashboardPage from './pages/SportsDashboardPage';
+import SportsDashboard from './dashboard/SportsDashboard';
 import SportsProductsPage from './pages/SportsProductsPage';
 import SportsProductWizardPage from './pages/SportsProductWizardPage';
 import SportsProductDetailPage from './pages/SportsProductDetailPage';
@@ -45,8 +45,8 @@ export const SportsPack: IndustryPack = {
     { path: '/sports-products/:id/edit', element: SportsProductWizardPage },
     { path: '/sports-products/:id', element: SportsProductDetailPage },
     { path: '/sports-products', element: SportsProductsPage },
-    { path: '/sports', element: SportsDashboardPage },
-    { path: '/sports/dashboard', element: SportsDashboardPage },
+    { path: '/sports', element: SportsDashboard },
+    { path: '/sports/dashboard', element: SportsDashboard },
     { path: '/sports/brands', element: SportsBrandsPage },
     { path: '/sports/team-orders', element: TeamOrdersPage },
     { path: '/sports/team-orders/new', element: TeamOrderFormPage },
@@ -54,7 +54,7 @@ export const SportsPack: IndustryPack = {
     { path: '/sports/repair-services', element: RepairServicesPage },
   ],
 
-  dashboardComponent: SportsDashboardPage,
+  dashboardComponent: SportsDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

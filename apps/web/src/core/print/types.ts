@@ -1,10 +1,11 @@
 /**
  * A printable document described as data. Pages build a `PrintDoc`; the
- * print module turns it into an A4 page, a thermal slip (80/58 mm) or
- * ESC/POS bytes for a directly connected printer.
+ * print module turns it into an A4 page, a PDF file, a thermal slip
+ * (80/58 mm) or ESC/POS bytes for a directly connected printer.
  */
 
-export type PrintFormat = 'a4' | '80' | '58';
+/** a4 = browser print; pdf = file download; 80/58 = thermal slip. */
+export type PrintFormat = 'a4' | 'pdf' | '80' | '58';
 
 export interface PrintRow {
   label: string;
@@ -41,4 +42,18 @@ export interface BusinessHeader {
   address?: string;
   phone?: string;
   logoUrl?: string;
+}
+
+/** Everything a renderer needs besides the document itself. */
+export interface RenderContext {
+  biz: BusinessHeader;
+  /** Hex accent for colour output. */
+  accent: string;
+  color: boolean;
+  showLogo: boolean;
+  showAddress: boolean;
+  showPhone: boolean;
+  footerNote: string;
+  stamp?: string;
+  thermalText: 'sm' | 'md' | 'lg';
 }

@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import CosmeticsDashboardPage from './pages/CosmeticsDashboardPage';
+import CosmeticsDashboard from './dashboard/CosmeticsDashboard';
 import CosmeticsProductsPage from './pages/CosmeticsProductsPage';
 import CosmeticsProductWizardPage from './pages/CosmeticsProductWizardPage';
 import CosmeticsProductDetailPage from './pages/CosmeticsProductDetailPage';
@@ -59,8 +59,8 @@ export const CosmeticsPack: IndustryPack = {
     { path: '/cosmetics-products/:id', element: CosmeticsProductDetailPage },
     { path: '/cosmetics-products', element: CosmeticsProductsPage },
 
-    { path: '/cosmetics', element: CosmeticsDashboardPage },
-    { path: '/cosmetics/dashboard', element: CosmeticsDashboardPage },
+    { path: '/cosmetics', element: CosmeticsDashboard },
+    { path: '/cosmetics/dashboard', element: CosmeticsDashboard },
 
     { path: '/cosmetics/brands', element: CosmeticsBrandsPage },
     { path: '/cosmetics/batches', element: CosmeticsBatchesPage },
@@ -72,7 +72,7 @@ export const CosmeticsPack: IndustryPack = {
     { path: '/cosmetics/loyalty', element: CosmeticsLoyaltyPage },
   ],
 
-  dashboardComponent: CosmeticsDashboardPage,
+  dashboardComponent: CosmeticsDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

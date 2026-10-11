@@ -12,6 +12,7 @@ import RepairTicketsPage from './pages/RepairTicketsPage';
 import RepairTicketDetailPage from './pages/RepairTicketDetailPage';
 import MobileProductWizardPage from './pages/MobileProductWizardPage';
 import MobileProductDetailPage from './pages/MobileProductDetailPage';
+import MobileDashboard from './dashboard/MobileDashboard';
 
 /**
  * Mobile industry pack — STRICT MATCHING
@@ -95,6 +96,8 @@ export const MobilePack: IndustryPack = {
     { path: '/emi-plans/:id', element: EmiPlanDetailPage },
     { path: '/mobile-reports', element: MobileReportsPage },
   ],
+
+  dashboardComponent: MobileDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

@@ -119,8 +119,8 @@ export const dashboardApi = {
       .then((r) => r.data.data),
 
   /** Category, staff, weekday, customer and six-month figures. */
-  insights: (days: 7 | 30 | 90) =>
+  insights: (days: 1 | 7 | 30 | 90, months: 6 | 12 = 6) =>
     apiClient
-      .get('/dashboard/insights', { params: { days } })
+      .get('/dashboard/insights', { params: { days, months } })
       .then((r) => r.data.data),
 };

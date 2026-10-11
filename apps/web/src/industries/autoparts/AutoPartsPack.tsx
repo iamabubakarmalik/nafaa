@@ -1,7 +1,7 @@
 import { Car, LayoutDashboard, Wrench, Package, Truck, Cog, Users, Bell, Sparkles } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import AutoPartsDashboardPage from './pages/AutoPartsDashboardPage';
+import AutoPartsDashboard from './dashboard/AutoPartsDashboard';
 import VehicleMakesPage from './pages/VehicleMakesPage';
 import VehicleModelsPage from './pages/VehicleModelsPage';
 import CustomerVehiclesPage from './pages/CustomerVehiclesPage';
@@ -70,8 +70,8 @@ export const AutoPartsPack: IndustryPack = {
     { path: '/autoparts-products/:id', element: AutoPartDetailPage },
 
     // Existing pages
-    { path: '/autoparts', element: AutoPartsDashboardPage },
-    { path: '/autoparts/dashboard', element: AutoPartsDashboardPage },
+    { path: '/autoparts', element: AutoPartsDashboard },
+    { path: '/autoparts/dashboard', element: AutoPartsDashboard },
     { path: '/autoparts/jobs/new', element: NewWorkshopJobPage },
     { path: '/autoparts/jobs/:id', element: WorkshopJobDetailPage },
     { path: '/autoparts/jobs', element: WorkshopJobsPage },
@@ -83,7 +83,7 @@ export const AutoPartsPack: IndustryPack = {
     { path: '/autoparts/reminders', element: ServiceRemindersPage },
   ],
 
-  dashboardComponent: AutoPartsDashboardPage,
+  dashboardComponent: AutoPartsDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

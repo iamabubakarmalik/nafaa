@@ -55,8 +55,8 @@ export interface HourlySales {
   currentHour?: number;
 }
 
-/** `days` 1 = today, 7 = daily average over the last week. */
-export function useHourlySales(days: 1 | 7) {
+/** `days` 1 = today; more = daily average over that many days. */
+export function useHourlySales(days: number) {
   return useQuery<HourlySales | null>({
     queryKey: ['retail-hourly', days],
     queryFn: () => retailDashboardApi.salesByHour(days).catch(() => null),
@@ -123,7 +123,7 @@ export function useDayReport(date?: string) {
   });
 }
 
-export type InsightDays = 7 | 30 | 90;
+export type InsightDays = 1 | 7 | 30 | 90;
 
 export interface Insights {
   days: InsightDays;
@@ -132,13 +132,17 @@ export interface Insights {
   topCustomers: Array<{ customerId: string; name: string; phone?: string | null; balance: number; total: number; bills: number }>;
   weekday: Array<{ day: number; total: number; bills: number; occurrences: number; average: number }>;
   monthly: Array<{ month: string; sales: number; bills: number; expenses: number; profit: number }>;
+  trend: Array<{ date: string; sales: number; profit: number; bills: number }>;
+  payments: Array<{ method: PaymentMethod; collected: number; bills: number }>;
+  credit: number;
 }
 
-export function useInsights(days: InsightDays) {
+export function useInsights(days: InsightDays, months: 6 | 12 = 6) {
   return useQuery<Insights>({
-    queryKey: ['dashboard-insights', days],
-    queryFn: () => dashboardApi.insights(days),
-    staleTime: 5 * MINUTE,
+    queryKey: ['dashboard-insights', days, months],
+    queryFn: () => dashboardApi.insights(days, months),
+    staleTime: days === 1 ? MINUTE : 5 * MINUTE,
+    placeholderData: (prev) => prev,
   });
 }
 

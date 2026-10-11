@@ -61,6 +61,8 @@ export function useBakeryOps() {
       // Whatever does not sell today is waste tomorrow.
       value: within(24).reduce((x, f) => x + f.value, 0),
       list: within(24).sort((a, b) => a.left - b.left).slice(0, 6) as Array<FreshnessLog & { left: number; value: number }>,
+      /** Every live batch, soonest first, for widgets with their own window. */
+      live: [...live].sort((a, b) => a.left - b.left) as Array<FreshnessLog & { left: number; value: number }>,
     };
   }, [freshness.data, priceById]);
 
@@ -98,6 +100,7 @@ export function useBakeryOps() {
       due: all.reduce((x, y) => x + y.due, 0),
       value: all.reduce((x, y) => x + y.total, 0),
       list: [...all].sort((a, b) => (a.left ?? 99_999) - (b.left ?? 99_999)).slice(0, 6),
+      sorted: [...all].sort((a, b) => (a.left ?? 99_999) - (b.left ?? 99_999)),
     };
   }, [cakes.data, bulks.data]);
 
@@ -110,6 +113,8 @@ export function useBakeryOps() {
       critical: low.filter((i) => i.isCritical || Number(i.currentStock || 0) <= 0).length,
       value: list.reduce((x, i) => x + Number(i.currentStock || 0) * Number(i.costPerUnit || 0), 0),
       list: low.slice(0, 6),
+      lowAll: low,
+      all: list,
     };
   }, [ingredients.data]);
 

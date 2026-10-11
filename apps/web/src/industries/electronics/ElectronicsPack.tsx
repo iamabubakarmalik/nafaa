@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import ElectronicsDashboardPage from './pages/ElectronicsDashboardPage';
+import ElectronicsDashboard from './dashboard/ElectronicsDashboard';
 import ElectronicsProductsPage from './pages/ElectronicsProductsPage';
 import ElectronicsProductWizardPage from './pages/ElectronicsProductWizardPage';
 import ElectronicsProductDetailPage from './pages/ElectronicsProductDetailPage';
@@ -89,8 +89,8 @@ export const ElectronicsPack: IndustryPack = {
     { path: '/electronics-products/:id', element: ElectronicsProductDetailPage },
     { path: '/electronics-products', element: ElectronicsProductsPage },
 
-    { path: '/electronics', element: ElectronicsDashboardPage },
-    { path: '/electronics/dashboard', element: ElectronicsDashboardPage },
+    { path: '/electronics', element: ElectronicsDashboard },
+    { path: '/electronics/dashboard', element: ElectronicsDashboard },
 
     { path: '/electronics/serials', element: SerialTrackingPage },
     { path: '/electronics/warranty-claims', element: WarrantyClaimsPage },
@@ -100,7 +100,7 @@ export const ElectronicsPack: IndustryPack = {
     { path: '/electronics/bundles/:id/edit', element: BundleFormPage },
   ],
 
-  dashboardComponent: ElectronicsDashboardPage,
+  dashboardComponent: ElectronicsDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

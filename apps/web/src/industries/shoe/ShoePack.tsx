@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import ShoeDashboardPage from './pages/ShoeDashboardPage';
+import ShoeDashboard from './dashboard/ShoeDashboard';
 import ShoeProductsPage from './pages/ShoeProductsPage';
 import ShoeProductWizardPage from './pages/ShoeProductWizardPage';
 import ShoeProductDetailPage from './pages/ShoeProductDetailPage';
@@ -54,8 +54,8 @@ export const ShoePack: IndustryPack = {
     { path: '/shoe-products/:id', element: ShoeProductDetailPage },
     { path: '/shoe-products', element: ShoeProductsPage },
 
-    { path: '/shoe', element: ShoeDashboardPage },
-    { path: '/shoe/dashboard', element: ShoeDashboardPage },
+    { path: '/shoe', element: ShoeDashboard },
+    { path: '/shoe/dashboard', element: ShoeDashboard },
 
     { path: '/shoe/brands', element: ShoeBrandsPage },
     { path: '/shoe/size-charts', element: ShoeSizeChartsPage },
@@ -63,7 +63,7 @@ export const ShoePack: IndustryPack = {
     { path: '/shoe/exchanges', element: ShoeExchangesPage },
   ],
 
-  dashboardComponent: ShoeDashboardPage,
+  dashboardComponent: ShoeDashboard,
 
   productForm: {
     defaultUnit: 'pair',

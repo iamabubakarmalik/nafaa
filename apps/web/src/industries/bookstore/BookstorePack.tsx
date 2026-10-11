@@ -2,7 +2,7 @@ import { BookOpen, LayoutDashboard, Sparkles, Users, Building2, School, Clipboar
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 // Existing pages
-import BookstoreDashboardPage from './pages/BookstoreDashboardPage';
+import BookstoreDashboard from './dashboard/BookstoreDashboard';
 import BooksPage from './pages/BooksPage';
 import AuthorsPage from './pages/AuthorsPage';
 import PublishersPage from './pages/PublishersPage';
@@ -75,8 +75,8 @@ export const BookstorePack: IndustryPack = {
     { path: '/bookstore-products/:id', element: BookstoreProductDetailPage },
 
     // Existing pages
-    { path: '/bookstore', element: BookstoreDashboardPage },
-    { path: '/bookstore/dashboard', element: BookstoreDashboardPage },
+    { path: '/bookstore', element: BookstoreDashboard },
+    { path: '/bookstore/dashboard', element: BookstoreDashboard },
     { path: '/bookstore/books', element: BooksPage },
     { path: '/bookstore/stationery', element: StationeryPage },
     { path: '/bookstore/art-supplies', element: ArtSuppliesPage },
@@ -87,7 +87,7 @@ export const BookstorePack: IndustryPack = {
     { path: '/bookstore/rentals', element: RentalsPage },
   ],
 
-  dashboardComponent: BookstoreDashboardPage,
+  dashboardComponent: BookstoreDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

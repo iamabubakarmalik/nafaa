@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import ClinicDashboardPage from './pages/ClinicDashboardPage';
+import ClinicDashboard from './dashboard/ClinicDashboard';
 import DoctorsPage from './pages/DoctorsPage';
 import PatientsPage from './pages/PatientsPage';
 import ClinicAppointmentsPage from './pages/ClinicAppointmentsPage';
@@ -67,8 +67,8 @@ export const ClinicPack: IndustryPack = {
   ],
 
   routes: [
-    { path: '/clinic', element: ClinicDashboardPage },
-    { path: '/clinic/dashboard', element: ClinicDashboardPage },
+    { path: '/clinic', element: ClinicDashboard },
+    { path: '/clinic/dashboard', element: ClinicDashboard },
     { path: '/clinic/appointments/new', element: ClinicNewAppointmentPage },
     { path: '/clinic/appointments/:id', element: ClinicAppointmentDetailPage },
     { path: '/clinic/appointments', element: ClinicAppointmentsPage },
@@ -80,7 +80,7 @@ export const ClinicPack: IndustryPack = {
     { path: '/clinic/vaccinations', element: VaccinationsPage },
   ],
 
-  dashboardComponent: ClinicDashboardPage,
+  dashboardComponent: ClinicDashboard,
 
   productForm: {
     defaultUnit: 'service',

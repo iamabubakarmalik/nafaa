@@ -1,24 +1,20 @@
 /**
- * Prints a PrintDoc in the chosen format.
- *   A4            → browser print (also "Save as PDF")
+ * Prints or saves a PrintDoc.
+ *   A4            → browser print
+ *   PDF           → file download
  *   Thermal 80/58 → straight to the paired printer when Settings → Hardware
  *                   is on "Direct", otherwise a narrow browser print
  * Browser printing uses a hidden iframe, so the page itself is untouched and
  * popup blockers do not get in the way.
  */
 
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { printerReady, sendToPrinter } from '@core/hardware/devices';
 import { useHardwareSettings } from '@core/hardware/settings';
+import { pdfFileName, renderPdf } from './pdf';
 import { renderEscPos, renderHtml } from './render';
-import type { BusinessHeader, PrintDoc, PrintFormat } from './types';
-
-/** Last format used on this computer; the next print starts there. */
-export const usePrintPrefs = create<{ format: PrintFormat; setFormat: (f: PrintFormat) => void }>()(
-  persist((set) => ({ format: 'a4', setFormat: (format) => set({ format }) }), { name: 'nafaa-print' }),
-);
+import { usePrintSettings } from './settings';
+import type { BusinessHeader, PrintDoc, PrintFormat, RenderContext } from './types';
 
 function printHtml(html: string) {
   const frame = document.createElement('iframe');
@@ -42,16 +38,49 @@ function printHtml(html: string) {
   else Promise.all(imgs.map((i) => new Promise((r) => { i.onload = i.onerror = r; }))).then(go);
 }
 
-export async function printDoc(doc: PrintDoc, format: PrintFormat, biz: BusinessHeader) {
-  usePrintPrefs.getState().setFormat(format);
+function download(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
+
+export function renderContext(biz: BusinessHeader, accent: string, printedBy?: string): RenderContext {
+  const s = usePrintSettings.getState();
+  const when = new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date());
+  return {
+    biz, accent,
+    color: s.colorMode === 'color',
+    showLogo: s.showLogo, showAddress: s.showAddress, showPhone: s.showPhone,
+    footerNote: s.footerNote.trim(),
+    thermalText: s.thermalText,
+    stamp: s.showStamp ? `Printed ${when}${printedBy ? ` by ${printedBy}` : ''} · Nafaa` : undefined,
+  };
+}
+
+export async function printDoc(doc: PrintDoc, format: PrintFormat, ctx: RenderContext) {
+  if (format === 'pdf') {
+    const id = toast.loading('PDF ban rahi hai…');
+    try {
+      download(await renderPdf(doc, ctx), pdfFileName(doc));
+      toast.success('PDF download ho gayi', { id });
+    } catch (e) {
+      toast.error(`PDF nahi bani: ${(e as Error).message}`, { id });
+    }
+    return;
+  }
   if (format !== 'a4' && useHardwareSettings.getState().printMode === 'direct' && printerReady()) {
     try {
-      await sendToPrinter(renderEscPos(doc, format, biz));
+      await sendToPrinter(renderEscPos(doc, format, ctx));
       toast.success('Printer par bhej diya');
       return;
     } catch (e) {
       toast.error(`Direct print nahi hua (${(e as Error).message}) — browser se print kar rahe hain`);
     }
   }
-  printHtml(renderHtml(doc, format, biz));
+  printHtml(renderHtml(doc, format, ctx));
 }

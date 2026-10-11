@@ -7,6 +7,9 @@
 import { Wallet } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import { useMoneyMap } from '../data/queries';
+import { MiniSelect, useWidgetState } from '../engine/controls';
+import { useMasked } from '../engine/useMasked';
+import { WidgetToolbar } from './WidgetToolbar';
 import { useChartTheme } from '../engine/useChartTheme';
 import { EmptyHint, WidgetCard } from '../engine/parts';
 
@@ -14,15 +17,28 @@ const FALLBACK = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#00830
 const FALLBACK_DARK = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#22a722', '#9085e9', '#e66767'];
 
 export function Expenses() {
+  const [st, set] = useWidgetState('expenses', { sort: 'amount', show: '8' });
   const { data: m } = useMoneyMap();
   const { isDark } = useChartTheme();
-  const rows = [...(m?.expenses.byCategory ?? [])].sort((a, b) => b.amount - a.amount);
+  const { cost } = useMasked();
+  const all = [...(m?.expenses.byCategory ?? [])].sort((a, b) => (st.sort === 'count' ? b.count - a.count : b.amount - a.amount));
+  const rows = all.slice(0, Number(st.show));
   const total = m?.expenses.month ?? 0;
   const max = Math.max(...rows.map((r) => r.amount), 1);
   const palette = isDark ? FALLBACK_DARK : FALLBACK;
 
   return (
-    <WidgetCard title="Kharcha kahan gaya" description="Is mahine, sab se bara pehle" to="/expenses">
+    <WidgetCard title="Kharcha kahan gaya" icon={Wallet}
+      description={m ? `Is mahine ${formatPKR(total)} · pichhla mahina ${formatPKR(m.expenses.lastMonth ?? 0)}` : 'Is mahine'} to="/expenses">
+      <WidgetToolbar inset={false}
+        print={() => ({
+          title: 'Kharcha kahan gaya', subtitle: 'Is mahine',
+          sections: [{ kind: 'table', columns: [{ label: 'Category' }, { label: 'Entries', align: 'right' }, { label: 'Raqam', align: 'right' }],
+            rows: all.map((r) => [r.name, String(r.count), cost(r.amount)]), footer: ['Kul', String(all.reduce((x, r) => x + r.count, 0)), cost(total)] }],
+        })}>
+        <MiniSelect label="Tarteeb" value={st.sort} onChange={(v) => set({ sort: v })} options={[{ value: 'amount', label: 'Raqam se' }, { value: 'count', label: 'Entries se' }]} />
+        <MiniSelect label="Kitni" value={st.show} onChange={(v) => set({ show: v })} options={[{ value: '5', label: 'Top 5' }, { value: '8', label: 'Top 8' }, { value: '50', label: 'Sab' }]} />
+      </WidgetToolbar>
       {rows.length === 0 ? (
         <EmptyHint icon={Wallet} text="Is mahine koi kharcha darj nahi" />
       ) : (

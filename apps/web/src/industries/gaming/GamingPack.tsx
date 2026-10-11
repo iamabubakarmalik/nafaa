@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import GamingDashboardPage from './pages/GamingDashboardPage';
+import GamingDashboard from './dashboard/GamingDashboard';
 import GamingProductsPage from './pages/GamingProductsPage';
 import GamingProductWizardPage from './pages/GamingProductWizardPage';
 import GamingProductDetailPage from './pages/GamingProductDetailPage';
@@ -59,8 +59,8 @@ export const GamingPack: IndustryPack = {
     { path: '/gaming-products/:id', element: GamingProductDetailPage },
     { path: '/gaming-products', element: GamingProductsPage },
 
-    { path: '/gaming', element: GamingDashboardPage },
-    { path: '/gaming/dashboard', element: GamingDashboardPage },
+    { path: '/gaming', element: GamingDashboard },
+    { path: '/gaming/dashboard', element: GamingDashboard },
 
     { path: '/gaming/cafe', element: GamingCafeLivePage },
     { path: '/gaming/stations', element: GamingStationsPage },
@@ -69,7 +69,7 @@ export const GamingPack: IndustryPack = {
     { path: '/gaming/tournaments', element: GamingTournamentsPage },
   ],
 
-  dashboardComponent: GamingDashboardPage,
+  dashboardComponent: GamingDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

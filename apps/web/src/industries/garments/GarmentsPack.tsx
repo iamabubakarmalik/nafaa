@@ -1,7 +1,7 @@
 import { Shirt, LayoutDashboard, Sparkles, Palette, Ruler, Scissors, Bookmark, CreditCard, Package, Users } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import GarmentsDashboardPage from './pages/GarmentsDashboardPage';
+import GarmentsDashboard from './dashboard/GarmentsDashboard';
 import GarmentProductsPage from './pages/GarmentProductsPage';
 import CollectionsPage from './pages/CollectionsPage';
 import MeasurementsPage from './pages/MeasurementsPage';
@@ -69,8 +69,8 @@ export const GarmentsPack: IndustryPack = {
     { path: '/garment-products/:id/edit', element: GarmentProductWizardPage },
     { path: '/garment-products/:id', element: GarmentProductDetailPage },
 
-    { path: '/garments', element: GarmentsDashboardPage },
-    { path: '/garments/dashboard', element: GarmentsDashboardPage },
+    { path: '/garments', element: GarmentsDashboard },
+    { path: '/garments/dashboard', element: GarmentsDashboard },
     { path: '/garments/products', element: GarmentProductsPage },
     { path: '/garments/collections', element: CollectionsPage },
     { path: '/garments/measurements', element: MeasurementsPage },
@@ -83,7 +83,7 @@ export const GarmentsPack: IndustryPack = {
     { path: '/garments/size-charts', element: SizeChartsPage },
   ],
 
-  dashboardComponent: GarmentsDashboardPage,
+  dashboardComponent: GarmentsDashboard,
 
   productForm: {
     defaultUnit: 'pcs',

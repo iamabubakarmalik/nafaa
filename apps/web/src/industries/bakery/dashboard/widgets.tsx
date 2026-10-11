@@ -3,6 +3,8 @@
 import { AlertTriangle, Cake, ChefHat, Croissant, Flame, ShoppingBag, Timer, Wheat } from 'lucide-react';
 import { Badge } from '@/design-system/components';
 import { fmtQty, IconBubble, ListRow, RowList, useMasked, WidgetCard, type KpiDef } from '@modules/dashboard/engine';
+import { MiniSelect, useWidgetState } from '@modules/dashboard/engine/controls';
+import { WidgetToolbar } from '@modules/dashboard/widgets/WidgetToolbar';
 import { MoneyNote, type AttentionItem, type MoneyTileProps } from '@modules/dashboard/widgets';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
@@ -69,7 +71,7 @@ export function BakeryProduction() {
   const { production: p } = useBakeryOps();
   const pct = p.total > 0 ? Math.round((p.done / p.total) * 100) : 0;
   return (
-    <WidgetCard title="Aaj ki baking" description={p.planCount ? `${p.planCount} plan · ${pct}% mukammal` : 'Aaj ka plan nahi bana'} to="/bakery/production">
+    <WidgetCard title="Aaj ki baking" icon={ChefHat} description={p.planCount ? `${p.planCount} plan · ${pct}% mukammal` : 'Aaj ka plan nahi bana'} to="/bakery/production">
       {p.total === 0 ? (
         <div className="flex items-center gap-3">
           <IconBubble icon={ChefHat} />
@@ -97,15 +99,30 @@ export function BakeryProduction() {
 export function BakeryFreshness() {
   const { fresh } = useBakeryOps();
   const { cost, costHidden } = useMasked();
+  const [st, set] = useWidgetState('bakery-freshness', { hours: '24', limit: '6' });
+  const hours = Number(st.hours);
+  const rows = fresh.live.filter((f) => f.left <= hours);
+  const value = rows.reduce((x, f) => x + f.value, 0);
   return (
     <WidgetCard
       title="Jald kharab hone wala"
-      description={fresh.value > 0 && !costHidden ? `${formatPKR(fresh.value)} ka maal, 24 ghante me` : '24 ghante ke andar'}
+      icon={Timer}
+      description={value > 0 && !costHidden ? `${formatPKR(value)} ka maal, ${hours} ghante me` : `${hours} ghante ke andar`}
       to="/bakery/freshness"
       flush
     >
+      <WidgetToolbar
+        print={() => ({
+          title: 'Jald kharab hone wala', subtitle: `Agle ${hours} ghante`,
+          sections: [{ kind: 'table', columns: [{ label: 'Item' }, { label: 'Batch', wideOnly: true }, { label: 'Baqi', align: 'right' }, { label: 'Waqt', align: 'right' }, { label: 'Maal', align: 'right' }],
+            rows: rows.map((f) => [f.productName ?? 'Batch', f.batchNumber ?? '', fmtQty(f.currentQty), f.left <= 0 ? 'Guzar gaya' : `${Math.round(f.left)}h`, cost(f.value)]) }],
+        })}>
+        <MiniSelect label="Kitne ghante" value={st.hours} onChange={(v) => set({ hours: v })}
+          options={[{ value: '0', label: 'Sirf guzar chuka' }, { value: '12', label: '12 ghante' }, { value: '24', label: '24 ghante' }, { value: '48', label: '2 din' }, { value: '72', label: '3 din' }]} />
+        <MiniSelect label="Kitne" value={st.limit} onChange={(v) => set({ limit: v })} options={[{ value: '6', label: '6' }, { value: '12', label: '12' }, { value: '50', label: 'Sab' }]} />
+      </WidgetToolbar>
       <RowList empty="Kuch jald kharab nahi ho raha" emptyIcon={Timer}>
-        {fresh.list.map((f) => {
+        {rows.slice(0, Number(st.limit)).map((f) => {
           const gone = f.left <= 0;
           return (
             <ListRow
@@ -125,18 +142,39 @@ export function BakeryFreshness() {
 export function BakeryOrders() {
   const { orders } = useBakeryOps();
   const { cost, costHidden } = useMasked();
+  const [st, set] = useWidgetState('bakery-orders', { when: 'all', kind: 'all', limit: '6' });
+  const rows = orders.sorted.filter((o) => {
+    if (st.kind !== 'all' && o.kind !== st.kind) return false;
+    if (st.when === 'late') return o.left !== null && o.left < 0;
+    if (st.when === 'today') return o.left !== null && o.left <= 24;
+    if (st.when === 'week') return o.left !== null && o.left <= 24 * 7;
+    if (st.when === 'due') return o.due > 0;
+    return true;
+  });
+  const when = (left: number | null) => (left === null ? '—' : left < 0 ? 'Late' : left <= 24 ? `${Math.round(left)}h` : `${Math.round(left / 24)} din`);
   return (
     <WidgetCard
       title="Aane wale order"
-      description={orders.due > 0 && !costHidden ? `${formatPKR(orders.due)} baqi lena hai` : `${orders.active.length} chaalu`}
+      icon={Cake}
+      description={orders.due > 0 && !costHidden ? `${orders.active.length} chaalu · ${formatPKR(orders.due)} baqi lena hai` : `${orders.active.length} chaalu`}
       to="/bakery/cake-orders"
       flush
     >
-      <RowList empty="Koi order baqi nahi" emptyIcon={Cake}>
-        {orders.list.map((o) => {
+      <WidgetToolbar
+        print={() => ({
+          title: 'Aane wale order',
+          sections: [{ kind: 'table', columns: [{ label: 'Order' }, { label: 'Customer' }, { label: 'Kab', align: 'right' }, { label: 'Kul', align: 'right', wideOnly: true }, { label: 'Baqi', align: 'right' }],
+            rows: rows.map((o) => [o.number, o.name || 'Customer', when(o.left), cost(o.total), cost(o.due)]) }],
+        })}>
+        <MiniSelect label="Kab" value={st.when} onChange={(v) => set({ when: v })}
+          options={[{ value: 'all', label: 'Sab chaalu' }, { value: 'late', label: 'Late' }, { value: 'today', label: '24 ghante me' }, { value: 'week', label: 'Is hafte' }, { value: 'due', label: 'Jin ka paisa baqi' }]} />
+        <MiniSelect label="Qisam" value={st.kind} onChange={(v) => set({ kind: v })} options={[{ value: 'all', label: 'Cake + bare' }, { value: 'cake', label: 'Cake order' }, { value: 'bulk', label: 'Bare order' }]} />
+        <MiniSelect label="Kitne" value={st.limit} onChange={(v) => set({ limit: v })} options={[{ value: '6', label: '6' }, { value: '12', label: '12' }, { value: '50', label: 'Sab' }]} />
+      </WidgetToolbar>
+      <RowList empty="Koi order nahi" emptyIcon={Cake}>
+        {rows.slice(0, Number(st.limit)).map((o) => {
           const late = o.left !== null && o.left < 0;
           const soon = o.left !== null && o.left <= 24;
-          const when = o.left === null ? '—' : late ? 'Late' : soon ? `${Math.round(o.left)}h` : `${Math.round(o.left / 24)} din`;
           return (
             <ListRow
               key={`${o.kind}-${o.id}`}
@@ -144,7 +182,7 @@ export function BakeryOrders() {
               icon={o.kind === 'cake' ? Cake : ShoppingBag}
               title={o.name || 'Customer'}
               meta={<span className="font-mono">{o.number}{o.due > 0 ? ` · baqi ${cost(o.due)}` : ''}</span>}
-              value={<Badge variant={late ? 'danger' : soon ? 'warning' : 'default'} size="xs">{when}</Badge>}
+              value={<Badge variant={late ? 'danger' : soon ? 'warning' : 'default'} size="xs">{when(o.left)}</Badge>}
             />
           );
         })}
@@ -155,23 +193,38 @@ export function BakeryOrders() {
 
 export function BakeryIngredients() {
   const { raw } = useBakeryOps();
+  const { cost } = useMasked();
+  const [st, set] = useWidgetState('bakery-ingredients', { filter: 'low', limit: '6' });
+  const rows = (st.filter === 'all' ? raw.all : st.filter === 'out' ? raw.lowAll.filter((i) => Number(i.currentStock || 0) <= 0) : raw.lowAll);
   return (
     <WidgetCard
-      title="Saamaan kam ho gaya"
-      description={raw.critical > 0 ? `${raw.critical} bilkul khatam` : `${raw.low} cheezein kam`}
+      title="Banane ka saamaan"
+      icon={Wheat}
+      description={raw.critical > 0 ? `${raw.low} kam · ${raw.critical} bilkul khatam` : `${raw.low} cheezein kam · ${raw.total} kul`}
       to="/bakery/ingredients"
       flush
     >
-      <RowList empty="Saara saamaan poora hai" emptyIcon={Wheat}>
-        {raw.list.map((i) => {
-          const out = Number(i.currentStock || 0) <= 0;
+      <WidgetToolbar
+        print={() => ({
+          title: 'Banane ka saamaan', subtitle: st.filter === 'all' ? 'Poori list' : 'Mangwane ki list',
+          sections: [{ kind: 'table', columns: [{ label: 'Saamaan' }, { label: 'Baqi', align: 'right' }, { label: 'Reorder', align: 'right', wideOnly: true }, { label: 'Mangwana', align: 'right' }],
+            rows: rows.map((i) => [i.name, `${fmtQty(i.currentStock)} ${i.unit ?? ''}`, fmtQty(i.reorderLevel ?? i.minStock ?? 0), '______']) }],
+        })}>
+        <MiniSelect label="Filter" value={st.filter} onChange={(v) => set({ filter: v })} options={[{ value: 'low', label: 'Kam wala' }, { value: 'out', label: 'Sirf khatam' }, { value: 'all', label: 'Sab saamaan' }]} />
+        <MiniSelect label="Kitne" value={st.limit} onChange={(v) => set({ limit: v })} options={[{ value: '6', label: '6' }, { value: '12', label: '12' }, { value: '100', label: 'Sab' }]} />
+      </WidgetToolbar>
+      <RowList empty={st.filter === 'all' ? 'Abhi koi saamaan darj nahi' : 'Saara saamaan poora hai'} emptyIcon={Wheat}>
+        {rows.slice(0, Number(st.limit)).map((i) => {
+          const stock = Number(i.currentStock || 0);
+          const out = stock <= 0;
+          const low = stock <= Number(i.reorderLevel ?? i.minStock ?? 0);
           return (
             <ListRow
               key={i.id}
-              leading={<IconBubble icon={Wheat} tone={out ? 'danger' : 'warning'} />}
+              leading={<IconBubble icon={Wheat} tone={out ? 'danger' : low ? 'warning' : 'neutral'} />}
               title={i.name}
-              meta={`${fmtQty(i.currentStock)} ${i.unit ?? ''} baqi`}
-              value={out ? <Badge variant="danger" size="xs">Khatam</Badge> : undefined}
+              meta={`${fmtQty(stock)} ${i.unit ?? ''} baqi${i.supplierName ? ` · ${i.supplierName}` : ''}`}
+              value={out ? <Badge variant="danger" size="xs">Khatam</Badge> : low ? <Badge variant="warning" size="xs">Kam</Badge> : <span className="text-[0.8125rem] text-slate-500">{cost(stock * Number(i.costPerUnit || 0))}</span>}
             />
           );
         })}

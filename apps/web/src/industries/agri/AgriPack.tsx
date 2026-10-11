@@ -1,7 +1,7 @@
 import { Wheat, LayoutDashboard, Users, Package, Leaf, Calendar, Landmark, Sparkles } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
-import AgriDashboardPage from './pages/AgriDashboardPage';
+import AgriDashboard from './dashboard/AgriDashboard';
 import AgriProductsListPage from './pages/AgriProductsListPage';
 import FarmersPage from './pages/FarmersPage';
 import BulkOrdersPage from './pages/BulkOrdersPage';
@@ -62,8 +62,8 @@ export const AgriPack: IndustryPack = {
     { path: '/agri-products/new', element: AgriProductWizardPage },
     { path: '/agri-products/:id/edit', element: AgriProductWizardPage },
 
-    { path: '/agri', element: AgriDashboardPage },
-    { path: '/agri/dashboard', element: AgriDashboardPage },
+    { path: '/agri', element: AgriDashboard },
+    { path: '/agri/dashboard', element: AgriDashboard },
     { path: '/agri/products', element: AgriProductsListPage },
 
     // optional detail page
@@ -77,7 +77,7 @@ export const AgriPack: IndustryPack = {
     { path: '/agri/subsidy', element: SubsidyPage },
   ],
 
-  dashboardComponent: AgriDashboardPage,
+  dashboardComponent: AgriDashboard,
 
   productForm: {
     defaultUnit: 'bag',
