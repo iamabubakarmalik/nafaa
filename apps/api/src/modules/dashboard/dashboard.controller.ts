@@ -6,6 +6,7 @@ import { ShopIdParam } from '../../common/shop-scope';
 import { DashboardService } from './dashboard.service';
 import { DayReportService } from './day-report.service';
 import { InsightsService, toPeriod } from './insights.service';
+import { DashboardListsService, type ListQuery } from './lists.service';
 
 @ApiTags('Dashboard')
 @ApiBearerAuth()
@@ -15,6 +16,7 @@ export class DashboardController {
     private readonly dashboardService: DashboardService,
     private readonly dayReport: DayReportService,
     private readonly insightsService: InsightsService,
+    private readonly lists: DashboardListsService,
   ) {}
 
   @Get('overview')
@@ -46,5 +48,15 @@ export class DashboardController {
     @Query('days') days?: string,
   ) {
     return this.insightsService.insights(user, shopId, toPeriod(days));
+  }
+
+  /** Widget lists: ?kind=top|slow|low|recent with days, sort, limit, categoryId, filter, method. */
+  @Get('lists')
+  getList(
+    @GetUser() user: AuthenticatedUser,
+    @ShopIdParam() shopId: string | undefined,
+    @Query() query: ListQuery,
+  ) {
+    return this.lists.list(user, shopId, query);
   }
 }

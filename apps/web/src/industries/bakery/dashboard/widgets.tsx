@@ -1,10 +1,9 @@
 /** Bakery-only dashboard widgets. */
 
-import { AlertTriangle, Cake, ChefHat, Croissant, Flame, Package, ShoppingBag, Timer, Wheat } from 'lucide-react';
+import { AlertTriangle, Cake, ChefHat, Croissant, Flame, ShoppingBag, Timer, Wheat } from 'lucide-react';
 import { Badge } from '@/design-system/components';
-import { useOverview } from '@modules/dashboard/data/queries';
 import { fmtQty, IconBubble, ListRow, RowList, useMasked, WidgetCard, type KpiDef } from '@modules/dashboard/engine';
-import { AttentionList, MoneyNote, type AttentionItem, type MoneyTileProps } from '@modules/dashboard/widgets';
+import { MoneyNote, type AttentionItem, type MoneyTileProps } from '@modules/dashboard/widgets';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { useBakeryOps } from './useBakeryOps';
@@ -52,10 +51,8 @@ export const bakeryKpis: KpiDef[] = [
   },
 ];
 
-export function BakeryAttention() {
-  const { data } = useOverview();
+export function useBakeryAttention(): AttentionItem[] {
   const { fresh, orders, raw, production } = useBakeryOps();
-  const lowStock = data?.stats.lowStockCount ?? 0;
   const items: AttentionItem[] = [];
 
   if (fresh.expired.length) items.push({ icon: Flame, level: 'danger', text: `${fresh.expired.length} batch ka waqt guzar chuka — aaj hi nikalna ya phenkna hai`, to: '/bakery/freshness', cta: 'Taazgi dekhein' });
@@ -65,9 +62,7 @@ export function BakeryAttention() {
   if (orders.today.length) items.push({ icon: Cake, level: 'info', text: `${orders.today.length} order aaj dena hai`, to: '/bakery/cake-orders', cta: 'Dekhein' });
   if (production.pending) items.push({ icon: Croissant, level: 'info', text: `${production.pending} cheez abhi banani baqi hai`, to: '/bakery/production', cta: 'Baking dekhein' });
   if (production.planCount === 0) items.push({ icon: ChefHat, level: 'neutral', text: 'Aaj ka baking plan nahi bana — subah plan banana kaam asaan kar deta hai', to: '/bakery/production', cta: 'Plan banayein' });
-  if (lowStock) items.push({ icon: Package, level: 'neutral', text: `${lowStock} cheez counter par kam ho gayi`, to: '/low-stock', cta: 'Kya banana hai' });
-
-  return <AttentionList items={items} />;
+  return items;
 }
 
 export function BakeryProduction() {

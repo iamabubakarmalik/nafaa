@@ -112,6 +112,12 @@ export const dashboardApi = {
       .get('/dashboard/day-report', { params: date ? { date } : {} })
       .then((r) => r.data.data),
 
+  /** Widget lists (top, slow, low, recent) with period, sort, limit and filters. */
+  list: (params: Record<string, string | number | undefined>) =>
+    apiClient
+      .get('/dashboard/lists', { params })
+      .then((r) => r.data.data),
+
   /** Category, staff, weekday, customer and six-month figures. */
   insights: (days: 7 | 30 | 90) =>
     apiClient

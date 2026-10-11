@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   ArrowRight, Banknote, CalendarDays, ChevronLeft, ChevronRight, Copy, FileText, MessageCircle, Package,
-  Printer, Search, Wallet,
+  Search, Wallet,
 } from 'lucide-react';
 import { Badge, Button, IconButton, Skeleton } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
@@ -18,7 +18,8 @@ import { useDayReport, type DayReport } from '../data/queries';
 import { PAYMENT_COLORS, PAYMENT_LABELS } from '../engine/useChartTheme';
 import { useMasked } from '../engine/useMasked';
 import { EmptyHint, fmtQty } from '../engine/parts';
-import { categoryTotals, prettyDate, printReport, reportText } from './exportReport';
+import { PrintButton } from '@core/print';
+import { categoryTotals, dayReportDoc, prettyDate, reportText } from './exportReport';
 
 const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const shift = (key: string, days: number) => {
@@ -262,7 +263,7 @@ export function DayReportView({ full = false }: { full?: boolean }) {
           {!isToday && <Button size="sm" variant="ghost" onClick={() => setDate(undefined)}>Aaj</Button>}
           <IconButton label="WhatsApp par bhejein" variant="secondary" size="md" onClick={share} disabled={!r}><MessageCircle className="h-4 w-4" /></IconButton>
           <IconButton label="Copy karein" variant="secondary" size="md" onClick={copy} disabled={!r}><Copy className="h-4 w-4" /></IconButton>
-          <IconButton label="Print" variant="secondary" size="md" onClick={() => r && printReport(r, money, shopName)} disabled={!r}><Printer className="h-4 w-4" /></IconButton>
+          <PrintButton doc={() => dayReportDoc(r!, money, shopName)} disabled={!r} />
           {!full && (
             <Link to="/day-report" className="ml-1 inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">
               Poora report <ArrowRight className="h-3.5 w-3.5" />

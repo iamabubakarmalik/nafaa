@@ -13,6 +13,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi, type DashboardOverview } from '../api/dashboard.api';
 import { retailDashboardApi } from '@industries/retail/api/dashboard.api';
+import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 
 const MINUTE = 60_000;
 
@@ -138,5 +139,37 @@ export function useInsights(days: InsightDays) {
     queryKey: ['dashboard-insights', days],
     queryFn: () => dashboardApi.insights(days),
     staleTime: 5 * MINUTE,
+  });
+}
+
+export interface ListItemBase { id: string; name: string; unit: string; category: string | null; image: string | null }
+export interface TopList { kind: 'top'; total: number; items: Array<ListItemBase & { qty: number; revenue: number; profit: number; bills: number }> }
+export interface SlowList { kind: 'slow'; total: number; totalValue: number; items: Array<ListItemBase & { stock: number; value: number; lastSoldAt: string | null }> }
+export interface LowList { kind: 'low'; total: number; outCount: number; items: Array<ListItemBase & { stock: number; lowStockAlert: number; price: number }> }
+export interface RecentList {
+  kind: 'recent';
+  items: Array<{ id: string; saleNumber: string; total: number; credit: number; method: PaymentMethod; soldAt: string; source: string; customer: string | null; staff: string | null; items: number }>;
+}
+
+type ListParams = Record<string, string | number | undefined>;
+
+/** One of the dashboard lists; `params.kind` picks which. */
+export function useDashboardList<T>(params: ListParams & { kind: 'top' | 'slow' | 'low' | 'recent' }) {
+  return useQuery<T>({
+    queryKey: ['dashboard-list', params],
+    queryFn: () => dashboardApi.list(params),
+    refetchInterval: MINUTE,
+    placeholderData: (prev) => prev,
+  });
+}
+
+export interface CategoryOption { id: string; name: string }
+
+export function useCategoryOptions() {
+  return useQuery<CategoryOption[]>({
+    queryKey: ['categories'],
+    queryFn: () => categoriesApi.list(),
+    staleTime: 5 * MINUTE,
+    select: (rows) => rows.map((c) => ({ id: c.id, name: c.name })),
   });
 }

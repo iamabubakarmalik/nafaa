@@ -1,8 +1,10 @@
 /**
- * Day report as plain text (WhatsApp, clipboard) and as a printable page.
+ * Day report as plain text (WhatsApp, clipboard) and as a PrintDoc for the
+ * shared print module (A4 or thermal).
  * Amounts the viewer may not see are passed in already masked.
  */
 
+import type { PrintDoc, PrintRow, PrintSection } from '@core/print';
 import type { DayReport } from '../data/queries';
 import { PAYMENT_LABELS } from '../engine/useChartTheme';
 
@@ -52,60 +54,68 @@ export function reportText(r: DayReport, money: ReportMoney, shopName?: string) 
   return lines.join('\n');
 }
 
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
+/** The day report as a printable document (A4 or thermal). */
+export function dayReportDoc(r: DayReport, money: ReportMoney, branch?: string): PrintDoc {
+  const c = r.cash;
+  const cashRows: PrintRow[] = [
+    { label: 'Opening balance', value: money.sales(c.opening) },
+    { label: '+ Cash bikri', value: money.sales(c.cashSales) },
+  ];
+  if (c.cashIn) cashRows.push({ label: '+ Cash in', value: money.sales(c.cashIn) });
+  if (c.expenses) cashRows.push({ label: '- Cash kharcha', value: money.cost(c.expenses) });
+  if (c.refunds) cashRows.push({ label: '- Wapsi', value: money.sales(c.refunds) });
+  if (c.purchases) cashRows.push({ label: '- Maal ki adaigi', value: money.cost(c.purchases) });
+  if (c.supplierPaid) cashRows.push({ label: '- Supplier ko diya', value: money.cost(c.supplierPaid) });
+  if (c.cashOut) cashRows.push({ label: '- Cash out', value: money.sales(c.cashOut) });
+  cashRows.push({ label: c.countedClosing == null ? 'Closing (andaza)' : 'Closing (gina hua)', value: money.sales(c.countedClosing ?? c.expectedClosing), strong: true });
+  if (c.difference) cashRows.push({ label: 'Ginti me farq', value: money.sales(c.difference) });
 
-/** Prints through a hidden iframe so the app page itself is untouched. */
-export function printReport(r: DayReport, money: ReportMoney, shopName?: string) {
-  const row = (a: string, b: string, strong = false) =>
-    `<tr${strong ? ' class="b"' : ''}><td>${esc(a)}</td><td class="r">${esc(b)}</td></tr>`;
-  const items = r.categories.map((c) => {
-    const rows = r.items.filter((i) => (i.categoryId ?? null) === c.id && i.qty > 0)
-      .map((i) => row(`${qty(i.qty)} × ${i.name}`, money.sales(i.revenue))).join('');
-    return `<tr class="h"><td>${esc(c.name)}</td><td class="r">${qty(c.qty)}</td></tr>${rows}`;
-  }).join('');
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Din ka hisaab ${r.date}</title>
-<style>
-  body{font:13px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;color:#0f172a;margin:24px;max-width:640px}
-  h1{font-size:18px;margin:0}p{margin:2px 0 14px;color:#475569}
-  h2{font-size:13px;margin:18px 0 6px;text-transform:uppercase;letter-spacing:.04em;color:#334155}
-  table{width:100%;border-collapse:collapse}td{padding:4px 0;border-bottom:1px solid #e2e8f0}
-  .r{text-align:right;font-variant-numeric:tabular-nums}.b td{font-weight:700;border-top:2px solid #0f172a}
-  .h td{font-weight:600;background:#f1f5f9;padding:5px 6px}
-</style></head><body>
-<h1>Din ka hisaab</h1><p>${esc(prettyDate(r.date))}${shopName ? ` · ${esc(shopName)}` : ''}</p>
-<h2>Galla</h2><table>
-${row('Opening balance', money.sales(r.cash.opening))}
-${row('+ Cash bikri', money.sales(r.cash.cashSales))}
-${r.cash.cashIn ? row('+ Cash in', money.sales(r.cash.cashIn)) : ''}
-${r.cash.expenses ? row('− Cash kharcha', money.cost(r.cash.expenses)) : ''}
-${r.cash.refunds ? row('− Wapsi', money.sales(r.cash.refunds)) : ''}
-${r.cash.purchases ? row('− Maal ki adaigi', money.cost(r.cash.purchases)) : ''}
-${r.cash.supplierPaid ? row('− Supplier ko diya', money.cost(r.cash.supplierPaid)) : ''}
-${r.cash.cashOut ? row('− Cash out', money.sales(r.cash.cashOut)) : ''}
-${row(r.cash.countedClosing == null ? 'Closing (andaza)' : 'Closing (gina hua)', money.sales(r.cash.countedClosing ?? r.cash.expectedClosing), true)}
-</table>
-<h2>Bikri</h2><table>
-${row(`Kul bikri (${r.sales.bills} bill)`, money.sales(r.sales.total), true)}
-${r.payments.map((p) => row(PAYMENT_LABELS[p.method] ?? p.method, money.sales(p.collected))).join('')}
-${r.sales.credit ? row('Udhaar', money.sales(r.sales.credit)) : ''}
-${r.sales.discount ? row('Discount', money.sales(r.sales.discount)) : ''}
-</table>
-<h2>Kya bika</h2><table>${items}</table>
-<h2>Kharcha</h2><table>
-${r.expenses.list.map((e) => row(e.title, money.cost(e.amount))).join('')}
-${row('Kul kharcha', money.cost(r.expenses.total), true)}
-</table>
-</body></html>`;
+  const salesRows: PrintRow[] = [
+    ...r.payments.map((p) => ({ label: PAYMENT_LABELS[p.method] ?? p.method, value: money.sales(p.collected) })),
+    { label: 'Cash', value: money.sales(r.cashCollected), sub: true },
+    { label: 'Online', value: money.sales(r.onlineCollected), sub: true },
+  ];
+  if (r.sales.credit) salesRows.push({ label: 'Udhaar', value: money.sales(r.sales.credit) });
+  if (r.sales.discount) salesRows.push({ label: 'Discount', value: money.sales(r.sales.discount) });
+  if (r.sales.refunds) salesRows.push({ label: 'Wapsi', value: money.sales(r.sales.refunds) });
+  salesRows.push({ label: `Kul bikri (${r.sales.bills} bill)`, value: money.sales(r.sales.total), strong: true });
 
-  const frame = document.createElement('iframe');
-  frame.style.cssText = 'position:fixed;width:0;height:0;border:0;right:0;bottom:0';
-  document.body.appendChild(frame);
-  const doc = frame.contentDocument;
-  if (!doc || !frame.contentWindow) { frame.remove(); return; }
-  doc.open();
-  doc.write(html);
-  doc.close();
-  frame.contentWindow.focus();
-  frame.contentWindow.print();
-  setTimeout(() => frame.remove(), 1000);
+  const itemRows: string[][] = [];
+  const groupRows: number[] = [];
+  for (const cat of r.categories) {
+    groupRows.push(itemRows.length);
+    itemRows.push([cat.name, qty(cat.qty), money.sales(cat.revenue)]);
+    r.items.filter((i) => (i.categoryId ?? null) === cat.id && i.qty !== 0)
+      .forEach((i) => itemRows.push([`  ${i.name}`, qty(i.qty), money.sales(i.revenue)]));
+  }
+
+  const sections: PrintSection[] = [
+    { kind: 'rows', title: 'Galla (cash)', rows: cashRows },
+    { kind: 'rows', title: 'Bikri', rows: salesRows },
+    {
+      kind: 'table', title: 'Kya bika',
+      columns: [{ label: 'Item' }, { label: 'Qty', align: 'right' }, { label: 'Raqam', align: 'right' }],
+      rows: itemRows, groupRows,
+      footer: ['Kul', qty(r.sales.itemsSold), money.sales(r.items.reduce((x, i) => x + i.revenue, 0))],
+    },
+    {
+      kind: 'rows', title: 'Kharcha',
+      rows: [...r.expenses.list.map((e) => ({ label: e.title, value: money.cost(e.amount) })), { label: 'Kul kharcha', value: money.cost(r.expenses.total), strong: true }],
+    },
+  ];
+  if (r.staff.length) {
+    sections.push({ kind: 'rows', title: 'Staff', rows: r.staff.map((p) => ({ label: `${p.name} (${p.bills} bill)`, value: money.sales(p.total) })) });
+  }
+  const totals = categoryTotals(r);
+  return {
+    title: 'Din ka hisaab',
+    subtitle: prettyDate(r.date),
+    meta: [
+      ...(branch ? [['Branch', branch] as [string, string]] : []),
+      ['Bill', String(r.sales.bills)],
+      ['Items', qty(r.sales.itemsSold)],
+    ],
+    sections: totals.length ? [{ kind: 'text', text: `Kul: ${totals.join(', ')}` }, ...sections] : sections,
+    footer: r.isToday ? 'Din abhi jaari hai — aakhri hisaab register band hone par' : undefined,
+  };
 }
