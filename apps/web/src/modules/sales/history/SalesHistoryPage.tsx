@@ -12,10 +12,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
-  ArrowDownWideNarrow, BarChart3, BookOpen, CalendarRange, CloudOff, Download, GraduationCap, ListChecks, Package, Receipt,
-  ScanLine, Search, Settings2, ShoppingCart, Sparkles, Target, TrendingUp, Trophy, Wallet, X, type LucideIcon,
+  ArrowDownWideNarrow, Ban, BarChart3, BookOpen, CalendarRange, CheckCircle2, CloudOff, Download, FileDown, GraduationCap,
+  ListChecks, ListFilter, MousePointerClick, Package, RotateCcw, ScanLine, Search, Settings2, ShoppingCart, Sparkles,
+  Trophy, UserRound, Wallet, X, type LucideIcon,
 } from 'lucide-react';
-import { Button, Modal, Skeleton } from '@/design-system/components';
+import { Button, Kbd, Modal, Skeleton } from '@/design-system/components';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
@@ -31,13 +32,14 @@ import { ReturnModal } from '@modules/sales/returns/components/ReturnModal';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { PAYMENT_COLORS } from '@modules/dashboard/engine/useChartTheme';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
-import { salesHistoryApi, type HistorySale, type HistoryStatus } from './api';
+import { salesHistoryApi, type HistorySale, type HistorySort, type HistoryStatus } from './api';
 import { DATE_PRESETS, rangeLabel } from './dates';
+import { FilterMenu, type FilterOption } from './components/FilterMenu';
 import { fetchAllSales, salesCsv, salesDoc } from './exportSales';
 import { useSalesAnalytics, useSalesHistory } from './useSalesHistory';
 import { ReceiptPrefsModal } from './components/ReceiptPrefsModal';
 import { SaleDrawer } from './components/SaleDrawer';
-import { SaleRow } from './components/SaleRow';
+import { ROW_GRID, SaleRow } from './components/SaleRow';
 import { SalesAnalytics } from './components/SalesAnalytics';
 import { VoidSaleModal } from './components/VoidSaleModal';
 
@@ -47,10 +49,28 @@ export interface SalesHistoryConfig {
   useBillExtras?: (sales: HistorySale[]) => (sale: HistorySale) => ReactNode;
 }
 
-const STATUSES: Array<{ id: HistoryStatus; label: string }> = [
-  { id: 'all', label: 'Sab' }, { id: 'credit', label: 'Udhaar wale' }, { id: 'returned', label: 'Wapsi wale' }, { id: 'voided', label: 'Void' },
+const STATUSES: Array<FilterOption<HistoryStatus>> = [
+  { value: 'all', label: 'Sab bill', icon: ListChecks, color: '#475569' },
+  { value: 'active', label: 'Chalu bill', hint: 'Void ke bagair', icon: CheckCircle2, color: '#16a34a' },
+  { value: 'credit', label: 'Udhaar wale', hint: 'Jin par paise baqi hain', icon: BookOpen, color: '#d97706' },
+  { value: 'returned', label: 'Wapsi wale', hint: 'Jin ka maal wapas aaya', icon: RotateCcw, color: '#ea580c' },
+  { value: 'voided', label: 'Void', hint: 'Cancel kiye gaye bill', icon: Ban, color: '#e11d48' },
 ];
-const SORTS = [{ id: 'new', label: 'Naye pehle' }, { id: 'old', label: 'Purane pehle' }, { id: 'high', label: 'Bari raqam' }, { id: 'low', label: 'Chhoti raqam' }] as const;
+const SORTS: Array<FilterOption<HistorySort>> = [
+  { value: 'new', label: 'Naye pehle' }, { value: 'old', label: 'Purane pehle' },
+  { value: 'high', label: 'Bari raqam pehle' }, { value: 'low', label: 'Chhoti raqam pehle' },
+];
+const heroBtn = 'inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-3 text-[0.8125rem] font-semibold ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25 disabled:opacity-60';
+const heroIcon = 'flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 transition hover:bg-white/25';
+
+function FilterChip({ children, onRemove }: { children: ReactNode; onRemove: () => void }) {
+  return (
+    <span className="inline-flex h-7 items-center gap-1 rounded-full bg-brand-50 pl-2.5 pr-1 text-[0.75rem] font-semibold text-brand-800 ring-1 ring-brand-100">
+      {children}
+      <button type="button" onClick={onRemove} aria-label="Hatayein" className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-brand-100"><X className="h-3 w-3" /></button>
+    </span>
+  );
+}
 
 const noExtras = () => () => null;
 
@@ -72,8 +92,6 @@ function Kpi({ icon: Icon, color, label, value, hint, onClick, active }: {
   );
 }
 
-const chip = (on: boolean) => cn('inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium transition',
-  on ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200');
 
 export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
   const h = useSalesHistory();
@@ -90,7 +108,6 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
   const [scanner, setScanner] = useState(false);
   const [prefs, setPrefs] = useState(false);
   const [guide, setGuide] = useState(false);
-  const [customOpen, setCustomOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const analytics = useSalesAnalytics(h.filters, tab === 'analytics');
@@ -201,122 +218,145 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
       {guide && <SalesGuide onClose={() => setGuide(false)} />}
 
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-5 text-white shadow-lg sm:p-6">
-        <span className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/10 blur-3xl" aria-hidden />
+      {/* Hero: the glow sits in its own clipped layer so the print menu can drop below. */}
+      <div className="relative z-20 rounded-[1.75rem] bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-5 text-white shadow-xl shadow-brand-900/20 sm:p-7">
+        <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-[1.75rem]" aria-hidden>
+          <span className="absolute -right-24 -top-28 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+          <span className="absolute -bottom-32 left-1/4 h-64 w-64 rounded-full bg-fuchsia-300/10 blur-3xl" />
+          <svg className="absolute inset-0 h-full w-full opacity-[0.07]"><defs><pattern id="sh-dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.5" fill="white" /></pattern></defs><rect width="100%" height="100%" fill="url(#sh-dots)" /></svg>
+        </span>
         <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-[0.8125rem] font-medium text-white/75">{config.label} · {shopName ?? tenantName}</p>
-            <h1 className="mt-0.5 text-2xl font-bold tracking-tight sm:text-[1.75rem]">Bikri ka record</h1>
-            <p className="mt-1 inline-flex items-center gap-1.5 text-[0.875rem] text-white/85"><CalendarRange className="h-4 w-4" />{label}</p>
+            <p className="text-[0.8125rem] font-medium text-white/70">{config.label} · {shopName ?? tenantName}</p>
+            <h1 className="mt-0.5 text-2xl font-bold tracking-tight sm:text-[1.875rem]">Bikri ka record</h1>
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[0.8125rem] font-medium text-white/90 ring-1 ring-white/20">
+              <CalendarRange className="h-3.5 w-3.5" />{label}
+              {h.fetching && !h.loading && <span className="ml-1 h-1.5 w-1.5 animate-pulse rounded-full bg-white" aria-label="Taaza ho raha hai" />}
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <PrivacyToggle compact />
-            <button type="button" onClick={() => setScanner(true)} title="Bill ka barcode scan (B)"
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-3 text-[0.8125rem] font-semibold ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25">
-              <ScanLine className="h-4 w-4" /> Bill scan
+            <button type="button" onClick={() => setScanner(true)} title="Bill ka barcode scan (B)" className={heroBtn}>
+              <ScanLine className="h-4 w-4" /> <span className="hidden sm:inline">Bill scan</span>
             </button>
-            <button type="button" onClick={() => void exportAll('csv')} disabled={exporting}
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-3 text-[0.8125rem] font-semibold ring-1 ring-white/25 backdrop-blur transition hover:bg-white/25 disabled:opacity-60">
+            <button type="button" onClick={() => void exportAll('csv')} disabled={exporting} className={heroBtn}>
               <Download className="h-4 w-4" /> {exporting ? 'Ban raha…' : 'CSV'}
             </button>
             <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-            <button type="button" onClick={() => setPrefs(true)} title="Receipt settings" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><Settings2 className="h-4 w-4" /></button>
-            <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setPrefs(true)} title="Receipt settings" className={heroIcon}><Settings2 className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIcon}><GraduationCap className="h-4 w-4" /></button>
           </div>
+        </div>
+
+        <div className="relative mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:items-end">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <p className="text-[0.8125rem] font-medium text-white/70">Kul bikri</p>
+            {h.loading || !st ? <span className="mt-1 block h-11 w-48 animate-pulse rounded-xl bg-white/15" /> : (
+              <>
+                <p className="mt-0.5 text-[2.25rem] font-bold leading-tight tracking-tight tabular-nums sm:text-[2.75rem]">{money(st.total)}</p>
+                <p className="text-[0.8125rem] text-white/75">{st.bills} bill · {Number(st.qty.toFixed(2))} cheezein{st.voided ? ` · ${st.voided} void` : ''}</p>
+              </>
+            )}
+          </div>
+          {[
+            { label: 'Haath mein aaya', value: st ? money(st.paid) : '', hint: st?.change ? `wapsi ${money(st.change)}` : 'cash + online' },
+            { label: 'Munafa', value: st ? cost(st.profit) : '', hint: costHidden ? 'Cost lock hai' : st ? `${st.margin.toFixed(1)}% margin` : '' },
+            { label: 'Ausat bill', value: st ? money(st.average) : '', hint: st ? `${st.lines} lines` : '' },
+          ].map((x) => (
+            <div key={x.label} className="rounded-2xl bg-white/10 p-3.5 ring-1 ring-white/15 backdrop-blur-sm">
+              <p className="text-[0.75rem] font-medium text-white/70">{x.label}</p>
+              {h.loading || !st ? <span className="mt-1 block h-7 w-24 animate-pulse rounded-lg bg-white/15" /> : (
+                <>
+                  <p className="mt-0.5 truncate text-[1.25rem] font-bold tabular-nums">{x.value}</p>
+                  <p className="truncate text-[0.6875rem] text-white/65">{x.hint}</p>
+                </>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
-        {h.loading || !st ? Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-[6.5rem] rounded-2xl" />) : (
+      {/* Secondary numbers */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        {h.loading || !st ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[6.5rem] rounded-2xl" />) : (
           <>
-            <Kpi icon={TrendingUp} color="#2563eb" label="Kul bikri" value={money(st.total)} hint={`${st.bills} bill`} />
-            <Kpi icon={Receipt} color="#7c3aed" label="Ausat bill" value={money(st.average)} hint={`${st.lines} lines`} />
-            <Kpi icon={Wallet} color="#16a34a" label="Mila" value={money(st.paid)} hint={st.change ? `wapsi ${money(st.change)}` : 'cash + online'} />
-            <Kpi icon={BookOpen} color="#d97706" label="Udhaar" value={money(st.credit)} hint={`${st.creditCount} bill`}
+            <Kpi icon={BookOpen} color="#d97706" label="Udhaar" value={money(st.credit)} hint={`${st.creditCount} bill · dabayein`}
               onClick={() => h.setStatus(h.status === 'credit' ? 'all' : 'credit')} active={h.status === 'credit'} />
-            <Kpi icon={Target} color="#059669" label="Munafa" value={cost(st.profit)} hint={costHidden ? 'Cost lock' : `${st.margin.toFixed(1)}% margin`} />
-            <Kpi icon={Sparkles} color="#db2777" label="Discount" value={money(st.discount)} hint={st.refunded ? `wapsi ${money(st.refunded)}` : undefined} />
-            <Kpi icon={Package} color="#0891b2" label="Items" value={String(Number(st.qty.toFixed(2)))} hint="qty biki" />
-            <Kpi icon={Trophy} color="#ea580c" label="Sab se bara" value={st.best ? money(st.best.total) : '—'} hint={st.best?.saleNumber}
+            <Kpi icon={Sparkles} color="#db2777" label="Discount" value={money(st.discount)} hint={st.total ? `${((st.discount / (st.total + st.discount)) * 100).toFixed(1)}% bikri ka` : undefined} />
+            <Kpi icon={RotateCcw} color="#ea580c" label="Maal wapas" value={money(st.refunded)} hint={`${st.voided} void bill`}
+              onClick={() => h.setStatus(h.status === 'returned' ? 'all' : 'returned')} active={h.status === 'returned'} />
+            <Kpi icon={Package} color="#0891b2" label="Cheezein biki" value={String(Number(st.qty.toFixed(2)))} hint={`${st.lines} lines`} />
+            <Kpi icon={Trophy} color="#16a34a" label="Sab se bara bill" value={st.best ? money(st.best.total) : '—'} hint={st.best ? `${st.best.saleNumber} · kholein` : undefined}
               onClick={st.best ? () => void openBill(st.best!.saleNumber) : undefined} />
           </>
         )}
       </div>
 
       {/* Filters */}
-      <div className="space-y-3 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:p-4">
-        <div className="flex flex-col gap-2 lg:flex-row">
+      <div className="relative z-10 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:p-4">
+        <div className="flex flex-col gap-2 xl:flex-row">
           <label className="group relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
             <input ref={searchRef} value={h.search} onChange={(e) => h.setSearch(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && /^[A-Z]{2}-\d+$/i.test(h.search.trim())) void openBill(h.search); }}
               placeholder="Bill number, customer, phone, product ya barcode…" aria-label="Bikri dhoondein"
-              className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-12 pr-10 text-[0.9375rem] outline-none ring-1 ring-transparent transition focus:bg-white focus:ring-2 focus:ring-brand-500" />
-            {h.search && <button type="button" onClick={() => h.setSearch('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>}
+              className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-12 pr-16 text-[0.9375rem] outline-none ring-1 ring-transparent transition focus:bg-white focus:ring-2 focus:ring-brand-500" />
+            {h.search
+              ? <button type="button" onClick={() => h.setSearch('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+              : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
           </label>
           <div className="flex flex-wrap gap-2">
+            <FilterMenu icon={CalendarRange} label="Tareekh" value={h.preset} active={h.preset !== 'today'} width="w-72"
+              options={[...DATE_PRESETS.map((p) => ({ value: p.id, label: p.label })), { value: 'custom' as const, label: 'Apni tareekh', hint: 'Neeche se chunein' }]}
+              onChange={(v) => h.setPreset(v)}
+              footer={() => (
+                <div className="mt-1 grid grid-cols-2 gap-2 border-t border-slate-100 p-2 pt-3">
+                  {(['from', 'to'] as const).map((k) => (
+                    <label key={k} className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                      {k === 'from' ? 'Se' : 'Tak'}
+                      <input type="date" value={h.custom[k] || (h.range[k] === 'all' ? '' : h.range[k])} max={businessDayKey(new Date(), h.startHour)}
+                        onChange={(e) => { h.setCustom({ ...h.custom, [k]: e.target.value }); h.setPreset('custom'); }}
+                        className="mt-1 block h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] font-normal normal-case tracking-normal text-slate-900" />
+                    </label>
+                  ))}
+                </div>
+              )} />
+            <FilterMenu icon={Wallet} label="Payment" value={h.method ?? 'all'} active={!!h.method}
+              options={[{ value: 'all', label: 'Har payment' }, ...POS_PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label, icon: m.icon, color: PAYMENT_COLORS[m.id] }))]}
+              onChange={(v) => h.setMethod(v === 'all' ? undefined : (v as PaymentMethod))} />
+            <FilterMenu icon={ListFilter} label="Bill" value={h.status} active={h.status !== 'all'} options={STATUSES} onChange={h.setStatus} />
             {team.length > 1 && (
-              <select value={h.staffId ?? ''} onChange={(e) => h.setStaffId(e.target.value || undefined)} aria-label="Staff"
-                className="h-11 rounded-2xl border-0 bg-slate-100/80 px-3 text-[0.8125rem] font-medium text-slate-700 outline-none focus:ring-2 focus:ring-brand-500">
-                <option value="">Sab staff</option>
-                {team.map((m) => <option key={m.id} value={m.id}>{m.fullName}</option>)}
-              </select>
+              <FilterMenu icon={UserRound} label="Staff" value={h.staffId ?? 'all'} active={!!h.staffId}
+                options={[{ value: 'all', label: 'Sab staff' }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]}
+                onChange={(v) => h.setStaffId(v === 'all' ? undefined : v)} />
             )}
-            <label className="relative inline-flex">
-              <ArrowDownWideNarrow className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-              <select value={h.sort} onChange={(e) => h.setSort(e.target.value as typeof h.sort)} aria-label="Tarteeb"
-                className="h-11 appearance-none rounded-2xl border-0 bg-slate-100/80 pl-9 pr-4 text-[0.8125rem] font-medium text-slate-700 outline-none focus:ring-2 focus:ring-brand-500">
-                {SORTS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-              </select>
-            </label>
+            <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={h.sort} options={SORTS} onChange={h.setSort} align="right" width="w-56" />
           </div>
         </div>
 
-        <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]">
-          {DATE_PRESETS.map((p) => (
-            <button key={p.id} type="button" onClick={() => { h.setPreset(p.id); setCustomOpen(false); }} className={chip(h.preset === p.id)}>{p.label}</button>
-          ))}
-          <button type="button" onClick={() => setCustomOpen((v) => !v)} className={chip(h.preset === 'custom')}><CalendarRange className="h-3.5 w-3.5" /> Apni tareekh</button>
-        </div>
-        {customOpen && (
-          <div className="flex flex-wrap items-end gap-2 rounded-2xl bg-slate-50 p-3">
-            {(['from', 'to'] as const).map((k) => (
-              <label key={k} className="text-[0.75rem] font-medium text-slate-500">
-                {k === 'from' ? 'Se' : 'Tak'}
-                <input type="date" value={h.custom[k]} max={businessDayKey(new Date(), h.startHour)}
-                  onChange={(e) => { h.setCustom({ ...h.custom, [k]: e.target.value }); h.setPreset('custom'); }}
-                  className="mt-1 block h-10 rounded-xl border border-slate-200 bg-white px-3 text-[0.875rem] text-slate-900" />
-              </label>
-            ))}
+        {h.hasFilters && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
+            <span className="mr-1 text-[0.75rem] font-medium text-slate-500">Lage filter:</span>
+            {h.method && <FilterChip onRemove={() => h.setMethod(undefined)}>{POS_PAYMENT_METHODS.find((m) => m.id === h.method)?.label ?? h.method}</FilterChip>}
+            {h.status !== 'all' && <FilterChip onRemove={() => h.setStatus('all')}>{STATUSES.find((x) => x.value === h.status)?.label}</FilterChip>}
+            {h.staffId && <FilterChip onRemove={() => h.setStaffId(undefined)}>{team.find((m) => m.id === h.staffId)?.fullName ?? 'Staff'}</FilterChip>}
+            {h.search.trim() && <FilterChip onRemove={() => h.setSearch('')}>"{h.search.trim()}"</FilterChip>}
+            <button type="button" onClick={h.clear} className="ml-auto inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[0.75rem] font-semibold text-rose-700 hover:bg-rose-50"><X className="h-3.5 w-3.5" />Sab hatayein</button>
           </div>
         )}
-
-        <div className="-mx-1 flex flex-wrap gap-1.5 px-1">
-          <button type="button" onClick={() => h.setMethod(undefined)} className={chip(!h.method)}>Har payment</button>
-          {POS_PAYMENT_METHODS.map((m) => {
-            const on = h.method === m.id;
-            return (
-              <button key={m.id} type="button" onClick={() => h.setMethod(on ? undefined : (m.id as PaymentMethod))}
-                className={cn('inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[0.8125rem] font-medium transition', on ? 'text-white shadow-sm' : 'text-slate-700 hover:bg-slate-200')}
-                style={on ? { backgroundColor: PAYMENT_COLORS[m.id] } : { backgroundColor: `${PAYMENT_COLORS[m.id]}12` }}>
-                <m.icon className="h-3.5 w-3.5" style={on ? undefined : { color: PAYMENT_COLORS[m.id] }} />{m.label}
-              </button>
-            );
-          })}
-          <span className="mx-1 w-px bg-slate-200" aria-hidden />
-          {STATUSES.map((s) => <button key={s.id} type="button" onClick={() => h.setStatus(s.id)} className={chip(h.status === s.id)}>{s.label}</button>)}
-          {h.hasFilters && <button type="button" onClick={h.clear} className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-[0.8125rem] font-medium text-rose-700 hover:bg-rose-50"><X className="h-3.5 w-3.5" />Filter hatayein</button>}
-        </div>
       </div>
 
       {/* Tabs */}
-      <div role="tablist" className="inline-flex gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/80">
-        {([['bills', ListChecks, `Bill · ${h.count}`], ['analytics', BarChart3, 'Analytics']] as const).map(([id, Icon, text]) => (
-          <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
-            className={cn('inline-flex h-9 items-center gap-2 rounded-xl px-4 text-[0.875rem] font-semibold transition', tab === id ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100')}>
-            <Icon className="h-4 w-4" />{text}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div role="tablist" className="inline-flex gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/80">
+          {([['bills', ListChecks, 'Bill', h.count], ['analytics', BarChart3, 'Analytics', null]] as const).map(([id, Icon, text, n]) => (
+            <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
+              className={cn('inline-flex h-9 items-center gap-2 rounded-xl px-4 text-[0.875rem] font-semibold transition', tab === id ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100')}>
+              <Icon className="h-4 w-4" />{text}
+              {n !== null && <span className={cn('rounded-full px-1.5 text-[0.6875rem] tabular-nums', tab === id ? 'bg-white/20' : 'bg-slate-100 text-slate-600')}>{n}</span>}
+            </button>
+          ))}
+        </div>
+        <p className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>A</Kbd> se badlein</p>
       </div>
 
       {tab === 'analytics' ? (
@@ -344,6 +384,9 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
                   <h2 className="text-[0.875rem] font-semibold text-slate-900">{dayTitle(d.key)} <span className="font-normal text-slate-500">· {d.sales.length} bill</span></h2>
                   <span className="text-[0.9375rem] font-bold tabular-nums text-slate-900">{money(d.total)}</span>
                 </header>
+                <div className={cn('hidden border-b border-slate-100 px-5 py-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400 lg:grid', ROW_GRID)}>
+                  <span>Bill</span><span>Customer</span><span>Cheezein</span><span>Payment</span><span>Staff</span><span className="text-right">Raqam</span><span />
+                </div>
                 <ul className="divide-y divide-slate-100">
                   {d.sales.map((s) => (
                     <SaleRow key={s.id} sale={s} money={money} waLink={s.pending ? null : billWa(s)} extra={extraFor(s)}
@@ -366,26 +409,40 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
 }
 
 function SalesGuide({ onClose }: { onClose: () => void }) {
-  const tips: Array<[string, string]> = [
-    ['Har muddat ka sahi total', 'Aaj se le kar "Sab" tak — upar ke number poore filter ke hain, sirf nazar aane wale bill ke nahi.'],
-    ['Dhoondna', 'Bill number, customer ka naam ya phone, product ka naam ya barcode — sab se milta hai.'],
-    ['Bill scan (B)', 'Customer purana bill laye to uska barcode scan karein — wohi bill khul jata hai.'],
-    ['Bill kholein', 'Kisi bhi bill par click karein: poori cheezein, hisaab, munafa, aur print, WhatsApp, maal wapas, void.'],
-    ['Udhaar wale', 'Udhaar ke card par click karein — sirf udhaar wale bill.'],
-    ['Analytics (A)', 'Rujhan, masroof ghanta, behtar din, payment, top products, customers aur staff — isi filter ka.'],
-    ['CSV, Print, PDF', 'Is filter ke saare bill — accountant ko bhejein ya file mein rakhein.'],
+  const steps: Array<{ icon: LucideIcon; color: string; title: string; text: string }> = [
+    { icon: CalendarRange, color: '#2563eb', title: 'Din chunein', text: '"Tareekh" se Aaj, Kal, 7 din ya apni tareekh. Upar ke saare number isi muddat ke hain.' },
+    { icon: Search, color: '#7c3aed', title: 'Bill dhoondein', text: 'Bill number, customer ka naam, phone ya product likhein. Purana bill ho to "Bill scan" se barcode scan karein.' },
+    { icon: ListFilter, color: '#d97706', title: 'Filter lagayein', text: 'Payment, udhaar wale, wapsi wale ya staff. Lage filter neeche dikhte hain, X se hat jate hain.' },
+    { icon: MousePointerClick, color: '#16a34a', title: 'Bill kholein', text: 'Kisi bhi bill par click karein: poori cheezein, munafa, print, WhatsApp, maal wapas aur void.' },
+    { icon: BarChart3, color: '#db2777', title: 'Analytics dekhein', text: 'Kab rush hota hai, kya zyada bikta hai, kaun se customer aate hain, aur pichli dafa se muqabla.' },
+    { icon: FileDown, color: '#0891b2', title: 'Report nikaalein', text: 'CSV ya Print/PDF. Is filter ke saare bill aa jate hain, accountant ko bhej dein.' },
   ];
   return (
-    <Modal open onClose={onClose} size="lg" title="Bikri ka record kaise dekhein" description="/ search · B bill scan · A analytics">
-      <ul className="space-y-3">
-        {tips.map(([t, d]) => (
-          <li key={t} className="flex gap-3 text-[0.875rem]">
-            <span className="w-40 shrink-0 font-semibold text-slate-900">{t}</span>
-            <span className="text-slate-600">{d}</span>
+    <Modal open onClose={onClose} size="lg" title="Bikri ka record — aasaan tareeqa" description="6 cheezein, bas itna yaad rakhein">
+      <ol className="grid gap-3 sm:grid-cols-2">
+        {steps.map((st, i) => (
+          <li key={st.title} className="flex gap-3 rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
+            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${st.color}17`, color: st.color }}>
+              <st.icon className="h-5 w-5" />
+              <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[0.625rem] font-bold text-white">{i + 1}</span>
+            </span>
+            <div className="min-w-0">
+              <p className="text-[0.875rem] font-semibold text-slate-900">{st.title}</p>
+              <p className="mt-0.5 text-[0.8125rem] leading-relaxed text-slate-600">{st.text}</p>
+            </div>
           </li>
         ))}
-      </ul>
-      <div className="mt-4 flex justify-end"><Link to="/day-report" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Din ka hisaab (item war) →</Link></div>
+      </ol>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white p-3 ring-1 ring-slate-200">
+        <div className="flex flex-wrap items-center gap-3 text-[0.75rem] text-slate-600">
+          <span className="font-semibold text-slate-900">Jaldi ke liye:</span>
+          <span className="inline-flex items-center gap-1"><Kbd>/</Kbd> dhoondein</span>
+          <span className="inline-flex items-center gap-1"><Kbd>B</Kbd> scan</span>
+          <span className="inline-flex items-center gap-1"><Kbd>A</Kbd> analytics</span>
+          <span className="inline-flex items-center gap-1"><Kbd>G</Kbd> guide</span>
+        </div>
+        <Link to="/day-report" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Din ka hisaab (item war) →</Link>
+      </div>
     </Modal>
   );
 }

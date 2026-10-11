@@ -156,8 +156,8 @@ export class SalesHistoryService {
     const where = this.where(user, shopId, q, r.gte, r.lt);
     const live: Prisma.SaleWhereInput = { AND: [where, { status: { in: [...LIVE] } }] };
 
-    const [sales, payments, sources, itemGroups, customerGroups, staffGroups] = await Promise.all([
-      this.prisma.sale.findMany({ where: live, select: { soldAt: true, total: true, costOfGoods: true } }),
+    const [sales, payments, sources, itemGroups, customerGroups, staffGroups, allItems, prev] = await Promise.all([
+      this.prisma.sale.findMany({ where: live, select: { soldAt: true, total: true, costOfGoods: true, customerId: true, discount: true } }),
       this.prisma.sale.groupBy({ by: ['paymentMethod'], where: live, _sum: { total: true, paidAmount: true }, _count: { _all: true } }),
       this.prisma.sale.groupBy({ by: ['source'], where: live, _sum: { total: true }, _count: { _all: true } }),
       this.prisma.saleItem.groupBy({
@@ -169,7 +169,21 @@ export class SalesHistoryService {
         by: ['customerId'], where: { AND: [live, { customerId: { not: null } }] },
         _sum: { total: true, creditAmount: true }, _count: { _all: true }, orderBy: { _sum: { total: 'desc' } }, take: 10,
       }),
-      this.prisma.sale.groupBy({ by: ['soldById', 'createdById'], where: live, _sum: { total: true }, _count: { _all: true } }),
+      this.prisma.sale.groupBy({ by: ['soldById', 'createdById'], where: live, _sum: { total: true, costOfGoods: true }, _count: { _all: true } }),
+      // Every product sold, for the category split.
+      this.prisma.saleItem.groupBy({
+        by: ['productId'], where: { sale: live, productId: { not: null } },
+        _sum: { quantity: true, returnedQty: true, total: true },
+      }),
+      // The same length of time just before, for comparison.
+      r.gte ? (() => {
+        const span = r.lt.getTime() - r.gte.getTime();
+        const prevWhere = this.where(user, shopId, q, new Date(r.gte.getTime() - span), r.gte);
+        return this.prisma.sale.aggregate({
+          where: { AND: [prevWhere, { status: { in: [...LIVE] } }] },
+          _sum: { total: true, costOfGoods: true }, _count: { _all: true },
+        });
+      })() : Promise.resolve(null),
     ]);
 
     // Daily buckets for up to ~3 months, monthly beyond that.
@@ -184,6 +198,11 @@ export class SalesHistoryService {
       }
     }
     const hours = Array.from({ length: 24 }, (_, h) => ({ hour: h, sales: 0, bills: 0 }));
+    // Weekday × hour grid of bill counts, for the busy-time heatmap.
+    const heat = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => 0));
+    const billsByCustomer = new Map<string, number>();
+    let walkInBills = 0;
+    let walkInTotal = 0;
     const weekdays = Array.from({ length: 7 }, (_, d) => ({ day: d, sales: 0, bills: 0 }));
     const shift = r.dayStartHour * 3600_000;
     for (const s of sales) {
@@ -192,25 +211,43 @@ export class SalesHistoryService {
       const b = buckets.get(key) ?? { key, sales: 0, profit: 0, bills: 0 };
       b.sales += s.total; b.profit += s.total - s.costOfGoods; b.bills += 1;
       buckets.set(key, b);
-      const h = hours[tzParts(s.soldAt, r.tz).hour]; h.sales += s.total; h.bills += 1;
-      const w = weekdays[weekdayInTz(biz, r.tz)]; w.sales += s.total; w.bills += 1;
+      const hr = tzParts(s.soldAt, r.tz).hour;
+      const h = hours[hr]; h.sales += s.total; h.bills += 1;
+      const wd = weekdayInTz(biz, r.tz);
+      const w = weekdays[wd]; w.sales += s.total; w.bills += 1;
+      heat[wd][hr] += 1;
+      if (s.customerId) billsByCustomer.set(s.customerId, (billsByCustomer.get(s.customerId) ?? 0) + 1);
+      else { walkInBills += 1; walkInTotal += s.total; }
     }
 
     const productIds = itemGroups.map((g) => g.productId!).filter(Boolean);
     const customerIds = customerGroups.map((g) => g.customerId!).filter(Boolean);
-    const staffTotals = new Map<string, { total: number; bills: number }>();
+    const staffTotals = new Map<string, { total: number; bills: number; profit: number }>();
     for (const g of staffGroups) {
       const id = g.soldById ?? g.createdById;
       if (!id) continue;
-      const cur = staffTotals.get(id) ?? { total: 0, bills: 0 };
-      cur.total += n(g._sum.total); cur.bills += g._count._all;
+      const cur = staffTotals.get(id) ?? { total: 0, bills: 0, profit: 0 };
+      cur.total += n(g._sum.total); cur.bills += g._count._all; cur.profit += n(g._sum.total) - n(g._sum.costOfGoods);
       staffTotals.set(id, cur);
     }
-    const [products, customers, users] = await Promise.all([
+    const allIds = allItems.map((g) => g.productId!).filter(Boolean);
+    const [products, customers, users, catProducts, newCustomers] = await Promise.all([
       this.prisma.product.findMany({ where: { id: { in: productIds } }, select: { id: true, name: true, unit: true } }),
       this.prisma.customer.findMany({ where: { id: { in: customerIds } }, select: { id: true, name: true, phone: true, balance: true } }),
       this.prisma.user.findMany({ where: { id: { in: [...staffTotals.keys()] } }, select: { id: true, fullName: true } }),
+      this.prisma.product.findMany({ where: { id: { in: allIds } }, select: { id: true, category: { select: { id: true, name: true, color: true } } } }),
+      this.prisma.customer.count({ where: { tenantId: user.tenantId, createdAt: { ...(r.gte && { gte: r.gte }), lt: r.lt } } }),
     ]);
+    const catOf = new Map(catProducts.map((p) => [p.id, p.category]));
+    const cats = new Map<string, { id: string | null; name: string; color: string | null; revenue: number; qty: number; products: number }>();
+    for (const g of allItems) {
+      const c = catOf.get(g.productId!);
+      const key = c?.id ?? 'none';
+      const row = cats.get(key) ?? { id: c?.id ?? null, name: c?.name ?? 'Baghair category', color: c?.color ?? null, revenue: 0, qty: 0, products: 0 };
+      row.revenue += n(g._sum.total); row.qty += n(g._sum.quantity) - n(g._sum.returnedQty); row.products += 1;
+      cats.set(key, row);
+    }
+    const repeat = [...billsByCustomer.values()].filter((c) => c > 1).length;
     const pMap = new Map(products.map((p) => [p.id, p]));
     const cMap = new Map(customers.map((c) => [c.id, c]));
 
@@ -229,6 +266,21 @@ export class SalesHistoryService {
         return { customerId: g.customerId, name: c?.name ?? 'Customer', phone: c?.phone ?? null, balance: n(c?.balance), total: n(g._sum.total), credit: n(g._sum.creditAmount), bills: g._count._all };
       }),
       staff: users.map((u) => ({ userId: u.id, name: u.fullName, ...staffTotals.get(u.id)! })).sort((a, b) => b.total - a.total),
+      heatmap: heat,
+      categories: [...cats.values()].sort((a, b) => b.revenue - a.revenue),
+      customers: {
+        walkInBills, walkInTotal,
+        namedBills: sales.length - walkInBills,
+        namedTotal: sales.reduce((x, s) => x + s.total, 0) - walkInTotal,
+        uniqueCustomers: billsByCustomer.size,
+        repeatCustomers: repeat,
+        newCustomers,
+      },
+      previous: prev ? {
+        total: n(prev._sum.total),
+        bills: prev._count._all,
+        profit: n(prev._sum.total) - n(prev._sum.costOfGoods),
+      } : null,
     };
   }
 }

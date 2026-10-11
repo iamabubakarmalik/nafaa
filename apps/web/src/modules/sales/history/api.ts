@@ -56,7 +56,16 @@ export interface HistoryAnalytics {
   sources: Array<{ source: string; total: number; bills: number }>;
   topProducts: Array<{ productId: string; name: string; unit: string; qty: number; revenue: number; lines: number }>;
   topCustomers: Array<{ customerId: string; name: string; phone: string | null; balance: number; total: number; credit: number; bills: number }>;
-  staff: Array<{ userId: string; name: string; total: number; bills: number }>;
+  staff: Array<{ userId: string; name: string; total: number; bills: number; profit: number }>;
+  /** Bill counts by weekday (0 = Sunday) and hour. */
+  heatmap: number[][];
+  categories: Array<{ id: string | null; name: string; color: string | null; revenue: number; qty: number; products: number }>;
+  customers: {
+    walkInBills: number; walkInTotal: number; namedBills: number; namedTotal: number;
+    uniqueCustomers: number; repeatCustomers: number; newCustomers: number;
+  };
+  /** The same length of time just before this range; null for "all time". */
+  previous: { total: number; bills: number; profit: number } | null;
 }
 
 const params = (f: HistoryFilters, page?: number, limit?: number) => ({
