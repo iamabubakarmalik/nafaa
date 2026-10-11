@@ -7,7 +7,8 @@ import {
 import { hasPermission, PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
 import { cn } from '@core/lib/cn';
 import { useVisibleNav } from '../navigation/useVisibleNav';
-import { hasHover, Kbd, Panel, useDismiss } from '../ui';
+import { Kbd } from '@/design-system/components';
+import { hasHover, Panel, useDismiss } from '../ui';
 
 interface Props {
   role: any;

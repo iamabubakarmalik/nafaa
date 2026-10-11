@@ -14,7 +14,7 @@ import {
 import { toast } from 'sonner';
 import { profitReportApi, type ProfitPeriod } from '@modules/finance/profit-report/api/profit-report.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { agriProductsApi, type AgriProductProfile } from '../api/products.api';

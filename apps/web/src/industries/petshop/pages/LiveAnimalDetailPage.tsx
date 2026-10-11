@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { liveAnimalsApi } from '../api/live-animals.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 export default function LiveAnimalDetailPage() {
   const { id } = useParams();

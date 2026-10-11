@@ -9,7 +9,7 @@ import {
 import { projectsApi, type ProjectStatus, type HardwareProject } from '../api/projects.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { toyGiftPacksApi } from '../api/gift-packs.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const DISCOUNT_QUICK = [10, 15, 20, 25, 30, 40];

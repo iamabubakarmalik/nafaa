@@ -7,8 +7,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Mail, ArrowLeft, KeyRound, CheckCircle2, Sparkles } from 'lucide-react';
 import { authApi } from '@modules/auth/api/auth.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { Logo } from '@core/components/brand/Logo';
 
 const schema = z.object({

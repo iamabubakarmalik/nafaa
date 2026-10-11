@@ -12,7 +12,7 @@ import { productsApi } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import { ManualEntryTable, type ManualRow } from '../components/ManualEntryTable';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import { toast } from 'sonner';
 import {

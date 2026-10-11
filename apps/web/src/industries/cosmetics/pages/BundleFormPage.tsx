@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { cosmeticsGiftBundlesApi } from '../api/gift-bundles.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const OCCASIONS = ['Eid', 'Christmas', 'Birthday', 'Anniversary', 'Valentine', "Mother's Day", 'Wedding', 'Corporate', 'General'];

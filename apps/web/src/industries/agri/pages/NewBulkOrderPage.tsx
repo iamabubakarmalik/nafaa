@@ -13,7 +13,7 @@ import { agriProductsApi, type AgriProductProfile } from '../api/products.api';
 import { farmersApi } from '../api/farmers.api';
 import { stockReportApi } from '@modules/inventory/stock-report/api/stock-report.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { certStatus, isMeasured, agriUnitLabel, SEASONS } from '../lib/agriUnits';
 import {
   deriveAgriKind, prettyAgriKind, AGRI_KIND_EMOJI, needsGovtReg, type AgriKind,

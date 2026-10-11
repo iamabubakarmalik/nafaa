@@ -8,7 +8,7 @@ import {
 import { appointmentsApi } from '../api/appointments.api';
 import { doctorsApi } from '../api/doctors.api';
 import { patientsApi } from '../api/patients.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import { format, addMinutes } from 'date-fns';

@@ -5,7 +5,7 @@ import {
   CheckCircle2, Ban, Briefcase, FileText,
 } from 'lucide-react';
 import { warrantyApi, type WarrantyClaim } from '../api/warranty.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

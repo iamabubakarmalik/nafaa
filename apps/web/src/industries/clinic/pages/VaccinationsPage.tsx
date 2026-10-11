@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Syringe, RefreshCw, Sparkles, Calendar, CheckCircle2, AlertCircle, User, X, Save, Baby } from 'lucide-react';
 import { vaccinationsApi } from '../api/vaccinations.api';
 import { patientsApi } from '../api/patients.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format, differenceInDays } from 'date-fns';
 

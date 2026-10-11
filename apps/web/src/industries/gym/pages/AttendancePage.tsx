@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { attendanceApi } from '../api/attendance.api';
 import { gymMembersApi } from '../api/members.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format, differenceInMinutes } from 'date-fns';
 

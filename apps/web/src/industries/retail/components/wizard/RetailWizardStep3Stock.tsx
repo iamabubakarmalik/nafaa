@@ -4,7 +4,7 @@ import {
   Boxes, Package, Calendar, MapPin, AlertTriangle, Sparkles,
   CheckCircle2, Info, Lightbulb,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type {
   RetailWizardBasic, RetailWizardVariant, RetailWizardBatch, RetailWizardStock,

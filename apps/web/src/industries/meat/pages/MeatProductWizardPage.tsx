@@ -6,7 +6,7 @@ import {
   Plus, AlertTriangle, Trash2, Eye, Edit3,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useMeatWizard, type WizardStep } from '../hooks/useMeatWizard';
 import { MeatWizardStepper } from '../components/wizard/MeatWizardStepper';
 import { MeatWizardStep1Basic } from '../components/wizard/MeatWizardStep1Basic';

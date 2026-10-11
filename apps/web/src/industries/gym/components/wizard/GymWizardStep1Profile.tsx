@@ -1,6 +1,5 @@
 import {  User, Ruler, Target, ArrowRight, AlertTriangle, Info, Phone, Mail, MapPin, Calendar, Zap, Activity } from 'lucide-react';
-import { Input } from '@core/ui/Input';
-import { Button } from '@core/ui/Button';
+import { Input, Button } from '@/design-system/components';
 import type { GymWizardBasic } from '../../hooks/useGymMemberWizard';
 import type { Goal } from '../../api/members.api';
 

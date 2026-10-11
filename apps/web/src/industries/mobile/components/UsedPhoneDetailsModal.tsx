@@ -6,7 +6,7 @@ import {
   ReceiptText, Pencil, Save, Trash2, CheckCircle2, Clock, FileText,
   Loader2, Printer, Phone as PhoneIcon, MapPin, BadgeDollarSign,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import {

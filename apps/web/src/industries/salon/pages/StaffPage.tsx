@@ -8,7 +8,7 @@ import {
 import { staffProfilesApi, type StaffRole, type CommissionType, type StaffProfile } from '../api/staff-profiles.api';
 import { salonServicesApi } from '../api/services.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { apiClient } from '@core/api/client';

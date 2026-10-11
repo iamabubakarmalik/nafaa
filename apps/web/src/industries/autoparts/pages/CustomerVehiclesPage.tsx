@@ -10,7 +10,7 @@ import { customerVehiclesApi, type CustomerVehicle, type FuelType, type Transmis
 import { vehicleMakesApi } from '../api/vehicle-makes.api';
 import { vehicleModelsApi } from '../api/vehicle-models.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';

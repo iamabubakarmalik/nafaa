@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { pharmacyDashboardApi } from '../api/dashboard.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format, differenceInDays } from 'date-fns';
 
 export default function PharmacyDashboardPage() {

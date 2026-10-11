@@ -3,7 +3,7 @@ import {
   X, Truck, Calendar, Clock, MapPin, User, Phone, MessageCircle,
   CheckCircle2, Zap, Sunrise, Sun, Sunset, Store, Heart,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 
 export interface DeliveryDetails {

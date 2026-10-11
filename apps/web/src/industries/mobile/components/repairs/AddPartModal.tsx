@@ -4,8 +4,7 @@ import {
   X, Package, Plus, Search, ScanLine, Info, AlertTriangle,
   TrendingUp, Percent, Boxes, Sparkles, Keyboard,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { toast } from 'sonner';
 import { repairsApi } from '../../api/repairs.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';

@@ -20,7 +20,7 @@ import { productEmoji, productTint } from '@modules/inventory/products/lib/produ
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-movements.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 import { ProductDeleteButton } from '@core/components/ProductDeleteButton';

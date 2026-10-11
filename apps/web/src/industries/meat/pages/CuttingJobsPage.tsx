@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { cuttingJobsApi, type CuttingJob } from '../api/cutting-jobs.api';
 import { slaughterApi } from '../api/slaughter.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format, differenceInMinutes } from 'date-fns';
 

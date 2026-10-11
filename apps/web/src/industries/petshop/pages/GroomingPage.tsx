@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner';
 import { groomingApi, type PetGroomingStatus } from '../api/grooming.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const STATUS_META: Record<PetGroomingStatus, { label: string; color: string; bg: string; icon: any }> = {
   SCHEDULED: { label: 'Scheduled', color: 'text-blue-700', bg: 'bg-blue-100', icon: Calendar },

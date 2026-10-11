@@ -9,7 +9,7 @@ import { quotationsApi } from '../api/quotations.api';
 import { projectsApi } from '../api/projects.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 

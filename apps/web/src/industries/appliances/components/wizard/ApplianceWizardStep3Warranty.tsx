@@ -3,7 +3,7 @@ import {
   Shield, Package, Plus, X, HardHat, Wrench, Truck,
   Droplets, Flame, Zap, CheckCircle2,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { ApplianceWizardWarranty, ApplianceWizardInstallation } from '../../hooks/useApplianceWizard';
 
 interface Props {

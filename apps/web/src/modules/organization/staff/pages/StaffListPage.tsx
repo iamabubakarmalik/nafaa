@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { staffApi, type StaffStatus } from '@modules/organization/staff/api/staff.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const statusConfig: Record<StaffStatus, { label: string; color: string; bg: string }> = {
   ACTIVE: { label: 'Active', color: '#16a34a', bg: 'bg-emerald-100 text-emerald-700 border-emerald-200' },

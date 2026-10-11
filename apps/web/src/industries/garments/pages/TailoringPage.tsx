@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { tailoringApi, type TailoringStatus } from '../api/tailoring.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format, differenceInDays } from 'date-fns';
 
 const STATUS_CONFIG: Record<TailoringStatus, { label: string; color: string; icon: any; group: string }> = {

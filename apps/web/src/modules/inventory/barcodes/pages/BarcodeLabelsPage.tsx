@@ -14,7 +14,7 @@ import { productVariantsApi, type ProductVariant } from '@modules/inventory/prod
 import { productUnitsApi, type ProductUnit } from '@industries/retail/api/product-units.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import { toast } from 'sonner';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';

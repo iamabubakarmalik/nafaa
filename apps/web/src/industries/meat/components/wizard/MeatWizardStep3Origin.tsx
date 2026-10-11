@@ -2,7 +2,7 @@ import {
   MapPin, Building2, FileText, AlertCircle, Info, Utensils,
   Award, Star, TrendingUp, Zap, Beef, Activity,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { MeatWizardOrigin } from '../../hooks/useMeatWizard';
 
 interface Props {

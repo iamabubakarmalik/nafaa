@@ -6,7 +6,7 @@ import {
   UserCheck, UserX, Calendar, Search, Sparkles, AlertCircle,
 } from 'lucide-react';
 import { staffApi, type AttendanceStatus } from '@modules/organization/staff/api/staff.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const statusConfig: Record<AttendanceStatus, { label: string; color: string; bg: string; icon: any }> = {

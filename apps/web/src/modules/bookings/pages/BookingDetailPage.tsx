@@ -13,7 +13,7 @@ import {
 import { toast } from 'sonner';
 import { bookingsApi, type BookingStatus } from '@modules/bookings/api/bookings.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 

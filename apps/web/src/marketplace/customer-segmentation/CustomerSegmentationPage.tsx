@@ -9,7 +9,7 @@ import { segmentationApi, type CustomerSegmentType } from '../shared/marketplace
 import { getIndustryTheme } from '../shared/industry-themes';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const SEGMENT_META: Record<CustomerSegmentType, { icon: any; color: string; bg: string; border: string; description: string }> = {
   CHAMPIONS:          { icon: Crown,     color: 'text-purple-800',  bg: 'bg-purple-100',  border: 'border-purple-400',  description: 'Best customers — recent, frequent, high spenders' },

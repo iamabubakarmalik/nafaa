@@ -14,7 +14,7 @@ import {
 import { toast } from 'sonner';
 import { stockReportApi } from '@modules/inventory/stock-report/api/stock-report.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { QuickStockModal } from '@industries/retail/components/QuickStockModal';
 import { agriProductsApi, type AgriProductProfile } from '../api/products.api';

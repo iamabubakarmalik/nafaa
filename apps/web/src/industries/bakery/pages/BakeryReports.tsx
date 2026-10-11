@@ -19,7 +19,7 @@ import { productionApi } from '../api/production.api';
 import { ingredientsApi } from '../api/ingredients.api';
 import { freshnessApi } from '../api/freshness.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════

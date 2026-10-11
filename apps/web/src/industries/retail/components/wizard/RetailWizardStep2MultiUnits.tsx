@@ -3,7 +3,7 @@ import {
   Layers, Plus, X, AlertCircle, Sparkles, Info, ToggleLeft, ToggleRight,
   ArrowRightLeft, Hash, Barcode as BarcodeIcon, Star, Lightbulb,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type { RetailWizardBasic, RetailWizardUnit } from '../../hooks/useRetailWizard';
 

@@ -5,7 +5,7 @@ import {
   Calendar, DollarSign, Edit3, Trash2,
 } from 'lucide-react';
 import { metalRatesApi, type MetalType, type Purity } from '../api/metal-rates.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 

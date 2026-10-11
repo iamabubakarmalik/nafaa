@@ -4,8 +4,7 @@ import {
   X, Banknote, CreditCard, Smartphone, Building2, Zap,
   AlertTriangle, CheckCircle2, Copy, Printer, Sparkles,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
 import { repairsApi } from '../../api/repairs.api';

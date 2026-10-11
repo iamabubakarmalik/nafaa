@@ -6,7 +6,7 @@ import {
   MapPin, Phone, User, Newspaper, DollarSign,
 } from 'lucide-react';
 import { schoolsApi, type School } from '../api/schools.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';

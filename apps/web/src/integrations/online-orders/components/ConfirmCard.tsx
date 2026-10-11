@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { CheckCircle2, MessageCircle, Phone, PhoneMissed, XCircle } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { apiErrorMessage, onlineOrdersApi, type OnlineOrderDetail } from '../api/online-orders.api';
 import { rs, waNumber, whenText } from '../lib/labels';
 import { cn } from '@core/lib/cn';

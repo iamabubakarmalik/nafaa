@@ -3,8 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   X, Stethoscope, CheckCircle2, Sparkles, AlertTriangle, Lightbulb, Calculator,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { toast } from 'sonner';
 import { repairsApi } from '../../api/repairs.api';
 import { formatPKR } from '@core/lib/format';

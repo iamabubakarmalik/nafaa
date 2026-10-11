@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { GraduationCap, X, CheckCircle2, RefreshCw, Printer } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 /* ═════════════════════════════════════════════════════════════
    HOME APPLIANCES — sanjha UI kit

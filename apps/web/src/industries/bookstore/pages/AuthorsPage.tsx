@@ -5,7 +5,7 @@ import {
   Star, Globe, BookOpen, Award,
 } from 'lucide-react';
 import { authorsApi, type Author } from '../api/authors.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 

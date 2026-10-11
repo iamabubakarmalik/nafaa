@@ -15,7 +15,7 @@ import {
 } from '@modules/organization/settings/api/business-config.api';
 import { onboardingApi } from '@modules/onboarding/api/onboarding.api';
 import { BusinessTypeSelector } from '@modules/onboarding/components/BusinessTypeSelector';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { SectionCard, Alert } from '../components/UI';
 

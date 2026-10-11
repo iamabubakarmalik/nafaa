@@ -3,7 +3,7 @@ import {
   Shield, ShieldCheck, ShieldAlert, ShieldOff, Package, Plus, X,
   Globe, Barcode, CalendarClock, Lightbulb, Check, Receipt, Sparkles,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { ElectronicsWizardWarranty } from '../../hooks/useElectronicsWizard';
 import {
   CATEGORY_META, CONDITION_META, SERIAL_SUGGESTED,

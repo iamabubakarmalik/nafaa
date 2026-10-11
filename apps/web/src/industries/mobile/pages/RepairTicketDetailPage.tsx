@@ -9,7 +9,7 @@ import {
   Clock, FileText, Share2, AlertTriangle, Sparkles,
   Keyboard, ChevronRight, Timer, RefreshCw,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
 import {

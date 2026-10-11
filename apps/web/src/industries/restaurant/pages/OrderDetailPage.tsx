@@ -11,7 +11,7 @@ import {
 import { ordersApi, type OrderStatus } from '../api/orders.api';
 import { kotApi } from '../api/kot.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const MODE_ICON: Record<string, any> = {

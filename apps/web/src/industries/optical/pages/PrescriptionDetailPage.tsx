@@ -6,7 +6,7 @@ import {
   FlaskConical, Download, Printer,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { prescriptionsApi } from '../api/prescriptions.api';
 import { formatPKR } from '@core/lib/format';
 

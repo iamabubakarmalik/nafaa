@@ -6,7 +6,7 @@ import {
   Plus, AlertTriangle, Trash2, Eye, Edit3,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useOpticalWizard, type WizardStep } from '../hooks/useOpticalWizard';
 import { OpticalWizardStepper } from '../components/wizard/OpticalWizardStepper';
 import { OpticalWizardStep1Basic } from '../components/wizard/OpticalWizardStep1Basic';

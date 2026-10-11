@@ -6,8 +6,7 @@ import {
   Flag, AlertTriangle, Zap, Lock, GraduationCap, Trash2,
   ScanLine, Info, Loader2, Sparkles, Package,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
 import {

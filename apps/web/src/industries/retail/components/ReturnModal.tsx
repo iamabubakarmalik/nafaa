@@ -5,7 +5,7 @@ import {
   RotateCcw, X, Loader2, Package, Plus, Minus, AlertTriangle,
   Banknote, CreditCard, Smartphone, Building2, Zap, BookOpen, CheckCircle2,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { returnsApi } from '@modules/sales/returns/api/returns.api';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';

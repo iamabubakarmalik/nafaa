@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { applianceSerialApi, type ApplianceSerial } from '../api/serial-tracking.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';

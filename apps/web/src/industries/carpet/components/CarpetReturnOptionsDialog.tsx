@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import {
   X, Scissors, Layers, AlertTriangle, CheckCircle2, Ruler, Info,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 
 export interface CarpetReturnOptions {

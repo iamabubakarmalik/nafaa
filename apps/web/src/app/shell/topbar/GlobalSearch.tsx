@@ -21,7 +21,7 @@ import { HiddenValue } from '@core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 import { cn } from '@core/lib/cn';
 import { useVisibleNav } from '../navigation/useVisibleNav';
-import { Kbd } from '../ui';
+import { Kbd } from '@/design-system/components';
 
 /* ─── Open state, shared by every trigger ─── */
 

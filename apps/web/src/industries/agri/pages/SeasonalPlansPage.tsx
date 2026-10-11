@@ -15,7 +15,7 @@ import { seasonalPlansApi, type SeasonalPlan } from '../api/seasonal-plans.api';
 import { agriProductsApi, type AgriProductProfile } from '../api/products.api';
 import { stockReportApi } from '@modules/inventory/stock-report/api/stock-report.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { deriveAgriKind, prettyAgriKind, AGRI_KIND_EMOJI, type AgriKind } from '../lib/agriCategory';
 

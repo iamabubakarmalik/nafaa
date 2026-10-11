@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { loyaltyApi } from '@modules/customers/loyalty/api/loyalty.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA LOYALTY — GLOBAL FULL BEST v3

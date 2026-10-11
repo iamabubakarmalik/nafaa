@@ -1,5 +1,5 @@
 import { Settings, AlertCircle, Info, Ruler, Palette, Zap, Droplets, Wrench, Award } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { HardwareWizardSpecs, CategoryType } from '../../hooks/useHardwareWizard';
 
 interface Props {

@@ -6,7 +6,7 @@ import {
   Plus, AlertTriangle, Trash2, Eye, Edit3,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useToyWizard, type WizardStep } from '../hooks/useToyWizard';
 import { ToyWizardStepper } from '../components/wizard/ToyWizardStepper';
 import { ToyWizardStep1Basic } from '../components/wizard/ToyWizardStep1Basic';

@@ -9,7 +9,7 @@ import {
 import { barcodeLabelsApi, type BarcodeLabelBatch, type BarcodeLabelItem } from '../api/barcode-labels.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';

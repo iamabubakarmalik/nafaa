@@ -3,7 +3,7 @@ import {
   Stethoscope, Calendar, Ban, FileText, Package, AlertTriangle,
   Info, ArrowRight, ArrowLeft, Plus, X, CheckCircle2,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { COMMON_TESTS, COMMON_PROCEDURES, HEALTH_PACKAGES } from '../../api/constants';
 import type { ClinicWizardRequirements } from '../../hooks/useClinicWizard';
 

@@ -4,7 +4,7 @@ import {
   Truck, Wallet, BookOpen, Receipt, Loader2, CheckCircle2, Sparkles,
   Database, Tag, RotateCcw, BarChart3,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';
 

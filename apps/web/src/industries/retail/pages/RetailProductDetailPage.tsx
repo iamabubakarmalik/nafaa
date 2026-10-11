@@ -12,7 +12,7 @@ import {
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
 } from 'recharts';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';

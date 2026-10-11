@@ -3,7 +3,7 @@ import {
   ChevronDown, Save, Trash2, Image as ImageIcon, Palette, Hash,
   DollarSign, Package, Sparkles, TrendingUp, AlertTriangle, Eye,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
 import { formatPKRFull } from '@core/lib/format';
 import type { ProductVariant, UpsertVariantPayload } from '@modules/inventory/products/api/product-variants.api';

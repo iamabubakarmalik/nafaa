@@ -7,7 +7,7 @@ import {
   X, Save, CheckCircle2, AlertTriangle, Filter,
 } from 'lucide-react';
 import { tablesApi, type RestaurantTable, type TableStatus } from '../api/tables.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const STATUS_CONFIG: Record<TableStatus, { label: string; bg: string; border: string; text: string }> = {

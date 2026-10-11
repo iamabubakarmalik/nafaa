@@ -3,7 +3,7 @@ import {
   ArrowRight, AlertTriangle, Info, X, Briefcase, Package, Settings,
   Monitor, Home, Truck, Shield, Award, PhoneCall,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import type { ServicesBizBasic } from '../../hooks/useServicesBizWizard';
 

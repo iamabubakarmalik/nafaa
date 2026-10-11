@@ -5,7 +5,7 @@ import { Users, Search, Plus, X, Grid3x3, List as ListIcon, Filter, Dumbbell, Aw
 import { toast } from 'sonner';
 import { gymMembersApi, type MemberStatus } from '../api/members.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const STATUS_COLORS: Record<MemberStatus, string> = {
   ACTIVE: 'bg-emerald-500', INACTIVE: 'bg-slate-500', SUSPENDED: 'bg-amber-500', BANNED: 'bg-rose-500',

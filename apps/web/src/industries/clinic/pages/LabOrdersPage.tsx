@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TestTube, RefreshCw, Sparkles, Calendar, AlertCircle, CheckCircle2, ArrowRight, FileText } from 'lucide-react';
 import { labOrdersApi } from '../api/lab-orders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 

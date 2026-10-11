@@ -8,7 +8,7 @@ import { ptApi } from '../api/personal-training.api';
 import { gymMembersApi } from '../api/members.api';
 import { trainersApi } from '../api/trainers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format, differenceInMinutes } from 'date-fns';
 

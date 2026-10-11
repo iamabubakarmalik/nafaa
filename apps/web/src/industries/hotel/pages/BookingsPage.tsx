@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { bookingsApi, type BookingStatus } from '../api/bookings.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format } from 'date-fns';
 
 const STATUS_CONFIG: Record<BookingStatus, { label: string; color: string }> = {

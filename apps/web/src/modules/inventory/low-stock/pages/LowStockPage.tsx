@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { stockReportApi } from '@modules/inventory/stock-report/api/stock-report.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { useIndustryStockPresets } from '@industries/_shared/presets';
 import { useAuthStore } from '@core/stores/auth.store';

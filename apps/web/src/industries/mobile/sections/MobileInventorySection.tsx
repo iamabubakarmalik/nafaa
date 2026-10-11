@@ -5,8 +5,7 @@ import {
   Smartphone, ShieldCheck, Plus, Package, ExternalLink, AlertCircle,
   CheckCircle2, Clock, Shield, AlertOctagon, AlertTriangle,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type { IndustrySectionProps } from '@industries/_shared/types/section.types';
 import { imeiApi, type PtaStatus, PTA_STATUS_LABELS, PTA_STATUS_COLORS } from '@industries/mobile/api/imei.api';

@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner';
 import { gamingRentalsApi, type GamingRentalStatus } from '../api/rentals.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const STATUS_META: Record<GamingRentalStatus, { label: string; color: string; bg: string; icon: any }> = {
   RESERVED: { label: 'Reserved', color: 'text-amber-700', bg: 'bg-amber-100', icon: Clock },

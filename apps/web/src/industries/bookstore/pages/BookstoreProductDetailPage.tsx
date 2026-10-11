@@ -8,7 +8,7 @@ import {
   Image as ImageIcon, User, Calendar, Layers, Info, GraduationCap,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { productImagesApi } from '@modules/inventory/products/api/product-images.api';

@@ -5,7 +5,7 @@ import {
   Globe, Phone, Mail, User, Zap, BookOpen, MapPin,
 } from 'lucide-react';
 import { publishersApi, type Publisher } from '../api/publishers.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';

@@ -12,7 +12,7 @@ import { encountersApi } from '../api/encounters.api';
 import { prescriptionsApi } from '../api/prescriptions.api';
 import { labOrdersApi } from '../api/lab-orders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format, differenceInYears } from 'date-fns';
 

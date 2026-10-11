@@ -10,7 +10,7 @@ import { multiShopApi } from '../shared/marketplace.api';
 import { getIndustryTheme } from '../shared/industry-themes';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 export default function MultiShopManagerPage() {
   const industry = useCurrentIndustry();

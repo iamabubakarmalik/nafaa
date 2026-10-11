@@ -23,7 +23,7 @@ import {
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 

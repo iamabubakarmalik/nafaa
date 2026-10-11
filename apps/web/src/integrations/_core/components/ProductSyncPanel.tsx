@@ -7,10 +7,7 @@ import {
 } from 'lucide-react';
 import { integrationsApi } from '../api/integrations.api';
 import { apiClient } from '@core/api/client';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
-import { Badge } from '@core/ui/Badge';
-import { SkeletonCard } from '@core/ui/Skeleton';
+import { Button, Input, Badge, SkeletonCard } from '@/design-system/components';
 import { CodeBlock } from './CodeBlock';
 import { cn } from '@core/lib/cn';
 

@@ -3,7 +3,7 @@ import {
   Shield, Clock, Award, Wrench, Package, ArrowLeft, Save,
   AlertTriangle, Plus, X, FileText, GraduationCap,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import type { ServicesBizWarranty } from '../../hooks/useServicesBizWizard';
 
 const SKILL_LEVELS = [

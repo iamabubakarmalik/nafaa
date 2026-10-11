@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { stationsApi, type KitchenStation } from '../api/stations.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const STATION_PRESETS = [

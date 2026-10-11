@@ -11,8 +11,7 @@ import {
 } from 'lucide-react';
 import { billingApi, type PaymentProvider } from '@modules/billing/billing/api/billing.api';
 import { stripeApi } from '@integrations/stripe/api/stripe.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import { paymentProviderConfig, formatDate, getDaysUntilDue } from '../components/helpers';

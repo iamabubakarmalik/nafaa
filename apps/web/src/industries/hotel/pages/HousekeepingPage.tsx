@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { housekeepingApi } from '../api/housekeeping.api';
 import { roomsApi } from '../api/rooms.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format, differenceInMinutes } from 'date-fns';
 

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Users, Plus, Search, Beef, Weight, Building2, Crown, Star } from 'lucide-react';
 import { customersApi, type CustomersListParams } from '@modules/customers/customers/api/customers.api';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import { CustomersHero, CustomerStatCard, CustomerCard } from '@modules/customers/customers/components/shared/CustomerShared';

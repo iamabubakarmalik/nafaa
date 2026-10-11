@@ -6,8 +6,7 @@ import {
   Smartphone, Award, Activity, ArrowRight, KeyRound,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { authApi } from '@modules/auth/api/auth.api';
 import { isValidPakistanPhone, normalizePakistanPhone } from '@core/lib/phone';

@@ -24,7 +24,7 @@ import { emiApi } from '@industries/mobile/api/emi.api';
 import { mobileReportsApi, type ProfitSourceKey } from '@industries/mobile/api/mobile-reports.api';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { SubscriptionBanner } from '@modules/dashboard/components/SubscriptionBanner';
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';

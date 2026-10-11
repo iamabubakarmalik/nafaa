@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { catalogApi } from '../api/catalog.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { ErrorBoundary } from '@core/components/error/ErrorBoundary';
 
 const BIZ_EMOJI: Record<string, string> = {

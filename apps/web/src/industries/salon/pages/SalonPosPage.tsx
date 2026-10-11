@@ -8,7 +8,7 @@ import {
   ReceiptText, Send, Save, TrendingUp, Heart, AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { salonServicesApi, type SalonService, type ServiceCategory } from '../api/services.api';

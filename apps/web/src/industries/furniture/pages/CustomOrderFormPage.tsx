@@ -11,7 +11,7 @@ import { customOrdersApi } from '../api/custom-orders.api';
 import { carpentersApi } from '../api/carpenters.api';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 export default function CustomOrderFormPage() {

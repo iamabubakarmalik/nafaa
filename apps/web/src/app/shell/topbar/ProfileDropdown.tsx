@@ -6,7 +6,8 @@ import {
 } from 'lucide-react';
 import { useAppearanceStore } from '@/design-system';
 import { cn } from '@core/lib/cn';
-import { Avatar, Panel, useDismiss } from '../ui';
+import { Avatar } from '@/design-system/components';
+import { Panel, useDismiss } from '../ui';
 
 interface Props {
   user: any;

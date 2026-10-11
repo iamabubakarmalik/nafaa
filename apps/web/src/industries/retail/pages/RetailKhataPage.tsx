@@ -14,7 +14,7 @@ import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCu
 import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.api';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { AppLockGate } from '@core/security/AppLockGate';
 import { useAuthStore } from '@core/stores/auth.store';

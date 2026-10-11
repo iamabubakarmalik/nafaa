@@ -14,7 +14,7 @@ import { dashboardApi } from '@modules/dashboard/api/dashboard.api';
 import { dairyCustomersApi } from '../api/customers.api';
 import { routesApi as dairyRoutesApi } from '../api/routes.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import {
   DashboardHero, HeroKpiCard, QuickStat, PnLCard,
   formatPercent, formatDate, PAYMENT_COLORS,

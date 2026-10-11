@@ -3,7 +3,7 @@ import {
   Package, Plus, Trash2, AlertCircle, ToggleLeft, ToggleRight,
   Boxes, MapPin, Barcode, Sparkles, Upload, CheckCircle2, Calendar,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type {
   ApplianceWizardBasic, ApplianceWizardVariant,

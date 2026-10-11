@@ -18,7 +18,7 @@ import { ingredientsApi, type Ingredient } from '../api/ingredients.api';
 import { suppliersApi } from '@modules/purchasing/suppliers/api/suppliers.api';
 import { useShopParam } from '@core/stores/auth.store';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════

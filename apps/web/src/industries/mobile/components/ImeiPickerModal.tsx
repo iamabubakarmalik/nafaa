@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { imeiApi, type ProductImei, type PtaStatus } from '../api/imei.api';
 import { PtaStatusBadge } from './PtaStatusBadge';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 
 interface Props {

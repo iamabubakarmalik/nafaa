@@ -1,8 +1,7 @@
 import {
   ArrowLeftRight, RotateCcw, Layers, Scissors, AlertTriangle, CheckCircle2,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { ReturnCartLine } from './ReturnCartLine';
 import type { ReturnLine } from './return-types';

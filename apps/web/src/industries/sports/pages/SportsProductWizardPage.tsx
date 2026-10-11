@@ -6,7 +6,7 @@ import {
   Plus, AlertTriangle, Trash2, Eye, Edit3,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useSportsWizard, type WizardStep } from '../hooks/useSportsWizard';
 import { SportsWizardStepper } from '../components/wizard/SportsWizardStepper';
 import { SportsWizardStep1Basic } from '../components/wizard/SportsWizardStep1Basic';

@@ -16,7 +16,7 @@ import { productionApi, type ProductionPlan, type ProductionItem } from '../api/
 import { freshnessApi } from '../api/freshness.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════

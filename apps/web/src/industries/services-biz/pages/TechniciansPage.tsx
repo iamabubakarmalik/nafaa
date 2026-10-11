@@ -8,7 +8,7 @@ import {
 import { techniciansApi, type Technician, type TechStatus } from '../api/technicians.api';
 import { catalogApi } from '../api/catalog.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { apiClient } from '@core/api/client';

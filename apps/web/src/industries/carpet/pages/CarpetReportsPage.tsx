@@ -14,7 +14,7 @@ import {
   ArrowUpRight, ArrowDownRight, CheckCircle2, Zap, Flame, Snowflake, Crown,
   BarChart2, LineChart as LineIcon,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { carpetReportsApi } from '../api/carpet-reports.api';
 

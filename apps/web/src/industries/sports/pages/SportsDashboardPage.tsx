@@ -13,7 +13,7 @@ import { sportsDashboardApi } from '../api/dashboard.api';
 import { teamOrdersApi } from '../api/team-orders.api';
 import { repairServicesApi } from '../api/repair-services.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 export default function SportsDashboardPage() {

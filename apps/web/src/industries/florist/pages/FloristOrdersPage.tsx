@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { floristOrdersApi, type FloristOrderStatus } from '../api/orders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const STATUS_META: Record<FloristOrderStatus, { l: string; cls: string; icon: any }> = {
   DRAFT: { l: 'Draft', cls: 'bg-slate-100 text-slate-700', icon: Clock },

@@ -6,7 +6,7 @@ import {
 import { damageApi, type DamageReasonCode } from '../api/damage.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 

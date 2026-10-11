@@ -9,7 +9,7 @@ import { reviewsApi, type ShopReview } from '../shared/marketplace.api';
 import { relativeTime } from '../shared/status-utils';
 import { getIndustryTheme } from '../shared/industry-themes';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 type Filter = 'all' | 'unresponded' | 'positive' | 'negative';
 

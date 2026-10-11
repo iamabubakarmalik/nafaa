@@ -7,7 +7,7 @@ import {
 import { wholesaleApi, type WholesaleAccount } from '../api/wholesale.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const BUSINESS_TYPES = ['Restaurant', 'Hotel', 'Catering', 'Institution', 'Grocery', 'Wholesaler', 'Other'];

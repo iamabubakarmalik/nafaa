@@ -3,7 +3,7 @@ import {
   Sparkles, Zap, Battery, Ruler, Snowflake, Wind, Refrigerator,
   Wrench, Monitor, Plus, X,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { ApplianceWizardSpecs } from '../../hooks/useApplianceWizard';
 
 interface Props {

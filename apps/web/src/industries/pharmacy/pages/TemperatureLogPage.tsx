@@ -5,7 +5,7 @@ import {
   CheckCircle2, AlertTriangle, Droplets, TrendingDown, TrendingUp,
 } from 'lucide-react';
 import { temperatureApi } from '../api/temperature.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 

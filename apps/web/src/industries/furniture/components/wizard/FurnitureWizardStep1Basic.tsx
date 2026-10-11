@@ -6,7 +6,7 @@ import {
   Zap, Tag, MapPin, Leaf, Hammer, Palette, Building2,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';

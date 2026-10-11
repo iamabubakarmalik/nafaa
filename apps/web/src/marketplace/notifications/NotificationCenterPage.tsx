@@ -11,7 +11,7 @@ import { notificationsApi, type BizNotificationType, type NotificationPriority }
 import { getIndustryTheme } from '../shared/industry-themes';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { relativeTime } from '../shared/status-utils';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const TYPE_META: Record<BizNotificationType, { icon: any; color: string; bg: string }> = {
   NEW_ORDER:            { icon: ShoppingCart,   color: 'text-emerald-700', bg: 'bg-emerald-100' },

@@ -14,7 +14,7 @@ import { dashboardApi } from '@modules/dashboard/api/dashboard.api';
 import { medicinesApi } from '../api/medicines.api';
 import { batchesApi } from '../api/batches.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { SubscriptionBanner } from '@modules/dashboard/components/SubscriptionBanner';
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
 import {

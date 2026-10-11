@@ -9,8 +9,7 @@ import { Store, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import { authApi } from '@modules/auth/api/auth.api';
 import { onboardingApi } from '@modules/onboarding/api/onboarding.api';
 import { useAuthStore } from '@core/stores/auth.store';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 
 const schema = z.object({
   shopName: z.string().min(2, 'Shop ka naam likhein (min 2 chars)'),

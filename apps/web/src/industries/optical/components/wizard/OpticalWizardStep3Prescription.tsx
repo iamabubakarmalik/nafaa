@@ -1,5 +1,5 @@
 import { Eye, Info, AlertCircle, TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { OpticalWizardLens } from '../../hooks/useOpticalWizard';
 
 interface Props {

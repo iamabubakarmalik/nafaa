@@ -8,7 +8,7 @@ import {
   MessageCircle, AlertCircle, Banknote, RefreshCw,
   GraduationCap, X, Copy, Sparkles,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import {

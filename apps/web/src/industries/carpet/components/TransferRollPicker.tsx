@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   X, Layers, Search, AlertCircle, Check, MapPin, Ruler, ArrowRight,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { carpetRollsApi, type CarpetRoll } from '@industries/carpet/api/carpet-rolls.api';
 import type { Product } from '@modules/inventory/products/api/products.api';

@@ -11,7 +11,7 @@ import { cakeOrdersApi } from '../api/cake-orders.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { SIZES, SHAPES, FLAVORS, CREAMS, OCCASIONS } from '../api/constants';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 

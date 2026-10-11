@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { notificationsApi, type NotificationType, type Notification } from '@modules/notifications/api/notifications.api';
 import { useNotificationSound } from '@core/hooks/useNotificationSound';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { useAuthStore } from '@core/stores/auth.store';
 

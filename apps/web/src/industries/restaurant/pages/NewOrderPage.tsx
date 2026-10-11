@@ -13,7 +13,7 @@ import { modifiersApi, type ModifierGroup, type ModifierOption } from '../api/mo
 import { tablesApi } from '../api/tables.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const MODES: { value: OrderMode; label: string; icon: any; color: string }[] = [

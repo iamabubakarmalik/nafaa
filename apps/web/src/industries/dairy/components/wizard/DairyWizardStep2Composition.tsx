@@ -2,7 +2,7 @@ import {
   Beaker, Award, Thermometer, Sparkles, AlertCircle, Info,
   Droplets, Leaf, ShieldCheck, Snowflake, Clock, Calendar,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { DairyWizardComposition } from '../../hooks/useDairyWizard';
 import type { MilkQuality } from '../../api/products.api';
 

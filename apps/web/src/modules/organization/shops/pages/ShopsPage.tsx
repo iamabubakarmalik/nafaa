@@ -8,8 +8,7 @@ import {
 } from 'lucide-react';
 import { shopsApi, type Shop, type ShopType } from '@modules/organization/shops/api/shops.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';
 

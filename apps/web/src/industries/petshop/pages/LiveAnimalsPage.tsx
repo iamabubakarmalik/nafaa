@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { liveAnimalsApi, type PetSaleStatus } from '../api/live-animals.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const SPECIES = [
   { v: 'DOG', l: 'Dog', e: '🐕' },

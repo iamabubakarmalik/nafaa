@@ -7,7 +7,7 @@ import {
 import { toast } from 'sonner';
 import { carpentersApi, type FurnitureCarpenter } from '../api/carpenters.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const SPECIALIZATIONS = [

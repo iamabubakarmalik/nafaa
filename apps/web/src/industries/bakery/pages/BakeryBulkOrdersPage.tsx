@@ -16,7 +16,7 @@ import { bulkOrdersApi, type BulkOrder } from '../api/bulk-orders.api';
 import { OrderDeliverModal, billedSaleId, printOrderSlip, type OrderForBill } from '../components/OrderDeliverModal';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Copy, CreditCard, MessageCircle } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { apiErrorMessage, paymentsApi, type OnlineOrderDetail, type OrderPaymentLink } from '../api/online-orders.api';
 import { rs, waNumber, whenText } from '../lib/labels';
 import { inputCls } from './ui/kit';

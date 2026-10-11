@@ -8,7 +8,7 @@ import { packagesApi, type Package as SalonPkg } from '../api/packages.api';
 import { salonServicesApi } from '../api/services.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { format, differenceInDays } from 'date-fns';

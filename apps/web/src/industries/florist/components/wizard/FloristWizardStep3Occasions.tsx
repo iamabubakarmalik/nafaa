@@ -4,7 +4,7 @@ import {
   Gift, Cake, Baby, GraduationCap, Church, HeartCrack,
   Info, Wand2, AlertCircle,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { FloristWizardOccasions } from '../../hooks/useFloristWizard';
 
 interface Props {

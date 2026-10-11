@@ -10,7 +10,7 @@ import { salonCustomerProfilesApi, type SalonCustomerProfile } from '../api/cust
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { staffProfilesApi } from '../api/staff-profiles.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

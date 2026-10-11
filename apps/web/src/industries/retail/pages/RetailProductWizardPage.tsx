@@ -7,7 +7,7 @@ import {
   Package, Layers, Keyboard,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useRetailWizard, type WizardStep } from '../hooks/useRetailWizard';
 import { RetailWizardStepper } from '../components/wizard/RetailWizardStepper';
 import { RetailWizardStep1Basic } from '../components/wizard/RetailWizardStep1Basic';

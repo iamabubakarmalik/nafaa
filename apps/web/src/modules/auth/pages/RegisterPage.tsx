@@ -11,8 +11,7 @@ import {
 } from 'lucide-react';
 import { authApi } from '@modules/auth/api/auth.api';
 import { useAuthStore } from '@core/stores/auth.store';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { Logo } from '@core/components/brand/Logo';
 
 const schema = z.object({

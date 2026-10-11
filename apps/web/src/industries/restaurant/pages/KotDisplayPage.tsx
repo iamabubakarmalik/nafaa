@@ -6,7 +6,7 @@ import {
   ArrowRight, Package, Flame,
 } from 'lucide-react';
 import { kotApi, type Kot, type KotStatus } from '../api/kot.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const STATUS_CONFIG: Record<KotStatus, { label: string; bg: string; border: string; text: string; next?: KotStatus }> = {

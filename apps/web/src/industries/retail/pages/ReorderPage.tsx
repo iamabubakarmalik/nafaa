@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { reorderApi, type ReorderSuggestion } from '../api/reorder.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';

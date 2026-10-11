@@ -3,7 +3,7 @@ import {
   Palette, TreePine, Sparkles, Droplets, Shield, Hammer,
   Truck, Clock, AlertCircle, Wrench, Bug, Leaf, Info, X, Plus,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type { FurnitureWizardMaterials, FurnitureWizardDelivery } from '../../hooks/useFurnitureWizard';
 

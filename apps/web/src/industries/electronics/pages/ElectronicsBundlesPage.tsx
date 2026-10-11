@@ -9,7 +9,7 @@ import {
   Wallet, ArrowRight, Loader2, CalendarClock, AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
 import { PrintStyles } from '@core/components/print/PrintStyles';

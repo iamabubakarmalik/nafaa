@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Heart, Users, Clock, AlertTriangle, ArrowRight, ArrowLeft, Info, ShieldCheck, Plus, X } from 'lucide-react';
-import { Input } from '@core/ui/Input';
-import { Button } from '@core/ui/Button';
+import { Input, Button } from '@/design-system/components';
 import type { GymWizardMedical } from '../../hooks/useGymMemberWizard';
 
 const COMMON_ALLERGIES = ['Peanuts', 'Dairy', 'Gluten', 'Shellfish', 'Eggs', 'Soy', 'Latex', 'Sulfa'];

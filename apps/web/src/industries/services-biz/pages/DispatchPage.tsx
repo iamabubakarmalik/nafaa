@@ -6,7 +6,7 @@ import {
   Zap, Truck, CheckCircle2,
 } from 'lucide-react';
 import { dispatchApi } from '../api/dispatch.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format } from 'date-fns';
 
 export default function DispatchPage() {

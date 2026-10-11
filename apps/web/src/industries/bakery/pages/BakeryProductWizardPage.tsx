@@ -29,8 +29,7 @@ import { UNITS, deriveSize, extraUnitsFor, isWeighed, priceField, rateBetween, u
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { UploadDropzone } from '@core/components/uploads';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { categoriesApi, type Category } from '@modules/inventory/categories/api/categories.api';
 import { productImagesApi } from '@modules/inventory/products/api/product-images.api';

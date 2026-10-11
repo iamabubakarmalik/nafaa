@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dumbbell, Search, X, Users, UserPlus, LogIn, Award, Flame, Calendar, DollarSign, CheckCircle2, Scan, Star, Clock, Target, TrendingUp, Zap, Sparkles, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { customersApi } from '@modules/customers/customers/api/customers.api';

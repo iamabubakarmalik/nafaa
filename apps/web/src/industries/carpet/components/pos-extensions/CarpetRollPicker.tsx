@@ -6,7 +6,7 @@ import {
   Sparkles, Award, ChevronLeft, Package, TrendingDown,
   Filter, SortAsc, Ruler, Calculator, Grid3x3, List,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { carpetRollsApi, type CarpetRoll } from '@industries/carpet/api/carpet-rolls.api';
 import type { Product } from '@modules/inventory/products/api/products.api';

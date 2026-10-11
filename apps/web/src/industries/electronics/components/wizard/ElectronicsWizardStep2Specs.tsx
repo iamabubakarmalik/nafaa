@@ -3,7 +3,7 @@ import {
   Sparkles, Wifi, Battery, Monitor, Ruler, Droplets, Cable, Plus, X,
   Check, ChevronDown, ChevronUp, Lightbulb, Eye, EyeOff,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { ElectronicsWizardSpecs } from '../../hooks/useElectronicsWizard';
 import { CATEGORY_META, type CategoryType } from '../../constants';
 

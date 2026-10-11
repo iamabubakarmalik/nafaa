@@ -9,7 +9,7 @@ import {
 import { cakeOrdersApi, type BakeryOrderStatus } from '../api/cake-orders.api';
 import { CATEGORY_EMOJI, OCCASION_EMOJI, FLAVORS, SIZES, SHAPES, CREAMS } from '../api/constants';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

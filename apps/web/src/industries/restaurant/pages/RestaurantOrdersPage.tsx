@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { ordersApi, type RestaurantOrder, type OrderStatus, type OrderMode } from '../api/orders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const MODE_CONFIG: Record<OrderMode, { label: string; icon: any; color: string; bg: string }> = {

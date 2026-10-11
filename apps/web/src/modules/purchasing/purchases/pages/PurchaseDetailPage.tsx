@@ -7,7 +7,7 @@ import {
   Zap, Building, ShoppingCart, Phone, Mail, MapPin, Hash,
   TrendingUp, ArrowRight, Award, Sparkles,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { purchasesApi } from '@modules/purchasing/purchases/api/purchases.api';
 

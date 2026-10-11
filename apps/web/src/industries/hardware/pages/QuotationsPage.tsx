@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { quotationsApi, type QuotationStatus } from '../api/quotations.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format, differenceInDays } from 'date-fns';
 
 const STATUS_CONFIG: Record<QuotationStatus, { label: string; color: string }> = {

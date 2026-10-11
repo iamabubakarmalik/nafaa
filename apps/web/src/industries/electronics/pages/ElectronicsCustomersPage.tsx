@@ -8,7 +8,7 @@ import {
   FileSpreadsheet, Printer, TrendingUp, Cpu,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { PrintStyles } from '@core/components/print/PrintStyles';
 import { useAuthStore } from '@core/stores/auth.store';

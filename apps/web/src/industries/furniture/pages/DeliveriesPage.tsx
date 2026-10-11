@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner';
 import { deliveriesApi, type FurnitureDeliveryStatus } from '../api/deliveries.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const STATUS_META: Record<FurnitureDeliveryStatus, { label: string; color: string; bg: string; icon: any }> = {

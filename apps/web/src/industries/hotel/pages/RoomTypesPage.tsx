@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { roomTypesApi, type RoomType, type BedType, type HotelRoomType } from '../api/room-types.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 

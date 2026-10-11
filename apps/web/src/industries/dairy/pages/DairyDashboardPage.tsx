@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { dairyDashboardApi } from '../api/dashboard.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 export default function DairyDashboardPage() {
   const { data: overview, isLoading, refetch, isRefetching } = useQuery({

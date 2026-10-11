@@ -7,7 +7,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Lock, ArrowRight, CheckCircle2, XCircle, Eye, EyeOff } from 'lucide-react';
 import { authApi } from '@modules/auth/api/auth.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { Logo } from '@core/components/brand/Logo';
 
 const schema = z

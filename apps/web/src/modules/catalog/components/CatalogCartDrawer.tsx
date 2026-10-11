@@ -4,7 +4,7 @@ import {
   User, Phone, MapPin, StickyNote, CheckCircle2, Package,
 } from 'lucide-react';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import type { useCatalogCart } from '../hooks/useCatalogCart';
 

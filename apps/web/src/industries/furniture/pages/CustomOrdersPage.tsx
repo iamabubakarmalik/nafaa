@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { customOrdersApi, type FurnitureOrderStatus } from '../api/custom-orders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const STATUS_META: Record<FurnitureOrderStatus, { label: string; color: string; bg: string; icon: any }> = {
   QUOTATION: { label: 'Quotation', color: 'text-slate-700', bg: 'bg-slate-100', icon: ClipboardList },

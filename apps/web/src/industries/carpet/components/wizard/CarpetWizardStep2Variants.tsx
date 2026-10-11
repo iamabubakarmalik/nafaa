@@ -3,7 +3,7 @@ import {
   Palette, Plus, X, AlertCircle, Sparkles, Info, ToggleLeft, ToggleRight,
   Layers, Package, Ruler,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { QuickColorChip } from './QuickColorChip';
 import { VariantEditPanel } from './VariantEditPanel';
 import type { CarpetWizardBasic, CarpetWizardVariant } from '../../hooks/useCarpetWizard';

@@ -3,7 +3,7 @@ import {
   Milk, DollarSign, Image as ImageIcon, Sparkles, Star, Eye,
   TrendingUp, Hash, AlertCircle, Percent, Tag, Award, Package,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';

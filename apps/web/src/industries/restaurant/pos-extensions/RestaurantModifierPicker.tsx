@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { X, Plus, ChefHat, Info } from 'lucide-react';
 import { menuItemsApi } from '@industries/restaurant/api/menu-items.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 interface Props {
   productId: string;

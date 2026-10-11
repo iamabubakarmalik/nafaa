@@ -10,7 +10,7 @@ import { gymMembersApi } from '../api/members.api';
 import { measurementsApi } from '../api/measurements.api';
 import { workoutsApi } from '../api/workouts.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { format, differenceInMinutes, differenceInDays } from 'date-fns';

@@ -1,10 +1,10 @@
-/** User avatar: the uploaded photo, or the first initial on the brand color. */
+/** User or customer avatar: the photo, or the first initial on the brand color. */
 
 import { cn } from '@core/lib/cn';
 
 interface AvatarProps {
   name?: string;
-  url?: string;
+  url?: string | null;
   size?: number;
   className?: string;
 }

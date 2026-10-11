@@ -5,7 +5,7 @@ import {
   ToggleLeft, ToggleRight, Info, DollarSign, Clock, ChefHat,
   Sparkles,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import type {

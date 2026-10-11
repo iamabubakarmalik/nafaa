@@ -6,7 +6,7 @@ import {
   Crown, Star, TrendingUp, Award, Filter, Stethoscope,
 } from 'lucide-react';
 import { customersApi, type CustomersListParams } from '@modules/customers/customers/api/customers.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import { CustomersHero, CustomerStatCard, CustomerCard } from '@modules/customers/customers/components/shared/CustomerShared';

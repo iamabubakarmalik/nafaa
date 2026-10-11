@@ -13,7 +13,7 @@ import { furnitureDashboardApi } from '../api/dashboard.api';
 import { customOrdersApi } from '../api/custom-orders.api';
 import { deliveriesApi } from '../api/deliveries.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 export default function FurnitureDashboardPage() {

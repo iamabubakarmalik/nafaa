@@ -6,8 +6,7 @@ import {
   ChevronRight, Grid3x3, List, Import, GraduationCap, Printer,
 } from 'lucide-react';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { toast } from 'sonner';
 import { useIndustryPresets } from '@industries/_shared/presets';
 

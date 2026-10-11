@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { menuItemsApi } from '../api/menu-items.api';
 import { modifiersApi } from '../api/modifiers.api';
 import { useAuthStore } from '@core/stores/auth.store';

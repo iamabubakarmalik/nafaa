@@ -4,7 +4,7 @@ import {
   Trophy, Package, DollarSign, TrendingUp, Percent, AlertCircle,
   ChevronDown, ChevronUp, Info, Award,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type { ShoeWizardFeatures, ShoeWizardWarranty, ShoeWizardPricing } from '../../hooks/useShoeWizard';
 

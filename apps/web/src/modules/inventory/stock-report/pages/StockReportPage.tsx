@@ -10,7 +10,7 @@ import { stockReportApi, type StockReportFilters, type StockStatus } from '@modu
 import { ExpandableProductRow } from '../components/ExpandableProductRow';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 
 const statusConfig: Record<StockStatus, { label: string; color: string; bg: string; icon: any }> = {

@@ -9,7 +9,7 @@ import {
   Database, Info, Zap, ChevronRight, TrendingUp, DollarSign,
   Tag as TagIcon, Building2, Hash,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKRFull, formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import {

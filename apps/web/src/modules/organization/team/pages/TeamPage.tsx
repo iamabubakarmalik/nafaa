@@ -9,8 +9,7 @@ import {
 } from 'lucide-react';
 import { teamApi, type UserRole, type TeamMember } from '@modules/organization/team/api/team.api';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';

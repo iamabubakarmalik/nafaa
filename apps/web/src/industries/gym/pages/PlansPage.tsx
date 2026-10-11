@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { membershipPlansApi, type PlanType, type MembershipPlan } from '../api/membership-plans.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const PLAN_TYPES: { value: PlanType; label: string; emoji: string; gradient: string }[] = [

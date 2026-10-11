@@ -3,7 +3,7 @@ import {
   Plus, Wand2, Palette, Ruler, Sparkles, X, Zap, CheckCircle2,
   ArrowRight, Trash2,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import type { UpsertVariantPayload } from '@modules/inventory/products/api/product-variants.api';
 
 const COLOR_PRESETS = [

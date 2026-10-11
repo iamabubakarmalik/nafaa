@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { shoeTryOnApi } from '../api/try-on.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const STATUS_META: Record<string, { label: string; bg: string; color: string }> = {
   PENDING: { label: 'Pending', bg: 'bg-amber-100', color: 'text-amber-700' },

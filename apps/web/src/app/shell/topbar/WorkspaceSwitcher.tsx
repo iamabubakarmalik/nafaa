@@ -13,7 +13,8 @@ import { useWorkspaceStore, WORKSPACES, type WorkspaceId } from '@core/stores/wo
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { cn } from '@core/lib/cn';
 import { BrandMark } from '../sidebar/BrandMark';
-import { Kbd, Panel, useDismiss } from '../ui';
+import { Kbd } from '@/design-system/components';
+import { Panel, useDismiss } from '../ui';
 
 const POS_ROUTES = ['/dashboard', '/pos', '/products', '/customers', '/sales', '/inventory'];
 

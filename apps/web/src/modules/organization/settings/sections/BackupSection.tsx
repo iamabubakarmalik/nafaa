@@ -7,7 +7,7 @@ import {
   FileSpreadsheet, FileText, Check, Loader2, CalendarClock,
 } from 'lucide-react';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { SectionCard, ChoiceGroup, Alert, Divider } from '../components/UI';
 
 const ENTITIES: { key: string; label: string; icon: any; color: string; desc: string }[] = [

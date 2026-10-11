@@ -11,8 +11,7 @@ import { eyeTestsApi } from '../api/eye-tests.api';
 import { optometristsApi } from '../api/optometrists.api';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: any }> = {
   SCHEDULED: { label: 'Scheduled', color: 'text-amber-700', bg: 'bg-amber-100', icon: Clock },

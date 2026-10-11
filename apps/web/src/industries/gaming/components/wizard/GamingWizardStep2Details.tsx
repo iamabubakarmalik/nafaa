@@ -3,7 +3,7 @@ import {
   Sparkles, Users, Globe, Wifi, HardDrive, Cpu, Monitor,
   Video, Plus, X, Package, Fan, Zap, Calendar, Info,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import type { GamingWizardDetails } from '../../hooks/useGamingWizard';
 import { isGameCategory, isConsoleCategory, isPcPartCategory } from '../../hooks/useGamingWizard';

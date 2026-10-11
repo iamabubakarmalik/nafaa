@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Sparkles, Trash2, X, CheckCircle2, Dumbbell } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { gymMembersApi } from '../api/members.api';
 import { useGymMemberWizard } from '../hooks/useGymMemberWizard';
 import { useGymMemberWizardSubmit } from '../hooks/useGymMemberWizardSubmit';

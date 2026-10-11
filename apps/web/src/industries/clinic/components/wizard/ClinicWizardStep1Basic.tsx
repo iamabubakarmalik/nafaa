@@ -3,8 +3,7 @@ import {
   Package, DollarSign, Image as ImageIcon, Eye, Star, Zap,
   Sparkles, Tag, ArrowRight, AlertTriangle, Info, X, Stethoscope, Clock,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
-import { Button } from '@core/ui/Button';
+import { Input, Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';

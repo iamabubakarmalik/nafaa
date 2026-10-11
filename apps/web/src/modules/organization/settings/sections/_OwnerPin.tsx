@@ -6,7 +6,7 @@ import {
   Globe, Clock, Loader2, Search, X, Eye, EyeOff, Smartphone, Save,
 } from 'lucide-react';
 import { SectionCard, Alert, Field } from '../components/UI';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { usePrivacyStore } from '@core/stores/privacy.store';
 import { securityApi } from '@core/security/security.api';
 import { PinSetupModal, PinPromptModal } from '@core/security/HiddenValue';

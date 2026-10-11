@@ -9,7 +9,7 @@ import { appointmentsApi } from '../api/appointments.api';
 import { salonServicesApi } from '../api/services.api';
 import { staffProfilesApi } from '../api/staff-profiles.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import { format, addMinutes } from 'date-fns';

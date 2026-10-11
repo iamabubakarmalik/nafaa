@@ -7,7 +7,7 @@ import {
   Copy, Trash2, GraduationCap, FileUp, MousePointerClick,
 } from 'lucide-react';
 import { bulkImportApi, type BulkImportJob, type BulkImportRow } from '../api/bulk-import.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 /* ═════════════════════════════════════════════════════════════

@@ -7,7 +7,7 @@ import {
 import { toast } from 'sonner';
 import { gamingStationsApi, type GamingStation, type GamingStationType } from '../api/stations.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const STATION_TYPES: Array<{ v: GamingStationType; l: string; e: string }> = [

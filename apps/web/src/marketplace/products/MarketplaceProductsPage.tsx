@@ -12,7 +12,7 @@ import { productPublishingApi, type ListMktProductsParams } from '../shared/mark
 import { getIndustryTheme } from '../shared/industry-themes';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import type { MarketplaceProductProfile } from '../shared/types';
 
 type Filter = 'all' | 'listed' | 'unlisted';

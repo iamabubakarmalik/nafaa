@@ -9,7 +9,7 @@ import {
 import { hardwareProductsApi, type CategoryType, type Unit } from '../api/products.api';
 import { hardwareBrandsApi } from '../api/brands.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const CATEGORIES: { value: CategoryType; label: string; emoji: string; group: string }[] = [

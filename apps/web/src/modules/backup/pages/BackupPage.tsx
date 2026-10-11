@@ -7,7 +7,7 @@ import {
   CalendarClock, FileText, FolderArchive, RotateCcw,
 } from 'lucide-react';
 import { backupApi } from '@modules/backup/api/backup.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';
 

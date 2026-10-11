@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { shopProfileApi } from '../shared/marketplace.api';
 import type { MarketplaceShopProfile } from '../shared/types';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { getIndustryTheme } from '../shared/industry-themes';
 

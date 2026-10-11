@@ -10,7 +10,7 @@ import { settingsHubApi, type MarketplaceSettings } from '../shared/marketplace.
 import { getIndustryTheme } from '../shared/industry-themes';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { relativeTime } from '../shared/status-utils';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 type SectionKey = 'integrations' | 'tax' | 'fees' | 'policies' | 'webhooks' | 'blacklist' | 'audit';
 

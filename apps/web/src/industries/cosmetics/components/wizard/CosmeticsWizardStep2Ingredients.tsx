@@ -3,7 +3,7 @@ import {
   Droplet, Users, Sun, Heart, Package, Plus, X, Info,
   BookOpen, AlertTriangle, Sparkles,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { CosmeticsWizardIngredients } from '../../hooks/useCosmeticsWizard';
 
 interface Props {

@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { repairServicesApi, type SportsRepairService } from '../api/repair-services.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: any }> = {

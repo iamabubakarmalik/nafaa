@@ -14,7 +14,7 @@ import {
   XAxis, YAxis, Tooltip, CartesianGrid, Legend,
 } from 'recharts';
 import { referralsApi } from '@modules/customers/referrals/api/referrals.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 

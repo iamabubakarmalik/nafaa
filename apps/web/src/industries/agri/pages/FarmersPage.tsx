@@ -15,7 +15,7 @@ import {
 import { toast } from 'sonner';
 import { farmersApi, type Farmer } from '../api/farmers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { useAuthStore } from '@core/stores/auth.store';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';

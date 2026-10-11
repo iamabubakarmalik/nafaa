@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { doctorsApi, type Specialty, type Doctor } from '../api/doctors.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { apiClient } from '@core/api/client';

@@ -7,8 +7,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { liveAnimalsApi } from '../api/live-animals.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const SPECIES = [

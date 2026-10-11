@@ -4,9 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { X, Check, Loader2, Sparkles, ExternalLink } from 'lucide-react';
 import { integrationsApi, type AvailableIntegration } from '../api/integrations.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
-import { Modal } from '@core/ui/Modal';
+import { Button, Input, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 
 const CATEGORY_LABELS: Record<string, string> = {

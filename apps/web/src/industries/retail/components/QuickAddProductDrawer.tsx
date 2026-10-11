@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { productsApi } from '@modules/inventory/products/api/products.api';

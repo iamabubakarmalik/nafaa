@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { authApi } from '@modules/auth/api/auth.api';
 import { useAuthStore } from '@core/stores/auth.store';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 function formatRelativeTime(date: string | Date): string {
   const d = new Date(date);

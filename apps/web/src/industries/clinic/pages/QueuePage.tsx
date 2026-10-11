@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { appointmentsApi } from '../api/appointments.api';
 import { doctorsApi } from '../api/doctors.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format, differenceInYears } from 'date-fns';
 

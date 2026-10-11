@@ -2,7 +2,7 @@ import {
   Pill, ToggleLeft, ToggleRight, Calendar, AlertTriangle,
   FileText, Thermometer, Syringe, Hash, AlertCircle,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { PetshopWizardMedicine } from '../../hooks/usePetshopWizard';
 import { isMedicineCategory } from '../../hooks/usePetshopWizard';
 

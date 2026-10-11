@@ -1,5 +1,5 @@
 import { Cable, MapPin, StickyNote, AlertTriangle, Package } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type { MobileWizardBasic, MobileWizardAccessoryStock } from '../../hooks/useMobileWizard';
 

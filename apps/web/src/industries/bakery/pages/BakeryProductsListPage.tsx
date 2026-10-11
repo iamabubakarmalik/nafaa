@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 import { toast } from 'sonner';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productsApi } from '@modules/inventory/products/api/products.api';

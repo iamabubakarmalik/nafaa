@@ -24,7 +24,7 @@ import { ReturnModal } from '@industries/retail/components/ReturnModal';
 import { resolveTemplates, fillTemplate, waLink } from '@core/lib/whatsapp/templates';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useBusinessDay } from '@core/lib/business-day';

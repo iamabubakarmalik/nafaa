@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 import { Menu, Search } from 'lucide-react';
 import { DesktopReloadButton } from '@modules/desktop/components/DesktopReloadButton';
 import { useWorkspaceStore } from '@core/stores/workspace.store';
-import { IconButton } from '../ui';
+import { IconButton } from '@/design-system/components';
 import { GlobalSearchTrigger, useGlobalSearch } from './GlobalSearch';
 import NotificationBell from './NotificationBell';
 import ShopSelector from './ShopSelector';

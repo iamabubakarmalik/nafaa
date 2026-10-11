@@ -5,7 +5,7 @@ import {
   Award, Users, ArrowUp, ArrowDown, Copy,
 } from 'lucide-react';
 import { sizeChartsApi, type SizeChart } from '../api/size-charts.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const CATEGORY_TYPES = [

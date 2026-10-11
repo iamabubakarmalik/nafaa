@@ -6,7 +6,7 @@ import {
   Sparkles, Sunrise, Sunset, Users, Milk, Truck, User, Clock, MapPin,
 } from 'lucide-react';
 import { routesApi, type DairyRoute } from '../api/routes.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { apiClient } from '@core/api/client';
 

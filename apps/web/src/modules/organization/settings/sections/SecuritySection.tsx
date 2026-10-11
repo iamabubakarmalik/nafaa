@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { settingsApi, type SecurityScore } from '@modules/organization/settings/api/settings.api';
 import { Field, NumberInput, Toggle, SectionCard, Alert, Divider } from '../components/UI';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
 import { SaveStatusBar } from './_SaveStatus';

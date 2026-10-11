@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { apiErrorMessage, onlineOrdersApi } from '../../api/online-orders.api';
 import { CHANNELS_KEY } from '../../hooks/useSalesChannels';
 import { cn } from '@core/lib/cn';

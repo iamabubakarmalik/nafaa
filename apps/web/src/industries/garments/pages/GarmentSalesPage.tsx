@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useSalesPrivacy } from '@modules/sales/sales/hooks/useSalesPrivacy';
 import { SalesPrivacyModal } from '@modules/sales/sales/components/SalesPrivacyModal';
 import { HiddenAmount } from '@modules/sales/sales/components/HiddenAmount';

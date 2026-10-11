@@ -7,7 +7,7 @@ import {
 import { farmerSuppliesApi } from '../api/farmer-supplies.api';
 import { farmersApi } from '../api/farmers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 

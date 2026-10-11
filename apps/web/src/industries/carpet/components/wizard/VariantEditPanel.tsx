@@ -4,7 +4,7 @@ import {
   ChevronDown, ChevronUp, RotateCcw, Eye, EyeOff, StickyNote,
   Layers, Package, Ruler,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
 import { formatPKRFull } from '@core/lib/format';
 import type {

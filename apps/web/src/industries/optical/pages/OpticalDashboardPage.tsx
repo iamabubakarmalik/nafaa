@@ -15,7 +15,7 @@ import { prescriptionsApi } from '../api/prescriptions.api';
 import { eyeTestsApi } from '../api/eye-tests.api';
 import { lensOrdersApi } from '../api/lens-orders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 export default function OpticalDashboardPage() {

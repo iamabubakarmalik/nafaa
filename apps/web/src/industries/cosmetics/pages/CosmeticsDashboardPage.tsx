@@ -12,7 +12,7 @@ import {
 import { cosmeticsDashboardApi } from '../api/dashboard.api';
 import { cosmeticsBatchesApi } from '../api/batches.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { PrivacyToggle } from '@/core/security/HiddenValue';
 
 export default function CosmeticsDashboardPage() {

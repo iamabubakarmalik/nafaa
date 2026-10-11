@@ -9,7 +9,7 @@ import {
 import { damageApi, type DamageLog, type DamageReasonCode } from '../api/damage.api';
 import { formatPKR } from '@core/lib/format';
 import { DamageCreateModal } from '../components/DamageCreateModal';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';

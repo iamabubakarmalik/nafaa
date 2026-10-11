@@ -7,7 +7,7 @@ import {
 import { classesApi, type ClassType, type ClassStatus, type GymClass } from '../api/classes.api';
 import { trainersApi } from '../api/trainers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { format, differenceInMinutes } from 'date-fns';

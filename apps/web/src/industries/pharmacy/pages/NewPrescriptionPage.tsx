@@ -10,7 +10,7 @@ import { prescriptionsApi, type PrescriptionType, type PrescriptionItem, type Re
 import { doctorsApi } from '../api/doctors.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 

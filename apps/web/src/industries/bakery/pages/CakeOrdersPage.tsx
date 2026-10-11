@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { cakeOrdersApi, type CakeOrder } from '../api/cake-orders.api';
 import { OrderDeliverModal, billedSaleId, printOrderSlip, type OrderForBill } from '../components/OrderDeliverModal';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════

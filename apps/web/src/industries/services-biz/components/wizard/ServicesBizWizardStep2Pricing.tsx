@@ -2,7 +2,7 @@ import {
   DollarSign, Zap, ArrowRight, ArrowLeft, AlertTriangle, Info,
   FileText, Wallet, TrendingUp, Home, Truck, Moon, Sun, CalendarClock,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import type { ServicesBizPricing } from '../../hooks/useServicesBizWizard';
 
 const CHARGE_TYPES = [

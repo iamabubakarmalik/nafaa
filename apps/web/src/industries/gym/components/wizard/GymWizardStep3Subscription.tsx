@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { CreditCard, Camera, Target, Save, ArrowLeft, Info, AlertTriangle, Star, Sparkles, X, DollarSign } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { membershipPlansApi } from '../../api/membership-plans.api';

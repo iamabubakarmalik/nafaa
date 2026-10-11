@@ -8,7 +8,7 @@ import {
   CheckCircle2, XCircle, Receipt, History,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { shoeProductsApi } from '../api/products.api';

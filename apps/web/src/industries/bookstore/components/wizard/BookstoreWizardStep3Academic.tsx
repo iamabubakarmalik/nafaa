@@ -3,7 +3,7 @@ import {
   ToggleLeft, ToggleRight, Award, TrendingUp, Star, School,
   Zap, Users, Info,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type {
   BookstoreWizardBookDetails, BookstoreWizardStationeryDetails,

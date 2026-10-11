@@ -3,7 +3,7 @@ import {
   Home, Plus, Trash2, AlertCircle, ToggleLeft, ToggleRight,
   Info, Zap, Grid3x3, Building, Wand2, RefreshCw,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type {
   HotelWizardBasic, HotelWizardRooms, HotelWizardRoomEntry,

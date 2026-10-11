@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { authApi } from '@modules/auth/api/auth.api';
 import { useAuthStore } from '@core/stores/auth.store';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 export default function AccountSecurity() {
   const navigate = useNavigate();

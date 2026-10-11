@@ -8,7 +8,7 @@ import {
   Crown, Star, MapPin, Phone, Utensils,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
 import { roomTypesApi } from '../api/room-types.api';

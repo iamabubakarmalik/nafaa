@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { amcApi, type AmcContract } from '../api/amc.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format, differenceInDays } from 'date-fns';
 

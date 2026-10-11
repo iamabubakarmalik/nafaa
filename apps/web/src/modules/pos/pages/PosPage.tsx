@@ -13,7 +13,7 @@ import { productVariantsApi, type ProductVariant } from '@modules/inventory/prod
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import type { PaymentMethod, ServiceChargeItem } from '@modules/sales/sales/api/sales.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';

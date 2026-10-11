@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { useCatalogCart } from '@modules/catalog/hooks/useCatalogCart';
 import { useWishlist } from '@modules/catalog/hooks/useWishlist';

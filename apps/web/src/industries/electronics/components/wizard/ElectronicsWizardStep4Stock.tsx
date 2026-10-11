@@ -5,7 +5,7 @@ import {
   Copy, TrendingUp, Wallet, Lightbulb, ShieldCheck, ScanLine, Camera, X,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { formatPKRFull } from '@core/lib/format';
 import type {

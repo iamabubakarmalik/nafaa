@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { suppliersApi } from '../../suppliers/api/suppliers.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';

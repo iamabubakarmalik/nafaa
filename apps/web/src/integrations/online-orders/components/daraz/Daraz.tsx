@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, CheckCircle2, ExternalLink, Link2, Package, Printer, RefreshCw, ShoppingBag, Truck, Zap } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { apiErrorMessage, darazApi, type OnlineOrderDetail, type WebsiteOverview } from '../../api/online-orders.api';
 import { timeAgo, whenText } from '../../lib/labels';
 import { Badge, Banner, Btn, Card, Field, inputCls } from '../ui/kit';

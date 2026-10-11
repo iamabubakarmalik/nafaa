@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Smartphone, Plus, ExternalLink, ShieldCheck } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import type { IndustrySectionProps } from '@industries/_shared/types/section.types';
 import { imeiApi } from '@industries/mobile/api/imei.api';
 import { BulkImeiAddModal } from '@industries/mobile/components/BulkImeiAddModal';

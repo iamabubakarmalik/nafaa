@@ -2,7 +2,7 @@ import {
   Package, MapPin, AlertCircle, Sparkles, Info, Ruler, Scissors,
   Bookmark, CreditCard, ShoppingBag, Award, Clock, Globe, User,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type {
   GarmentWizardBasic, GarmentWizardStock,

@@ -23,7 +23,7 @@ import {
   resolveTemplates, fillTemplate, waLink, waNumber,
 } from '@core/lib/whatsapp/templates';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';

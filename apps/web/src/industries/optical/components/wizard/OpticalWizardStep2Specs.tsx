@@ -3,7 +3,7 @@ import {
   Sparkles, Ruler, Palette, Plus, X, Eye, Shield, Sun,
   Info, Circle, Layers,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { OpticalWizardFrame, OpticalWizardLens, OpticalWizardContactLens } from '../../hooks/useOpticalWizard';
 import { isFrameCategory, isLensCategory, isContactLensCategory } from '../../hooks/useOpticalWizard';
 

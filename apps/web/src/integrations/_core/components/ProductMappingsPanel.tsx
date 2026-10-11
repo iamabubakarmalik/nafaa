@@ -4,9 +4,7 @@ import { toast } from 'sonner';
 import { Package, Plus, Trash2, Link2, AlertCircle } from 'lucide-react';
 import { integrationsApi } from '../api/integrations.api';
 import { apiClient } from '@core/api/client';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
-import { SkeletonCard } from '@core/ui/Skeleton';
+import { Button, Input, SkeletonCard } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 
 export function ProductMappingsPanel({ integrationId }: { integrationId: string }) {

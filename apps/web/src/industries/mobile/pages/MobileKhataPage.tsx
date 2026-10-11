@@ -8,7 +8,7 @@ import {
   HandCoins, PiggyBank, CheckCircle2, Clock,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
 import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.api';

@@ -10,7 +10,7 @@ import { quickKeysApi, type QuickKey } from '../api/quick-keys.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { combosApi } from '../api/combos.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 /* ═════════════════════════════════════════════════════════════

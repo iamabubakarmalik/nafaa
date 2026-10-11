@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { amcContractsApi } from '../api/amc-contracts.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 
 const AMC_TYPES = [

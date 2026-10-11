@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { X, HandCoins, Target, Percent, Banknote } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import {
   BASIS_META, type CommissionBasis, type CommissionRule, type CommissionValueType,
 } from '../api/commission.api';

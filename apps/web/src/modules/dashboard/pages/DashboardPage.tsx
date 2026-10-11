@@ -16,7 +16,7 @@ import { dashboardApi } from '@modules/dashboard/api/dashboard.api';
 import { useAuthStore, useIsAllShops, useShopParam } from '@core/stores/auth.store';
 import AllShopsDashboard from '@modules/dashboard/components/AllShopsDashboard';
 import { bookingsApi } from '@modules/bookings/api/bookings.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { SubscriptionBanner } from '../components/SubscriptionBanner';
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';

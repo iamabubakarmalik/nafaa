@@ -5,8 +5,7 @@ import {
   ArrowLeft, Wallet, Calendar, Plus, Minus, Save, Sparkles,
 } from 'lucide-react';
 import { staffApi } from '@modules/organization/staff/api/staff.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 

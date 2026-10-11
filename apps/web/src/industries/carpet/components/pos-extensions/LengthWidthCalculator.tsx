@@ -3,7 +3,7 @@ import {
   X, Ruler, Plus, Trash2, Equal, Calculator, Sparkles,
   Copy, CheckCircle2, Info,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 interface Piece {

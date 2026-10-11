@@ -3,7 +3,7 @@ import {
   Palette, Plus, X, AlertCircle, Sparkles, Info, ToggleLeft, ToggleRight,
   HardDrive, Wand2, ArrowRight, Ruler,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { QuickColorChip } from './QuickColorChip';
 import { StorageChip } from './StorageChip';
 import { VariantEditPanel } from './VariantEditPanel';

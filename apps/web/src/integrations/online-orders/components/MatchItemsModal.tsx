@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link2, Search, CheckCircle2, PackageSearch } from 'lucide-react';
-import { Modal } from '@core/ui/Modal';
-import { Button } from '@core/ui/Button';
+import { Modal, Button } from '@/design-system/components';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import type { OrderLine } from '../api/online-orders.api';
 import { rs } from '../lib/labels';

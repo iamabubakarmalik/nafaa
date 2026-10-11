@@ -7,8 +7,7 @@ import {
 import { toast } from 'sonner';
 import { optometristsApi, type OpticalOptometrist } from '../api/optometrists.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

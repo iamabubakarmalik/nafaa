@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { reportsApi } from '@modules/reports/reports/api/reports.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const dayLabel = (date: string) => {
   const d = new Date(date);

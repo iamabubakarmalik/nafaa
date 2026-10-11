@@ -14,7 +14,7 @@ import {
   CalendarClock, Loader2, Filter,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { suppliersApi, type Supplier } from '../api/suppliers.api';

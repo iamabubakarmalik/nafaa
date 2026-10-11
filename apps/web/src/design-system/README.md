@@ -20,6 +20,7 @@ design-system/
     apply.ts               The only code that writes theme state to <html>
     AppearanceProvider.tsx Applies the theme; syncs layers with the server and the industry
     appearance.api.ts      /appearance endpoints (platform, business, personal layers)
+  components/              Shared UI components (see "Components" below)
   tailwind/
     palette.cjs            Tailwind palettes with automatic dark-mode values
     dark-rules.json        Dark-mode rules shared by Tailwind and the runtime brand scale
@@ -74,6 +75,32 @@ Tailwind is wired to the variables (see `tailwind.config.js`):
 
 `emerald-*` is mapped to the brand scale as well, because existing screens use
 it as their primary color. New code should write `brand-*`.
+
+## Components
+
+Import from `@/design-system/components`. Every component uses tokens, so it
+follows the accent color, dark mode, density, corners and text size.
+
+| Component | Use for |
+| --- | --- |
+| `Button` | Actions. `primary` (brand), `secondary` (white, bordered), `outline`, `ghost`, `danger`, `critical` (quiet red), `success`, `inverse`, `link`; sizes `xs`–`xl`, `icon` |
+| `IconButton` | Icon-only actions; `label` is required (accessible name + tooltip) |
+| `Input`, `Textarea`, `Select` | Form controls with `label`, `hint`, `error` |
+| `Checkbox`, `Switch` | Boolean settings with label and description |
+| `Field`, `controlClass` | Wrapping custom controls / styling native ones |
+| `Card` | Grouped content with title, description, actions, footer; `flush` for tables |
+| `PageHeader` | Page title, description, back link, actions |
+| `StatCard` | Key numbers with change and trend |
+| `Table` (`THead`, `TBody`, `Tr`, `Th`, `Td`) | Data tables that scroll sideways on phones |
+| `Tabs`, `Segmented` | Section tabs and compact toggles |
+| `Badge` | Status labels by meaning (success, warning, danger, info, brand…) |
+| `Alert` | Inline messages |
+| `Modal` | Dialogs: centered on desktop, bottom sheet on phones, focus trapped |
+| `EmptyState`, `Skeleton*`, `Avatar`, `Kbd` | Empty lists, loading, people, shortcuts |
+
+Older screens still use a few local kits (online orders, settings, appliances,
+suppliers). The online-orders kit already delegates to these components; the
+others are migrated screen by screen.
 
 ## Dark mode
 

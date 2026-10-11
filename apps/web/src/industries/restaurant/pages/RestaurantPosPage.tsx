@@ -9,7 +9,7 @@ import {
   DollarSign, ChevronRight, AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { tablesApi, type RestaurantTable, type TableStatus } from '../api/tables.api';

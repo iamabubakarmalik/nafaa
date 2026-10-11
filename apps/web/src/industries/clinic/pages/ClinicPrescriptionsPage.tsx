@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Pill, Search, RefreshCw, Sparkles, User, Calendar, FileText } from 'lucide-react';
 import { prescriptionsApi } from '../api/prescriptions.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format } from 'date-fns';
 
 export default function PrescriptionsPage() {

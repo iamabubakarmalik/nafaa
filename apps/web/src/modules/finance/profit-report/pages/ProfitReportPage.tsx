@@ -20,7 +20,7 @@ import {
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const PERIOD_OPTIONS: Array<{ value: ProfitPeriod; label: string; emoji: string }> = [
   { value: 'today', label: 'Today', emoji: '📅' },

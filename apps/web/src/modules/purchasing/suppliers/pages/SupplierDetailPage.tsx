@@ -13,7 +13,7 @@ import {
   Hash, CalendarClock, HandCoins, Activity, Crown, Plus, PowerOff, Power,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { suppliersApi } from '../api/suppliers.api';

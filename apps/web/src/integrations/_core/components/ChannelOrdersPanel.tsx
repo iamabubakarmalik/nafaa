@@ -7,9 +7,7 @@ import {
 } from 'lucide-react';
 import { integrationsApi } from '../api/integrations.api';
 import { OrderStatusTimeline } from './OrderStatusTimeline';
-import { Button } from '@core/ui/Button';
-import { Badge } from '@core/ui/Badge';
-import { SkeletonCard } from '@core/ui/Skeleton';
+import { Button, Badge, SkeletonCard } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 
 const STATUS_CONFIG: Record<string, { label: string; color: any; icon: any }> = {

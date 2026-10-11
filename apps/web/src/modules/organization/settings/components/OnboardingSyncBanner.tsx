@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Sparkles, CheckCircle2, RotateCcw, ArrowRight, X, AlertTriangle, Shield } from 'lucide-react';
 import { onboardingApi } from '@modules/onboarding/api/onboarding.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const DISMISS_KEY = 'nafaa-onb-sync-dismissed';
 

@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { lensOrdersApi, type OpticalLensOrder } from '../api/lens-orders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: any }> = {
   ORDERED: { label: 'Ordered', color: 'text-slate-700', bg: 'bg-slate-100', icon: Clock },

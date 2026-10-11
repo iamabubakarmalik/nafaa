@@ -8,7 +8,7 @@ import {
   MessageCircle, Eye, BookOpen, ShoppingBag, Plus, Building2, Info,
 } from 'lucide-react';
 import { customersApi, type UpsertCustomerPayload } from '@modules/customers/customers/api/customers.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';

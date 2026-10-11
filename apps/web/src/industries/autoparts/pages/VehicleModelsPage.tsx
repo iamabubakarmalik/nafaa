@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Cog, Plus, Search, X, Save, Edit3, Trash2, RefreshCw, Sparkles, Calendar } from 'lucide-react';
 import { vehicleModelsApi, type VehicleModel, type VehicleType } from '../api/vehicle-models.api';
 import { vehicleMakesApi } from '../api/vehicle-makes.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const VEHICLE_TYPES: { value: VehicleType; label: string; emoji: string }[] = [

@@ -4,7 +4,7 @@ import {
   Camera, X, Loader2, AlertCircle, RefreshCw, Keyboard,
   CheckCircle2, ZapOff, Zap, ScanLine, RotateCcw, Info,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 /* ═════════════════════════════════════════════════════════════

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Download, ExternalLink, KeyRound, Loader2, MessageCircle, Sparkles, Wrench, Zap } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { CodeBlock } from '@integrations/_core/components/CodeBlock';
 import { apiErrorMessage, onlineOrdersApi, type WebsiteOverview } from '../../api/online-orders.api';
 import { useShopifyConnect, useWooConnect } from '../../hooks/useWooConnect';

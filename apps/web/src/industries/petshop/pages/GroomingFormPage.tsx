@@ -10,8 +10,7 @@ import { toast } from 'sonner';
 import { groomingApi } from '../api/grooming.api';
 import { groomersApi } from '../api/groomers.api';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 

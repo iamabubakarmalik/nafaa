@@ -8,7 +8,7 @@ import {
   AlertTriangle, Download, MessageCircle,
 } from 'lucide-react';
 import { staffApi } from '@modules/organization/staff/api/staff.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 

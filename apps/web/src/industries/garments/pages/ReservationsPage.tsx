@@ -8,7 +8,7 @@ import { reservationsApi, type Reservation } from '../api/reservations.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format, differenceInDays } from 'date-fns';
 

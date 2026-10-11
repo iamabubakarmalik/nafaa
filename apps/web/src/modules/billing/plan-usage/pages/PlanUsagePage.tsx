@@ -10,7 +10,7 @@ import {
   GraduationCap, Flame, Target, Gauge, Info,
 } from 'lucide-react';
 import { planUsageApi } from '@modules/billing/plan-usage/api/plan-usage.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 /* ═════════════════════════════════════════════════════════════
    NAFAA PLAN USAGE — GLOBAL FULL BEST v3

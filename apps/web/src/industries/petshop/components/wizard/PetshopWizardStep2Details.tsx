@@ -3,7 +3,7 @@ import {
   Sparkles, Beef, Wheat, Leaf, Ruler, Palette, Droplets,
   Plus, X, Info, Fish, Zap,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { PetshopWizardDetails } from '../../hooks/usePetshopWizard';
 import { isFoodCategory, isAccessoryCategory, isAquariumCategory, isMedicineCategory } from '../../hooks/usePetshopWizard';
 

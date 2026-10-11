@@ -6,7 +6,7 @@ import {
   Plus, AlertTriangle, Trash2, Eye, Edit3,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useGamingWizard, type WizardStep } from '../hooks/useGamingWizard';
 import { GamingWizardStepper } from '../components/wizard/GamingWizardStepper';
 import { GamingWizardStep1Basic } from '../components/wizard/GamingWizardStep1Basic';

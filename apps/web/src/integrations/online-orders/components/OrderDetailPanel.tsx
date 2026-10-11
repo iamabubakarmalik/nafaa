@@ -6,8 +6,7 @@ import {
   AlertTriangle, ArrowRight, Ban, CheckCircle2, Clock, Copy, ExternalLink, Link2, Loader2,
   MapPin, MessageCircle, Package, Phone, Printer, Receipt, Truck, Wallet, X,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
-import { Modal } from '@core/ui/Modal';
+import { Button, Modal } from '@/design-system/components';
 import {
   apiErrorMessage, onlineOrdersApi, unmatchedFromError, type OnlineOrderDetail,
 } from '../api/online-orders.api';

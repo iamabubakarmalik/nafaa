@@ -12,7 +12,7 @@ import { productsApi } from '@modules/inventory/products/api/products.api';
 import { clinicServicesApi } from '../api/services.api';
 import { SERVICE_CATEGORIES } from '../api/constants';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { ErrorBoundary } from '@core/components/error/ErrorBoundary';
 
 export default function ClinicServiceDetailPage() {

@@ -6,7 +6,7 @@ import {
   BookMarked, Zap, Clock, PenTool, Newspaper,
 } from 'lucide-react';
 import { bookstoreDashboardApi } from '../api/dashboard.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format, differenceInDays } from 'date-fns';
 
 export default function BookstoreDashboardPage() {

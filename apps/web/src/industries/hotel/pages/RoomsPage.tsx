@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { roomsApi, type RoomStatus, type HotelRoom } from '../api/rooms.api';
 import { roomTypesApi } from '../api/room-types.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const STATUS_CONFIG: Record<RoomStatus, { label: string; color: string; bg: string }> = {

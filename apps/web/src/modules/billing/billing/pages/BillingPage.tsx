@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { subscriptionsApi } from '@modules/billing/subscriptions/api/subscriptions.api';
 import { billingApi, type InvoiceStatus, type PaymentStatus } from '@modules/billing/billing/api/billing.api';
 import { apiClient } from '@core/api/client';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import {
   invoiceStatusConfig, paymentStatusConfig, subscriptionStatusConfig,

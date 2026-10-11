@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { restaurantDashboardApi } from '../api/dashboard.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const MODE_CONFIG: Record<string, { label: string; icon: any; color: string; hex: string }> = {
   DINE_IN: { label: 'Dine-in', icon: Utensils, color: 'emerald', hex: '#10b981' },

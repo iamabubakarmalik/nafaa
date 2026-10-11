@@ -9,7 +9,7 @@ import { menuItemsApi } from '../api/menu-items.api';
 import { recipesApi, type Recipe, type RecipeIngredient } from '../api/recipes.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const UNIT_OPTIONS = ['kg', 'g', 'mg', 'l', 'ml', 'piece', 'dozen', 'tbsp', 'tsp', 'cup', 'oz', 'lb'];

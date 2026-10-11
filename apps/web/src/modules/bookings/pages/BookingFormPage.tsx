@@ -12,8 +12,7 @@ import { bookingsApi, type CreateBookingItem } from '@modules/bookings/api/booki
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProducts';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { useBusinessFeatures } from '@core/hooks/useBusinessFeatures';

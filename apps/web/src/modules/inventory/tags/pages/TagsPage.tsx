@@ -6,8 +6,7 @@ import {
   CheckCircle2, GraduationCap, Printer,
 } from 'lucide-react';
 import { tagsApi, type Tag, type UpsertTagPayload } from '@modules/inventory/tags/api/tags.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { toast } from 'sonner';
 import { useIndustryPresets } from '@industries/_shared/presets';
 

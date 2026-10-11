@@ -9,7 +9,7 @@ import {
 import { toast } from 'sonner';
 import { toyBirthdaysApi, type ToyBirthdayReminder } from '../api/birthday-reminders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 export default function BirthdayRemindersPage() {
   const qc = useQueryClient();

@@ -5,7 +5,7 @@ import {
   KeyRound, Eye, EyeOff, Loader2, CheckCircle2, AlertTriangle, Mail, ShieldCheck,
 } from 'lucide-react';
 import { SectionCard, Alert, Field } from '../components/UI';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { authApi } from '@modules/auth/api/auth.api';
 import { useAuthStore } from '@core/stores/auth.store';
 

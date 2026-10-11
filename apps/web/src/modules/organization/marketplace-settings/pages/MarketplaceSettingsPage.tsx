@@ -6,7 +6,7 @@ import {
   ChevronRight, Search, CheckCircle2, AlertCircle, ShoppingBag, Rocket,
 } from 'lucide-react';
 import { marketplaceSettingsApi, type MarketplaceProfile } from '../api/marketplace-settings.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 import BasicInfoSection from '../sections/BasicInfoSection';
 import LocationSection from '../sections/LocationSection';

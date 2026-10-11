@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Lock, Unlock, X, Eye, EyeOff, Shield, Key, AlertTriangle, Sparkles } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { useSalesPrivacy } from '../hooks/useSalesPrivacy';
 

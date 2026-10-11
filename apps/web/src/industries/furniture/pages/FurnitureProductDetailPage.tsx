@@ -8,7 +8,7 @@ import {
   Leaf, Droplets, Bug, MapPin, TreePine,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';

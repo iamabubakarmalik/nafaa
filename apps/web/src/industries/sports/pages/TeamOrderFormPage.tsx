@@ -12,7 +12,7 @@ import { teamOrdersApi, type TeamOrderStatus, type TeamOrderItem } from '../api/
 import { sportsProductsApi } from '../api/products.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const DISCOUNT_PRESETS = [0, 5, 10, 15, 20, 25];

@@ -13,7 +13,7 @@ import {
 import { floristDashboardApi } from '../api/dashboard.api';
 import { floristOrdersApi } from '../api/orders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 const SLOT_META: Record<string, { label: string; color: string; emoji: string }> = {

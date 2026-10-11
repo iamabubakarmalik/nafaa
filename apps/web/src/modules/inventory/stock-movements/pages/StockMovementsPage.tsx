@@ -11,7 +11,7 @@ import {
   XAxis, YAxis, Tooltip, CartesianGrid, Legend,
 } from 'recharts';
 import { stockMovementsApi, type StockMovementType } from '@modules/inventory/stock-movements/api/stock-movements.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
 

@@ -8,7 +8,7 @@ import {
 import { appointmentsApi } from '../api/appointments.api';
 import { staffProfilesApi } from '../api/staff-profiles.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format, addDays, startOfWeek, endOfWeek, addWeeks, subWeeks, isSameDay } from 'date-fns';
 
 const HOURS = Array.from({ length: 15 }, (_, i) => 8 + i); // 8am to 10pm

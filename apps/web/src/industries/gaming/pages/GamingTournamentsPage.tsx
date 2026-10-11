@@ -7,7 +7,7 @@ import {
 import { toast } from 'sonner';
 import { gamingTournamentsApi, type GamingTournament } from '../api/tournaments.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const PLATFORMS = ['PS5', 'PS4', 'XBOX_SERIES_X', 'NINTENDO_SWITCH', 'PC', 'MOBILE', 'MULTI'];

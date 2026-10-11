@@ -2,7 +2,7 @@ import {
   Scissors, DollarSign, AlertCircle, Clock, Hash, TrendingUp,
   Percent, Zap,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type { ServiceCategory } from '../../api/services.api';
 import type { SalonWizardBasic } from '../../hooks/useSalonWizard';

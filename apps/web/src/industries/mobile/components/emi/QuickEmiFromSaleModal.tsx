@@ -5,7 +5,7 @@ import {
   X, CreditCard, CheckCircle2, Calculator, Calendar,
   Sparkles, AlertTriangle,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
 import { emiApi } from '../../api/emi.api';

@@ -14,7 +14,7 @@ import {
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts';
 import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';

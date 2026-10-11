@@ -8,7 +8,7 @@ import {
   Clock, Trophy, X, BadgeDollarSign, ReceiptText,
   WifiOff, FileText, Eye, MessageCircle, BarChart3, List, Calendar,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import {

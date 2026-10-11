@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner';
 import { toyProductsApi } from '../api/products.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const AGE_PRESETS = [
   { years: 0.5, l: '6 months', e: '👶' },

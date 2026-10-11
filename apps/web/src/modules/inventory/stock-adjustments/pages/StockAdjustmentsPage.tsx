@@ -17,8 +17,7 @@ import {
 } from '@modules/inventory/stock-adjustments/api/stock-adjustments.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { toast } from 'sonner';
 import { useIndustryStockPresets } from '@industries/_shared/presets';
 

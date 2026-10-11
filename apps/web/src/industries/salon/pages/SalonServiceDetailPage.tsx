@@ -6,7 +6,7 @@ import {
   CheckCircle2, Timer, Zap, Calendar,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { salonServicesApi } from '../api/services.api';
 

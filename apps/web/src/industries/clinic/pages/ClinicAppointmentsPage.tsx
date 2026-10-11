@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { appointmentsApi, type AppointmentStatus } from '../api/appointments.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format, differenceInMinutes, isToday } from 'date-fns';
 
 const STATUS_CONFIG: Record<AppointmentStatus, { label: string; color: string; icon: any }> = {

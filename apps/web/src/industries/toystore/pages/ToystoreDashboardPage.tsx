@@ -12,7 +12,7 @@ import {
 import { toystoreDashboardApi } from '../api/dashboard.api';
 import { toyBirthdaysApi } from '../api/birthday-reminders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 
 const AGE_LABELS: Record<string, string> = {

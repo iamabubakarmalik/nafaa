@@ -14,7 +14,7 @@ import {
 import { toast } from 'sonner';
 import { bulkOrdersApi, type OrderStatus, type BulkOrder } from '../api/bulk-orders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════

@@ -10,7 +10,7 @@ import {
 import { toast } from 'sonner';
 import { teamOrdersApi, type TeamOrderStatus } from '../api/team-orders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const STATUS_META: Record<TeamOrderStatus, { label: string; color: string; bg: string; icon: any }> = {
   DRAFT: { label: 'Draft', color: 'text-slate-700', bg: 'bg-slate-100', icon: Edit3 },

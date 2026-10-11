@@ -11,8 +11,7 @@ import {
   ResponsiveContainer, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, CartesianGrid, Legend,
 } from 'recharts';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { toast } from 'sonner';

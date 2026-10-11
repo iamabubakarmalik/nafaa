@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { karigarsApi, type Karigar } from '../api/karigars.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 

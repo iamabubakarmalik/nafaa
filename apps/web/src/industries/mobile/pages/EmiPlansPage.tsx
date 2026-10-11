@@ -8,7 +8,7 @@ import {
   CheckCircle2, Clock, AlertTriangle, MessageCircle, GraduationCap,
   Sparkles, Printer, ArrowRight, Wallet,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import {

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft, Sparkles, Trash2, X, CheckCircle2, ExternalLink, Stethoscope,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { clinicServicesApi } from '../api/services.api';
 import { useClinicWizard } from '../hooks/useClinicWizard';

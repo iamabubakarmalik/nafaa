@@ -4,7 +4,7 @@ import { ChevronDown, Search, Settings, X } from 'lucide-react';
 import { hasPermission, isOwner, isOwnerOnlyPath } from '@core/lib/permissions';
 import { cn } from '@core/lib/cn';
 import { LAST_APP_PATH_KEY, SETTINGS_SECTIONS, settingsItemFor } from '../navigation/nav-config';
-import { Avatar, IconButton } from '../ui';
+import { Avatar, IconButton } from '@/design-system/components';
 
 /* ═════════════════════════════════════════════════════════════
    SETTINGS — opens without the app sidebar, like Shopify.

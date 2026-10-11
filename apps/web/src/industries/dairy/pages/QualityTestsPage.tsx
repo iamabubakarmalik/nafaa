@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Beaker, Plus, X, Save, RefreshCw, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 import { qualityTestsApi } from '../api/quality-tests.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 

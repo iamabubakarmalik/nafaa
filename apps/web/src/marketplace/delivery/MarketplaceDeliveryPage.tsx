@@ -10,7 +10,7 @@ import { relativeTime } from '../shared/status-utils';
 import { getIndustryTheme } from '../shared/industry-themes';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const STATUS_META: Record<RiderStatus, { label: string; color: string; bg: string; dot: string }> = {
   OFFLINE:      { label: 'Offline',      color: 'text-slate-700',   bg: 'bg-slate-100',   dot: 'bg-slate-400' },

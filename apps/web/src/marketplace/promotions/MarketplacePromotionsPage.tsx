@@ -10,7 +10,7 @@ import { relativeTime } from '../shared/status-utils';
 import { getIndustryTheme } from '../shared/industry-themes';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const TYPE_META: Record<PromoType, { label: string; icon: any; color: string }> = {
   COUPON:      { label: 'Coupon',      icon: Tag,       color: 'bg-purple-500' },

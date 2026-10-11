@@ -4,7 +4,7 @@ import { ArrowLeft, Edit3, Trash2, Dumbbell, Phone, Mail, MapPin, Calendar, Hear
 import { toast } from 'sonner';
 import { gymMembersApi } from '../api/members.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format, differenceInYears } from 'date-fns';
 
 const GOAL_LABELS: Record<string, { label: string; emoji: string }> = {

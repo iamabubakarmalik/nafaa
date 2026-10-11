@@ -7,7 +7,7 @@ import {
   Sparkles, Printer, FileSpreadsheet, RefreshCw, ArrowRight, Trash2,
   Minus, Send,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';

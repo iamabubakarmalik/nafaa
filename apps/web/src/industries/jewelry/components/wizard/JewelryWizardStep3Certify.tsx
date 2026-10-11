@@ -2,7 +2,7 @@ import {
   Award, Shield, Sparkles, Heart, TrendingUp, Package,
   RefreshCw, DollarSign, AlertCircle, Star, Crown, Gift, Video,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { formatPKRFull } from '@core/lib/format';
 import type { JewelryWizardCertify } from '../../hooks/useJewelryWizard';

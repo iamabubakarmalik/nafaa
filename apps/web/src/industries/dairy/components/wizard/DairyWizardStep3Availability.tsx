@@ -2,7 +2,7 @@ import {
   Truck, Sunrise, Sunset, Package, DollarSign, AlertCircle,
   Home, Warehouse, ShoppingBag, Info, Sparkles,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type { DairyWizardAvailability, DairyWizardBasic } from '../../hooks/useDairyWizard';
 

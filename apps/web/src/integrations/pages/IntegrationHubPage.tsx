@@ -10,8 +10,7 @@ import {
   Link2, ChevronRight, Wifi, WifiOff, LayoutGrid, List, Star, Store, Loader2,
 } from 'lucide-react';
 import { integrationsApi } from '../_core/api/integrations.api';
-import { Button } from '@core/ui/Button';
-import { SkeletonCard } from '@core/ui/Skeleton';
+import { Button, SkeletonCard } from '@/design-system/components';
 import { ConnectIntegrationModal } from '../_core/components/ConnectIntegrationModal';
 import { IntegrationDetailModal } from '../_core/components/IntegrationDetailModal';
 import { ChannelOrdersPanel } from '../_core/components/ChannelOrdersPanel';

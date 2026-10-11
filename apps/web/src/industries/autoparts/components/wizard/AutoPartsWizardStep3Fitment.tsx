@@ -4,7 +4,7 @@ import {
   Car, Plus, Trash2, AlertCircle, Info, ToggleLeft, ToggleRight,
   Globe, Truck, Cog, Calendar, X, Copy,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { vehicleMakesApi } from '../../api/vehicle-makes.api';
 import { vehicleModelsApi } from '../../api/vehicle-models.api';
 import type {

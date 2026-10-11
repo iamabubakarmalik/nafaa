@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { subsidyApi, type SubsidyClaim } from '../api/subsidy.api';
 import { farmersApi } from '../api/farmers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════

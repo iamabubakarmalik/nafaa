@@ -4,7 +4,7 @@ import {
   Ruler, Package, Star, Barcode as BarcodeIcon, Hash, Zap,
   ToggleLeft, ToggleRight, Info,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import type { GarmentWizardBasic, GarmentWizardVariant } from '../../hooks/useGarmentWizard';
 

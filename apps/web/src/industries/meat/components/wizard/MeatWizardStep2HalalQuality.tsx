@@ -3,7 +3,7 @@ import {
   ShieldCheck, Award, AlertCircle, Leaf, Snowflake, Sparkles,
   Thermometer, Calendar, Package, Plus, X, Info,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { MeatWizardHalalQuality } from '../../hooks/useMeatWizard';
 import type { SlaughterMethod, QualityGrade } from '../../api/products.api';
 

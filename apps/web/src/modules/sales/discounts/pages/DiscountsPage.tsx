@@ -7,8 +7,7 @@ import {
   RefreshCw, Zap,
 } from 'lucide-react';
 import { discountsApi, type DiscountType } from '@modules/sales/discounts/api/discounts.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 

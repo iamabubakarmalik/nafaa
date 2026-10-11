@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft, Sparkles, Trash2, X, CheckCircle2, ExternalLink, Wrench,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { catalogApi } from '../api/catalog.api';
 import { useServicesBizWizard } from '../hooks/useServicesBizWizard';
 import { useServicesBizWizardSubmit } from '../hooks/useServicesBizWizardSubmit';

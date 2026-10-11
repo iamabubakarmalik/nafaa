@@ -5,7 +5,7 @@ import {
   Package, AlertTriangle, ShieldAlert, Ban, Heart, Baby,
 } from 'lucide-react';
 import { saltsApi, type Salt, type DrugScheduleClass } from '../api/salts.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const SCHEDULE_CONFIG: Record<DrugScheduleClass, { label: string; color: string; bg: string }> = {

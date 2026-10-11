@@ -8,8 +8,7 @@ import {
 import { toast } from 'sonner';
 import { groomersApi, type PetGroomer } from '../api/groomers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const SPECIES = [

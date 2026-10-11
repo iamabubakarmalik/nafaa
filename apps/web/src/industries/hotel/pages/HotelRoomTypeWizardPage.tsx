@@ -6,7 +6,7 @@ import {
   Plus, AlertTriangle, Trash2, Eye, Edit3, Home,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useHotelWizard, type WizardStep } from '../hooks/useHotelWizard';
 import { HotelWizardStepper } from '../components/wizard/HotelWizardStepper';
 import { HotelWizardStep1Basic } from '../components/wizard/HotelWizardStep1Basic';

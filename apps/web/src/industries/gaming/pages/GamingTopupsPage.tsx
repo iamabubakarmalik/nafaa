@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner';
 import { gamingTopupsApi, type GamingTopupProvider } from '../api/topups.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const PROVIDERS: Array<{ v: GamingTopupProvider; l: string; e: string }> = [
   { v: 'PSN', l: 'PSN', e: '🎮' },

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Wrench, Smartphone, User, Hash, X, Truck, Banknote, Sparkles,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import type { RepairTicket } from '../../api/repairs.api';

@@ -5,7 +5,7 @@ import {
   Clock, Star, Wrench, DollarSign, CheckCircle2,
 } from 'lucide-react';
 import { mechanicsApi } from '../api/mechanics.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { apiClient } from '@core/api/client';
 

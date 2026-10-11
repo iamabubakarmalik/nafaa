@@ -7,7 +7,7 @@ import {
   Keyboard, WifiOff, Barcode, ShieldCheck, Package, Layers,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useElectronicsWizard, type WizardStep } from '../hooks/useElectronicsWizard';
 import { ElectronicsWizardStepper } from '../components/wizard/ElectronicsWizardStepper';
 import { ElectronicsWizardStep1Basic } from '../components/wizard/ElectronicsWizardStep1Basic';

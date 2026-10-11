@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { deliveriesApi, type DeliveryStatus } from '../api/deliveries.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format, differenceInDays } from 'date-fns';
 
 const STATUS_CONFIG: Record<DeliveryStatus, { label: string; color: string }> = {

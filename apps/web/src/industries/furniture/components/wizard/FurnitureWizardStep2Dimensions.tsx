@@ -2,7 +2,7 @@ import {
   Ruler, Weight, Users, Package, Archive, Grid3x3, Info,
   ArrowUpDown, ArrowLeftRight, MoveDiagonal,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { FurnitureWizardDimensions } from '../../hooks/useFurnitureWizard';
 
 interface Props {

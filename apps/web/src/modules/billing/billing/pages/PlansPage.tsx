@@ -11,7 +11,7 @@ import {
 import { plansApi, type Plan } from '@modules/billing/plans/api/plans.api';
 import { subscriptionsApi, type BillingInterval } from '@modules/billing/subscriptions/api/subscriptions.api';
 import { apiClient } from '@core/api/client';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 

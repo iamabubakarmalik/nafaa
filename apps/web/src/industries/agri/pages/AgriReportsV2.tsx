@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
 import { useReportsData } from '@modules/reports/reports/hooks/useReportsData';

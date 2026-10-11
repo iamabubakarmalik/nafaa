@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Bell, RefreshCw, Sparkles, CheckCircle2, AlertCircle, Clock, Car } from 'lucide-react';
 import { serviceRemindersApi } from '../api/service-reminders.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { format, differenceInDays } from 'date-fns';
 

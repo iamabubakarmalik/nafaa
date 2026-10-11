@@ -4,7 +4,7 @@ import {
   ArrowDownCircle, TrendingDown, Wallet, CreditCard, Smartphone, Zap, Building2,
   Sparkles, Receipt,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import type { CartItem, SaleMode } from './pos-types';

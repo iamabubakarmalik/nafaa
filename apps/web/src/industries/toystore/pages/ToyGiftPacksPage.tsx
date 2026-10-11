@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner';
 import { toyGiftPacksApi } from '../api/gift-packs.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 export default function ToyGiftPacksPage() {
   const qc = useQueryClient();

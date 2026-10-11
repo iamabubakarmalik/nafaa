@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner';
 import { cosmeticsLoyaltyApi, type CosmeticsLoyaltyMember } from '../api/loyalty.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const TIER_META: Record<string, { color: string; bg: string; label: string; emoji: string }> = {
   BRONZE:   { color: 'text-amber-700',   bg: 'bg-amber-100',   label: 'Bronze',   emoji: '🥉' },

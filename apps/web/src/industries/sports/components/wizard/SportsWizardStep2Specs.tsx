@@ -3,7 +3,7 @@ import {
   Sparkles, Info, Plus, X, Ruler, Shirt, Footprints, Dumbbell, Zap,
   BadgeCheck, Award, Weight,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { SportsWizardSpecs } from '../../hooks/useSportsWizard';
 import { isCricketBatCategory, isBallCategory, isApparelCategory, isShoeCategory, isGymCategory } from '../../hooks/useSportsWizard';
 

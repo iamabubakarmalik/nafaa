@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { catalogApi, type ServiceCategory, type BusinessType, type ChargeType, type ServiceCatalogItem } from '../api/catalog.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { toast } from 'sonner';
 

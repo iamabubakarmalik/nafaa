@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner';
 import { cosmeticsGiftBundlesApi } from '../api/gift-bundles.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const OCCASIONS = ['All', 'Eid', 'Christmas', 'Birthday', 'Anniversary', 'Valentine', 'Mother\'s Day', 'Wedding', 'Corporate'];
 

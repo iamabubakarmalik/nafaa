@@ -33,7 +33,7 @@ import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { UploadDropzone } from '@core/components/uploads';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { agriProductsApi } from '../api/products.api';
 import {
   AGRI_UNITS, agriUnitDef, agriUnitLabel, isMeasured, agriRate,

@@ -14,7 +14,7 @@ import { workshopJobsApi } from '../api/workshop-jobs.api';
 import { serviceRemindersApi } from '../api/service-reminders.api';
 import { customerVehiclesApi } from '../api/customer-vehicles.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { SubscriptionBanner } from '@modules/dashboard/components/SubscriptionBanner';
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
 import {

@@ -8,7 +8,7 @@ import {
 import { toast } from 'sonner';
 import { floristSubscriptionsApi, type FloristSubscription } from '../api/subscriptions.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const STATUS_META: Record<string, { l: string; cls: string; icon: any }> = {
   ACTIVE: { l: 'Active', cls: 'bg-emerald-100 text-emerald-700', icon: Play },

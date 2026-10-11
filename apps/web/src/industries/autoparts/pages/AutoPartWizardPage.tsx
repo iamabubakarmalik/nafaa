@@ -6,7 +6,7 @@ import {
   Plus, AlertTriangle, Trash2, Eye, Edit3, Package,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAutoPartsWizard, type WizardStep } from '../hooks/useAutoPartsWizard';
 import { AutoPartsWizardStepper } from '../components/wizard/AutoPartsWizardStepper';
 import { AutoPartsWizardStep1Basic } from '../components/wizard/AutoPartsWizardStep1Basic';

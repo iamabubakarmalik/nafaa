@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { prescriptionsApi, type OpticalPrescription } from '../api/prescriptions.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 export default function PrescriptionsPage() {
   const qc = useQueryClient();

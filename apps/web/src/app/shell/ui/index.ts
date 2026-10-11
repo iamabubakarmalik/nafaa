@@ -1,7 +1,4 @@
-/** Small UI pieces shared by the app shell (sidebar, top bar, settings frame). */
+/** Popover pieces used only by the app shell's top-bar menus. */
 
-export { Avatar } from './Avatar';
-export { IconButton } from './IconButton';
-export { Kbd } from './Kbd';
 export { Panel } from './Panel';
 export { hasHover, useDismiss } from './useDismiss';

@@ -15,7 +15,7 @@ import {
   FileSpreadsheet, ArrowRight, Trophy, Cpu, Wrench,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';

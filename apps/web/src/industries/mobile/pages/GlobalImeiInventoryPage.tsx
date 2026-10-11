@@ -9,7 +9,7 @@ import {
   AlertTriangle, Clock, Shield, XCircle, DollarSign,
   Plus, ArrowLeft, Store, Layers,
 } from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import {

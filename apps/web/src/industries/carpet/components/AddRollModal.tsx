@@ -5,8 +5,7 @@ import {
   Sparkles, Zap, Package,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';

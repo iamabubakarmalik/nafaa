@@ -8,7 +8,7 @@ import {
   Hash, Copy, Plus, Package, TrendingUp, Clock, Info,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { suppliersApi, type UpsertSupplierPayload } from '../api/suppliers.api';
 import { supplierLedgerApi } from '../api/supplier-ledger.api';

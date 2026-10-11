@@ -9,7 +9,7 @@ import {
 import { deliveryApi, type DeliveryStatus } from '../api/delivery.api';
 import { ridersApi } from '../api/riders.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const STATUS_CONFIG: Record<DeliveryStatus, { label: string; bg: string; text: string; next?: DeliveryStatus }> = {

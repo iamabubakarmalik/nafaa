@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { modifiersApi, type ModifierGroup, type ModifierOption, type ModifierType } from '../api/modifiers.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const MODIFIER_TYPES: { value: ModifierType; label: string; emoji: string; description: string }[] = [

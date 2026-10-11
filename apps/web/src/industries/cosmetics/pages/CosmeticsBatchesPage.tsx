@@ -9,7 +9,7 @@ import { cosmeticsBatchesApi, type CosmeticsBatch } from '../api/batches.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 type FilterMode = 'all' | 'active' | 'expiring30' | 'expiring90' | 'expired';
 

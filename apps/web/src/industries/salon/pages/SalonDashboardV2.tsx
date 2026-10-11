@@ -20,7 +20,7 @@ import { membershipsApi } from '../api/memberships.api';
 import { packagesApi } from '../api/packages.api';
 import { salonDashboardApi } from '../api/dashboard.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { SubscriptionBanner } from '@modules/dashboard/components/SubscriptionBanner';
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
 import {

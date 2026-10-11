@@ -10,8 +10,7 @@ import {
   ShieldCheck, Search,
 } from 'lucide-react';
 import { cashRegisterApi } from '@modules/finance/cash-register/api/cash-register.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';

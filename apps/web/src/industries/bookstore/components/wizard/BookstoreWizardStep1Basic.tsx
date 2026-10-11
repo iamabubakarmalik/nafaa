@@ -4,7 +4,7 @@ import {
   TrendingUp, Hash, AlertCircle, Percent, Tag, Award,
   Image as ImageIcon,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { formatPKRFull } from '@core/lib/format';

@@ -7,7 +7,7 @@ import {
   PackageSearch, Wrench, Trash2, ArrowRight, Camera,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { useCostHidden } from '@/core/security/HiddenValue';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';

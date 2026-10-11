@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { useBusinessFeatures } from '@core/hooks/useBusinessFeatures';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
 import { toast } from 'sonner';

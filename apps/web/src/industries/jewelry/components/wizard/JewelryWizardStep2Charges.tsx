@@ -3,7 +3,7 @@ import {
   Sparkles, Plus, Trash2, AlertCircle, Diamond, ShieldCheck,
   Percent, DollarSign, Calendar, Hash, Award, ToggleLeft, ToggleRight,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { formatPKR } from '@core/lib/format';
 import type { JewelryWizardCharges } from '../../hooks/useJewelryWizard';

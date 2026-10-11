@@ -2,7 +2,7 @@ import {
   Award, Heart, Leaf, Shield, Check, X, AlertCircle,
   Calendar, Package, ToggleLeft, ToggleRight,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { CosmeticsWizardBatch, CosmeticsWizardCertifications } from '../../hooks/useCosmeticsWizard';
 
 interface Props {

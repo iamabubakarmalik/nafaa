@@ -12,7 +12,7 @@ import { ORDER_STATUS_META, PAYMENT_STATUS_META, relativeTime } from '../shared/
 import { getIndustryTheme } from '../shared/industry-themes';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import type { MarketplaceOrderStatus } from '../shared/types';
 
 const STATUS_TABS: { label: string; statuses: MarketplaceOrderStatus[]; color: string }[] = [

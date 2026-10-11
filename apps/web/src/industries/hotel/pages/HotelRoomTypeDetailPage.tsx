@@ -8,7 +8,7 @@ import {
   Plus, CheckCircle2, XCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import { roomTypesApi } from '../api/room-types.api';
 import { roomsApi } from '../api/rooms.api';

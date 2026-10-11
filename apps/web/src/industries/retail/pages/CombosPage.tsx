@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { combosApi, type ProductCombo } from '../api/combos.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import { useAuthStore } from '@core/stores/auth.store';

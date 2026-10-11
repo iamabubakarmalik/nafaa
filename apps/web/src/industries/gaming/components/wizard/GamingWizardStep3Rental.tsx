@@ -2,7 +2,7 @@ import {
   Timer, ToggleLeft, ToggleRight, Calendar, ShieldCheck,
   AlertCircle, Clock, CalendarDays, Rocket, Wallet,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKRFull } from '@core/lib/format';
 import type { GamingWizardRental } from '../../hooks/useGamingWizard';
 

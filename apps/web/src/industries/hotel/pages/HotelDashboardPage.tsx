@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { hotelDashboardApi } from '../api/dashboard.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format, differenceInHours } from 'date-fns';
 
 const SOURCE_EMOJI: Record<string, string> = {

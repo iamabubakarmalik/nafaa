@@ -3,7 +3,7 @@ import {
   Wrench, Hash, ShieldCheck, AlertCircle, Award, Zap, AlertTriangle,
   Plus, X, Package, Globe, Clock, Wrench as ToolIcon, Sparkles,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import type { AutoPartsWizardDetails } from '../../hooks/useAutoPartsWizard';
 import type { PartCondition } from '../../api/part-profiles.api';
 

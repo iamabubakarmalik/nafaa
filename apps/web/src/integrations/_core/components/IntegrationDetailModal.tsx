@@ -9,11 +9,7 @@ import { getIntegrationMeta } from '../registry/catalog';
 import { CodeBlock, CopyField } from './CodeBlock';
 import { ProductMappingsPanel } from './ProductMappingsPanel';
 import { ProductSyncPanel } from './ProductSyncPanel';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
-import { Modal } from '@core/ui/Modal';
-import { Badge } from '@core/ui/Badge';
-import { SkeletonCard } from '@core/ui/Skeleton';
+import { Button, Input, Modal, Badge, SkeletonCard } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:4000/api';

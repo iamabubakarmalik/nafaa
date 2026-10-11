@@ -19,7 +19,7 @@ import { salesApi, type PaymentMethod } from '@modules/sales/sales/api/sales.api
 import { ordersApi as restaurantOrdersApi } from '@industries/restaurant/api/orders.api';
 import { Utensils, Bike, ShoppingBag as Takeaway, Car, ChefHat } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useSalesPrivacy } from '../hooks/useSalesPrivacy';
 import { SalesPrivacyModal } from '../components/SalesPrivacyModal';
 import { HiddenAmount } from '../components/HiddenAmount';

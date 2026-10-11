@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { customOrdersApi, type FurnitureOrderStatus } from '../api/custom-orders.api';
 import { carpentersApi } from '../api/carpenters.api';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 
 const STATUS_META: Record<FurnitureOrderStatus, { label: string; color: string; bg: string }> = {

@@ -15,7 +15,7 @@ import {
   expensesApi, expenseCategoriesApi,
   type Expense, type ExpenseCategory,
 } from '@modules/finance/expenses/api/expenses.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { toast } from 'sonner';
 import { useAuthStore } from '@core/stores/auth.store';

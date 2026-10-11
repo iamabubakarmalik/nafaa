@@ -12,8 +12,7 @@ import { productsApi, type ProductsListParams, type Product } from '@modules/inv
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { tagsApi } from '@modules/inventory/tags/api/tags.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { productEmoji, productTint } from '../lib/productEmoji';
 import { toast } from 'sonner';

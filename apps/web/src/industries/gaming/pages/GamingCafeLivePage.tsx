@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { gamingStationsApi } from '../api/stations.api';
 import { gamingSessionsApi } from '../api/sessions.api';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';

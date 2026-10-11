@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeftRight, Plus, Search, X, Building2, Package, Clock, Truck,
   CheckCircle2, XCircle, Calendar, Download, Eye, Trash2, Layers, AlertCircle, FileText} from 'lucide-react';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';

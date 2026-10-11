@@ -16,7 +16,7 @@ import { industryIdentity } from '@/design-system';
 import { isActivePath, isSettingsPath, loadGroupState, MAX_RECENT, saveGroupState, type NavGroup, type NavItem } from '../navigation/nav-config';
 import { useVisibleNav } from '../navigation/useVisibleNav';
 import { useFavorites, useRecentPaths } from '../navigation/useNavMemory';
-import { IconButton, Kbd } from '../ui';
+import { IconButton, Kbd } from '@/design-system/components';
 import { BrandMark } from './BrandMark';
 import { FooterLink, GroupHeader, NavRow, NavSection } from './NavParts';
 import { SidebarRail } from './SidebarRail';

@@ -17,7 +17,8 @@ import {
 import { notificationsApi, type Notification, type NotificationType } from '@modules/notifications/api/notifications.api';
 import { useNotificationSound } from '@core/hooks/useNotificationSound';
 import { cn } from '@core/lib/cn';
-import { IconButton, Panel, useDismiss } from '../ui';
+import { IconButton } from '@/design-system/components';
+import { Panel, useDismiss } from '../ui';
 
 type Tone = 'info' | 'success' | 'warning' | 'danger' | 'violet' | 'cyan' | 'orange' | 'neutral';
 

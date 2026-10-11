@@ -17,8 +17,7 @@ import {
   type UpsertVariantPayload,
   type ProductVariant,
 } from '@modules/inventory/products/api/product-variants.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { UploadDropzone, ImageGallery } from '@core/components/uploads';
 import { VariantBuilder } from '../components/VariantBuilder';
 import { VariantCard } from '../components/VariantCard';

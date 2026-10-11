@@ -14,7 +14,7 @@ import {
   PieChart, Pie, Cell, Legend, ComposedChart, Area,
 } from 'recharts';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { onlineOrdersApi, type OnlineOrder } from '../api/online-orders.api';
 import { useLiveOnlineOrders } from '../hooks/useLiveOnlineOrders';
 import { OrderDetailPanel } from '../components/OrderDetailPanel';

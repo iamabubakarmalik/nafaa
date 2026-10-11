@@ -11,7 +11,7 @@ import { productUnitsApi, type ProductUnit, type UnitConversionType } from '../a
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';

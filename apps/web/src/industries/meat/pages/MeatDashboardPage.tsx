@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { meatDashboardApi } from '../api/dashboard.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { format, differenceInDays } from 'date-fns';
 
 const ANIMAL_EMOJI: Record<string, string> = {

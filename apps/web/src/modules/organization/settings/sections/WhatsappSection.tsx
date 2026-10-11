@@ -6,7 +6,7 @@ import {
   CheckCircle2, Info, Send, Copy,
 } from 'lucide-react';
 import { SectionCard, Alert, Field } from '../components/UI';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { settingsApi, type TenantSettings } from '../api/settings.api';
 import { useAuthStore } from '@core/stores/auth.store';
 import {

@@ -8,7 +8,7 @@ import {
 import { dairyCustomersApi, type DeliveryFrequency, type DairyCustomer } from '../api/customers.api';
 import { routesApi } from '../api/routes.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 
 const FREQUENCIES: { value: DeliveryFrequency; label: string; emoji: string }[] = [

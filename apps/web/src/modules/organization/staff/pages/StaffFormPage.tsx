@@ -8,8 +8,7 @@ import {
 import {
   staffApi, type CreateStaffPayload, type SalaryType, type StaffGender, type StaffStatus,
 } from '@modules/organization/staff/api/staff.api';
-import { Button } from '@core/ui/Button';
-import { Input } from '@core/ui/Input';
+import { Button, Input } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';

@@ -20,7 +20,7 @@ import { electronicsDashboardApi } from '../api/dashboard.api';
 import { warrantyClaimsApi } from '../api/warranty-claims.api';
 import { serialTrackingApi } from '../api/serial-tracking.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { SubscriptionBanner } from '@modules/dashboard/components/SubscriptionBanner';
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';

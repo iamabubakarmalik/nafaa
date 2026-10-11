@@ -19,7 +19,7 @@ import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
 import { exportBackup, importBackup } from '@core/lib/offline/offlineBackup';
 import { getDeviceId } from '@core/lib/offline/offlineDevice';
 import { loadFullHistory, getDataSnapshot, type HistoryEvent } from '@core/lib/offline/offlineHistory';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 
 /* ═════════════════════════════════════════════════════════════

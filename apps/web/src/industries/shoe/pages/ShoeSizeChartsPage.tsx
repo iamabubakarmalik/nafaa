@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ruler, Plus, RefreshCw, Edit3, Trash2, X, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { shoeSizeChartsApi, type ShoeSizeChart } from '../api/size-charts.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 export default function ShoeSizeChartsPage() {
   const qc = useQueryClient();

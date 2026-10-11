@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { sportsBrandsApi, type SportsBrand, type SportsBrandTier } from '../api/brands.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { UploadDropzone } from '@core/components/uploads';
 

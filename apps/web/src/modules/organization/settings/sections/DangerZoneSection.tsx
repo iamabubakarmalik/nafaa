@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, Trash2, UserCheck, Shield, Ban, X, Lock } from 'lucide-react';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { Field, TextInput, SectionCard, Alert } from '../components/UI';
 
 const CONFIRM_TEXT = 'DELETE MY SHOP';

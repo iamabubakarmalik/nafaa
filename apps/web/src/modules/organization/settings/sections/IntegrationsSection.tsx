@@ -6,7 +6,7 @@ import {
   ExternalLink, Trash2, Loader2, Plug,
 } from 'lucide-react';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { Field, TextInput, SectionCard, Select, Alert, StatPill } from '../components/UI';
 import {
   INTEGRATION_CATALOG,

@@ -10,7 +10,7 @@ import { roomsApi } from '../api/rooms.api';
 import { roomTypesApi } from '../api/room-types.api';
 import { guestsApi } from '../api/guests.api';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
 import { differenceInDays } from 'date-fns';
 

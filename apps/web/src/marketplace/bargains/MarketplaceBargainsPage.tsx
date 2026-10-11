@@ -10,7 +10,7 @@ import { relativeTime } from '../shared/status-utils';
 import { getIndustryTheme } from '../shared/industry-themes';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 
 const STATUS_META: Record<BargainStatus, { label: string; color: string; bg: string; icon: any }> = {
   PENDING:         { label: 'Awaiting Your Response', color: 'text-amber-800',   bg: 'bg-amber-100',   icon: Clock },

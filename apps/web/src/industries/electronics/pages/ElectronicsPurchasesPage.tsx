@@ -5,7 +5,7 @@ import {
   Barcode, Plus, X, Copy, AlertTriangle, CheckCircle2, Loader2, Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
 import PurchasesPage from '@modules/purchasing/purchases/pages/PurchasesPage';

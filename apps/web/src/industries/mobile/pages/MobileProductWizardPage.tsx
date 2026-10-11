@@ -7,7 +7,7 @@ import {
   GraduationCap, X, WifiOff, Layers, Hash, Package, ShieldCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@core/ui/Button';
+import { Button } from '@/design-system/components';
 import { useMobileWizard, type WizardStep } from '../hooks/useMobileWizard';
 import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { MobileWizardStepper } from '../components/wizard/MobileWizardStepper';

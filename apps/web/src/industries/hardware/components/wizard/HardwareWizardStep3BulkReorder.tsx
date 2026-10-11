@@ -4,7 +4,7 @@ import {
   ToggleLeft, ToggleRight, DollarSign, Percent, Info, Package,
   Phone, Clock, Truck,
 } from 'lucide-react';
-import { Input } from '@core/ui/Input';
+import { Input } from '@/design-system/components';
 import { formatPKR, formatPKRFull } from '@core/lib/format';
 import type { HardwareWizardBulkTier, HardwareWizardReorder } from '../../hooks/useHardwareWizard';
 
