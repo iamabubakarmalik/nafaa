@@ -1,176 +1,73 @@
-import { useState, useEffect, useCallback } from 'react';
-import { X, RotateCcw, Percent, Banknote, Check, Tag, Calculator } from 'lucide-react';
+/** Bill discount, as a percentage or a fixed amount, with a live total. */
+
+import { useCallback, useEffect, useState } from 'react';
+import { Button, Modal, Segmented } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
+import { cn } from '@core/lib/cn';
 import type { PosDiscountMode } from '../lib/posCart';
 
-/* ═════════════════════════════════════════════════════════════
-   DISCOUNT — percent ya seedha rupay
-   ─────────────────────────────────────────────────────────────
-   Retail POS ka design, ab shared. Dukaan-daar dono tarah sochta
-   hai — "10 percent kam kar do" aur "200 rupay chhor do" — is liye
-   dono raste khule hain aur doosra number saath saath dikhta hai.
-   ═════════════════════════════════════════════════════════════ */
+const PCT = [5, 10, 15, 20, 25, 50];
+const RS = [50, 100, 200, 500, 1000];
 
-/* ═════════════════════════════════════════════════════════════
-   💎 DISCOUNT MODAL
-   ═════════════════════════════════════════════════════════════ */
 export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onApply, onClose }: {
-  subtotal: number; mode: PosDiscountMode; pct: number; rs: number;
+  subtotal: number;
+  mode: PosDiscountMode;
+  pct: number;
+  rs: number;
   onApply: (mode: PosDiscountMode, pct: number, rs: number) => void;
   onClose: () => void;
 }) {
   const [mode, setMode] = useState<PosDiscountMode>(initMode);
-  const [pct, setPct] = useState<string>(initPct ? String(initPct) : '');
-  const [rs, setRs] = useState<string>(initRs ? String(initRs) : '');
+  const [pct, setPct] = useState(initPct ? String(initPct) : '');
+  const [rs, setRs] = useState(initRs ? String(initRs) : '');
 
   const pctNum = Math.min(Math.max(Number(pct) || 0, 0), 100);
   const rsNum = Math.max(Math.min(Number(rs) || 0, subtotal), 0);
   const amount = mode === 'pct' ? (subtotal * pctNum) / 100 : rsNum;
-  const finalTotal = Math.max(subtotal - amount, 0);
-  const effectivePct = subtotal > 0 ? (amount / subtotal) * 100 : 0;
-
-  const apply = useCallback(() => onApply(mode, pctNum, rsNum), [mode, pctNum, rsNum, onApply]);
-
-  const numpadPress = (key: string) => {
-    const setter = mode === 'pct' ? setPct : setRs;
-    if (key === 'C') return setter('');
-    if (key === '⌫') return setter((v) => v.slice(0, -1));
-    if (key === '.' && (mode === 'pct' ? pct : rs).includes('.')) return;
-    setter((v) => (v === '0' ? key : v + key).slice(0, mode === 'pct' ? 5 : 10));
-  };
+  const final = Math.max(subtotal - amount, 0);
+  const apply = useCallback(() => onApply(mode, mode === 'pct' ? pctNum : 0, mode === 'rs' ? rsNum : 0), [mode, pctNum, rsNum, onApply]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') { e.preventDefault(); apply(); }
-      if (e.key === 'Escape') onClose();
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter') { e.preventDefault(); apply(); } };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [apply, onClose]);
+  }, [apply]);
+
+  const value = mode === 'pct' ? pct : rs;
+  const setValue = mode === 'pct' ? setPct : setRs;
+  const presets = mode === 'pct' ? PCT : RS.filter((n) => n < subtotal);
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[96vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="shrink-0 relative px-5 py-4 bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 text-white overflow-hidden">
-          <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-          <div className="relative flex items-start justify-between">
-            <div>
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur px-2.5 py-0.5 text-[0.6875rem] font-extrabold border border-white/30">
-                <Tag className="h-3 w-3" /> Discount
-              </div>
-              <div className="mt-2 text-xs font-bold text-white/85">Subtotal</div>
-              <div className="text-2xl font-extrabold tabular-nums leading-none">{formatPKR(subtotal)}</div>
-            </div>
-            <button onClick={onClose} className="h-10 w-10 rounded-2xl bg-white/20 hover:bg-white/30 active:scale-95 flex items-center justify-center transition">
-              <X className="h-5 w-5" />
+    <Modal open onClose={onClose} size="sm" title="Discount" description={`Bill ${formatPKR(subtotal)}`}
+      footer={
+        <>
+          {(initPct > 0 || initRs > 0) && <Button variant="ghost" onClick={() => onApply(mode, 0, 0)}>Hatayein</Button>}
+          <Button onClick={apply}>Lagayein</Button>
+        </>
+      }>
+      <div className="space-y-4">
+        <Segmented label="Discount ki qisam" value={mode} onChange={setMode} className="w-full [&>button]:flex-1"
+          items={[{ value: 'pct', label: 'Percent %' }, { value: 'rs', label: 'Rupay' }]} />
+        <div className="relative">
+          <input autoFocus inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value.replace(/[^\d.]/g, ''))}
+            placeholder="0" aria-label="Discount"
+            className="h-14 w-full rounded-xl border border-slate-300 px-4 pr-12 text-right text-2xl font-bold tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+          <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-slate-400">{mode === 'pct' ? '%' : 'Rs'}</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {presets.map((n) => (
+            <button key={n} type="button" onClick={() => setValue(String(n))}
+              className={cn('h-9 rounded-lg border px-3 text-[0.8125rem] font-semibold tabular-nums transition',
+                Number(value) === n ? 'border-brand-500 bg-brand-50 text-brand-800' : 'border-slate-200 text-slate-700 hover:border-slate-300')}>
+              {mode === 'pct' ? `${n}%` : `Rs ${n}`}
             </button>
-          </div>
+          ))}
         </div>
-
-        <div className="shrink-0 px-5 pt-4">
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-ink-800 rounded-2xl">
-            <button onClick={() => setMode('pct')}
-              className={['h-12 rounded-xl text-sm font-extrabold inline-flex items-center justify-center gap-1.5 transition',
-                mode === 'pct' ? 'bg-white dark:bg-ink-900 text-amber-700 dark:text-amber-300 shadow-md' : 'text-slate-600 dark:text-ink-300'].join(' ')}>
-              <Percent className="h-4 w-4" /> Percent (%)
-            </button>
-            <button onClick={() => setMode('rs')}
-              className={['h-12 rounded-xl text-sm font-extrabold inline-flex items-center justify-center gap-1.5 transition',
-                mode === 'rs' ? 'bg-white dark:bg-ink-900 text-emerald-700 dark:text-emerald-300 shadow-md' : 'text-slate-600 dark:text-ink-300'].join(' ')}>
-              <Banknote className="h-4 w-4" /> Rupees (Rs)
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          <div className={['rounded-2xl border-2 p-4 text-center',
-            mode === 'pct' ? 'border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10'
-            : 'border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10'].join(' ')}>
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400 mb-1">
-              {mode === 'pct' ? 'Kitne % Discount' : 'Kitne Rs Discount'}
-            </div>
-            <div className="flex items-baseline justify-center gap-1">
-              {mode === 'rs' && <span className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400">Rs</span>}
-              <div className={['text-6xl font-extrabold tabular-nums leading-none',
-                mode === 'pct' ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300'].join(' ')}>
-                {mode === 'pct' ? (pct || '0') : (rs || '0')}
-              </div>
-              {mode === 'pct' && <span className="text-3xl font-extrabold text-amber-700 dark:text-amber-300">%</span>}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-5 gap-1.5">
-            {mode === 'pct'
-              ? [5, 10, 15, 20, 25].map((v) => (
-                  <button key={v} onClick={() => setPct(String(v))}
-                    className={['h-11 rounded-xl text-sm font-extrabold tabular-nums transition active:scale-95 border-2',
-                      Number(pct) === v ? 'bg-amber-600 text-white border-amber-600 shadow-md'
-                      : 'bg-white dark:bg-ink-800 border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 hover:border-amber-400'].join(' ')}>
-                    {v}%
-                  </button>
-                ))
-              : [50, 100, 200, 500, 1000].map((v) => (
-                  <button key={v} onClick={() => setRs(String(v))}
-                    className={['h-11 rounded-xl text-xs font-extrabold tabular-nums transition active:scale-95 border-2',
-                      Number(rs) === v ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
-                      : 'bg-white dark:bg-ink-800 border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 hover:border-emerald-400'].join(' ')}>
-                    {v}
-                  </button>
-                ))}
-          </div>
-
-          <div className="grid grid-cols-3 gap-1.5">
-            {['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫'].map((k) => (
-              <button key={k} onClick={() => numpadPress(k)}
-                className={['h-12 rounded-xl text-lg font-extrabold transition active:scale-95 border-2 tabular-nums',
-                  k === '⌫' ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-400'
-                  : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-900 dark:text-ink-white hover:border-slate-400'].join(' ')}>
-                {k}
-              </button>
-            ))}
-          </div>
-
-          <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-slate-800 text-white p-4 shadow-lg">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-300 mb-2 flex items-center gap-1">
-              <Calculator className="h-3 w-3" /> Live Hisaab
-            </div>
-            <div className="space-y-1.5 text-sm font-bold">
-              <div className="flex justify-between">
-                <span className="text-white/70">Subtotal</span>
-                <span className="tabular-nums">{formatPKR(subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-rose-300">
-                <span>Discount {mode === 'rs' && amount > 0 ? `(${effectivePct.toFixed(1)}%)` : ''}</span>
-                <span className="tabular-nums">− {formatPKR(amount)}</span>
-              </div>
-              <div className="h-px bg-white/20 my-1.5" />
-              <div className="flex justify-between text-lg font-extrabold">
-                <span>Final Total</span>
-                <span className="tabular-nums text-emerald-300">{formatPKR(finalTotal)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-3 grid grid-cols-3 gap-2">
-          <button onClick={() => onApply(mode, 0, 0)}
-            className="h-14 rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 hover:border-rose-300 hover:text-rose-600 transition inline-flex items-center justify-center gap-1">
-            <RotateCcw className="h-4 w-4" /> Clear
-          </button>
-          <button onClick={onClose}
-            className="h-14 rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition">
-            Cancel
-          </button>
-          <button onClick={apply}
-            className={['h-14 rounded-2xl font-extrabold text-white shadow-lg inline-flex items-center justify-center gap-1.5 transition active:scale-95',
-              mode === 'pct' ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-amber-500/40'
-              : 'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-emerald-500/40'].join(' ')}>
-            <Check className="h-5 w-5" /> Apply
-          </button>
-        </div>
+        <dl className="space-y-1 rounded-xl bg-slate-50 p-3 text-[0.875rem]">
+          <div className="flex justify-between text-amber-700"><dt>Discount</dt><dd className="tabular-nums">−{formatPKR(amount)}{mode === 'rs' && subtotal > 0 && amount > 0 ? ` (${((amount / subtotal) * 100).toFixed(1)}%)` : ''}</dd></div>
+          <div className="flex items-baseline justify-between"><dt className="font-medium text-slate-900">Naya total</dt><dd className="text-xl font-bold tabular-nums text-slate-900">{formatPKR(final)}</dd></div>
+        </dl>
       </div>
-    </div>
+    </Modal>
   );
 }
-
-export default PosDiscountModal;

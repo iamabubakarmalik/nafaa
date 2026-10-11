@@ -47,7 +47,7 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full sm:max-w-5xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+      <div className="w-full sm:max-w-5xl bg-white rounded-t-3xl sm:rounded-2xl shadow-xl overflow-hidden max-h-[95vh] flex flex-col">
         <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 text-white shrink-0">
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-violet-400/20 blur-2xl" />
           <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-pink-400/15 blur-2xl" />
@@ -58,11 +58,11 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
                 <Layers className="h-7 w-7 text-white" />
               </div>
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1 border border-white/20">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-2.5 py-1 text-[0.6875rem] font-semibold uppercase tracking-wider mb-1 border border-white/20">
                   <Sparkles className="h-3 w-3 text-amber-300" />
                   Select Variant
                 </div>
-                <h3 className="font-extrabold text-xl leading-tight truncate">{product.name}</h3>
+                <h3 className="font-semibold text-xl leading-tight truncate">{product.name}</h3>
                 <p className="text-sm text-white/80 font-semibold mt-1">
                   {filtered.length} of {variants.filter(v => v.isActive).length} variants
                   {!ignoreStock && ` • ${totalStock.toFixed(totalStock % 1 === 0 ? 0 : 1)} total stock`}
@@ -87,7 +87,7 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search variant by name, SKU, color, size..."
-              className="h-12 w-full rounded-xl border-2 border-slate-200 bg-white pl-11 pr-11 text-base font-semibold focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 transition shadow-sm"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-base font-semibold focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 transition shadow-sm"
             />
             {search && (
               <button
@@ -103,10 +103,10 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
         <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-slate-50/30 to-white min-h-0">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
-              <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center shadow-inner">
+              <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center shadow-inner">
                 <AlertCircle className="h-10 w-10 text-slate-400" />
               </div>
-              <div className="mt-4 font-extrabold text-slate-900 text-lg">No variants found</div>
+              <div className="mt-4 font-semibold text-slate-900 text-lg">No variants found</div>
               <div className="text-sm text-slate-500 mt-1 font-semibold">
                 {search ? 'Try different search' : 'No active variants'}
               </div>
@@ -122,7 +122,7 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
                     key={v.id}
                     disabled={outOfStock}
                     onClick={() => onSelect(v)}
-                    className={`group relative rounded-2xl border-2 overflow-hidden text-left transition-all ${
+                    className={`group relative rounded-2xl border overflow-hidden text-left transition-all ${
                       outOfStock
                         ? 'border-slate-200 opacity-50 cursor-not-allowed'
                         : 'border-slate-200 bg-white hover:border-violet-500 hover:shadow-xl hover:shadow-violet-500/20 hover:-translate-y-1'
@@ -145,19 +145,19 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
 
                       {outOfStock ? (
                         <div className="absolute inset-0 bg-rose-500/85 flex items-center justify-center backdrop-blur-sm">
-                          <span className="px-3 py-1.5 rounded-full bg-white text-rose-700 text-xs font-extrabold shadow-lg uppercase tracking-wider">
+                          <span className="px-3 py-1.5 rounded-full bg-white text-rose-700 text-xs font-semibold shadow-lg uppercase tracking-wider">
                             Out of Stock
                           </span>
                         </div>
                       ) : lowStock ? (
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.6875rem] font-extrabold shadow-md ring-2 ring-white animate-pulse">
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.6875rem] font-semibold shadow-md ring-2 ring-white animate-pulse">
                           LOW
                         </div>
                       ) : null}
 
                       {!outOfStock && (
                         <div className="absolute inset-0 bg-violet-900/0 group-hover:bg-violet-900/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                          <div className="h-12 w-12 rounded-full bg-violet-600 text-white flex items-center justify-center shadow-2xl scale-90 group-hover:scale-100 transition-transform">
+                          <div className="h-12 w-12 rounded-full bg-violet-600 text-white flex items-center justify-center shadow-xl scale-90 group-hover:scale-100 transition-transform">
                             <Check className="h-6 w-6" />
                           </div>
                         </div>
@@ -168,11 +168,11 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
                       <div className="flex items-center gap-1.5">
                         {v.colorHex && (
                           <span
-                            className="h-3 w-3 rounded-full border-2 border-white shadow shrink-0 ring-1 ring-slate-200"
+                            className="h-3 w-3 rounded-full border border-white shadow shrink-0 ring-1 ring-slate-200"
                             style={{ backgroundColor: v.colorHex }}
                           />
                         )}
-                        <div className="font-extrabold text-slate-900 text-base truncate">
+                        <div className="font-semibold text-slate-900 text-base truncate">
                           {v.name}
                         </div>
                       </div>
@@ -188,10 +188,10 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
                       </div>
 
                       <div className="pt-1 flex items-end justify-between gap-2">
-                        <div className="text-lg font-extrabold text-emerald-700 tabular-nums leading-none">
+                        <div className="text-lg font-semibold text-emerald-700 tabular-nums leading-none">
                           {formatPKR(v.price)}
                         </div>
-                        <div className="text-xs font-extrabold text-right shrink-0">
+                        <div className="text-xs font-semibold text-right shrink-0">
                           {ignoreStock ? (
                             <span className="text-emerald-700">Rolls</span>
                           ) : outOfStock ? (

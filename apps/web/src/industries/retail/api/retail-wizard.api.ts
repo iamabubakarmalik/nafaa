@@ -1,7 +1,7 @@
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { productVariantsApi, type UpsertVariantPayload } from '@modules/inventory/products/api/product-variants.api';
 import { productBatchesApi } from '@modules/inventory/products/api/product-batches.api';
-import { productUnitsApi } from './product-units.api';
+import { productUnitsApi } from '@modules/inventory/products/api/product-units.api';
 import type { RetailWizardDraft } from '../hooks/useRetailWizard';
 
 

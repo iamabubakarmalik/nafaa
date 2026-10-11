@@ -89,7 +89,7 @@ export function PosDeliveryPanel({ value: d, onChange, tone = 'sky', compact }: 
   const setMode = (byRider: boolean) => { saveByRider(byRider); set({ byRider, riderCost: byRider ? 0 : d.riderCost }); };
 
   return (
-    <div className={['rounded-2xl border-2 transition', d.on ? t.on : 'border-slate-200 bg-white'].join(' ')}>
+    <div className={['rounded-2xl border transition', d.on ? t.on : 'border-slate-200 bg-white'].join(' ')}>
       <button type="button" onClick={() => set({ on: !d.on })}
         className="w-full px-3 py-2.5 flex items-center gap-2 text-left">
         <div className={['h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition',
@@ -97,7 +97,7 @@ export function PosDeliveryPanel({ value: d, onChange, tone = 'sky', compact }: 
           <Truck className="h-4 w-4" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-extrabold text-slate-900">Ghar Bhejna Hai?</div>
+          <div className="text-xs font-semibold text-slate-900">Ghar Bhejna Hai?</div>
           <div className="text-[0.6875rem] font-bold text-slate-500 truncate">
             {d.on && amount > 0 ? (d.byRider ? `${formatPKR(amount)} rider lega — bill me nahi` : `${formatPKR(amount)} charge lagega`) : 'Delivery charge add karein'}
           </div>
@@ -111,37 +111,37 @@ export function PosDeliveryPanel({ value: d, onChange, tone = 'sky', compact }: 
       {d.on && (
         <div className="px-3 pb-3 space-y-2">
           {/* Delivery ka paisa kis ke paas? */}
-          <div className="grid grid-cols-2 gap-1 rounded-lg bg-white p-1 border-2 border-slate-200">
+          <div className="grid grid-cols-2 gap-1 rounded-lg bg-white p-1 border border-slate-200">
             <button type="button" onClick={() => setMode(false)}
-              className={['h-8 rounded-md text-[0.65625rem] font-extrabold transition', !d.byRider ? `${t.btn} text-white shadow` : 'text-slate-600'].join(' ')}>
+              className={['h-8 rounded-md text-[0.65625rem] font-semibold transition', !d.byRider ? `${t.btn} text-white shadow` : 'text-slate-600'].join(' ')}>
               🛵 Hamara rider
             </button>
             <button type="button" onClick={() => setMode(true)}
-              className={['h-8 rounded-md text-[0.65625rem] font-extrabold transition', d.byRider ? `${t.btn} text-white shadow` : 'text-slate-600'].join(' ')}>
+              className={['h-8 rounded-md text-[0.65625rem] font-semibold transition', d.byRider ? `${t.btn} text-white shadow` : 'text-slate-600'].join(' ')}>
               🏍️ Bahar ka rider lega
             </button>
           </div>
           <div className={d.byRider ? 'grid grid-cols-1 gap-2' : 'grid grid-cols-2 gap-2'}>
             <div>
-              <div className={`text-[0.625rem] uppercase font-extrabold mb-0.5 ${t.label}`}>Customer se</div>
+              <div className={`text-[0.625rem] uppercase font-semibold mb-0.5 ${t.label}`}>Customer se</div>
               <input type="number" min={0} value={d.charge || ''}
                 onChange={(e) => set({ charge: Number(e.target.value || 0) })}
                 placeholder="0"
-                className={`h-10 w-full rounded-lg border-2 bg-white px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none transition ${t.focus}`} />
+                className={`h-10 w-full rounded-lg border bg-white px-2 text-sm font-semibold tabular-nums text-center focus:outline-none transition ${t.focus}`} />
             </div>
             {!d.byRider && <div>
-              <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 mb-0.5">Rider ko diya</div>
+              <div className="text-[0.625rem] uppercase font-semibold text-slate-500 mb-0.5">Rider ko diya</div>
               <input type="number" min={0} value={d.riderCost || ''}
                 onChange={(e) => set({ riderCost: Number(e.target.value || 0) })}
                 placeholder="0"
-                className="h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-slate-400 transition" />
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm font-semibold tabular-nums text-center focus:outline-none focus:border-slate-400 transition" />
             </div>}
           </div>
 
           <div className="flex gap-1">
             {QUICK.map((v) => (
               <button key={v} type="button" onClick={() => set({ charge: v })}
-                className={['flex-1 h-8 rounded-lg text-[0.6875rem] font-extrabold transition border-2',
+                className={['flex-1 h-8 rounded-lg text-[0.6875rem] font-semibold transition border',
                   d.charge === v ? `${t.btn} text-white shadow border-transparent` : `bg-white ${t.chip}`].join(' ')}>
                 {v}
               </button>
@@ -151,18 +151,18 @@ export function PosDeliveryPanel({ value: d, onChange, tone = 'sky', compact }: 
           {!compact && (
             <input value={d.address} onChange={(e) => set({ address: e.target.value })}
               placeholder="Address ya landmark (receipt par chhapega)"
-              className={`h-10 w-full rounded-lg border-2 border-slate-200 bg-white px-2.5 text-xs font-bold focus:outline-none transition ${t.focus}`} />
+              className={`h-10 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-bold focus:outline-none transition ${t.focus}`} />
           )}
 
           {amount > 0 && d.byRider && (
-            <div className="rounded-lg bg-white border-2 border-slate-200 px-2.5 py-1.5 text-[0.6875rem] font-bold text-slate-600">
+            <div className="rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 text-[0.6875rem] font-bold text-slate-600">
               Customer {formatPKR(amount)} seedha rider ko dega — bill par likha aayega, lekin dukaan ki sale aur drawer me nahi judega.
             </div>
           )}
           {amount > 0 && !d.byRider && (
-            <div className="rounded-lg bg-white border-2 border-slate-200 px-2.5 py-1.5 flex items-center justify-between">
+            <div className="rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 flex items-center justify-between">
               <span className="text-[0.6875rem] font-bold text-slate-600">Delivery ka apna munafa</span>
-              <span className={['text-xs font-extrabold tabular-nums',
+              <span className={['text-xs font-semibold tabular-nums',
                 profit >= 0 ? 'text-emerald-700' : 'text-rose-600'].join(' ')}>
                 {formatPKR(profit)}
               </span>

@@ -7,7 +7,7 @@ import {
   ShoppingBag, Copy, Printer, FileSpreadsheet,
   Crown, Flame, ArrowUpDown, CalendarClock, Trophy,
 } from 'lucide-react';
-import { combosApi, type ProductCombo } from '../api/combos.api';
+import { combosApi, type ProductCombo } from '@modules/pos/api/combos.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@/design-system/components';
 import { toast } from 'sonner';

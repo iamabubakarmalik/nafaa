@@ -191,7 +191,7 @@ export default function BakerySalesPage() {
     onSuccess: () => {
       toast.success('Bill void ho gaya — stock wapas aa gaya');
       setVoidTarget(null);
-      ['sales-list', 'sales-summary', 'products', 'bakery-all-products', 'products-for-bakery-pos', 'customers', 'customers-for-pos']
+      ['sales-list', 'sales-summary', 'products', 'bakery-all-products', 'products-for-pos', 'customers', 'customers-for-pos']
         .forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
     },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Void nahi hua'),

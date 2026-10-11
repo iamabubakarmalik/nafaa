@@ -1,28 +1,29 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { X, Plus, AlertTriangle, Scale } from 'lucide-react';
+/**
+ * Sale by weight or volume (kg, gram, liter, ml). Counters hear both
+ * "half a kilo" and "give me Rs 100 worth", so both inputs sit side by side:
+ * fill one and the other is worked out. A connected scale can fill the
+ * weight directly.
+ */
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, Scale } from 'lucide-react';
+import { Button, Modal, Segmented } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
+import { ScaleChip } from '@core/hardware/ScaleChip';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import type { PosUnitOption } from '../lib/posUnits';
-import { ScaleChip } from '@core/hardware/ScaleChip';
 
-/* ═════════════════════════════════════════════════════════════
-   WAZAN WALI SALE — kilo, liter, meter
-   ─────────────────────────────────────────────────────────────
-   Do taraf se hisaab: "aadha kilo do" (wazan se) aur "sau rupay
-   ka de do" (paise se). Counter par dono jumle barabar aam hain,
-   is liye dono khane saath saath chalte hain — ek bharo, doosra
-   khud ban jata hai.
-   ═════════════════════════════════════════════════════════════ */
-
-/* ═════════════════════════════════════════════════════════════
-   ⚖️ WEIGH SALE MODAL
-   ═════════════════════════════════════════════════════════════ */
-export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose }: {
-  product: Product; unit: PosUnitOption; prefillMoney?: number;
-  onConfirm: (qty: number) => void; onClose: () => void;
+export function PosWeighModal({ product, unit, prefillMoney, stock, onConfirm, onClose }: {
+  product: Product;
+  unit: PosUnitOption;
+  prefillMoney?: number;
+  /** Sellable stock in the product's base unit; Infinity to allow selling without stock. */
+  stock?: number;
+  onConfirm: (qty: number) => void;
+  onClose: () => void;
 }) {
   const base = unit.unitName.toLowerCase();
-  const pricePerUnit = unit.price;
+  const price = unit.price;
 
   const subUnits = useMemo(() => {
     if (base === 'kg') return [{ k: 'kg', l: 'KG', toBase: 1 }, { k: 'g', l: 'Gram', toBase: 0.001 }];
@@ -32,163 +33,101 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
     return [{ k: base, l: unit.unitName.toUpperCase(), toBase: 1 }];
   }, [base, unit.unitName]);
 
-  const [mode, setMode] = useState<'weight' | 'money'>('money');
-  const [subUnit, setSubUnit] = useState(subUnits[0].k);
-  const [weightInput, setWeightInput] = useState<number | ''>('');
-  const [moneyInput, setMoneyInput] = useState<number | ''>(prefillMoney ?? '');
+  const [mode, setMode] = useState<'money' | 'weight'>(prefillMoney ? 'money' : 'weight');
+  const [sub, setSub] = useState(subUnits[0].k);
+  const [weight, setWeight] = useState('');
+  const [money, setMoney] = useState(prefillMoney ? String(prefillMoney) : '');
 
-  const activeSub = subUnits.find((s) => s.k === subUnit) || subUnits[0];
-  const baseQty = mode === 'weight' ? Number(weightInput || 0) * activeSub.toBase : 0;
-  const weightPrice = baseQty * pricePerUnit;
-  const moneyBaseQty = mode === 'money' && pricePerUnit > 0 ? Number(moneyInput || 0) / pricePerUnit : 0;
-  const finalBaseQty = mode === 'weight' ? baseQty : moneyBaseQty;
-  const finalPrice = mode === 'weight' ? weightPrice : Number(moneyInput || 0);
-  const stockBase = Number(product.stock || 0) / unit.conversionRate;
-  const overStock = finalBaseQty > 0 && finalBaseQty > stockBase;
-  const canAdd = finalBaseQty > 0 && !overStock;
+  const active = subUnits.find((s) => s.k === sub) ?? subUnits[0];
+  const qty = mode === 'weight'
+    ? (Number(weight) || 0) * active.toBase
+    : price > 0 ? (Number(money) || 0) / price : 0;
+  const amount = mode === 'weight' ? qty * price : Number(money) || 0;
+  const available = (stock ?? Number(product.stock || 0)) / unit.conversionRate;
+  const over = qty > 0 && qty > available;
+  const canAdd = qty > 0 && !over;
+  const fmtQty = (n: number) => String(Number(n.toFixed(3)));
 
-  const weightPresets = base === 'gram' || base === 'g' ? [100, 250, 500, 1000] : [0.25, 0.5, 1, 2, 5];
-  const moneyPresets = [20, 50, 100, 200, 500];
-
-  const submit = useCallback(() => { if (canAdd) onConfirm(Number(finalBaseQty.toFixed(4))); }, [canAdd, finalBaseQty, onConfirm]);
-
+  const submit = useCallback(() => { if (canAdd) onConfirm(Number(qty.toFixed(4))); }, [canAdd, qty, onConfirm]);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'Enter' && canAdd) { e.preventDefault(); submit(); }
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Enter' && canAdd) { e.preventDefault(); submit(); } };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [canAdd, submit, onClose]);
+  }, [canAdd, submit]);
+
+  const weightPresets = base === 'gram' || base === 'g' || sub === 'g' || sub === 'ml' ? [100, 250, 500, 750] : [0.25, 0.5, 1, 2, 5];
+  const moneyPresets = [20, 50, 100, 200, 500, 1000];
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[0.6875rem] font-extrabold">
-              <Scale className="h-3 w-3" /> Weigh Machine Sale
-            </div>
-            <h3 className="font-extrabold text-lg mt-1.5 truncate">{product.name}</h3>
-            <div className="text-xs text-white/85 font-bold">
-              {formatPKR(pricePerUnit)} / {unit.unitName} • Stock {stockBase.toFixed(stockBase % 1 === 0 ? 0 : 2)}
-            </div>
-          </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center shrink-0 transition">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+    <Modal open onClose={onClose} size="sm"
+      title={<span className="flex items-center gap-2"><Scale className="h-4 w-4 text-brand-600" />{product.name}</span>}
+      description={`${formatPKR(price)} / ${unit.unitName}${Number.isFinite(available) ? ` · stock ${fmtQty(available)} ${unit.unitName}` : ''}`}
+      footer={
+        <Button fullWidth size="lg" onClick={submit} disabled={!canAdd}>
+          {qty > 0 ? `${fmtQty(qty)} ${unit.unitName} · ${formatPKR(amount)} — bill mein daalein` : 'Wazan ya raqam likhein'}
+        </Button>
+      }>
+      <div className="space-y-4">
+        {(base === 'kg' || base === 'gram' || base === 'g') && (
+          <ScaleChip onUse={(kg) => {
+            const inBase = base === 'kg' ? kg : kg * 1000;
+            setMode('weight');
+            setWeight(String(Number((inBase / active.toBase).toFixed(3))));
+          }} />
+        )}
+        <Segmented label="Kaise" value={mode} onChange={setMode} className="w-full [&>button]:flex-1"
+          items={[{ value: 'weight', label: 'Wazan se' }, { value: 'money', label: 'Raqam se' }]} />
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={() => setMode('money')}
-              className={['py-3.5 rounded-2xl border-2 font-extrabold text-sm transition',
-                mode === 'money' ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 shadow-md'
-                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300'].join(' ')}>
-              💰 Paise Se
-              <div className="text-[0.6875rem] font-bold opacity-70">"100 ka aata de do"</div>
-            </button>
-            <button onClick={() => setMode('weight')}
-              className={['py-3.5 rounded-2xl border-2 font-extrabold text-sm transition',
-                mode === 'weight' ? 'border-amber-600 bg-amber-50 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 shadow-md'
-                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300'].join(' ')}>
-              ⚖️ Wazan Se
-              <div className="text-[0.6875rem] font-bold opacity-70">"250 gram daal"</div>
-            </button>
-          </div>
-
-          {subUnits.length > 1 && (
-            <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1 w-max mx-auto">
-              {subUnits.map((s) => (
-                <button key={s.k} onClick={() => setSubUnit(s.k)}
-                  className={['px-4 py-1.5 rounded-lg text-xs font-extrabold transition',
-                    subUnit === s.k ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-300'].join(' ')}>
-                  {s.l}
+        {mode === 'weight' ? (
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <input autoFocus inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value.replace(/[^\d.]/g, ''))}
+                placeholder="0" aria-label="Wazan"
+                className="h-14 min-w-0 flex-1 rounded-xl border border-slate-300 px-4 text-right text-2xl font-bold tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+              {subUnits.length > 1 && (
+                <Segmented label="Unit" value={sub} onChange={setSub} items={subUnits.map((s) => ({ value: s.k, label: s.l }))} />
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {weightPresets.map((w) => (
+                <button key={w} type="button" onClick={() => setWeight(String(w))}
+                  className="h-9 rounded-lg border border-slate-200 px-3 text-[0.8125rem] font-semibold tabular-nums text-slate-700 hover:border-brand-300 hover:bg-brand-50">
+                  {w} {active.l.toLowerCase()}
                 </button>
               ))}
             </div>
-          )}
-
-          {(base === 'kg' || base === 'gram' || base === 'g') && (
-            <ScaleChip onUse={(kg) => {
-              // Tarazu hamesha kg deta hai — jo khana chuna hai us me badlo
-              const inBase = base === 'kg' ? kg : kg * 1000;
-              setMode('weight');
-              setWeightInput(Number((inBase / activeSub.toBase).toFixed(3)));
-            }} />
-          )}
-
-          {mode === 'weight' ? (
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">Kitna wazan? ({activeSub.l})</label>
-              <input autoFocus type="number" inputMode="decimal" step="any" min={0} value={weightInput}
-                onChange={(e) => setWeightInput(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="0"
-                className="h-16 w-full rounded-2xl border-2 border-amber-400 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-4 text-center text-3xl font-extrabold tabular-nums text-amber-900 dark:text-amber-200 focus:outline-none focus:border-amber-600 transition" />
-              <div className="mt-2 flex flex-wrap gap-1.5 justify-center">
-                {weightPresets.map((w) => (
-                  <button key={w} onClick={() => setWeightInput(w)}
-                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-ink-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 text-amber-800 dark:text-amber-300 text-xs font-extrabold transition tabular-nums">
-                    {w} {activeSub.k === 'g' ? 'g' : activeSub.k === 'ml' ? 'ml' : activeSub.l}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">Kitne paise ka? (Rs)</label>
-              <input autoFocus type="number" inputMode="decimal" step="any" min={0} value={moneyInput}
-                onChange={(e) => setMoneyInput(e.target.value === '' ? '' : Number(e.target.value))}
-                placeholder="0"
-                className="h-16 w-full rounded-2xl border-2 border-emerald-400 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10 px-4 text-center text-3xl font-extrabold tabular-nums text-emerald-900 dark:text-emerald-200 focus:outline-none focus:border-emerald-600 transition" />
-              <div className="mt-2 flex flex-wrap gap-1.5 justify-center">
-                {moneyPresets.map((m) => (
-                  <button key={m} onClick={() => setMoneyInput(m)}
-                    className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-ink-800 border-2 border-emerald-200 dark:border-emerald-500/40 hover:border-emerald-400 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition tabular-nums">
-                    Rs {m}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-amber-900 text-white p-4 shadow-lg">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-300 mb-2 flex items-center gap-1">
-              <Scale className="h-3 w-3" /> Live Hisaab
-            </div>
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div>
-                <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Wazan</div>
-                <div className="text-2xl font-extrabold tabular-nums leading-none">
-                  {(mode === 'weight' ? baseQty : moneyBaseQty).toFixed(3).replace(/\.?0+$/, '')}
-                  <span className="text-sm font-bold text-white/60"> {unit.unitName}</span>
-                </div>
-              </div>
-              <div className="text-2xl text-amber-300">=</div>
-              <div className="text-right">
-                <div className="text-[0.6875rem] uppercase font-extrabold text-white/60">Paise</div>
-                <div className="text-3xl font-extrabold tabular-nums text-emerald-300 leading-none">{formatPKR(finalPrice)}</div>
-              </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <input autoFocus inputMode="decimal" value={money} onChange={(e) => setMoney(e.target.value.replace(/[^\d.]/g, ''))}
+              placeholder="Rs 0" aria-label="Raqam"
+              className="h-14 w-full rounded-xl border border-slate-300 px-4 text-right text-2xl font-bold tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+            <div className="grid grid-cols-3 gap-1.5">
+              {moneyPresets.map((m) => (
+                <button key={m} type="button" onClick={() => setMoney(String(m))}
+                  className="h-9 rounded-lg border border-slate-200 text-[0.8125rem] font-semibold tabular-nums text-slate-700 hover:border-brand-300 hover:bg-brand-50">
+                  Rs {m}
+                </button>
+              ))}
             </div>
           </div>
+        )}
 
-          {overStock && (
-            <div className="rounded-xl bg-rose-50 dark:bg-rose-500/15 border-2 border-rose-200 dark:border-rose-500/40 p-2.5 flex items-center gap-2 text-xs font-bold text-rose-800 dark:text-rose-300">
-              <AlertTriangle className="h-4 w-4 shrink-0" />
-              Stock sirf {stockBase.toFixed(2)} {unit.unitName} hai
-            </div>
-          )}
-        </div>
-
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-4 flex gap-2">
-          <button onClick={onClose} className="flex-1 h-12 rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition">Cancel</button>
-          <button onClick={submit} disabled={!canAdd}
-            className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 disabled:opacity-40 text-white font-extrabold shadow-lg shadow-amber-500/40 inline-flex items-center justify-center gap-2 transition">
-            <Plus className="h-4 w-4" /> Cart Me Daalo ({formatPKR(finalPrice)})
-          </button>
-        </div>
+        {qty > 0 && (
+          <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+            <span className="text-[0.8125rem] text-slate-500">{mode === 'money' ? 'Itna wazan dein' : 'Itne paise lein'}</span>
+            <span className="text-xl font-bold tabular-nums text-slate-900">
+              {mode === 'money' ? `${fmtQty(qty)} ${unit.unitName}${base === 'kg' && qty < 1 ? ` (${Math.round(qty * 1000)} g)` : ''}` : formatPKR(amount)}
+            </span>
+          </div>
+        )}
+        {over && (
+          <p className="flex items-center gap-1.5 text-[0.8125rem] font-medium text-rose-700">
+            <AlertTriangle className="h-4 w-4" /> Stock sirf {fmtQty(available)} {unit.unitName}
+          </p>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 }
 

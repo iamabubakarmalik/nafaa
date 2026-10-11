@@ -11,7 +11,7 @@ import JsBarcode from 'jsbarcode';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productVariantsApi, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
-import { productUnitsApi, type ProductUnit } from '@industries/retail/api/product-units.api';
+import { productUnitsApi, type ProductUnit } from '@modules/inventory/products/api/product-units.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { Button } from '@/design-system/components';

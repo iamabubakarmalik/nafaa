@@ -6,9 +6,9 @@ import {
   ArrowUp, ArrowDown, Power, Keyboard, Download,
   GraduationCap, ArrowRight, CheckCircle2, CheckSquare, Square, MousePointerClick,
 } from 'lucide-react';
-import { quickKeysApi, type QuickKey } from '../api/quick-keys.api';
+import { quickKeysApi, type QuickKey } from '@modules/pos/api/quick-keys.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
-import { combosApi } from '../api/combos.api';
+import { combosApi } from '@modules/pos/api/combos.api';
 import { formatPKR } from '@core/lib/format';
 import { Button } from '@/design-system/components';
 import { toast } from 'sonner';

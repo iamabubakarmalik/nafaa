@@ -9,7 +9,7 @@ import ElectronicsDashboard from './dashboard/ElectronicsDashboard';
 import ElectronicsProductsPage from './pages/ElectronicsProductsPage';
 import ElectronicsProductWizardPage from './pages/ElectronicsProductWizardPage';
 import ElectronicsProductDetailPage from './pages/ElectronicsProductDetailPage';
-import ElectronicsPosPage from './pages/ElectronicsPosPage';
+import ElectronicsPos from './pos/ElectronicsPos';
 import WarrantyClaimsPage from './pages/WarrantyClaimsPage';
 import SerialTrackingPage from './pages/SerialTrackingPage';
 import ElectronicsBundlesPage from './pages/ElectronicsBundlesPage';
@@ -82,7 +82,7 @@ export const ElectronicsPack: IndustryPack = {
   ],
 
   routes: [
-    { path: '/pos', element: ElectronicsPosPage },
+    { path: '/pos', element: ElectronicsPos },
 
     { path: '/electronics-products/new', element: ElectronicsProductWizardPage },
     { path: '/electronics-products/:id/edit', element: ElectronicsProductWizardPage },

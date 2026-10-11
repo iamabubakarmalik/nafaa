@@ -32,7 +32,7 @@ export function SerialPickerModal({ product, profile, onConfirm, onClose }: Prop
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full max-w-2xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col animate-in slide-in-from-bottom sm:zoom-in duration-200">
+      <div className="w-full max-w-2xl bg-white rounded-t-3xl sm:rounded-2xl shadow-xl overflow-hidden max-h-[95vh] flex flex-col animate-in slide-in-from-bottom sm:zoom-in duration-200">
 
         <div className="shrink-0 bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white px-5 py-4 flex items-center gap-4">
           <div className="h-16 w-16 rounded-2xl bg-white/15 overflow-hidden shrink-0 flex items-center justify-center">
@@ -43,10 +43,10 @@ export function SerialPickerModal({ product, profile, onConfirm, onClose }: Prop
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs uppercase font-extrabold text-white/70 tracking-wider inline-flex items-center gap-1">
+            <div className="text-xs uppercase font-semibold text-white/70 tracking-wider inline-flex items-center gap-1">
               <Barcode className="h-3 w-3" /> Select Serial / IMEI
             </div>
-            <h3 className="text-xl sm:text-2xl font-extrabold leading-tight truncate">{product.name}</h3>
+            <h3 className="text-xl sm:text-2xl font-semibold leading-tight truncate">{product.name}</h3>
             <div className="text-sm font-bold text-cyan-200">
               Available: {serials.length} pcs • {formatPKR(product.price)}
             </div>
@@ -56,12 +56,12 @@ export function SerialPickerModal({ product, profile, onConfirm, onClose }: Prop
           </button>
         </div>
 
-        <div className="shrink-0 p-4 border-b-2 border-slate-100">
+        <div className="shrink-0 p-4 border-b border-slate-100">
           <div className="relative">
             <Search className="h-5 w-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input autoFocus value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by serial / IMEI / MAC..."
-              className="h-12 w-full rounded-xl border-2 border-slate-200 bg-white pl-10 pr-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
           </div>
         </div>
 
@@ -71,19 +71,19 @@ export function SerialPickerModal({ product, profile, onConfirm, onClose }: Prop
           ) : filtered.length === 0 ? (
             <div className="text-center py-12">
               <Barcode className="h-12 w-12 text-slate-300 mx-auto mb-2" />
-              <p className="font-extrabold text-slate-700">No serials available</p>
+              <p className="font-semibold text-slate-700">No serials available</p>
               <p className="text-xs text-slate-500 font-semibold mt-1">Add serials from product page</p>
             </div>
           ) : (
             <div className="space-y-2">
               {filtered.map((s: any) => (
                 <button key={s.id} onClick={() => onConfirm(s)}
-                  className="w-full rounded-2xl border-2 border-slate-200 hover:border-blue-500 hover:shadow-lg p-3 flex items-center gap-3 transition group active:scale-[0.98]">
+                  className="w-full rounded-2xl border border-slate-200 hover:border-blue-500 hover:shadow-lg p-3 flex items-center gap-3 transition group ">
                   <div className="h-11 w-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
                     <Barcode className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <div className="font-mono font-extrabold text-slate-900 text-sm truncate">{s.serialNumber}</div>
+                    <div className="font-mono font-semibold text-slate-900 text-sm truncate">{s.serialNumber}</div>
                     <div className="flex items-center gap-2 flex-wrap mt-0.5">
                       {s.imei && (
                         <span className="text-[0.6875rem] font-mono text-slate-600">IMEI: {s.imei}</span>
@@ -93,7 +93,7 @@ export function SerialPickerModal({ product, profile, onConfirm, onClose }: Prop
                       )}
                     </div>
                     {s.warrantyEndDate && (
-                      <div className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-blue-700">
+                      <div className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-semibold text-blue-700">
                         <Shield className="h-2.5 w-2.5" /> Warranty until {new Date(s.warrantyEndDate).toLocaleDateString('en-PK')}
                       </div>
                     )}

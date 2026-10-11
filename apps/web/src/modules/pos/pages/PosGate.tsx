@@ -1,15 +1,19 @@
-// apps/web/src/modules/pos/pages/PosGate.tsx
+/**
+ * Picks the POS for the current industry. Retail, Bakery, Electronics and
+ * businesses without an industry run on the shared POS engine
+ * (modules/pos/engine); the rest still use their own pages until their
+ * industry flow is rebuilt.
+ */
 import { lazy, Suspense } from 'react';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
-import PosPage from './PosPage';
 
 // ─── Original 19 industries ───
-const RetailPosPage = lazy(() => import('@industries/retail/pages/RetailPosPage'));
+const RetailPos = lazy(() => import('@industries/retail/pos/RetailPos'));
 const RestaurantPosPage = lazy(() => import('@industries/restaurant/pages/RestaurantPosPage'));
 const MobilePosPage = lazy(() => import('@industries/mobile/pages/MobilePosPage'));
 const CarpetPosPage = lazy(() => import('@industries/carpet/pages/CarpetPosPage'));
 const GarmentPosPage = lazy(() => import('@industries/garments/pages/GarmentPosPage'));
-const BakeryPosPage = lazy(() => import('@industries/bakery/pages/BakeryPosPage'));
+const BakeryPos = lazy(() => import('@industries/bakery/pos/BakeryPos'));
 const GymPosPage = lazy(() => import('@industries/gym/pages/GymPosPage'));
 const ClinicPosPage = lazy(() => import('@industries/clinic/pages/ClinicPosPage'));
 const ServicesBizPosPage = lazy(() => import('@industries/services-biz/pages/ServicesBizPosPage'));
@@ -26,7 +30,8 @@ const HotelPosPage = lazy(() => import('@industries/hotel/pages/HotelPosPage'));
 
 // ─── 10 NEW industries ───
 const AppliancesPosPage = lazy(() => import('@industries/appliances/pages/AppliancesPosPage'));
-const ElectronicsPosPage = lazy(() => import('@industries/electronics/pages/ElectronicsPosPage'));
+const ElectronicsPos = lazy(() => import('@industries/electronics/pos/ElectronicsPos'));
+const GeneralPos = lazy(() => import('../general/GeneralPos'));
 const FloristPosPage = lazy(() => import('@industries/florist/pages/FloristPosPage'));
 const FurniturePosPage = lazy(() => import('@industries/furniture/pages/FurniturePosPage'));
 const GamingPosPage = lazy(() => import('@industries/gaming/pages/GamingPosPage'));
@@ -39,7 +44,7 @@ const ToystorePosPage = lazy(() => import('@industries/toystore/pages/ToystorePo
 function Loader() {
   return (
     <div className="flex items-center justify-center py-24">
-      <div className="h-12 w-12 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin" />
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600" />
     </div>
   );
 }
@@ -52,7 +57,7 @@ export default function PosGate() {
   if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobilePosPage /></Suspense>;
   if (industry?.id === 'carpet') return <Suspense fallback={<Loader />}><CarpetPosPage /></Suspense>;
   if (industry?.id === 'garments') return <Suspense fallback={<Loader />}><GarmentPosPage /></Suspense>;
-  if (industry?.id === 'bakery') return <Suspense fallback={<Loader />}><BakeryPosPage /></Suspense>;
+  if (industry?.id === 'bakery') return <Suspense fallback={<Loader />}><BakeryPos /></Suspense>;
   if (industry?.id === 'gym') return <Suspense fallback={<Loader />}><GymPosPage /></Suspense>;
   if (industry?.id === 'clinic') return <Suspense fallback={<Loader />}><ClinicPosPage /></Suspense>;
   if (industry?.id === 'services-biz') return <Suspense fallback={<Loader />}><ServicesBizPosPage /></Suspense>;
@@ -66,11 +71,11 @@ export default function PosGate() {
   if (industry?.id === 'bookstore') return <Suspense fallback={<Loader />}><BookstorePosPage /></Suspense>;
   if (industry?.id === 'salon') return <Suspense fallback={<Loader />}><SalonPosPage /></Suspense>;
   if (industry?.id === 'hotel') return <Suspense fallback={<Loader />}><HotelPosPage /></Suspense>;
-  if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailPosPage /></Suspense>;
+  if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailPos /></Suspense>;
 
   // ─── 10 NEW ───
   if (industry?.id === 'appliances') return <Suspense fallback={<Loader />}><AppliancesPosPage /></Suspense>;
-  if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsPosPage /></Suspense>;
+  if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsPos /></Suspense>;
   if (industry?.id === 'florist') return <Suspense fallback={<Loader />}><FloristPosPage /></Suspense>;
   if (industry?.id === 'furniture') return <Suspense fallback={<Loader />}><FurniturePosPage /></Suspense>;
   if (industry?.id === 'gaming') return <Suspense fallback={<Loader />}><GamingPosPage /></Suspense>;
@@ -80,5 +85,5 @@ export default function PosGate() {
   if (industry?.id === 'sports') return <Suspense fallback={<Loader />}><SportsPosPage /></Suspense>;
   if (industry?.id === 'toystore') return <Suspense fallback={<Loader />}><ToystorePosPage /></Suspense>;
 
-  return <PosPage />;
+  return <Suspense fallback={<Loader />}><GeneralPos /></Suspense>;
 }

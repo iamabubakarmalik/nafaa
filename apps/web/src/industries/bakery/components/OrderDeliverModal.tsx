@@ -240,7 +240,7 @@ export function OrderDeliverModal({ order, onClose, onDone, recordPayment, markD
     },
     onSuccess: (sale: any) => {
       setStep('');
-      ['sales-list', 'sales-summary', 'products', 'bakery-all-products', 'products-for-bakery-pos',
+      ['sales-list', 'sales-summary', 'products', 'bakery-all-products', 'products-for-pos',
         'customers', 'customers-for-pos', 'cake-orders', 'bulk-orders'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       forceRefreshProducts().catch(() => {});
 

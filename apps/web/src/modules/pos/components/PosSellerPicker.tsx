@@ -58,7 +58,7 @@ export function PosSellerPicker({
 
   return (
     <div className={compact ? '' : 'mt-2'}>
-      <label className="block mb-1 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400">
+      <label className="block mb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-ink-400">
         Bikri kis ke naam
       </label>
       <div className="relative">
@@ -68,7 +68,7 @@ export function PosSellerPicker({
         <select
           value={current}
           onChange={(e) => onChange(e.target.value || undefined)}
-          className={`h-11 w-full rounded-xl border-2 bg-white dark:bg-ink-800 pl-9 pr-8 text-sm font-bold text-slate-900 dark:text-ink-white appearance-none focus:outline-none transition ${
+          className={`h-11 w-full rounded-xl border bg-white dark:bg-ink-800 pl-9 pr-8 text-sm font-bold text-slate-900 dark:text-ink-white appearance-none focus:outline-none transition ${
             isMe
               ? 'border-slate-200 dark:border-ink-700 focus:border-sky-500'
               : 'border-emerald-400 dark:border-emerald-500/60 focus:border-emerald-500'
@@ -91,7 +91,7 @@ export function PosSellerPicker({
         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
       </div>
       {!isMe && chosen && (
-        <p className="mt-1 text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400">
+        <p className="mt-1 text-[0.6875rem] font-semibold text-emerald-700 dark:text-emerald-400">
           Is bill ki commission <strong>{chosen.name}</strong> ko jayegi
         </p>
       )}

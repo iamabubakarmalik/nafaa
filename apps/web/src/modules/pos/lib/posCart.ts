@@ -53,6 +53,17 @@ export interface PosCartLine {
 
   comboItems?: any[];
   savings?: number;
+
+  /** Size/colour variant of the product, when it has variants. */
+  variantId?: string;
+  variantName?: string;
+  /** Serial/IMEI-tracked unit: the exact piece sold (quantity stays 1). */
+  serialId?: string;
+  serialNumber?: string;
+  imei?: string;
+  warrantyMonths?: number;
+  /** Quantity cannot be changed (serial-tracked units). */
+  lockQty?: boolean;
 }
 
 export interface PosHeldCart {
@@ -70,16 +81,18 @@ export interface PosPaymentMethodOption {
   id: PaymentMethod;
   label: string;
   icon: any;
-  /** Tailwind gradient — chuna hua button isi rang ka hota hai */
-  bg: string;
+  /** Brand colour of the method, used for the selected state and receipt dots. */
+  color: string;
+  /** Keyboard shortcut inside the checkout dialog. */
+  key: string;
 }
 
 export const POS_PAYMENT_METHODS: PosPaymentMethodOption[] = [
-  { id: 'CASH',          label: 'Cash',      icon: Banknote,   bg: 'from-emerald-500 to-green-600' },
-  { id: 'JAZZCASH',      label: 'JazzCash',  icon: Smartphone, bg: 'from-orange-500 to-orange-600' },
-  { id: 'EASYPAISA',     label: 'EasyPaisa', icon: Zap,        bg: 'from-green-500 to-lime-600' },
-  { id: 'CARD',          label: 'Card',      icon: CreditCard, bg: 'from-blue-500 to-blue-700' },
-  { id: 'BANK_TRANSFER', label: 'Bank',      icon: Building2,  bg: 'from-violet-500 to-purple-700' },
+  { id: 'CASH',          label: 'Cash',      icon: Banknote,   color: '#16a34a', key: 'F1' },
+  { id: 'JAZZCASH',      label: 'JazzCash',  icon: Smartphone, color: '#ea580c', key: 'F3' },
+  { id: 'EASYPAISA',     label: 'Easypaisa', icon: Zap,        color: '#22c55e', key: 'F4' },
+  { id: 'CARD',          label: 'Card',      icon: CreditCard, color: '#2563eb', key: 'F5' },
+  { id: 'BANK_TRANSFER', label: 'Bank',      icon: Building2,  color: '#7c3aed', key: 'F7' },
 ];
 
 /** Cash ke aam note — counter par sab se zyada yehi chalte hain. */

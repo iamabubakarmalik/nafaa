@@ -1,177 +1,175 @@
-import { useState, useEffect, useCallback } from 'react';
-import {
-  X, User, CheckCircle2, ArrowRight, AlertTriangle, Zap, Banknote,
-  Calculator, CreditCard, Smartphone, Building2, BookOpen, Wallet, Delete,
-} from 'lucide-react';
+/**
+ * Checkout: full payment, part payment with the rest on credit, or full
+ * credit. The cashier can type what the customer handed over to see the
+ * change; extra money can be kept as an advance in the customer's khata.
+ *
+ * Keys: Enter confirm · F1/F3/F4/F5/F7 payment method · F6 full credit.
+ */
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AlertTriangle, BookOpen, Calculator, Check, Delete, User, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button, Modal } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
+import { cn } from '@core/lib/cn';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
-import { POS_PAYMENT_METHODS, POS_QUICK_AMOUNTS, type PosCheckoutMode } from '../lib/posCart';
-import { PosReceiverField, type PosReceiverValue } from './PosReceiverField';
 import { PayQrPanel } from '@core/payments/PayQrPanel';
+import { POS_PAYMENT_METHODS, POS_QUICK_AMOUNTS, type PosCheckoutMode } from '../lib/posCart';
+import type { PosReceiverValue } from './PosReceiverField';
 
-/* ═════════════════════════════════════════════════════════════
-   CHECKOUT — pura paisa, kuch cash, ya pura udhaar
-   ─────────────────────────────────────────────────────────────
-   Retail POS ka design, ab shared. Yahan teen soorton ka faisla
-   hota hai aur teenon counter par roz pesh aati hain, is liye
-   teenon ek hi nazar me samne hain — koi menu ke andar chhupi
-   hui nahi.
+export interface PosCheckoutResult {
+  paymentMethod: PaymentMethod;
+  /** Amount recorded on the sale. Above the total means change was given. */
+  paidAmount: number;
+  isCredit: boolean;
+  /** Keep the extra (paid − total) in the customer's khata instead of giving change. */
+  depositExtra: boolean;
+}
 
-   Udhaar wali soorat me "maal lene kaun aaya" ka khana khulta
-   hai: khata mahine bhar chalta hai aur maal aksar mulazim le
-   jata hai.
-   ═════════════════════════════════════════════════════════════ */
+const MODES: Array<{ id: PosCheckoutMode; label: string; hint: string; icon: typeof Wallet }> = [
+  { id: 'full', label: 'Pura paisa', hint: 'Poora bill abhi', icon: Wallet },
+  { id: 'partial', label: 'Kuch paisa', hint: 'Baqi udhaar', icon: Calculator },
+  { id: 'credit', label: 'Pura udhaar', hint: 'Khate mein', icon: BookOpen },
+];
 
-/* ═════════════════════════════════════════════════════════════
-   💳 CHECKOUT MODAL
-   ═════════════════════════════════════════════════════════════ */
+const PAD = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0', '⌫'];
+
 export function PosCheckoutModal({
   total, itemCount, loading, customerName, customerBalance = 0, hasCustomer,
-  initMode, initAmount, customerId, receiver, onReceiverChange, onConfirm, onClose,
+  initMode, initAmount, receiver, onConfirm, onClose,
 }: {
-  total: number; itemCount: number; loading?: boolean;
-  customerName?: string; customerBalance?: number; hasCustomer?: boolean;
-  initMode: PosCheckoutMode; initAmount?: number;
+  total: number;
+  itemCount: number;
+  loading?: boolean;
+  customerName?: string;
+  customerBalance?: number;
+  hasCustomer?: boolean;
+  initMode: PosCheckoutMode;
+  initAmount?: number;
   customerId?: string;
-  receiver: PosReceiverValue;
-  onReceiverChange: (v: PosReceiverValue) => void;
-  onConfirm: (d: {
-    paymentMethod: PaymentMethod; paidAmount: number; isCredit: boolean;
-    depositExtra: boolean;
-  }) => void;
+  receiver?: PosReceiverValue;
+  onReceiverChange?: (v: PosReceiverValue) => void;
+  onConfirm: (d: PosCheckoutResult) => void;
   onClose: () => void;
 }) {
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
-  const [paidStr, setPaidStr] = useState<string>(initAmount ? String(initAmount) : '');
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
   const [mode, setMode] = useState<PosCheckoutMode>(initMode);
-  const [depositExtra, setDepositExtra] = useState(false);
+  /** What the customer handed over; empty in full mode means exactly the total. */
+  const [tendered, setTendered] = useState(initAmount ? String(initAmount) : '');
+  const [deposit, setDeposit] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const paid = mode === 'credit' ? 0 : mode === 'full' ? total : Number(paidStr) || 0;
+  const entered = Number(tendered) || 0;
+  const paid = mode === 'credit' ? 0 : mode === 'full' ? Math.max(entered, total) : entered;
   const change = Math.max(paid - total, 0);
-  const creditAmount = Math.max(total - paid, 0);
-  const isCredit = creditAmount > 0;
+  const credit = Math.max(total - paid, 0);
+  const isCredit = credit > 0;
+  const blocked = isCredit && !hasCustomer;
 
-  useEffect(() => {
-    if (mode === 'full') setPaidStr(String(total));
-  }, [mode, total]);
-
-  const submit = useCallback(() => {
-    if (isCredit && !hasCustomer) { toast.error('Udhaar ke liye customer select karein'); return; }
-    if (loading) return;
-    onConfirm({
-      paymentMethod, paidAmount: mode === 'credit' ? 0 : paid, isCredit,
-      depositExtra: depositExtra && change > 0,
-    });
-  }, [isCredit, hasCustomer, loading, onConfirm, paymentMethod, mode, paid, depositExtra, change]);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') { e.preventDefault(); submit(); }
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'F1') { e.preventDefault(); setPaymentMethod('CASH'); }
-      if (e.key === 'F3') { e.preventDefault(); setPaymentMethod('JAZZCASH'); }
-      if (e.key === 'F4') { e.preventDefault(); setPaymentMethod('EASYPAISA'); }
-      if (e.key === 'F5') { e.preventDefault(); setPaymentMethod('CARD'); }
-      if (e.key === 'F6') { e.preventDefault(); if (hasCustomer) setMode('credit'); }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [submit, onClose, hasCustomer]);
-
-  const addAmount = (amt: number) => { setMode('partial'); setPaidStr(String((Number(paidStr) || 0) + amt)); };
-  const setExact = (amt: number) => { setMode('partial'); setPaidStr(String(amt)); };
-
-  const numpad = (k: string) => {
-    setMode('partial');
-    if (k === 'C') return setPaidStr('');
-    if (k === '⌫') return setPaidStr((v) => v.slice(0, -1));
-    setPaidStr((v) => (v === '0' ? k : v + k).slice(0, 9));
+  const choose = (m: PosCheckoutMode) => {
+    setMode(m);
+    if (m === 'credit') setTendered('');
+    if (m === 'partial') { setTendered(''); setTimeout(() => inputRef.current?.focus(), 0); }
   };
 
+  const submit = useCallback(() => {
+    if (loading) return;
+    if (blocked) { toast.error('Udhaar ke liye pehle customer chunein'); return; }
+    if (mode === 'partial' && entered <= 0) { toast.error('Kitna paisa mila, likhein'); inputRef.current?.focus(); return; }
+    onConfirm({ paymentMethod: method, paidAmount: paid, isCredit, depositExtra: deposit && change > 0 && !!hasCustomer });
+  }, [loading, blocked, mode, entered, onConfirm, method, paid, isCredit, deposit, change, hasCustomer]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); submit(); return; }
+      const m = POS_PAYMENT_METHODS.find((x) => x.key === e.key);
+      if (m) { e.preventDefault(); setMethod(m.id); if (mode === 'credit') setMode('full'); return; }
+      if (e.key === 'F6') { e.preventDefault(); if (hasCustomer) choose('credit'); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [submit, hasCustomer, mode]);
+
+  const press = (k: string) => {
+    if (mode === 'credit') setMode('full');
+    setTendered((v) => (k === '⌫' ? v.slice(0, -1) : (v === '0' ? k : v + k).slice(0, 9)));
+  };
+  const addNote = (n: number) => { if (mode === 'credit') setMode('full'); setTendered((v) => String((Number(v) || 0) + n)); };
+  const roundUp = Math.ceil(total / 100) * 100;
+
+  const action = loading ? 'Save ho raha hai…'
+    : mode === 'credit' ? `Udhaar mein daalein · ${formatPKR(total)}`
+      : isCredit ? `${formatPKR(paid)} li · ${formatPKR(credit)} udhaar`
+        : change > 0 ? `Bill complete · ${formatPKR(change)} wapas` : `Bill complete · ${formatPKR(total)}`;
+
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
-        <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-green-700 text-white px-5 py-4">
-          <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl" />
-          <div className="relative flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-emerald-200 tracking-wider">Payment • {itemCount} items</div>
-              <div className="text-4xl sm:text-5xl font-extrabold tabular-nums leading-none mt-1">{formatPKR(total)}</div>
-              {hasCustomer && customerName && (
-                <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/15 backdrop-blur border border-white/20 text-xs font-extrabold">
-                  <User className="h-3 w-3" />
-                  {customerName}
-                  {customerBalance > 0 && (
-                    <>
-                      <span className="text-white/50">•</span>
-                      <span className="text-amber-300">Purana udhaar {formatPKR(customerBalance)}</span>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-            <button onClick={onClose} className="h-11 w-11 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-90 flex items-center justify-center border-2 border-white/20 transition shrink-0">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto">
-          <div className="px-4 sm:px-5 pt-4">
-            <div className="grid grid-cols-3 gap-2">
-              <button onClick={() => setMode('full')}
-                className={['p-3 rounded-2xl border-4 text-center transition active:scale-95',
-                  mode === 'full' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 shadow-lg ring-2 ring-emerald-200 dark:ring-emerald-500/30' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300'].join(' ')}>
-                <Wallet className={`h-6 w-6 mx-auto ${mode === 'full' ? 'text-emerald-600' : 'text-slate-500'}`} />
-                <div className={`text-sm font-extrabold mt-1 ${mode === 'full' ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-ink-200'}`}>Pura Paisa</div>
-                <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">100% payment</div>
-              </button>
-              <button onClick={() => { setMode('partial'); setPaidStr(''); }}
-                className={['p-3 rounded-2xl border-4 text-center transition active:scale-95',
-                  mode === 'partial' ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 shadow-lg ring-2 ring-amber-200 dark:ring-amber-500/30' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-amber-300'].join(' ')}>
-                <Calculator className={`h-6 w-6 mx-auto ${mode === 'partial' ? 'text-amber-600' : 'text-slate-500'}`} />
-                <div className={`text-sm font-extrabold mt-1 ${mode === 'partial' ? 'text-amber-800 dark:text-amber-300' : 'text-slate-700 dark:text-ink-200'}`}>Kuch Cash</div>
-                <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Baqi udhaar</div>
-              </button>
-              <button onClick={() => setMode('credit')} disabled={!hasCustomer}
-                className={['p-3 rounded-2xl border-4 text-center transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed',
-                  mode === 'credit' ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 shadow-lg ring-2 ring-rose-200 dark:ring-rose-500/30' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-rose-300'].join(' ')}>
-                <BookOpen className={`h-6 w-6 mx-auto ${mode === 'credit' ? 'text-rose-600' : 'text-slate-500'}`} />
-                <div className={`text-sm font-extrabold mt-1 ${mode === 'credit' ? 'text-rose-800 dark:text-rose-300' : 'text-slate-700 dark:text-ink-200'}`}>Pura Udhaar</div>
-                <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">{hasCustomer ? 'Khaate mein' : 'Customer chunein'}</div>
-              </button>
-            </div>
-          </div>
-
-          {/* Maal lene wale ka naam yahan nahi — cart me customer ke
-              saath hai. Wahan hone ki wajah: INSTANT CASH (F12) ye
-              modal kholta hi nahi, aur naam usi waqt likha jata hai
-              jab customer chuna jata hai, paisa lete waqt nahi.
-              Yahan sirf yaad-dehani, jab udhaar ja raha ho aur naam
-              khali reh gaya ho. */}
-          {isCredit && hasCustomer && !receiver.name.trim() && (
-            <div className="px-4 sm:px-5 pt-4">
-              <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/70 dark:bg-amber-500/10 px-3 py-2.5 text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
-                💡 Udhaar ja raha hai — agar maal koi aur le kar ja raha hai to
-                cart me uska naam likh dein, bill par aa jayega.
-              </div>
-            </div>
+    <Modal
+      open
+      onClose={onClose}
+      size="lg"
+      title={
+        <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="text-2xl font-bold tabular-nums tracking-tight sm:text-3xl">{formatPKR(total)}</span>
+          <span className="text-[0.8125rem] font-normal text-slate-500">{itemCount} items</span>
+        </span>
+      }
+      description={hasCustomer && customerName ? (
+        <span className="inline-flex flex-wrap items-center gap-1.5">
+          <User className="h-3.5 w-3.5" /> {customerName}
+          {customerBalance > 0 && <span className="font-medium text-amber-700">· pichhla udhaar {formatPKR(customerBalance)}</span>}
+        </span>
+      ) : 'Walk-in customer'}
+      footer={
+        <div className="flex w-full flex-col gap-2">
+          {blocked && (
+            <p className="flex items-center gap-1.5 text-[0.8125rem] font-medium text-rose-700">
+              <AlertTriangle className="h-4 w-4" /> Udhaar ke liye cart mein customer chunein
+            </p>
           )}
+          <Button size="xl" fullWidth onClick={submit} loading={loading} disabled={blocked}
+            variant={isCredit ? 'secondary' : 'primary'}
+            className={cn(isCredit && 'border-amber-500 bg-amber-500 text-white hover:bg-amber-600')}>
+            <Check className="h-5 w-5" /> {action}
+          </Button>
+          <p className="hidden text-center text-[0.6875rem] text-slate-400 sm:block">
+            Enter = complete · F1 Cash · F3 JazzCash · F4 Easypaisa · F5 Card · F7 Bank · F6 Udhaar · Esc = band
+          </p>
+        </div>
+      }
+    >
+      <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="space-y-4">
+          <div role="radiogroup" aria-label="Kaise" className="grid grid-cols-3 gap-2">
+            {MODES.map((m) => {
+              const on = mode === m.id;
+              const disabled = m.id === 'credit' && !hasCustomer;
+              return (
+                <button key={m.id} type="button" role="radio" aria-checked={on} disabled={disabled} onClick={() => choose(m.id)}
+                  className={cn('rounded-xl border p-2.5 text-left transition disabled:cursor-not-allowed disabled:opacity-40',
+                    on ? (m.id === 'full' ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500' : 'border-amber-500 bg-amber-50 ring-1 ring-amber-500')
+                      : 'border-slate-200 hover:border-slate-300')}>
+                  <m.icon className={cn('h-4 w-4', on ? (m.id === 'full' ? 'text-brand-700' : 'text-amber-700') : 'text-slate-400')} />
+                  <div className="mt-1 text-[0.8125rem] font-semibold text-slate-900">{m.label}</div>
+                  <div className="text-[0.6875rem] text-slate-500">{disabled ? 'Customer chunein' : m.hint}</div>
+                </button>
+              );
+            })}
+          </div>
 
           {mode !== 'credit' && (
-            <div className="px-4 sm:px-5 pt-4">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 tracking-wider mb-2">Payment Method</div>
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            <div>
+              <div className="mb-1.5 text-[0.75rem] font-medium text-slate-500">Payment</div>
+              <div role="radiogroup" aria-label="Payment method" className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-3 lg:grid-cols-5">
                 {POS_PAYMENT_METHODS.map((m) => {
-                  const active = paymentMethod === m.id;
-                  const Icon = m.icon;
+                  const on = method === m.id;
                   return (
-                    <button key={m.id} onClick={() => setPaymentMethod(m.id)}
-                      className={['p-2.5 rounded-2xl border-4 transition active:scale-95 flex flex-col items-center gap-1',
-                        active ? `border-transparent shadow-lg text-white bg-gradient-to-br ${m.bg}` : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300 text-slate-700 dark:text-ink-200'].join(' ')}>
-                      <Icon className="h-5 w-5" />
-                      <span className="text-[0.6875rem] font-extrabold">{m.label}</span>
+                    <button key={m.id} type="button" role="radio" aria-checked={on} onClick={() => setMethod(m.id)}
+                      className={cn('relative flex flex-col items-center gap-1 rounded-xl border px-1 py-2.5 transition',
+                        on ? 'border-transparent text-white shadow-sm' : 'border-slate-200 text-slate-700 hover:border-slate-300')}
+                      style={on ? { backgroundColor: m.color } : undefined}>
+                      <m.icon className="h-4 w-4" />
+                      <span className="text-[0.75rem] font-semibold">{m.label}</span>
+                      <span className={cn('absolute right-1 top-1 hidden text-[0.5625rem] font-medium sm:block', on ? 'text-white/70' : 'text-slate-400')}>{m.key}</span>
                     </button>
                   );
                 })}
@@ -179,140 +177,85 @@ export function PosCheckoutModal({
             </div>
           )}
 
-          {/* Dukaan ne is tareeqe ka QR lagaya ho to raqam wala QR (Settings → Payment QR) */}
-          {mode !== 'credit' && paymentMethod !== 'CASH' && paymentMethod !== 'CARD' && paid > 0 && (
-            <div className="px-4 sm:px-5 pt-3">
-              <PayQrPanel method={paymentMethod} amount={Math.min(paid, total)} />
-            </div>
+          {mode !== 'credit' && method !== 'CASH' && method !== 'CARD' && paid > 0 && (
+            <PayQrPanel method={method} amount={Math.min(paid, total)} />
           )}
 
-          {mode === 'partial' && (
-            <div className="px-4 sm:px-5 pt-4 space-y-3">
-              <div className="relative">
-                <input type="number" step="0.01" value={paidStr} autoFocus
-                  onChange={(e) => setPaidStr(e.target.value)}
-                  onFocus={(e) => e.target.select()}
-                  placeholder="Kitna paisa diya?"
-                  className="h-16 sm:h-20 w-full rounded-2xl border-4 border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10 px-4 pr-14 text-3xl sm:text-4xl font-extrabold tabular-nums text-emerald-900 dark:text-emerald-200 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/20" />
-                {paidStr && (
-                  <button onClick={() => setPaidStr('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-xl bg-white dark:bg-ink-800 hover:bg-slate-100 dark:hover:bg-ink-700 active:scale-95 flex items-center justify-center transition">
-                    <X className="h-5 w-5 text-slate-500" />
-                  </button>
-                )}
-              </div>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
-                {POS_QUICK_AMOUNTS.map((amt) => (
-                  <button key={amt} onClick={() => addAmount(amt)}
-                    className="h-11 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 active:scale-95 text-sm font-extrabold text-slate-800 dark:text-ink-200 transition tabular-nums">
-                    +{amt}
-                  </button>
-                ))}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => setExact(total)}
-                  className="h-11 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 active:scale-95 text-sm font-extrabold text-emerald-800 dark:text-emerald-300 transition inline-flex items-center justify-center gap-1">
-                  <CheckCircle2 className="h-4 w-4" /> Pura ({formatPKR(total)})
-                </button>
-                <button onClick={() => setExact(Math.ceil(total / 100) * 100)}
-                  className="h-11 rounded-xl bg-blue-100 dark:bg-blue-500/20 hover:bg-blue-200 dark:hover:bg-blue-500/30 active:scale-95 text-sm font-extrabold text-blue-800 dark:text-blue-300 transition tabular-nums">
-                  Round up ({formatPKR(Math.ceil(total / 100) * 100)})
-                </button>
-              </div>
-              <div className="grid grid-cols-4 gap-1.5">
-                {['1', '2', '3', '⌫', '4', '5', '6', 'C', '7', '8', '9', '00', '0', '000'].map((k) => (
-                  <button key={k} onClick={() => numpad(k)}
-                    className={['h-12 rounded-xl font-extrabold text-lg transition active:scale-95 tabular-nums',
-                      k === 'C' ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                      : k === '⌫' ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300'
-                      : 'bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-900 dark:text-ink-white hover:border-emerald-400'].join(' ')}>
-                    {k === '⌫' ? <Delete className="h-5 w-5 mx-auto" /> : k}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {isCredit && hasCustomer && receiver && !receiver.name.trim() && (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900">
+              Udhaar ja raha hai. Maal koi aur le ja raha ho to cart mein “maal kis ne liya” likh dein — bill par aa jayega.
+            </p>
           )}
 
-          <div className="px-4 sm:px-5 py-4">
-            <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-ink-800/60 dark:to-ink-900 border-4 border-slate-200 dark:border-ink-700 p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-600 dark:text-ink-300">Total Bill</span>
-                <span className="text-lg font-extrabold tabular-nums text-slate-800 dark:text-ink-white">{formatPKR(total)}</span>
+          <dl className="space-y-1.5 rounded-xl border border-slate-200 p-3 text-[0.875rem]">
+            <div className="flex justify-between"><dt className="text-slate-500">Bill</dt><dd className="font-semibold tabular-nums text-slate-900">{formatPKR(total)}</dd></div>
+            {mode !== 'credit' && <div className="flex justify-between"><dt className="text-slate-500">Mila</dt><dd className="font-semibold tabular-nums text-slate-900">{formatPKR(paid)}</dd></div>}
+            {change > 0 && (
+              <div className="flex items-center justify-between rounded-lg bg-success-50 px-2.5 py-2">
+                <dt className="font-medium text-success-800">{deposit && hasCustomer ? 'Khate mein jama' : 'Wapas dein'}</dt>
+                <dd className="text-xl font-bold tabular-nums text-success-800">{formatPKR(change)}</dd>
               </div>
-              {mode !== 'credit' && paid > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-600 dark:text-ink-300">Diya</span>
-                  <span className="text-lg font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400">{formatPKR(paid)}</span>
-                </div>
-              )}
-              {change > 0 && (
-                <div className="rounded-xl bg-emerald-500 text-white p-3 mt-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5" />
-                    <div>
-                      <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Customer ko wapis</div>
-                      <div className="text-2xl font-extrabold tabular-nums leading-none">{formatPKR(change)}</div>
-                    </div>
-                  </div>
-                  {hasCustomer && (
-                    <label className="mt-2.5 flex items-center gap-2 rounded-lg bg-white/15 px-2.5 py-2 cursor-pointer hover:bg-white/25 transition">
-                      <input type="checkbox" checked={depositExtra} onChange={(e) => setDepositExtra(e.target.checked)}
-                        className="h-4 w-4 rounded accent-white" />
-                      <span className="text-xs font-extrabold">Extra paisa {customerName} ke khaate mein jama karo</span>
-                    </label>
-                  )}
-                </div>
-              )}
-              {creditAmount > 0 && (
-                <div className={['rounded-xl p-3 flex items-center mt-2 border-2',
-                  hasCustomer ? 'bg-amber-500 text-white border-amber-400' : 'bg-rose-500 text-white border-rose-400'].join(' ')}>
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5" />
-                    <div>
-                      <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">
-                        {hasCustomer ? 'Khaate mein udhaar' : '⚠️ Customer chahiye'}
-                      </div>
-                      <div className="text-2xl font-extrabold tabular-nums leading-none">{formatPKR(creditAmount)}</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {!hasCustomer && (mode === 'credit' || creditAmount > 0) && (
-                <div className="rounded-xl bg-rose-50 dark:bg-rose-500/15 border-2 border-rose-300 dark:border-rose-500/40 p-2.5 text-xs font-extrabold text-rose-800 dark:text-rose-300 flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                  <span>Udhaar ke liye customer select karein</span>
-                </div>
-              )}
-            </div>
-          </div>
+            )}
+            {credit > 0 && (
+              <div className="flex items-center justify-between rounded-lg bg-amber-50 px-2.5 py-2">
+                <dt className="font-medium text-amber-800">Udhaar</dt>
+                <dd className="text-xl font-bold tabular-nums text-amber-800">{formatPKR(credit)}</dd>
+              </div>
+            )}
+            {change > 0 && hasCustomer && (
+              <label className="flex cursor-pointer items-center gap-2 pt-1 text-[0.8125rem] text-slate-700">
+                <input type="checkbox" checked={deposit} onChange={(e) => setDeposit(e.target.checked)} className="h-4 w-4 accent-[rgb(var(--brand-600))]" />
+                Wapas dene ki jagah {customerName ?? 'customer'} ke khate mein advance jama karein
+              </label>
+            )}
+          </dl>
         </div>
 
-        <div className="shrink-0 p-4 border-t-4 border-slate-100 dark:border-ink-800 bg-white dark:bg-ink-900">
-          <button onClick={submit} disabled={loading || (isCredit && !hasCustomer)}
-            className={['w-full h-16 sm:h-20 rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98]',
-              isCredit ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'
-              : 'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
-              'flex items-center justify-between px-5 sm:px-6'].join(' ')}>
-            <div className="text-left">
-              <div className="text-[0.6875rem] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
-                {loading ? 'Save ho raha...' : isCredit ? '📔 Khaate mein daalo' : '💰 Sale complete karo'}
-              </div>
-              <div className="text-xl sm:text-2xl tabular-nums leading-none mt-0.5">
-                {mode === 'credit' ? `Udhaar ${formatPKR(total)}`
-                  : isCredit ? `${formatPKR(paid)} + Udhaar ${formatPKR(creditAmount)}`
-                  : `${formatPKR(paid || total)}`}
-              </div>
+        {mode !== 'credit' && (
+          <div className="space-y-2.5">
+            <label className="block">
+              <span className="mb-1.5 block text-[0.75rem] font-medium text-slate-500">
+                {mode === 'partial' ? 'Kitna paisa mila?' : 'Customer ne kitna diya? (wapsi ke liye)'}
+              </span>
+              <input
+                ref={inputRef}
+                inputMode="decimal"
+                value={tendered}
+                onChange={(e) => setTendered(e.target.value.replace(/[^\d.]/g, ''))}
+                placeholder={mode === 'full' ? formatPKR(total) : '0'}
+                data-autofocus={mode === 'partial' ? true : undefined}
+                className="h-14 w-full rounded-xl border border-slate-300 bg-white px-4 text-right text-2xl font-bold tabular-nums text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              />
+            </label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {POS_QUICK_AMOUNTS.map((n) => (
+                <button key={n} type="button" onClick={() => addNote(n)}
+                  className="h-10 rounded-lg border border-slate-200 text-[0.8125rem] font-semibold tabular-nums text-slate-700 transition hover:border-brand-300 hover:bg-brand-50">
+                  +{n.toLocaleString('en-PK')}
+                </button>
+              ))}
             </div>
-            <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white/20 flex items-center justify-center">
-              <ArrowRight className="h-6 w-6 sm:h-8 sm:w-8" />
+            <div className="grid grid-cols-2 gap-1.5">
+              <button type="button" onClick={() => setTendered(String(total))}
+                className="h-10 rounded-lg bg-slate-100 text-[0.8125rem] font-semibold text-slate-700 transition hover:bg-slate-200">Bilkul {formatPKR(total)}</button>
+              <button type="button" onClick={() => setTendered(String(roundUp))}
+                className="h-10 rounded-lg bg-slate-100 text-[0.8125rem] font-semibold text-slate-700 transition hover:bg-slate-200">{formatPKR(roundUp)}</button>
             </div>
-          </button>
-          <div className="mt-2 text-center text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
-            Enter = confirm • Esc = cancel • F1/F3/F4/F5 = payment • F6 = udhaar
+            <div className="grid grid-cols-3 gap-1.5">
+              {PAD.map((k) => (
+                <button key={k} type="button" onClick={() => press(k)} aria-label={k === '⌫' ? 'Mitayein' : k}
+                  className="flex h-12 items-center justify-center rounded-lg border border-slate-200 bg-white text-lg font-semibold tabular-nums text-slate-900 transition hover:bg-slate-50 active:bg-slate-100">
+                  {k === '⌫' ? <Delete className="h-5 w-5" /> : k}
+                </button>
+              ))}
+            </div>
+            {tendered && (
+              <button type="button" onClick={() => setTendered('')} className="w-full text-center text-[0.75rem] font-medium text-slate-500 hover:text-slate-800">Saaf karein</button>
+            )}
           </div>
-        </div>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 }
 

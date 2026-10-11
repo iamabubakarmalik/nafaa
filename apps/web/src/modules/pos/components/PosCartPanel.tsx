@@ -1,333 +1,312 @@
-import { useState, useEffect } from 'react';
+/**
+ * The bill being built: customer, lines, discount, delivery, totals and the
+ * pay buttons. Each line shows unit, rate and quantity; the rate can be
+ * edited in place because bargaining happens at the counter.
+ *
+ * Used by every POS built on the shared module, on desktop as a side panel
+ * and on phones as a full-screen sheet (`isMobile`).
+ */
+
+import { useEffect, useState, type ReactNode } from 'react';
 import {
-  ShoppingCart, X, Plus, Minus, Trash2, UserPlus, ArrowRight,
-  AlertTriangle, Pause, Sparkles, Zap, Scale, Pencil, Check, Tag,
+  AlertTriangle, ArrowRight, Banknote, Check, Minus, Pause, Pencil, Plus, Scale, Shield, ShoppingCart, Sparkles,
+  Tag, Trash2, UserPlus, X,
 } from 'lucide-react';
+import { IconButton, Kbd } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
+import { cn } from '@core/lib/cn';
+import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 import { isWeightUnit, qtyStep } from '../lib/posUnits';
 import type { PosCartLine } from '../lib/posCart';
-import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
 import { PosCustomerPicker } from './PosCustomerPicker';
-import { PosDeliveryPanel } from './PosDeliveryPanel';
-import { PosReceiverField } from './PosReceiverField';
+import { PosDeliveryPanel, type PosDeliveryState } from './PosDeliveryPanel';
+import { PosReceiverField, type PosReceiverValue } from './PosReceiverField';
 
-/* ═════════════════════════════════════════════════════════════
-   CART — bill banne ki jagah
-   ─────────────────────────────────────────────────────────────
-   Retail POS ka design, ab shared. Har line par unit, rate aur
-   ginti khuli hoti hai — rate par click karke wahin badla ja
-   sakta hai, kyunke mol-tol counter par hota hai, settings me
-   ja kar nahi.
-   ═════════════════════════════════════════════════════════════ */
+interface PosCartPanelProps {
+  isMobile?: boolean;
+  onCloseMobile?: () => void;
+  cart: PosCartLine[];
+  itemCount: number;
+  totalQty: number;
+  subtotal: number;
+  total: number;
+  totalSavings: number;
+  discountMode: 'pct' | 'rs';
+  discountPct: number;
+  discountRs: number;
+  discountAmount: number;
+  onOpenDiscount: () => void;
+  onClearDiscount: () => void;
+  delivery?: PosDeliveryState;
+  onDeliveryChange?: (d: PosDeliveryState) => void;
+  deliveryFee?: number;
+  hidePrices?: boolean;
+  customers: any[];
+  customerId: string;
+  setCustomerId: (id: string) => void;
+  selectedCustomer?: any;
+  onAddCustomer: () => void;
+  receiver?: PosReceiverValue;
+  onReceiverChange?: (v: PosReceiverValue) => void;
+  /** Industry block under the customer picker (seller picker, farmer details…). */
+  customerExtra?: ReactNode;
+  onHold: () => void;
+  onClear: () => void;
+  onChangeQty: (id: string, delta: number) => void;
+  onSetQty: (id: string, qty: number) => void;
+  onRemove: (id: string) => void;
+  priceEditId: string | null;
+  onStartPriceEdit: (id: string | null) => void;
+  onSetPrice: (id: string, price: number) => void;
+  onCheckout: () => void;
+  onInstantCash: () => void;
+  canCheckout: boolean;
+  checkoutPending?: boolean;
+  /** Hint shown in the empty cart. */
+  emptyHint?: string;
+}
 
-/* ═════════════════════════════════════════════════════════════
-   CART PANEL
-   ═════════════════════════════════════════════════════════════ */
-export function PosCartPanel({
-  isMobile, onCloseMobile, cart, itemCount, totalQty, subtotal, total, totalSavings,
-  discountMode, discountPct, discountRs, discountAmount, onOpenDiscount, onClearDiscount,
-  delivery, onDeliveryChange, deliveryFee,
-  hidePrices, customers, customerId, setCustomerId, selectedCustomer, onAddCustomer,
-  receiver, onReceiverChange,
-  /* Industry ka apna hissa, customer chunne ke theek neeche.
-     Agri is me farmer ki tafseel dikhata hai (gaon, zameen, credit
-     limit) — baqi industries ye khali chhor deti hain. */
-  customerExtra,
-  onHold, onClear, onChangeQty, onSetQty, onRemove, priceEditId, onStartPriceEdit,
-  onSetPrice, onCheckout, onInstantCash, canCheckout, checkoutPending,
-}: any) {
-  const containerClass = isMobile
-    ? 'fixed inset-0 z-40 bg-white dark:bg-ink-950 flex flex-col lg:hidden'
-    : 'hidden lg:flex rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden flex-col min-h-0';
+const money = (n: number, hidden?: boolean) => (hidden ? '••••' : formatPKR(n));
+
+export function PosCartPanel(props: PosCartPanelProps) {
+  const {
+    isMobile, onCloseMobile, cart, itemCount, totalQty, subtotal, total, totalSavings,
+    discountMode, discountPct, discountAmount, onOpenDiscount, onClearDiscount,
+    delivery, onDeliveryChange, deliveryFee = 0, hidePrices,
+    customers, customerId, setCustomerId, selectedCustomer, onAddCustomer, receiver, onReceiverChange, customerExtra,
+    onHold, onClear, onChangeQty, onSetQty, onRemove, priceEditId, onStartPriceEdit, onSetPrice,
+    onCheckout, onInstantCash, canCheckout, checkoutPending, emptyHint,
+  } = props;
   const hasDiscount = discountAmount > 0;
+  const balance = Number(selectedCustomer?.balance || 0);
 
   return (
-    <aside className={containerClass}>
-      <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-ink-950 dark:via-emerald-950 dark:to-emerald-900 text-white px-3 sm:px-4 py-3 sm:py-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <div className="text-[0.6875rem] sm:text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
-              Cart • {itemCount} lines • {totalQty.toFixed(totalQty % 1 === 0 ? 0 : 1)} qty
-            </div>
-            <div className="text-3xl sm:text-4xl font-extrabold tabular-nums leading-none mt-1">
-              {hidePrices ? '••••' : formatPKR(total)}
-            </div>
-            {totalSavings > 0 && !hidePrices && (
-              <div className="text-xs font-extrabold text-emerald-300 mt-1 inline-flex items-center gap-1">
-                <Sparkles className="h-3 w-3" /> Combo bachat {formatPKR(totalSavings)}
-              </div>
-            )}
-            {hasDiscount && !hidePrices && (
-              <div className="text-xs font-bold text-amber-300 mt-0.5 tabular-nums inline-flex items-center gap-1">
-                <Tag className="h-3 w-3" /> Discount {discountMode === 'pct' ? `${discountPct}%` : ''} • Save {formatPKR(discountAmount)}
-              </div>
-            )}
-          </div>
-          <div className="flex gap-1.5 shrink-0">
-            {cart.length > 0 && (
-              <>
-                <button onClick={onHold}
-                  className="h-10 sm:h-12 px-2.5 rounded-2xl bg-white/15 hover:bg-amber-500/50 active:scale-95 text-white text-xs sm:text-sm font-extrabold border-2 border-white/20 transition inline-flex items-center gap-1">
-                  <Pause className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Hold
-                </button>
-                <button onClick={onClear}
-                  className="h-10 sm:h-12 px-2.5 rounded-2xl bg-white/15 hover:bg-rose-500/50 active:scale-95 text-white text-xs sm:text-sm font-extrabold border-2 border-white/20 transition">
-                  Khaali
-                </button>
-              </>
-            )}
-            {isMobile && (
-              <button onClick={onCloseMobile}
-                className="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-white/15 hover:bg-white/25 active:scale-95 flex items-center justify-center border-2 border-white/20 transition">
-                <X className="h-5 w-5" />
-              </button>
-            )}
-          </div>
+    <aside
+      aria-label="Bill"
+      className={isMobile
+        ? 'fixed inset-0 z-[60] flex flex-col bg-white lg:hidden'
+        : 'hidden min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:flex'}
+    >
+      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
+        <div className="min-w-0">
+          <h2 className="text-[0.9375rem] font-semibold text-slate-900">Bill</h2>
+          <p className="text-[0.75rem] text-slate-500">
+            {itemCount ? `${itemCount} cheezein · ${Number(totalQty.toFixed(2))} qty` : 'Abhi khaali'}
+          </p>
         </div>
-      </div>
+        <div className="flex items-center gap-1">
+          {cart.length > 0 && (
+            <>
+              <IconButton label="Hold — baad me resume" variant="secondary" size="sm" onClick={onHold}><Pause className="h-4 w-4" /></IconButton>
+              <IconButton label="Bill khaali karein" variant="secondary" size="sm" onClick={onClear}><Trash2 className="h-4 w-4" /></IconButton>
+            </>
+          )}
+          {isMobile && <IconButton label="Band karein" size="sm" onClick={onCloseMobile}><X className="h-4 w-4" /></IconButton>}
+        </div>
+      </header>
 
-      <div className="shrink-0 px-3 py-2.5 border-b-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/60">
+      <div className="shrink-0 space-y-2 border-b border-slate-200 bg-slate-50/60 px-4 py-3">
         <div className="flex gap-2">
-          <div className="flex-1 min-w-0">
-            <PosCustomerPicker
-              customers={customers}
-              customerId={customerId}
-              setCustomerId={setCustomerId}
-              selectedCustomer={selectedCustomer}
-              onAddCustomer={onAddCustomer}
-            />
+          <div className="min-w-0 flex-1">
+            <PosCustomerPicker customers={customers} customerId={customerId} setCustomerId={setCustomerId}
+              selectedCustomer={selectedCustomer} onAddCustomer={onAddCustomer} />
           </div>
-          <button onClick={onAddCustomer}
-            className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-violet-600 hover:bg-violet-700 active:scale-95 text-white flex items-center justify-center shadow-md shrink-0 transition">
-            <UserPlus className="h-5 w-5 sm:h-6 sm:w-6" />
-          </button>
+          <IconButton label="Naya customer" variant="secondary" onClick={onAddCustomer} className="h-11 w-11"><UserPlus className="h-4 w-4" /></IconButton>
         </div>
         {customerExtra}
-        {selectedCustomer && selectedCustomer.balance > 0 && (
-          <div className="mt-2 px-3 py-1.5 rounded-xl bg-amber-100 dark:bg-amber-500/20 border-2 border-amber-300 dark:border-amber-500/40 text-xs sm:text-sm font-extrabold text-amber-900 dark:text-amber-200 inline-flex items-center gap-1.5">
-            <AlertTriangle className="h-3.5 w-3.5" /> Purana udhaar: {formatPKR(selectedCustomer.balance)}
-          </div>
+        {balance > 0 && (
+          <p className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[0.75rem] font-medium text-amber-800">
+            <AlertTriangle className="h-3.5 w-3.5" /> Pichhla udhaar {money(balance, hidePrices)}
+          </p>
         )}
-
-        {/* Maal lene wala — customer chunte hi yahan.
-            Pehle ye checkout modal ke andar tha aur sirf udhaar wali
-            soorat me khulta tha. Do masle thay: dukaan-daar ko nazar
-            hi nahi aata tha, aur INSTANT CASH (F12) to checkout modal
-            kholta hi nahi — us raste se banne wale har bill par naam
-            chhoot jata tha.
-
-            Ab cart me customer ke saath hi hai: cash ho ya udhaar,
-            dono par chalta hai, aur khali chhorna bhi theek hai. */}
         {selectedCustomer && receiver && onReceiverChange && (
-          <div className="mt-2">
-            <PosReceiverField
-              customerId={customerId}
-              customerName={selectedCustomer.name}
-              value={receiver}
-              onChange={onReceiverChange}
-              compact
-            />
-          </div>
+          <PosReceiverField customerId={customerId} customerName={selectedCustomer.name} value={receiver} onChange={onReceiverChange} compact />
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2 bg-slate-50/50 dark:bg-ink-950/40 min-h-0">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {cart.length === 0 ? (
-          <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-4 border-dashed border-slate-200 dark:border-ink-700 p-8 sm:p-10 text-center">
-            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-3xl bg-slate-100 dark:bg-ink-800 mx-auto flex items-center justify-center">
-              <ShoppingCart className="h-8 w-8 sm:h-10 sm:w-10 text-slate-400 dark:text-ink-500" />
-            </div>
-            <p className="mt-4 font-extrabold text-slate-700 dark:text-ink-200 text-lg sm:text-xl">Cart khaali hai</p>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-semibold mt-1">Scan karo, click karo, ya 🎤 bolo: "2 kilo chini"</p>
-            <p className="text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold mt-2 inline-flex items-center gap-1">
-              <Zap className="h-3 w-3 text-amber-500" /> F12 = instant cash + print!
-            </p>
+          <div className="flex h-full flex-col items-center justify-center px-6 py-12 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400"><ShoppingCart className="h-6 w-6" /></span>
+            <p className="mt-3 text-[0.9375rem] font-semibold text-slate-800">Bill khaali hai</p>
+            <p className="mt-1 max-w-[16rem] text-[0.8125rem] text-slate-500">{emptyHint ?? 'Barcode scan karein, naam likhein, ya product par click karein.'}</p>
+            <p className="mt-3 inline-flex items-center gap-1.5 text-[0.75rem] text-slate-400"><Kbd>F12</Kbd> cash + print</p>
           </div>
         ) : (
-          cart.map((l: PosCartLine) => (
-            <PosCartRow
-              key={l.id}
-              line={l}
-              hidePrices={hidePrices}
-              editing={priceEditId === l.id}
-              onStartPriceEdit={() => onStartPriceEdit(l.id)}
-              onSetPrice={(p: number) => onSetPrice(l.id, p)}
-              onCancelPriceEdit={() => onStartPriceEdit(null)}
-              onChangeQty={(d: number) => onChangeQty(l.id, d)}
-              onSetQty={(q: number) => onSetQty(l.id, q)}
-              onRemove={() => onRemove(l.id)}
-            />
-          ))
+          <ul className="divide-y divide-slate-100">
+            {cart.map((l) => (
+              <PosCartRow
+                key={l.id}
+                line={l}
+                hidePrices={hidePrices}
+                editing={priceEditId === l.id}
+                onStartPriceEdit={() => onStartPriceEdit(l.id)}
+                onSetPrice={(p: number) => onSetPrice(l.id, p)}
+                onCancelPriceEdit={() => onStartPriceEdit(null)}
+                onChangeQty={(d: number) => onChangeQty(l.id, d)}
+                onSetQty={(q: number) => onSetQty(l.id, q)}
+                onRemove={() => onRemove(l.id)}
+              />
+            ))}
+          </ul>
         )}
       </div>
 
       {cart.length > 0 && (
-        <div className="shrink-0 p-2.5 sm:p-3 border-t-4 border-slate-100 dark:border-ink-800 bg-white dark:bg-ink-900/80 space-y-2">
-          <button onClick={onOpenDiscount}
-            className={['w-full h-12 rounded-2xl font-extrabold text-sm inline-flex items-center justify-between px-4 border-2 transition active:scale-[0.98]',
-              hasDiscount ? 'bg-gradient-to-r from-amber-500 to-orange-500 border-amber-500 text-white shadow-md shadow-amber-500/30'
-              : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-amber-400'].join(' ')}>
-            <span className="inline-flex items-center gap-2">
-              <Tag className="h-4 w-4" />
-              {hasDiscount ? <span>Discount: {discountMode === 'pct' ? `${discountPct}%` : formatPKR(discountRs)}</span> : <span>Discount lagayein?</span>}
-            </span>
-              {hasDiscount && !hidePrices && <span className="text-xs tabular-nums opacity-90">−{formatPKR(discountAmount)}</span>}
+        <footer className="shrink-0 space-y-2.5 border-t border-slate-200 px-4 py-3">
+          <div className="flex gap-2">
+            <button type="button" onClick={onOpenDiscount}
+              className={cn('flex h-10 flex-1 items-center justify-between gap-2 rounded-lg border px-3 text-[0.8125rem] font-medium transition',
+                hasDiscount ? 'border-amber-300 bg-amber-50 text-amber-900' : 'border-slate-200 text-slate-700 hover:bg-slate-50')}>
+              <span className="inline-flex items-center gap-1.5"><Tag className="h-4 w-4" />{hasDiscount ? `Discount ${discountMode === 'pct' ? `${discountPct}%` : ''}` : 'Discount'}</span>
               {hasDiscount ? (
-                <span onClick={(e) => { e.stopPropagation(); onClearDiscount(); }}
-                  className="h-6 w-6 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition" role="button">
-                  <X className="h-3.5 w-3.5" />
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="tabular-nums">−{money(discountAmount, hidePrices)}</span>
+                  <span role="button" tabIndex={0} aria-label="Discount hatayein"
+                    onClick={(e) => { e.stopPropagation(); onClearDiscount(); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onClearDiscount(); } }}
+                    className="flex h-5 w-5 items-center justify-center rounded hover:bg-amber-200"><X className="h-3.5 w-3.5" /></span>
                 </span>
-              ) : (
-                <ArrowRight className="h-4 w-4 opacity-60" />
-              )}
-              
+              ) : <ArrowRight className="h-4 w-4 text-slate-400" />}
+            </button>
+          </div>
+          {delivery && onDeliveryChange && <PosDeliveryPanel value={delivery} onChange={onDeliveryChange} tone="emerald" compact />}
+
+          <dl className="space-y-1 text-[0.8125rem]">
+            {(hasDiscount || deliveryFee > 0 || totalSavings > 0) && (
+              <div className="flex justify-between text-slate-500"><dt>Subtotal</dt><dd className="tabular-nums">{money(subtotal, hidePrices)}</dd></div>
+            )}
+            {totalSavings > 0 && (
+              <div className="flex justify-between text-success-700"><dt className="inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" />Combo bachat</dt><dd className="tabular-nums">{money(totalSavings, hidePrices)}</dd></div>
+            )}
+            {hasDiscount && <div className="flex justify-between text-amber-700"><dt>Discount</dt><dd className="tabular-nums">−{money(discountAmount, hidePrices)}</dd></div>}
+            {deliveryFee > 0 && <div className="flex justify-between text-slate-600"><dt>Delivery</dt><dd className="tabular-nums">+{money(deliveryFee, hidePrices)}</dd></div>}
+            <div className="flex items-baseline justify-between pt-1">
+              <dt className="text-[0.875rem] font-semibold text-slate-900">Total</dt>
+              <dd className="text-2xl font-bold tabular-nums tracking-tight text-slate-900">{money(total, hidePrices)}</dd>
+            </div>
+          </dl>
+          <FbrModeIndicator saleTotal={total} />
+
+          <button type="button" onClick={onInstantCash} disabled={!canCheckout || checkoutPending}
+            className="flex h-14 w-full items-center justify-between gap-3 rounded-xl bg-brand-600 px-4 text-brand-fg shadow-sm transition hover:bg-brand-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50">
+            <span className="inline-flex items-center gap-2 text-[0.9375rem] font-semibold"><Banknote className="h-5 w-5" /> Cash · print</span>
+            <span className="inline-flex items-center gap-2">
+              <span className="text-lg font-bold tabular-nums">{money(total, hidePrices)}</span>
+              <kbd className="hidden rounded bg-white/20 px-1.5 py-0.5 font-mono text-[0.6875rem] sm:inline">F12</kbd>
+            </span>
           </button>
-
-          {hasDiscount && !hidePrices && (
-            <div className="text-xs font-bold text-slate-500 dark:text-ink-400 tabular-nums flex justify-between px-1">
-              <span>Subtotal</span>
-              <span className="line-through">{formatPKR(subtotal)}</span>
-            </div>
-          )}
-
-          {/* 🚚 Ghar bhejna hai? — customer se liya aur rider ko diya, dono alag */}
-          <PosDeliveryPanel value={delivery} onChange={onDeliveryChange} tone="emerald" compact={isMobile} />
-
-          {deliveryFee > 0 && !hidePrices && (
-            <div className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums flex justify-between px-1">
-              <span>+ Delivery</span>
-              <span>{formatPKR(deliveryFee)}</span>
-            </div>
-          )}
-
-          {/* ⚡ INSTANT CASH — sab se tez rasta */}
-          <button onClick={onInstantCash} disabled={!canCheckout || checkoutPending}
-            className={['w-full h-14 rounded-2xl font-extrabold text-white shadow-xl transition-all active:scale-[0.98]',
-              'bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
-              'flex items-center justify-center gap-2'].join(' ')}
-            title="Cash sale + print — koi sawal nahi!">
-            <Zap className="h-5 w-5" />
-            ⚡ INSTANT CASH {hidePrices ? '' : `— ${formatPKR(total)}`} <KbdInline>F12</KbdInline>
+          <button type="button" onClick={onCheckout} disabled={!canCheckout || checkoutPending}
+            className="flex h-11 w-full items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white px-4 text-[0.875rem] font-semibold text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+            <span>Card · JazzCash · udhaar · kuch paisa</span>
+            <kbd className="hidden rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[0.6875rem] text-slate-500 sm:inline">F9</kbd>
           </button>
-
-          <button onClick={onCheckout} disabled={!canCheckout || checkoutPending}
-            className={['w-full h-[68px] sm:h-[80px] rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98]',
-              'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
-              'flex items-center justify-between px-5 sm:px-6'].join(' ')}>
-            <div className="text-left">
-              <div className="text-[0.6875rem] sm:text-xs uppercase font-extrabold text-white/80 tracking-wider">
-                Paisay lein <span className="hidden sm:inline">(F9)</span> — cash / udhaar / card
-              </div>
-              <FbrModeIndicator saleTotal={total} className="mb-2" />
-              <div className="text-2xl sm:text-3xl tabular-nums leading-none mt-0.5">{formatPKR(total)}</div>
-            </div>
-            <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white/20 flex items-center justify-center">
-              <ArrowRight className="h-6 w-6 sm:h-8 sm:w-8" />
-            </div>
-          </button>
-          {!canCheckout && <p className="text-center text-xs font-extrabold text-rose-600 dark:text-rose-400">⚠️ Pehle shop select karein</p>}
-        </div>
+          {!canCheckout && <p className="text-center text-[0.75rem] font-medium text-rose-700">Pehle upar se shop chunein</p>}
+        </footer>
       )}
     </aside>
   );
 }
 
-function KbdInline({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="hidden sm:inline px-1.5 py-0.5 rounded bg-white/20 border border-white/30 text-[0.6875rem] font-mono font-extrabold">{children}</kbd>
-  );
-}
-
-/* ══════════ CART ROW ══════════ */
-export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, onCancelPriceEdit, onChangeQty, onSetQty, onRemove }: any) {
+/** One bill line: rate (editable), badges, quantity stepper, line total. */
+export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, onCancelPriceEdit, onChangeQty, onSetQty, onRemove }: {
+  line: PosCartLine;
+  hidePrices?: boolean;
+  editing: boolean;
+  onStartPriceEdit: () => void;
+  onSetPrice: (p: number) => void;
+  onCancelPriceEdit: () => void;
+  onChangeQty: (d: number) => void;
+  onSetQty: (q: number) => void;
+  onRemove: () => void;
+}) {
   const [draft, setDraft] = useState('');
+  const [qtyDraft, setQtyDraft] = useState(String(l.quantity));
   const customPriced = Number(l.unitPrice) !== Number(l.basePrice);
-  const isWeight = isWeightUnit(l.unitName);
+  const weight = isWeightUnit(l.unitName);
 
   useEffect(() => { if (editing) setDraft(String(l.unitPrice)); }, [editing, l.unitPrice]);
+  useEffect(() => { setQtyDraft(String(l.quantity)); }, [l.quantity]);
 
   const commit = () => {
     const v = Number(draft);
-    if (!isNaN(v) && v >= 0) onSetPrice(v);
+    if (draft !== '' && !Number.isNaN(v) && v >= 0) onSetPrice(v);
     else onCancelPriceEdit();
+  };
+  const commitQty = () => {
+    const v = Number(qtyDraft);
+    if (!Number.isNaN(v) && v !== l.quantity) onSetQty(v);
+    else setQtyDraft(String(l.quantity));
   };
 
   return (
-    <div className={['rounded-2xl bg-white dark:bg-ink-900 border-4 p-2.5 sm:p-3 shadow-sm dark:shadow-black/20',
-      l.type === 'combo' ? 'border-violet-300 dark:border-violet-500/40' : customPriced ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-ink-700'].join(' ')}>
-      <div className="flex items-start gap-2.5 sm:gap-3">
-        <div className={['h-12 w-12 sm:h-14 sm:w-14 rounded-xl overflow-hidden shrink-0 flex items-center justify-center relative bg-slate-100 dark:bg-ink-800',
-          l.type === 'combo' ? 'bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-500/20 dark:to-fuchsia-500/20' : ''].join(' ')}>
-          {l.image ? <img src={l.image} alt="" className="w-full h-full object-cover" /> : <span className="text-xl sm:text-2xl">{l.emoji}</span>}
-          {l.type === 'combo' && (
-            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-violet-600 text-white flex items-center justify-center">
-              <Sparkles className="h-3 w-3" />
-            </div>
-          )}
+    <li className="group px-4 py-3">
+      <div className="flex items-start gap-3">
+        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100">
+          {l.image ? <img src={l.image} alt="" className="h-full w-full object-cover" /> : <span className="text-lg">{l.emoji}</span>}
+          {l.type === 'combo' && <span className="absolute inset-x-0 bottom-0 bg-violet-600 text-center text-[0.5rem] font-bold uppercase text-white">Combo</span>}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-ink-white leading-tight line-clamp-2">{l.name}</div>
-            {l.type === 'combo' && <span className="px-1.5 py-0.5 rounded bg-violet-600 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Combo</span>}
-            {customPriced && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Custom Rs</span>}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <p className="line-clamp-2 text-[0.875rem] font-medium leading-snug text-slate-900">
+              {l.name}{l.variantName && <span className="text-slate-500"> · {l.variantName}</span>}
+            </p>
+            <p className="shrink-0 text-[0.9375rem] font-semibold tabular-nums text-slate-900">{money(l.lineTotal, hidePrices)}</p>
           </div>
 
           {editing ? (
-            <div className="mt-1 flex items-center gap-1.5">
-              <span className="text-xs font-bold text-slate-500 dark:text-ink-400">Rs</span>
-              <input autoFocus type="number" inputMode="decimal" step="any" min={0} value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') onCancelPriceEdit(); }}
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <span className="text-[0.75rem] text-slate-500">Rs</span>
+              <input autoFocus inputMode="decimal" value={draft}
+                onChange={(e) => setDraft(e.target.value.replace(/[^\d.]/g, ''))}
+                onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { e.stopPropagation(); onCancelPriceEdit(); } }}
                 onBlur={commit}
-                className="h-9 w-28 rounded-lg border-2 border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10 px-2 text-base font-extrabold tabular-nums text-amber-900 dark:text-amber-200 focus:outline-none" />
-              <button onClick={commit} className="h-9 w-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center"><Check className="h-4 w-4" /></button>
-              <button onClick={() => onSetPrice(l.basePrice)} title="Wapas original rate"
-                className="h-9 px-2 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold">Reset</button>
+                className="h-8 w-24 rounded-md border border-amber-400 bg-amber-50 px-2 text-[0.875rem] font-semibold tabular-nums text-amber-900 outline-none" />
+              <IconButton label="Theek" size="sm" onMouseDown={(e) => e.preventDefault()} onClick={commit}><Check className="h-4 w-4" /></IconButton>
+              {customPriced && (
+                <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => onSetPrice(l.basePrice)}
+                  className="text-[0.75rem] font-medium text-slate-500 hover:text-slate-800">Asal rate</button>
+              )}
             </div>
           ) : (
-            <button onClick={onStartPriceEdit} title="Rate badlo"
-              className="mt-0.5 text-xs sm:text-sm font-bold text-sky-700 dark:text-sky-400 inline-flex items-center gap-1 hover:text-sky-900 dark:hover:text-sky-300 transition group/price">
-              {l.emoji} {formatPKR(l.unitPrice)} / {l.unitName}
-              <Pencil className="h-3 w-3 opacity-0 group-hover/price:opacity-100 transition" />
+            <button type="button" onClick={onStartPriceEdit} title="Rate badlein"
+              className="mt-0.5 inline-flex items-center gap-1 text-[0.75rem] text-slate-500 transition hover:text-brand-700">
+              {money(l.unitPrice, hidePrices)} / {l.unitName}
+              {customPriced && <span className="text-amber-700">(asal {money(l.basePrice, hidePrices)})</span>}
+              <Pencil className="h-3 w-3 opacity-0 transition group-hover:opacity-100" />
             </button>
           )}
 
-          {l.note && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 mt-0.5">{l.note}</div>}
-          {customPriced && !editing && (
-            <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 tabular-nums">(original {formatPKR(l.basePrice)})</div>
+          {(l.serialNumber || l.imei || l.warrantyMonths || (l.note && l.conversionRate === 1)) && (
+            <div className="mt-1 flex flex-wrap gap-1">
+              {l.serialNumber && <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.6875rem] text-slate-600">S/N {l.serialNumber}</span>}
+              {l.imei && <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.6875rem] text-slate-600">IMEI {l.imei}</span>}
+              {l.warrantyMonths ? <span className="inline-flex items-center gap-0.5 rounded bg-sky-50 px-1.5 py-0.5 text-[0.6875rem] font-medium text-sky-700"><Shield className="h-3 w-3" />{l.warrantyMonths}m warranty</span> : null}
+              {l.note && !l.serialNumber && l.conversionRate === 1 && <span className="text-[0.6875rem] text-slate-500">{l.note}</span>}
+            </div>
           )}
-        </div>
-        <button onClick={onRemove}
-          className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 active:scale-95 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 transition">
-          <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-        </button>
-      </div>
-      <div className="mt-2.5 sm:mt-3 flex items-center justify-between gap-2">
-        <div className="inline-flex items-center bg-slate-100 dark:bg-ink-800 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
-          <button onClick={() => onChangeQty(-1)} className="h-12 sm:h-14 w-12 sm:w-14 hover:bg-slate-200 dark:hover:bg-ink-700 active:bg-slate-300 flex items-center justify-center transition">
-            <Minus className="h-5 w-5 sm:h-6 sm:w-6 text-slate-700 dark:text-ink-200" />
-          </button>
-          <input type="number" step="0.001" value={l.quantity}
-            onChange={(e) => onSetQty(Number(e.target.value))}
-            onFocus={(e) => e.target.select()}
-            className="h-12 sm:h-14 min-w-[70px] w-[70px] sm:min-w-[80px] sm:w-[80px] text-center bg-white dark:bg-ink-900 border-0 text-lg sm:text-xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none" />
-          <button onClick={() => onChangeQty(1)}
-            className={['h-12 sm:h-14 w-12 sm:w-14 text-white flex items-center justify-center transition',
-              l.type === 'combo' ? 'bg-violet-600 hover:bg-violet-700 active:bg-violet-800' : isWeight ? 'bg-amber-600 hover:bg-amber-700' : 'bg-sky-600 hover:bg-sky-700 active:bg-sky-800'].join(' ')}>
-            <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
-          </button>
-        </div>
-        <div className="text-xl sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
-          {hidePrices ? '•••' : formatPKR(l.lineTotal)}
+
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <div className="inline-flex items-center overflow-hidden rounded-lg border border-slate-200">
+              <button type="button" aria-label="Kam" disabled={l.lockQty} onClick={() => onChangeQty(-1)}
+                className="flex h-9 w-9 items-center justify-center text-slate-600 transition hover:bg-slate-100 disabled:opacity-30"><Minus className="h-4 w-4" /></button>
+              <input aria-label="Qty" inputMode="decimal" value={qtyDraft} disabled={l.lockQty}
+                onChange={(e) => setQtyDraft(e.target.value.replace(/[^\d.]/g, ''))}
+                onBlur={commitQty}
+                onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                onFocus={(e) => e.target.select()}
+                className="h-9 w-14 border-x border-slate-200 bg-white text-center text-[0.9375rem] font-semibold tabular-nums text-slate-900 outline-none disabled:bg-slate-50" />
+              <button type="button" aria-label="Zyada" disabled={l.lockQty} onClick={() => onChangeQty(1)}
+                className="flex h-9 w-9 items-center justify-center bg-brand-600 text-brand-fg transition hover:bg-brand-700 disabled:opacity-30"><Plus className="h-4 w-4" /></button>
+            </div>
+            <span className="min-w-0 truncate text-[0.6875rem] text-slate-400">
+              {weight && <span className="inline-flex items-center gap-0.5"><Scale className="h-3 w-3" />{qtyStep(l.unitName)} {l.unitName} step</span>}
+              {l.conversionRate !== 1 && !weight && `= ${Number(l.baseQuantity.toFixed(3))} ${l.baseUnit}`}
+            </span>
+            <IconButton label="Hatayein" size="sm" onClick={onRemove} className="text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></IconButton>
+          </div>
         </div>
       </div>
-      {isWeight && (
-        <div className="mt-1 text-[0.625rem] font-extrabold text-amber-700 dark:text-amber-400 uppercase tracking-wider inline-flex items-center gap-1">
-          <Scale className="h-2.5 w-2.5" /> Weigh item — +/− {qtyStep(l.unitName)} {l.unitName} step
-        </div>
-      )}
-    </div>
+    </li>
   );
 }

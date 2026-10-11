@@ -35,9 +35,9 @@ import {
 } from '@modules/pos/lib/posCart';
 import { usePosPreferences } from '@modules/pos/hooks/usePosPreferences';
 import { VoiceSaleButton, type VoiceCommand } from '@core/components/voice/VoiceSaleButton';
-import { productUnitsApi } from '@industries/retail/api/product-units.api';
-import { combosApi, type ProductCombo } from '@industries/retail/api/combos.api';
-import { quickKeysApi, type QuickKey } from '@industries/retail/api/quick-keys.api';
+import { productUnitsApi } from '@modules/inventory/products/api/product-units.api';
+import { combosApi, type ProductCombo } from '@modules/pos/api/combos.api';
+import { quickKeysApi, type QuickKey } from '@modules/pos/api/quick-keys.api';
 import { agriProductsApi, type AgriProductProfile } from '../api/products.api';
 import { farmersApi } from '../api/farmers.api';
 import { certStatus, isMeasured, agriUnitLabel, SEASONS as AGRI_SEASONS } from '../lib/agriUnits';

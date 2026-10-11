@@ -2,7 +2,7 @@ import { LayoutDashboard, Sparkles, Layers, AlertTriangle, Zap, Download, Refres
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import RetailDashboard from './dashboard/RetailDashboard';
-import RetailPosPage from './pages/RetailPosPage';
+import RetailPos from './pos/RetailPos';
 import CombosPage from './pages/CombosPage';
 import ComboFormPage from './pages/ComboFormPage';
 import DamageLogPage from './pages/DamageLogPage';
@@ -66,7 +66,7 @@ export const RetailPack: IndustryPack = {
 
   routes: [
     // POS (route rahe, sidebar sirf core POS wale link se open ho)
-    { path: '/pos', element: RetailPosPage },
+    { path: '/pos', element: RetailPos },
 
     // Retail product wizard (Products page se "+ Add" pe redirect hoga)
     { path: '/retail-products/new',       element: RetailProductWizardPage },

@@ -7,7 +7,7 @@ import {
   CheckCircle2, Boxes, GraduationCap, ArrowRight, Circle,
   Lightbulb, HelpCircle,
 } from 'lucide-react';
-import { productUnitsApi, type ProductUnit, type UnitConversionType } from '../api/product-units.api';
+import { productUnitsApi, type ProductUnit, type UnitConversionType } from '@modules/inventory/products/api/product-units.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { formatPKR, formatPKRFull } from '@core/lib/format';

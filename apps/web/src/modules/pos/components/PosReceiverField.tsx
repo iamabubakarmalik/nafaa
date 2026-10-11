@@ -65,16 +65,16 @@ export function PosReceiverField({
 
   return (
     <div className={[
-      'rounded-2xl border-2 border-amber-200 dark:border-amber-500/30',
+      'rounded-2xl border border-amber-200 dark:border-amber-500/30',
       'bg-amber-50/70 dark:bg-amber-500/10',
       compact ? 'p-3' : 'p-3.5',
     ].join(' ')}>
       <div className="flex items-center gap-2 mb-2">
-        <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md shrink-0">
+        <div className="h-8 w-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shadow-md shrink-0">
           <UserCheck className="h-4 w-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white leading-tight">
+          <div className="text-xs font-semibold text-slate-900 dark:text-ink-white leading-tight">
             Maal lene kaun aaya hai?
           </div>
           <div className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 truncate">
@@ -90,14 +90,14 @@ export function PosReceiverField({
           value={value.name}
           onChange={(e) => onChange({ ...value, name: e.target.value })}
           placeholder="Naam — jaise Bilal (driver)"
-          className="h-11 flex-1 min-w-0 rounded-xl border-2 border-amber-200 dark:border-amber-500/30 bg-white dark:bg-ink-900 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
+          className="h-11 flex-1 min-w-0 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-white dark:bg-ink-900 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
         />
         {value.name.trim() && (
           <button
             type="button"
             onClick={() => { onChange(emptyReceiver()); setShowPhone(false); }}
             title="Saaf karein"
-            className="h-11 w-11 rounded-xl bg-white dark:bg-ink-900 border-2 border-amber-200 dark:border-amber-500/30 text-slate-500 flex items-center justify-center shrink-0 hover:border-rose-400 transition"
+            className="h-11 w-11 rounded-xl bg-white dark:bg-ink-900 border border-amber-200 dark:border-amber-500/30 text-slate-500 flex items-center justify-center shrink-0 hover:border-rose-400 transition"
           >
             <X className="h-4 w-4" />
           </button>
@@ -111,13 +111,13 @@ export function PosReceiverField({
             onChange={(e) => onChange({ ...value, phone: e.target.value })}
             placeholder="Phone (optional)"
             inputMode="tel"
-            className="mt-2 h-10 w-full rounded-xl border-2 border-amber-200 dark:border-amber-500/30 bg-white dark:bg-ink-900 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
+            className="mt-2 h-10 w-full rounded-xl border border-amber-200 dark:border-amber-500/30 bg-white dark:bg-ink-900 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
           />
         ) : (
           <button
             type="button"
             onClick={() => setShowPhone(true)}
-            className="mt-1.5 text-[0.6875rem] font-extrabold text-amber-800 dark:text-amber-300 hover:underline"
+            className="mt-1.5 text-[0.6875rem] font-semibold text-amber-800 dark:text-amber-300 hover:underline"
           >
             + Phone bhi likhein
           </button>
@@ -126,7 +126,7 @@ export function PosReceiverField({
 
       {chips.length > 0 && (
         <div className="mt-2.5">
-          <div className="flex items-center gap-1 text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-800 dark:text-amber-300 mb-1.5">
+          <div className="flex items-center gap-1 text-[0.6875rem] uppercase tracking-wider font-semibold text-amber-800 dark:text-amber-300 mb-1.5">
             <Clock className="h-3 w-3" /> Pehle aaye hain
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -135,7 +135,7 @@ export function PosReceiverField({
                 key={r.name}
                 type="button"
                 onClick={() => pick(r)}
-                className="h-8 px-2.5 rounded-lg bg-white dark:bg-ink-900 border-2 border-amber-200 dark:border-amber-500/30 text-[0.6875rem] font-extrabold text-slate-800 dark:text-ink-100 hover:border-amber-500 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition active:scale-[0.97] max-w-full truncate"
+                className="h-8 px-2.5 rounded-lg bg-white dark:bg-ink-900 border border-amber-200 dark:border-amber-500/30 text-[0.6875rem] font-semibold text-slate-800 dark:text-ink-100 hover:border-amber-500 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition max-w-full truncate"
               >
                 {r.name}
               </button>

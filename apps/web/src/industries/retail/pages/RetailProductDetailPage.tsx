@@ -21,7 +21,7 @@ import { productBatchesApi } from '@modules/inventory/products/api/product-batch
 import { productImagesApi } from '@modules/inventory/products/api/product-images.api';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
 import { stockMovementsApi } from '@modules/inventory/stock-movements/api/stock-movements.api';
-import { productUnitsApi } from '../api/product-units.api';
+import { productUnitsApi } from '@modules/inventory/products/api/product-units.api';
 import { QuickStockModal } from '../components/QuickStockModal';
 import { ProductDeleteButton } from '@core/components/ProductDeleteButton';
 import { PrivacyToggle, useCostHidden } from '@/core/security/HiddenValue';
