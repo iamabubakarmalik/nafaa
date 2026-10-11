@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsBooleanString, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsBooleanString, IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class QueryCustomersDto {
   @ApiPropertyOptional()
@@ -39,12 +39,12 @@ export class QueryCustomersDto {
 
   @ApiPropertyOptional({ enum: ['name', 'totalSpent', 'balance', 'createdAt'] })
   @IsOptional()
-  @IsString()
+  @IsIn(['name', 'totalSpent', 'balance', 'createdAt'])
   sortBy?: 'name' | 'totalSpent' | 'balance' | 'createdAt';
 
   @ApiPropertyOptional({ enum: ['asc', 'desc'] })
   @IsOptional()
-  @IsString()
+  @IsIn(['asc', 'desc'])
   sortOrder?: 'asc' | 'desc';
 
   @ApiPropertyOptional({ default: 1 })

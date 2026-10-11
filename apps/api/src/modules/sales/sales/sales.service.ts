@@ -634,10 +634,12 @@ export class SalesService {
       }
 
       if (creditAmount > 0 && customer) {
-        const newBalance = customer.balance + creditAmount;
-        await tx.customer.update({
+        // Increment, not read-then-write: two counters selling to the same
+        // customer at once must both land on the balance.
+        const { balance: newBalance } = await tx.customer.update({
           where: { id: customer.id },
-          data: { balance: newBalance },
+          data: { balance: { increment: creditAmount } },
+          select: { balance: true },
         });
         await tx.customerLedger.create({
           data: {
@@ -1148,10 +1150,13 @@ export class SalesService {
       if (sale.creditAmount > 0 && sale.customerId) {
         const customer = await tx.customer.findUnique({ where: { id: sale.customerId } });
         if (customer) {
-          const newBalance = Math.max(customer.balance - sale.creditAmount, 0);
-          await tx.customer.update({
+          // The balance never goes below zero on a void; the ledger records the
+          // change that actually happened so its sum always equals the balance.
+          const removed = Math.min(sale.creditAmount, Math.max(customer.balance, 0));
+          const { balance: newBalance } = await tx.customer.update({
             where: { id: sale.customerId },
-            data: { balance: newBalance },
+            data: { balance: { decrement: removed } },
+            select: { balance: true },
           });
           await tx.customerLedger.create({
             data: {
@@ -1160,7 +1165,7 @@ export class SalesService {
               customerId: sale.customerId,
               createdById: user.id,
               type: 'ADJUSTMENT',
-              amount: -sale.creditAmount,
+              amount: -removed,
               balanceAfter: newBalance,
               reference: sale.saleNumber,
               note: `Sale voided: ${reason || ''}`,

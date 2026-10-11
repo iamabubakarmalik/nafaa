@@ -27,16 +27,18 @@ export class CustomersService {
         shopId,
         name: dto.name,
         phone: dto.phone,
-        email: dto.email,
+        email: dto.email || undefined,
         cnic: dto.cnic,
         address: dto.address,
         city: dto.city,
         area: dto.area,
-        gender: dto.gender,
+        gender: dto.gender || undefined,
         dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
         avatarUrl: dto.avatarUrl,
         notes: dto.notes,
         creditLimit: dto.creditLimit ?? 0,
+        ntn: dto.ntn || undefined,
+        isRegistered: dto.isRegistered ?? false,
         isVip: dto.isVip ?? false,
         isActive: dto.isActive ?? true,
       },
@@ -239,23 +241,43 @@ export class CustomersService {
 
   async update(user: AuthenticatedUser, id: string, dto: UpdateCustomerDto) {
     await this.assertExists(user, id);
-    return this.prisma.customer.update({
-      where: { id },
-      data: {
-        ...dto,
-        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
-      },
-    });
+    // An empty string means "clear this field"; undefined means "leave it".
+    const data: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(dto)) {
+      if (v === undefined) continue;
+      data[k] = v === '' ? null : v;
+    }
+    if ('dateOfBirth' in data) data.dateOfBirth = data.dateOfBirth ? new Date(String(data.dateOfBirth)) : null;
+    return this.prisma.customer.update({ where: { id }, data });
   }
 
+  /**
+   * Deletes a customer only when nothing refers to them. With any sales,
+   * khata entries, loyalty, bookings, repairs or a balance, the customer is
+   * switched off instead, so bills and the khata stay intact.
+   */
   async remove(user: AuthenticatedUser, id: string) {
     const customer = await this.prisma.customer.findFirst({
       where: { id, tenantId: user.tenantId },
+      select: {
+        id: true, balance: true,
+        _count: { select: { sales: true, ledgers: true, loyaltyTransactions: true, bookings: true, repairTickets: true, usedPhonesSold: true } },
+      },
     });
     if (!customer) throw new NotFoundException('Customer not found');
 
+    const history = Object.values(customer._count).some((n) => n > 0);
+    if (history || Math.abs(customer.balance) > 0.009) {
+      await this.prisma.customer.update({ where: { id }, data: { isActive: false } });
+      return {
+        softDeleted: true,
+        message: Math.abs(customer.balance) > 0.009
+          ? 'Is customer ka khata baqi hai — mitaya nahi, band kar diya'
+          : 'Is customer ki purani bikri / khata hai — mitaya nahi, band kar diya taake record salamat rahe',
+      };
+    }
     await this.prisma.customer.delete({ where: { id } });
-    return { message: 'Customer deleted successfully' };
+    return { softDeleted: false, message: 'Customer mita diya' };
   }
 
   async toggleVip(user: AuthenticatedUser, id: string) {

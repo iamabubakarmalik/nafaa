@@ -90,40 +90,32 @@ export class CustomerLedgerService {
   ) {
     const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope);
 
-    const customer = await this.prisma.customer.findFirst({
-      where: { id: customerId, tenantId: user.tenantId },
-    });
-    if (!customer) throw new NotFoundException('Customer not found');
-
-    if (customer.balance <= 0) {
-      throw new BadRequestException('Customer ka koi balance nahi hai');
-    }
-
-    // Checked against the overall balance on purpose: a customer may settle at
-    // any branch, not only the one that gave the credit.
-    if (dto.amount > customer.balance) {
-      throw new BadRequestException(
-        `Customer ka balance sirf ${customer.balance} hai`,
-      );
-    }
-
     return this.prisma.$transaction(async (tx) => {
-      const newBalance = customer.balance - dto.amount;
-
-      const updated = await tx.customer.update({
-        where: { id: customer.id },
-        data: { balance: newBalance },
+      // The balance check and the decrement are one statement, so two people
+      // taking the same payment at once cannot push the balance below zero.
+      // It is checked against the overall balance on purpose: a customer may
+      // settle at any branch, not only the one that gave the credit.
+      const done = await tx.customer.updateMany({
+        where: { id: customerId, tenantId: user.tenantId, balance: { gte: dto.amount } },
+        data: { balance: { decrement: dto.amount } },
       });
+      if (done.count === 0) {
+        const c = await tx.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { balance: true } });
+        if (!c) throw new NotFoundException('Customer not found');
+        if (c.balance <= 0) throw new BadRequestException('Customer ka koi balance nahi hai');
+        throw new BadRequestException(`Customer ka balance sirf ${c.balance} hai`);
+      }
+      const updated = await tx.customer.findUniqueOrThrow({ where: { id: customerId } });
 
       const ledger = await tx.customerLedger.create({
         data: {
           tenantId: user.tenantId,
           shopId,
-          customerId: customer.id,
+          customerId,
           createdById: user.id,
           type: 'PAYMENT_RECEIVED',
           amount: -dto.amount,
-          balanceAfter: newBalance,
+          balanceAfter: updated.balance,
           reference: dto.reference,
           note: dto.note || 'Payment received',
         },
@@ -133,10 +125,7 @@ export class CustomerLedgerService {
     });
   }
 
-  /**
-   * Bina sale ke udhaar chadhana. Frontend pehle se is endpoint ko
-   * call kar raha tha lekin backend me tha hi nahi — 404 aata tha.
-   */
+  /** Credit without a sale. */
   async addUdhaar(
     user: AuthenticatedUser,
     scope: ShopScope,
@@ -144,42 +133,29 @@ export class CustomerLedgerService {
     dto: AddUdhaarDto,
   ) {
     const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope);
-
-    const customer = await this.prisma.customer.findFirst({
-      where: { id: customerId, tenantId: user.tenantId },
-    });
-    if (!customer) throw new NotFoundException('Customer not found');
-
     return this.prisma.$transaction(async (tx) => {
-      const newBalance = customer.balance + dto.amount;
-
-      const updated = await tx.customer.update({
-        where: { id: customer.id },
-        data: { balance: newBalance },
-      });
-
+      const updated = await this.bump(tx, user.tenantId, customerId, dto.amount);
       const ledger = await tx.customerLedger.create({
         data: {
           tenantId: user.tenantId,
           shopId,
-          customerId: customer.id,
+          customerId,
           createdById: user.id,
           type: 'ADJUSTMENT',
           amount: dto.amount,
-          balanceAfter: newBalance,
+          balanceAfter: updated.balance,
           reference: dto.reference,
           note: dto.note || 'Udhaar (bina sale ke)',
         },
       });
-
       return { customer: updated, ledger };
     });
   }
 
   /**
-   * Purana khata shuru karna — is branch ka balance SET hota hai, jurta nahi.
-   * Har branch apna purana hisab alag shuru kar sakti hai; customer ka kul
-   * balance usi farq se aage barhta hai.
+   * Old credit brought in from a paper register. It is ADDED to whatever the
+   * customer already owes at this branch, so credit sales made before it are
+   * never cancelled. Allowed once per branch to avoid entering the register twice.
    */
   async setOpeningBalance(
     user: AuthenticatedUser,
@@ -189,58 +165,42 @@ export class CustomerLedgerService {
   ) {
     const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope);
 
-    const customer = await this.prisma.customer.findFirst({
-      where: { id: customerId, tenantId: user.tenantId },
-    });
-    if (!customer) throw new NotFoundException('Customer not found');
-
     const already = await this.prisma.customerLedger.findFirst({
-      where: {
-        customerId,
-        tenantId: user.tenantId,
-        shopId,
-        type: 'OPENING_BALANCE',
-      },
+      where: { customerId, tenantId: user.tenantId, shopId, type: 'OPENING_BALANCE' },
     });
     if (already) {
       throw new BadRequestException(
-        'Is customer ka purana khata is shop mein pehle hi shuru ho chuka hai — ab "Udhaar Chadhayein" use karein',
+        'Is customer ka purana khata is shop mein pehle hi daala ja chuka hai — ab "Udhaar Chadhayein" use karein',
       );
     }
+    if (!(dto.balance > 0)) throw new BadRequestException('Purane khate ki raqam likhein');
 
     return this.prisma.$transaction(async (tx) => {
-      // Only this branch's share is being restated; the rest of the customer's
-      // history at other branches stays exactly as it was.
-      const currentBranch = await this.branchBalance(
-        tx,
-        user.tenantId,
-        customerId,
-        shopId,
-      );
-      const delta = dto.balance - currentBranch;
-      const newBalance = customer.balance + delta;
-
-      const updated = await tx.customer.update({
-        where: { id: customer.id },
-        data: { balance: newBalance },
-      });
-
+      const updated = await this.bump(tx, user.tenantId, customerId, dto.balance);
       const ledger = await tx.customerLedger.create({
         data: {
           tenantId: user.tenantId,
           shopId,
-          customerId: customer.id,
+          customerId,
           createdById: user.id,
           type: 'OPENING_BALANCE',
-          // Jo farq para wohi ledger me — taake hisab chalta rahe
-          amount: delta,
-          balanceAfter: newBalance,
-          note: dto.note || 'Purana khata (copy se shuru)',
+          amount: dto.balance,
+          balanceAfter: updated.balance,
+          note: dto.note || 'Purana khata (copy se)',
         },
       });
-
       return { customer: updated, ledger };
     });
+  }
+
+  /** Adds to the balance atomically and returns the updated customer. */
+  private async bump(tx: any, tenantId: string, customerId: string, amount: number) {
+    const done = await tx.customer.updateMany({
+      where: { id: customerId, tenantId },
+      data: { balance: { increment: amount } },
+    });
+    if (done.count === 0) throw new NotFoundException('Customer not found');
+    return tx.customer.findUniqueOrThrow({ where: { id: customerId } });
   }
 
   async summary(user: AuthenticatedUser, scope: ShopScope) {

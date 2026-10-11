@@ -434,16 +434,17 @@ export class ReturnsService {
         });
         if (customer && sale.creditAmount > 0 && customer.balance > 0) {
           const reduceCredit = Math.min(refundAmount, customer.balance);
-          const newBalance = customer.balance - reduceCredit;
-
-          await tx.customer.update({
+          const { balance: newBalance } = await tx.customer.update({
             where: { id: customer.id },
-            data: { balance: newBalance },
+            data: { balance: { decrement: reduceCredit } },
+            select: { balance: true },
           });
 
           await tx.customerLedger.create({
             data: {
               tenantId: user.tenantId,
+              // The sale's branch, so that branch's khata goes down too.
+              shopId: sale.shopId,
               customerId: customer.id,
               createdById: user.id,
               type: 'REFUND',

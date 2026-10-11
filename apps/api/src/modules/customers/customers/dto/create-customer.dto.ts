@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CustomerGender } from '@prisma/client';
 import {
+  ValidateIf,
   IsBoolean, IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber,
   IsOptional, IsString, MaxLength, Min,
 } from 'class-validator';
@@ -19,7 +20,7 @@ export class CreateCustomerDto {
   phone?: string;
 
   @ApiPropertyOptional()
-  @IsOptional()
+  @ValidateIf((_, v) => v !== undefined && v !== null && v !== '')
   @IsEmail()
   email?: string;
 
@@ -48,12 +49,12 @@ export class CreateCustomerDto {
   area?: string;
 
   @ApiPropertyOptional({ enum: CustomerGender })
-  @IsOptional()
+  @ValidateIf((_, v) => v !== undefined && v !== null && v !== '')
   @IsEnum(CustomerGender)
   gender?: CustomerGender;
 
   @ApiPropertyOptional()
-  @IsOptional()
+  @ValidateIf((_, v) => v !== undefined && v !== null && v !== '')
   @IsDateString()
   dateOfBirth?: string;
 
@@ -83,4 +84,15 @@ export class CreateCustomerDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
+  ntn?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isRegistered?: boolean;
 }
