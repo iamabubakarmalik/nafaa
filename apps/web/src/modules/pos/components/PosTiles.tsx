@@ -5,7 +5,7 @@
  */
 
 import type { ComponentType, ReactNode } from 'react';
-import { Package, Sparkles, Star, type LucideIcon } from 'lucide-react';
+import { Minus, Package, Plus, Sparkles, Star, type LucideIcon } from 'lucide-react';
 import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
@@ -29,10 +29,7 @@ const BADGE: Record<PosBadgeTone, string> = {
   brand: 'bg-brand-600 text-brand-fg',
 };
 
-const fmtStock = (n: number) => String(Number(n.toFixed(2)));
-
-/** Generic product card used by the POS engine. */
-export function PosItemCard({ name, image, price, unit, stock, lowStock, inCart, featured, badges, subline, hidePrices, dim, onClick, fallback }: {
+interface PosItemProps {
   name: string;
   image?: string;
   price: number;
@@ -48,57 +45,126 @@ export function PosItemCard({ name, image, price, unit, stock, lowStock, inCart,
   /** Greyed out but still clickable (expired, out of stock where overselling is allowed). */
   dim?: boolean;
   onClick: () => void;
+  /** Remove one from the bill (shows a stepper on items already in the bill). */
+  onDecrement?: () => void;
   /** Shown when there is no image. */
   fallback?: ReactNode;
-}) {
+  /** Tile background when there is no image (Tailwind gradient classes). */
+  tint?: string;
+  category?: string;
+}
+
+const qtyText = (n: number) => String(Number(n.toFixed(2)));
+
+function StockPill({ stock, low, unit, className }: { stock: number; low: boolean; unit: string; className?: string }) {
+  const out = stock <= 0;
+  return (
+    <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold tabular-nums backdrop-blur',
+      out ? 'bg-slate-900/80 text-white' : low ? 'bg-amber-500/95 text-white' : 'bg-white/85 text-slate-700 ring-1 ring-black/5', className)}>
+      <span className={cn('h-1.5 w-1.5 rounded-full', out ? 'bg-rose-400' : low ? 'bg-white' : 'bg-success-500')} />
+      {out ? 'Khatam' : `${qtyText(stock)} ${isWeightUnit(unit) ? unit : 'baqi'}`}
+    </span>
+  );
+}
+
+function Stepper({ qty, onAdd, onRemove, size = 'md' }: { qty: number; onAdd: () => void; onRemove: () => void; size?: 'sm' | 'md' }) {
+  const h = size === 'sm' ? 'h-8' : 'h-9';
+  return (
+    <span className={cn('inline-flex items-center overflow-hidden rounded-full bg-brand-600 text-brand-fg shadow-md shadow-brand-600/25', h)} onClick={(e) => e.stopPropagation()}>
+      <span role="button" tabIndex={0} aria-label="Ek kam" onClick={onRemove} onKeyDown={(e) => e.key === 'Enter' && onRemove()}
+        className={cn('flex items-center justify-center transition hover:bg-black/10', size === 'sm' ? 'w-8' : 'w-9')}><Minus className="h-4 w-4" /></span>
+      <span className="min-w-6 text-center text-[0.875rem] font-bold tabular-nums">{qtyText(qty)}</span>
+      <span role="button" tabIndex={0} aria-label="Ek aur" onClick={onAdd} onKeyDown={(e) => e.key === 'Enter' && onAdd()}
+        className={cn('flex items-center justify-center transition hover:bg-black/10', size === 'sm' ? 'w-8' : 'w-9')}><Plus className="h-4 w-4" /></span>
+    </span>
+  );
+}
+
+/** Product card for the POS grid. */
+export function PosItemCard({ name, image, price, unit, stock, lowStock, inCart, featured, badges, subline, hidePrices, dim, onClick, onDecrement, fallback, tint }: PosItemProps) {
   const out = stock !== undefined && stock <= 0;
   const low = !out && stock !== undefined && lowStock !== undefined && stock <= lowStock;
   return (
-    <button type="button" onClick={onClick}
+    <div role="button" tabIndex={0} onClick={onClick} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      aria-label={`${name}, ${hidePrices ? '' : formatPKR(price)}`}
       className={cn(
-        'group relative flex flex-col overflow-hidden rounded-xl border bg-white text-left transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 active:translate-y-0',
-        inCart > 0 ? 'border-brand-500 ring-1 ring-brand-500' : 'border-slate-200 hover:border-slate-300',
-        (dim || out) && 'opacity-60',
+        'group relative flex cursor-pointer select-none flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 transition duration-200',
+        'hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 active:translate-y-0 active:scale-[0.99]',
+        inCart > 0 ? 'ring-2 ring-brand-500 shadow-brand-500/10' : 'ring-slate-200/80 hover:ring-slate-300',
+        (dim || out) && 'opacity-60 saturate-50',
       )}>
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
-        {image
-          ? <img src={image} alt="" loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
-          : <div className="flex h-full w-full items-center justify-center">{fallback ?? <Package className="h-8 w-8 text-slate-300" />}</div>}
-        <div className="absolute left-1.5 top-1.5 flex flex-col items-start gap-1">
-          {featured && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white shadow-sm"><Star className="h-3 w-3 fill-current" /></span>}
-          {badges?.map((b) => (
-            <span key={b.label} className={cn('inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide shadow-sm', BADGE[b.tone])}>
-              {b.icon && <b.icon className="h-2.5 w-2.5" />}{b.label}
-            </span>
-          ))}
-        </div>
-        {inCart > 0 && (
-          <span className="absolute right-1.5 top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-brand-600 px-1.5 text-[0.75rem] font-bold tabular-nums text-brand-fg shadow">
-            {fmtStock(inCart)}
-          </span>
-        )}
-        {(out || low) && (
-          <span className={cn('absolute inset-x-0 bottom-0 py-0.5 text-center text-[0.625rem] font-semibold uppercase tracking-wide text-white', out ? 'bg-slate-800/85' : 'bg-amber-500/90')}>
-            {out ? 'Stock khatam' : `Sirf ${fmtStock(stock!)} baqi`}
-          </span>
-        )}
-      </div>
-      <div className="flex flex-1 flex-col p-2.5">
-        <p className="line-clamp-2 min-h-[2.25rem] text-[0.8125rem] font-medium leading-snug text-slate-900">{name}</p>
-        <div className="mt-1.5 flex items-end justify-between gap-1">
-          <div className="min-w-0">
-            <div className="text-[0.9375rem] font-bold tabular-nums leading-none text-slate-900">{hidePrices ? '••••' : formatPKR(price)}</div>
-            <div className="mt-0.5 truncate text-[0.6875rem] text-slate-500">{subline ?? `per ${unit}`}</div>
+      <div className={cn('relative aspect-[5/4] w-full overflow-hidden', !image && 'bg-gradient-to-br', !image && (tint ?? 'from-slate-100 to-slate-200'))}>
+        {image ? (
+          <img src={image} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <span className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/40 blur-2xl" aria-hidden />
+            <span className="relative text-5xl drop-shadow-md transition duration-300 group-hover:scale-110 sm:text-[3.25rem]">{fallback ?? <Package className="h-10 w-10 text-slate-400" />}</span>
           </div>
-          {stock !== undefined && (
-            <div className="shrink-0 text-right leading-none">
-              <div className={cn('text-[0.8125rem] font-semibold tabular-nums', out ? 'text-rose-600' : low ? 'text-amber-600' : 'text-slate-600')}>{fmtStock(stock)}</div>
-              <div className="mt-0.5 text-[0.625rem] text-slate-400">{isWeightUnit(unit) ? unit : 'baqi'}</div>
-            </div>
+        )}
+        <div className="absolute inset-x-2 top-2 flex items-start justify-between gap-1">
+          <div className="flex flex-col items-start gap-1">
+            {featured && <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-white shadow"><Star className="h-3.5 w-3.5 fill-current" /></span>}
+            {badges?.map((b) => (
+              <span key={b.label} className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide shadow-sm', BADGE[b.tone])}>
+                {b.icon && <b.icon className="h-3 w-3" />}{b.label}
+              </span>
+            ))}
+          </div>
+          {stock !== undefined && <StockPill stock={stock} low={low} unit={unit} />}
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col gap-1.5 p-3">
+        <p className="line-clamp-2 min-h-[2.4rem] text-[0.875rem] font-semibold leading-tight text-slate-900">{name}</p>
+        <div className="mt-auto flex items-end justify-between gap-2">
+          <div className="min-w-0">
+            <div className="text-[1.0625rem] font-bold tabular-nums leading-none tracking-tight text-brand-700">{hidePrices ? '••••' : formatPKR(price)}</div>
+            <div className="mt-1 truncate text-[0.6875rem] text-slate-500">{subline ?? `per ${unit}`}</div>
+          </div>
+          {inCart > 0 && onDecrement ? (
+            <Stepper qty={inCart} onAdd={onClick} onRemove={onDecrement} size="sm" />
+          ) : (
+            <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition',
+              inCart > 0 ? 'bg-brand-600 text-brand-fg' : 'bg-slate-100 text-slate-600 group-hover:bg-brand-600 group-hover:text-brand-fg')}>
+              {inCart > 0 ? <span className="text-[0.75rem] font-bold tabular-nums">{qtyText(inCart)}</span> : <Plus className="h-4 w-4" />}
+            </span>
           )}
         </div>
       </div>
-    </button>
+    </div>
+  );
+}
+
+/** Dense row for the POS list view: many products on screen, fastest to scan by eye. */
+export function PosItemRow({ name, image, price, unit, stock, lowStock, inCart, badges, subline, hidePrices, dim, onClick, onDecrement, fallback, tint }: PosItemProps) {
+  const out = stock !== undefined && stock <= 0;
+  const low = !out && stock !== undefined && lowStock !== undefined && stock <= lowStock;
+  return (
+    <div role="button" tabIndex={0} onClick={onClick} onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
+      className={cn('group flex cursor-pointer items-center gap-3 rounded-xl bg-white px-3 py-2 ring-1 transition hover:shadow-md',
+        inCart > 0 ? 'ring-2 ring-brand-500' : 'ring-slate-200/80 hover:ring-slate-300', (dim || out) && 'opacity-60')}>
+      <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl text-2xl', !image && 'bg-gradient-to-br', !image && (tint ?? 'from-slate-100 to-slate-200'))}>
+        {image ? <img src={image} alt="" loading="lazy" className="h-full w-full object-cover" /> : fallback ?? <Package className="h-5 w-5 text-slate-400" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-1.5">
+          <span className="truncate text-[0.875rem] font-semibold text-slate-900">{name}</span>
+          {badges?.slice(0, 2).map((b) => (
+            <span key={b.label} className={cn('hidden shrink-0 rounded-full px-1.5 py-0.5 text-[0.5625rem] font-semibold uppercase sm:inline', BADGE[b.tone])}>{b.label}</span>
+          ))}
+        </span>
+        <span className="block truncate text-[0.75rem] text-slate-500">{subline ?? `per ${unit}`}</span>
+      </span>
+      {stock !== undefined && (
+        <span className={cn('hidden w-20 shrink-0 text-right text-[0.8125rem] font-medium tabular-nums sm:block', out ? 'text-rose-600' : low ? 'text-amber-600' : 'text-slate-500')}>
+          {out ? 'Khatam' : `${qtyText(stock)} ${isWeightUnit(unit) ? unit : ''}`}
+        </span>
+      )}
+      <span className="w-24 shrink-0 text-right text-[0.9375rem] font-bold tabular-nums text-slate-900">{hidePrices ? '••••' : formatPKR(price)}</span>
+      {inCart > 0 && onDecrement
+        ? <Stepper qty={inCart} onAdd={onClick} onRemove={onDecrement} size="sm" />
+        : <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition group-hover:bg-brand-600 group-hover:text-brand-fg"><Plus className="h-4 w-4" /></span>}
+    </div>
   );
 }
 
@@ -125,7 +191,8 @@ export function PosComboTile({ combo, cart, hidePrices, onClick }: { combo: any;
       hidePrices={hidePrices}
       badges={[{ label: 'Combo', tone: 'brand', icon: Sparkles }, ...(savings > 0 ? [{ label: `Bachat ${Math.round(Number(combo.savingsPercentage || 0))}%`, tone: 'success' as const }] : [])]}
       subline={`${combo.items?.length ?? 0} cheezein${savings > 0 && !hidePrices ? ` · ${formatPKR(savings)} bachat` : ''}`}
-      fallback={<Sparkles className="h-8 w-8 text-violet-300" />}
+      fallback={<span>🎁</span>}
+      tint="from-violet-100 to-fuchsia-200 dark:from-violet-500/20 dark:to-fuchsia-500/10"
       onClick={onClick}
     />
   );
@@ -153,7 +220,7 @@ export function PosViewTab({ active, onClick, icon: Icon, label, count, shortcut
 }) {
   return (
     <button type="button" role="tab" aria-selected={active} onClick={onClick}
-      className={cn('inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold transition',
+      className={cn('inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold transition',
         active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800')}>
       <Icon className="h-4 w-4" />
       {label}

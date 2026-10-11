@@ -36,7 +36,7 @@ const PAD = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0', '⌫'];
 
 export function PosCheckoutModal({
   total, itemCount, loading, customerName, customerBalance = 0, hasCustomer,
-  initMode, initAmount, receiver, onConfirm, onClose,
+  initMode, initAmount, initMethod = 'CASH', receiver, onConfirm, onClose,
 }: {
   total: number;
   itemCount: number;
@@ -46,13 +46,15 @@ export function PosCheckoutModal({
   hasCustomer?: boolean;
   initMode: PosCheckoutMode;
   initAmount?: number;
+  /** Payment method selected when the dialog opens. */
+  initMethod?: PaymentMethod;
   customerId?: string;
   receiver?: PosReceiverValue;
   onReceiverChange?: (v: PosReceiverValue) => void;
   onConfirm: (d: PosCheckoutResult) => void;
   onClose: () => void;
 }) {
-  const [method, setMethod] = useState<PaymentMethod>('CASH');
+  const [method, setMethod] = useState<PaymentMethod>(initMethod);
   const [mode, setMode] = useState<PosCheckoutMode>(initMode);
   /** What the customer handed over; empty in full mode means exactly the total. */
   const [tendered, setTendered] = useState(initAmount ? String(initAmount) : '');

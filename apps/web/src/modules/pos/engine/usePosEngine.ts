@@ -201,7 +201,7 @@ export function usePosEngine(config: PosIndustryConfig) {
   const [weigh, setWeigh] = useState<{ item: PosItem; unit: PosUnitOption; opts: AddOptions; prefillMoney?: number } | null>(null);
   const [variantPicker, setVariantPicker] = useState<{ item: PosItem; variants: ProductVariant[]; opts: AddOptions } | null>(null);
   const [picker, setPicker] = useState<ReactNode>(null);
-  const [checkout, setCheckout] = useState<{ mode: PosCheckoutMode } | null>(null);
+  const [checkout, setCheckout] = useState<{ mode: PosCheckoutMode; method?: PaymentMethod } | null>(null);
   const [lastSale, setLastSale] = useState<PosLastSaleFull | null>(null);
   const successTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -344,6 +344,11 @@ export function usePosEngine(config: PosIndustryConfig) {
     setPriceEditId(null);
   };
   const removeLine = (id: string) => setCart((prev) => prev.filter((l) => l.id !== id));
+  /** One less of a product: its most recent bill line goes down a step. */
+  const decrementItem = (productId: string) => {
+    const line = [...cart].reverse().find((l) => l.productId === productId);
+    if (line) changeQty(line.id, -1);
+  };
   const clearCart = useCallback(() => {
     setCart([]); setCustomerId(''); setDiscountPct(0); setDiscountRs(0);
     setDelivery(emptyDelivery()); setReceiver(emptyReceiver());
@@ -579,7 +584,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     checkoutMutation.mutate({ paymentMethod: 'CASH', paidAmount: total, isCredit: false, depositExtra: false });
   }, [cart.length, shopId, checkoutMutation, total]);
 
-  const openCheckout = useCallback((mode: PosCheckoutMode = 'full') => { if (cart.length) setCheckout({ mode }); }, [cart.length]);
+  const openCheckout = useCallback((mode: PosCheckoutMode = 'full', method?: PaymentMethod) => { if (cart.length) setCheckout({ mode, method }); }, [cart.length]);
 
   const closeSuccess = useCallback(() => { clearTimeout(successTimer.current); setLastSale(null); }, []);
   useEffect(() => () => clearTimeout(successTimer.current), []);
@@ -607,7 +612,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     cart, customers, customerId, setCustomerId, selectedCustomer, receiver, setReceiver, soldById, setSoldById,
     delivery, setDelivery, deliveryFee, discountMode, discountPct, discountRs, discountAmount, subtotal, total, totalSavings, totalQty,
     setDiscount: (m: PosDiscountMode, p: number, r: number) => { setDiscountMode(m); setDiscountPct(p); setDiscountRs(r); },
-    priceEditId, setPriceEditId, changeQty, setQty, setPrice, removeLine, clearCart,
+    priceEditId, setPriceEditId, changeQty, setQty, setPrice, removeLine, decrementItem, clearCart,
     heldCarts, hold, resume, deleteHeld,
     // actions
     addItem: (it: PosItem, o?: AddOptions) => void addItem(it, o), addBundle, addQuickKey, handleBarcode, onVoice,

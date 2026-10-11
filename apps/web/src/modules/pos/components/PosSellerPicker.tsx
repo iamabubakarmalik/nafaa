@@ -56,8 +56,23 @@ export function PosSellerPicker({
   const meSeller = sellers.find((p) => p.userId === me?.id);
   const isMe = current === me?.id;
 
+  if (compact) {
+    return (
+      <label className="flex h-9 items-center gap-2 rounded-lg bg-slate-100/70 px-2.5 text-[0.8125rem]">
+        <UserCheck className={`h-4 w-4 shrink-0 ${isMe ? 'text-slate-400' : 'text-success-600'}`} />
+        <span className="shrink-0 text-slate-500">Bikri</span>
+        <select value={current} onChange={(e) => onChange(e.target.value || undefined)} aria-label="Bikri kis ke naam"
+          className="min-w-0 flex-1 cursor-pointer appearance-none truncate bg-transparent font-medium text-slate-900 outline-none">
+          {me?.id && <option value={me.id}>{meSeller?.name ?? me.fullName ?? 'Main'} (main)</option>}
+          {sellers.filter((p) => p.userId !== me?.id).map((p) => <option key={p.userId!} value={p.userId!}>{p.name}</option>)}
+        </select>
+        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+      </label>
+    );
+  }
+
   return (
-    <div className={compact ? '' : 'mt-2'}>
+    <div className="mt-2">
       <label className="block mb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-ink-400">
         Bikri kis ke naam
       </label>

@@ -20,7 +20,7 @@ export { PosSuccessModal, type PosLastSale } from './PosSuccessModal';
 export { PosCustomerAddModal } from './PosCustomerAddModal';
 export { PosHoldCartsModal } from './PosHoldCartsModal';
 export {
-  PosViewTab, PosProductTile, PosComboTile, PosQuickKeyTile, PosEmptyState, PosItemCard,
+  PosViewTab, PosProductTile, PosComboTile, PosQuickKeyTile, PosEmptyState, PosItemCard, PosItemRow,
   type PosBadge, type PosBadgeTone,
 } from './PosTiles';
 export type { PosCheckoutResult } from './PosCheckoutModal';
