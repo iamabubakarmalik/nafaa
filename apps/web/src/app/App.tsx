@@ -310,7 +310,7 @@ import IngredientsPage from '@industries/bakery/pages/IngredientsPage';
 import FreshnessPage from '@industries/bakery/pages/FreshnessPage';
 import BakeryBulkOrdersPage from '@industries/bakery/pages/BakeryBulkOrdersPage';
 import BakeryProductEditor from '@industries/bakery/products/BakeryProductEditor';
-import BakeryProductDetailPage from '@industries/bakery/pages/BakeryProductDetailPage';
+import BakeryProductDetail from '@industries/bakery/products/BakeryProductDetail';
 import GymMemberWizardPage from '@industries/gym/pages/GymMemberWizardPage';
 import GymMemberDetailPage from '@industries/gym/pages/GymMemberDetailPage';
 import ClinicServiceWizardPage from '@industries/clinic/pages/ClinicServiceWizardPage';
@@ -376,7 +376,7 @@ import CarpetProductDetailPage from '@industries/carpet/pages/CarpetProductDetai
 import MobileProductWizardPage from '@/industries/mobile/pages/MobileProductWizardPage';
 import MobileProductDetailPage from '@industries/mobile/pages/MobileProductDetailPage';
 import RetailProductEditor from '@industries/retail/products/RetailProductEditor';
-import RetailProductDetailPage from '@industries/retail/pages/RetailProductDetailPage';
+import RetailProductDetail from '@industries/retail/products/RetailProductDetail';
 import RestaurantMenuItemWizardPage from '@industries/restaurant/pages/RestaurantMenuItemWizardPage';
 import RestaurantMenuItemDetailPage from '@industries/restaurant/pages/RestaurantMenuItemDetailPage';
 import PharmacyMedicineWizardPage from '@industries/pharmacy/pages/PharmacyMedicineWizardPage';
@@ -418,7 +418,7 @@ import ApplianceProductDetailPage from '@industries/appliances/pages/AppliancePr
 import ElectronicsDashboard from '@industries/electronics/dashboard/ElectronicsDashboard';
 import ElectronicsProducts from '@industries/electronics/products/ElectronicsProducts';
 import ElectronicsProductEditor from '@industries/electronics/products/ElectronicsProductEditor';
-import ElectronicsProductDetailPage from '@industries/electronics/pages/ElectronicsProductDetailPage';
+import ElectronicsProductDetail from '@industries/electronics/products/ElectronicsProductDetail';
 import ElectronicsBundlesPage from '@industries/electronics/pages/ElectronicsBundlesPage';
 import ElectronicsBundleFormPage from '@industries/electronics/pages/BundleFormPage';
 import ElectronicsSerialTrackingPage from '@industries/electronics/pages/SerialTrackingPage';
@@ -1128,7 +1128,7 @@ export default function App() {
                   {/* Retail */}
                   <Route path="/retail-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <RetailProductEditor />)} />
                   <Route path="/retail-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <RetailProductEditor />)} />
-                  <Route path="/retail-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <RetailProductDetailPage />)} />
+                  <Route path="/retail-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <RetailProductDetail />)} />
 
                   {/* Restaurant */}
                   <Route path="/restaurant-menu-items/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <RestaurantMenuItemWizardPage />)} />
@@ -1143,7 +1143,7 @@ export default function App() {
                   {/* Bakery */}
                   <Route path="/bakery-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <BakeryProductEditor />)} />
                   <Route path="/bakery-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <BakeryProductEditor />)} />
-                  <Route path="/bakery-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BakeryProductDetailPage />)} />
+                  <Route path="/bakery-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BakeryProductDetail />)} />
 
                   {/* Gym Member */}
                   <Route path="/gym-members/new" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <GymMemberWizardPage />)} />
@@ -1229,7 +1229,7 @@ export default function App() {
                   {/* Electronics */}
                   <Route path="/electronics-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ElectronicsProductEditor />)} />
                   <Route path="/electronics-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ElectronicsProductEditor />)} />
-                  <Route path="/electronics-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsProductDetailPage />)} />
+                  <Route path="/electronics-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsProductDetail />)} />
                   <Route path="/electronics-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsProducts />)} />
 
                   {/* Cosmetics */}

@@ -12,7 +12,7 @@ import BulkImportPage from './pages/BulkImportPage';
 import ReorderPage from './pages/ReorderPage';
 import BarcodeLabelsPage from './pages/BarcodeLabelsPage';
 import RetailProductEditor from './products/RetailProductEditor';
-import RetailProductDetailPage from './pages/RetailProductDetailPage';
+import RetailProductDetail from './products/RetailProductDetail';
 
 /**
  * Retail / General Store / Kirana / Supermarket industry pack.
@@ -71,7 +71,7 @@ export const RetailPack: IndustryPack = {
     // Retail product wizard (Products page se "+ Add" pe redirect hoga)
     { path: '/retail-products/new',       element: RetailProductEditor },
     { path: '/retail-products/:id/edit',  element: RetailProductEditor },
-    { path: '/retail-products/:id',       element: RetailProductDetailPage },
+    { path: '/retail-products/:id',       element: RetailProductDetail },
 
     // Retail Dashboard
     { path: '/retail',            element: RetailDashboard },

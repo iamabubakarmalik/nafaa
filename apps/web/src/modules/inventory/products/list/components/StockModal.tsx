@@ -12,6 +12,9 @@ import { cn } from '@core/lib/cn';
 import { stockAdjustmentsApi } from '@modules/inventory/stock-adjustments/api/stock-adjustments.api';
 import type { CatalogItem } from '../api';
 
+/** What the dialog needs to know about a product. */
+export type StockTarget = Pick<CatalogItem, 'id' | 'name' | 'unit' | 'stock' | 'price'>;
+
 type Mode = 'add' | 'remove' | 'set';
 const WEIGHED = /^(kg|g|gram|lb|litre|liter|l|ml|meter|m|ft|sqft|yard)$/i;
 const REASONS: Record<Mode, string[]> = {
@@ -21,7 +24,7 @@ const REASONS: Record<Mode, string[]> = {
 };
 
 export function StockModal({ item, chips, onClose, onSaved, money }: {
-  item: CatalogItem;
+  item: StockTarget;
   chips?: number[];
   onClose: () => void;
   onSaved: () => void;

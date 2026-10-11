@@ -1,12 +1,14 @@
 // apps/web/src/modules/inventory/products/pages/ProductViewGate.tsx
 import { Navigate, useParams } from 'react-router-dom';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
+import GeneralProductDetail from '../detail/general/GeneralProductDetail';
 
 /**
  * ProductViewGate — routes /products/:id to the correct industry detail page.
  *
- * Every industry with a dedicated detail page is routed here.
- * Any industry not listed falls through to the generic edit form.
+ * Every industry with a dedicated detail page is routed here. Businesses
+ * without an industry get the shared detail page; industries not listed
+ * still fall through to the generic edit form.
  */
 export default function ProductViewGate() {
   const industry = useCurrentIndustry();
@@ -72,6 +74,9 @@ export default function ProductViewGate() {
       return <Navigate to={`/sports-products/${id}`} replace />;
     case 'toystore':
       return <Navigate to={`/toystore-products/${id}`} replace />;
+
+    case undefined:
+      return <GeneralProductDetail />;
 
     default:
       // gym, services-biz — no detail page yet, use generic edit form
