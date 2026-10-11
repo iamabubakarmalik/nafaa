@@ -24,13 +24,14 @@ const config: DetailConfig<Extra> = {
   paths: { list: '/products', edit: (id) => `/electronics-products/${id}/edit` },
   stockChips: [1, 2, 5, 10, 25],
   extra: {
-    key: 'electronics-profile',
+    // Own cache key: other screens keep the bare profile under 'electronics-profile'.
+    key: 'electronics-product-detail-extra',
     load: async (id) => {
       const [profile, serials] = await Promise.all([
         electronicsProductsApi.byProduct(id).catch(() => null),
         serialTrackingApi.list({ productId: id }).catch(() => [] as ElectronicsSerial[]),
       ]);
-      return { profile, serials: serials as ElectronicsSerial[] };
+      return { profile: profile ?? null, serials: Array.isArray(serials) ? (serials as ElectronicsSerial[]) : [] };
     },
   },
   badges: ({ extra }) => {
@@ -126,7 +127,7 @@ const config: DetailConfig<Extra> = {
       },
     },
     {
-      id: 'serials', label: 'Serials', icon: Barcode, when: ({ extra }) => !!extra?.serials.length || !!extra?.profile?.requiresSerial,
+      id: 'serials', label: 'Serials', icon: Barcode, when: ({ extra }) => !!extra?.serials?.length || !!extra?.profile?.requiresSerial,
       render: ({ extra, cost, product }) => {
         const list = extra!.serials;
         const counts = list.reduce<Record<string, number>>((m, s) => ({ ...m, [s.status]: (m[s.status] ?? 0) + 1 }), {});

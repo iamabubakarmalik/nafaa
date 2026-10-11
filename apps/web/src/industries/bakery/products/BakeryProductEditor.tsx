@@ -436,7 +436,7 @@ const config: EditorConfig<BakeryExtra> = {
       {d.extra.recipe.length > 0 && <p className="text-slate-600">Recipe: {d.extra.recipe.length} cheezein</p>}
     </div>
   ),
-  refresh: ['bakery-products', 'bakery-profile-by-product', 'bakery-all-products', 'bakery-profiles-all'],
+  refresh: ['bakery-products', 'bakery-profile-by-product', 'bakery-product-detail-extra', 'bakery-all-products', 'bakery-profiles-all'],
 };
 
 export default function BakeryProductEditor() {

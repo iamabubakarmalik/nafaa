@@ -439,7 +439,7 @@ const config: EditorConfig<ElectronicsExtra> = {
       {d.extra.tracked && <p className="text-violet-700">{d.extra.serials.length} naye serial</p>}
     </div>
   ),
-  refresh: ['electronics-products-list', 'electronics-profiles-all', 'electronics-profile', 'product-serials'],
+  refresh: ['electronics-products-list', 'electronics-profiles-all', 'electronics-profile', 'electronics-product-detail-extra', 'product-serials'],
 };
 
 export default function ElectronicsProductEditor() {

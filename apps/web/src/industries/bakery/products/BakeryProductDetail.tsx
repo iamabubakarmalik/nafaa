@@ -48,14 +48,16 @@ const config: DetailConfig<Extra> = {
   paths: { list: '/products', edit: (id) => `/bakery-products/${id}/edit` },
   stockChips: [1, 6, 12, 24, 50],
   extra: {
-    key: 'bakery-profile-by-product',
+    // Own cache key: other screens keep the bare profile under 'bakery-profile-by-product'.
+    key: 'bakery-product-detail-extra',
     load: async (id) => {
       const [profile, fresh, ingredients] = await Promise.all([
         bakeryProductsApi.byProduct(id).catch(() => null),
         freshnessApi.list({ productId: id }).catch(() => [] as FreshnessLog[]),
         ingredientsApi.list({}).catch(() => [] as Ingredient[]),
       ]);
-      return { profile: profile as Record<string, any> | null, fresh, ingredients };
+      const list = <T,>(v: unknown): T[] => (Array.isArray(v) ? v : Array.isArray((v as { items?: T[] })?.items) ? (v as { items: T[] }).items : []);
+      return { profile: (profile as Record<string, any> | null) ?? null, fresh: list<FreshnessLog>(fresh), ingredients: list<Ingredient>(ingredients) };
     },
   },
   badges: ({ product, extra }) => {
@@ -162,7 +164,7 @@ const config: DetailConfig<Extra> = {
       },
     },
     {
-      id: 'fresh', label: 'Taazgi', icon: Clock, when: ({ extra }) => (extra?.fresh.length ?? 0) > 0,
+      id: 'fresh', label: 'Taazgi', icon: Clock, when: ({ extra }) => (extra?.fresh?.length ?? 0) > 0,
       render: ({ extra, product }) => {
         const logs = [...extra!.fresh].sort((a, b) => new Date(a.bestBefore).getTime() - new Date(b.bestBefore).getTime());
         const sum = (k: 'initialQty' | 'soldQty' | 'wastedQty' | 'discountedQty') => logs.reduce((s, l) => s + Number(l[k] ?? 0), 0);
