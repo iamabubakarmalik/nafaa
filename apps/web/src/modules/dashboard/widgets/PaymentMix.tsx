@@ -5,14 +5,9 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { Wallet } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import { useOverview } from '../data/queries';
-import { PAYMENT_COLORS, useChartTheme } from '../engine/useChartTheme';
+import { PAYMENT_COLORS, PAYMENT_LABELS, useChartTheme } from '../engine/useChartTheme';
 import { useMasked } from '../engine/useMasked';
 import { EmptyHint, WidgetCard } from '../engine/parts';
-
-const LABELS: Record<string, string> = {
-  CASH: 'Cash', CARD: 'Card', JAZZCASH: 'JazzCash', EASYPAISA: 'Easypaisa',
-  BANK_TRANSFER: 'Bank transfer', CREDIT: 'Udhaar', ONLINE: 'Online',
-};
 
 export function PaymentMix() {
   const { data } = useOverview();
@@ -20,7 +15,7 @@ export function PaymentMix() {
   const { sales, salesHidden } = useMasked();
 
   const rows = useMemo(() => (data?.paymentBreakdown ?? [])
-    .map((p) => ({ key: p.method, name: LABELS[p.method] ?? p.method, value: Number(p.total || 0), color: PAYMENT_COLORS[p.method] ?? '#64748b' }))
+    .map((p) => ({ key: p.method, name: PAYMENT_LABELS[p.method] ?? p.method, value: Number(p.total || 0), color: PAYMENT_COLORS[p.method] ?? '#64748b' }))
     .filter((p) => p.value > 0)
     .sort((a, b) => b.value - a.value), [data]);
   const total = rows.reduce((x, r) => x + r.value, 0);

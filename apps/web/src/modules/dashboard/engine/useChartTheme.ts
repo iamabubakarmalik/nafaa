@@ -40,3 +40,8 @@ export const PAYMENT_COLORS: Record<string, string> = {
   CASH: '#16a34a', CARD: '#2563eb', JAZZCASH: '#ea580c', EASYPAISA: '#22c55e',
   BANK_TRANSFER: '#7c3aed', CREDIT: '#e11d48', ONLINE: '#0891b2',
 };
+
+export const PAYMENT_LABELS: Record<string, string> = {
+  CASH: 'Cash', CARD: 'Card', JAZZCASH: 'JazzCash', EASYPAISA: 'Easypaisa',
+  BANK_TRANSFER: 'Bank transfer', CREDIT: 'Udhaar', ONLINE: 'Online',
+};

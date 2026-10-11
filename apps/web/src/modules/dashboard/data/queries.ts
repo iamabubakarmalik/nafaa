@@ -85,3 +85,58 @@ export function useRetailAlerts() {
     refetchInterval: MINUTE,
   });
 }
+
+export type PaymentMethod = 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'JAZZCASH' | 'EASYPAISA';
+
+export interface DayReport {
+  date: string;
+  isToday: boolean;
+  sales: {
+    total: number; bills: number; average: number; discount: number; collected: number; credit: number;
+    itemsSold: number; cogs: number; grossProfit: number; refunds: number; refundCount: number;
+    previousTotal: number; previousBills: number;
+  };
+  payments: Array<{ method: PaymentMethod; sales: number; collected: number; bills: number }>;
+  cashCollected: number;
+  onlineCollected: number;
+  items: Array<{
+    productId: string | null; name: string; sku: string | null; unit: string; categoryId: string | null;
+    category: string; qty: number; returnedQty: number; revenue: number; lines: number;
+  }>;
+  categories: Array<{ id: string | null; name: string; color: string | null; qty: number; revenue: number; items: number; units: Record<string, number> }>;
+  expenses: { total: number; cash: number; list: Array<{ id: string; title: string; category: string | null; amount: number; method: PaymentMethod }> };
+  cash: {
+    registers: number; opening: number; cashSales: number; cashIn: number; cashOut: number; expenses: number;
+    refunds: number; purchases: number; supplierPaid: number; expectedClosing: number;
+    countedClosing: number | null; difference: number | null; allClosed: boolean;
+  };
+  staff: Array<{ userId: string; name: string; total: number; bills: number }>;
+}
+
+/** `date` is YYYY-MM-DD; omit for the current business day. */
+export function useDayReport(date?: string) {
+  return useQuery<DayReport>({
+    queryKey: ['dashboard-day-report', date ?? 'today'],
+    queryFn: () => dashboardApi.dayReport(date),
+    refetchInterval: date ? false : MINUTE,
+  });
+}
+
+export type InsightDays = 7 | 30 | 90;
+
+export interface Insights {
+  days: InsightDays;
+  categories: Array<{ id: string | null; name: string; color: string | null; revenue: number; qty: number; cost: number; profit: number }>;
+  staff: Array<{ userId: string; name: string; role: string; avatarUrl?: string | null; total: number; profit: number; bills: number; average: number }>;
+  topCustomers: Array<{ customerId: string; name: string; phone?: string | null; balance: number; total: number; bills: number }>;
+  weekday: Array<{ day: number; total: number; bills: number; occurrences: number; average: number }>;
+  monthly: Array<{ month: string; sales: number; bills: number; expenses: number; profit: number }>;
+}
+
+export function useInsights(days: InsightDays) {
+  return useQuery<Insights>({
+    queryKey: ['dashboard-insights', days],
+    queryFn: () => dashboardApi.insights(days),
+    staleTime: 5 * MINUTE,
+  });
+}

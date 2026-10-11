@@ -105,4 +105,16 @@ export const dashboardApi = {
         params: shopId && shopId !== 'all' ? { shopId } : {},
       })
       .then(unwrap),
+
+  /** End-of-day report; `date` is YYYY-MM-DD, omitted for today. */
+  dayReport: (date?: string) =>
+    apiClient
+      .get('/dashboard/day-report', { params: date ? { date } : {} })
+      .then((r) => r.data.data),
+
+  /** Category, staff, weekday, customer and six-month figures. */
+  insights: (days: 7 | 30 | 90) =>
+    apiClient
+      .get('/dashboard/insights', { params: { days } })
+      .then((r) => r.data.data),
 };

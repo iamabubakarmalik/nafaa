@@ -1,34 +1,8 @@
 /** Retail-only dashboard widgets. */
 
-import { AlertTriangle, ArrowLeftRight, BookOpen, PackageX, RefreshCw, ShieldAlert, Target, TrendingUp } from 'lucide-react';
+import { AlertTriangle, ArrowLeftRight, PackageX, RefreshCw, ShieldAlert } from 'lucide-react';
 import { useOverview, useRetailAlerts } from '@modules/dashboard/data/queries';
-import { useMasked } from '@modules/dashboard/engine';
-import { AttentionList, KpiStrip, type AttentionItem } from '@modules/dashboard/widgets';
-
-export function RetailKpis() {
-  const { data, isLoading } = useOverview();
-  const { sales, cost, costHidden, salesHidden } = useMasked();
-  const s = data?.stats;
-  const growth = s?.salesGrowthVsYesterday ?? 0;
-  return (
-    <KpiStrip
-      loading={isLoading}
-      items={[
-        {
-          label: 'Aaj ki sales', icon: TrendingUp, value: sales(s?.salesToday),
-          hint: salesHidden ? undefined : `${s?.ordersToday ?? 0} bill${growth ? ` · ${growth > 0 ? '+' : ''}${growth.toFixed(1)}% kal se` : ''}`,
-          to: '/sales',
-        },
-        { label: 'Aaj ka munafa', icon: Target, tone: 'success', value: cost(s?.netProfitToday), hint: costHidden ? 'Cost lock hai' : 'Lagat nikal kar' },
-        {
-          label: 'Kam stock', icon: AlertTriangle, tone: 'warning', value: s?.lowStockCount ?? 0,
-          hint: `${s?.outOfStockCount ?? 0} khatam`, to: '/low-stock', alert: (s?.outOfStockCount ?? 0) > 0,
-        },
-        { label: 'Udhaar', icon: BookOpen, tone: 'danger', value: cost(s?.totalUdhaar), hint: `${s?.customersWithUdhaar ?? 0} customers`, to: '/khata' },
-      ]}
-    />
-  );
-}
+import { AttentionList, type AttentionItem } from '@modules/dashboard/widgets';
 
 export function RetailAttention() {
   const { data } = useOverview();

@@ -58,6 +58,7 @@ export const posNavGroups: NavGroup[] = [
     id: 'overview', label: 'Overview', icon: LayoutDashboard, color: '#10b981', defaultOpen: true, order: 0,
     items: [
       { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, keywords: 'home' },
+      { to: '/day-report', label: 'Din ka hisaab', icon: FileText, permission: P.DASHBOARD_VIEW, keywords: 'daily report closing opening z report' },
       { to: '/reports', label: 'Reports', icon: BarChart3, permission: P.REPORTS_VIEW },
       { to: '/profit-report', label: 'Profit by product', icon: TrendingUp, permission: P.PROFIT_REPORT_VIEW },
       { to: '/stock-report', label: 'Stock report', icon: Package, permission: P.REPORTS_VIEW },
@@ -161,6 +162,7 @@ export const allShopsNavGroups: NavGroup[] = [
   {
     id: 'reports', label: 'Reports', icon: BarChart3, color: '#10b981', defaultOpen: true, order: 20,
     items: [
+      { to: '/day-report', label: 'Din ka hisaab', icon: FileText, permission: P.DASHBOARD_VIEW, keywords: 'daily report closing opening z report' },
       { to: '/reports', label: 'Reports', icon: BarChart3, permission: P.REPORTS_VIEW },
       { to: '/profit-report', label: 'Profit by product', icon: TrendingUp, permission: P.PROFIT_REPORT_VIEW },
       { to: '/stock-report', label: 'Stock report', icon: Package, permission: P.REPORTS_VIEW },

@@ -1,50 +1,56 @@
 /** Bakery-only dashboard widgets. */
 
-import {
-  AlertTriangle, Cake, ChefHat, Croissant, Flame, Package, Receipt, ShoppingBag, Timer, TrendingUp, Wheat,
-} from 'lucide-react';
+import { AlertTriangle, Cake, ChefHat, Croissant, Flame, Package, ShoppingBag, Timer, Wheat } from 'lucide-react';
 import { Badge } from '@/design-system/components';
 import { useOverview } from '@modules/dashboard/data/queries';
-import { fmtQty, IconBubble, ListRow, RowList, useMasked, WidgetCard } from '@modules/dashboard/engine';
-import { AttentionList, KpiStrip, MoneyNote, type AttentionItem, type MoneyTileProps } from '@modules/dashboard/widgets';
+import { fmtQty, IconBubble, ListRow, RowList, useMasked, WidgetCard, type KpiDef } from '@modules/dashboard/engine';
+import { AttentionList, MoneyNote, type AttentionItem, type MoneyTileProps } from '@modules/dashboard/widgets';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { useBakeryOps } from './useBakeryOps';
 
-export function BakeryKpis() {
-  const { data, isLoading } = useOverview();
-  const { production, orders, fresh } = useBakeryOps();
-  const { sales, cost, salesHidden } = useMasked();
-  const s = data?.stats;
-  const growth = s?.salesGrowthVsYesterday ?? 0;
-
-  return (
-    <KpiStrip
-      loading={isLoading}
-      items={[
-        {
-          label: 'Aaj ki bikri', icon: TrendingUp, value: sales(s?.salesToday),
-          hint: salesHidden || !growth ? 'Aaj' : `${growth > 0 ? '+' : ''}${growth.toFixed(1)}% kal se`,
-        },
-        { label: 'Aaj ke bill', icon: Receipt, tone: 'info', value: s?.ordersToday ?? 0, hint: `Ausat ${sales(s?.aovToday)}`, to: '/sales' },
-        {
-          label: 'Aaj banana hai', icon: Croissant, tone: 'neutral', to: '/bakery/production',
-          value: production.total > 0 ? `${production.done}/${production.total}` : '—',
-          hint: production.inOven > 0 ? `${production.inOven} oven me` : `${production.pending} baqi`,
-        },
-        {
-          label: 'Order dene hain', icon: Cake, tone: 'warning', to: '/bakery/cake-orders', value: orders.today.length,
-          hint: orders.late.length > 0 ? `${orders.late.length} late!` : `${orders.active.length} chaalu`, alert: orders.late.length > 0,
-        },
-        {
-          label: 'Jald kharab', icon: Timer, tone: 'danger', to: '/bakery/freshness',
-          value: fresh.expired.length + fresh.urgent.length,
-          hint: fresh.value > 0 ? `${cost(fresh.value)} ka maal` : `${fmtQty(fresh.qty)} cheezein`, alert: fresh.expired.length > 0,
-        },
-      ]}
-    />
-  );
-}
+/** Bakery headline numbers, offered next to the common ones. */
+export const bakeryKpis: KpiDef[] = [
+  {
+    id: 'bakery-baking', label: 'Aaj banana hai', icon: Croissant, tone: 'neutral',
+    useValue: () => {
+      const { production: p, loading } = useBakeryOps();
+      return {
+        loading, to: '/bakery/production',
+        value: p.total > 0 ? `${p.done}/${p.total}` : '—',
+        hint: p.inOven > 0 ? `${p.inOven} oven me` : p.total ? `${p.pending} baqi` : 'plan nahi bana',
+      };
+    },
+  },
+  {
+    id: 'bakery-orders', label: 'Order dene hain', icon: Cake, tone: 'warning',
+    useValue: () => {
+      const { orders, loading } = useBakeryOps();
+      return {
+        loading, to: '/bakery/cake-orders', value: orders.today.length, alert: orders.late.length > 0,
+        hint: orders.late.length > 0 ? `${orders.late.length} late!` : `${orders.active.length} chaalu`,
+      };
+    },
+  },
+  {
+    id: 'bakery-fresh', label: 'Jald kharab', icon: Timer, tone: 'danger',
+    useValue: () => {
+      const { fresh, loading } = useBakeryOps();
+      const { cost } = useMasked();
+      return {
+        loading, to: '/bakery/freshness', value: fresh.expired.length + fresh.urgent.length, alert: fresh.expired.length > 0,
+        hint: fresh.value > 0 ? `${cost(fresh.value)} ka maal` : `${fmtQty(fresh.qty)} cheezein`,
+      };
+    },
+  },
+  {
+    id: 'bakery-raw', label: 'Saamaan kam', icon: Wheat, tone: 'warning',
+    useValue: () => {
+      const { raw, loading } = useBakeryOps();
+      return { loading, to: '/bakery/ingredients', value: raw.low, hint: raw.critical ? `${raw.critical} khatam` : `${raw.total} cheezein`, alert: raw.critical > 0 };
+    },
+  },
+];
 
 export function BakeryAttention() {
   const { data } = useOverview();

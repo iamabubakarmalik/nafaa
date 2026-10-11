@@ -9,9 +9,9 @@ import {
 } from 'lucide-react';
 import type { DashboardConfig } from '@modules/dashboard/engine';
 import { useMasked } from '@modules/dashboard/engine';
-import { commonWidgets, type QuickAction } from '@modules/dashboard/widgets';
+import { commonKpiList, commonWidgets, type QuickAction } from '@modules/dashboard/widgets';
 import { useOverview, useRetailAlerts } from '@modules/dashboard/data/queries';
-import { RetailAttention, RetailKpis } from './widgets';
+import { RetailAttention } from './widgets';
 
 const productPath = (id: string) => `/retail-products/${id}`;
 
@@ -45,17 +45,26 @@ function useRetailActions(): QuickAction[] {
 export const retailDashboard: DashboardConfig = {
   label: 'Retail',
   primaryAction: { to: '/pos', label: 'POS', icon: ShoppingCart },
+  kpis: commonKpiList,
+  defaultKpis: ['profit', 'month', 'cash', 'online', 'low-stock', 'udhaar'],
   widgets: [
-    { id: 'kpis', title: 'Aaj ke numbers', description: 'Sales, munafa, stock aur udhaar', size: 'full', Component: RetailKpis },
-    { id: 'attention', title: 'Aaj ka kaam', description: 'Khatam stock, reorder, transfers', size: 'full', Component: RetailAttention },
+    commonWidgets.hero(),
+    commonWidgets.kpis(),
+    { id: 'attention', title: 'Aaj ka kaam', description: 'Khatam stock, reorder, transfers', size: 'full', sizes: ['half', 'wide', 'full'], Component: RetailAttention },
+    commonWidgets.dayReport(),
     commonWidgets.salesTrend(),
     commonWidgets.peakHours({ openFrom: 8, hint: 'Staff isi hisaab se lagayein' }),
+    commonWidgets.categoryMix(),
+    commonWidgets.staff(),
     commonWidgets.moneyMap({ productsPath: '/products' }),
     commonWidgets.profitLoss(),
     commonWidgets.paymentMix(),
+    commonWidgets.monthly(),
+    commonWidgets.weekday(),
     commonWidgets.quickActions(useRetailActions),
     commonWidgets.topProducts(productPath),
     commonWidgets.slowMovers(productPath),
+    commonWidgets.topCustomers(),
     commonWidgets.recentSales(),
     commonWidgets.lowStock(productPath),
     commonWidgets.expenses(),
@@ -63,12 +72,13 @@ export const retailDashboard: DashboardConfig = {
     commonWidgets.commission(),
   ],
   guide: [
+    { icon: Receipt, title: 'Din ka hisaab', text: 'Opening se closing tak: kaunsi cheez kitni biki, cash aur online kitna aaya, kharcha kitna. Purana din bhi khol sakte hain — WhatsApp par bhejein ya print karein.' },
     { icon: Target, title: 'Aaj ka kaam', text: 'Khatam stock, kam stock, reorder aur aane wale transfers — sab se zaroori upar, har line par seedha button.' },
     { icon: BarChart3, title: 'Bikri ka rujhan', text: '7 ya 30 din ki bikri, aur cost khuli ho to munafa bhi. Gir rahi ho to yahan pehle nazar aata hai.' },
     { icon: Clock, title: 'Rush ka waqt', text: 'Gehra rang sab se masroof ghanta hai. Staff aur maal ki bharai us se pehle karein. "Hafta" asli aadat dikhata hai.' },
     { icon: PiggyBank, title: 'Paisa kahan hai', text: 'Dukaan ka maal, kharidari, kharcha, logon se lena, suppliers ko dena aur galle ka cash — har khana apni screen par le jata hai.' },
     { icon: Wallet, title: 'Nafa-nuqsan', text: 'Bikri → lagat → seedha munafa → kharche → haath me bacha. Pata chalta hai ke munafa rate se gaya ya kharchon se.' },
     { icon: Hourglass, title: 'Atka hua maal', text: '30 din se na bikne wali cheezein. Deal banayein ya dobara mat mangwayein.' },
-    { icon: Users, title: 'Apni marzi ka dashboard', text: '"Customize" se hisse chhupayein ya upar-neeche karein. Aap ke account me save hota hai — har device par wahi.' },
+    { icon: Users, title: 'Apni marzi ka dashboard', text: '"Customize" se hisse chhupayein, ghaseet kar tarteeb badlein, chaurai (S/M/L/Full) chunein, upar ke numbers chunein aur rozana target lagayein. Aap ke account me save hota hai — har device par wahi.' },
   ],
 };

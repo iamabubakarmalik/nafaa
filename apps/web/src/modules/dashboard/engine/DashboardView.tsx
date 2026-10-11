@@ -1,12 +1,12 @@
 /**
  * Renders a dashboard from an industry config: header, the user's widgets
- * in their chosen order, and the Customize and Guide dialogs.
+ * in their chosen order and width, and the Customize and Guide dialogs.
  *
  * Widgets marked `sensitive` are left out while cost is locked or the user
  * lacks `cost.view`, so a cashier never sees margins.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import { GraduationCap, LayoutGrid, RefreshCw } from 'lucide-react';
@@ -19,7 +19,7 @@ import { SubscriptionBanner } from '../components/SubscriptionBanner';
 import AllShopsDashboard from '../components/AllShopsDashboard';
 import { CustomizeDialog } from './CustomizeDialog';
 import { GuideDialog } from './GuideDialog';
-import { useDashboardLayout } from './useDashboardLayout';
+import { DashboardLayoutContext, useDashboardLayout, type CustomizeTab } from './useDashboardLayout';
 import { WidgetBoundary } from './WidgetBoundary';
 import type { DashboardConfig, WidgetSize } from './types';
 
@@ -50,8 +50,11 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
   const user = useAuthStore((s) => s.user);
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const costHidden = useCostHidden();
-  const layout = useDashboardLayout(config.widgets);
+  const layout = useDashboardLayout(config);
   const [customizing, setCustomizing] = useState(false);
+  const [tab, setTab] = useState<CustomizeTab>('widgets');
+  const openCustomize = useCallback((next: CustomizeTab = 'widgets') => { setTab(next); setCustomizing(true); }, []);
+  const ctx = useMemo(() => ({ ...layout, openCustomize }), [layout, openCustomize]);
   const [guide, setGuide] = useState(false);
   const fetching = useIsFetching() > 0;
 
@@ -73,11 +76,11 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
 
   const now = new Date();
   const firstName = user?.fullName?.split(' ')[0];
-  const dateLine = new Intl.DateTimeFormat('en-PK', { weekday: 'long', day: 'numeric', month: 'long' }).format(now);
-  const visible = layout.items.filter((i) => i.visible && !(i.widget.sensitive && costHidden));
+  const visible = layout.widgets.filter((i) => i.visible && !(i.widget.sensitive && costHidden));
   const Primary = config.primaryAction.icon;
 
   return (
+    <DashboardLayoutContext.Provider value={ctx}>
     <div className="mx-auto w-full max-w-[96rem] space-y-4 pb-10">
       <EmailVerifyBanner />
       <SubscriptionBanner />
@@ -85,7 +88,7 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[0.8125rem] font-medium text-slate-500">
-            {config.label}{shopName && <> · {shopName}</>} · {dateLine}
+            {config.label}{shopName && <> · {shopName}</>}
           </p>
           <h1 className="mt-0.5 truncate text-2xl font-bold tracking-tight text-slate-900 sm:text-[1.75rem]">
             {greeting(now.getHours())}{firstName ? `, ${firstName}` : ''}
@@ -101,7 +104,7 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
           <IconButton label="Taaza karein (R)" variant="secondary" onClick={refresh}>
             <RefreshCw className={cn('h-4 w-4', fetching && 'animate-spin')} />
           </IconButton>
-          <Button variant="secondary" leftIcon={<LayoutGrid className="h-4 w-4" />} onClick={() => setCustomizing(true)}>
+          <Button variant="secondary" leftIcon={<LayoutGrid className="h-4 w-4" />} onClick={() => openCustomize()}>
             <span className="hidden sm:inline">Customize</span>
             <span className="sr-only sm:hidden">Customize</span>
           </Button>
@@ -112,8 +115,8 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
       </header>
 
       <div className="grid grid-flow-row-dense grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-12">
-        {visible.map(({ widget }) => (
-          <div key={widget.id} className={cn('min-w-0', SPAN[widget.size])}>
+        {visible.map(({ widget, size }) => (
+          <div key={widget.id} className={cn('min-w-0', SPAN[size])}>
             <WidgetBoundary title={widget.title}>
               <widget.Component />
             </WidgetBoundary>
@@ -124,21 +127,21 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
       {visible.length === 0 && (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
           <p className="text-[0.875rem] text-slate-600">Sab hisse chhupe hue hain.</p>
-          <Button className="mt-3" variant="secondary" onClick={() => setCustomizing(true)}>Hisse chunein</Button>
+          <Button className="mt-3" variant="secondary" onClick={() => openCustomize()}>Hisse chunein</Button>
         </div>
       )}
 
       <CustomizeDialog
         open={customizing}
+        tab={tab}
+        onTab={setTab}
         onClose={() => setCustomizing(false)}
-        items={layout.items}
+        config={config}
+        layout={ctx}
         costHidden={costHidden}
-        onVisible={layout.setVisible}
-        onMove={layout.move}
-        onReset={layout.reset}
-        canReset={layout.isCustomized}
       />
       {config.guide && <GuideDialog open={guide} onClose={() => setGuide(false)} items={config.guide} />}
     </div>
+    </DashboardLayoutContext.Provider>
   );
 }

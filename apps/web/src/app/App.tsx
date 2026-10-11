@@ -299,6 +299,7 @@ import MemberDetailPage from '@industries/gym/pages/MemberDetailPage';
 
 // ─── Bakery Industry ───────────────────────────────────────────
 import BakeryDashboard from '@/industries/bakery/dashboard/BakeryDashboard';
+import DayReportPage from '@modules/dashboard/day-report/DayReportPage';
 import CakeCustomizerPage from '@industries/bakery/pages/CakeCustomizerPage';
 import CakeOrdersPage from '@industries/bakery/pages/CakeOrdersPage';
 import CakeOrderDetailPage from '@industries/bakery/pages/CakeOrderDetailPage';
@@ -676,6 +677,7 @@ export default function App() {
 
                   {/* ── Reports ────────────────────────────────── */}
                   <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsGate />)} />
+                  <Route path="/day-report" element={secure(PERMISSIONS.DASHBOARD_VIEW, <DayReportPage />)} />
                   <Route path="/stock-report" element={secure(PERMISSIONS.REPORTS_VIEW, <StockReportGate />)} />
 
                   {/* ── Settings & System ──────────────────────── */}

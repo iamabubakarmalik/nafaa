@@ -10,8 +10,9 @@ import { Card } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 
 /** Widget surface: Card with title, short description and an optional "see all" link. */
-export function WidgetCard({ title, description, to, linkLabel = 'Sab dekhein', actions, flush, children, className }: {
+export function WidgetCard({ title, icon: Icon, description, to, linkLabel = 'Sab dekhein', actions, flush, children, className }: {
   title: ReactNode;
+  icon?: LucideIcon;
   description?: ReactNode;
   to?: string;
   linkLabel?: string;
@@ -27,11 +28,16 @@ export function WidgetCard({ title, description, to, linkLabel = 'Sab dekhein', 
   );
   return (
     <Card
-      title={title}
+      title={Icon ? (
+        <span className="inline-flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-brand-50 text-brand-700"><Icon className="h-3.5 w-3.5" /></span>
+          {title}
+        </span>
+      ) : title}
       description={description}
       actions={actions || link ? <>{actions}{link}</> : undefined}
       flush={flush}
-      className={cn('h-full', className)}
+      className={cn('h-full rounded-2xl', className)}
     >
       {children}
     </Card>
