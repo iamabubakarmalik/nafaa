@@ -1,60 +1,49 @@
-// apps/web/src/modules/inventory/products/pages/ProductsListGate.tsx
-import { lazy, Suspense } from 'react';
-import { useCurrentIndustry } from '../../../../industries/_shared/registry/useCurrentIndustry';
-import ProductsListPage from './ProductsListPage';
+/**
+ * Picks the products page for the current industry. Retail, Bakery,
+ * Electronics and businesses without an industry use the shared page
+ * (modules/inventory/products/list); the rest keep their own pages for now,
+ * and industries without one use the older general list (carpet rolls,
+ * IMEI and other industry panels live there).
+ */
 
-const RetailProductsPage = lazy(() => import('../../../../industries/retail/pages/RetailProductsPage'));
-const MobileProductsPage = lazy(() => import('../../../../industries/mobile/pages/MobileProductsPage'));
+import { lazy, Suspense, type ComponentType, type LazyExoticComponent } from 'react';
+import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
+import { Skeleton } from '@/design-system/components';
 
-// ─── 10 NEW industries with dedicated list pages ───
-const AppliancesProductsPage = lazy(() => import('@industries/appliances/pages/AppliancesProductsPage'));
-const BakeryProductsListPage = lazy(() => import('@industries/bakery/pages/BakeryProductsListPage'));
-const AgriProductsListPage = lazy(() => import('@industries/agri/pages/AgriProductsListPage'));
-const ElectronicsProductsPage = lazy(() => import('@industries/electronics/pages/ElectronicsProductsPage'));
-const FloristProductsPage = lazy(() => import('@industries/florist/pages/FloristProductsPage'));
-const FurnitureProductsPage = lazy(() => import('@industries/furniture/pages/FurnitureProductsPage'));
-const GamingProductsPage = lazy(() => import('@industries/gaming/pages/GamingProductsPage'));
-const OpticalProductsPage = lazy(() => import('@industries/optical/pages/OpticalProductsPage'));
-const PetshopProductsPage = lazy(() => import('@industries/petshop/pages/PetshopProductsPage'));
-const ShoeProductsPage = lazy(() => import('@industries/shoe/pages/ShoeProductsPage'));
-const SportsProductsPage = lazy(() => import('@industries/sports/pages/SportsProductsPage'));
-const ToystoreProductsPage = lazy(() => import('@industries/toystore/pages/ToyProductsPage'));
-const RestaurantProductsListPage = lazy(() => import('@industries/restaurant/pages/RestaurantProductsListPage'));
+const PAGES: Record<string, LazyExoticComponent<ComponentType>> = {
+  retail: lazy(() => import('@industries/retail/products/RetailProducts')),
+  bakery: lazy(() => import('@industries/bakery/products/BakeryProducts')),
+  electronics: lazy(() => import('@industries/electronics/products/ElectronicsProducts')),
+  mobile: lazy(() => import('@industries/mobile/pages/MobileProductsPage')),
+  appliances: lazy(() => import('@industries/appliances/pages/AppliancesProductsPage')),
+  agri: lazy(() => import('@industries/agri/pages/AgriProductsListPage')),
+  florist: lazy(() => import('@industries/florist/pages/FloristProductsPage')),
+  furniture: lazy(() => import('@industries/furniture/pages/FurnitureProductsPage')),
+  gaming: lazy(() => import('@industries/gaming/pages/GamingProductsPage')),
+  optical: lazy(() => import('@industries/optical/pages/OpticalProductsPage')),
+  petshop: lazy(() => import('@industries/petshop/pages/PetshopProductsPage')),
+  shoe: lazy(() => import('@industries/shoe/pages/ShoeProductsPage')),
+  sports: lazy(() => import('@industries/sports/pages/SportsProductsPage')),
+  toystore: lazy(() => import('@industries/toystore/pages/ToyProductsPage')),
+  // A restaurant's "stock" is its menu: whether a dish can be made, not a count.
+  restaurant: lazy(() => import('@industries/restaurant/pages/RestaurantProductsListPage')),
+};
 
-function Loader() {
+const GeneralProducts = lazy(() => import('../list/general/GeneralProducts'));
+const IndustryFallback = lazy(() => import('./ProductsListPage'));
+
+function Loading() {
   return (
-    <div className="flex items-center justify-center py-24">
-      <div className="h-12 w-12 rounded-full border-4 border-sky-200 border-t-sky-600 animate-spin" />
+    <div className="mx-auto w-full max-w-[96rem] space-y-4">
+      <Skeleton className="h-32 w-full rounded-3xl" />
+      <Skeleton className="h-16 w-full rounded-3xl" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">{Array.from({ length: 10 }, (_, i) => <Skeleton key={i} className="h-[22rem] rounded-2xl" />)}</div>
     </div>
   );
 }
 
-/**
- * ProductsListGate — /products ko industry ke hisaab se route karta hai.
- */
 export default function ProductsListGate() {
   const industry = useCurrentIndustry();
-
-  if (industry?.id === 'retail') return <Suspense fallback={<Loader />}><RetailProductsPage /></Suspense>;
-  if (industry?.id === 'mobile') return <Suspense fallback={<Loader />}><MobileProductsPage /></Suspense>;
-
-
-  // 10 NEW industries
-  if (industry?.id === 'appliances') return <Suspense fallback={<Loader />}><AppliancesProductsPage /></Suspense>;
-  if (industry?.id === 'bakery') return <Suspense fallback={<Loader />}><BakeryProductsListPage /></Suspense>;
-  if (industry?.id === 'agri') return <Suspense fallback={<Loader />}><AgriProductsListPage /></Suspense>;
-  if (industry?.id === 'electronics') return <Suspense fallback={<Loader />}><ElectronicsProductsPage /></Suspense>;
-  if (industry?.id === 'florist') return <Suspense fallback={<Loader />}><FloristProductsPage /></Suspense>;
-  if (industry?.id === 'furniture') return <Suspense fallback={<Loader />}><FurnitureProductsPage /></Suspense>;
-  if (industry?.id === 'gaming') return <Suspense fallback={<Loader />}><GamingProductsPage /></Suspense>;
-  if (industry?.id === 'optical') return <Suspense fallback={<Loader />}><OpticalProductsPage /></Suspense>;
-  if (industry?.id === 'petshop') return <Suspense fallback={<Loader />}><PetshopProductsPage /></Suspense>;
-  if (industry?.id === 'shoe') return <Suspense fallback={<Loader />}><ShoeProductsPage /></Suspense>;
-  if (industry?.id === 'sports') return <Suspense fallback={<Loader />}><SportsProductsPage /></Suspense>;
-  if (industry?.id === 'toystore') return <Suspense fallback={<Loader />}><ToystoreProductsPage /></Suspense>;
-  /* Hotel ka "maal" menu hai — biryani stock me nahi hoti,
-     is liye yahan ginti ki jagah "ban sakti hai ya nahi" dikhta hai */
-  if (industry?.id === 'restaurant') return <Suspense fallback={<Loader />}><RestaurantProductsListPage /></Suspense>;
-
-  return <ProductsListPage />;
+  const Page = industry?.id ? (PAGES[industry.id] ?? IndustryFallback) : GeneralProducts;
+  return <Suspense fallback={<Loading />}><Page /></Suspense>;
 }

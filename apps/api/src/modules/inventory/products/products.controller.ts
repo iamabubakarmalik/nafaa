@@ -7,6 +7,7 @@ import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ProductsService } from './products.service';
+import { ProductCatalogService, type CatalogQuery } from './product-catalog.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProductsDto } from './dto/query-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -21,6 +22,7 @@ export class ProductsController {
   constructor(
     private readonly productsService: ProductsService,
     private readonly prisma: PrismaService,
+    private readonly catalog: ProductCatalogService,
   ) {}
 
   @Post()
@@ -35,6 +37,22 @@ export class ProductsController {
     @ShopIdParam() shopId?: string,
   ) {
     return this.productsService.findAll(user, query, shopId);
+  }
+
+  /** Whole-catalog analytics for the products page. */
+  @Get('catalog/analytics')
+  catalogAnalytics(@GetUser() user: AuthenticatedUser, @ShopIdParam() shopId?: string) {
+    return this.catalog.analytics(user, shopId);
+  }
+
+  /** Whole-catalog search, filters, sort and totals for the products page. */
+  @Get('catalog')
+  catalogList(
+    @GetUser() user: AuthenticatedUser,
+    @Query() query: CatalogQuery,
+    @ShopIdParam() shopId?: string,
+  ) {
+    return this.catalog.list(user, query, shopId);
   }
 
   @Get('low-stock')

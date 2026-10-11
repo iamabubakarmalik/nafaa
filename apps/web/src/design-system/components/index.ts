@@ -24,3 +24,4 @@ export { Tabs, Segmented, type TabItem } from './Tabs';
 export { PageHeader } from './PageHeader';
 export { StatCard } from './StatCard';
 export { Table, THead, TBody, Tr, Th, Td } from './Table';
+export { FilterMenu, type FilterOption } from './FilterMenu';

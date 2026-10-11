@@ -6,7 +6,7 @@ import {
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import ElectronicsDashboard from './dashboard/ElectronicsDashboard';
-import ElectronicsProductsPage from './pages/ElectronicsProductsPage';
+import ElectronicsProducts from './products/ElectronicsProducts';
 import ElectronicsProductWizardPage from './pages/ElectronicsProductWizardPage';
 import ElectronicsProductDetailPage from './pages/ElectronicsProductDetailPage';
 import ElectronicsPos from './pos/ElectronicsPos';
@@ -87,7 +87,7 @@ export const ElectronicsPack: IndustryPack = {
     { path: '/electronics-products/new', element: ElectronicsProductWizardPage },
     { path: '/electronics-products/:id/edit', element: ElectronicsProductWizardPage },
     { path: '/electronics-products/:id', element: ElectronicsProductDetailPage },
-    { path: '/electronics-products', element: ElectronicsProductsPage },
+    { path: '/electronics-products', element: ElectronicsProducts },
 
     { path: '/electronics', element: ElectronicsDashboard },
     { path: '/electronics/dashboard', element: ElectronicsDashboard },

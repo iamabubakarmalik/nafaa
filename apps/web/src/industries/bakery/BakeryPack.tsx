@@ -11,7 +11,7 @@ import IngredientsPage from './pages/IngredientsPage';
 import FreshnessPage from './pages/FreshnessPage';
 import BakeryBulkOrdersPage from './pages/BakeryBulkOrdersPage';
 import BakeryProductWizardPage from './pages/BakeryProductWizardPage';
-import BakeryProductsListPage from './pages/BakeryProductsListPage';
+import BakeryProducts from './products/BakeryProducts';
 import BakeryDashboard from './dashboard/BakeryDashboard';
 import BakeryBulkOrderFormPage from './pages/BakeryBulkOrderFormPage';
 
@@ -74,7 +74,7 @@ export const BakeryPack: IndustryPack = {
     /* Purana BakeryProductsPage sirf wo cheezein dikhata tha jin ka
        bakery profile bana ho — Lays aur bottle us list me aate hi
        nahi thay. Naya safha saara maal laata hai. */
-    { path: '/bakery/products', element: BakeryProductsListPage },
+    { path: '/bakery/products', element: BakeryProducts },
     { path: '/bakery/production', element: ProductionPage },
     { path: '/bakery/ingredients', element: IngredientsPage },
     { path: '/bakery/freshness', element: FreshnessPage },

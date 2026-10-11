@@ -303,7 +303,7 @@ import DayReportPage from '@modules/dashboard/day-report/DayReportPage';
 import CakeCustomizerPage from '@industries/bakery/pages/CakeCustomizerPage';
 import CakeOrdersPage from '@industries/bakery/pages/CakeOrdersPage';
 import CakeOrderDetailPage from '@industries/bakery/pages/CakeOrderDetailPage';
-import BakeryProductsListPage from '@industries/bakery/pages/BakeryProductsListPage';
+import BakeryProducts from '@industries/bakery/products/BakeryProducts';
 import BakeryBulkOrderFormPage from '@industries/bakery/pages/BakeryBulkOrderFormPage';
 import ProductionPage from '@industries/bakery/pages/ProductionPage';
 import IngredientsPage from '@industries/bakery/pages/IngredientsPage';
@@ -416,7 +416,7 @@ import ApplianceProductDetailPage from '@industries/appliances/pages/AppliancePr
 
 // ─── Electronics Industry ──────────────────────────────────────
 import ElectronicsDashboard from '@industries/electronics/dashboard/ElectronicsDashboard';
-import ElectronicsProductsPage from '@industries/electronics/pages/ElectronicsProductsPage';
+import ElectronicsProducts from '@industries/electronics/products/ElectronicsProducts';
 import ElectronicsProductWizardPage from '@industries/electronics/pages/ElectronicsProductWizardPage';
 import ElectronicsProductDetailPage from '@industries/electronics/pages/ElectronicsProductDetailPage';
 import ElectronicsBundlesPage from '@industries/electronics/pages/ElectronicsBundlesPage';
@@ -931,7 +931,7 @@ export default function App() {
                   <Route path="/bakery/cake-orders/new" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeCustomizerPage />)} />
                   <Route path="/bakery/cake-orders/:id" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeOrderDetailPage />)} />
                   <Route path="/bakery/cake-orders" element={secure(PERMISSIONS.BAKERY_ORDERS_VIEW, <CakeOrdersPage />)} />
-                  <Route path="/bakery/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BakeryProductsListPage />)} />
+                  <Route path="/bakery/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BakeryProducts />)} />
                   <Route path="/bakery/production" element={secure(PERMISSIONS.BAKERY_PRODUCTION_VIEW, <ProductionPage />)} />
                   <Route path="/bakery/ingredients" element={secure(PERMISSIONS.BAKERY_INGREDIENTS_VIEW, <IngredientsPage />)} />
                   <Route path="/bakery/freshness" element={secure(PERMISSIONS.BAKERY_PRODUCTION_VIEW, <FreshnessPage />)} />
@@ -1230,7 +1230,7 @@ export default function App() {
                   <Route path="/electronics-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ElectronicsProductWizardPage />)} />
                   <Route path="/electronics-products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ElectronicsProductWizardPage />)} />
                   <Route path="/electronics-products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsProductDetailPage />)} />
-                  <Route path="/electronics-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsProductsPage />)} />
+                  <Route path="/electronics-products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ElectronicsProducts />)} />
 
                   {/* Cosmetics */}
                   <Route path="/cosmetics-products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <CosmeticsProductWizardPage />)} />

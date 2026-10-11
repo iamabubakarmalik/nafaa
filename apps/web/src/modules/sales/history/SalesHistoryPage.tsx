@@ -16,7 +16,7 @@ import {
   ListChecks, ListFilter, MousePointerClick, Package, RotateCcw, ScanLine, Search, Settings2, ShoppingCart, Sparkles,
   Trophy, UserRound, Wallet, X, type LucideIcon,
 } from 'lucide-react';
-import { Button, Kbd, Modal, Skeleton } from '@/design-system/components';
+import { Button, FilterMenu, Kbd, Modal, Skeleton, type FilterOption } from '@/design-system/components';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
@@ -34,7 +34,6 @@ import { PAYMENT_COLORS } from '@modules/dashboard/engine/useChartTheme';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
 import { salesHistoryApi, type HistorySale, type HistorySort, type HistoryStatus } from './api';
 import { DATE_PRESETS, rangeLabel } from './dates';
-import { FilterMenu, type FilterOption } from './components/FilterMenu';
 import { fetchAllSales, salesCsv, salesDoc } from './exportSales';
 import { useSalesAnalytics, useSalesHistory } from './useSalesHistory';
 import { ReceiptPrefsModal } from './components/ReceiptPrefsModal';
