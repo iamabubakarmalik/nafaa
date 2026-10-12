@@ -41,7 +41,13 @@ export class SettingsController {
     return this.svc.core.resetSection(u, section);
   }
 
-  // ═══ RECEIPT CONFIG ═══
+  // ═══ RECEIPT ═══
+  /** Receipt design and shop details for printing; every staff member prints bills. */
+  @Get('receipt')
+  receipt(@GetUser() u: AuthenticatedUser) {
+    return this.svc.core.receiptSetup(u);
+  }
+
   @Get('receipt-config')
   getReceiptConfig(@GetUser() u: AuthenticatedUser) {
     return this.svc.core.getReceiptConfig(u);

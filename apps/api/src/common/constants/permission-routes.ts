@@ -161,6 +161,8 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /^settings\/security\/(pin-status|verify-pin)(\/|$)/ },
   // Counter rules: every staff member at the POS must follow them.
   { match: /^settings\/counter(\/|$)/ },
+  // Bill printing: every staff member prints receipts.
+  { match: /^settings\/receipt(\/|$)/ },
   { match: /^settings\/security\/(set-pin|remove-pin|reset-pin|locked-routes)(\/|$)/, GET: P.SETTINGS_MANAGE, write: P.SETTINGS_MANAGE },
 
   /* ── Nizam ── */

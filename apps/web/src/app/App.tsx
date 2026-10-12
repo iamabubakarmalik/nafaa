@@ -106,7 +106,7 @@ import BookingFormPage from '@modules/bookings/pages/BookingFormPage';
 import BookingDetailPage from '@modules/bookings/pages/BookingDetailPage';
 import PosGate from '@modules/pos/pages/PosGate';
 import SalesGate from '@modules/sales/sales/pages/SalesGate';
-import ReceiptGate from '@modules/sales/sales/pages/ReceiptGate';
+import ReceiptPage from '@modules/sales/sales/pages/ReceiptPage';
 import { OfflineBanner, SyncCenterPage } from '@core/lib/offline/ui';
 import ReturnsPage from '@modules/sales/returns/pages/ReturnsPage';
 import DiscountsPage from '@modules/sales/discounts/pages/DiscountsPage';
@@ -603,7 +603,8 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/verify-email" element={<EmailVerifyPage />} />
-              <Route path="/sales/:id/receipt" element={<ReceiptGate />} />
+              <Route path="/sales/:id/receipt" element={<ReceiptPage />} />
+              <Route path="/jewelry/sales/:id/receipt" element={<ReceiptPage />} />
               {/* Online orders ke invoice / packing slip — shell ke bina (print) */}
               <Route path="/online-orders/print" element={<PrintInvoicesPage />} />
               {/* WooCommerce "Approve" ke baad popup yahan wapas aata hai — shell ke bagair */}

@@ -1,6 +1,6 @@
 // src/industries/mobile/pages/MobilePosPage.tsx
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { tryDirectPrint } from '@core/hardware/print';
+import { printReceiptDirect as printSharedReceipt } from '@modules/pos/lib/thermalReceipt';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Smartphone, Search, X, Plus, Minus, Trash2, User, UserPlus,
@@ -83,9 +83,6 @@ interface HeldCart { id: string; lines: CartLine[]; customerId: string; total: n
 const lineId = () => `l-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 const heldId = () => `h-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
-const escapeHtml = (s: string) =>
-  String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
 /** Sale hone par ye sab query keys stale ho jati hain. */
 const SALE_REFRESH_KEYS = [
   'mobile-pos-catalog',
@@ -97,7 +94,7 @@ const SALE_REFRESH_KEYS = [
   'customers', 'customers-stats',
 ];
 
-/* ═══ 🖨️ DIRECT THERMAL PRINT — receipt page ke bina! ═══ */
+/* Printing straight after a sale, without opening the receipt page. */
 interface PrintPayload {
   saleNumber: string;
   date: Date;
@@ -113,114 +110,14 @@ interface PrintPayload {
   paymentLabel: string;
 }
 
-/* Decorative barcode (scannable nahi — sirf look) */
-function pseudoBarcode(seed: string): string {
-  let bars = '';
-  for (let i = 0; i < seed.length * 3; i++) {
-    const code = seed.charCodeAt(i % seed.length) + i;
-    const w = 1 + (code % 3);
-    bars += `<span style="display:inline-block;width:${w}px;height:34px;background:#000;margin-right:${1 + (code % 2)}px;"></span>`;
-  }
-  return bars;
-}
-
+/** Prints through the shared receipt (shop's design, real barcode, direct printer). */
 function printReceiptDirect(p: PrintPayload, widthMm: '80' | '58'): boolean {
-  // Settings → Hardware me "Direct print" ho to seedha printer par (IMEI/serial note ke saath)
-  const direct = {
+  return printSharedReceipt({
     saleNumber: p.saleNumber, date: p.date, shopName: p.shopName, shopPhone: p.shopPhone, shopAddress: p.shopAddress,
     customerName: p.customerName, subtotal: p.subtotal, discount: p.discount,
     total: p.total, paid: p.paid, paymentLabel: p.paymentLabel,
-    lines: p.lines.map((l) => ({ name: l.name, qty: l.qty, unit: '', price: l.price, total: l.total, note: l.detail })),
-  };
-  if (tryDirectPrint(direct, widthMm, () => browserPrintReceipt(p, widthMm))) return true;
-  return browserPrintReceipt(p, widthMm);
-}
-
-function browserPrintReceipt(p: PrintPayload, widthMm: '80' | '58'): boolean {
-  const w = window.open('', '_blank', `width=${widthMm === '80' ? 400 : 330},height=700`);
-  if (!w) return false;
-
-  const itemsHtml = p.lines.map((l, i) => `
-    <div class="item">
-      <div class="iname">${i + 1}. ${escapeHtml(l.name)}</div>
-      <div class="irow">
-        <span class="iqty">${l.qty} × ${formatPKR(l.price)}</span>
-        <span class="iamt">${formatPKR(l.total)}</span>
-      </div>
-      ${l.detail ? `<div class="idet">${escapeHtml(l.detail)}</div>` : ''}
-    </div>`).join('');
-
-  const html = `<!doctype html>
-<html><head><meta charset="utf-8"/><title>${p.saleNumber}</title>
-<style>
-  @page { size: ${widthMm}mm auto; margin: 0; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: ${widthMm}mm; }
-  body {
-    font-family: 'Courier New', monospace;
-    padding: ${widthMm === '80' ? '4mm 3mm' : '3mm 2mm'};
-    color: #000;
-    font-size: ${widthMm === '80' ? '12px' : '10px'};
-    line-height: 1.35;
-    background: #fff;
-  }
-  .c { text-align: center; }
-  .b { font-weight: 700; }
-  .shop { font-size: ${widthMm === '80' ? '17px' : '14px'}; font-weight: 800; letter-spacing: 0.5px; }
-  .sub { font-size: ${widthMm === '80' ? '9px' : '8px'}; margin-top: 1px; }
-  .div { border-top: 1px dashed #000; margin: 6px 0; }
-  .dbl { border-top: 2px solid #000; margin: 6px 0; }
-  .row { display: flex; justify-content: space-between; gap: 6px; margin: 2px 0; }
-  .row .v { text-align: right; font-weight: 700; }
-  .item { margin: 3px 0; }
-  .iname { font-weight: 700; word-break: break-word; }
-  .irow { display: flex; justify-content: space-between; font-size: ${widthMm === '80' ? '11px' : '9px'}; }
-  .iamt { font-weight: 800; }
-  .idet { font-size: ${widthMm === '80' ? '9px' : '8px'}; font-weight: 600; }
-  .total-row { display: flex; justify-content: space-between; font-size: ${widthMm === '80' ? '17px' : '14px'}; font-weight: 800; margin: 4px 0; }
-  .barcode { text-align: center; margin: 8px 0 2px; letter-spacing: 1px; }
-  .barnum { font-size: 9px; font-weight: 700; margin-top: 2px; }
-  .thanks { font-size: ${widthMm === '80' ? '10px' : '9px'}; margin-top: 6px; }
-</style></head><body>
-  <div class="c shop">${escapeHtml(p.shopName)}</div>
-  ${p.shopAddress ? `<div class="c sub">${escapeHtml(p.shopAddress)}</div>` : ''}
-  ${p.shopPhone ? `<div class="c sub">Ph: ${escapeHtml(p.shopPhone)}</div>` : ''}
-  <div class="div"></div>
-  <div class="row"><span>RECEIPT</span><span class="v">${escapeHtml(p.saleNumber)}</span></div>
-  <div class="row"><span>DATE</span><span class="v">${p.date.toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}</span></div>
-  ${p.customerName ? `<div class="row"><span>CUSTOMER</span><span class="v">${escapeHtml(p.customerName)}</span></div>` : ''}
-  <div class="div"></div>
-  ${itemsHtml}
-  <div class="div"></div>
-  <div class="row"><span>Items</span><span class="v">${p.lines.length}</span></div>
-  ${p.discount > 0 ? `
-    <div class="row"><span>Subtotal</span><span class="v">${formatPKR(p.subtotal)}</span></div>
-    <div class="row"><span>Discount</span><span class="v">−${formatPKR(p.discount)}</span></div>
-  ` : ''}
-  <div class="dbl"></div>
-  <div class="total-row"><span>TOTAL</span><span>${formatPKR(p.total)}</span></div>
-  <div class="row"><span>${escapeHtml(p.paymentLabel)}</span><span class="v">${formatPKR(p.paid)}</span></div>
-  ${p.paid > p.total ? `<div class="row b"><span>CHANGE (wapis dein)</span><span class="v">${formatPKR(p.paid - p.total)}</span></div>` : ''}
-  ${p.paid < p.total ? `<div class="row b"><span>UDHAAR (baqi)</span><span class="v">${formatPKR(p.total - p.paid)}</span></div>` : ''}
-  <div class="div"></div>
-  <div class="barcode">${pseudoBarcode(p.saleNumber)}<div class="barnum">${escapeHtml(p.saleNumber)}</div></div>
-  <div class="div"></div>
-  <div class="c thanks">Shukriya! Phir tashreef laiye.</div>
-  <div class="c sub" style="margin-top:2px;">Powered by Nafaa POS</div>
-  <script>
-    window.onload = function() {
-      setTimeout(function() {
-        window.print();
-        setTimeout(function() { window.close(); }, 600);
-      }, 150);
-    };
-  </script>
-</body></html>`;
-
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  return true;
+    lines: p.lines.map((l) => ({ name: l.name, qty: l.qty, unit: 'pc', price: l.price, total: l.total, note: l.detail })),
+  }, widthMm);
 }
 
 /* ════════════════════════════════════════════════════════════ */

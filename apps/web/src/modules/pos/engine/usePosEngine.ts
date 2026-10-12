@@ -37,7 +37,9 @@ import {
 import {
   buildUnitScanIndex, derivePosUnits, isWeightUnit, qtyStep, unitEmoji, unitKeyOf, type PosUnitOption,
 } from '../lib/posUnits';
-import { printReceiptDirect, type ReceiptPayload } from '../lib/thermalReceipt';
+import { printReceiptDirect, toReceiptDoc, type ReceiptPayload } from '../lib/thermalReceipt';
+import { getReceiptSetup } from '@core/receipt/setup';
+import { receiptText } from '@modules/sales/receipt/fromSale';
 import { askManagerPin } from '@core/security/ManagerPin';
 import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem } from './types';
 
@@ -720,14 +722,9 @@ export function usePosEngine(config: PosIndustryConfig) {
   const shareLastSale = useCallback(() => {
     if (!lastSale) return;
     const p = lastSale.printPayload;
-    const lines = [
-      `*${p.shopName}*`, `Bill ${p.saleNumber} · ${p.date.toLocaleString('en-PK')}`, '',
-      ...p.lines.map((l) => `${l.qty} ${l.unit} ${l.name} — ${formatPKR(l.total)}`), '',
-      p.discount ? `Discount: -${formatPKR(p.discount)}` : '',
-      `*Total: ${formatPKR(p.total)}*`, p.paymentLabel, '', 'Shukriya!',
-    ].filter((x) => x !== '');
     const phone = (lastSale.customerPhone ?? '').replace(/\D/g, '').replace(/^0/, '92');
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank', 'noopener');
+    const text = receiptText(toReceiptDoc(p), getReceiptSetup(p.shopName).shop.name);
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
   }, [lastSale]);
 
   return {

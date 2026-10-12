@@ -1,9 +1,19 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
+import { UpdateReceiptConfigDto } from '../dto/update-receipt-config.dto';
 import { UpdateSettingsDto } from '../dto/update-settings.dto';
 import { DEFAULT_SETTINGS } from '../constants/settings.constants';
 import { TenantTimezoneService } from '../../../../common/helpers/tenant-timezone.service';
+
+const RECEIPT_DEFAULTS = {
+  paper: '80', style: 'modern', font: 'normal', accent: '#0f766e', watermark: 'both',
+  showLogo: true, showAddress: true, showPhone: true, showTaxNumber: true, showCustomer: true, showCashier: true,
+  showItemNumbers: true, showItemDetails: true, showSavings: true, showKhata: true, showBarcode: true,
+  showPayQr: true, showReviewQr: true, showAmountInWords: true, showSignature: true,
+  tagline: '', footer: '', terms: '', social: '', thanks: 'Shukriya! Phir tashreef laiye.', copies: 1, autoPrint: false,
+} as Record<string, unknown>;
+const RECEIPT_KEYS = new Set(Object.keys(RECEIPT_DEFAULTS));
 
 @Injectable()
 export class SettingsCoreService {
@@ -157,78 +167,70 @@ export class SettingsCoreService {
     return this.get(user);
   }
 
-  /** Get receipt config (industry-aware) */
+  /**
+   * The receipt design: built-in defaults, then the older receipt columns
+   * (paper size, header, footer, show flags), then the saved design.
+   */
   async getReceiptConfig(user: AuthenticatedUser) {
-    const settings = await this.prisma.tenantSettings.findUnique({
-      where: { tenantId: user.tenantId },
-    });
-    const businessType = (settings as any)?.businessType ?? 'STANDARD';
-    const defaults = this.getDefaultReceiptConfig(businessType);
-    const stored = (settings as any)?.receiptConfig;
-    const parsed = stored ? (typeof stored === 'string' ? JSON.parse(stored) : stored) : {};
-    return { ...defaults, ...parsed };
+    const s = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId } });
+    const legacy: Record<string, unknown> = s ? {
+      paper: s.receiptSize === 'THERMAL_58MM' ? '58' : s.receiptSize?.startsWith('A4') ? 'A4' : '80',
+      tagline: s.receiptHeader ?? '',
+      footer: s.receiptFooter ?? '',
+      showLogo: s.receiptShowLogo,
+      showCustomer: s.receiptShowCustomer,
+      showBarcode: s.receiptShowBarcode || undefined,
+      autoPrint: s.autoPrintReceipt,
+      copies: s.printCopiesCount,
+    } : {};
+    const stored = (s?.receiptConfig && typeof s.receiptConfig === 'object' ? s.receiptConfig : {}) as Record<string, unknown>;
+    const known = Object.fromEntries(Object.entries(stored).filter(([k]) => RECEIPT_KEYS.has(k)));
+    const clean = Object.fromEntries(Object.entries({ ...legacy, ...known }).filter(([, v]) => v !== undefined && v !== null));
+    return { ...RECEIPT_DEFAULTS, ...clean };
   }
 
-  async updateReceiptConfig(user: AuthenticatedUser, dto: any) {
-    const existing = await this.prisma.tenantSettings.findUnique({
+  /** Saves part of the design and keeps the older columns in step. */
+  async updateReceiptConfig(user: AuthenticatedUser, dto: UpdateReceiptConfigDto) {
+    const next = { ...(await this.getReceiptConfig(user)), ...dto };
+    const mirror = {
+      receiptSize: next.paper === '58' ? 'THERMAL_58MM' : next.paper === 'A4' ? 'A4_BASIC' : 'THERMAL_80MM',
+      receiptHeader: next.tagline || null,
+      receiptFooter: next.footer || null,
+      receiptShowLogo: !!next.showLogo,
+      receiptShowCustomer: !!next.showCustomer,
+      receiptShowBarcode: !!next.showBarcode,
+      autoPrintReceipt: !!next.autoPrint,
+      printCopiesCount: Number(next.copies) || 1,
+    };
+    await this.prisma.tenantSettings.upsert({
       where: { tenantId: user.tenantId },
+      create: { tenantId: user.tenantId, receiptConfig: next, ...mirror },
+      update: { receiptConfig: next, ...mirror },
     });
-
-    if (existing) {
-      await this.prisma.tenantSettings.update({
-        where: { tenantId: user.tenantId },
-        data: { receiptConfig: dto } as any,
-      });
-    } else {
-      await this.prisma.tenantSettings.create({
-        data: { tenantId: user.tenantId, receiptConfig: dto } as any,
-      });
-    }
-
-    return this.getReceiptConfig(user);
+    return next;
   }
 
-  private getDefaultReceiptConfig(businessType: string) {
-    const type = String(businessType).toUpperCase();
-
-    if (type.includes('RESTAURANT') || type.includes('CAFE') || type.includes('BAKERY') || type.includes('FOOD')) {
-      return {
-        template: 'RESTAURANT',
-        showLogo: true, showShopName: true, showShopAddress: true, showShopPhone: true,
-        showCustomer: true, showTableNumber: true, showOrderMode: true, showWaiterName: false,
-        showModifiers: true, showSpecialInstructions: true, showServiceCharge: true,
-        showTaxBreakdown: true, showTip: true, showKot: true, showFooter: true,
-        footerText: 'Thank you for dining with us!',
-        paperWidth: 80, fontSize: 'normal',
-        showQRCode: false, showBarcode: false, copies: 1,
-      };
-    }
-    if (type.includes('CARPET') || type.includes('FLOORING')) {
-      return {
-        template: 'CARPET',
-        showLogo: true, showShopName: true, showShopAddress: true, showShopPhone: true,
-        showCustomer: true, showDimensions: true, showSqft: true, showRollNumber: true,
-        showCutDetails: true, showFooter: true,
-        footerText: 'Thank you for your business!',
-        paperWidth: 80, fontSize: 'normal', copies: 1,
-      };
-    }
-    if (type.includes('MOBILE') || type.includes('PHONE') || type.includes('ELECTRONICS')) {
-      return {
-        template: 'MOBILE',
-        showLogo: true, showShopName: true, showShopAddress: true, showShopPhone: true,
-        showCustomer: true, showImei: true, showWarranty: true, showSerialNumber: true,
-        showPtaStatus: true, showFooter: true,
-        footerText: 'Warranty terms apply — receipt safal rakhein',
-        paperWidth: 80, fontSize: 'normal', copies: 1,
-      };
-    }
+  /** Design plus shop details for printing; readable by every staff member. */
+  async receiptSetup(user: AuthenticatedUser) {
+    const [design, s, tenant] = await Promise.all([
+      this.getReceiptConfig(user),
+      this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId } }),
+      this.prisma.tenant.findUnique({ where: { id: user.tenantId }, select: { name: true, phone: true, address: true } }),
+    ]);
+    const address = [s?.shopAddress ?? tenant?.address, s?.shopCity].filter(Boolean).join(', ');
     return {
-      template: 'STANDARD',
-      showLogo: true, showShopName: true, showShopAddress: true, showShopPhone: true,
-      showCustomer: true, showUnit: true, showMrp: false, showBarcode: false,
-      showFooter: true, footerText: 'Thank you for shopping!',
-      paperWidth: 80, fontSize: 'normal', copies: 1,
+      design,
+      shop: {
+        name: s?.shopName || tenant?.name || 'Dukaan',
+        legalName: s?.legalName ?? null,
+        address: address || null,
+        phone: s?.shopPhone || tenant?.phone || null,
+        whatsapp: s?.shopWhatsapp ?? null,
+        email: s?.shopEmail ?? null,
+        taxNumber: s?.enableTax ? s?.taxNumber ?? null : null,
+        taxLabel: s?.taxLabel ?? null,
+        logoUrl: s?.logoUrl ?? null,
+      },
     };
   }
 }

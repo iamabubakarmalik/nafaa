@@ -892,11 +892,18 @@ export class SalesService {
         })
       : [];
 
+    // Appliance units are linked by sale and product (warranty cards need them).
+    const applianceSerials = await this.prisma.applianceSerialTracking.findMany({
+      where: { tenantId: user.tenantId, saleId: sale.id },
+      select: { serialNumber: true, productId: true, warrantyEndDate: true, compressorWarrantyEndDate: true, motorWarrantyEndDate: true },
+    });
+
     // Attach IMEIs + serials to corresponding sale items
     const enrichedItems = sale.items.map((item) => ({
       ...item,
       imeis: imeis.filter((i) => i.saleItemId === item.id),
       serials: serials.filter((sn) => sn.saleItemId === item.id),
+      applianceSerials: applianceSerials.filter((a) => a.productId === item.productId),
     }));
 
     return { ...sale, items: enrichedItems };
