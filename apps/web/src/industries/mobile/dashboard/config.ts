@@ -34,7 +34,7 @@ function useMobileActions(): QuickAction[] {
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
     { to: '/sales', icon: Receipt, label: 'Sales history', hint: 'Purani receipts' },
-    { to: '/mobile-reports', icon: BarChart3, label: 'Reports', hint: 'Mobile hisaab' },
+    { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Mobile hisaab' },
     { to: '/products/bulk-import', icon: Upload, label: 'Bulk import', hint: 'Excel / CSV' },
   ];
 }

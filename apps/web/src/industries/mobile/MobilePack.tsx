@@ -5,7 +5,6 @@ import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 // Pages
 import GlobalImeiInventoryPage from './pages/GlobalImeiInventoryPage';
 import UsedPhonesPage from './pages/UsedPhonesPage';
-import MobileReportsPage from './pages/MobileReportsPage';
 import EmiPlansPage from './pages/EmiPlansPage';
 import EmiPlanDetailPage from './pages/EmiPlanDetailPage';
 import RepairTicketsPage from './pages/RepairTicketsPage';
@@ -94,7 +93,6 @@ export const MobilePack: IndustryPack = {
     { path: '/repair-tickets/:id', element: RepairTicketDetailPage },
     { path: '/emi-plans', element: EmiPlansPage },
     { path: '/emi-plans/:id', element: EmiPlanDetailPage },
-    { path: '/mobile-reports', element: MobileReportsPage },
   ],
 
   dashboardComponent: MobileDashboard,

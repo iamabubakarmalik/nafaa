@@ -1,772 +1,353 @@
-import { useState, useMemo, useRef, Fragment } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import {
-  Search, Package, AlertTriangle, CheckCircle2, XCircle, Layers,
-  Smartphone, TrendingUp, DollarSign, BarChart3, Sliders, X,
-  Download, Printer, FileSpreadsheet, FileText, Star, Eye, EyeOff,
-  Scissors, Hash, Award, ChevronDown, ChevronRight,
-} from 'lucide-react';
-import { stockReportApi, type StockReportFilters, type StockStatus } from '@modules/inventory/stock-report/api/stock-report.api';
-import { ExpandableProductRow } from '../components/ExpandableProductRow';
-import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
-import { brandsApi } from '@modules/inventory/brands/api/brands.api';
-import { Button } from '@/design-system/components';
-import { formatPKR, formatPKRFull } from '@core/lib/format';
+/**
+ * Stock report for every industry: what the stock in each branch is worth at
+ * cost and at selling price, how long it has been sitting, what is dead,
+ * slow or fast, near expiry, how branches compare, and the stock on any past
+ * date (opening and closing for a period from the stock ledger). Industries
+ * add their own filters, warnings and tabs through config.
+ *
+ * Keys: / search · A analytics · B branches · M period · G guide.
+ */
 
-const statusConfig: Record<StockStatus, { label: string; color: string; bg: string; icon: any }> = {
-  IN_STOCK: {
-    label: 'In Stock',
-    color: 'text-emerald-700',
-    bg: 'bg-emerald-50 border-emerald-200',
-    icon: CheckCircle2,
-  },
-  LOW_STOCK: {
-    label: 'Low Stock',
-    color: 'text-amber-700',
-    bg: 'bg-amber-50 border-amber-200',
-    icon: AlertTriangle,
-  },
-  OUT_OF_STOCK: {
-    label: 'Out of Stock',
-    color: 'text-rose-700',
-    bg: 'bg-rose-50 border-rose-200',
-    icon: XCircle,
-  },
-};
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  AlertTriangle, ArrowDownWideNarrow, BarChart3, Boxes, Building2, CalendarClock, CalendarRange, Download, GraduationCap, Hourglass,
+  Layers, ListChecks, ListFilter, MousePointerClick, Package, PackageX, RefreshCw, Search, ShoppingCart, Tag, TrendingUp, Truck,
+} from 'lucide-react';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, resolveRange, type DateRangeValue, type FilterOption,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print';
+import { PrivacyToggle } from '@core/security/HiddenValue';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { rangeLabel } from '@core/lib/dateRange';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { cn } from '@core/lib/cn';
+import { useAuthStore, useIsAllShops, useShopParam } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import {
+  STOCK_KEY, stockAnalysisApi, type LedgerSort, type StockLine, type StockQuery, type StockSort, type StockStatusFilter,
+} from '../api/stock-report.api';
+import { useStockReportConfig } from '../config';
+import { BranchView } from '../components/BranchView';
+import { ItemDrawer } from '../components/ItemDrawer';
+import { LEDGER_SORTS, LedgerView } from '../components/LedgerView';
+import { StockAnalytics } from '../components/StockAnalytics';
+import { STOCK_GRID, StockRow } from '../components/StockRow';
+import { BASE_STATUSES, DEAD_OPTIONS, STATUS_META, change } from '../components/meta';
+import { branchesDoc, ledgerCsv, ledgerDoc, stockCsv, stockDoc } from '../components/print';
+
+type Tab = 'stock' | 'analytics' | 'branches' | 'period' | string;
+
+const DEAD_KEY = 'nafaa-stock-report-dead-days';
+const SORTS: Array<FilterOption<StockSort>> = [
+  { value: 'value', label: 'Zyada lagat pehle' },
+  { value: 'retail', label: 'Zyada qeemat pehle', hint: 'Bechne ki qeemat par' },
+  { value: 'profit', label: 'Zyada munafa pehle' },
+  { value: 'margin', label: 'Zyada margin pehle' },
+  { value: 'age', label: 'Purana maal pehle', hint: 'Aakhri bikri ko zyada din' },
+  { value: 'sold', label: 'Zyada bika pehle' },
+  { value: 'revenue', label: 'Zyada bikri raqam pehle' },
+  { value: 'cover', label: 'Zyada din ka maal pehle' },
+  { value: 'stock', label: 'Zyada stock pehle' },
+  { value: 'name', label: 'Naam (A–Z)' },
+];
+const COST_SORTS: StockSort[] = ['value', 'profit', 'margin'];
+
+function loadDeadDays() {
+  try { return Number(localStorage.getItem(DEAD_KEY)) || 90; } catch { return 90; }
+}
 
 export default function StockReportPage() {
-  const printRef = useRef<HTMLDivElement>(null);
+  const config = useStockReportConfig();
+  const qc = useQueryClient();
+  const shopParam = useShopParam();
+  const isAll = useIsAllShops();
+  const startHour = useBusinessDayStart();
+  const tenantName = useAuthStore((s) => s.tenant?.name ?? '');
+  const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
+  const { sales: money, cost, costHidden } = useMasked();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  const [filters, setFilters] = useState<StockReportFilters>({ stockStatus: 'all' });
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
+  const [status, setStatus] = useState<StockStatusFilter>('all');
+  const [categoryId, setCategoryId] = useState<string>();
+  const [brandId, setBrandId] = useState<string>();
+  const [supplierId, setSupplierId] = useState<string>();
+  const [group, setGroup] = useState<string>();
   const [search, setSearch] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<StockSort>(() => (costHidden ? 'retail' : 'value'));
+  const [deadDays, setDeadDays] = useState(loadDeadDays);
+  const [page, setPage] = useState(1);
+  const [tab, setTab] = useState<Tab>('stock');
+  const [ledgerShow, setLedgerShow] = useState<'all' | 'moved'>('moved');
+  const [ledgerSort, setLedgerSort] = useState<LedgerSort>('closing');
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
-  const toggleExpand = (productId: string) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      if (next.has(productId)) next.delete(productId);
-      else next.add(productId);
-      return next;
-    });
-  };
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [status, categoryId, brandId, supplierId, group, query, sort, deadDays, range, shopParam]);
+  useEffect(() => { if (costHidden && COST_SORTS.includes(sort)) setSort('retail'); }, [costHidden, sort]);
 
-  const expandAll = () => {
-    setExpandedRows(new Set(filteredRows.map((r) => r.productId)));
-  };
-
-  const collapseAll = () => {
-    setExpandedRows(new Set());
-  };
-
-  const { data, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['stock-report', filters],
-    queryFn: () => stockReportApi.generate(filters),
+  const period = resolveRange(range, startHour) ?? resolveRange({ preset: 'month', custom: range.custom }, startHour)!;
+  const filters: StockQuery = { from: period.from, to: period.to, categoryId, brandId, supplierId, group, search: query || undefined, deadDays };
+  const listQ = useQuery({
+    queryKey: [STOCK_KEY, 'list', shopParam, filters, status, sort, page],
+    queryFn: () => stockAnalysisApi.list({ ...filters, status, sort, page, limit: 40 }),
+    placeholderData: (prev) => prev,
   });
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: categoriesApi.list,
+  const analyticsQ = useQuery({
+    queryKey: [STOCK_KEY, 'analytics', shopParam, filters],
+    queryFn: () => stockAnalysisApi.analytics(filters),
+    enabled: tab === 'analytics',
   });
-
-  const { data: brands = [] } = useQuery({
-    queryKey: ['brands'],
-    queryFn: () => brandsApi.list(),
+  const branchesQ = useQuery({
+    queryKey: [STOCK_KEY, 'branches', shopParam, filters],
+    queryFn: () => stockAnalysisApi.branches(filters),
+    enabled: tab === 'branches',
   });
+  const data = listQ.data;
+  const t = data?.totals;
+  const counts = data?.counts;
+  const multi = isAll && (data?.shops.length ?? 0) > 1;
+  const shopLabel = `${tenantName}${shopName && !isAll ? ` · ${shopName}` : ''}`;
+  const periodText = rangeLabel(period.from, period.to);
+  const shopNameOf = useMemo(() => {
+    const m = new Map((data?.shops ?? []).map((s) => [s.id, s.name]));
+    return (id: string) => m.get(id) ?? '';
+  }, [data?.shops]);
 
-  // Apply client-side search filter
-  const filteredRows = useMemo(() => {
-    if (!data?.rows) return [];
-    const q = search.toLowerCase().trim();
-    if (!q) return data.rows;
-    return data.rows.filter(
-      (r) =>
-        r.productName.toLowerCase().includes(q) ||
-        r.sku?.toLowerCase().includes(q) ||
-        r.barcode?.toLowerCase().includes(q) ||
-        r.category?.toLowerCase().includes(q) ||
-        r.brand?.toLowerCase().includes(q),
-    );
-  }, [data?.rows, search]);
+  const refresh = () => qc.invalidateQueries({ queryKey: [STOCK_KEY] });
+  const setDead = (d: number) => { setDeadDays(d); try { localStorage.setItem(DEAD_KEY, String(d)); } catch { /* storage blocked */ } };
+  const clear = () => { setStatus('all'); setCategoryId(undefined); setBrandId(undefined); setSupplierId(undefined); setGroup(undefined); setSearch(''); };
+  const filtered = status !== 'all' || !!categoryId || !!brandId || !!supplierId || !!group || !!query;
+  const statuses: StockStatusFilter[] = [...BASE_STATUSES.slice(0, 7), ...(config.statuses ?? []), ...BASE_STATUSES.slice(7)];
+  const statusOptions: Array<FilterOption<StockStatusFilter>> = [
+    { value: 'all', label: STATUS_META.all.label, icon: ListChecks, color: STATUS_META.all.color, hint: `${counts?.all ?? 0}` },
+    ...statuses.map((k) => ({ value: k, label: STATUS_META[k].label, icon: STATUS_META[k].icon, color: STATUS_META[k].color, hint: `${counts?.[k] ?? 0}${STATUS_META[k].hint ? ` · ${STATUS_META[k].hint}` : ''}` })),
+  ];
+  const filterText = [status !== 'all' && STATUS_META[status].label, categoryId && data?.facets.categories.find((c) => c.id === categoryId)?.name, query && `"${query}"`].filter(Boolean).join(' · ');
 
-  const hasActiveFilters =
-    filters.categoryId ||
-    filters.brandId ||
-    filters.stockStatus !== 'all' ||
-    filters.isActive !== undefined;
-
-  const clearFilters = () => {
-    setFilters({ stockStatus: 'all' });
-    setSearch('');
+  /** Every line of the filter, page by page. */
+  const fetchAll = async () => {
+    const first = await stockAnalysisApi.list({ ...filters, status, sort, limit: 1000, page: 1 });
+    const items: StockLine[] = [...first.items];
+    for (let p = 2; p <= first.pages; p++) items.push(...(await stockAnalysisApi.list({ ...filters, status, sort, limit: 1000, page: p })).items);
+    return { ...first, items };
+  };
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const header = [`Stock report — ${shopLabel}`, `Bikri ki muddat: ${periodText}`];
+      if (tab === 'period') {
+        const l = await stockAnalysisApi.ledger({ ...filters, show: ledgerShow, sort: ledgerSort, limit: 1000 });
+        if (!l.items.length) { toast.error('Is muddat me kuch nahi'); return; }
+        ledgerCsv(l, header, !costHidden);
+        toast.success(`${l.items.length} cheezein CSV me`);
+        return;
+      }
+      const all = await fetchAll();
+      if (!all.items.length) { toast.error('Is filter me kuch nahi'); return; }
+      stockCsv(all.items, header, !costHidden, multi ? all.shops : []);
+      toast.success(`${all.items.length} cheezein CSV me`);
+    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
+  };
+  const printDoc = async () => {
+    if (tab === 'period') return ledgerDoc(await stockAnalysisApi.ledger({ ...filters, show: ledgerShow, sort: ledgerSort, limit: 1000 }), periodText, !costHidden);
+    if (tab === 'branches') return branchesDoc(branchesQ.data ?? await stockAnalysisApi.branches(filters), !costHidden);
+    return stockDoc(await fetchAll(), [shopLabel, filterText].filter(Boolean).join(' · '), !costHidden);
   };
 
-  // ─── Export CSV ───────────────────────────────────
-  const exportCSV = () => {
-    if (filteredRows.length === 0) return;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const k = e.key.toLowerCase();
+      if (e.key === '/') { e.preventDefault(); setTab('stock'); window.setTimeout(() => searchRef.current?.focus(), 0); }
+      else if (k === 'a') setTab((v) => (v === 'analytics' ? 'stock' : 'analytics'));
+      else if (k === 'b' && multi) setTab((v) => (v === 'branches' ? 'stock' : 'branches'));
+      else if (k === 'm') setTab((v) => (v === 'period' ? 'stock' : 'period'));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [multi]);
 
-    const headers = [
-      'Product Name', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit',
-      'Industry', 'Stock', 'Low Alert', 'Cost Price', 'Sale Price',
-      'Stock Value', 'Retail Value', 'Potential Profit', 'Status',
-      'Carpet Rolls', 'Cut Pieces', 'IMEIs', 'Variants',
-    ];
-
-    const rows = filteredRows.map((r) => [
-      r.productName,
-      r.sku || '',
-      r.barcode || '',
-      r.category || '',
-      r.brand || '',
-      r.unit,
-      r.industryType,
-      r.stock.toFixed(2),
-      r.lowStockAlert.toString(),
-      r.costPrice.toFixed(2),
-      r.salePrice.toFixed(2),
-      r.stockValue.toFixed(2),
-      r.retailValue.toFixed(2),
-      r.potentialProfit.toFixed(2),
-      r.stockStatus,
-      r.carpetRollCount ?? '',
-      r.carpetCutPiecesCount ?? '',
-      r.imeiCount ?? '',
-      r.variantCount ?? '',
-    ]);
-
-    const csv = [headers, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `stock-report-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // ─── Print / PDF ──────────────────────────────────
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const summary = data?.summary;
+  const kpi = (k: StockStatusFilter, value: string, hint: string) => (
+    <KpiCard key={k} icon={STATUS_META[k].icon} color={STATUS_META[k].color} label={STATUS_META[k].label} value={value}
+      hint={status === k ? 'Filter laga · dobara dabayein' : hint} active={status === k}
+      onClick={() => { setTab('stock'); setStatus((s) => (s === k ? 'all' : k)); }} />
+  );
+  const salesChange = t ? change(t.sold.revenue, t.prevSold.revenue) : null;
+  const Banner = config.Banner;
+  const ExtraTab = config.extraTab?.Component;
+  const items = data?.items ?? [];
 
   return (
-    <div className="space-y-6">
-      {/* HEADER */}
-      <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-brand-800 text-white p-6 shadow-2xl print:hidden">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
-              <BarChart3 className="h-3.5 w-3.5 text-amber-300" />
-              Inventory Intelligence
-            </div>
-            <h1 className="mt-3 text-3xl font-extrabold">Stock Report</h1>
-            <p className="mt-2 text-sm text-white/80">
-              Complete inventory snapshot — sab products, categories, industries ek hi report mein
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant="secondary"
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="bg-white/15 text-white hover:bg-white/25 border-white/20"
-            >
-              <BarChart3 className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={exportCSV}
-              disabled={filteredRows.length === 0}
-              className="bg-white/15 text-white hover:bg-white/25 border-white/20"
-            >
-              <FileSpreadsheet className="h-4 w-4" /> Export CSV
-            </Button>
-            <Button
-              onClick={handlePrint}
-              className="bg-white text-slate-900 hover:bg-slate-100"
-            >
-              <Printer className="h-4 w-4" /> Print / PDF
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Stock report"
+        chip={<><CalendarRange />{periodText}</>}
+        busy={listQ.isFetching && !listQ.isLoading}
+        meta={`${config.label} · ${isAll ? 'Sab branches' : shopName ?? tenantName}`}
+        loading={listQ.isLoading}
+        actions={<>
+          <PrivacyToggle compact />
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!data?.total} /></span>
+          <Link to="/low-stock" title="Kam aur khatam maal ka order" className={heroButton}><ShoppingCart className="h-4 w-4" /><span className="hidden sm:inline">Reorder</span></Link>
+          <button type="button" onClick={() => void refresh()} title="Taaza karein" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', listQ.isFetching && 'animate-spin')} /></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={t ? [
+          { label: costHidden ? 'Stock bechne par' : 'Stock ki lagat', value: costHidden ? money(t.retail) : cost(t.cost), hint: `${t.stocked} cheezein` },
+          { label: 'Bechne par', value: money(t.retail), hint: 'aaj ke rate' },
+          { label: 'Mumkin munafa', value: cost(t.profit), hint: costHidden ? 'Cost lock' : `${t.margin.toFixed(1)}% margin` },
+          { label: 'Kitne din chalega', value: t.coverDays === null ? '—' : `${t.coverDays} din`, hint: 'is bikri par' },
+        ] : [{ label: 'Stock ki lagat', value: '' }, { label: 'Bechne par', value: '' }, { label: 'Mumkin munafa', value: '' }, { label: 'Kitne din chalega', value: '' }]}
+      />
 
-      {/* PRINT HEADER (only visible in print) */}
-      <div className="hidden print:block">
-        <div className="text-center border-b-2 border-slate-700 pb-3 mb-4">
-          <h1 className="text-2xl font-extrabold">{data?.tenantName || 'My Store'}</h1>
-          <p className="text-sm text-slate-600">Complete Stock Report</p>
-          <p className="text-xs text-slate-500 mt-1">
-            Generated: {data?.generatedAt ? new Date(data.generatedAt).toLocaleString('en-PK') : '—'}
-          </p>
-        </div>
-      </div>
-
-      {/* STATS CARDS */}
-      {summary && (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 print:grid-cols-4">
-          <StatCard
-            label="Total Products"
-            value={String(summary.totalProducts)}
-            sub={`${summary.totalActiveProducts} active`}
-            color="slate"
-            icon={Package}
-          />
-          <StatCard
-            label="Stock Value (Cost)"
-            value={formatPKRFull(summary.totalStockValue)}
-            sub="Investment value"
-            color="blue"
-            icon={DollarSign}
-          />
-          <StatCard
-            label="Retail Value"
-            value={formatPKRFull(summary.totalRetailValue)}
-            sub="If all sold at MRP"
-            color="emerald"
-            icon={TrendingUp}
-          />
-          <StatCard
-            label="Potential Profit"
-            value={formatPKRFull(summary.totalPotentialProfit)}
-            sub="Retail − Cost"
-            color="amber"
-            icon={Award}
-          />
-        </section>
-      )}
-
-      {/* STATUS BREAKDOWN */}
-      {summary && (
-        <section className="grid sm:grid-cols-3 gap-3 print:hidden">
-          <button
-            onClick={() => setFilters({ ...filters, stockStatus: 'in' })}
-            className={`rounded-2xl border-2 p-4 text-left transition ${
-              filters.stockStatus === 'in'
-                ? 'border-emerald-500 bg-emerald-100 shadow-md'
-                : 'border-emerald-200 bg-emerald-50 hover:border-emerald-400'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs uppercase font-bold text-emerald-700">In Stock</div>
-                <div className="text-2xl font-extrabold text-emerald-900 mt-1">
-                  {summary.inStockCount}
-                </div>
-              </div>
-              <CheckCircle2 className="h-8 w-8 text-emerald-600" />
-            </div>
-          </button>
-          <button
-            onClick={() => setFilters({ ...filters, stockStatus: 'low' })}
-            className={`rounded-2xl border-2 p-4 text-left transition ${
-              filters.stockStatus === 'low'
-                ? 'border-amber-500 bg-amber-100 shadow-md'
-                : 'border-amber-200 bg-amber-50 hover:border-amber-400'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs uppercase font-bold text-amber-700">Low Stock</div>
-                <div className="text-2xl font-extrabold text-amber-900 mt-1">
-                  {summary.lowStockCount}
-                </div>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-amber-600" />
-            </div>
-          </button>
-          <button
-            onClick={() => setFilters({ ...filters, stockStatus: 'out' })}
-            className={`rounded-2xl border-2 p-4 text-left transition ${
-              filters.stockStatus === 'out'
-                ? 'border-rose-500 bg-rose-100 shadow-md'
-                : 'border-rose-200 bg-rose-50 hover:border-rose-400'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs uppercase font-bold text-rose-700">Out of Stock</div>
-                <div className="text-2xl font-extrabold text-rose-900 mt-1">
-                  {summary.outOfStockCount}
-                </div>
-              </div>
-              <XCircle className="h-8 w-8 text-rose-600" />
-            </div>
-          </button>
-        </section>
-      )}
-
-      {/* SEARCH + FILTERS */}
-      <section className="space-y-3 print:hidden">
-        <div className="flex gap-2 flex-wrap">
-          <div className="flex-1 relative min-w-[260px]">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30"
-              placeholder="Search by name, SKU, barcode, category, brand..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2"
-              >
-                <X className="h-4 w-4 text-slate-400" />
-              </button>
-            )}
-          </div>
-          <button
-            onClick={() => setShowFilters((v) => !v)}
-            className={`h-11 px-4 rounded-xl border-2 font-bold text-sm inline-flex items-center gap-2 transition ${
-              showFilters || hasActiveFilters
-                ? 'border-brand-500 bg-brand-50 text-brand-700'
-                : 'border-slate-200 bg-white text-slate-700 hover:border-brand-300'
-            }`}
-          >
-            <Sliders className="h-4 w-4" /> Filters
-            {hasActiveFilters && (
-              <span className="h-5 w-5 rounded-full bg-brand-600 text-white text-[0.6875rem] font-bold flex items-center justify-center">
-                !
-              </span>
-            )}
-          </button>
-        </div>
-
-        {showFilters && (
-          <div className="rounded-2xl bg-white border border-slate-200 p-4 space-y-3">
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Category</label>
-                <select
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"
-                  value={filters.categoryId ?? ''}
-                  onChange={(e) =>
-                    setFilters({ ...filters, categoryId: e.target.value || undefined })
-                  }
-                >
-                  <option value="">All categories</option>
-                  {categories.map((c: any) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Brand</label>
-                <select
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"
-                  value={filters.brandId ?? ''}
-                  onChange={(e) =>
-                    setFilters({ ...filters, brandId: e.target.value || undefined })
-                  }
-                >
-                  <option value="">All brands</option>
-                  {brands.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Stock Status</label>
-                <select
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"
-                  value={filters.stockStatus ?? 'all'}
-                  onChange={(e) =>
-                    setFilters({ ...filters, stockStatus: e.target.value as any })
-                  }
-                >
-                  <option value="all">All stock</option>
-                  <option value="in">In stock only</option>
-                  <option value="low">Low stock only</option>
-                  <option value="out">Out of stock only</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Active Status</label>
-                <select
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"
-                  value={filters.isActive === undefined ? '' : String(filters.isActive)}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      isActive: e.target.value === '' ? undefined : e.target.value === 'true',
-                    })
-                  }
-                >
-                  <option value="">All products</option>
-                  <option value="true">Active only</option>
-                  <option value="false">Inactive only</option>
-                </select>
-              </div>
-            </div>
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="text-xs font-bold text-rose-600 hover:underline inline-flex items-center gap-1"
-              >
-                <X className="h-3 w-3" /> Clear all filters
-              </button>
-            )}
-          </div>
+      <KpiRow>
+        {!counts || !t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={TrendingUp} color="#0f766e" label="Muddat ki bikri" value={money(t.sold.revenue)}
+              hint={salesChange === null ? `${t.sold.qty.toLocaleString('en-PK')} units biki` : `${salesChange >= 0 ? '+' : ''}${salesChange.toFixed(0)}% pichli muddat se`}
+              onClick={() => setTab('analytics')} active={tab === 'analytics'} />
+            {kpi('out', String(counts.out), 'khatam · dabayein')}
+            {kpi('low', String(counts.low), 'alert se neeche')}
+            {kpi('dead', costHidden ? money(t.dead.retail) : cost(t.dead.cost), `${counts.dead} cheezein · ${deadDays}+ din`)}
+            {kpi('expiry', String(counts.expiry), `${data?.period.expiryDays ?? 30} din me ya expire`)}
+          </>
         )}
-      </section>
+      </KpiRow>
 
-      {/* CATEGORY BREAKDOWN */}
-      {summary && summary.categoryBreakdown.length > 0 && (
-        <section className="rounded-3xl bg-white border border-slate-200 p-5 print:hidden">
-          <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" /> Category-wise Stock Value
-          </h3>
-          <div className="space-y-2">
-            {summary.categoryBreakdown.slice(0, 8).map((cat) => {
-              const pct = summary.totalStockValue > 0
-                ? (cat.stockValue / summary.totalStockValue) * 100
-                : 0;
-              return (
-                <div key={cat.categoryName} className="flex items-center gap-3">
-                  <div className="w-40 text-sm font-bold text-slate-700 truncate">
-                    {cat.categoryName}
-                  </div>
-                  <div className="flex-1 relative h-6 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-brand-500 to-emerald-500"
-                      style={{ width: `${Math.max(pct, 1)}%` }}
-                    />
-                    <div className="absolute inset-0 flex items-center px-3 text-[0.6875rem] font-bold text-slate-900">
-                      {cat.productCount} products
-                    </div>
-                  </div>
-                  <div className="w-32 text-right text-sm font-extrabold text-slate-900 tabular-nums">
-                    {formatPKR(cat.stockValue)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {Banner && data && <Suspense fallback={null}><Banner list={data} setStatus={(s) => { setTab('stock'); setStatus(s); }} openTab={setTab} /></Suspense>}
 
-      {/* MAIN TABLE */}
-      <div ref={printRef} className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2 print:hidden">
-          <h3 className="font-bold text-slate-900">
-            Detailed Stock Report ({filteredRows.length})
-          </h3>
-          <div className="text-xs text-slate-500">
-            Generated: {data?.generatedAt ? new Date(data.generatedAt).toLocaleString('en-PK') : '—'}
-          </div>
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, SKU, barcode, brand ya category…" label="Stock dhoondein" />}
+        chips={filtered ? <>
+          {status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{STATUS_META[status].label}</FilterChip>}
+          {categoryId && <FilterChip onRemove={() => setCategoryId(undefined)}>{data?.facets.categories.find((c) => c.id === categoryId)?.name ?? 'Category'}</FilterChip>}
+          {brandId && <FilterChip onRemove={() => setBrandId(undefined)}>{data?.facets.brands.find((c) => c.id === brandId)?.name ?? 'Brand'}</FilterChip>}
+          {supplierId && <FilterChip onRemove={() => setSupplierId(undefined)}>{data?.facets.suppliers.find((c) => c.id === supplierId)?.name ?? 'Supplier'}</FilterChip>}
+          {group && <FilterChip onRemove={() => setGroup(undefined)}>{config.groups?.label(group) ?? group}</FilterChip>}
+          {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+        </> : undefined}
+        onClear={clear}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Bikri ki muddat" allowAll={false} defaultPreset="month" />
+        <FilterMenu icon={ListFilter} label="Halat" value={status} active={status !== 'all'} options={statusOptions} onChange={(v) => { setTab('stock'); setStatus(v); }} width="w-80" />
+        {(data?.facets.categories.length ?? 0) > 1 && (
+          <FilterMenu icon={Layers} label="Category" value={categoryId ?? 'all'} active={!!categoryId} width="w-72"
+            options={[{ value: 'all', label: 'Sab category' }, ...data!.facets.categories.map((c) => ({ value: c.id, label: c.name ?? '', hint: `${c.count} cheezein`, color: c.color ?? undefined }))]}
+            onChange={(v) => setCategoryId(v === 'all' ? undefined : v)} />
+        )}
+        {(data?.facets.brands.length ?? 0) > 1 && (
+          <FilterMenu icon={Tag} label="Brand" value={brandId ?? 'all'} active={!!brandId} width="w-72"
+            options={[{ value: 'all', label: 'Sab brand' }, ...data!.facets.brands.map((c) => ({ value: c.id, label: c.name ?? '', hint: `${c.count} cheezein` }))]}
+            onChange={(v) => setBrandId(v === 'all' ? undefined : v)} />
+        )}
+        {(data?.facets.suppliers.length ?? 0) > 1 && (
+          <FilterMenu icon={Truck} label="Supplier" value={supplierId ?? 'all'} active={!!supplierId} width="w-72"
+            options={[{ value: 'all', label: 'Sab supplier' }, ...data!.facets.suppliers.map((c) => ({ value: c.id, label: c.name ?? '', hint: `${c.count} cheezein${costHidden ? '' : ` · ${cost(c.cost)}`}` }))]}
+            onChange={(v) => setSupplierId(v === 'all' ? undefined : v)} />
+        )}
+        {config.groups && (data?.facets.groups.length ?? 0) > 0 && (
+          <FilterMenu icon={Boxes} label={config.groups.title} value={group ?? 'all'} active={!!group} width="w-64"
+            options={[{ value: 'all', label: 'Sab' }, ...data!.facets.groups.map((g) => ({ value: g.id, label: config.groups!.label(g.id), hint: `${g.count}` }))]}
+            onChange={(v) => setGroup(v === 'all' ? undefined : v)} />
+        )}
+        <FilterMenu icon={Hourglass} label={`Dead: ${deadDays} din`} value={String(deadDays)} active={deadDays !== 90} width="w-64"
+          options={DEAD_OPTIONS.map((d) => ({ value: String(d), label: `${d} din se nahi bika`, hint: d === 90 ? 'Aam tor par' : undefined }))}
+          onChange={(v) => setDead(Number(v))} />
+        {tab === 'period'
+          ? <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={ledgerSort} options={LEDGER_SORTS} onChange={setLedgerSort} align="right" width="w-56" />
+          : <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sort} options={costHidden ? SORTS.filter((s) => !COST_SORTS.includes(s.value)) : SORTS} onChange={setSort} align="right" width="w-64" />}
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>A</Kbd> analytics · <Kbd>M</Kbd> muddat · <Kbd>/</Kbd> dhoondein</>}
+        tabs={[
+          { id: 'stock', label: 'Stock', icon: Package, count: data?.total ?? null },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          ...(multi ? [{ id: 'branches', label: 'Branches', icon: Building2 }] : []),
+          { id: 'period', label: 'Muddat ka hisaab', icon: CalendarClock },
+          ...(config.extraTab ? [{ id: config.extraTab.id, label: config.extraTab.label, icon: config.extraTab.icon }] : []),
+        ]} />
+
+      {tab === 'analytics' ? (
+        <StockAnalytics data={analyticsQ.data} loading={analyticsQ.isLoading} money={money} cost={cost} costHidden={costHidden}
+          groupLabel={config.groups?.label} groupTitle={config.groups?.title} seasonLabel={config.seasonLabel} onOpen={setOpenId} />
+      ) : tab === 'branches' ? (
+        <BranchView data={branchesQ.data} loading={branchesQ.isLoading} money={money} cost={cost} costHidden={costHidden} onOpen={setOpenId} />
+      ) : tab === 'period' ? (
+        <LedgerView q={filters} show={ledgerShow} setShow={setLedgerShow} sort={ledgerSort} money={money} cost={cost} costHidden={costHidden} onOpen={setOpenId} />
+      ) : ExtraTab && tab === config.extraTab?.id ? (
+        <Suspense fallback={<Skeleton className="h-64 rounded-3xl" />}><ExtraTab /></Suspense>
+      ) : listQ.isLoading ? (
+        <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+      ) : listQ.error && !data ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <p className="font-semibold text-slate-900">Report nahi aa saki</p>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{(listQ.error as Error).message}</p>
+          <div className="mt-4"><Button onClick={() => void listQ.refetch()}>Dobara koshish</Button></div>
         </div>
-
-        {isLoading ? (
-          <div className="p-6 space-y-2">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-16 rounded-xl bg-slate-100 animate-pulse" />
+      ) : !items.length ? (
+        <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lg"><PackageX className="h-7 w-7" /></span>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{filtered ? 'Is filter me kuch nahi' : 'Abhi koi maal nahi'}</h3>
+          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{filtered ? 'Filter badal kar dekhein ya hata dein.' : 'Product banayein aur kharidari se stock daalein — report khud ban jayegi.'}</p>
+          <div className="mt-4">{filtered ? <Button variant="secondary" onClick={clear}>Filter hatayein</Button> : <Link to="/products/new" className="inline-flex h-10 items-center rounded-xl bg-brand-600 px-4 text-[0.875rem] font-semibold text-white hover:bg-brand-700">Product banayein</Link>}</div>
+        </div>
+      ) : (
+        <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          <div className={cn('hidden items-center gap-x-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 lg:grid', STOCK_GRID)}>
+            <span>Cheez</span><span>Stock</span><span>{costHidden ? 'Qeemat' : 'Lagat · bechne par'}</span><span>Bikri · kitne din</span><span>Aakhri bikri</span><span />
+          </div>
+          <ul className="divide-y divide-slate-100">
+            {items.map((l) => (
+              <StockRow key={l.productId} l={l} money={money} cost={cost} groupLabel={config.groups?.label} shopName={multi ? shopNameOf : undefined} onOpen={() => setOpenId(l.productId)} />
             ))}
-          </div>
-        ) : filteredRows.length === 0 ? (
-          <div className="p-16 text-center">
-            <Package className="h-16 w-16 text-slate-300 mx-auto" />
-            <h3 className="mt-4 text-lg font-bold text-slate-900">No products found</h3>
-            <p className="text-sm text-slate-500 mt-1">
-              {hasActiveFilters ? 'Try adjusting filters' : 'Add products to see report'}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b-2 border-slate-200">
-                <tr>
-                  <th className="px-2 py-3 text-center text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700 w-10 print:hidden">
-                    <button
-                      onClick={() => expandedRows.size > 0 ? collapseAll() : expandAll()}
-                      className="h-6 w-6 rounded-md bg-slate-200 hover:bg-slate-300 text-slate-700 inline-flex items-center justify-center transition"
-                      title={expandedRows.size > 0 ? 'Collapse all' : 'Expand all'}
-                    >
-                      {expandedRows.size > 0 ? (
-                        <ChevronDown className="h-3.5 w-3.5" />
-                      ) : (
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-3 py-3 text-left text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">#</th>
-                  <th className="px-3 py-3 text-left text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Product</th>
-                  <th className="px-3 py-3 text-left text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Category / Brand</th>
-                  <th className="px-3 py-3 text-center text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Industry</th>
-                  <th className="px-3 py-3 text-right text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Stock</th>
-                  <th className="px-3 py-3 text-right text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Cost</th>
-                  <th className="px-3 py-3 text-right text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Sale</th>
-                  <th className="px-3 py-3 text-right text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Stock Value</th>
-                  <th className="px-3 py-3 text-right text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Profit</th>
-                  <th className="px-3 py-3 text-center text-[0.6875rem] font-bold uppercase tracking-wider text-slate-700">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredRows.map((row, idx) => {
-                  const statusInfo = statusConfig[row.stockStatus];
-                  const StatusIcon = statusInfo.icon;
+          </ul>
+        </section>
+      )}
 
-                  return (
-                    <Fragment key={row.productId}>
-                    <tr
-                      className={`hover:bg-slate-50 transition ${
-                        row.stockStatus === 'OUT_OF_STOCK'
-                          ? 'bg-rose-50/40'
-                          : row.stockStatus === 'LOW_STOCK'
-                            ? 'bg-amber-50/40'
-                            : ''
-                      } ${!row.isActive ? 'opacity-60' : ''} ${
-                        expandedRows.has(row.productId) ? 'bg-blue-50/30 border-l-4 border-blue-500' : ''
-                      }`}
-                    >
-                      {/* Expand button */}
-                      <td className="px-2 py-3 text-center print:hidden">
-                        <button
-                          onClick={() => toggleExpand(row.productId)}
-                          className={`h-7 w-7 rounded-lg inline-flex items-center justify-center transition ${
-                            expandedRows.has(row.productId)
-                              ? 'bg-blue-600 text-white shadow-md'
-                              : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                          }`}
-                          title={expandedRows.has(row.productId) ? 'Collapse' : 'Expand details'}
-                        >
-                          {expandedRows.has(row.productId) ? (
-                            <ChevronDown className="h-3.5 w-3.5" />
-                          ) : (
-                            <ChevronRight className="h-3.5 w-3.5" />
-                          )}
-                        </button>
-                      </td>
-                      {/* # */}
-                      <td className="px-3 py-3 text-xs text-slate-500 font-mono">
-                        {idx + 1}
-                      </td>
-
-                      {/* Product */}
-                      <td className="px-3 py-3">
-                        <div className="flex items-start gap-2.5">
-                          <div className="h-10 w-10 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 print:hidden">
-                            {row.primaryImage ? (
-                              <img src={row.primaryImage} alt="" className="h-full w-full object-cover" />
-                            ) : (
-                              <Package className="h-4 w-4 text-slate-400" />
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="font-bold text-slate-900 text-sm line-clamp-1 flex items-center gap-1.5">
-                              {row.productName}
-                              {row.isFeatured && <Star className="h-3 w-3 text-amber-500 fill-amber-500" />}
-                            </div>
-                            <div className="flex items-center gap-1.5 mt-0.5 text-[0.6875rem]">
-                              {row.sku && (
-                                <span className="font-mono text-slate-500">{row.sku}</span>
-                              )}
-                              {row.variantCount && row.variantCount > 0 && (
-                                <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 font-bold">
-                                  {row.variantCount} variants
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Category / Brand */}
-                      <td className="px-3 py-3 text-xs">
-                        {row.category && (
-                          <div className="font-bold text-slate-700">
-                            {row.categoryColor && (
-                              <span
-                                className="inline-block h-2 w-2 rounded-full mr-1"
-                                style={{ backgroundColor: row.categoryColor }}
-                              />
-                            )}
-                            {row.category}
-                          </div>
-                        )}
-                        {row.brand && (
-                          <div className="text-[0.6875rem] font-bold text-violet-700 mt-0.5">
-                            {row.brand}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Industry */}
-                      <td className="px-3 py-3 text-center">
-                        <IndustryBadge row={row} />
-                      </td>
-
-                      {/* Stock */}
-                      <td className="px-3 py-3 text-right">
-                        <div className="font-extrabold text-slate-900 tabular-nums">
-                          {row.stock.toFixed(row.stock % 1 === 0 ? 0 : 2)}
-                        </div>
-                        <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">
-                          {row.unit}
-                        </div>
-                      </td>
-
-                      {/* Cost */}
-                      <td className="px-3 py-3 text-right text-xs font-bold text-slate-700 tabular-nums">
-                        {formatPKR(row.costPrice)}
-                      </td>
-
-                      {/* Sale */}
-                      <td className="px-3 py-3 text-right text-xs font-bold text-emerald-700 tabular-nums">
-                        {formatPKR(row.salePrice)}
-                      </td>
-
-                      {/* Stock Value */}
-                      <td className="px-3 py-3 text-right text-xs font-extrabold text-slate-900 tabular-nums">
-                        {formatPKR(row.stockValue)}
-                      </td>
-
-                      {/* Profit */}
-                      <td className="px-3 py-3 text-right text-xs font-extrabold text-amber-700 tabular-nums">
-                        {formatPKR(row.potentialProfit)}
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-3 py-3 text-center">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[0.6875rem] font-extrabold ${statusInfo.bg} ${statusInfo.color}`}
-                        >
-                          <StatusIcon className="h-2.5 w-2.5" />
-                          {statusInfo.label}
-                        </span>
-                      </td>
-                    </tr>
-                    {/* Expanded detail row */}
-                    {expandedRows.has(row.productId) && (
-                      <tr className="print:hidden">
-                        <td colSpan={11} className="p-4 bg-gradient-to-br from-blue-50/40 to-white border-l-4 border-blue-500">
-                          <ExpandableProductRow
-                            productId={row.productId}
-                            industryType={row.industryType}
-                            productUnit={row.unit}
-                            productName={row.productName}
-                          />
-                        </td>
-                      </tr>
-                    )}
-                    </Fragment>
-                  );
-                })}
-              </tbody>
-
-              {/* Footer with totals */}
-              {summary && (
-                <tfoot className="bg-slate-100 border-t-2 border-slate-300 font-bold">
-                  <tr>
-                    <td colSpan={5} className="px-3 py-3 text-right text-xs uppercase text-slate-700">
-                      Total ({filteredRows.length} products):
-                    </td>
-                    <td className="px-3 py-3 text-right text-sm font-extrabold text-slate-900 tabular-nums">
-                      —
-                    </td>
-                    <td className="px-3 py-3"></td>
-                    <td className="px-3 py-3"></td>
-                    <td className="px-3 py-3 text-right text-sm font-extrabold text-blue-700 tabular-nums">
-                      {formatPKR(summary.totalStockValue)}
-                    </td>
-                    <td className="px-3 py-3 text-right text-sm font-extrabold text-amber-700 tabular-nums">
-                      {formatPKR(summary.totalPotentialProfit)}
-                    </td>
-                    <td className="px-3 py-3"></td>
-                  </tr>
-                </tfoot>
-              )}
-            </table>
-          </div>
-        )}
-      </div>
-
-      <style>{`
-        @media print {
-          @page { size: A4 landscape; margin: 1cm; }
-          body { background: white !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-          .print\\:hidden { display: none !important; }
-          table { font-size: 10px; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// ─── Helper Components ─────────────────────────────────
-
-function StatCard({
-  label, value, sub, color, icon: Icon,
-}: { label: string; value: string; sub: string; color: string; icon: any }) {
-  const colors: Record<string, string> = {
-    slate: 'from-slate-700 to-slate-900 shadow-slate-500/30',
-    blue: 'from-blue-500 to-blue-700 shadow-blue-500/30',
-    emerald: 'from-emerald-500 to-emerald-700 shadow-emerald-500/30',
-    amber: 'from-amber-500 to-amber-700 shadow-amber-500/30',
-  };
-
-  return (
-    <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
-      <div className="flex items-center justify-between">
-        <div className="min-w-0">
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 truncate">{value}</div>
-          <div className="text-xs text-slate-600 font-semibold mt-1">{sub}</div>
+      {tab === 'stock' && data && data.pages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
+          <span className="text-sm text-slate-600">Safha {page} / {data.pages}</span>
+          <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
         </div>
-        <div
-          className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}
-        >
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
-  );
-}
+      )}
 
-function IndustryBadge({ row }: { row: any }) {
-  if (row.industryType === 'CARPET') {
-    return (
-      <div className="inline-flex flex-col items-center gap-0.5">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">
-          <Layers className="h-2.5 w-2.5" /> CARPET
-        </span>
-        <div className="text-[0.625rem] text-slate-500 font-bold">
-          {row.carpetRollCount}R / {row.carpetCutPiecesCount}CP
-        </div>
-      </div>
-    );
-  }
-  if (row.industryType === 'MOBILE') {
-    return (
-      <div className="inline-flex flex-col items-center gap-0.5">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">
-          <Smartphone className="h-2.5 w-2.5" /> MOBILE
-        </span>
-        <div className="text-[0.625rem] text-slate-500 font-bold">
-          {row.imeiCount} IMEIs
-        </div>
-      </div>
-    );
-  }
-  if (row.industryType === 'WEIGHT_BASED') {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">
-        <Hash className="h-2.5 w-2.5" /> WEIGHT
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold">
-      <Package className="h-2.5 w-2.5" /> STANDARD
-    </span>
+      {openId && (
+        <ItemDrawer productId={openId} query={{ from: filters.from, to: filters.to, deadDays }} money={money} cost={cost}
+          deviceLink={config.deviceLink} onClose={() => setOpenId(null)} />
+      )}
+
+      {guide.isOpen && (
+        <PageGuide title="Stock report — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Boxes, color: '#0f766e', title: 'Kitna paisa maal me hai', text: 'Upar lagat (jitne me khareeda), bechne ki qeemat aur mumkin munafa. Branch upar se badlein — har branch ka apna stock.' },
+            { icon: CalendarRange, color: '#2563eb', title: 'Bikri ki muddat', text: '"Bikri ki muddat" se din chunein. Har cheez ki bikri, kitne din chalega aur tez/dheema isi muddat se. Pichli itni hi muddat se muqabla hota hai.' },
+            { icon: Hourglass, color: '#7c3aed', title: 'Dead aur purana maal', text: 'Jo kaafi din se nahi bika woh "Dead stock". Kitne din — filter se 30, 60, 90 ya 180 chunein. Discount ya supplier ko wapsi sochein.' },
+            { icon: AlertTriangle, color: '#d97706', title: 'Kam, khatam, expiry', text: 'Upar ke dabbe dabayein to list wahi dikhati hai. Order banana ho to "Reorder" button — Low stock page khulta hai.' },
+            { icon: CalendarClock, color: '#be185d', title: 'Purani tareekh ka stock', text: '"Muddat ka hisaab" tab: muddat ke pehle din kitna tha, kya aaya, kya bika, aur aakhri din kitna bacha. Kisi ek din ka stock dekhna ho to wahi din chunein.' },
+            { icon: MousePointerClick, color: '#16a34a', title: 'Cheez kholein', text: 'Kisi line par click: branch war stock, batch, IMEI/serial, mahine war bikri aur aakhri harkat.' },
+            ...(config.guide ?? []),
+          ]}
+          tips={[
+            'Lagat ausat cost par hai — har kharidari par purane aur naye maal ka ausat.',
+            'Bikri me wapas aaya maal minus hai aur void bill shamil nahi.',
+            'CSV aur Print isi tab aur filter ka poora data dete hain.',
+            ...(config.tips ?? []),
+          ]}
+          shortcuts={[['/', 'dhoondein'], ['A', 'analytics'], ...(multi ? [['B', 'branches'] as [string, string]] : []), ['M', 'muddat ka hisaab'], ['G', 'guide']]}
+          footer={<span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Search className="h-3.5 w-3.5" />Naam, SKU, barcode, brand se dhoondein</span>}
+        />
+      )}
+    </PageShell>
   );
 }

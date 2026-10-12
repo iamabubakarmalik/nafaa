@@ -4,7 +4,6 @@ import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 import CarpetRollsPage from './pages/CarpetRollsPage';
 import CarpetCutPiecesPage from './pages/CarpetCutPiecesPage';
 import CarpetRollDetailPage from './pages/CarpetRollDetailPage';
-import CarpetReportsPage from './pages/CarpetReportsPage';
 import CarpetBulkImportPage from './pages/CarpetBulkImportPage';
 import CarpetProductWizardPage from './pages/CarpetProductWizardPage';
 import CarpetProductDetailPage from './pages/CarpetProductDetailPage';
@@ -53,7 +52,7 @@ export const CarpetPack: IndustryPack = {
       items: [
         { to: '/carpet-rolls',       label: 'Carpet Rolls',    icon: Layers, badge: 'NEW' },
         { to: '/carpet-cut-pieces',  label: 'Cut Pieces',      icon: Scissors },
-        { to: '/carpet-reports',     label: 'Carpet Reports',  icon: BarChart3 },
+        { to: '/reports',            label: 'Carpet Reports',  icon: BarChart3 },
         { to: '/carpet-bulk-import', label: 'Bulk Import',     icon: Download },
       ],
     },
@@ -69,7 +68,6 @@ export const CarpetPack: IndustryPack = {
     { path: '/carpet-rolls',        element: CarpetRollsPage },
     { path: '/carpet-rolls/:id',    element: CarpetRollDetailPage },
     { path: '/carpet-cut-pieces',   element: CarpetCutPiecesPage },
-    { path: '/carpet-reports',      element: CarpetReportsPage },
     { path: '/carpet-bulk-import',  element: CarpetBulkImportPage },
   ],
 

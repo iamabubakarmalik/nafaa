@@ -1,828 +1,309 @@
-import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+/**
+ * Profit by product for every industry: what each product, variant,
+ * category, brand, supplier, staff member and day earned in a period, after
+ * discounts and returns, at the cost saved on each bill line; loss-making
+ * items, what discounts and returns took, top earners against top sellers,
+ * and net profit after expenses and stock written off — all against the
+ * previous period. Industries add their own tab through config.
+ *
+ * Keys: / search · A analytics · G guide.
+ */
+
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
-  TrendingUp, TrendingDown, BarChart3, Award, Package, Calendar,
-  Sliders, X, Download, Search, AlertTriangle, Layers, Smartphone,
-  DollarSign, Percent, ShoppingBag, RefreshCw, ArrowUpRight, ArrowDownRight,
-  Star, Crown, AlertCircle, Filter, RotateCcw,
+  AlertTriangle, ArrowDownWideNarrow, BarChart3, CalendarDays, CalendarRange, Download, Flame, GraduationCap, Layers, ListChecks, ListFilter,
+  Package, Receipt, RefreshCw, RotateCcw, Scale, Search, Sparkles, Tag, Truck, UserRound, Wallet,
 } from 'lucide-react';
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  PieChart, Pie, Cell, Legend,
-} from 'recharts';
-import {
-  profitReportApi,
-  type ProfitFilters,
-  type ProfitPeriod,
-  type ProfitSortBy,
-  type ProductProfit,
-} from '@modules/finance/profit-report/api/profit-report.api';
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print';
+import { PrivacyToggle } from '@core/security/HiddenValue';
+import { businessDayKey, useBusinessDayStart } from '@core/lib/business-day';
+import { rangeLabel } from '@core/lib/dateRange';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { cn } from '@core/lib/cn';
+import { useAuthStore, useIsAllShops, useShopParam } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
-import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-
-const PERIOD_OPTIONS: Array<{ value: ProfitPeriod; label: string; emoji: string }> = [
-  { value: 'today', label: 'Today', emoji: '📅' },
-  { value: 'week', label: 'Last 7 Days', emoji: '📆' },
-  { value: 'month', label: 'Last 30 Days', emoji: '🗓️' },
-  { value: 'quarter', label: 'Last 3 Months', emoji: '📊' },
-  { value: 'year', label: 'Last Year', emoji: '📈' },
-  { value: 'all', label: 'All Time', emoji: '♾️' },
-];
-
-const SORT_OPTIONS: Array<{ value: ProfitSortBy; label: string }> = [
-  { value: 'profit', label: 'Highest Profit' },
-  { value: 'margin', label: 'Best Margin %' },
-  { value: 'revenue', label: 'Most Revenue' },
-  { value: 'quantity', label: 'Most Sold' },
-];
-
-const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#84cc16', '#f43f5e'];
+import { teamApi } from '@modules/organization/team/api/team.api';
+import { PROFIT_KEY, profitApi, type ProfitFilters, type ProfitSort, type ProfitView } from '../api';
+import { useProfitConfig, type ProfitFmt } from '../config';
+import { DayTable, DimTable } from '../components/DimTable';
+import { ProductHeader, ProductRow } from '../components/ProductRows';
+import { NetCard, ProfitAnalytics } from '../components/ProfitAnalytics';
+import { COST_SORTS, SORTS, VIEWS, change, changeText, pct } from '../components/meta';
+import { profitCsv, profitDoc } from '../components/print';
 
 export default function ProfitReportPage() {
-  const [filters, setFilters] = useState<ProfitFilters>({ period: 'month', sortBy: 'profit' });
+  const config = useProfitConfig();
+  const qc = useQueryClient();
+  const shop = useShopParam();
+  const isAll = useIsAllShops();
+  const tenantName = useAuthStore((s) => s.tenant?.name ?? '');
+  const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
+  const startHour = useBusinessDayStart();
+  const { sales: money, cost, costHidden } = useMasked();
+  const fmt: ProfitFmt = { money, cost, costHidden };
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
+  const [categoryId, setCategoryId] = useState<string>();
+  const [brandId, setBrandId] = useState<string>();
+  const [staffId, setStaffId] = useState<string>();
   const [search, setSearch] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<ProfitSort>('profit');
+  const [view, setView] = useState<ProfitView>('all');
+  const [page, setPage] = useState(1);
+  const [tab, setTab] = useState<string>('items');
+  const [exporting, setExporting] = useState(false);
 
-  const { data: summary, isLoading: summaryLoading, refetch: refetchSummary } = useQuery({
-    queryKey: ['profit-summary', filters],
-    queryFn: () => profitReportApi.summary(filters),
+  // Cost-based sorts and views make no sense while cost is hidden.
+  const sortNow: ProfitSort = costHidden && COST_SORTS.includes(sort) ? 'revenue' : sort;
+  const viewNow: ProfitView = costHidden && VIEWS.find((v) => v.value === view)?.cost ? 'all' : view;
+
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [range, categoryId, brandId, staffId, query, sortNow, viewNow, shop]);
+
+  const period = resolveRange(range, startHour) ?? { from: businessDayKey(new Date(), startHour), to: businessDayKey(new Date(), startHour) };
+  const filters: ProfitFilters = useMemo(
+    () => ({ from: period.from, to: period.to, categoryId, brandId, staffId }),
+    [period.from, period.to, categoryId, brandId, staffId],
+  );
+  const label = rangeLabel(period.from, period.to);
+
+  const overviewQ = useQuery({
+    queryKey: [PROFIT_KEY, 'overview', shop, filters],
+    queryFn: () => profitApi.overview(filters),
+    placeholderData: (prev) => prev,
   });
-
-  const { data: products = [], isLoading: productsLoading, refetch: refetchProducts } = useQuery({
-    queryKey: ['profit-by-product', filters],
-    queryFn: () => profitReportApi.byProduct(filters),
+  const itemsQ = useQuery({
+    queryKey: [PROFIT_KEY, 'items', shop, filters, query, sortNow, viewNow, page],
+    queryFn: () => profitApi.items({ ...filters, search: query || undefined, sort: sortNow, view: viewNow, page, limit: 40 }),
+    enabled: tab === 'items',
+    placeholderData: (prev) => prev,
   });
+  const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list, staleTime: 5 * 60_000 });
+  const { data: brands = [] } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.list(), staleTime: 5 * 60_000 });
+  const { data: team = [] } = useQuery({ queryKey: ['team'], queryFn: () => teamApi.list().catch(() => []), staleTime: 5 * 60_000 });
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: categoriesApi.list,
-  });
+  const o = overviewQ.data;
+  const t = o?.totals;
+  const cb = o?.costBasis;
+  const scopeText = isAll ? `${tenantName} · sab branches` : shopName ?? tenantName;
+  const filtered = !!categoryId || !!brandId || !!staffId || !!query || viewNow !== 'all';
 
-  const { data: brands = [] } = useQuery({
-    queryKey: ['brands'],
-    queryFn: () => brandsApi.list(),
-  });
+  const clear = () => { setCategoryId(undefined); setBrandId(undefined); setStaffId(undefined); setSearch(''); setView('all'); };
+  const showView = (v: ProfitView) => { setTab('items'); setView((x) => (x === v ? 'all' : v)); };
+  const refresh = () => qc.invalidateQueries({ queryKey: [PROFIT_KEY] });
 
-  const filteredProducts = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return products;
-    return products.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.sku?.toLowerCase().includes(q) ||
-        p.categoryName?.toLowerCase().includes(q) ||
-        p.brandName?.toLowerCase().includes(q),
-    );
-  }, [products, search]);
-
-  const hasActiveFilters =
-    filters.categoryId || filters.brandId || (filters.period && filters.period !== 'all');
-
-  const clearFilters = () => {
-    setFilters({ period: 'all', sortBy: 'profit' });
-    setSearch('');
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const all = await profitApi.items({ ...filters, search: query || undefined, sort: sortNow, view: viewNow, limit: 5000 });
+      if (!all.items.length) { toast.error('Is filter me kuch nahi'); return; }
+      profitCsv(all.items, [`Munafa report — ${scopeText}`, `Muddat: ${label}`], !costHidden);
+      toast.success(`${all.items.length} cheezein CSV me`);
+    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
   };
-
-  const refreshAll = () => {
-    refetchSummary();
-    refetchProducts();
-  };
-
-  // ─── Export CSV ─────────────────────────────────────
-  const exportCSV = () => {
-    if (filteredProducts.length === 0) return;
-    const headers = [
-      'Product', 'SKU', 'Category', 'Brand', 'Industry', 'Unit',
-      'Qty Sold', 'Orders', 'Revenue', 'Cost', 'Profit', 'Margin %',
-      'Avg Sell Price', 'Avg Cost Price', 'Returns Qty', 'Returns Amount',
-    ];
-    const rows = filteredProducts.map((p) => [
-      p.name, p.sku || '', p.categoryName || '', p.brandName || '',
-      p.industryType, p.unit,
-      p.quantitySold.toFixed(2), p.ordersCount,
-      p.revenue.toFixed(2), p.cost.toFixed(2),
-      p.profit.toFixed(2), p.margin.toFixed(2),
-      p.avgSellPrice.toFixed(2), p.avgCostPrice.toFixed(2),
-      p.returnedQty.toFixed(2), p.returnedAmount.toFixed(2),
+  const printDoc = async () => {
+    const [ov, list] = await Promise.all([
+      o ?? profitApi.overview(filters),
+      profitApi.items({ ...filters, search: query || undefined, sort: sortNow, view: viewNow, limit: 500 }),
     ]);
-    const csv = [headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `profit-report-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    return profitDoc(ov, list.items, label, scopeText, !costHidden);
   };
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if (e.key === '/') { e.preventDefault(); setTab('items'); window.setTimeout(() => searchRef.current?.focus(), 0); }
+      else if (e.key.toLowerCase() === 'a') setTab((x) => (x === 'analytics' ? 'items' : 'analytics'));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const growth = (now?: number, before?: number) => changeText(change(now, before));
+  const ExtraTab = config.extraTab?.Component;
+  const itemWord = config.itemWord ?? 'Cheez';
+  const savedShare = cb && cb.lines > 0 ? (cb.savedLines / cb.lines) * 100 : 100;
+
   return (
-    <div className="space-y-6">
-      {/* ───── HEADER ───── */}
-      <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white p-6 shadow-2xl print:hidden">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
-              <BarChart3 className="h-3.5 w-3.5 text-amber-300" />
-              Profit Intelligence
-            </div>
-            <h1 className="mt-3 text-3xl font-extrabold">Profit by Product</h1>
-            <p className="mt-2 text-sm text-white/80">
-              Kis product se kitna kamayi ho rahi hai — full breakdown with industry-aware analytics
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant="secondary"
-              onClick={refreshAll}
-              className="bg-white/15 text-white hover:bg-white/25 border-white/20"
-            >
-              <RefreshCw className="h-4 w-4" /> Refresh
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={exportCSV}
-              disabled={filteredProducts.length === 0}
-              className="bg-white/15 text-white hover:bg-white/25 border-white/20"
-            >
-              <Download className="h-4 w-4" /> Export CSV
-            </Button>
-          </div>
-        </div>
+    <PageShell>
+      <PageHero
+        title="Munafa — cheez war"
+        chip={<><CalendarRange />{label}</>}
+        busy={overviewQ.isFetching && !overviewQ.isLoading}
+        meta={`${config.label} · ${scopeText}`}
+        loading={overviewQ.isLoading}
+        actions={<>
+          <PrivacyToggle compact />
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting || !t?.products} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!t?.products} /></span>
+          <button type="button" onClick={() => void refresh()} title="Taaza karein" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', overviewQ.isFetching && 'animate-spin')} /></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={o && t ? [
+          { label: `Asal bikri · ${t.bills} bill`, value: money(t.revenue), hint: `${growth(t.revenue, o.prev.revenue)} pichhli muddat se` },
+          { label: 'Gross munafa', value: cost(t.profit), hint: costHidden ? 'Cost lock' : `${pct(t.margin)} margin · ${growth(t.profit, o.prev.profit)}` },
+          { label: 'Net munafa', value: cost(o.net.netProfit), hint: 'kharche aur kharab maal ke baad' },
+          { label: 'Cheezein biki', value: String(t.products), hint: `pehle ${o.prev.products}` },
+        ] : [{ label: 'Asal bikri', value: '' }, { label: 'Gross munafa', value: '' }, { label: 'Net munafa', value: '' }, { label: 'Cheezein biki', value: '' }]}
+      />
 
-        {/* Period quick switcher */}
-        <div className="mt-5 flex gap-2 flex-wrap">
-          {PERIOD_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setFilters({ ...filters, period: opt.value })}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                filters.period === opt.value
-                  ? 'bg-white text-slate-900 shadow-md'
-                  : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
-            >
-              <span className="mr-1">{opt.emoji}</span>
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ───── STATS CARDS ───── */}
-      {summary && (
-        <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            label="Total Revenue"
-            value={formatPKRFull(summary.totalRevenue)}
-            sub={`${summary.totalOrders} orders`}
-            color="blue"
-            icon={DollarSign}
-          />
-          <StatCard
-            label="Total Cost"
-            value={formatPKRFull(summary.totalCost)}
-            sub="Cost of goods"
-            color="rose"
-            icon={ShoppingBag}
-          />
-          <StatCard
-            label="Gross Profit"
-            value={formatPKRFull(summary.totalProfit)}
-            sub={`${summary.overallMargin.toFixed(1)}% margin`}
-            color="emerald"
-            icon={TrendingUp}
-            isHighlighted
-          />
-          <StatCard
-            label="Products Sold"
-            value={String(summary.productsCount)}
-            sub={`${summary.totalQtySold.toFixed(0)} units total`}
-            color="violet"
-            icon={Package}
-          />
-        </section>
-      )}
-
-      {/* ───── SEARCH + FILTERS ───── */}
-      <section className="space-y-3">
-        <div className="flex gap-2 flex-wrap">
-          <div className="flex-1 relative min-w-[260px]">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
-              placeholder="Search by name, SKU, category, brand..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
-                <X className="h-4 w-4 text-slate-400" />
-              </button>
-            )}
-          </div>
-
-          <select
-            className="h-11 px-3 rounded-xl border border-slate-200 bg-white text-sm font-bold focus:outline-none"
-            value={filters.sortBy || 'profit'}
-            onChange={(e) => setFilters({ ...filters, sortBy: e.target.value as ProfitSortBy })}
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                Sort: {opt.label}
-              </option>
-            ))}
-          </select>
-
-          <button
-            onClick={() => setShowFilters((v) => !v)}
-            className={`h-11 px-4 rounded-xl border-2 font-bold text-sm inline-flex items-center gap-2 transition ${
-              showFilters || hasActiveFilters
-                ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300'
-            }`}
-          >
-            <Sliders className="h-4 w-4" /> Filters
-            {hasActiveFilters && (
-              <span className="h-5 w-5 rounded-full bg-emerald-600 text-white text-[0.6875rem] font-bold flex items-center justify-center">
-                !
-              </span>
-            )}
-          </button>
-        </div>
-
-        {showFilters && (
-          <div className="rounded-2xl bg-white border border-slate-200 p-4 space-y-3">
-            <div className="grid sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Category</label>
-                <select
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"
-                  value={filters.categoryId ?? ''}
-                  onChange={(e) =>
-                    setFilters({ ...filters, categoryId: e.target.value || undefined })
-                  }
-                >
-                  <option value="">All categories</option>
-                  {categories.map((c: any) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Brand</label>
-                <select
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"
-                  value={filters.brandId ?? ''}
-                  onChange={(e) =>
-                    setFilters({ ...filters, brandId: e.target.value || undefined })
-                  }
-                >
-                  <option value="">All brands</option>
-                  {brands.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-1">Custom Date Range</label>
-                <div className="flex gap-1">
-                  <input
-                    type="date"
-                    className="h-10 flex-1 rounded-lg border border-slate-200 bg-white px-2 text-xs"
-                    value={filters.startDate || ''}
-                    onChange={(e) => setFilters({ ...filters, startDate: e.target.value || undefined })}
-                  />
-                  <input
-                    type="date"
-                    className="h-10 flex-1 rounded-lg border border-slate-200 bg-white px-2 text-xs"
-                    value={filters.endDate || ''}
-                    onChange={(e) => setFilters({ ...filters, endDate: e.target.value || undefined })}
-                  />
-                </div>
-              </div>
-            </div>
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="text-xs font-bold text-rose-600 hover:underline inline-flex items-center gap-1"
-              >
-                <RotateCcw className="h-3 w-3" /> Clear all filters
-              </button>
-            )}
-          </div>
+      <KpiRow>
+        {!o || !t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Sparkles} color="#db2777" label="Discount" value={money(t.discount)} active={viewNow === 'discount'} onClick={() => showView('discount')}
+              hint={t.gross > 0 ? `list rate ka ${((t.discount / t.gross) * 100).toFixed(1)}% · dabayein` : 'koi chhoot nahi'} />
+            <KpiCard icon={RotateCcw} color="#ea580c" label="Wapsi" value={money(t.refund)} active={viewNow === 'returns'} onClick={() => showView('returns')}
+              hint={costHidden ? `${Number(t.returnedQty.toFixed(2))} cheezein wapas` : `munafa ${cost(t.returnProfit)} kam hua`} />
+            <KpiCard icon={Flame} color="#e11d48" label="Nuqsan wali cheezein" value={costHidden ? '••' : String(o.losses.count)} active={viewNow === 'loss'}
+              onClick={costHidden ? undefined : () => showView('loss')} hint={costHidden ? 'Cost lock' : o.losses.count ? `kul ${cost(o.losses.amount)}` : 'koi nahi'} />
+            <KpiCard icon={Receipt} color="#7c3aed" label="Kharche" value={money(o.net.expenses)} hint={`pehle ${money(o.prevNet.expenses)}`} />
+            <KpiCard icon={Scale} color={savedShare >= 95 ? '#16a34a' : '#d97706'} label="Bill ki cost se" value={costHidden ? '••' : `${savedShare.toFixed(0)}%`} active={viewNow === 'fallback'}
+              onClick={costHidden || !cb?.fallbackLines ? undefined : () => showView('fallback')}
+              hint={costHidden ? 'Cost lock' : cb?.fallbackLines ? `${cb.fallbackLines} lines aaj ki cost se` : 'har line ki apni cost'} />
+          </>
         )}
-      </section>
+      </KpiRow>
 
-      {/* ───── INDUSTRY BREAKDOWN ───── */}
-      {summary && (summary.carpetCount > 0 || summary.mobileCount > 0) && (
-        <section className="grid sm:grid-cols-3 gap-3">
-          <IndustryCard
-            label="Standard Products"
-            value={summary.standardCount}
-            icon={Package}
-            color="slate"
-          />
-          {summary.carpetCount > 0 && (
-            <IndustryCard
-              label="Carpet Products"
-              value={summary.carpetCount}
-              icon={Layers}
-              color="emerald"
-            />
-          )}
-          {summary.mobileCount > 0 && (
-            <IndustryCard
-              label="Mobile Products"
-              value={summary.mobileCount}
-              icon={Smartphone}
-              color="blue"
-            />
-          )}
-        </section>
-      )}
-
-      {/* ───── TOP PERFORMERS + LOSSES ───── */}
-      {summary && (
-        <section className="grid lg:grid-cols-2 gap-4">
-          {/* Top Performers */}
-          <div className="rounded-3xl bg-white border-2 border-emerald-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 bg-gradient-to-r from-emerald-50 to-green-50 border-b-2 border-emerald-200 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Crown className="h-5 w-5 text-amber-500" />
-                <h3 className="font-extrabold text-emerald-900">Top 5 Profitable</h3>
-              </div>
-              <span className="text-[0.6875rem] font-bold uppercase text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">
-                Best Performers
-              </span>
-            </div>
-            <div className="p-3 space-y-2">
-              {summary.topProfitable.slice(0, 5).map((p, idx) => (
-                <TopProductCard key={p.productId} product={p} rank={idx + 1} variant="profit" />
-              ))}
-              {summary.topProfitable.length === 0 && (
-                <div className="text-center py-8 text-sm text-slate-500">No data yet</div>
-              )}
-            </div>
-          </div>
-
-          {/* Highest Margin */}
-          <div className="rounded-3xl bg-white border-2 border-violet-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 bg-gradient-to-r from-violet-50 to-purple-50 border-b-2 border-violet-200 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Percent className="h-5 w-5 text-violet-600" />
-                <h3 className="font-extrabold text-violet-900">Highest Margin %</h3>
-              </div>
-              <span className="text-[0.6875rem] font-bold uppercase text-violet-700 bg-violet-100 px-2 py-1 rounded-full">
-                Best Margins
-              </span>
-            </div>
-            <div className="p-3 space-y-2">
-              {summary.highestMargin.slice(0, 5).map((p, idx) => (
-                <TopProductCard key={p.productId} product={p} rank={idx + 1} variant="margin" />
-              ))}
-              {summary.highestMargin.length === 0 && (
-                <div className="text-center py-8 text-sm text-slate-500">No data yet</div>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ───── LOSSES ALERT ───── */}
-      {summary && summary.losses.length > 0 && (
-        <section className="rounded-3xl bg-gradient-to-br from-rose-50 to-pink-50 border-2 border-rose-200 p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertCircle className="h-5 w-5 text-rose-600" />
-            <h3 className="font-extrabold text-rose-900">
-              ⚠️ Products with Losses ({summary.losses.length})
-            </h3>
-          </div>
-          <p className="text-xs text-rose-700 mb-3">
-            Ye products lagat se kam mein bik rahe hain — review karein
+      {!costHidden && cb && (cb.fallbackLines > 0 || cb.noCostLines > 0) && (
+        <div className="flex flex-wrap items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <p className="min-w-0 flex-1">
+            Munafa har bill line par us waqt ki saved cost se nikalta hai.
+            {cb.fallbackLines > 0 && <> {cb.fallbackLines} purani lines par cost save nahi thi — wahan <b>aaj ki cost</b> lagayi ({money(cb.fallbackRevenue)} ki bikri).</>}
+            {cb.noCostLines > 0 && <> {cb.noCostLines} lines ({cb.noCostProducts} cheezein) ki cost hi nahi bhari — un ka munafa poora dikh raha hai.</>}
           </p>
-          <div className="grid sm:grid-cols-2 gap-2">
-            {summary.losses.slice(0, 6).map((p) => (
-              <div
-                key={p.productId}
-                className="rounded-xl bg-white border border-rose-200 p-3 flex items-center gap-3"
-              >
-                <div className="h-10 w-10 rounded-lg bg-rose-100 flex items-center justify-center shrink-0">
-                  <TrendingDown className="h-4 w-4 text-rose-600" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-bold text-slate-900 text-sm truncate">{p.name}</div>
-                  <div className="text-[0.6875rem] text-slate-500">
-                    {p.quantitySold} {p.unit} sold
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className="font-extrabold text-rose-700 text-sm tabular-nums">
-                    {formatPKR(p.profit)}
-                  </div>
-                  <div className="text-[0.6875rem] text-rose-600 font-bold">
-                    {p.margin.toFixed(1)}%
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <span className="flex gap-1.5">
+            {cb.fallbackLines > 0 && <Button size="sm" variant="secondary" onClick={() => showView('fallback')}>Dekhein</Button>}
+            {cb.noCostLines > 0 && <Button size="sm" variant="secondary" onClick={() => showView('nocost')}>Bina cost</Button>}
+          </span>
+        </div>
+      )}
+
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); setTab('items'); }} placeholder="Naam, SKU, variant, brand ya supplier…" label="Cheez dhoondein" />}
+        chips={filtered ? <>
+          {viewNow !== 'all' && <FilterChip onRemove={() => setView('all')}>{VIEWS.find((v) => v.value === viewNow)?.label}</FilterChip>}
+          {categoryId && <FilterChip onRemove={() => setCategoryId(undefined)}>{categories.find((c) => c.id === categoryId)?.name ?? 'Category'}</FilterChip>}
+          {brandId && <FilterChip onRemove={() => setBrandId(undefined)}>{brands.find((b) => b.id === brandId)?.name ?? 'Brand'}</FilterChip>}
+          {staffId && <FilterChip onRemove={() => setStaffId(undefined)}>{team.find((m) => m.id === staffId)?.fullName ?? 'Staff'}</FilterChip>}
+          {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+        </> : undefined}
+        onClear={clear}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} allowAll={false} defaultPreset="month" />
+        <FilterMenu icon={ListFilter} label="Dikhayein" value={viewNow} active={viewNow !== 'all'} width="w-72"
+          options={VIEWS.filter((v) => !costHidden || !v.cost).map((v) => ({ value: v.value, label: v.label, hint: v.hint, color: v.color }))} onChange={(v) => { setTab('items'); setView(v); }} />
+        {categories.length > 0 && (
+          <FilterMenu icon={Layers} label="Category" value={categoryId ?? 'all'} active={!!categoryId} width="w-72"
+            options={[{ value: 'all', label: 'Sab category' }, ...categories.map((c) => ({ value: c.id, label: c.name, color: c.color }))]}
+            onChange={(v) => setCategoryId(v === 'all' ? undefined : v)} />
+        )}
+        {brands.length > 0 && (
+          <FilterMenu icon={Tag} label="Brand" value={brandId ?? 'all'} active={!!brandId} width="w-64"
+            options={[{ value: 'all', label: 'Sab brand' }, ...brands.map((b) => ({ value: b.id, label: b.name }))]}
+            onChange={(v) => setBrandId(v === 'all' ? undefined : v)} />
+        )}
+        {team.length > 1 && (
+          <FilterMenu icon={UserRound} label="Staff" value={staffId ?? 'all'} active={!!staffId}
+            options={[{ value: 'all', label: 'Sab staff' }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]}
+            onChange={(v) => setStaffId(v === 'all' ? undefined : v)} />
+        )}
+        <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sortNow} align="right" width="w-64"
+          options={SORTS.filter((s) => !costHidden || !COST_SORTS.includes(s.value))} onChange={(v) => { setTab('items'); setSort(v); }} />
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>A</Kbd> analytics · <Kbd>/</Kbd> dhoondein</>}
+        tabs={[
+          { id: 'items', label: itemWord === 'Cheez' ? 'Cheezein' : `${itemWord}`, icon: Package, count: itemsQ.data?.total ?? t?.products ?? null },
+          { id: 'category', label: 'Category', icon: Layers },
+          { id: 'brand', label: 'Brand', icon: Tag },
+          { id: 'supplier', label: 'Supplier', icon: Truck },
+          { id: 'staff', label: 'Staff', icon: UserRound },
+          { id: 'day', label: 'Din war', icon: CalendarDays },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          ...(config.extraTab ? [{ id: config.extraTab.id, label: config.extraTab.label, icon: config.extraTab.icon }] : []),
+        ]} />
+
+      {tab === 'analytics' ? (
+        <ProfitAnalytics data={o} loading={overviewQ.isLoading} fmt={fmt} />
+      ) : ExtraTab && tab === config.extraTab?.id ? (
+        <Suspense fallback={<Skeleton className="h-64 rounded-3xl" />}><ExtraTab filters={filters} fmt={fmt} /></Suspense>
+      ) : tab !== 'items' ? (
+        !o ? <Skeleton className="h-64 rounded-3xl" />
+          : tab === 'category' ? <DimTable rows={o.byCategory} title="Category" fmt={fmt} onPick={(r) => { setCategoryId(r.id); setTab('items'); }} />
+          : tab === 'brand' ? <DimTable rows={o.byBrand} title="Brand" fmt={fmt} onPick={(r) => { setBrandId(r.id); setTab('items'); }} />
+          : tab === 'supplier' ? <DimTable rows={o.bySupplier} title="Supplier" fmt={fmt} note="Har cheez us supplier ke naam jis se aakhri dafa khareedi." />
+          : tab === 'staff' ? <DimTable rows={o.byStaff} title="Staff" fmt={fmt} note="Bill jis ke naam bana (counter par becha)." onPick={(r) => { setStaffId(r.id); setTab('items'); }} />
+          : (
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+              <DayTable data={o} fmt={fmt} />
+              <NetCard data={o} fmt={fmt} />
+            </div>
+          )
+      ) : itemsQ.isLoading ? (
+        <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+      ) : itemsQ.error && !itemsQ.data ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <p className="font-semibold text-slate-900">Report nahi aa saki</p>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{(itemsQ.error as Error).message}</p>
+          <div className="mt-4"><Button onClick={() => void itemsQ.refetch()}>Dobara koshish</Button></div>
+        </div>
+      ) : !itemsQ.data?.items.length ? (
+        <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><Wallet className="h-7 w-7" /></span>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{filtered ? 'Is filter me kuch nahi' : 'Is muddat me koi bikri nahi'}</h3>
+          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{filtered ? 'Filter badal kar dekhein ya hata dein.' : 'Muddat badlein — "Tareekh" se 30 din, is mahine ya apni tareekh chunein.'}</p>
+          {filtered && <div className="mt-4"><Button variant="secondary" onClick={clear}>Filter hatayein</Button></div>}
+        </div>
+      ) : (
+        <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          <ProductHeader itemWord={itemWord} />
+          <ul className="divide-y divide-slate-100">
+            {itemsQ.data.items.map((r) => <ProductRow key={r.key} r={r} fmt={fmt} />)}
+          </ul>
         </section>
       )}
 
-      {/* ───── CHARTS ───── */}
-      {summary && summary.topProfitable.length > 0 && (
-        <section className="grid lg:grid-cols-2 gap-4">
-          {/* Bar Chart — Top 10 */}
-          <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Top 10 by Profit</h3>
-                <p className="text-xs text-slate-500">Revenue vs Profit comparison</p>
-              </div>
-              <Award className="h-5 w-5 text-amber-500" />
-            </div>
-            <div className="h-[320px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={summary.topProfitable.slice(0, 10).map((p) => ({
-                    name: p.name.length > 12 ? p.name.slice(0, 12) + '…' : p.name,
-                    profit: p.profit,
-                    revenue: p.revenue,
-                  }))}
-                  layout="vertical"
-                  margin={{ left: 0, right: 16, top: 8, bottom: 8 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis
-                    type="number"
-                    stroke="#64748b"
-                    fontSize={10}
-                    tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
-                  />
-                  <YAxis type="category" dataKey="name" stroke="#64748b" fontSize={10} width={90} />
-                  <Tooltip
-                    formatter={(value: any) => formatPKR(Number(value))}
-                    contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontSize: 12 }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Bar dataKey="revenue" fill="#94a3b8" radius={[0, 4, 4, 0]} name="Revenue" />
-                  <Bar dataKey="profit" fill="#10b981" radius={[0, 4, 4, 0]} name="Profit" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Pie Chart — Category Distribution */}
-          <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Profit by Category</h3>
-                <p className="text-xs text-slate-500">Top categories breakdown</p>
-              </div>
-              <BarChart3 className="h-5 w-5 text-blue-500" />
-            </div>
-            <div className="h-[320px]">
-              {summary.categoryBreakdown.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={summary.categoryBreakdown.slice(0, 8).map((c) => ({
-                        name: c.name,
-                        value: Math.max(c.profit, 0),
-                      }))}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      innerRadius={50}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={(entry: any) => {
-                        const pct = ((entry.value / summary.totalProfit) * 100).toFixed(0);
-                        return `${pct}%`;
-                      }}
-                      labelLine={false}
-                    >
-                      {summary.categoryBreakdown.slice(0, 8).map((_, idx) => (
-                        <Cell key={`cell-${idx}`} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value: any) => formatPKR(Number(value))}
-                      contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0' }}
-                    />
-                    <Legend
-                      verticalAlign="bottom"
-                      iconType="circle"
-                      wrapperStyle={{ fontSize: 10, paddingTop: 12 }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-sm text-slate-500">
-                  No category data
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
+      {tab === 'items' && itemsQ.data && itemsQ.data.pages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
+          <span className="text-sm text-slate-600">Safha {page} / {itemsQ.data.pages}</span>
+          <Button variant="secondary" size="sm" disabled={page >= itemsQ.data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+        </div>
       )}
 
-      {/* ───── DETAILED TABLE ───── */}
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <h3 className="text-xl font-bold text-slate-900">Detailed Product Profit</h3>
-            <p className="text-sm text-slate-500">
-              {filteredProducts.length} products
-              {hasActiveFilters && ' (filtered)'}
-            </p>
-          </div>
-        </div>
-
-        {productsLoading ? (
-          <div className="p-6 space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-xl bg-slate-100 animate-pulse" />
-            ))}
-          </div>
-        ) : filteredProducts.length === 0 ? (
-          <div className="p-12 text-center">
-            <Package className="h-16 w-16 text-slate-300 mx-auto" />
-            <h4 className="mt-4 text-lg font-bold text-slate-900">No sales data yet</h4>
-            <p className="text-sm text-slate-500 mt-1">
-              {search ? 'Try different search' : 'Make some sales to see profit analysis'}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-700 border-b-2 border-slate-200">
-                <tr>
-                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider w-12">#</th>
-                  <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Product</th>
-                  <th className="text-left px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Cat / Brand</th>
-                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Industry</th>
-                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Sold</th>
-                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Avg Price</th>
-                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Revenue</th>
-                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Cost</th>
-                  <th className="text-right px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Profit</th>
-                  <th className="text-center px-3 py-3 font-bold text-[0.6875rem] uppercase tracking-wider">Margin</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredProducts.map((p, idx) => (
-                  <ProfitTableRow key={p.productId} product={p} rank={idx + 1} />
-                ))}
-              </tbody>
-              <tfoot className="bg-slate-100 border-t-2 border-slate-300 font-extrabold">
-                <tr>
-                  <td colSpan={6} className="px-3 py-3 text-right text-xs uppercase text-slate-700">
-                    Totals ({filteredProducts.length}):
-                  </td>
-                  <td className="px-3 py-3 text-right text-blue-700 tabular-nums">
-                    {formatPKR(filteredProducts.reduce((s, p) => s + p.revenue, 0))}
-                  </td>
-                  <td className="px-3 py-3 text-right text-rose-700 tabular-nums">
-                    {formatPKR(filteredProducts.reduce((s, p) => s + p.cost, 0))}
-                  </td>
-                  <td className="px-3 py-3 text-right text-emerald-700 tabular-nums">
-                    {formatPKR(filteredProducts.reduce((s, p) => s + p.profit, 0))}
-                  </td>
-                  <td></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        )}
-      </section>
-    </div>
-  );
-}
-
-// ─── Helper Components ──────────────────────────────────────
-
-function StatCard({
-  label, value, sub, color, icon: Icon, isHighlighted,
-}: { label: string; value: string; sub: string; color: string; icon: any; isHighlighted?: boolean }) {
-  const colors: Record<string, string> = {
-    blue: 'from-blue-500 to-blue-700 shadow-blue-500/30',
-    rose: 'from-rose-500 to-rose-700 shadow-rose-500/30',
-    emerald: 'from-emerald-500 to-emerald-700 shadow-emerald-500/30',
-    violet: 'from-violet-500 to-violet-700 shadow-violet-500/30',
-  };
-
-  return (
-    <div
-      className={`rounded-2xl border-2 p-5 shadow-sm hover:shadow-md transition ${
-        isHighlighted
-          ? 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-300'
-          : 'bg-white border-slate-200'
-      }`}
-    >
-      <div className="flex items-center justify-between">
-        <div className="min-w-0">
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 truncate">{value}</div>
-          <div className="text-xs text-slate-600 font-semibold mt-1">{sub}</div>
-        </div>
-        <div
-          className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}
-        >
-          <Icon className="h-6 w-6" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function IndustryCard({
-  label, value, icon: Icon, color,
-}: { label: string; value: number; icon: any; color: string }) {
-  const colors: Record<string, string> = {
-    slate: 'bg-slate-50 border-slate-300 text-slate-900',
-    emerald: 'bg-emerald-50 border-emerald-300 text-emerald-900',
-    blue: 'bg-blue-50 border-blue-300 text-blue-900',
-  };
-  return (
-    <div className={`rounded-2xl border-2 p-4 ${colors[color]} flex items-center gap-3`}>
-      <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center">
-        <Icon className="h-5 w-5" />
-      </div>
-      <div>
-        <div className="text-xs uppercase tracking-wider font-bold opacity-70">{label}</div>
-        <div className="text-2xl font-extrabold">{value}</div>
-      </div>
-    </div>
-  );
-}
-
-function TopProductCard({
-  product, rank, variant,
-}: { product: ProductProfit; rank: number; variant: 'profit' | 'margin' }) {
-  const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-slate-300', 'bg-slate-300'];
-
-  return (
-    <div className="rounded-xl bg-slate-50 hover:bg-slate-100 transition p-3 flex items-center gap-3">
-      <div
-        className={`h-8 w-8 rounded-lg ${rankColors[rank - 1] || 'bg-slate-300'} text-white font-extrabold flex items-center justify-center text-sm shrink-0`}
-      >
-        {rank}
-      </div>
-      <div className="h-10 w-10 rounded-lg bg-white border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
-        {product.primaryImage ? (
-          <img src={product.primaryImage} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <Package className="h-4 w-4 text-slate-400" />
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="font-bold text-slate-900 text-sm truncate">{product.name}</div>
-        <div className="text-[0.6875rem] text-slate-500">
-          {product.quantitySold} {product.unit} • {product.ordersCount} orders
-        </div>
-      </div>
-      <div className="text-right shrink-0">
-        {variant === 'profit' ? (
-          <>
-            <div className="font-extrabold text-emerald-700 text-sm tabular-nums">
-              {formatPKR(product.profit)}
-            </div>
-            <div className="text-[0.6875rem] text-emerald-600 font-bold">{product.margin.toFixed(1)}%</div>
-          </>
-        ) : (
-          <>
-            <div className="font-extrabold text-violet-700 text-base tabular-nums">
-              {product.margin.toFixed(1)}%
-            </div>
-            <div className="text-[0.6875rem] text-violet-600 font-bold">{formatPKR(product.profit)}</div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ProfitTableRow({ product: p, rank }: { product: ProductProfit; rank: number }) {
-  const isProfit = p.profit > 0;
-  const isHighMargin = p.margin >= 30;
-  const isMediumMargin = p.margin >= 15 && p.margin < 30;
-  const isLowMargin = p.margin >= 0 && p.margin < 15;
-  const isLoss = p.profit < 0;
-
-  return (
-    <tr
-      className={`hover:bg-slate-50 transition ${
-        isLoss ? 'bg-rose-50/40' : ''
-      }`}
-    >
-      <td className="px-3 py-3 text-center">
-        <span
-          className={`inline-flex items-center justify-center h-6 w-6 rounded-md text-[0.6875rem] font-extrabold ${
-            rank <= 3 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
-          }`}
-        >
-          {rank}
-        </span>
-      </td>
-      <td className="px-3 py-3">
-        <div className="flex items-center gap-2.5">
-          <div className="h-10 w-10 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
-            {p.primaryImage ? (
-              <img src={p.primaryImage} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <Package className="h-4 w-4 text-slate-400" />
-            )}
-          </div>
-          <div className="min-w-0">
-            <div className="font-bold text-slate-900 text-sm line-clamp-1">{p.name}</div>
-            <div className="flex items-center gap-1.5 mt-0.5 text-[0.6875rem]">
-              {p.sku && <span className="font-mono text-slate-500">{p.sku}</span>}
-              {p.variantCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 font-bold">
-                  {p.variantCount}V
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </td>
-      <td className="px-3 py-3 text-xs">
-        {p.categoryName && (
-          <div className="font-bold text-slate-700 flex items-center gap-1">
-            {p.categoryColor && (
-              <span
-                className="inline-block h-2 w-2 rounded-full"
-                style={{ backgroundColor: p.categoryColor }}
-              />
-            )}
-            {p.categoryName}
-          </div>
-        )}
-        {p.brandName && (
-          <div className="text-[0.6875rem] font-bold text-violet-700 mt-0.5">{p.brandName}</div>
-        )}
-      </td>
-      <td className="px-3 py-3 text-center">
-        {p.industryType === 'CARPET' ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold">
-            <Layers className="h-2.5 w-2.5" /> CARPET
-          </span>
-        ) : p.industryType === 'MOBILE' ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold">
-            <Smartphone className="h-2.5 w-2.5" /> MOBILE
-          </span>
-        ) : p.industryType === 'WEIGHT_BASED' ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[0.625rem] font-extrabold">
-            WEIGHT
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold">
-            <Package className="h-2.5 w-2.5" /> STANDARD
-          </span>
-        )}
-      </td>
-      <td className="px-3 py-3 text-right">
-        <div className="font-extrabold text-slate-900 tabular-nums">
-          {p.quantitySold.toFixed(p.quantitySold % 1 === 0 ? 0 : 2)}
-        </div>
-        <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">{p.unit}</div>
-      </td>
-      <td className="px-3 py-3 text-right text-xs font-bold text-slate-700 tabular-nums">
-        {formatPKR(p.avgSellPrice)}
-      </td>
-      <td className="px-3 py-3 text-right text-xs font-bold text-blue-700 tabular-nums">
-        {formatPKR(p.revenue)}
-      </td>
-      <td className="px-3 py-3 text-right text-xs font-bold text-rose-700 tabular-nums">
-        {formatPKR(p.cost)}
-      </td>
-      <td className="px-3 py-3 text-right">
-        <div className={`inline-flex items-center gap-1 font-extrabold tabular-nums ${
-          isProfit ? 'text-emerald-700' : 'text-rose-700'
-        }`}>
-          {isProfit ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-          {formatPKR(p.profit)}
-        </div>
-      </td>
-      <td className="px-3 py-3 text-center">
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
-            isHighMargin
-              ? 'bg-emerald-100 text-emerald-700'
-              : isMediumMargin
-                ? 'bg-amber-100 text-amber-700'
-                : isLowMargin
-                  ? 'bg-slate-100 text-slate-700'
-                  : 'bg-rose-100 text-rose-700'
-          }`}
-        >
-          {isHighMargin && <Star className="h-2.5 w-2.5" />}
-          {p.margin.toFixed(1)}%
-        </span>
-      </td>
-    </tr>
+      {guide.isOpen && (
+        <PageGuide title="Munafa report — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: CalendarRange, color: '#2563eb', title: 'Muddat chunein', text: '"Tareekh" se aaj, 7 din, is mahine ya apni tareekh. Har number ke saath pichhli utni hi muddat ka muqabla hai.' },
+            { icon: Wallet, color: '#16a34a', title: 'Asal bikri aur munafa', text: 'Asal bikri = list rate − discount − wapsi. Munafa = asal bikri − maal ki lagat. Lagat wohi jo bill bante waqt us cheez ki thi.' },
+            { icon: Scale, color: '#d97706', title: 'Net munafa', text: 'Gross munafa me se kharche aur kharab / gum maal (stock adjustment) nikaal kar asal bachat. "Din war" aur "Analytics" me poora hisaab.' },
+            { icon: Flame, color: '#e11d48', title: 'Nuqsan aur chhoot', text: 'Upar ke dabbe dabayein: Discount wali, Wapsi wali, Nuqsan wali cheezein. Sirf wohi list me aa jati hain.' },
+            { icon: Layers, color: '#7c3aed', title: 'Kis cheez se kamai', text: 'Tabs: Category, Brand, Supplier, Staff, Din war. Category, brand ya staff par click karein to us ka filter lag jata hai.' },
+            { icon: ListChecks, color: '#0891b2', title: 'Variant aur export', text: 'Jis cheez ke variant hon us ke teer par click karein — har size / rang ka munafa. CSV aur Print/PDF me poori list.' },
+            ...(config.guide ?? []),
+          ]}
+          tips={[
+            'Jin purane bills par cost save nahi thi, un par aaj ki cost lagti hai — peeli patti batati hai kitni lines aisi hain.',
+            'Jis cheez ki cost bhari hi nahi us ka munafa 100% dikhta hai. "Bina cost" list se cost bharein.',
+            'Wapsi usi bill ki muddat me ginti hai jis bill ka maal tha. Void bill shamil nahi.',
+            ...(config.tips ?? []),
+          ]}
+          shortcuts={[['/', 'dhoondein'], ['A', 'analytics'], ['G', 'guide']]}
+          footer={<span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Search className="h-3.5 w-3.5" />Naam, SKU, variant, brand ya supplier se dhoondein</span>}
+        />
+      )}
+    </PageShell>
   );
 }

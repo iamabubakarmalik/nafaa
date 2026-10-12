@@ -69,7 +69,7 @@ const RULES: Array<[RegExp, PermissionKey]> = [
   [/^\/brands/, P.BRANDS_VIEW],
   [/^\/tags/, P.TAGS_VIEW],
   [/^\/low-stock/, P.LOW_STOCK_VIEW],
-  [/^\/stock-report/, P.STOCK_MOVEMENTS_VIEW],
+  [/^\/stock-report/, P.REPORTS_VIEW],
   [/^\/stock-adjustments/, P.STOCK_ADJUSTMENTS_MANAGE],
   [/^\/transfers/, P.STOCK_TRANSFERS_MANAGE],
   [/^\/suppliers/, P.SUPPLIERS_VIEW],

@@ -86,7 +86,6 @@ import CatalogPage from '@modules/catalog/pages/CatalogPage';
 import CategoriesPage from '@modules/inventory/categories/pages/CategoriesPage';
 
 // ─── Mobile Industry ───────────────────────────────────────────
-import MobileReportsPage from '@industries/mobile/pages/MobileReportsPage';
 import EmiPlansPage from '@industries/mobile/pages/EmiPlansPage';
 import EmiPlanDetailPage from '@industries/mobile/pages/EmiPlanDetailPage';
 import RepairTicketsPage from '@industries/mobile/pages/RepairTicketsPage';
@@ -126,10 +125,9 @@ import LowStockPage from '@modules/inventory/low-stock/pages/LowStockPage';
 import TransfersPage from '@modules/inventory/transfers/pages/TransfersPage';
 
 // ─── Reports ───────────────────────────────────────────────────
-import ReportsPage from '@modules/reports/reports/pages/ReportsPage';
-import ReportsGate from '@modules/reports/reports/pages/ReportsGate';
-import StockReportGate from '@modules/inventory/stock-report/pages/StockReportGate';
-import ProfitReportGate from '@modules/finance/profit-report/pages/ProfitReportGate';
+import ReportsCenterPage from '@modules/reports/center/pages/ReportsCenterPage';
+import StockReportPage from '@modules/inventory/stock-report/pages/StockReportPage';
+import ProfitReportPage from '@modules/finance/profit-report/pages/ProfitReportPage';
 
 // ─── Settings / System ─────────────────────────────────────────
 import SettingsPage from '@modules/organization/settings/pages/SettingsPage';
@@ -172,7 +170,6 @@ import LegalPage from '@modules/legal/pages/LegalPage';
 import CarpetRollsPage from '@industries/carpet/pages/CarpetRollsPage';
 import CarpetCutPiecesPage from '@industries/carpet/pages/CarpetCutPiecesPage';
 import CarpetRollDetailPage from '@industries/carpet/pages/CarpetRollDetailPage';
-import CarpetReportsPage from '@industries/carpet/pages/CarpetReportsPage';
 import CarpetBulkImportPage from '@industries/carpet/pages/CarpetBulkImportPage';
 
 // ─── Retail Industry ───────────────────────────────────────────
@@ -629,7 +626,9 @@ export default function App() {
                   <Route path="/categories" element={secure(PERMISSIONS.CATEGORIES_VIEW, <CategoriesPage />)} />
 
                   {/* ── Mobile ─────────────────────────────────── */}
-                  <Route path="/mobile-reports" element={secure(PERMISSIONS.REPORTS_VIEW, <MobileReportsPage />)} />
+                  <Route path="/mobile-reports" element={<Navigate to="/reports" replace />} />
+                  <Route path="/appliances/reports" element={<Navigate to="/reports" replace />} />
+                  <Route path="/appliances/stock-report" element={<Navigate to="/stock-report" replace />} />
                   <Route path="/emi-plans/:id" element={<EmiPlanDetailPage />} />
                   <Route path="/emi-plans" element={<EmiPlansPage />} />
                   <Route path="/repair-tickets/:id" element={<RepairTicketDetailPage />} />
@@ -652,7 +651,7 @@ export default function App() {
                   <Route path="/returns" element={secure(PERMISSIONS.RETURNS_VIEW, <ReturnsPage />)} />
                   <Route path="/discounts" element={secure(PERMISSIONS.DISCOUNTS_VIEW, <DiscountsPage />)} />
                   <Route path="/loyalty" element={secure(PERMISSIONS.LOYALTY_VIEW, <LoyaltyPage />)} />
-                  <Route path="/profit-report" element={secure(PERMISSIONS.PROFIT_REPORT_VIEW, <ProfitReportGate />)} />
+                  <Route path="/profit-report" element={secure(PERMISSIONS.PROFIT_REPORT_VIEW, <ProfitReportPage />)} />
                   <Route path="/khata" element={secure(PERMISSIONS.KHATA_VIEW, <KhataBookPage />)} />
                   <Route path="/cash-register" element={secure(PERMISSIONS.CASH_REGISTER_VIEW, <CashRegisterPage />)} />
                   {/* Dukaan ka Hisab — cash, maal, lena, dena sab ek jagah */}
@@ -675,9 +674,9 @@ export default function App() {
                   <Route path="/transfers" element={secure(PERMISSIONS.STOCK_TRANSFERS_MANAGE, <TransfersPage />)} />
 
                   {/* ── Reports ────────────────────────────────── */}
-                  <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsGate />)} />
+                  <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsCenterPage />)} />
                   <Route path="/day-report" element={secure(PERMISSIONS.DASHBOARD_VIEW, <DayReportPage />)} />
-                  <Route path="/stock-report" element={secure(PERMISSIONS.REPORTS_VIEW, <StockReportGate />)} />
+                  <Route path="/stock-report" element={secure(PERMISSIONS.REPORTS_VIEW, <StockReportPage />)} />
 
                   {/* ── Settings & System ──────────────────────── */}
                   <Route path="/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsPage />)} />
@@ -786,7 +785,7 @@ export default function App() {
                   <Route path="/carpet-rolls/:id" element={<CarpetRollDetailPage />} />
                   <Route path="/carpet-rolls" element={<CarpetRollsPage />} />
                   <Route path="/carpet-cut-pieces" element={<CarpetCutPiecesPage />} />
-                  <Route path="/carpet-reports" element={<CarpetReportsPage />} />
+                  <Route path="/carpet-reports" element={<Navigate to="/reports" replace />} />
                   <Route path="/carpet-bulk-import" element={<CarpetBulkImportPage />} />
 
                   {/* Retail */}

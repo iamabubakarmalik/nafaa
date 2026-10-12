@@ -36,7 +36,7 @@ function useAppliancesActions(): QuickAction[] {
     { to: '/appliance-products', icon: Package, label: 'Products', hint: `${s?.totalProducts ?? 0} items` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
     { to: '/sales', icon: Receipt, label: 'Sales history', hint: 'Purani receipts' },
-    { to: '/appliances/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
+    { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }
 

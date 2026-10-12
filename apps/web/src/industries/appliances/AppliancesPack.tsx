@@ -16,9 +16,7 @@ import AmcContractFormPage from './pages/AmcContractFormPage';
 import DeliveriesPage from './pages/DeliveriesPage';
 import ApplianceSerialsPage from './pages/ApplianceSerialsPage';
 import ApplianceWarrantyClaimsPage from './pages/ApplianceWarrantyClaimsPage';
-import AppliancesReportsPage from './pages/AppliancesReportsPage';
 import LowStockPage from '@modules/inventory/low-stock/pages/LowStockPage';
-import AppliancesStockReportPage from './pages/AppliancesStockReportPage';
 import AppliancesProfitReportPage from './pages/AppliancesProfitReportPage';
 
 export const AppliancesPack: IndustryPack = {
@@ -58,7 +56,7 @@ export const AppliancesPack: IndustryPack = {
         { to: '/appliances/deliveries', label: 'Deliveries', icon: Truck },
         { to: '/appliances/serials', label: 'Serial Register', icon: Barcode },
         { to: '/appliances/warranty-claims', label: 'Warranty Claims', icon: Shield, badge: 'NEW' },
-        { to: '/appliances/reports', label: 'Reports', icon: BarChart3, badge: 'NEW' },
+        { to: '/reports', label: 'Reports', icon: BarChart3 },
       ],
     },
   ],
@@ -92,9 +90,7 @@ export const AppliancesPack: IndustryPack = {
     { path: '/appliances/serials', element: ApplianceSerialsPage },
     { path: '/appliances/warranty-claims', element: ApplianceWarrantyClaimsPage },
 
-    { path: '/appliances/reports', element: AppliancesReportsPage },
     { path: '/appliances/low-stock', element: LowStockPage },
-    { path: '/appliances/stock-report', element: AppliancesStockReportPage },
     { path: '/appliances/profit-report', element: AppliancesProfitReportPage },
   ],
 

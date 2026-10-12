@@ -1,2 +1,1 @@
-// Barrel for stock-report
-export {};
+export { default as StockReportPage } from './pages/StockReportPage';

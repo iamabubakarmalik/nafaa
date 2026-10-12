@@ -298,7 +298,7 @@ export function MobileInventorySection({
           <Link to="/used-phones" className="font-bold underline mx-1">Used Phones</Link>,
           <Link to="/repair-tickets" className="font-bold underline mx-1">Repair Service</Link>,
           <Link to="/emi-plans" className="font-bold underline mx-1">EMI/Installments</Link>,
-          aur <Link to="/mobile-reports" className="font-bold underline mx-1">Mobile Reports</Link>.
+          aur <Link to="/reports" className="font-bold underline mx-1">Mobile Reports</Link>.
         </div>
       </div>
     </div>

@@ -1,0 +1,87 @@
+/**
+ * Profit report print-out (A4, PDF or thermal through the shared print
+ * button) and CSV export. Cost and profit columns are left out while cost
+ * is hidden.
+ */
+
+import { formatPKR } from '@core/lib/format';
+import type { PrintDoc, PrintSection } from '@core/print';
+import type { ProfitItem, ProfitOverview } from '../api';
+import { qty } from './meta';
+
+export function profitDoc(o: ProfitOverview, items: ProfitItem[], period: string, scope: string, showCost: boolean): PrintDoc {
+  const t = o.totals;
+  const n = o.net;
+  const summary: PrintSection = {
+    kind: 'rows',
+    title: 'Khulasa',
+    rows: [
+      { label: 'List rate par bikri', value: formatPKR(t.gross) },
+      { label: 'Discount', value: `− ${formatPKR(t.discount)}`, sub: true },
+      { label: 'Wapsi', value: `− ${formatPKR(t.refund)}`, sub: true },
+      { label: 'Asal bikri', value: formatPKR(t.revenue), strong: true },
+      ...(showCost ? [
+        { label: 'Maal ki lagat', value: `− ${formatPKR(t.cost ?? 0)}`, sub: true },
+        { label: `Gross munafa (${(t.margin ?? 0).toFixed(1)}%)`, value: formatPKR(t.profit ?? 0), strong: true },
+        { label: 'Kharche', value: `− ${formatPKR(n.expenses)}`, sub: true },
+        { label: 'Kharab / gum maal', value: `− ${formatPKR(n.writeOffCost ?? 0)}`, sub: true },
+        { label: 'Net munafa', value: formatPKR(n.netProfit ?? 0), strong: true },
+      ] : []),
+    ],
+  };
+  const cats: PrintSection = {
+    kind: 'table',
+    title: 'Category war',
+    columns: [{ label: 'Category' }, { label: 'Bikri', align: 'right' }, ...(showCost ? [{ label: 'Munafa', align: 'right' as const }, { label: 'Margin', align: 'right' as const, wideOnly: true }] : [])],
+    rows: o.byCategory.map((c) => [c.name, formatPKR(c.revenue), ...(showCost ? [formatPKR(c.profit ?? 0), `${(c.margin ?? 0).toFixed(1)}%`] : [])]),
+  };
+  const table: PrintSection = {
+    kind: 'table',
+    title: 'Cheez war',
+    columns: [
+      { label: '#', wideOnly: true }, { label: 'Cheez' }, { label: 'Biki', align: 'right', wideOnly: true }, { label: 'Bikri', align: 'right' },
+      ...(showCost ? [{ label: 'Lagat', align: 'right' as const, wideOnly: true }, { label: 'Munafa', align: 'right' as const }, { label: 'Margin', align: 'right' as const, wideOnly: true }] : []),
+    ],
+    rows: items.map((r, i) => [
+      String(i + 1), r.name, `${qty(r.qty)} ${r.unit}`, formatPKR(r.revenue),
+      ...(showCost ? [formatPKR(r.cost ?? 0), formatPKR(r.profit ?? 0), `${(r.margin ?? 0).toFixed(1)}%`] : []),
+    ]),
+    footer: ['', 'Kul', '', formatPKR(t.revenue), ...(showCost ? [formatPKR(t.cost ?? 0), formatPKR(t.profit ?? 0), `${(t.margin ?? 0).toFixed(1)}%`] : [])],
+  };
+  const fallback = showCost && o.costBasis && o.costBasis.fallbackLines + o.costBasis.noCostLines > 0
+    ? `${o.costBasis.fallbackLines} lines par bill ki cost nahi thi, aaj ki cost lagayi. ${o.costBasis.noCostLines} lines ki cost hi nahi bhari.`
+    : undefined;
+  return {
+    title: 'Munafa report',
+    subtitle: period,
+    meta: [['Dukaan', scope], ['Bill', String(t.bills)], ['Cheezein', String(t.products)]],
+    sections: [summary, cats, table],
+    footer: [items.length < t.products ? `Pehli ${items.length} cheezein (kul ${t.products}).` : '', fallback].filter(Boolean).join(' ') || undefined,
+  };
+}
+
+export function profitCsv(items: ProfitItem[], header: string[], showCost: boolean) {
+  const head = ['Cheez', 'Variant', 'SKU', 'Category', 'Brand', 'Supplier', 'Unit', 'Biki', 'Wapas', 'Bill', 'List rate bikri', 'Discount', 'Wapsi raqam', 'Asal bikri',
+    ...(showCost ? ['Lagat', 'Munafa', 'Margin %', 'Pichhla munafa', 'Cost kahan se'] : [])];
+  const rows: Array<Array<string | number>> = [];
+  for (const r of items) {
+    const base = [r.sku ?? '', r.category?.name ?? '', r.brand?.name ?? '', r.supplier?.name ?? '', r.unit];
+    rows.push([r.name, '', ...base, r.qty, r.returnedQty, r.bills, r.gross, r.discount, r.refund, r.revenue,
+      ...(showCost ? [r.cost ?? 0, r.profit ?? 0, (r.margin ?? 0).toFixed(1), r.prevProfit ?? 0,
+        (r.noCostLines ?? 0) > 0 ? 'Cost nahi bhari' : r.fallbackLines > 0 ? 'Kuch lines aaj ki cost' : 'Bill ki cost'] : [])]);
+    if (r.variants.length > 1) {
+      for (const v of r.variants) {
+        rows.push([r.name, v.name, ...base, v.qty, v.returnedQty, v.bills, v.gross, v.discount, v.refund, v.revenue,
+          ...(showCost ? [v.cost ?? 0, v.profit ?? 0, (v.margin ?? 0).toFixed(1), '', ''] : [])]);
+      }
+    }
+  }
+  const csv = [...header.map((h) => [h]), [''], head, ...rows]
+    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `munafa-report-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}

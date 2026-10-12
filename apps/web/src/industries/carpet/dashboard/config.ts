@@ -27,7 +27,7 @@ function useCarpetActions(): QuickAction[] {
     { to: '/carpet-products/new', icon: Plus, label: 'Naya carpet', hint: 'Maal me daalein' },
     { to: '/carpet-rolls', icon: Layers, label: 'Rolls', hint: `${c.rolls} chaalu` },
     { to: '/carpet-cut-pieces', icon: Scissors, label: 'Cut pieces', hint: `${c.pieces} pieces` },
-    { to: '/carpet-reports', icon: BarChart3, label: 'Carpet reports', hint: 'Sqft ka hisaab' },
+    { to: '/reports', icon: BarChart3, label: 'Carpet reports', hint: 'Sqft ka hisaab' },
     { to: '/carpet-bulk-import', icon: Download, label: 'Bulk import', hint: 'Excel / CSV' },
     { to: '/products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },

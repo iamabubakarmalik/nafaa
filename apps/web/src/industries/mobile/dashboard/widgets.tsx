@@ -180,7 +180,7 @@ export function MobileProfitSources() {
       title="Kamai ka rasta"
       icon={PiggyBank}
       description={sources ? `30 din · ${cost(sources.totals.profit)} munafa (${sources.totals.margin.toFixed(1)}%)` : '30 din'}
-      to="/mobile-reports"
+      to="/reports"
     >
       <ul className="space-y-3">
         {rows.map(({ key, label, icon: Icon, bar, row }) => {
