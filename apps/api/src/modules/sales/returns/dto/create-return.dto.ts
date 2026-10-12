@@ -3,7 +3,7 @@ import { PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber,
-  IsOptional, IsString, Min, ValidateNested,
+  IsOptional, IsString, MaxLength, Min, ValidateNested,
 } from 'class-validator';
 
 class ReturnItemDto {
@@ -89,4 +89,10 @@ export class CreateReturnDto {
   @ValidateNested({ each: true })
   @Type(() => ReturnItemDto)
   items!: ReturnItemDto[];
+  /** Owner's PIN, when settings ask for it on refunds. */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(12)
+  managerPin?: string;
 }

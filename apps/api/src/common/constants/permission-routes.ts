@@ -159,6 +159,8 @@ export const ROUTE_RULES: RouteRule[] = [
 
      Lagana / hatana / badalna — wo malik ka kaam hai. */
   { match: /^settings\/security\/(pin-status|verify-pin)(\/|$)/ },
+  // Counter rules: every staff member at the POS must follow them.
+  { match: /^settings\/counter(\/|$)/ },
   { match: /^settings\/security\/(set-pin|remove-pin|reset-pin|locked-routes)(\/|$)/, GET: P.SETTINGS_MANAGE, write: P.SETTINGS_MANAGE },
 
   /* ── Nizam ── */

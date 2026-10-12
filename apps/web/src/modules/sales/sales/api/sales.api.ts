@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import { withManagerPin } from '@core/security/ManagerPin';
 import { setToDayStart, cachedDayStartHour } from '@core/lib/business-day';
 
 export interface ServiceChargeItem {
@@ -373,6 +374,7 @@ export const salesApi = {
     if (!navigator.onLine) {
       return Promise.reject(new Error('Void karne ke liye internet chahiye'));
     }
-    return apiClient.post<{ data: any }>(`/sales/${id}/void`, { reason }).then(unwrap);
+    return withManagerPin('Bill cancel', (managerPin) =>
+      apiClient.post<{ data: any }>(`/sales/${id}/void`, { reason, managerPin }).then(unwrap));
   },
 };

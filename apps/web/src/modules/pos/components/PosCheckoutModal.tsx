@@ -44,7 +44,7 @@ const NOTES = [
 
 export function PosCheckoutModal({
   total, itemCount, loading, customerName, customerBalance = 0, hasCustomer,
-  initMode, initAmount, initMethod = 'CASH', receiver, onConfirm, onClose,
+  initMode, initAmount, initMethod = 'CASH', receiver, allowCredit = true, onConfirm, onClose,
 }: {
   total: number;
   itemCount: number;
@@ -58,6 +58,8 @@ export function PosCheckoutModal({
   initMethod?: PaymentMethod;
   customerId?: string;
   receiver?: PosReceiverValue;
+  /** Settings can switch credit off; then the bill must be paid in full. */
+  allowCredit?: boolean;
   onReceiverChange?: (v: PosReceiverValue) => void;
   onConfirm: (d: PosCheckoutResult) => void;
   onClose: () => void;
@@ -74,7 +76,7 @@ export function PosCheckoutModal({
   const change = Math.max(paid - total, 0);
   const credit = Math.max(total - paid, 0);
   const isCredit = credit > 0;
-  const blocked = isCredit && !hasCustomer;
+  const blocked = isCredit && (!hasCustomer || !allowCredit);
 
   const choose = (m: PosCheckoutMode) => {
     setMode(m);
@@ -84,7 +86,7 @@ export function PosCheckoutModal({
 
   const submit = useCallback(() => {
     if (loading) return;
-    if (blocked) { toast.error('Udhaar ke liye pehle customer chunein'); return; }
+    if (blocked) { toast.error(allowCredit ? 'Udhaar ke liye pehle customer chunein' : 'Is dukaan me udhaar band hai — poora paisa lein'); return; }
     if (mode === 'partial' && entered <= 0) { toast.error('Kitna paisa mila, likhein'); inputRef.current?.focus(); return; }
     onConfirm({ paymentMethod: method, paidAmount: paid, isCredit, depositExtra: deposit && change > 0 && !!hasCustomer });
   }, [loading, blocked, mode, entered, onConfirm, method, paid, isCredit, deposit, change, hasCustomer]);
@@ -94,7 +96,7 @@ export function PosCheckoutModal({
       if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); submit(); return; }
       const m = POS_PAYMENT_METHODS.find((x) => x.key === e.key);
       if (m) { e.preventDefault(); setMethod(m.id); if (mode === 'credit') setMode('full'); return; }
-      if (e.key === 'F6') { e.preventDefault(); if (hasCustomer) choose('credit'); }
+      if (e.key === 'F6') { e.preventDefault(); if (hasCustomer && allowCredit) choose('credit'); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -153,15 +155,16 @@ export function PosCheckoutModal({
             <div role="radiogroup" aria-label="Kaise" className="grid grid-cols-3 gap-1 rounded-2xl bg-slate-100 p-1">
               {MODES.map((m) => {
                 const on = mode === m.id;
-                const disabled = m.id === 'credit' && !hasCustomer;
+                const creditOff = m.id !== 'full' && !allowCredit;
+                const disabled = creditOff || (m.id === 'credit' && !hasCustomer);
                 return (
                   <button key={m.id} type="button" role="radio" aria-checked={on} disabled={disabled} onClick={() => choose(m.id)}
-                    title={disabled ? 'Pehle customer chunein' : m.hint}
+                    title={creditOff ? 'Udhaar Settings me band hai' : disabled ? 'Pehle customer chunein' : m.hint}
                     className={cn('flex flex-col items-center gap-0.5 rounded-xl px-2 py-2.5 text-center transition disabled:cursor-not-allowed disabled:opacity-40',
                       on ? 'bg-white shadow-sm' : 'hover:bg-white/60')}>
                     <m.icon className={cn('h-4 w-4', on ? (m.id === 'full' ? 'text-brand-600' : 'text-amber-600') : 'text-slate-400')} />
                     <span className={cn('text-[0.8125rem] font-semibold', on ? 'text-slate-900' : 'text-slate-600')}>{m.label}</span>
-                    <span className="text-[0.6875rem] text-slate-400">{disabled ? 'Customer chahiye' : m.hint}</span>
+                    <span className="text-[0.6875rem] text-slate-400">{creditOff ? 'Band hai' : disabled ? 'Customer chahiye' : m.hint}</span>
                   </button>
                 );
               })}

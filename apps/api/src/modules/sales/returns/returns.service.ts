@@ -8,6 +8,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, applyStockDelta } from '../../../common/shop-scope';
 import { CreateReturnDto } from './dto/create-return.dto';
+import { requireManagerPin } from '../../../common/helpers/manager-pin.helper';
 import { NotificationsService } from '../../notifications/notifications.service';
 
 const CARPET_UNITS = new Set(['sqft', 'sqm', 'sqyd']);
@@ -189,6 +190,8 @@ export class ReturnsService {
       );
     }
     if (sale.status === 'VOIDED') throw new BadRequestException('Sale is voided');
+    const rules = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { requirePinForRefund: true } });
+    if (rules?.requirePinForRefund) await requireManagerPin(this.prisma, user, dto.managerPin, 'Wapsi');
     if (sale.status === 'FULLY_RETURNED') {
       throw new BadRequestException('Already fully returned');
     }

@@ -26,6 +26,10 @@ export class SettingsController {
   @Get() @ApiOperation({ summary: 'Get all settings + tenant + plan + notification prefs' })
   get(@GetUser() u: AuthenticatedUser) { return this.svc.core.get(u); }
 
+  /** The counter's rules for every staff member, without any secret. */
+  @Get('counter') @ApiOperation({ summary: 'POS rules: stock, discount, credit, PIN, loyalty' })
+  counter(@GetUser() u: AuthenticatedUser) { return this.svc.core.counterRules(u); }
+
   @Patch() @ApiOperation({ summary: 'Update settings (partial)' })
   update(@GetUser() u: AuthenticatedUser, @Body() dto: UpdateSettingsDto) {
     return this.svc.core.update(u, dto);

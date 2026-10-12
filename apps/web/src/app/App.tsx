@@ -1,4 +1,5 @@
 // apps/web/src/App.tsx
+import { ManagerPinHost } from '@core/security/ManagerPin';
 import { OwnerOnly } from '@app/router/RoleGuard';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
@@ -1299,6 +1300,7 @@ export default function App() {
         </IndustryProvider>
       </AppearanceProvider>
 
+      <ManagerPinHost />
       <Toaster
         position="top-right"
         richColors

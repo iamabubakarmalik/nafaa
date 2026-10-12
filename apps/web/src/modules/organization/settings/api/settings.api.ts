@@ -118,7 +118,15 @@ export interface Integration {
 
 const unwrap = <T>(res: any): T => (res?.data?.data !== undefined ? res.data.data : res?.data);
 
+/** The shop's rules the POS follows; every staff member can read them. */
+export type CounterRules = Pick<TenantSettings,
+  | 'defaultPaymentMethod' | 'allowNegativeStock' | 'confirmBeforeCheckout' | 'requireCustomerForSale'
+  | 'allowDiscount' | 'maxDiscountPercent' | 'roundTotal' | 'allowCredit'
+  | 'requirePinForVoid' | 'requirePinForDiscount' | 'requirePinForRefund' | 'hasManagerPin'
+  | 'enableLoyalty' | 'loyaltyPointsPerRupee' | 'loyaltyRedemptionRate' | 'loyaltyMinRedeem' | 'loyaltyMaxRedeemPercent'>;
+
 export const settingsApi = {
+  counter: () => apiClient.get('/settings/counter').then((r) => unwrap<CounterRules | null>(r)),
   get: () => apiClient.get('/settings').then((r) => unwrap<{ settings: TenantSettings; tenant: any; subscription?: any; plan?: any; notificationPref?: any }>(r)),
   update: (data: Partial<TenantSettings>) =>
     apiClient.patch('/settings', data).then((r) => unwrap<TenantSettings>(r)),

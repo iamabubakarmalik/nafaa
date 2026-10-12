@@ -67,6 +67,23 @@ export class SettingsCoreService {
     };
   }
 
+  /** What the POS needs to follow the shop's rules; readable by every staff member. */
+  async counterRules(user: AuthenticatedUser) {
+    const s = await this.prisma.tenantSettings.findUnique({
+      where: { tenantId: user.tenantId },
+      select: {
+        defaultPaymentMethod: true, allowNegativeStock: true, confirmBeforeCheckout: true, requireCustomerForSale: true,
+        allowDiscount: true, maxDiscountPercent: true, roundTotal: true, allowCredit: true,
+        requirePinForVoid: true, requirePinForDiscount: true, requirePinForRefund: true, managerPin: true,
+        enableLoyalty: true, loyaltyPointsPerRupee: true, loyaltyRedemptionRate: true,
+        loyaltyMinRedeem: true, loyaltyMaxRedeemPercent: true,
+      },
+    });
+    if (!s) return null;
+    const { managerPin, ...rules } = s;
+    return { ...rules, hasManagerPin: !!managerPin };
+  }
+
   /** Partial update — updates ONLY provided fields, syncs to Tenant model too */
   async update(user: AuthenticatedUser, dto: UpdateSettingsDto) {
     const data: any = { ...dto };

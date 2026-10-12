@@ -89,9 +89,9 @@ export class SalesController {
     @GetUser() user: AuthenticatedUser,
     @CurrentShop() shop: ShopScope,
     @Param('id') id: string,
-    @Body() body: { reason?: string },
+    @Body() body: { reason?: string; managerPin?: string },
   ) {
-    return this.salesService.voidSale(user, shop, id, body?.reason);
+    return this.salesService.voidSale(user, shop, id, body?.reason, body?.managerPin);
   }
 
   

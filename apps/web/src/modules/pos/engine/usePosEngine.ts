@@ -38,6 +38,7 @@ import {
   buildUnitScanIndex, derivePosUnits, isWeightUnit, qtyStep, unitEmoji, unitKeyOf, type PosUnitOption,
 } from '../lib/posUnits';
 import { printReceiptDirect, type ReceiptPayload } from '../lib/thermalReceipt';
+import { askManagerPin } from '@core/security/ManagerPin';
 import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem } from './types';
 
 /** Customers refresh after a sale (balances change). */
@@ -179,6 +180,7 @@ export function usePosEngine(config: PosIndustryConfig) {
   }, [quickKeys, query]);
 
   /* ── Bill ── */
+  const { data: ls } = useQuery({ queryKey: ['settings', 'counter'], queryFn: () => settingsApi.counter(), staleTime: 5 * 60_000 });
   const [cart, setCart] = useState<PosCartLine[]>([]);
   const [customerId, setCustomerId] = useState('');
   const [delivery, setDelivery] = useState<PosDeliveryState>(emptyDelivery());
@@ -191,6 +193,20 @@ export function usePosEngine(config: PosIndustryConfig) {
   const [priceEditId, setPriceEditId] = useState<string | null>(null);
   const selectedCustomer = customers.find((c) => c.id === customerId);
 
+  // The shop's counter rules from Settings; the server checks them again.
+  const rules = useMemo(() => ({
+    negativeStock: !!ls?.allowNegativeStock,
+    requireCustomer: !!ls?.requireCustomerForSale,
+    allowDiscount: ls?.allowDiscount ?? true,
+    maxDiscountPercent: ls?.maxDiscountPercent ?? 100,
+    pinForDiscount: !!ls?.requirePinForDiscount,
+    allowCredit: ls?.allowCredit ?? true,
+    hasPin: !!ls?.hasManagerPin,
+    defaultMethod: (ls?.defaultPaymentMethod as PaymentMethod | undefined) || 'CASH',
+  }), [ls]);
+  const rulesRef = useRef(rules);
+  rulesRef.current = rules;
+
   // A new customer must not inherit the previous customer's receiver.
   useEffect(() => { setReceiver(emptyReceiver()); }, [customerId]);
 
@@ -201,8 +217,6 @@ export function usePosEngine(config: PosIndustryConfig) {
   // ─── Discount code and loyalty points ───
   // The code's discount is checked against the bill (re-checked whenever the
   // bill or customer changes); points pay up to the shop's limits.
-  const { data: settingsData } = useQuery({ queryKey: ['settings'], queryFn: () => settingsApi.get(), staleTime: 5 * 60_000 });
-  const ls = settingsData?.settings;
   const [promo, setPromo] = useState<{ code: string; discount: number; offline?: boolean } | null>(null);
   const [pointsWanted, setPointsWanted] = useState(0);
   const afterManual = Math.max(subtotal - discountAmount, 0);
@@ -263,7 +277,8 @@ export function usePosEngine(config: PosIndustryConfig) {
 
   /* ── Adding lines ── */
   const limitFor = (item: PosItem, opts: AddOptions) =>
-    opts.oversell ? Number.MAX_SAFE_INTEGER : opts.variant?.stock != null ? Number(opts.variant.stock) : item.stock;
+    opts.oversell || rulesRef.current.negativeStock ? Number.MAX_SAFE_INTEGER
+      : opts.variant?.stock != null ? Number(opts.variant.stock) : item.stock;
 
   const pushLine = useCallback((item: PosItem, unit: PosUnitOption, qty: number, opts: AddOptions) => {
     const limit = limitFor(item, opts);
@@ -322,7 +337,7 @@ export function usePosEngine(config: PosIndustryConfig) {
   const addItem = useCallback(async (item: PosItem, opts: AddOptions = {}) => {
     if (config.beforeAdd && config.beforeAdd(item, opts, engineApiRef.current) === 'handled') return;
     if (item.price <= 0 && !opts.variant) { toast.error(`${item.name} ka rate set nahi — pehle product mein rate daalein`); return; }
-    if (!opts.oversell && !opts.variant && item.stock <= 0 && !item.hasVariants) { toast.error(`${item.name} — stock khatam`); return; }
+    if (!opts.oversell && !rulesRef.current.negativeStock && !opts.variant && item.stock <= 0 && !item.hasVariants) { toast.error(`${item.name} — stock khatam`); return; }
 
     if (item.hasVariants && !opts.variant) {
       try {
@@ -340,7 +355,7 @@ export function usePosEngine(config: PosIndustryConfig) {
   const addBundle = useCallback((b: PosBundle, qty = 1) => {
     for (const it of b.items) {
       const p = itemsById.get(it.productId);
-      if (p && p.stock < it.quantity * qty) { toast.error(`${p.name} — stock sirf ${p.stock}, chahiye ${it.quantity * qty}`); return; }
+      if (p && !rulesRef.current.negativeStock && p.stock < it.quantity * qty) { toast.error(`${p.name} — stock sirf ${p.stock}, chahiye ${it.quantity * qty}`); return; }
     }
     setCart((prev) => {
       const existing = prev.find((l) => l.comboId === b.id);
@@ -533,13 +548,14 @@ export function usePosEngine(config: PosIndustryConfig) {
       return { ok: true, text: credit ? 'Udhaar — checkout khul gaya' : 'Checkout khul gaya' };
     }
     if (cmd.kind === 'discount') {
+      if (!rules.allowDiscount) return { ok: false, text: 'Is dukaan me chhoot band hai' };
       if (cmd.pct) { setDiscountMode('pct'); setDiscountPct(Math.min(cmd.pct, 100)); setDiscountRs(0); return { ok: true, text: `${cmd.pct}% discount laga` }; }
       if (cmd.rs) { setDiscountMode('rs'); setDiscountRs(cmd.rs); setDiscountPct(0); return { ok: true, text: `Rs ${cmd.rs} discount laga` }; }
       return { ok: false, text: 'Discount ki raqam samajh nahi aayi' };
     }
     if (cmd.kind === 'clear') { clearCart(); return { ok: true, text: 'Bill saaf' }; }
     return { ok: false, text: `Samjha nahi: "${cmd.text}"` };
-  }, [findVoice, unitsFor, pushLine, cart.length, customerId, clearCart]);
+  }, [findVoice, unitsFor, pushLine, cart.length, customerId, clearCart, rules.allowDiscount]);
 
   /* ── Checkout ── */
   const receiptFor = useCallback((sale: { saleNumber?: string }, paid: number, method: PaymentMethod, credit: number): ReceiptPayload => ({
@@ -568,9 +584,45 @@ export function usePosEngine(config: PosIndustryConfig) {
     footerNote: config.receiptFooter,
   }), [tenant, user, selectedCustomer, receiver, cart, subtotal, discountAmount, codeDiscount, loyaltyDiscount, total, deliveryFee, delivery, config.receiptFooter]);
 
+  /**
+   * Which rule needs the owner's PIN for this bill: a string to ask for it,
+   * null when nothing does, false when the bill cannot go through.
+   */
+  const pinReason = (credit: number): string | null | false => {
+    // Hand discount only; codes and points follow their own rules.
+    const manual = discountAmount;
+    if (manual > 0) {
+      if (!rules.allowDiscount) { toast.error('Is dukaan me haath se chhoot band hai (Settings)'); return false; }
+      const pct = subtotal > 0 ? (manual / subtotal) * 100 : 100;
+      if (pct > rules.maxDiscountPercent + 0.01) {
+        if (!rules.hasPin) { toast.error(`Chhoot ${rules.maxDiscountPercent}% se zyada nahi ho sakti (Settings)`); return false; }
+        return `${rules.maxDiscountPercent}% se zyada chhoot`;
+      }
+      if (rules.pinForDiscount && rules.hasPin) return 'Chhoot';
+    }
+    if (credit > 0 && selectedCustomer) {
+      const limit = Number(selectedCustomer.creditLimit) || 0;
+      if (limit > 0 && (Number(selectedCustomer.balance) || 0) + credit > limit + 0.01) {
+        if (!rules.hasPin) { toast.error(`${selectedCustomer.name} ki credit limit ${formatPKR(limit)} hai`); return false; }
+        return `Credit limit (${formatPKR(limit)}) se zyada udhaar`;
+      }
+    }
+    return null;
+  };
+
   const checkoutMutation = useMutation({
     mutationFn: async (d: PosCheckoutResult) => {
       if (!shopId) throw new Error('Pehle shop chunein');
+      if (rules.requireCustomer && !customerId) { toast.error('Har bill par customer chunna zaroori hai'); throw new Error('Cancelled'); }
+      const credit = Math.max(total - d.paidAmount, 0);
+      const why = pinReason(credit);
+      if (why === false) throw new Error('Cancelled');
+      let managerPin: string | undefined;
+      if (why) {
+        const pin = await askManagerPin(why);
+        if (!pin) throw new Error('Cancelled');
+        managerPin = pin;
+      }
       const items: any[] = [];
       for (const l of cart) {
         if (l.type === 'combo' && l.comboItems) {
@@ -610,6 +662,7 @@ export function usePosEngine(config: PosIndustryConfig) {
         receivedByName: receiver.name.trim() || undefined,
         receivedByPhone: receiver.phone.trim() || undefined,
         items,
+        ...(managerPin && { managerPin }),
       }, { codeDiscount, loyaltyDiscount });
       let deposited = false;
       if (d.depositExtra && customerId && d.paidAmount > total) {
@@ -639,6 +692,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       if (prefs.autoClose) successTimer.current = setTimeout(() => setLastSale(null), 3500);
     },
     onError: (e: unknown) => {
+      if ((e as Error)?.message === 'Cancelled') return;
       if (!navigator.onLine) toast.info('Offline — sale save ho gayi, net aate hi chali jayegi');
       else toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || (e as Error).message || 'Sale nahi hui');
     },
@@ -647,11 +701,17 @@ export function usePosEngine(config: PosIndustryConfig) {
   const instantCash = useCallback(() => {
     if (!cart.length) { toast.error('Bill khaali hai'); return; }
     if (!shopId) { toast.error('Pehle shop chunein'); return; }
+    if (rules.requireCustomer && !customerId) { toast.error('Har bill par customer chunna zaroori hai'); return; }
     if (checkoutMutation.isPending) return;
     checkoutMutation.mutate({ paymentMethod: 'CASH', paidAmount: total, isCredit: false, depositExtra: false });
-  }, [cart.length, shopId, checkoutMutation, total]);
+  }, [cart.length, shopId, checkoutMutation, total, rules.requireCustomer, customerId]);
 
-  const openCheckout = useCallback((mode: PosCheckoutMode = 'full', method?: PaymentMethod) => { if (cart.length) setCheckout({ mode, method }); }, [cart.length]);
+  const openCheckout = useCallback((mode: PosCheckoutMode = 'full', method?: PaymentMethod) => {
+    if (!cart.length) return;
+    if (rules.requireCustomer && !customerId) { toast.error('Har bill par customer chunna zaroori hai'); return; }
+    if (mode !== 'full' && !rules.allowCredit) { toast.error('Is dukaan me udhaar band hai'); return; }
+    setCheckout({ mode, method: method ?? rules.defaultMethod });
+  }, [cart.length, rules, customerId]);
 
   const closeSuccess = useCallback(() => { clearTimeout(successTimer.current); setLastSale(null); }, []);
   useEffect(() => () => clearTimeout(successTimer.current), []);
@@ -678,7 +738,11 @@ export function usePosEngine(config: PosIndustryConfig) {
     // bill
     cart, customers, customerId, setCustomerId, selectedCustomer, receiver, setReceiver, soldById, setSoldById,
     delivery, setDelivery, deliveryFee, discountMode, discountPct, discountRs, discountAmount, subtotal, total, totalSavings, totalQty,
-    setDiscount: (m: PosDiscountMode, p: number, r: number) => { setDiscountMode(m); setDiscountPct(p); setDiscountRs(r); },
+    setDiscount: (m: PosDiscountMode, p: number, r: number) => {
+      if (!rules.allowDiscount && (p > 0 || r > 0)) { toast.error('Is dukaan me haath se chhoot band hai'); return; }
+      setDiscountMode(m); setDiscountPct(p); setDiscountRs(r);
+    },
+    rules,
     promo, applyCode, removeCode: () => setPromo(null), codeDiscount,
     loyalty: { on: loyaltyOn, available: pointsAvailable, max: pointsMax, min: pointsMin, rate: pointRate, used: pointsUsed, wanted: pointsWanted, setWanted: setPointsWanted },
     loyaltyDiscount,

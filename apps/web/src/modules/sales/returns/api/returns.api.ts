@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import { withManagerPin } from '@core/security/ManagerPin';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 
 export interface SaleReturnItem {
@@ -57,6 +58,6 @@ export const returnsApi = {
   list: () => apiClient.get<{ data: SaleReturn[] }>('/returns').then(unwrap),
   getOne: (id: string) =>
     apiClient.get<{ data: SaleReturn }>(`/returns/${id}`).then(unwrap),
-  create: (payload: CreateReturnPayload) =>
-    apiClient.post<{ data: SaleReturn }>('/returns', payload).then(unwrap),
+  create: (payload: CreateReturnPayload) => withManagerPin('Wapsi', (managerPin) =>
+    apiClient.post<{ data: SaleReturn }>('/returns', { ...payload, managerPin }).then(unwrap)),
 };

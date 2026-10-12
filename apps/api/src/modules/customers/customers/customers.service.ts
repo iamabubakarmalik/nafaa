@@ -20,6 +20,9 @@ export class CustomersService {
     // The branch that registers a customer owns them in every branch list.
     // The record itself stays shared — one person, one balance, one loyalty pot.
     const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope);
+    const defaults = dto.creditLimit === undefined
+      ? await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { defaultCreditLimit: true } })
+      : null;
 
     return this.prisma.customer.create({
       data: {
@@ -36,7 +39,7 @@ export class CustomersService {
         dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
         avatarUrl: dto.avatarUrl,
         notes: dto.notes,
-        creditLimit: dto.creditLimit ?? 0,
+        creditLimit: dto.creditLimit ?? defaults?.defaultCreditLimit ?? 0,
         ntn: dto.ntn || undefined,
         isRegistered: dto.isRegistered ?? false,
         isVip: dto.isVip ?? false,

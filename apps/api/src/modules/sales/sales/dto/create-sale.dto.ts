@@ -186,6 +186,13 @@ export class CreateSaleDto {
   @IsBoolean()
   allowCredit?: boolean;
 
+  /** Owner's PIN, when the shop's settings ask for it (discount, credit limit). */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(12)
+  managerPin?: string;
+
   @ApiPropertyOptional({
     description: 'Optional sale-level note (e.g. delivery address)',
   })

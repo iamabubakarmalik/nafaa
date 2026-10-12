@@ -3,7 +3,8 @@ import {
   BadRequestException, Injectable, NotFoundException,
 } from '@nestjs/common';
 import { startOfDay, startOfMonth } from 'date-fns';
-import { SaleSource } from '@prisma/client';
+import { SaleSource, TenantSettings } from '@prisma/client';
+import { requireManagerPin } from '../../../common/helpers/manager-pin.helper';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
@@ -48,6 +49,10 @@ export class SalesService {
       scope,
       dto.shopId,
     );
+    const settings = await this.prisma.tenantSettings.findUnique({
+      where: { tenantId: user.tenantId },
+    });
+    const allowNegativeStock = !!settings?.allowNegativeStock;
 
     // ─── Validate every item has EITHER productId OR usedPhoneId ──
     for (const item of dto.items) {
@@ -295,7 +300,7 @@ export class SalesService {
           );
         }
 
-        addCartNeed(wantByKey, stockKey, quantity, Number(shopStock.stock), { item: itemName, shop: shop.name });
+        addCartNeed(wantByKey, stockKey, quantity, allowNegativeStock ? Infinity : Number(shopStock.stock), { item: itemName, shop: shop.name });
       }
 
       const lineGross = unitPrice * quantity;
@@ -350,10 +355,6 @@ export class SalesService {
     }
 
     // ─── Loyalty ──────────────────────────────────────────────
-    const settings = await this.prisma.tenantSettings.findUnique({
-      where: { tenantId: user.tenantId },
-    });
-
     let loyaltyDiscount = 0;
     let loyaltyPointsUsed = 0;
 
@@ -404,6 +405,12 @@ export class SalesService {
 
     if (creditAmount > 0 && !dto.customerId) {
       throw new BadRequestException('Udhaar sale ke liye customer select karna zaroori hai');
+    }
+    // Online orders were settled on the platform; the counter rules do not apply.
+    if (!origin && settings) {
+      await this.enforceCounterRules(user, settings, dto, {
+        manualDiscount: (dto.discount ?? 0) + totalLineDiscount, subtotal, creditAmount,
+      });
     }
 
     let loyaltyEarned = 0;
@@ -615,7 +622,7 @@ export class SalesService {
 
         // ─── Standard items: decrement ShopStock + global stock ──
         // Atomic: sirf tab ghatao jab abhi bhi kaafi ho (race / offline sync se minus nahi)
-        const updatedShopStock = { stock: await claimShopStock(tx, item.shopStockId!, item.quantity, shop.name) };
+        const updatedShopStock = { stock: await claimShopStock(tx, item.shopStockId!, item.quantity, shop.name, allowNegativeStock) };
 
         if (item.variantId) {
           await tx.productVariant.update({
@@ -981,11 +988,47 @@ export class SalesService {
     };
   }
 
+  /**
+   * The shop's counter settings: customer on every bill, hand discounts (on or
+   * off, a ceiling the owner's PIN can lift, a PIN for any discount), credit
+   * (on or off, each customer's limit that only the PIN can lift).
+   */
+  private async enforceCounterRules(
+    user: AuthenticatedUser,
+    s: TenantSettings,
+    dto: CreateSaleDto,
+    bill: { manualDiscount: number; subtotal: number; creditAmount: number },
+  ) {
+    if (s.requireCustomerForSale && !dto.customerId) {
+      throw new BadRequestException('Har bill par customer chunna zaroori hai (Settings)');
+    }
+    if (bill.manualDiscount > 0) {
+      if (!s.allowDiscount) throw new BadRequestException('Is dukaan me haath se chhoot band hai (Settings)');
+      const percent = bill.subtotal > 0 ? (bill.manualDiscount / bill.subtotal) * 100 : 100;
+      if (percent > s.maxDiscountPercent + 0.01) {
+        await requireManagerPin(this.prisma, user, dto.managerPin, `${s.maxDiscountPercent}% se zyada chhoot`, true);
+      } else if (s.requirePinForDiscount) {
+        await requireManagerPin(this.prisma, user, dto.managerPin, 'Chhoot');
+      }
+    }
+    if (bill.creditAmount > 0) {
+      if (!s.allowCredit) throw new BadRequestException('Is dukaan me udhaar band hai (Settings)');
+      const c = await this.prisma.customer.findFirst({
+        where: { id: dto.customerId!, tenantId: user.tenantId },
+        select: { creditLimit: true, balance: true },
+      });
+      if (c && c.creditLimit > 0 && c.balance + bill.creditAmount > c.creditLimit + 0.01) {
+        await requireManagerPin(this.prisma, user, dto.managerPin, `Credit limit (Rs ${c.creditLimit}) se zyada udhaar`, true);
+      }
+    }
+  }
+
   async voidSale(
     user: AuthenticatedUser,
     scope: ShopScope,
     id: string,
     reason?: string,
+    managerPin?: string,
   ) {
     const sale = await this.prisma.sale.findFirst({
       where: { id, tenantId: user.tenantId, ...scope.where },
@@ -993,6 +1036,8 @@ export class SalesService {
     });
     if (!sale) throw new NotFoundException('Sale not found');
     if (sale.status === 'VOIDED') throw new BadRequestException('Sale already voided');
+    const rules = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { requirePinForVoid: true } });
+    if (rules?.requirePinForVoid) await requireManagerPin(this.prisma, user, managerPin, 'Bill cancel');
     if (!sale.shopId) throw new BadRequestException('Sale has no shop linked — cannot void safely');
 
     return this.prisma.$transaction(async (tx) => {

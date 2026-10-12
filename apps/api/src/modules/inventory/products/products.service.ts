@@ -23,6 +23,9 @@ export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: CreateProductDto) {
+    const defaults = dto.lowStockAlert === undefined
+      ? await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { defaultLowStockAlert: true } })
+      : null;
     if (dto.sku) {
       const existing = await this.prisma.product.findFirst({
         where: { tenantId: user.tenantId, sku: dto.sku },
@@ -74,7 +77,7 @@ export class ProductsService {
           wholesalePrice: dto.wholesalePrice,
           taxRate: dto.taxRate ?? 0,
           stock: dto.stock ?? 0,
-          lowStockAlert: dto.lowStockAlert ?? 5,
+          lowStockAlert: dto.lowStockAlert ?? defaults?.defaultLowStockAlert ?? 5,
           weight: dto.weight,
           weightUnit: dto.weightUnit,
           dimensions: dto.dimensions,
