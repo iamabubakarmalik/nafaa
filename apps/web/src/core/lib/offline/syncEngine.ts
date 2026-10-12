@@ -329,7 +329,7 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
         continue;
       }
 
-      const res = await apiClient.post('/sales', {
+      const body = {
         shopId: sale.shopId, customerId: sale.customerId,
         paymentMethod: sale.paymentMethod, paidAmount: sale.paidAmount,
         discount: sale.discount, serviceCharges: sale.serviceChargesBreakdown,
@@ -339,7 +339,21 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
         receivedByPhone: sale.receivedByPhone,
         receivedByCnic: sale.receivedByCnic,
         items: sale.items,
-      });
+        ...(sale.discountCode && { discountCode: sale.discountCode }),
+        ...(sale.loyaltyPointsToUse && { loyaltyPointsToUse: sale.loyaltyPointsToUse }),
+      };
+      let res;
+      try {
+        res = await apiClient.post('/sales', body);
+      } catch (err: any) {
+        // A code or points accepted offline may be refused now (limit reached,
+        // points spent elsewhere). The customer already paid the counter total,
+        // so send the same rupees as a plain discount instead of losing the bill.
+        const usedPerks = sale.discountCode || sale.loyaltyPointsToUse;
+        if (!usedPerks || err?.response?.status !== 400) throw err;
+        const { discountCode: _c, loyaltyPointsToUse: _p, ...plain } = body as typeof body & { discountCode?: string; loyaltyPointsToUse?: number };
+        res = await apiClient.post('/sales', { ...plain, discount: (sale.discount || 0) + (sale.codeDiscount || 0) + (sale.loyaltyDiscount || 0) });
+      }
 
       const serverSale = res.data?.data;
       await db.pendingSales.update(sale.id, {

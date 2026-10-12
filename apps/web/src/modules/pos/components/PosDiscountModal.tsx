@@ -1,9 +1,10 @@
 /**
  * Bill discount: a percentage, a fixed amount, or "round it off" to the
  * nearest 10/50/100 — the way discounts are usually given at the counter.
+ * Callers can add sections below (discount code, loyalty points).
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { ArrowRight, Percent, Tag } from 'lucide-react';
 import { Button, Modal, Segmented } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
@@ -14,13 +15,15 @@ const PCT = [5, 10, 15, 20, 25, 50];
 const RS = [10, 20, 50, 100, 200, 500];
 const ROUND = [10, 50, 100];
 
-export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onApply, onClose }: {
+export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onApply, onClose, extra }: {
   subtotal: number;
   mode: PosDiscountMode;
   pct: number;
   rs: number;
   onApply: (mode: PosDiscountMode, pct: number, rs: number) => void;
   onClose: () => void;
+  /** Extra sections under the manual discount (discount code, loyalty points). */
+  extra?: ReactNode;
 }) {
   const [mode, setMode] = useState<PosDiscountMode>(initMode);
   const [pct, setPct] = useState(initPct ? String(initPct) : '');
@@ -107,6 +110,7 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
             })}
           </div>
         </div>
+        {extra}
       </div>
     </Modal>
   );

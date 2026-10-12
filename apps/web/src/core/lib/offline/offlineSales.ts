@@ -103,7 +103,8 @@ async function buildItemSnapshots(
 }
 
 export const offlineSalesApi = {
-  create: async (payload: CreateSalePayload): Promise<Sale | PendingSale> => {
+  /** `counter` carries the code and points amounts worked out at the counter, for the offline total. */
+  create: async (payload: CreateSalePayload, counter: { codeDiscount?: number; loyaltyDiscount?: number } = {}): Promise<Sale | PendingSale> => {
     // Compute totals
     const subtotal = payload.items.reduce(
       (sum, it) => sum + (it.priceOverride ?? 0) * it.quantity,
@@ -111,7 +112,7 @@ export const offlineSalesApi = {
     );
     const lineDiscount = payload.items.reduce((s, it) => s + (it.lineDiscount || 0), 0);
     const svcTotal = (payload.serviceCharges || []).reduce((s, c) => s + Number(c.amount || 0), 0);
-    const total = Math.max(subtotal - lineDiscount - (payload.discount || 0) + svcTotal, 0);
+    const total = Math.max(subtotal - lineDiscount - (payload.discount || 0) - (counter.codeDiscount || 0) - (counter.loyaltyDiscount || 0) + svcTotal, 0);
 
     // ─── ONLINE ATTEMPT ───
     if (navigator.onLine) {
@@ -165,6 +166,10 @@ export const offlineSalesApi = {
       paymentMethod: payload.paymentMethod as any,
       paidAmount,
       discount: payload.discount || 0,
+      discountCode: payload.discountCode,
+      loyaltyPointsToUse: payload.loyaltyPointsToUse,
+      codeDiscount: counter.codeDiscount,
+      loyaltyDiscount: counter.loyaltyDiscount,
       serviceCharges: svcTotal || undefined,
       serviceChargesBreakdown:
         payload.serviceCharges && payload.serviceCharges.length > 0
@@ -228,6 +233,11 @@ export const offlineSalesApi = {
     };
 
     await db.pendingSales.add(pending);
+    // Points used offline leave the saved balance now, so they cannot be used twice before sync.
+    if (payload.customerId && payload.loyaltyPointsToUse) {
+      const c = await db.customers.get(payload.customerId);
+      if (c) await db.customers.put({ ...c, loyaltyPoints: Math.max(0, (c.loyaltyPoints ?? 0) - payload.loyaltyPointsToUse) });
+    }
 
     // Local stock decrement (skip used phones)
     for (const raw of payload.items) {

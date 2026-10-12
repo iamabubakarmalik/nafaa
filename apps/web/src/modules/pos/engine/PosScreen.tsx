@@ -24,7 +24,7 @@ import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import {
   PosCartPanel, PosCheckoutModal, PosComboTile, PosCustomerAddModal, PosDiscountModal, PosEmptyState, PosHoldCartsModal,
-  PosItemCard, PosItemRow, PosQuickKeyTile, PosSettingsModal, PosSuccessModal, PosTeacher, PosUnitPickerModal, PosViewTab, PosWeighModal,
+  PosItemCard, PosItemRow, PosPerks, PosQuickKeyTile, PosSettingsModal, PosSuccessModal, PosTeacher, PosUnitPickerModal, PosViewTab, PosWeighModal,
   VariantPicker,
 } from '../components';
 import { PosSellerPicker } from '../components/PosSellerPicker';
@@ -197,7 +197,9 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
       )}
       {discount && (
         <PosDiscountModal subtotal={e.subtotal} mode={e.discountMode} pct={e.discountPct} rs={e.discountRs}
-          onApply={(m, p, r) => { e.setDiscount(m, p, r); setDiscount(false); }} onClose={() => setDiscount(false)} />
+          onApply={(m, p, r) => { e.setDiscount(m, p, r); setDiscount(false); }} onClose={() => setDiscount(false)}
+          extra={<PosPerks promo={e.promo} codeDiscount={e.codeDiscount} onApplyCode={e.applyCode} onRemoveCode={e.removeCode}
+            loyalty={e.loyalty} loyaltyDiscount={e.loyaltyDiscount} customerName={e.selectedCustomer?.name} />} />
       )}
       {heldOpen && (
         <PosHoldCartsModal heldCarts={e.heldCarts} onResume={(h) => { e.resume(h); setHeldOpen(false); }} onDelete={e.deleteHeld} onClose={() => setHeldOpen(false)} />
@@ -402,6 +404,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
           <PosCartPanel key={String(mobile)} isMobile={mobile} onCloseMobile={() => setMobileCart(false)}
             cart={e.cart} itemCount={e.cart.length} totalQty={e.totalQty} subtotal={e.subtotal} total={e.total} totalSavings={e.totalSavings}
             discountMode={e.discountMode} discountPct={e.discountPct} discountRs={e.discountRs} discountAmount={e.discountAmount}
+            extraDiscounts={[{ label: e.promo ? `Code ${e.promo.code}` : 'Code', amount: e.codeDiscount }, { label: `Points (${e.loyalty.used})`, amount: e.loyaltyDiscount }]}
             onOpenDiscount={() => setDiscount(true)} onClearDiscount={() => e.setDiscount(e.discountMode, 0, 0)}
             delivery={e.delivery} onDeliveryChange={e.setDelivery} deliveryFee={e.deliveryFee} hidePrices={hidePrices}
             customers={e.customers} customerId={e.customerId} setCustomerId={e.setCustomerId} selectedCustomer={e.selectedCustomer}

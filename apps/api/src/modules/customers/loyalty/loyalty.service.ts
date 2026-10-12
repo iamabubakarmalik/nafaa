@@ -18,6 +18,12 @@ const KEY = /^\d{4}-\d{2}-\d{2}$/;
 const DAY = 86_400_000;
 const n = (v: unknown) => Number(v ?? 0);
 
+/** Member levels by points held; the page shows the same names. */
+export const TIERS = [
+  { id: 'starter', min: 1 }, { id: 'bronze', min: 100 }, { id: 'silver', min: 500 },
+  { id: 'gold', min: 1000 }, { id: 'platinum', min: 2000 }, { id: 'diamond', min: 5000 },
+] as const;
+
 /** Points that are older than `cutoff` and still unspent, using oldest-first. */
 export function pointsToExpire(entries: Array<{ points: number; createdAt: Date }>, cutoff: Date): number {
   const lots: Array<{ left: number; at: Date }> = [];
@@ -60,7 +66,10 @@ export class LoyaltyService {
     const r = await this.range(tenantId, q.from, q.to);
     const shopId = scope.shopId ?? undefined;
     const txWhere = { tenantId, createdAt: { ...(r.gte && { gte: r.gte }), lt: r.lt }, ...(shopId && { shopId }) };
-    const [settings, outstanding, members, byType, txs, byShop, shops, sales] = await Promise.all([
+    const tierCounts = Promise.all(TIERS.map((t, i) => this.prisma.customer.count({
+      where: { tenantId, loyaltyPoints: { gte: t.min, ...(TIERS[i + 1] && { lt: TIERS[i + 1].min }) } },
+    })));
+    const [settings, outstanding, members, byType, txs, byShop, shops, sales, tiers] = await Promise.all([
       this.prisma.tenantSettings.findUnique({ where: { tenantId } }),
       this.prisma.customer.aggregate({ where: { tenantId, loyaltyPoints: { gt: 0 } }, _sum: { loyaltyPoints: true }, _count: { _all: true } }),
       this.prisma.customer.count({ where: { tenantId, isActive: true } }),
@@ -72,6 +81,7 @@ export class LoyaltyService {
         where: { tenantId, status: { not: 'VOIDED' }, soldAt: { ...(r.gte && { gte: r.gte }), lt: r.lt }, ...(shopId && { shopId }) },
         _sum: { loyaltyDiscount: true, total: true }, _count: { _all: true },
       }),
+      tierCounts,
     ]);
     const rate = settings?.loyaltyRedemptionRate ?? 1;
     const sum = (t: string) => Math.abs(n(byType.find((b) => b.type === t)?._sum.points));
@@ -117,6 +127,7 @@ export class LoyaltyService {
       },
       trend: [...buckets.values()].sort((a, b) => a.key.localeCompare(b.key)),
       branches: [...branchMap.values()].sort((a, b) => b.issued - a.issued),
+      tiers: TIERS.map((t, i) => ({ id: t.id, min: t.min, count: tiers[i] })),
     };
   }
 

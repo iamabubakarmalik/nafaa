@@ -40,6 +40,8 @@ interface PosCartPanelProps {
   discountPct: number;
   discountRs: number;
   discountAmount: number;
+  /** Discount code and points taken off the bill, shown as their own lines. */
+  extraDiscounts?: Array<{ label: string; amount: number }>;
   onOpenDiscount: () => void;
   onClearDiscount: () => void;
   delivery?: PosDeliveryState;
@@ -85,7 +87,7 @@ const QUICK: Array<{ label: string; icon: typeof CreditCard; color: string; q: P
 export function PosCartPanel(props: PosCartPanelProps) {
   const {
     isMobile, onCloseMobile, cart, itemCount, totalQty, subtotal, total, totalSavings,
-    discountMode, discountPct, discountAmount, onOpenDiscount, onClearDiscount,
+    discountMode, discountPct, discountAmount, extraDiscounts = [], onOpenDiscount, onClearDiscount,
     delivery, onDeliveryChange, deliveryFee = 0, hidePrices,
     customers, customerId, setCustomerId, selectedCustomer, onAddCustomer, receiver, onReceiverChange, customerExtra,
     onHold, onClear, onChangeQty, onSetQty, onRemove, priceEditId, onStartPriceEdit, onSetPrice,
@@ -195,6 +197,9 @@ export function PosCartPanel(props: PosCartPanelProps) {
               )}
               {totalSavings > 0 && <div className="flex justify-between text-success-700"><dt className="inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" />Combo bachat</dt><dd className="tabular-nums">{money(totalSavings, hidePrices)}</dd></div>}
               {hasDiscount && <div className="flex justify-between text-amber-700"><dt>Discount</dt><dd className="tabular-nums">−{money(discountAmount, hidePrices)}</dd></div>}
+              {extraDiscounts.filter((x) => x.amount > 0).map((x) => (
+                <div key={x.label} className="flex justify-between text-violet-700"><dt>{x.label}</dt><dd className="tabular-nums">−{money(x.amount, hidePrices)}</dd></div>
+              ))}
               {deliveryFee > 0 && <div className="flex justify-between text-slate-600"><dt>Delivery</dt><dd className="tabular-nums">+{money(deliveryFee, hidePrices)}</dd></div>}
             </dl>
             <div className={cn('flex items-end justify-between', (hasDiscount || deliveryFee > 0 || totalSavings > 0) && 'mt-2 border-t border-dashed border-slate-300 pt-2')}>

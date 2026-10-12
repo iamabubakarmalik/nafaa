@@ -191,6 +191,11 @@ export interface PendingSale {
   paymentMethod: 'CASH' | 'JAZZCASH' | 'EASYPAISA' | 'BANK' | 'CREDIT' | 'OTHER' | 'CARD' | 'BANK_TRANSFER';
   paidAmount: number;
   discount: number;
+  /** Discount code and points used on the bill, with their rupee amounts at the counter. */
+  discountCode?: string;
+  loyaltyPointsToUse?: number;
+  codeDiscount?: number;
+  loyaltyDiscount?: number;
   serviceCharges?: number;
   serviceChargesBreakdown?: any[] | null;
 

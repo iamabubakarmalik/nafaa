@@ -69,6 +69,9 @@ export interface TenantSettings {
   enableLoyalty: boolean;
   loyaltyPointsPerRupee: number;
   loyaltyRedemptionRate: number;
+  loyaltyMinRedeem?: number;
+  loyaltyMaxRedeemPercent?: number;
+  loyaltyExpiryDays?: number;
   autoCreateCustomer: boolean;
   emailNotifications: boolean;
   smsNotifications: boolean;

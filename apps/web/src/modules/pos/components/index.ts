@@ -11,6 +11,7 @@ export { PosReceiverField, emptyReceiver, type PosReceiverValue } from './PosRec
 export { PosSettingsModal } from './PosSettingsModal';
 export { PosCheckoutModal } from './PosCheckoutModal';
 export { PosDiscountModal } from './PosDiscountModal';
+export { PosPerks } from './PosPerks';
 export { PosUnitPickerModal } from './PosUnitPickerModal';
 export { PosWeighModal } from './PosWeighModal';
 export { PosCartPanel, PosCartRow } from './PosCartPanel';

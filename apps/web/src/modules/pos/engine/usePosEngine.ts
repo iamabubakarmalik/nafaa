@@ -17,6 +17,8 @@ import { offlineProductsApi } from '@core/lib/offline/offlineProducts';
 import { useCustomerDisplayFeed } from '@core/hardware/customerDisplay';
 import { formatPKR } from '@core/lib/format';
 import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.api';
+import { discountsApi } from '@modules/sales/discounts/api/discounts.api';
+import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { productUnitsApi } from '@modules/inventory/products/api/product-units.api';
 import { productVariantsApi, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
@@ -195,7 +197,44 @@ export function usePosEngine(config: PosIndustryConfig) {
   const subtotal = useMemo(() => cart.reduce((s, l) => s + l.lineTotal, 0), [cart]);
   const discountAmount = discountMode === 'pct' ? (subtotal * discountPct) / 100 : Math.min(discountRs || 0, subtotal);
   const deliveryFee = deliveryAmount(delivery);
-  const total = Math.max(subtotal - discountAmount, 0) + deliveryFee;
+
+  // ─── Discount code and loyalty points ───
+  // The code's discount is checked against the bill (re-checked whenever the
+  // bill or customer changes); points pay up to the shop's limits.
+  const { data: settingsData } = useQuery({ queryKey: ['settings'], queryFn: () => settingsApi.get(), staleTime: 5 * 60_000 });
+  const ls = settingsData?.settings;
+  const [promo, setPromo] = useState<{ code: string; discount: number; offline?: boolean } | null>(null);
+  const [pointsWanted, setPointsWanted] = useState(0);
+  const afterManual = Math.max(subtotal - discountAmount, 0);
+  const codeDiscount = promo ? Math.min(promo.discount, afterManual) : 0;
+  const loyaltyOn = !!ls?.enableLoyalty && !!selectedCustomer;
+  const pointRate = ls?.loyaltyRedemptionRate || 1;
+  const pointsAvailable = loyaltyOn ? Number(selectedCustomer?.loyaltyPoints ?? 0) : 0;
+  const pointsMax = loyaltyOn
+    ? Math.max(0, Math.min(pointsAvailable, Math.floor(((afterManual - codeDiscount) * Math.min(100, ls?.loyaltyMaxRedeemPercent ?? 100) / 100) / pointRate)))
+    : 0;
+  const pointsMin = ls?.loyaltyMinRedeem ?? 0;
+  const pointsUsed = Math.min(pointsWanted, pointsMax) >= Math.max(1, pointsMin) ? Math.min(pointsWanted, pointsMax) : 0;
+  const loyaltyDiscount = pointsUsed * pointRate;
+  const total = Math.max(afterManual - codeDiscount - loyaltyDiscount, 0) + deliveryFee;
+
+  useEffect(() => { setPointsWanted(0); }, [customerId]);
+  const promoCode = promo?.code;
+  useEffect(() => {
+    if (!promoCode) return;
+    let alive = true;
+    const t = setTimeout(() => {
+      discountsApi.validate(promoCode, subtotal, { customerId: customerId || undefined, shopId })
+        .then((v) => { if (alive) setPromo({ code: v.code, discount: v.discount, offline: v.offline }); })
+        .catch((e: Error) => { if (alive) { setPromo(null); toast.error(`Code ${promoCode} hata diya: ${e.message}`); } });
+    }, 300);
+    return () => { alive = false; clearTimeout(t); };
+  }, [promoCode, subtotal, customerId, shopId]);
+  const applyCode = useCallback(async (code: string) => {
+    const v = await discountsApi.validate(code, subtotal, { customerId: customerId || undefined, shopId });
+    setPromo({ code: v.code, discount: v.discount, offline: v.offline });
+    return v;
+  }, [subtotal, customerId, shopId]);
   const totalSavings = useMemo(() => cart.reduce((s, l) => s + (l.savings || 0) * l.quantity, 0), [cart]);
   const totalQty = useMemo(() => cart.reduce((s, l) => s + l.quantity, 0), [cart]);
   const inCartBy = useMemo(() => {
@@ -210,7 +249,7 @@ export function usePosEngine(config: PosIndustryConfig) {
   useCustomerDisplayFeed({
     shopName: tenant?.name || 'Shop',
     items: cart.map((l) => ({ name: l.name, qty: `${l.quantity} ${l.unitLabel || l.unitName}`, total: l.lineTotal })),
-    subtotal, discount: discountAmount, total,
+    subtotal, discount: discountAmount + codeDiscount + loyaltyDiscount, total,
   });
 
   /* ── Modals ── */
@@ -368,7 +407,7 @@ export function usePosEngine(config: PosIndustryConfig) {
   };
   const clearCart = useCallback(() => {
     setCart([]); setCustomerId(''); setDiscountPct(0); setDiscountRs(0);
-    setDelivery(emptyDelivery()); setReceiver(emptyReceiver());
+    setDelivery(emptyDelivery()); setReceiver(emptyReceiver()); setPromo(null); setPointsWanted(0);
   }, []);
 
   const hold = () => {
@@ -518,7 +557,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       qty: l.quantity, unit: l.unitName, price: l.unitPrice, total: l.lineTotal,
       note: [l.serialNumber ? `S/N ${l.serialNumber}` : '', l.imei ? `IMEI ${l.imei}` : '', l.warrantyMonths ? `Warranty ${l.warrantyMonths} mahine` : ''].filter(Boolean).join(' · ') || undefined,
     })),
-    subtotal, discount: discountAmount, total,
+    subtotal, discount: discountAmount + codeDiscount + loyaltyDiscount, total,
     deliveryCharge: deliveryFee || undefined,
     riderDelivery: deliveryRiderAmount(delivery) || undefined,
     deliveryAddress: delivery.on ? delivery.address || undefined : undefined,
@@ -527,7 +566,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       : `Paid (${POS_PAYMENT_METHODS.find((m) => m.id === method)?.label ?? method})`,
     cashierName: user?.fullName,
     footerNote: config.receiptFooter,
-  }), [tenant, user, selectedCustomer, receiver, cart, subtotal, discountAmount, total, deliveryFee, delivery, config.receiptFooter]);
+  }), [tenant, user, selectedCustomer, receiver, cart, subtotal, discountAmount, codeDiscount, loyaltyDiscount, total, deliveryFee, delivery, config.receiptFooter]);
 
   const checkoutMutation = useMutation({
     mutationFn: async (d: PosCheckoutResult) => {
@@ -565,11 +604,13 @@ export function usePosEngine(config: PosIndustryConfig) {
         soldById,
         paidAmount,
         discount: discountAmount,
+        discountCode: promo?.code,
+        loyaltyPointsToUse: pointsUsed || undefined,
         serviceCharges: deliveryServiceCharge(delivery),
         receivedByName: receiver.name.trim() || undefined,
         receivedByPhone: receiver.phone.trim() || undefined,
         items,
-      });
+      }, { codeDiscount, loyaltyDiscount });
       let deposited = false;
       if (d.depositExtra && customerId && d.paidAmount > total) {
         try {
@@ -638,6 +679,9 @@ export function usePosEngine(config: PosIndustryConfig) {
     cart, customers, customerId, setCustomerId, selectedCustomer, receiver, setReceiver, soldById, setSoldById,
     delivery, setDelivery, deliveryFee, discountMode, discountPct, discountRs, discountAmount, subtotal, total, totalSavings, totalQty,
     setDiscount: (m: PosDiscountMode, p: number, r: number) => { setDiscountMode(m); setDiscountPct(p); setDiscountRs(r); },
+    promo, applyCode, removeCode: () => setPromo(null), codeDiscount,
+    loyalty: { on: loyaltyOn, available: pointsAvailable, max: pointsMax, min: pointsMin, rate: pointRate, used: pointsUsed, wanted: pointsWanted, setWanted: setPointsWanted },
+    loyaltyDiscount,
     priceEditId, setPriceEditId, changeQty, setQty, setPrice, removeLine, decrementItem, clearCart,
     heldCarts, hold, resume, deleteHeld,
     // actions
