@@ -146,7 +146,8 @@ export function CategoryField({ value, onChange, suggestions, error }: {
     onError: (e: Error) => toast.error(e.message || 'Category nahi bani'),
   });
   const term = q.trim().toLowerCase();
-  const shown = data.filter((c) => !term || c.name.toLowerCase().includes(term));
+  // Switched-off categories are not offered, unless this product already has one.
+  const shown = data.filter((c) => (c.isActive !== false || c.id === value) && (!term || c.name.toLowerCase().includes(term)));
   const exact = data.some((c) => c.name.toLowerCase() === term);
   const missing = (suggestions ?? []).filter((s) => !data.some((c) => c.name.toLowerCase() === s.toLowerCase())).slice(0, 6);
   return (
@@ -190,7 +191,8 @@ export function BrandField({ value, onChange }: { value: string | null; onChange
     onSuccess: (b: { id: string; name: string }) => { qc.invalidateQueries({ queryKey: ['brands'] }); onChange(b.id); setAdding(''); toast.success(`Brand "${b.name}" ban gaya`); },
     onError: (e: Error) => toast.error(e.message || 'Brand nahi bana'),
   });
-  const list = (Array.isArray(data) ? data : (data as { items?: Array<{ id: string; name: string }> }).items ?? []) as Array<{ id: string; name: string }>;
+  const all = (Array.isArray(data) ? data : (data as { items?: Array<{ id: string; name: string; isActive?: boolean }> }).items ?? []) as Array<{ id: string; name: string; isActive?: boolean }>;
+  const list = all.filter((b) => b.isActive !== false || b.id === value);
   return (
     <Field label="Brand">
       {(id) => (

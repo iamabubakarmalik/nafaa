@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateCategoryDto {
   @ApiProperty({ example: 'Bakery Items' })
@@ -14,9 +14,16 @@ export class CreateCategoryDto {
   @MaxLength(20)
   color?: string;
 
-  @ApiPropertyOptional({ example: 'cake' })
+  @ApiPropertyOptional({ example: '🎂' })
   @IsOptional()
   @IsString()
   @MaxLength(40)
   icon?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }
+
+export class UpdateCategoryDto extends PartialType(CreateCategoryDto) {}

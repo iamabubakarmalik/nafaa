@@ -20,12 +20,13 @@ function readPrefs(): Prefs {
 
 const EMPTY: Omit<CatalogFilters, 'sort'> = { stock: 'all', active: 'active' };
 
-export function useCatalog() {
+/** `initial` sets the first filters, e.g. from a link like /products?categoryId=… */
+export function useCatalog(initial?: Pick<CatalogFilters, 'categoryId' | 'brandId' | 'tagId'>) {
   const qc = useQueryClient();
   const saved = useMemo(readPrefs, []);
   const [view, setView] = useState<View>(saved.view);
   const [sort, setSort] = useState<CatalogSort>(saved.sort);
-  const [f, setF] = useState<Omit<CatalogFilters, 'sort' | 'search'>>(EMPTY);
+  const [f, setF] = useState<Omit<CatalogFilters, 'sort' | 'search'>>(() => ({ ...EMPTY, ...initial }));
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());

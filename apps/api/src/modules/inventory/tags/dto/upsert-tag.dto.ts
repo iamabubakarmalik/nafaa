@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class UpsertTagDto {
@@ -11,5 +11,8 @@ export class UpsertTagDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(20)
   color?: string;
 }
+
+export class UpdateTagDto extends PartialType(UpsertTagDto) {}

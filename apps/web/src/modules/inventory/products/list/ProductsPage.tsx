@@ -8,7 +8,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   AlertTriangle, ArrowDownWideNarrow, BarChart3, Boxes, CalendarClock, Check, CloudOff, Download, FileUp, Filter, GraduationCap,
@@ -67,7 +67,12 @@ function FilterChip({ children, onRemove }: { children: React.ReactNode; onRemov
 }
 
 export function ProductsPage({ config }: { config: ProductsPageConfig }) {
-  const c = useCatalog();
+  const [params] = useSearchParams();
+  const c = useCatalog({
+    categoryId: params.get('categoryId') ?? undefined,
+    brandId: params.get('brandId') ?? undefined,
+    tagId: params.get('tagId') ?? undefined,
+  });
   const navigate = useNavigate();
   const { sales: money, cost, costHidden } = useMasked();
   const tenantName = useAuthStore((s) => s.tenant?.name);

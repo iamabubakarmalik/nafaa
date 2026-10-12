@@ -4,7 +4,8 @@ import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { BrandsService } from './brands.service';
-import { UpsertBrandDto } from './dto/upsert-brand.dto';
+import { UpdateBrandDto, UpsertBrandDto } from './dto/upsert-brand.dto';
+import { MergeTaxonomyDto } from '../taxonomy/merge.dto';
 
 @ApiTags('Brands')
 @ApiBearerAuth()
@@ -18,6 +19,11 @@ export class BrandsController {
     return this.service.list(user, search);
   }
 
+  @Get('insights')
+  insights(@GetUser() user: AuthenticatedUser, @Query('from') from?: string, @Query('to') to?: string) {
+    return this.service.insights(user, from, to);
+  }
+
   @Get(':id')
   getOne(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.service.getOne(user, id);
@@ -29,8 +35,13 @@ export class BrandsController {
   }
 
   @Patch(':id')
-  update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertBrandDto) {
+  update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateBrandDto) {
     return this.service.update(user, id, dto);
+  }
+
+  @Post(':id/merge')
+  merge(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: MergeTaxonomyDto) {
+    return this.service.merge(user, id, dto.intoId);
   }
 
   @Delete(':id')

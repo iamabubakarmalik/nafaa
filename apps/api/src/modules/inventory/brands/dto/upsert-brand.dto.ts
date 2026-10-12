@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 export class UpsertBrandDto {
@@ -53,3 +53,5 @@ export class UpsertBrandDto {
   @ApiPropertyOptional({ description: 'Demo/chalana sikhana brand ki taraf se shamil hai?' })
   @IsOptional() @IsBoolean() demoIncluded?: boolean;
 }
+
+export class UpdateBrandDto extends PartialType(UpsertBrandDto) {}
