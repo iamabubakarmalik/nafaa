@@ -697,14 +697,14 @@ model User {
   platformDiscounts   PlatformDiscount[]      @relation("UserPlatformDiscounts")
   staffProfile        Staff?                  @relation("StaffUser")
 
-  @@index([tenantId])
-  @@index([tenantId, role])
-  @@index([shopId])
-
   commissionRules       CommissionRule[]       @relation("CommissionRuleUser")
   commissionEnrollments CommissionEnrollment[] @relation("CommissionEnrollmentUser")
   commissionPayouts     CommissionPayout[]     @relation("CommissionPayoutUser")
   soldSales             Sale[]                 @relation("UserSoldSales")
+
+  @@index([tenantId])
+  @@index([tenantId, role])
+  @@index([shopId])
 }
 
 model OnboardingProgress {
@@ -1184,6 +1184,9 @@ model LoyaltyTransaction {
   balanceAfter Int
   reference    String?
   note         String?
+  /// Branch and bill behind the entry, for branch reports and reversing on void.
+  shopId       String?
+  saleId       String?
   createdAt    DateTime               @default(now())
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1192,25 +1195,31 @@ model LoyaltyTransaction {
   @@index([tenantId])
   @@index([customerId])
   @@index([customerId, createdAt])
+  @@index([tenantId, createdAt])
+  @@index([saleId])
 }
 
 model DiscountCode {
-  id          String       @id @default(uuid())
-  tenantId    String
-  createdById String?
-  code        String
-  description String?
-  type        DiscountType @default(PERCENTAGE)
-  value       Float
-  minPurchase Float        @default(0)
-  maxDiscount Float?
-  usageLimit  Int?
-  usageCount  Int          @default(0)
-  validFrom   DateTime?
-  validUntil  DateTime?
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id               String       @id @default(uuid())
+  tenantId         String
+  createdById      String?
+  code             String
+  description      String?
+  type             DiscountType @default(PERCENTAGE)
+  value            Float
+  minPurchase      Float        @default(0)
+  maxDiscount      Float?
+  usageLimit       Int?
+  usageCount       Int          @default(0)
+  /// How many times one customer may use the code; null = no limit.
+  perCustomerLimit Int?
+  /// Branches the code works at; empty = every branch.
+  shopIds          String[]     @default([])
+  validFrom        DateTime?
+  validUntil       DateTime?
+  isActive         Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   tenant    Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdBy User?  @relation("UserDiscounts", fields: [createdById], references: [id], onDelete: SetNull)
@@ -1238,6 +1247,9 @@ model Sale {
   discountCode            String?
   loyaltyUsed             Int           @default(0)
   loyaltyEarned           Int           @default(0)
+  /// Rupees taken off by the discount code and by redeemed points (both are inside `discount`).
+  codeDiscount            Float         @default(0)
+  loyaltyDiscount         Float         @default(0)
   total                   Float
   costOfGoods             Float         @default(0)
   paidAmount              Float
@@ -1994,21 +2006,21 @@ model TenantSettings {
   establishedDate DateTime?
 
   // ===== 2. LOCALIZATION =====
-  language       String   @default("roman_ur") // ur, en, roman_ur
-  currency       String   @default("PKR")
-  currencySymbol String   @default("Rs")
-  timezone       String   @default("Asia/Karachi")
-  dateFormat     String   @default("DD/MM/YYYY")
+  language       String @default("roman_ur") // ur, en, roman_ur
+  currency       String @default("PKR")
+  currencySymbol String @default("Rs")
+  timezone       String @default("Asia/Karachi")
+  dateFormat     String @default("DD/MM/YYYY")
 
   /// Karobari din kis ghante shuru hota hai (0–23, maqami waqt).
   /// 0 = raat 12 baje (aam). Jo dukaan raat 2 baje band karti hai wo
   /// 4 ya 6 rakh sakti hai — phir raat 1 baje ki bikri usi din me
   /// girti hai jis din dukaan khuli thi, agle din me nahi.
-  businessDayStartHour Int @default(0)
-  firstDayOfWeek String   @default("monday")
-  openTime       String? // "09:00"
-  closeTime      String? // "22:00"
-  workingDays    String[] @default(["mon", "tue", "wed", "thu", "fri", "sat"])
+  businessDayStartHour Int      @default(0)
+  firstDayOfWeek       String   @default("monday")
+  openTime             String? // "09:00"
+  closeTime            String? // "22:00"
+  workingDays          String[] @default(["mon", "tue", "wed", "thu", "fri", "sat"])
 
   // ===== 3. TAX & PRICING =====
   enableTax     Boolean @default(false)
@@ -2057,13 +2069,19 @@ model TenantSettings {
   reorderPoint         Int     @default(5)
 
   // ===== 7. CUSTOMER & UDHAAR =====
-  allowCredit           Boolean @default(true)
-  defaultCreditLimit    Float   @default(0)
-  creditOverdueDays     Int     @default(30)
-  enableLoyalty         Boolean @default(false)
-  loyaltyPointsPerRupee Float   @default(0.01) // 1 point per Rs 100
-  loyaltyRedemptionRate Float   @default(1) // 1 point = Rs 1
-  autoCreateCustomer    Boolean @default(false)
+  allowCredit             Boolean @default(true)
+  defaultCreditLimit      Float   @default(0)
+  creditOverdueDays       Int     @default(30)
+  enableLoyalty           Boolean @default(false)
+  loyaltyPointsPerRupee   Float   @default(0.01) // 1 point per Rs 100
+  loyaltyRedemptionRate   Float   @default(1) // 1 point = Rs 1
+  /// Fewest points that can be redeemed at once; 0 = any.
+  loyaltyMinRedeem        Int     @default(0)
+  /// Most of a bill that points may pay, in percent.
+  loyaltyMaxRedeemPercent Float   @default(100)
+  /// Points lapse this many days after they are earned; 0 = never.
+  loyaltyExpiryDays       Int     @default(0)
+  autoCreateCustomer      Boolean @default(false)
 
   // ===== 8. NOTIFICATIONS =====
   emailNotifications    Boolean @default(true)
@@ -2249,13 +2267,13 @@ model Staff {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  shop           Shop?           @relation(fields: [shopId], references: [id], onDelete: SetNull)
-  user           User?           @relation("StaffUser", fields: [userId], references: [id], onDelete: SetNull)
-  attendances    Attendance[]
-  leaves         StaffLeave[]
-  salaryPayments SalaryPayment[]
-  documents      StaffDocument[]
+  tenant                Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop                  Shop?                  @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  user                  User?                  @relation("StaffUser", fields: [userId], references: [id], onDelete: SetNull)
+  attendances           Attendance[]
+  leaves                StaffLeave[]
+  salaryPayments        SalaryPayment[]
+  documents             StaffDocument[]
   commissionEnrollments CommissionEnrollment[]
 
   @@unique([tenantId, staffNumber])
@@ -2265,28 +2283,29 @@ model Staff {
   @@index([userId])
 }
 
-/* ═════════════════════════════════════════════════════════════
-   COMMISSION — bandon ka hissa
-   ─────────────────────────────────────────────────────────────
-   Teen table:
-     CommissionRule       — hisab ka tareeqa (bikri/munafa/bill par)
-     CommissionEnrollment — kis bande par chaalu hai
-     CommissionPayout     — kis mahine kitna ada kiya
-
-   Hisab khud kahin store nahi hota — har dafa asli bikri se banta
-   hai. Is ka faida: purana bill void ho jaye ya wapsi ho, to
-   commission apne aap theek ho jati hai.
-   ═════════════════════════════════════════════════════════════ */
+/**
+ * ═════════════════════════════════════════════════════════════
+ * COMMISSION — bandon ka hissa
+ * ─────────────────────────────────────────────────────────────
+ * Teen table:
+ * CommissionRule       — hisab ka tareeqa (bikri/munafa/bill par)
+ * CommissionEnrollment — kis bande par chaalu hai
+ * CommissionPayout     — kis mahine kitna ada kiya
+ * Hisab khud kahin store nahi hota — har dafa asli bikri se banta
+ * hai. Is ka faida: purana bill void ho jaye ya wapsi ho, to
+ * commission apne aap theek ho jati hai.
+ * ═════════════════════════════════════════════════════════════
+ */
 
 enum CommissionBasis {
-  SALE     // bikri ka %
-  PROFIT   // munafa ka %
+  SALE // bikri ka %
+  PROFIT // munafa ka %
   PER_BILL // har bill par fixed raqam
 }
 
 enum CommissionValueType {
   PERCENT // value = %
-  FIXED   // value = rupay
+  FIXED // value = rupay
 }
 
 model CommissionRule {

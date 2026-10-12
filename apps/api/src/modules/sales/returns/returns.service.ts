@@ -457,6 +457,29 @@ export class ReturnsService {
         }
       }
 
+      // ─── Points and spend ──────────────────────────────────
+      // Returned goods take back their share of the points earned on the bill.
+      if (sale.customerId && sale.total > 0) {
+        const c = await tx.customer.findUnique({ where: { id: sale.customerId }, select: { loyaltyPoints: true } });
+        if (c) {
+          const share = Math.floor(Number(sale.loyaltyEarned ?? 0) * Math.min(1, refundAmount / sale.total));
+          const back = Math.min(share, c.loyaltyPoints);
+          const { loyaltyPoints } = await tx.customer.update({
+            where: { id: sale.customerId },
+            data: { loyaltyPoints: { decrement: back }, totalSpent: { decrement: refundAmount } },
+            select: { loyaltyPoints: true },
+          });
+          if (back > 0) {
+            await tx.loyaltyTransaction.create({
+              data: {
+                tenantId: user.tenantId, customerId: sale.customerId, type: 'ADJUSTMENT', shopId: sale.shopId, saleId: sale.id,
+                points: -back, balanceAfter: loyaltyPoints, reference: returnNumber, note: 'Maal wapas — points wapas liye',
+              },
+            });
+          }
+        }
+      }
+
       // ─── Cash register adjustment ──────────────────────────
       if (dto.refundMethod === 'CASH' && sale.cashRegisterId) {
         const register = await tx.cashRegister.findFirst({

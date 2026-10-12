@@ -23,6 +23,9 @@ export interface SaleOrigin {
   sourceRef?: string | null;
 }
 
+/** Number or zero, for optional numeric columns. */
+const n0 = (v: unknown) => Number(v ?? 0);
+
 @Injectable()
 export class SalesService {
   constructor(private readonly prisma: PrismaService,
@@ -334,10 +337,13 @@ export class SalesService {
     let discountCodeId: string | undefined;
     let discountCodeStr: string | undefined;
 
+    let codeDiscount = 0;
     if (dto.discountCode) {
       const validated = await this.discounts.validate(
         user, dto.discountCode, subtotal - totalLineDiscount,
+        { shopId: sellingShopId, customerId: dto.customerId },
       );
+      codeDiscount = validated.discount;
       discount += validated.discount;
       discountCodeId = validated.id;
       discountCodeStr = validated.code;
@@ -357,10 +363,18 @@ export class SalesService {
       });
       if (!customer) throw new NotFoundException('Customer not found');
       if (dto.loyaltyPointsToUse > customer.loyaltyPoints) {
-        throw new BadRequestException(`Insufficient loyalty points (have ${customer.loyaltyPoints})`);
+        throw new BadRequestException(`Itne points nahi hain (sirf ${customer.loyaltyPoints})`);
       }
-      loyaltyDiscount = dto.loyaltyPointsToUse * settings.loyaltyRedemptionRate;
-      loyaltyPointsUsed = dto.loyaltyPointsToUse;
+      if (settings.loyaltyMinRedeem > 0 && dto.loyaltyPointsToUse < settings.loyaltyMinRedeem) {
+        throw new BadRequestException(`Kam se kam ${settings.loyaltyMinRedeem} points istemal ho sakte hain`);
+      }
+      // Points may pay at most the configured share of what is left of the bill,
+      // and never more than the bill itself.
+      const rate = settings.loyaltyRedemptionRate || 1;
+      const payable = Math.max(subtotal - discount, 0) * Math.min(100, Math.max(0, settings.loyaltyMaxRedeemPercent ?? 100)) / 100;
+      const usable = Math.min(dto.loyaltyPointsToUse, Math.floor(payable / rate));
+      loyaltyPointsUsed = Math.max(0, usable);
+      loyaltyDiscount = loyaltyPointsUsed * rate;
     }
 
     const totalDiscount = discount + loyaltyDiscount;
@@ -427,6 +441,8 @@ export class SalesService {
           discount: totalDiscount,
           loyaltyUsed: loyaltyPointsUsed,
           loyaltyEarned,
+          codeDiscount,
+          loyaltyDiscount,
           total,
           costOfGoods: costOfGoods + serviceChargesCost,
           paidAmount,
@@ -627,10 +643,13 @@ export class SalesService {
       }
 
       if (discountCodeId) {
-        await tx.discountCode.update({
-          where: { id: discountCodeId },
+        // Count the use only while under the limit, in one statement, so two
+        // counters cannot both take the last use.
+        const used = await tx.discountCode.updateMany({
+          where: { id: discountCodeId, OR: [{ usageLimit: null }, { usageCount: { lt: tx.discountCode.fields.usageLimit } }] },
           data: { usageCount: { increment: 1 } },
         });
+        if (!used.count) throw new BadRequestException('Is code ki had poori ho chuki hai');
       }
 
       if (creditAmount > 0 && customer) {
@@ -661,31 +680,37 @@ export class SalesService {
       }
 
       if (customer) {
-        let newPoints = customer.loyaltyPoints;
+        // Points move with atomic increments; a redemption checks and deducts
+        // in one statement so the same points cannot be spent twice.
         if (loyaltyPointsUsed > 0) {
-          newPoints -= loyaltyPointsUsed;
+          const spent = await tx.customer.updateMany({
+            where: { id: customer.id, loyaltyPoints: { gte: loyaltyPointsUsed } },
+            data: { loyaltyPoints: { decrement: loyaltyPointsUsed } },
+          });
+          if (!spent.count) throw new BadRequestException('Itne points nahi hain');
+          const { loyaltyPoints } = await tx.customer.findUniqueOrThrow({ where: { id: customer.id }, select: { loyaltyPoints: true } });
           await tx.loyaltyTransaction.create({
             data: {
-              tenantId: user.tenantId, customerId: customer.id, type: 'REDEEMED',
-              points: -loyaltyPointsUsed, balanceAfter: newPoints,
-              reference: sale.saleNumber, note: `Redeemed for Rs ${loyaltyDiscount.toFixed(2)}`,
+              tenantId: user.tenantId, customerId: customer.id, type: 'REDEEMED', shopId: sellingShopId, saleId: sale.id,
+              points: -loyaltyPointsUsed, balanceAfter: loyaltyPoints,
+              reference: sale.saleNumber, note: `Rs ${loyaltyDiscount.toFixed(0)} ki chhoot`,
             },
           });
         }
-        if (loyaltyEarned > 0) {
-          newPoints += loyaltyEarned;
-          await tx.loyaltyTransaction.create({
-            data: {
-              tenantId: user.tenantId, customerId: customer.id, type: 'EARNED',
-              points: loyaltyEarned, balanceAfter: newPoints,
-              reference: sale.saleNumber, note: `Earned from ${sale.saleNumber}`,
-            },
-          });
-        }
-        await tx.customer.update({
+        const { loyaltyPoints } = await tx.customer.update({
           where: { id: customer.id },
-          data: { loyaltyPoints: newPoints, totalSpent: { increment: total } },
+          data: { loyaltyPoints: { increment: loyaltyEarned }, totalSpent: { increment: total } },
+          select: { loyaltyPoints: true },
         });
+        if (loyaltyEarned > 0) {
+          await tx.loyaltyTransaction.create({
+            data: {
+              tenantId: user.tenantId, customerId: customer.id, type: 'EARNED', shopId: sellingShopId, saleId: sale.id,
+              points: loyaltyEarned, balanceAfter: loyaltyPoints,
+              reference: sale.saleNumber, note: `Bill ${sale.saleNumber} se`,
+            },
+          });
+        }
       }
 
       return sale;
@@ -1171,6 +1196,31 @@ export class SalesService {
               note: `Sale voided: ${reason || ''}`,
             },
           });
+        }
+      }
+
+      // A voided bill gives back its code use and undoes its points and spend.
+      if (sale.discountCodeId) {
+        await tx.discountCode.updateMany({ where: { id: sale.discountCodeId, usageCount: { gt: 0 } }, data: { usageCount: { decrement: 1 } } });
+      }
+      if (sale.customerId) {
+        const c = await tx.customer.findUnique({ where: { id: sale.customerId }, select: { loyaltyPoints: true } });
+        if (c) {
+          // Points used come back; points earned go away, but never below zero.
+          const change = Math.max(n0(sale.loyaltyUsed) - n0(sale.loyaltyEarned), -c.loyaltyPoints);
+          const { loyaltyPoints } = await tx.customer.update({
+            where: { id: sale.customerId },
+            data: { loyaltyPoints: { increment: change }, totalSpent: { decrement: sale.total } },
+            select: { loyaltyPoints: true },
+          });
+          if (change !== 0) {
+            await tx.loyaltyTransaction.create({
+              data: {
+                tenantId: user.tenantId, customerId: sale.customerId, type: 'ADJUSTMENT', shopId: sale.shopId, saleId: sale.id,
+                points: change, balanceAfter: loyaltyPoints, reference: sale.saleNumber, note: `Bill void: ${reason || ''}`.trim(),
+              },
+            });
+          }
         }
       }
 

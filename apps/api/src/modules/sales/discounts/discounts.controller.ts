@@ -11,7 +11,8 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
-import { CreateDiscountDto } from './dto/create-discount.dto';
+import { CreateDiscountDto, UpdateDiscountDto } from './dto/create-discount.dto';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { DiscountsService } from './discounts.service';
 
 @ApiTags('Discount Codes')
@@ -20,14 +21,25 @@ import { DiscountsService } from './discounts.service';
 export class DiscountsController {
   constructor(private readonly service: DiscountsService) {}
 
+  /** Codes with uses, sales and discount given, for a period (from/to business days) at the active branch. */
   @Get()
-  list(@GetUser() user: AuthenticatedUser) {
-    return this.service.list(user);
+  list(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.service.list(user, { from, to, shopId: shop.shopId ?? undefined });
   }
 
   @Post()
   create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateDiscountDto) {
     return this.service.create(user, dto);
+  }
+
+  @Patch(':id')
+  update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpdateDiscountDto) {
+    return this.service.update(user, id, dto);
   }
 
   @Patch(':id/toggle')
@@ -43,9 +55,11 @@ export class DiscountsController {
   @Get('validate')
   validate(
     @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
     @Query('code') code: string,
     @Query('amount') amount: string,
+    @Query('customerId') customerId?: string,
   ) {
-    return this.service.validate(user, code, Number(amount || 0));
+    return this.service.validate(user, code, Number(amount || 0), { shopId: shop.shopId, customerId });
   }
 }

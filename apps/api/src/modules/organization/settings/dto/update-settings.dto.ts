@@ -99,6 +99,9 @@ export class UpdateSettingsDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() enableLoyalty?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) loyaltyPointsPerRupee?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) loyaltyRedemptionRate?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) loyaltyMinRedeem?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Max(100) loyaltyMaxRedeemPercent?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) loyaltyExpiryDays?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() autoCreateCustomer?: boolean;
 
   // ═══ 8. NOTIFICATIONS ═══

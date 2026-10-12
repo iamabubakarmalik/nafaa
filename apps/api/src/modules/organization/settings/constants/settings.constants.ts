@@ -114,6 +114,9 @@ export const DEFAULT_SETTINGS: Record<string, any> = {
     enableLoyalty: false,
     loyaltyPointsPerRupee: 0.01,
     loyaltyRedemptionRate: 1,
+    loyaltyMinRedeem: 0,
+    loyaltyMaxRedeemPercent: 100,
+    loyaltyExpiryDays: 0,
     autoCreateCustomer: false,
   },
 };

@@ -1,6 +1,8 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { DiscountType } from '@prisma/client';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
   IsDateString,
   IsEnum,
@@ -44,15 +46,28 @@ export class CreateDiscountDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  maxDiscount?: number;
+  maxDiscount?: number | null;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
   @Min(1)
-  usageLimit?: number;
+  usageLimit?: number | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Uses per customer; empty = no limit' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  perCustomerLimit?: number | null;
+
+  @ApiPropertyOptional({ description: 'Branches the code works at; empty = every branch' })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(100)
+  @IsString({ each: true })
+  shopIds?: string[];
+
+  @ApiPropertyOptional({ description: 'Business day YYYY-MM-DD (start of day) or ISO time' })
   @IsOptional()
   @IsDateString()
   validFrom?: string;
@@ -67,3 +82,6 @@ export class CreateDiscountDto {
   @IsBoolean()
   isActive?: boolean;
 }
+
+/** Every field optional; null clears a limit or a date. */
+export class UpdateDiscountDto extends PartialType(CreateDiscountDto) {}
