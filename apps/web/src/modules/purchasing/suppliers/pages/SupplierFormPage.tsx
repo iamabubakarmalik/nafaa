@@ -8,7 +8,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, BookOpen, Building2, Landmark, Save, User } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, BookOpen, Building2, GraduationCap, Landmark, Save, User } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { Button } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { suppliersApi, type UpsertSupplierPayload } from '../api/suppliers.api';
@@ -35,6 +36,7 @@ export default function SupplierFormPage() {
   const [f, setF] = useState<UpsertSupplierPayload>(EMPTY);
   const [opening, setOpening] = useState('');
   const set = (k: keyof UpsertSupplierPayload, v: string | boolean) => setF((x) => ({ ...x, [k]: v }));
+  const guide = usePageGuide();
 
   const existing = useQuery({ queryKey: ['supplier', id], queryFn: () => suppliersApi.getOne(id!), enabled: editing });
   useEffect(() => {
@@ -73,8 +75,20 @@ export default function SupplierFormPage() {
     <form className="mx-auto max-w-4xl space-y-4 pb-24" onSubmit={(e) => { e.preventDefault(); if (f.name.trim()) save.mutate(); }}>
       <div className="flex items-center gap-2">
         <button type="button" onClick={() => navigate(-1)} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"><ArrowLeft className="h-4 w-4" /></button>
-        <h1 className="text-lg font-semibold text-slate-900">{editing ? `${existing.data?.name ?? 'Supplier'} — badlein` : 'Naya supplier'}</h1>
+        <h1 className="mr-auto text-lg font-semibold text-slate-900">{editing ? `${existing.data?.name ?? 'Supplier'} — badlein` : 'Naya supplier'}</h1>
+        <Button type="button" variant="ghost" onClick={guide.open} leftIcon={<GraduationCap className="h-4 w-4" />}>Guide</Button>
       </div>
+      {guide.isOpen && (
+        <PageGuide title="Supplier kaise jorein" onClose={guide.close}
+          steps={[
+            { icon: User, color: '#16a34a', title: 'Naam aur phone', text: 'Sirf naam zaroori hai. Phone daal dein to WhatsApp par order aur hisaab bhej sakenge.' },
+            { icon: Landmark, color: '#2563eb', title: 'Bank', text: 'Bank aur IBAN likh dein — adaigi karte waqt yahin se nikal lein.' },
+            { icon: BookOpen, color: '#d97706', title: 'Purana hisaab', text: 'Nafaa se pehle ka baqi ho to "Purana hisaab" me likhein — khata wahin se shuru hoga.' },
+            { icon: Building2, color: '#7c3aed', title: 'Band karna', text: 'Jis se ab maal nahi lete use mitane ki bajaye "Chalu supplier" ka nishan hata dein — purana hisaab mehfooz rehta hai.' },
+          ]}
+          shortcuts={[['Enter', 'save'], ['G', 'guide']]}
+        />
+      )}
 
       {clash && (
         <p className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-100">
@@ -83,26 +97,26 @@ export default function SupplierFormPage() {
       )}
 
       <Section icon={<User className="h-4 w-4" />} title="Supplier">
-        <Field label="Naam *" span><input autoFocus required value={f.name} onChange={(e) => set('name', e.target.value)} maxLength={120} placeholder="Misaal: Al-Madina Traders" className={input} /></Field>
-        <Field label="Rabte wala banda"><input value={f.contactPerson} onChange={(e) => set('contactPerson', e.target.value)} className={input} /></Field>
-        <Field label="Phone"><input inputMode="tel" value={f.phone} onChange={(e) => set('phone', e.target.value)} onBlur={(e) => set('phone', phoneFmt(e.target.value))} placeholder="0300-1234567" className={input} /></Field>
-        <Field label="Doosra phone"><input inputMode="tel" value={f.altPhone} onChange={(e) => set('altPhone', e.target.value)} onBlur={(e) => set('altPhone', phoneFmt(e.target.value))} className={input} /></Field>
-        <Field label="Email"><input type="email" value={f.email} onChange={(e) => set('email', e.target.value)} className={input} /></Field>
+        <Field label="Naam *" hint="Dukaan / company ka naam jo parchi par likha hota hai" span><input autoFocus required value={f.name} onChange={(e) => set('name', e.target.value)} maxLength={120} placeholder="Misaal: Al-Madina Traders" className={input} /></Field>
+        <Field label="Rabte wala banda" hint="Jis se aap baat karte hain — salesman ya malik"><input value={f.contactPerson} onChange={(e) => set('contactPerson', e.target.value)} className={input} /></Field>
+        <Field label="Phone" hint="WhatsApp wala number behtar — order aur hisaab seedha bhej sakenge"><input inputMode="tel" value={f.phone} onChange={(e) => set('phone', e.target.value)} onBlur={(e) => set('phone', phoneFmt(e.target.value))} placeholder="0300-1234567" className={input} /></Field>
+        <Field label="Doosra phone" hint="Office ya delivery wale ka number (ikhtiyari)"><input inputMode="tel" value={f.altPhone} onChange={(e) => set('altPhone', e.target.value)} onBlur={(e) => set('altPhone', phoneFmt(e.target.value))} className={input} /></Field>
+        <Field label="Email" hint="Ikhtiyari"><input type="email" value={f.email} onChange={(e) => set('email', e.target.value)} className={input} /></Field>
       </Section>
 
       <Section icon={<Building2 className="h-4 w-4" />} title="Pata aur tax">
-        <Field label="Pata" span><input value={f.address} onChange={(e) => set('address', e.target.value)} className={input} /></Field>
-        <Field label="Shehar"><input value={f.city} onChange={(e) => set('city', e.target.value)} className={input} /></Field>
-        <Field label="Ilaqa"><input value={f.area} onChange={(e) => set('area', e.target.value)} className={input} /></Field>
-        <Field label="CNIC"><input value={f.cnic} onChange={(e) => set('cnic', e.target.value)} placeholder="35202-1234567-1" className={input} /></Field>
-        <Field label="NTN"><input value={f.ntn} onChange={(e) => set('ntn', e.target.value)} className={input} /></Field>
+        <Field label="Pata" hint="Godown ya dukaan ka pata — maal lene jana ho to kaam aata hai" span><input value={f.address} onChange={(e) => set('address', e.target.value)} className={input} /></Field>
+        <Field label="Shehar" hint="Suppliers ko shehar se chhantne ke liye"><input value={f.city} onChange={(e) => set('city', e.target.value)} className={input} /></Field>
+        <Field label="Ilaqa" hint="Misaal: Akbari Mandi, Shah Alam"><input value={f.area} onChange={(e) => set('area', e.target.value)} className={input} /></Field>
+        <Field label="CNIC" hint="Ikhtiyari — bare len-den ke liye"><input value={f.cnic} onChange={(e) => set('cnic', e.target.value)} placeholder="35202-1234567-1" className={input} /></Field>
+        <Field label="NTN" hint="Tax wala supplier ho to — tax invoice ke liye"><input value={f.ntn} onChange={(e) => set('ntn', e.target.value)} className={input} /></Field>
       </Section>
 
       <Section icon={<Landmark className="h-4 w-4" />} title="Bank aur adaigi">
-        <Field label="Bank"><input value={f.bankName} onChange={(e) => set('bankName', e.target.value)} placeholder="Meezan, HBL…" className={input} /></Field>
-        <Field label="Account #"><input value={f.accountNumber} onChange={(e) => set('accountNumber', e.target.value)} className={cn(input, 'font-mono')} /></Field>
-        <Field label="IBAN" span><input value={f.iban} onChange={(e) => set('iban', e.target.value.toUpperCase().replace(/\s/g, ''))} placeholder="PK36MEZN…" className={cn(input, 'font-mono')} /></Field>
-        <Field label="Adaigi ki shart" span>
+        <Field label="Bank" hint="Jis bank me aap paisa bhejte hain"><input value={f.bankName} onChange={(e) => set('bankName', e.target.value)} placeholder="Meezan, HBL…" className={input} /></Field>
+        <Field label="Account #" hint="Supplier ka account number"><input value={f.accountNumber} onChange={(e) => set('accountNumber', e.target.value)} className={cn(input, 'font-mono')} /></Field>
+        <Field label="IBAN" hint="PK se shuru hone wala 24 harf ka number — online transfer ke liye" span><input value={f.iban} onChange={(e) => set('iban', e.target.value.toUpperCase().replace(/\s/g, ''))} placeholder="PK36MEZN…" className={cn(input, 'font-mono')} /></Field>
+        <Field label="Adaigi ki shart" hint="Kitne din me paisa dena hota hai — neeche se jaldi chunein" span>
           <input value={f.paymentTerms} onChange={(e) => set('paymentTerms', e.target.value)} className={input} />
           <div className="mt-1.5 flex flex-wrap gap-1">
             {TERMS.map((t) => <button key={t} type="button" onClick={() => set('paymentTerms', t)} className={cn('rounded-full px-2.5 py-0.5 text-[0.75rem] ring-1', f.paymentTerms === t ? 'bg-brand-600 text-white ring-brand-600' : 'text-slate-600 ring-slate-200')}>{t}</button>)}
@@ -119,7 +133,7 @@ export default function SupplierFormPage() {
       )}
 
       <Section title="Aur">
-        <Field label="Note" span><textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={3} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" /></Field>
+        <Field label="Note" hint="Kuch bhi yaad rakhna ho — misaal: har mangal ko maal deta hai" span><textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={3} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500" /></Field>
         <label className="flex items-center gap-2 text-sm text-slate-700 sm:col-span-2">
           <input type="checkbox" checked={f.isActive !== false} onChange={(e) => set('isActive', e.target.checked)} className="h-4 w-4 accent-brand-600" /> Chalu supplier (band ho to kharidari me nahi dikhta)
         </label>

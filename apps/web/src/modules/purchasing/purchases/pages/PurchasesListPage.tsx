@@ -7,9 +7,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, ClipboardList, Filter, PackageCheck, Plus, Search, Truck, Users, Wheat, X } from 'lucide-react';
+import { ArrowRight, Banknote, CalendarRange, ClipboardList, FileDown, Filter, GraduationCap, MousePointerClick, PackageCheck, Plus, RotateCcw, Search, Truck, Users, Wheat, X } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print';
+import { purchasesListDoc } from '../../print';
 import {
-  Button, DateRangeMenu, FilterMenu, PageHero, heroButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+  Button, DateRangeMenu, FilterMenu, PageHero, heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -38,6 +41,8 @@ export default function PurchasesListPage() {
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [showInsights, setShowInsights] = useState(() => { try { return localStorage.getItem('purchases-insights') !== '0'; } catch { return true; } });
+  useEffect(() => { try { localStorage.setItem('purchases-insights', showInsights ? '1' : '0'); } catch { /* storage blocked */ } }, [showInsights]);
 
   useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
   useEffect(() => { setPage(1); }, [range, status, supplierId, query]);
@@ -49,6 +54,8 @@ export default function PurchasesListPage() {
   const suppliersQ = useQuery({ queryKey: ['suppliers', 'picker'], queryFn: () => suppliersApi.list({ status: 'active', sort: 'recent', limit: 500 }), staleTime: 60_000 });
   const s = summaryQ.data;
   const data = listQ.data;
+  const guide = usePageGuide();
+  const printDoc = async () => purchasesListDoc(await purchasesApi.page({ ...q, page: 1, limit: 200 }), period ? `${period.from} — ${period.to}` : 'Sab tareekhen');
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -70,6 +77,8 @@ export default function PurchasesListPage() {
         busy={listQ.isFetching && !listQ.isLoading}
         loading={summaryQ.isLoading}
         actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!data?.items.length} /></span>
           <Link to="/suppliers" className={heroButton}><Users className="h-4 w-4" /> Suppliers</Link>
           <Link to="/purchases/new?order=1" className={heroButton}><ClipboardList className="h-4 w-4" /> Order</Link>
           <Link to="/purchases/new" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi kharidari</Link>
@@ -81,6 +90,11 @@ export default function PurchasesListPage() {
           { label: 'Khule orders', value: s.openOrders ?? 0, hint: s.openOrdersValue ? money(s.openOrdersValue) : undefined },
         ] : undefined}
       />
+
+      {s && showInsights && <Insights s={s} money={money} onClose={() => setShowInsights(false)} />}
+      {s && !showInsights && (
+        <button type="button" onClick={() => setShowInsights(true)} className="text-[0.8125rem] font-medium text-brand-700 hover:underline">Hafte ka graph aur top suppliers dikhayein</button>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[12rem] flex-1">
@@ -120,6 +134,26 @@ export default function PurchasesListPage() {
         <ul className="space-y-2">
           {data.items.map((p) => <Row key={p.id} p={p} money={money} />)}
         </ul>
+      )}
+
+      {guide.isOpen && (
+        <PageGuide title="Kharidari — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#16a34a', title: 'Nayi kharidari', text: '"Nayi kharidari" dabayein. Maal aa gaya ho to seedha stock me jata hai; supplier ka udhaar khud khate me likha jata hai.' },
+            { icon: ClipboardList, color: '#2563eb', title: 'Pehle order, maal baad me', text: '"Order" se supplier ko order banayein aur WhatsApp par bhej dein. Maal aaye to bill khol kar "Maal aaya" — aadha aaye to aadha.' },
+            { icon: CalendarRange, color: '#7c3aed', title: 'Muddat aur filter', text: 'Upar se tareekh chunein. "Halat" se khule orders, udhaar wale, wapsi wale ya cancel bill alag dekhein; "Supplier" se ek supplier ke bill.' },
+            { icon: MousePointerClick, color: '#d97706', title: 'Bill kholein', text: 'Kisi bhi bill par click karein: har cheez kis unit me aayi, kitni aayi, kitni wapas gayi, print aur cancel.' },
+            { icon: RotateCcw, color: '#db2777', title: 'Kharab maal wapas', text: 'Bill ke andar "Maal wapas karein" — stock kam hoga aur supplier ka dena utna ghat jayega.' },
+            { icon: FileDown, color: '#0891b2', title: 'Report', text: 'Print button se A4, PDF ya thermal par is filter ki poori list nikaalein — accountant ko bhej dein.' },
+          ]}
+          tips={[
+            'Carton, box ya bori me khareeda maal usi unit me likhein — stock khud pieces / kg me jud jata hai.',
+            'Discount, kiraya aur tax har cheez ki cost me hisse ke mutabiq judte hain, is liye munafa sahi nikalta hai.',
+            'Supplier ko baad me adaigi "Suppliers" ke page se karein — har adaigi khate me darj rehti hai.',
+          ]}
+          shortcuts={[['N', 'nayi kharidari'], ['/', 'dhoondein'], ['G', 'guide']]}
+          footer={<Link to="/suppliers" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline"><Banknote className="mr-1 inline h-4 w-4" />Suppliers ka khata →</Link>}
+        />
       )}
 
       {data && data.pages > 1 && (
@@ -164,5 +198,58 @@ function Row({ p, money }: { p: PurchaseListRow; money: (n: number) => string })
         <ArrowRight className="hidden h-4 w-4 text-slate-300 transition group-hover:text-slate-500 sm:block" />
       </Link>
     </li>
+  );
+}
+
+type Summary = NonNullable<Awaited<ReturnType<typeof purchasesApi.summary>>>;
+
+/** Last 7 days, biggest suppliers and most bought items this month. */
+function Insights({ s, money, onClose }: { s: Summary; money: (n: number) => string; onClose: () => void }) {
+  const max = Math.max(1, ...s.salesTrend7Days.map((d) => d.total));
+  const topSup = s.topSuppliers.slice(0, 4);
+  const topItems = (s.topProducts as Array<{ name?: string; product?: { name: string }; totalSpent: number; quantityPurchased: number }>).slice(0, 4);
+  const supMax = Math.max(1, ...topSup.map((t) => t.totalSpent));
+  return (
+    <div className="relative grid gap-3 lg:grid-cols-3">
+      <button type="button" onClick={onClose} aria-label="Chhupayein" className="absolute -top-2 right-0 z-10 rounded-full bg-white p-1 text-slate-400 ring-1 ring-slate-200 hover:text-slate-700"><X className="h-3.5 w-3.5" /></button>
+      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <p className="text-[0.8125rem] font-semibold text-slate-800">Pichle 7 din</p>
+        <div className="mt-3 flex h-24 items-end gap-1.5">
+          {s.salesTrend7Days.map((d) => (
+            <div key={d.date} className="flex flex-1 flex-col items-center gap-1" title={`${d.date}: ${money(d.total)} · ${d.orders} bill`}>
+              <div className="w-full rounded-t-md bg-brand-500/80" style={{ height: `${Math.max((d.total / max) * 80, d.total ? 6 : 2)}px` }} />
+              <span className="text-[0.625rem] text-slate-400">{new Date(`${d.date}T12:00:00`).toLocaleDateString('en-PK', { weekday: 'short' })}</span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-[0.75rem] text-slate-500">Is mahine {money(s.monthPurchases)} · pichle mahine {money(s.lastMonthPurchases)}</p>
+      </div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <p className="text-[0.8125rem] font-semibold text-slate-800">Sab se zyada kharidari</p>
+        <ul className="mt-2 space-y-2">
+          {topSup.map((t) => (
+            <li key={t.supplierId}>
+              <Link to={`/suppliers/${t.supplierId}`} className="block hover:opacity-80">
+                <div className="flex justify-between text-[0.8125rem]"><span className="truncate text-slate-700">{t.supplier?.name ?? '—'}</span><span className="tabular-nums text-slate-900">{money(t.totalSpent)}</span></div>
+                <div className="mt-1 h-1.5 rounded-full bg-slate-100"><div className="h-full rounded-full bg-violet-500" style={{ width: `${(t.totalSpent / supMax) * 100}%` }} /></div>
+              </Link>
+            </li>
+          ))}
+          {!topSup.length && <li className="text-[0.8125rem] text-slate-400">Abhi koi nahi</li>}
+        </ul>
+      </div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <p className="text-[0.8125rem] font-semibold text-slate-800">Is mahine zyada khareeda</p>
+        <ul className="mt-2 divide-y divide-slate-100">
+          {topItems.map((t, i) => (
+            <li key={i} className="flex justify-between gap-2 py-1.5 text-[0.8125rem]">
+              <span className="truncate text-slate-700">{t.name ?? t.product?.name ?? '—'}</span>
+              <span className="shrink-0 tabular-nums text-slate-900">{money(t.totalSpent)}</span>
+            </li>
+          ))}
+          {!topItems.length && <li className="py-1.5 text-[0.8125rem] text-slate-400">Abhi koi nahi</li>}
+        </ul>
+      </div>
+    </div>
   );
 }

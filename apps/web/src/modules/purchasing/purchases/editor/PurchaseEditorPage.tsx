@@ -11,8 +11,11 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, Boxes, CalendarClock, ChevronDown, ClipboardList, PackagePlus, Plus, Save, ScanLine, Search, Trash2, Truck, UserPlus, Wheat, X } from 'lucide-react';
-import { Button, Modal, PageHero, Segmented, heroButton } from '@/design-system/components';
+import { AlertTriangle, Boxes, CalendarClock, ChevronDown, ClipboardList, PackagePlus, Plus, Save, ScanLine, Search, Trash2, Truck, UserPlus, Wheat, X,
+  GraduationCap, Wallet, Calculator, Ruler,
+} from 'lucide-react';
+import { Button, Modal, PageHero, Segmented, heroButton, heroIconButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { useShopParam } from '@core/stores/auth.store';
@@ -57,6 +60,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
   const [newProduct, setNewProduct] = useState<string | null>(null);
   const [newSupplier, setNewSupplier] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const guide = usePageGuide();
 
   const suppliersQ = useQuery({ queryKey: ['suppliers', 'picker'], queryFn: () => suppliersApi.list({ status: 'active', sort: 'recent', limit: 500 }), staleTime: 60_000 });
   const suppliers = suppliersQ.data?.items ?? [];
@@ -130,6 +134,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
         chip={<><Truck /> {order ? 'Supplier ko order — maal baad me' : 'Maal aa gaya — stock abhi barhega'}</>}
         meta="Carton, box, pack ya apna unit — sab chalta hai"
         actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {(lines.length > 0 || bill.supplierId) && (
             <button type="button" className={heroButton} onClick={() => { if (confirm('Yeh bill saaf kar dein?')) d.reset(); }}>
               <Trash2 className="h-4 w-4" /> Saaf
@@ -245,24 +250,27 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
             )}
             <div className="mt-3 grid grid-cols-2 gap-2">
               <label className="text-[0.75rem] text-slate-500">Supplier ka bill #
-                <input value={bill.invoiceNo} onChange={(e) => setBill({ ...bill, invoiceNo: e.target.value })} className={cn(field, 'mt-1')} maxLength={60} />
+                <input value={bill.invoiceNo} onChange={(e) => setBill({ ...bill, invoiceNo: e.target.value })} className={cn(field, 'mt-1')} maxLength={60} placeholder="Parchi ka #" />
+                <Hint>Supplier ki parchi par likha number — baad me milane ke liye</Hint>
               </label>
               <label className="text-[0.75rem] text-slate-500">{order ? 'Order ki tareekh' : 'Tareekh'}
                 <input type="date" value={bill.date} onChange={(e) => setBill({ ...bill, date: e.target.value })} className={cn(field, 'mt-1')} />
+                <Hint>Purana bill ho to us din ki tareekh</Hint>
               </label>
             </div>
             {order && (
               <label className="mt-2 block text-[0.75rem] text-slate-500">Maal kab tak aayega
                 <input type="date" value={bill.expectedAt} onChange={(e) => setBill({ ...bill, expectedAt: e.target.value })} className={cn(field, 'mt-1')} />
+                <Hint>Supplier ne jo din bataya — list me yaad dilaya jayega</Hint>
               </label>
             )}
           </div>
 
           <div className="space-y-1.5 rounded-2xl border border-slate-200 bg-white p-4 text-sm">
             <Row k={`Cheezein (${lines.length})`} v={money(d.subtotal)} />
-            <MoneyRow label="Discount" value={bill.discount} onChange={(v) => setBill({ ...bill, discount: v })} sign="−" />
-            <MoneyRow label="Kiraya / loading" value={bill.otherCharges} onChange={(v) => setBill({ ...bill, otherCharges: v })} sign="+" />
-            <MoneyRow label="Tax" value={bill.taxAmount} onChange={(v) => setBill({ ...bill, taxAmount: v })} sign="+" />
+            <MoneyRow label="Discount" hint="Supplier ne poore bill par jo chhoot di" value={bill.discount} onChange={(v) => setBill({ ...bill, discount: v })} sign="−" />
+            <MoneyRow label="Kiraya / loading" hint="Maal laane ka kharcha — rickshaw, loader, mazdoori" value={bill.otherCharges} onChange={(v) => setBill({ ...bill, otherCharges: v })} sign="+" />
+            <MoneyRow label="Tax" hint="Bill par laga GST / sales tax" value={bill.taxAmount} onChange={(v) => setBill({ ...bill, taxAmount: v })} sign="+" />
             <div className="mt-2 flex items-center justify-between rounded-xl bg-slate-900 px-3 py-2 text-white">
               <span className="font-semibold">Kul bill</span><span className="text-lg font-bold tabular-nums">{money(d.total)}</span>
             </div>
@@ -283,7 +291,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
                 ))}
               </div>
               <div className="mt-3 flex items-center gap-2">
-                <label className="flex-1 text-[0.75rem] text-slate-500">Abhi diye
+                <label className="flex-1 text-[0.75rem] text-slate-500">Abhi kitne diye
                   <input type="number" min={0} inputMode="decimal" value={bill.paid ?? d.total} className={cn(field, 'mt-1 text-right font-semibold tabular-nums')}
                     onChange={(e) => setBill({ ...bill, paid: e.target.value === '' ? 0 : Math.max(Number(e.target.value), 0) })} />
                 </label>
@@ -292,6 +300,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
                   <button type="button" onClick={() => setBill({ ...bill, paid: 0 })} className="rounded-lg px-2 py-1.5 text-[0.75rem] ring-1 ring-slate-200 hover:bg-slate-50">Udhaar</button>
                 </div>
               </div>
+              <Hint>Khali = poora bill diya. Kuch na diya ho to "Udhaar" dabayein; baqi supplier ke khate me chala jayega.</Hint>
               {d.due > 0 && (
                 <div className="mt-3 rounded-xl bg-amber-50 p-2.5 text-[0.8125rem] text-amber-900">
                   <b>{money(d.due)}</b> supplier ke khate me udhaar jayega.
@@ -303,7 +312,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
             </div>
           )}
 
-          <textarea value={bill.notes} onChange={(e) => setBill({ ...bill, notes: e.target.value })} rows={2} maxLength={500} placeholder="Note (ikhtiyari)"
+          <textarea value={bill.notes} onChange={(e) => setBill({ ...bill, notes: e.target.value })} rows={2} maxLength={500} placeholder="Note — misaal: 2 carton toote aaye, agle bill me kam karna"
             className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500" />
 
           {problems.length > 0 && lines.length > 0 && <p className="text-[0.8125rem] text-rose-700">{problems[0]}</p>}
@@ -313,6 +322,25 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
         </aside>
       </div>
 
+      {guide.isOpen && (
+        <PageGuide title={order ? 'Order kaise banayein' : 'Kharidari kaise darj karein'} onClose={guide.close}
+          steps={[
+            { icon: Search, color: '#7c3aed', title: 'Cheez dhoondein', text: 'Upar naam, SKU ya barcode likhein ya "Scan" dabayein. Carton ka barcode scan karein to carton hi jud jata hai. Naya maal ho to "Naya" se wahin bana lein.' },
+            { icon: Ruler, color: '#2563eb', title: 'Unit chunein', text: 'Har line par "Unit" me pcs, carton ya box chunein. Bori / peti jaisa unit na ho to "+ Apna unit" — misaal: 1 bori = 50 kg.' },
+            { icon: Calculator, color: '#16a34a', title: 'Miqdar aur qeemat', text: 'Kitne unit aaye aur ek unit ki qeemat likhein — jaise supplier ki parchi par hai. Neeche "= 48 pcs" bata deta hai stock me kitna jayega.' },
+            { icon: Truck, color: '#d97706', title: 'Supplier aur bill', text: 'Daayen taraf supplier chunein (naya ho to wahin jor lein), parchi ka number aur tareekh likhein. Discount, kiraya aur tax bhi wahin.' },
+            { icon: Wallet, color: '#db2777', title: 'Kitne diye', text: 'Khali chhorein to poora bill diya maana jata hai. Kuch na diya ho to "Udhaar" — baqi supplier ke khate me jata hai, chahein to aakhri tareekh bhi.' },
+            { icon: Wheat, color: '#0891b2', title: 'Raw material', text: 'Bakery ka aata, cheeni waghera bhi isi bill me — dhoondne par "Raw" nishan ke saath aate hain aur unka stock barhta hai.' },
+          ]}
+          tips={[
+            'Purchase ki qeemat se maal ki average cost banti hai — is liye munafa har bill par sahi nikalta hai.',
+            'Bechne ka rate yahin badal sakte hain ("Bechne ka rate, batch, expiry" khol kar) — munafa % saath dikhta hai.',
+            'Adhoora bill is device par yaad rehta hai; page band ho jaye to wapas aa kar wahin se jari rakhein.',
+            '"Order dena hai" chunein to stock abhi nahi barhega — maal aane par bill khol kar "Maal aaya".',
+          ]}
+          shortcuts={[['/', 'dhoondein'], ['Enter', 'pehli cheez jorein'], ['Ctrl S', 'save'], ['G', 'guide']]}
+        />
+      )}
       {scanner && <BarcodeScanner title="Maal scan karein" hint="Product ya carton ka barcode" onClose={() => setScanner(false)} onDetected={(c) => { setScanner(false); onCode(c); }} />}
       {variantFor && <VariantModal target={variantFor} onClose={() => setVariantFor(null)} onPick={(v) => { d.add(variantFor.source, variantFor.unit, v); setVariantFor(null); setQuery(''); }} />}
       {customFor && <CustomUnitModal line={customFor} onClose={() => setCustomFor(null)} onSave={(u) => { d.setUnit(customFor.key, u); setCustomFor(null); }} />}
@@ -341,10 +369,14 @@ function Row({ k, v }: { k: string; v: string }) {
   return <div className="flex justify-between"><span className="text-slate-500">{k}</span><span className="font-medium tabular-nums text-slate-900">{v}</span></div>;
 }
 
-function MoneyRow({ label, value, onChange, sign }: { label: string; value: number; onChange: (v: number) => void; sign: string }) {
+function Hint({ children }: { children: ReactNode }) {
+  return <span className="mt-1 block text-[0.6875rem] leading-snug text-slate-400">{children}</span>;
+}
+
+function MoneyRow({ label, hint, value, onChange, sign }: { label: string; hint?: string; value: number; onChange: (v: number) => void; sign: string }) {
   return (
-    <label className="flex items-center justify-between gap-2">
-      <span className="text-slate-500">{label}</span>
+    <label className="flex items-center justify-between gap-2" title={hint}>
+      <span className="min-w-0 text-slate-500">{label}{hint && <span className="block text-[0.6875rem] leading-tight text-slate-400">{hint}</span>}</span>
       <span className="flex items-center gap-1">
         <span className="text-slate-400">{sign}</span>
         <input type="number" min={0} inputMode="decimal" value={value || ''} placeholder="0" onChange={(e) => onChange(Math.max(Number(e.target.value) || 0, 0))}
@@ -378,18 +410,18 @@ function LineRow({ line: l, d, badge, onCustomUnit }: { line: DraftLine; d: Retu
       </div>
 
       <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
-        <label className="text-[0.6875rem] text-slate-500">Unit
+        <label className="text-[0.6875rem] text-slate-500" title="Jis unit me khareeda: pcs, carton, box — ya apna unit (bori = 50 kg)">Unit (kis me khareeda)
           <select value={l.unit.name} className={cn(field, 'mt-0.5')}
             onChange={(e) => { if (e.target.value === '__new') { onCustomUnit(); return; } const u = units.find((x) => x.name === e.target.value); if (u) d.setUnit(l.key, u); }}>
             {units.map((u) => <option key={u.name} value={u.name}>{u.name}{u.rate !== 1 ? ` = ${qtyText(u.rate)} ${l.source.baseUnit}` : ''}</option>)}
             <option value="__new">+ Apna unit (bori, peti…)</option>
           </select>
         </label>
-        <label className="text-[0.6875rem] text-slate-500">Miqdar
+        <label className="text-[0.6875rem] text-slate-500" title="Kitne unit aaye — misaal: 4 carton">Kitne {l.unit.name}
           <input type="number" min={0} step="any" inputMode="decimal" value={l.qty || ''} placeholder="0" className={cn(field, 'mt-0.5 text-right font-semibold tabular-nums')}
             onChange={(e) => d.patch(l.key, { qty: Math.max(Number(e.target.value) || 0, 0) })} />
         </label>
-        <label className="text-[0.6875rem] text-slate-500">Rate / {l.unit.name}
+        <label className="text-[0.6875rem] text-slate-500" title="Supplier ke bill par ek unit ki qeemat">Ek {l.unit.name} ki qeemat
           <input type="number" min={0} step="any" inputMode="decimal" value={l.cost || ''} placeholder="0" className={cn(field, 'mt-0.5 text-right tabular-nums')}
             onChange={(e) => d.patch(l.key, { cost: Math.max(Number(e.target.value) || 0, 0) })} />
         </label>
@@ -407,17 +439,18 @@ function LineRow({ line: l, d, badge, onCustomUnit }: { line: DraftLine; d: Retu
       {more && (
         <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {l.source.kind === 'product' && (
-            <label className="text-[0.6875rem] text-slate-500">Naya bechne ka rate / {l.source.baseUnit}
+            <label className="text-[0.6875rem] text-slate-500" title="Khali chhorein to purana rate rahega">Naya bechne ka rate / {l.source.baseUnit} (ikhtiyari)
               <input type="number" min={0} step="any" value={l.salePrice ?? ''} placeholder={l.source.price ? String(l.source.price) : '—'} className={cn(field, 'mt-0.5 text-right tabular-nums')}
                 onChange={(e) => d.patch(l.key, { salePrice: e.target.value === '' ? null : Math.max(Number(e.target.value), 0) })} />
               {l.salePrice != null && perBase > 0 && <span className={cn('mt-0.5 block', l.salePrice < perBase ? 'text-rose-600' : 'text-emerald-700')}>Munafa {(((l.salePrice - perBase) / perBase) * 100).toFixed(0)}%</span>}
             </label>
           )}
           <label className="text-[0.6875rem] text-slate-500">Batch #
-            <input value={l.batchNo} onChange={(e) => d.patch(l.key, { batchNo: e.target.value })} maxLength={60} className={cn(field, 'mt-0.5')} />
+            <input value={l.batchNo} onChange={(e) => d.patch(l.key, { batchNo: e.target.value })} maxLength={60} placeholder="Packet par likha batch" className={cn(field, 'mt-0.5')} />
           </label>
           <label className="text-[0.6875rem] text-slate-500">Expiry
             <input type="date" value={l.expiry} onChange={(e) => d.patch(l.key, { expiry: e.target.value })} className={cn(field, 'mt-0.5')} />
+            <span className="mt-0.5 block">Dawai, doodh, khane ki cheezon ke liye</span>
           </label>
         </div>
       )}

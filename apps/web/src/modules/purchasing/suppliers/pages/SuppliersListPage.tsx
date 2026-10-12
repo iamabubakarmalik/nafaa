@@ -7,8 +7,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowDownWideNarrow, Banknote, Filter, MapPin, MessageCircle, Phone, Plus, Search, ShoppingCart, Truck, Users, X } from 'lucide-react';
-import { Avatar, Button, FilterMenu, PageHero, heroButton, heroPrimaryButton } from '@/design-system/components';
+import { ArrowDownWideNarrow, Banknote, BookOpen, Filter, GraduationCap, MapPin, MessageCircle, Phone, Plus, Search, ShoppingCart, TrendingUp, Truck, Users, X } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print';
+import { suppliersDoc } from '../../print';
+import { Avatar, Button, FilterMenu, PageHero, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { usePermission } from '@core/hooks/usePermission';
@@ -35,6 +38,7 @@ export default function SuppliersListPage() {
   const [sort, setSort] = useState<Sort>('due');
   const [page, setPage] = useState(1);
   const [paying, setPaying] = useState<Supplier | null>(null);
+  const guide = usePageGuide();
 
   useEffect(() => { const t = setTimeout(() => setQ(search.trim()), 250); return () => clearTimeout(t); }, [search]);
   useEffect(() => { setPage(1); }, [q, dues, status, city, sort]);
@@ -65,6 +69,10 @@ export default function SuppliersListPage() {
         busy={listQ.isFetching && !listQ.isLoading}
         loading={sumQ.isLoading}
         actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800">
+            <PrintButton doc={async () => suppliersDoc((await suppliersApi.list({ ...params, page: 1, limit: 500 })).items)} disabled={!items.length} />
+          </span>
           <Link to="/purchases" className={heroButton}><ShoppingCart className="h-4 w-4" /> Kharidari</Link>
           {canEdit && <Link to="/suppliers/new" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya supplier</Link>}
         </>}
@@ -156,6 +164,20 @@ export default function SuppliersListPage() {
         </div>
       )}
 
+      {guide.isOpen && (
+        <PageGuide title="Suppliers — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Plus, color: '#16a34a', title: 'Supplier jorein', text: '"Naya supplier" — naam, phone aur adaigi ki shart. Pehle se kuch dena ho to "Purana hisaab" me likh dein.' },
+            { icon: Banknote, color: '#db2777', title: 'Kitna dena hai', text: 'Har card par laal raqam = abhi dena hai. Upar kul raqam, aur "kitne din purana" ke hisaab se alag alag.' },
+            { icon: Filter, color: '#7c3aed', title: 'Dhoondein aur chhantein', text: 'Naam ya phone se dhoondein. "Baqi" se sirf jinhe dena hai; "Tarteeb" se sab se zyada baqi ya haal hi wale upar.' },
+            { icon: ShoppingCart, color: '#2563eb', title: 'Ek tap me kaam', text: 'Card par "Adaigi" se paisa darj, "Kharidari" se usi supplier ka naya bill, Call aur WhatsApp seedha.' },
+            { icon: BookOpen, color: '#d97706', title: 'Poora khata', text: 'Supplier par click karein: khata, sab bill, rates kaise badle, bank details aur statement print.' },
+            { icon: TrendingUp, color: '#0891b2', title: 'Report', text: 'Print se is filter ke saare suppliers aur un ka baqi A4, PDF ya thermal par.' },
+          ]}
+          tips={['Kharidari udhaar par ho to supplier ka dena khud barhta hai; adaigi yahan se darj karein.', '"Aakhri adaigi" laal ho to 60 din se zyada se paisa nahi diya.']}
+          shortcuts={[['N', 'naya supplier'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
       {paying && <SupplierMoneyModal supplier={paying} onClose={() => setPaying(null)} />}
     </div>
   );

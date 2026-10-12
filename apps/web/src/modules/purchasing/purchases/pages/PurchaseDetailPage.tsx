@@ -9,14 +9,15 @@ import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Ban, MessageCircle, PackageCheck, Phone, Printer, RotateCcw, Wheat } from 'lucide-react';
+import { ArrowLeft, Ban, BookOpen, GraduationCap, MessageCircle, PackageCheck, Phone, RotateCcw, Wheat } from 'lucide-react';
 import { Button, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
-import { renderReceipt } from '@core/receipt/html';
-import { printHtml } from '@core/receipt/print';
+import { PrintButton } from '@core/print';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { purchaseDoc } from '../../print';
 import { getReceiptSetup } from '@core/receipt/setup';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
@@ -43,6 +44,7 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
   const qc = useQueryClient();
   const canEdit = usePermission(PERMISSIONS.PURCHASES_CREATE);
   const [modal, setModal] = useState<'receive' | 'return' | 'cancel' | null>(null);
+  const guide = usePageGuide();
   const q = useQuery({ queryKey: ['purchase', id], queryFn: () => purchasesApi.getOne(id!), enabled: !!id });
   const p = q.data;
 
@@ -59,39 +61,6 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
   const received = p.receivedValue ?? (p.status === 'RECEIVED' ? p.total : 0);
   const credit = Math.max(received - p.paidAmount, 0);
   const isOrder = p.status === 'PENDING';
-
-  const print = () => {
-    const setup = getReceiptSetup();
-    const doc = {
-      saleNumber: p.purchaseNumber,
-      date: new Date(p.purchasedAt),
-      customerName: p.supplier.name,
-      customerPhone: p.supplier.phone ?? undefined,
-      customerAddress: p.supplier.address ?? undefined,
-      cashierName: p.createdBy?.fullName,
-      branchName: p.shop?.name,
-      infoRows: [
-        ...(p.supplierInvoiceNo ? [{ label: 'Supplier bill #', value: p.supplierInvoiceNo }] : []),
-        ...(p.expectedAt ? [{ label: 'Maal aana hai', value: day(p.expectedAt) }] : []),
-      ],
-      lines: p.items.map((i) => ({
-        name: nameOf(i), qty: i.quantity, unit: i.unitName ?? baseUnit(i), price: i.costPrice, total: i.total,
-        details: [rate(i) !== 1 ? `= ${q3(i.baseQuantity ?? i.quantity * rate(i))} ${baseUnit(i)}` : '', i.batchNo ? `Batch ${i.batchNo}` : '', i.expiryDate ? `Expiry ${day(i.expiryDate)}` : ''].filter(Boolean),
-      })),
-      subtotal: p.subtotal,
-      discount: p.discount,
-      extraRows: [
-        ...((p.otherCharges ?? 0) > 0 ? [{ label: 'Kiraya / loading', value: `+${money(p.otherCharges!)}` }] : []),
-        ...((p.taxAmount ?? 0) > 0 ? [{ label: 'Tax', value: `+${money(p.taxAmount!)}` }] : []),
-        ...((p.returnedAmount ?? 0) > 0 ? [{ label: 'Maal wapas', value: `−${money(p.returnedAmount!)}` }] : []),
-      ],
-      total: p.total,
-      paid: isOrder ? p.total : p.paidAmount,
-      paymentLabel: `Diye (${POS_PAYMENT_METHODS.find((m) => m.id === p.paymentMethod)?.label ?? p.paymentMethod})`,
-    };
-    const design = { ...setup.design, a4Title: isOrder ? 'PURCHASE ORDER' : 'PURCHASE BILL', showStatus: !isOrder, payWhen: 'never' as const, showKhata: false, showSavings: false, backPrint: 'none' as const, showBarcode: true };
-    printHtml(renderReceipt(doc, { ...setup, design }, { paper: 'A4' }));
-  };
 
   const whatsapp = () => {
     const lines = [
@@ -113,7 +82,8 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
           </h1>
           <p className="text-[0.8125rem] text-slate-500">{day(p.purchasedAt)}{p.shop?.name ? ` · ${p.shop.name}` : ''}{p.createdBy?.fullName ? ` · ${p.createdBy.fullName}` : ''}</p>
         </div>
-        <Button variant="secondary" onClick={print} leftIcon={<Printer className="h-4 w-4" />}>Print</Button>
+        <Button variant="ghost" onClick={guide.open} aria-label="Guide (G)" leftIcon={<GraduationCap className="h-4 w-4" />}><span className="hidden sm:inline">Guide</span></Button>
+        <PrintButton doc={() => purchaseDoc(p)} />
         {open && <Button variant="secondary" onClick={whatsapp} leftIcon={<MessageCircle className="h-4 w-4 text-emerald-600" />}>Order bhejein</Button>}
         {canEdit && open && <Button onClick={() => setModal('receive')} leftIcon={<PackageCheck className="h-4 w-4" />}>Maal aaya</Button>}
       </div>
@@ -215,6 +185,18 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
         </aside>
       </div>
 
+      {guide.isOpen && (
+        <PageGuide title="Is bill par kya kar sakte hain" onClose={guide.close}
+          steps={[
+            { icon: PackageCheck, color: '#16a34a', title: 'Maal aaya', text: 'Order ka maal aaye to "Maal aaya" — har cheez ki aayi hui miqdar likhein. Aadha aaye to aadha; baqi baad me, ya "order band karein".' },
+            { icon: RotateCcw, color: '#d97706', title: 'Maal wapas', text: 'Kharab ya ghalat maal supplier ko lautaayein: stock kam hoga aur supplier ka dena utni raqam se ghat jayega.' },
+            { icon: Ban, color: '#dc2626', title: 'Cancel', text: 'Ghalat bill ho to cancel karein — aaya hua maal stock se nikal jayega aur khata ulat jayega. Wapsi ho chuki ho to cancel nahi, baqi maal wapas karein.' },
+            { icon: BookOpen, color: '#2563eb', title: 'Supplier ka khata', text: 'Supplier par click karein — wahan adaigi darj karein aur poora khata dekhein.' },
+          ]}
+          tips={['Print se A4, PDF ya thermal par bill nikalta hai; order ho to "Order bhejein" se WhatsApp par seedha supplier ko.', 'Har line par likha hai kis unit me aaya aur stock me kitna gaya (misaal: 4 carton = 48 pcs).']}
+          shortcuts={[['G', 'guide']]}
+        />
+      )}
       {modal === 'receive' && <ReceiveModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}
       {modal === 'return' && <ReturnModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}
       {modal === 'cancel' && <CancelModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}
@@ -271,8 +253,8 @@ function ReceiveModal({ p, onClose, onDone }: { p: Purchase; onClose: () => void
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl bg-slate-50 p-3 text-sm"><p className="text-slate-500">Is maal ki qeemat</p><p className="text-xl font-bold tabular-nums">{money(value)}</p></div>
         <div>
-          <label className="text-[0.75rem] text-slate-500">Abhi kitne diye
-            <input type="number" min={0} value={paid} onChange={(e) => setPaid(e.target.value)} placeholder="0 = udhaar"
+          <label className="text-[0.75rem] text-slate-500">Abhi kitne diye (is maal ke)
+            <input type="number" min={0} value={paid} onChange={(e) => setPaid(e.target.value)} placeholder="0 = sab udhaar"
               className="mt-1 h-9 w-full rounded-lg border border-slate-200 px-2.5 text-right text-sm outline-none focus:border-brand-500" />
           </label>
           <div className="mt-2 flex flex-wrap gap-1">
@@ -309,7 +291,7 @@ function ReturnModal({ p, onClose, onDone }: { p: Purchase; onClose: () => void;
           <button key={r} type="button" onClick={() => setReason(r)} className={cn('rounded-full px-3 py-1 text-[0.8125rem] ring-1', reason === r ? 'bg-amber-600 text-white ring-amber-600' : 'text-slate-600 ring-slate-200')}>{r}</button>
         ))}
       </div>
-      <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wajah" aria-label="Wajah" maxLength={200}
+      <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wajah — misaal: 5 packet phate hue the" aria-label="Wajah" maxLength={200}
         className="mt-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-amber-500" />
     </Modal>
   );
@@ -327,7 +309,7 @@ function CancelModal({ p, onClose, onDone }: { p: Purchase; onClose: () => void;
     <Modal open onClose={onClose} size="sm" title={isOrder ? 'Order cancel karein?' : 'Bill cancel karein?'}
       description={isOrder ? 'Stock par koi asar nahi.' : `Aaya hua maal stock se nikal jayega aur supplier ka khata ulat jayega.${p.paidAmount > 0 ? ` Diye hue ${money(p.paidAmount)} supplier se wapas lene honge.` : ''}`}
       footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={mut.isPending} disabled={!reason.trim()} onClick={() => mut.mutate()}>Cancel karein</Button></>}>
-      <input data-autofocus value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wajah likhein" aria-label="Wajah" maxLength={200}
+      <input data-autofocus value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wajah — misaal: ghalat supplier chuna tha" aria-label="Wajah" maxLength={200}
         className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-rose-500" />
     </Modal>
   );

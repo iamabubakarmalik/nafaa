@@ -77,7 +77,7 @@ export function SupplierMoneyModal({ supplier, initial = 'payment', onClose }: {
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <label className="text-[0.75rem] text-slate-500">Raqam
-          <input data-autofocus type="number" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={kind === 'adjust' ? '+500 ya −500' : '0'}
+          <input data-autofocus type="number" inputMode="decimal" title="Kitne rupay" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={kind === 'adjust' ? '+500 ya −500' : '0'}
             className="mt-1 h-11 w-full rounded-xl border border-slate-200 px-3 text-right text-lg font-semibold tabular-nums outline-none focus:border-brand-500" />
         </label>
         <label className="text-[0.75rem] text-slate-500">Tareekh
@@ -94,10 +94,10 @@ export function SupplierMoneyModal({ supplier, initial = 'payment', onClose }: {
         </div>
       )}
       {kind !== 'adjust' && kind !== 'opening' && (
-        <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder={kind === 'payment' ? 'Cheque / transaction #' : 'Bill #'} maxLength={80}
+        <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder={kind === 'payment' ? 'Cheque # ya JazzCash / bank transaction ID (ikhtiyari)' : 'Supplier ki parchi ka # (ikhtiyari)'} maxLength={80}
           className="mt-3 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-brand-500" />
       )}
-      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={kind === 'adjust' ? 'Wajah (zaroori)' : 'Note'} maxLength={200}
+      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={kind === 'adjust' ? 'Wajah zaroori — misaal: hisaab milate waqt 500 ka farq' : 'Note — misaal: Ali bhai ke haath diye'} maxLength={200}
         className="mt-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-brand-500" />
       {after != null && n !== 0 && (
         <p className={cn('mt-3 rounded-xl px-3 py-2 text-sm', after > 0 ? 'bg-amber-50 text-amber-900' : 'bg-emerald-50 text-emerald-800')}>

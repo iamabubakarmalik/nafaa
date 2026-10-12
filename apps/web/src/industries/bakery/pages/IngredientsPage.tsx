@@ -269,6 +269,11 @@ export default function IngredientsPage() {
             </p>
           </div>
           <div className="flex gap-2 flex-wrap items-center shrink-0">
+            {/* A supplier bill with many raw materials (and products) at once. */}
+            <Link to="/purchases/new"
+              className="h-11 px-3.5 rounded-xl bg-white/15 hover:bg-white/25 text-white ring-1 ring-white/25 text-xs font-black inline-flex items-center gap-1.5 transition">
+              <Truck className="h-4 w-4" /> Supplier ka bill
+            </Link>
             <button onClick={() => setCreating(true)}
               className="h-11 px-3.5 rounded-xl bg-white text-violet-700 hover:bg-violet-50 text-xs font-black inline-flex items-center gap-1.5 shadow-lg transition">
               <Plus className="h-4 w-4" /> Naya saamaan

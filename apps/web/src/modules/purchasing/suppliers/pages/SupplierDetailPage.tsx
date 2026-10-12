@@ -9,7 +9,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, Banknote, BookOpen, ClipboardList, Landmark, MessageCircle, Pencil, Phone, Printer, ShoppingCart, Trash2, TrendingDown, TrendingUp,
+  ArrowLeft, Banknote, BookOpen, ClipboardList, GraduationCap, Landmark, MessageCircle, Pencil, Phone, ShoppingCart, Trash2, TrendingDown, TrendingUp,
 } from 'lucide-react';
 import { Avatar, Button, DateRangeMenu, Modal, Tabs, resolveRange, type DateRangeValue } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
@@ -17,9 +17,9 @@ import { formatPKR } from '@core/lib/format';
 import { useBusinessDayStart } from '@core/lib/business-day';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
-import { esc } from '@core/receipt/html';
-import { printHtml } from '@core/receipt/print';
-import { getReceiptSetup } from '@core/receipt/setup';
+import { PrintButton } from '@core/print';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { statementDoc } from '../../print';
 import { purchasesApi } from '../../purchases/api/purchases.api';
 import { STATUS } from '../../purchases/pages/PurchasesListPage';
 import { suppliersApi } from '../api/suppliers.api';
@@ -38,6 +38,7 @@ export default function SupplierDetailPage() {
   const [tab, setTab] = useState<Tab>('khata');
   const [money, setMoney] = useState<MoneyKind | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const guide = usePageGuide();
   const q = useQuery({ queryKey: ['supplier', id], queryFn: () => suppliersApi.getOne(id!), enabled: !!id });
   const s = q.data;
 
@@ -72,6 +73,7 @@ export default function SupplierDetailPage() {
           {s.phone && <a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer" className={heroBtnCls(false)}><MessageCircle className="h-4 w-4" /> WhatsApp</a>}
           {canEdit && <HeroBtn onClick={() => setMoney('due')}><BookOpen className="h-4 w-4" /> Khata entry</HeroBtn>}
           {canEdit && <Link to={`/suppliers/${s.id}/edit`} className={heroBtnCls(false)}><Pencil className="h-4 w-4" /> Badlein</Link>}
+          <HeroBtn onClick={guide.open}><GraduationCap className="h-4 w-4" /> Guide</HeroBtn>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
           <Stat label="Kul kharidari" value={formatPKR(s.stats.totalAmount)} hint={`${s.stats.totalPurchases} bill`} />
@@ -106,6 +108,18 @@ export default function SupplierDetailPage() {
         </div>
       )}
 
+      {guide.isOpen && (
+        <PageGuide title={`${s.name} — kya kya hota hai`} onClose={guide.close}
+          steps={[
+            { icon: Banknote, color: '#16a34a', title: 'Adaigi', text: '"Adaigi" se supplier ko diya paisa darj karein — cash, bank ya JazzCash. Dena utna kam ho jata hai aur cash register me bhi aata hai.' },
+            { icon: BookOpen, color: '#2563eb', title: 'Khata', text: 'Har entry tareekh ke saath: maal liya, paisa diya, maal wapas, durusti. "Baqi" khane me har entry ke baad ka hisaab.' },
+            { icon: ShoppingCart, color: '#d97706', title: 'Kharidari aur order', text: 'Yahin se is supplier ka naya bill ya order — supplier pehle se chuna hota hai.' },
+            { icon: TrendingUp, color: '#db2777', title: 'Rates', text: 'Har cheez ki qeemat har dafa kitni thi — mehngi ho rahi ho to laal nishan.' },
+          ]}
+          tips={['Haath se ki gayi entry ghalat ho to khate me us ke aage 🗑 se hata sakte hain; bill wali entries bill se hi badalti hain.', '"Khata entry" se purana hisaab, bagair bill ka udhaar ya durusti bhi darj hoti hai.', 'Statement print se A4, PDF ya thermal — supplier ko WhatsApp par bhej kar hisaab milayein.']}
+          shortcuts={[['G', 'guide']]}
+        />
+      )}
       {money && <SupplierMoneyModal supplier={s} initial={money} onClose={() => setMoney(null)} />}
       {deleting && <DeleteModal id={s.id} name={s.name} onClose={() => setDeleting(false)} onDone={() => { qc.invalidateQueries({ queryKey: ['suppliers'] }); navigate('/suppliers'); }} />}
     </div>
@@ -141,31 +155,11 @@ function Khata({ supplierId, name, canEdit }: { supplierId: string; name: string
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi hata'),
   });
 
-  const print = () => {
-    if (!st) return;
-    const shop = getReceiptSetup().shop;
-    const body = [...rows].reverse().map((e) => {
-      const m = ledgerMeta(e.type);
-      const dlt = entryDelta(e);
-      return `<tr><td>${day(e.entryDate)}</td><td>${esc(m.label)}${e.reference ? ` · ${esc(e.reference)}` : ''}${e.note ? `<div class="n">${esc(e.note)}</div>` : ''}</td><td class="r">${dlt > 0 ? formatPKR(dlt) : ''}</td><td class="r">${dlt < 0 ? formatPKR(-dlt) : ''}</td><td class="r b">${formatPKR(e.balanceAfter)}</td></tr>`;
-    }).join('');
-    printHtml(`<!doctype html><html><head><meta charset="utf-8"><title>Khata ${esc(name)}</title><style>
-      @page{size:A4;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}body{font:12px Arial,sans-serif;color:#0f172a}
-      h1{font-size:20px}h2{font-size:14px;color:#475569;margin:2px 0 14px}.top{display:flex;justify-content:space-between;border-bottom:3px solid #0f766e;padding-bottom:10px;margin-bottom:12px}
-      table{width:100%;border-collapse:collapse}th{background:#0f766e;color:#fff;text-align:left;padding:7px;font-size:11px}td{padding:7px;border-bottom:1px solid #e2e8f0;vertical-align:top}
-      .r{text-align:right;white-space:nowrap}.b{font-weight:700}.n{color:#64748b;font-size:11px}.sum{margin-top:12px;text-align:right;font-size:16px;font-weight:700}
-      .f{margin-top:24px;color:#64748b;font-size:10px;text-align:center}</style></head><body>
-      <div class="top"><div><h1>${esc(shop.name)}</h1><div>${esc(shop.address ?? '')} ${esc(shop.phone ?? '')}</div></div><div style="text-align:right"><h1>Supplier khata</h1><h2>${esc(name)}</h2><div>${period ? `${period.from} — ${period.to}` : 'Shuru se aaj tak'}</div></div></div>
-      <table><thead><tr><th>Tareekh</th><th>Tafseel</th><th class="r">Dena barha</th><th class="r">Diye / kam</th><th class="r">Baqi</th></tr></thead><tbody>${body}</tbody></table>
-      <div class="sum">Abhi dena hai: ${formatPKR(st.supplier.outstandingDue)}</div>
-      <div class="f">Nafaa POS · 0324-1772933 · nafaa.pk</div></body></html>`);
-  };
-
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="all" />
-        <Button variant="secondary" size="sm" onClick={print} disabled={!st} leftIcon={<Printer className="h-4 w-4" />}>Statement print</Button>
+        <PrintButton size="sm" label="Statement" disabled={!st} doc={() => statementDoc(st!, period ? `${period.from} — ${period.to}` : 'Shuru se aaj tak')} />
         {st && (
           <div className="ml-auto flex flex-wrap gap-x-4 text-sm">
             <span>Barha <b className="tabular-nums text-amber-700">{formatPKR(st.totals.added)}</b></span>
