@@ -9,7 +9,7 @@
  *            + khata collections    customer payments (no method stored; counted as cash)
  *            + cash in              manual entries on this register
  *            − cash out             manual entries on this register
- *            − cash refunds         returns paid back in cash
+ *            − cash refunds         returns paid back in cash (minus any part that only cleared udhaar)
  *            − booking refunds      cancelled booking advances returned in cash
  *            − cash expenses        paid expenses with method CASH
  *            − cash purchases       amount paid in cash on the purchase itself
@@ -74,6 +74,11 @@ export async function computeLiveCash(db: Db, tenantId: string, register: CashWi
   const shop = register.shopId ? { shopId: register.shopId } : {};
   // Ledger rows from before branches were tagged count in every branch.
   const loose = register.shopId ? [{ OR: [{ shopId: register.shopId }, { shopId: null }] }] : [];
+  // A return belongs to the branch it was made at; older rows without one fall back to the bill's branch.
+  const returnWhere: Prisma.SaleReturnWhereInput = {
+    tenantId, refundMethod: 'CASH', refundAmount: { gt: 0 }, returnedAt: window,
+    ...(register.shopId && { OR: [{ shopId: register.shopId }, { shopId: null, sale: { shopId: register.shopId } }] }),
+  };
   const khataWhere: Prisma.CustomerLedgerWhereInput = {
     tenantId, type: 'PAYMENT_RECEIVED', createdAt: window, AND: [...loose, NOT_BOOKING_LINE],
   };
@@ -105,7 +110,7 @@ export async function computeLiveCash(db: Db, tenantId: string, register: CashWi
       _count: { _all: true },
     }),
     db.saleReturn.aggregate({
-      where: { tenantId, refundMethod: 'CASH', refundAmount: { gt: 0 }, returnedAt: window, ...(register.shopId ? { sale: { shopId: register.shopId } } : {}) },
+      where: returnWhere,
       _sum: { refundAmount: true },
       _count: { _all: true },
     }),
@@ -129,6 +134,17 @@ export async function computeLiveCash(db: Db, tenantId: string, register: CashWi
     }),
   ]);
 
+  // Part of a cash refund may only clear the customer's udhaar; only the rest leaves the drawer.
+  const cashReturns = returns._count._all
+    ? await db.saleReturn.findMany({ where: returnWhere, select: { returnNumber: true } })
+    : [];
+  const khataPart = cashReturns.length
+    ? await db.customerLedger.aggregate({
+      where: { tenantId, type: 'REFUND', reference: { in: cashReturns.map((r) => r.returnNumber) } },
+      _sum: { amount: true },
+    })
+    : null;
+
   const manualOf = (type: 'CASH_IN' | 'CASH_OUT') => manual.find((m) => m.type === type);
   const out = {
     openingBalance: n(register.openingBalance),
@@ -142,7 +158,7 @@ export async function computeLiveCash(db: Db, tenantId: string, register: CashWi
     cashInCount: manualOf('CASH_IN')?._count._all ?? 0,
     cashOut: r2(n(manualOf('CASH_OUT')?._sum.amount)),
     cashOutCount: manualOf('CASH_OUT')?._count._all ?? 0,
-    returns: r2(n(returns._sum.refundAmount)),
+    returns: r2(n(returns._sum.refundAmount) + n(khataPart?._sum.amount)),
     returnCount: returns._count._all,
     bookingRefunds: r2(n(bookingOut._sum.amount)),
     bookingRefundCount: bookingOut._count._all,

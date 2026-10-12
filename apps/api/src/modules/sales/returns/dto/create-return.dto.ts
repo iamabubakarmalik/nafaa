@@ -2,7 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
-  ArrayMinSize, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber,
+  ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber,
   IsOptional, IsString, MaxLength, Min, ValidateNested,
 } from 'class-validator';
 
@@ -61,6 +61,14 @@ class ReturnItemDto {
   @IsOptional()
   @IsString()
   cutPieceNotes?: string;
+
+  @ApiPropertyOptional({
+    description: 'Put the goods back on the shelf (default). False books them as damaged.',
+    default: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  restock?: boolean;
 }
 
 export class CreateReturnDto {
@@ -72,6 +80,7 @@ export class CreateReturnDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(200)
   reason?: string;
 
   @ApiProperty({ enum: PaymentMethod, example: 'CASH' })
@@ -81,14 +90,17 @@ export class CreateReturnDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   notes?: string;
 
   @ApiProperty({ type: [ReturnItemDto] })
   @IsArray()
   @ArrayMinSize(1)
+  @ArrayMaxSize(200)
   @ValidateNested({ each: true })
   @Type(() => ReturnItemDto)
   items!: ReturnItemDto[];
+
   /** Owner's PIN, when settings ask for it on refunds. */
   @ApiPropertyOptional()
   @IsOptional()
