@@ -27,6 +27,11 @@ export interface DirectoryQuery {
   birthday?: string;
   sort?: DirectorySort;
   scope?: 'branch' | 'all';
+  /** Business-day keys (YYYY-MM-DD) for a period; without them, all time. */
+  from?: string;
+  to?: string;
+  /** What the period filters on: bought in it, joined in it, or khata activity in it. */
+  dateOn?: 'sales' | 'joined' | 'khata';
   page?: string | number;
   limit?: string | number;
 }
@@ -73,7 +78,10 @@ interface Row {
   gender: string | null; dateOfBirth: Date | null; avatarUrl: string | null; creditLimit: number; totalBalance: number; loyaltyPoints: number;
   isActive: boolean; isVip: boolean; createdAt: Date; shopId: string | null;
   balance: number; visits: number; spent: number; lastSaleAt: Date | null; firstSaleAt: Date | null; oldestDueAt: Date | null;
+  periodVisits: number; periodSpent: number; periodCredit: number; periodPaid: number;
 }
+
+const KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 @Injectable()
 export class CustomerDirectoryService {
@@ -97,7 +105,15 @@ export class CustomerDirectoryService {
     const [my, mm] = monthKey.split('-').map(Number);
     const monthStart = zonedToUtc(my, mm, 1, safeDayStart(dayStartHour), 0, 0, tz);
 
-    const [customers, saleAgg, branchLedger, debtLedger] = await Promise.all([
+    // Optional period, on business days in the shop's time zone.
+    const start = safeDayStart(dayStartHour);
+    const at = (key: string) => { const [y, m, d] = key.split('-').map(Number); return zonedToUtc(y, m, d, start, 0, 0, tz); };
+    const range = q.from && KEY.test(q.from) && q.to && KEY.test(q.to)
+      ? { gte: at(q.from), lt: new Date(at(q.to).getTime() + DAY) }
+      : null;
+    if (range && range.gte >= range.lt) throw new BadRequestException('Tareekh ulti hai');
+
+    const [customers, saleAgg, branchLedger, debtLedger, periodSales, periodLedger] = await Promise.all([
       this.prisma.customer.findMany({
         where: { tenantId },
         select: {
@@ -116,7 +132,26 @@ export class CustomerDirectoryService {
         where: { tenantId, ...(shopId && { shopId }), customer: shopId ? undefined : { balance: { gt: EPS } } },
         select: { customerId: true, amount: true, createdAt: true },
       }),
+      range ? this.prisma.sale.groupBy({
+        by: ['customerId'],
+        where: { tenantId, customerId: { not: null }, status: { in: [...LIVE] }, soldAt: range, ...(shopId && { shopId }) },
+        _count: { _all: true }, _sum: { total: true },
+      }) : Promise.resolve([]),
+      range ? this.prisma.customerLedger.groupBy({
+        by: ['customerId', 'type'],
+        where: { tenantId, createdAt: range, ...(shopId && { shopId }) },
+        _sum: { amount: true },
+      }) : Promise.resolve([]),
     ]);
+    const pSales = new Map(periodSales.map((s) => [s.customerId!, s]));
+    const pLedger = new Map<string, { credit: number; paid: number }>();
+    for (const l of periodLedger) {
+      const cur = pLedger.get(l.customerId) ?? { credit: 0, paid: 0 };
+      const amt = n(l._sum.amount);
+      if (l.type === 'PAYMENT_RECEIVED') cur.paid += -amt;
+      else if (amt > 0) cur.credit += amt;
+      pLedger.set(l.customerId, cur);
+    }
 
     const sales = new Map(saleAgg.map((s) => [s.customerId!, s]));
     const branchBal = new Map(branchLedger.map((b) => [b.customerId, n(b._sum.amount)]));
@@ -138,6 +173,8 @@ export class CustomerDirectoryService {
           ...c, totalBalance: n(c.balance), balance,
           visits: s?._count._all ?? 0, spent: n(s?._sum.total), lastSaleAt: s?._max.soldAt ?? null, firstSaleAt: s?._min.soldAt ?? null,
           oldestDueAt: balance > EPS ? oldestUnpaid(ledgerBy.get(c.id) ?? []) : null,
+          periodVisits: pSales.get(c.id)?._count._all ?? 0, periodSpent: n(pSales.get(c.id)?._sum.total),
+          periodCredit: pLedger.get(c.id)?.credit ?? 0, periodPaid: pLedger.get(c.id)?.paid ?? 0,
         };
       });
 
@@ -174,7 +211,12 @@ export class CustomerDirectoryService {
     const birthdayOk = (r: Row) => q.birthday !== 'month' || (r.dateOfBirth && tzParts(r.dateOfBirth, tz).month === mm);
     const cityOk = (r: Row) => !q.city || (r.city ?? '').toLowerCase() === q.city.toLowerCase();
 
-    const base = rows.filter((r) => matches(r) && statusOk(r) && cityOk(r) && birthdayOk(r));
+    const dateOn = q.dateOn ?? 'sales';
+    const periodOk = (r: Row) => !range
+      || (dateOn === 'joined' ? r.createdAt >= range.gte && r.createdAt < range.lt
+        : dateOn === 'khata' ? r.periodCredit > EPS || r.periodPaid > EPS
+          : r.periodVisits > 0);
+    const base = rows.filter((r) => matches(r) && statusOk(r) && cityOk(r) && birthdayOk(r) && periodOk(r));
     const filtered = base.filter((r) => typeTest[type](r) && actTest[activity](r) && agingTest(r));
 
     const avg = (r: Row) => (r.visits ? r.spent / r.visits : 0);
@@ -199,6 +241,7 @@ export class CustomerDirectoryService {
       balance: r.balance, totalBalance: r.totalBalance, overLimit: isOverLimit(r),
       visits: r.visits, spent: r.spent, average: avg(r), lastSaleAt: r.lastSaleAt, firstSaleAt: r.firstSaleAt,
       daysSinceVisit: daysSince(r.lastSaleAt), oldestDueAt: r.oldestDueAt, dueDays: ageOf(r),
+      period: range ? { visits: r.periodVisits, spent: r.periodSpent, credit: r.periodCredit, paid: r.periodPaid } : null,
     });
 
     // Totals cover every customer in scope (active ones), not just this page.
@@ -217,6 +260,15 @@ export class CustomerDirectoryService {
       tabs: Object.fromEntries(TYPES.map((t) => [t, base.filter(typeTest[t]).length])) as Record<DirectoryType, number>,
       activity: Object.fromEntries(ACTIVITIES.map((a) => [a, base.filter(actTest[a]).length])) as Record<DirectoryActivity, number>,
       cities: [...cityCount.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 40),
+      period: range ? {
+        from: q.from, to: q.to,
+        visits: rows.reduce((s, r) => s + r.periodVisits, 0),
+        spent: rows.reduce((s, r) => s + r.periodSpent, 0),
+        buyers: rows.filter((r) => r.periodVisits > 0).length,
+        credit: rows.reduce((s, r) => s + r.periodCredit, 0),
+        paid: rows.reduce((s, r) => s + r.periodPaid, 0),
+        joined: rows.filter((r) => r.createdAt >= range.gte && r.createdAt < range.lt).length,
+      } : null,
       stats: {
         total: live.length,
         inactive: rows.length - live.length,

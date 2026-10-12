@@ -8,7 +8,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useBusinessDayStart } from '@core/lib/business-day';
 import { getPendingAsSales, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { salesHistoryApi, type HistoryFilters, type HistorySale, type HistorySort, type HistoryStatus } from './api';
-import { presetRange, type DatePreset } from './dates';
+import { presetRange, type DatePreset } from '@core/lib/dateRange';
 
 export const HISTORY_KEY = 'sales-history';
 const PREF_KEY = 'nafaa-sales-history';

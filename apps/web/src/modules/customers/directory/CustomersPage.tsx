@@ -10,10 +10,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
-  Activity, AlertTriangle, ArrowDownWideNarrow, BarChart3, BookOpen, Cake, Check, Crown, Download, GraduationCap, LayoutGrid,
+  Activity, AlertTriangle, CalendarCheck, CloudOff, ArrowDownWideNarrow, BarChart3, BookOpen, Cake, Check, Crown, Download, GraduationCap, LayoutGrid,
   MapPin, MessageCircle, Plus, Search, Snowflake, Table2, ToggleRight, Trophy, UserPlus, Users, Wallet, X, type LucideIcon,
 } from 'lucide-react';
-import { Avatar, Button, Card, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, heroPrimaryButton, type FilterOption } from '@/design-system/components';
+import { Avatar, Button, Card, DateRangeMenu, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, heroPrimaryButton, type FilterOption } from '@/design-system/components';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
 import { usePermission } from '@core/hooks/usePermission';
@@ -24,6 +24,7 @@ import { cn } from '@core/lib/cn';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import type { DirectoryActivity, DirectoryFilters, DirectoryType } from './api';
 import { useDirectory } from './useDirectory';
+import { rangeLabel } from '@core/lib/dateRange';
 import { customersCsv, customersDoc, fetchAllCustomers } from './exportCustomers';
 import { birthdayText, waLink } from './messages';
 import { BulkBar } from './components/BulkBar';
@@ -127,6 +128,7 @@ export function CustomersPage() {
   if (d.f.status !== 'active') chips.push([d.f.status === 'inactive' ? 'Band' : 'Chalu + band', () => d.set('status', 'active')]);
   if (d.f.scope === 'all') chips.push(['Saari branches', () => d.set('scope', undefined)]);
   if (d.search.trim()) chips.push([`"${d.search.trim()}"`, () => d.setSearch('')]);
+  if (d.period) chips.push([rangeLabel(d.period.from, d.period.to), () => d.setRange({ preset: 'all', custom: { from: '', to: '' } })]);
 
   return (
     <div className="mx-auto w-full max-w-[96rem] space-y-4 pb-12">
@@ -155,6 +157,21 @@ export function CustomersPage() {
           { label: '90 din se nahi aaye', value: st ? String(st.inactive90) : '', hint: st ? `${st.never} ne kabhi nahi khareeda` : '' },
         ]}
       />
+
+      {d.offline && (
+        <p className="flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-3 text-[0.8125rem] font-medium text-sky-800 ring-1 ring-sky-100">
+          <CloudOff className="h-4 w-4" />Internet nahi — computer par save customers dikh rahe hain. Aamad aur bikri ki ginti internet aane par.
+        </p>
+      )}
+      {d.data?.period && (
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200/80">
+          <span className="text-[0.8125rem] font-semibold text-slate-900">{rangeLabel(d.data.period.from, d.data.period.to)}</span>
+          <span className="text-[0.8125rem] text-slate-600"><strong className="tabular-nums text-slate-900">{d.data.period.buyers}</strong> customers ne khareeda</span>
+          <span className="text-[0.8125rem] text-slate-600">Kul <strong className="tabular-nums text-slate-900">{money(d.data.period.spent)}</strong> · {d.data.period.visits} bill</span>
+          <span className="text-[0.8125rem] text-slate-600"><strong className="tabular-nums text-slate-900">{d.data.period.joined}</strong> naye jore</span>
+          <span className="text-[0.8125rem] text-slate-600">Udhaar <strong className="tabular-nums text-rose-700">{money(d.data.period.credit)}</strong> · wusool <strong className="tabular-nums text-success-700">{money(d.data.period.paid)}</strong></span>
+        </div>
+      )}
 
       <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]">
         {TYPES.map((t) => {
@@ -196,6 +213,12 @@ export function CustomersPage() {
               : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
           </label>
           <div className="flex flex-wrap gap-2">
+            <DateRangeMenu value={d.range} onChange={d.setRange} startHour={d.startHour} />
+            {d.period && (
+              <FilterMenu icon={CalendarCheck} label="Is muddat mein" value={d.f.dateOn ?? 'sales'} active
+                options={[{ value: 'sales', label: 'Khareeda', hint: 'Jinhon ne is muddat mein khareeda' }, { value: 'joined', label: 'Naye jore', hint: 'Jo is muddat mein bane' }, { value: 'khata', label: 'Khata ka len-den', hint: 'Udhaar ya payment hui' }]}
+                onChange={(v) => d.set('dateOn', v as 'sales' | 'joined' | 'khata')} />
+            )}
             <FilterMenu icon={Activity} label="Aamad" value={d.f.activity} active={d.f.activity !== 'all'} width="w-72"
               options={ACTIVITY.map((a) => ({ ...a, hint: [a.hint, d.data ? `${d.data.activity[a.value]} customer` : ''].filter(Boolean).join(' · ') }))} onChange={(v) => d.set('activity', v)} />
             {(d.data?.cities.length ?? 0) > 0 && (

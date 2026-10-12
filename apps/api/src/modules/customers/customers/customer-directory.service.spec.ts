@@ -51,3 +51,32 @@ describe('CustomerDirectoryService.list', () => {
     expect((await svc.list(user, scope, { status: 'inactive' })).items.map((i) => i.id)).toEqual(['c']);
   });
 });
+
+describe('CustomerDirectoryService.list with a period', () => {
+  const customers = [
+    { id: 'a', name: 'Ali', phone: null, email: null, cnic: null, city: null, area: null, gender: null, dateOfBirth: null, avatarUrl: null, creditLimit: 0, balance: 500, loyaltyPoints: 0, isActive: true, isVip: false, createdAt: new Date('2026-01-01'), shopId: null },
+    { id: 'b', name: 'Bilal', phone: null, email: null, cnic: null, city: null, area: null, gender: null, dateOfBirth: null, avatarUrl: null, creditLimit: 0, balance: 0, loyaltyPoints: 0, isActive: true, isVip: false, createdAt: new Date('2026-10-05T10:00:00Z'), shopId: null },
+  ];
+  const sale = jest.fn((args: { where: { soldAt?: unknown } }) => Promise.resolve(args.where.soldAt ? [{ customerId: 'a', _count: { _all: 2 }, _sum: { total: 900 } }] : []));
+  const ledgerGroup = jest.fn((args: { by: string[] }) => Promise.resolve(args.by.includes('type')
+    ? [{ customerId: 'a', type: 'SALE_CREDIT', _sum: { amount: 700 } }, { customerId: 'a', type: 'PAYMENT_RECEIVED', _sum: { amount: -200 } }]
+    : []));
+  const prisma = {
+    customer: { findMany: jest.fn().mockResolvedValue(customers) },
+    sale: { groupBy: sale },
+    customerLedger: { groupBy: ledgerGroup, findMany: jest.fn().mockResolvedValue([]) },
+  };
+  const tz = { clock: jest.fn().mockResolvedValue({ tz: 'Asia/Karachi', dayStartHour: 0 }) };
+  const svc = new CustomerDirectoryService(prisma as never, tz as never);
+  const user = { tenantId: 't1' } as never;
+  const scope = { shopId: null, where: {}, isAll: true } as never;
+
+  it('filters on purchases, joining or khata activity in the period and totals it', async () => {
+    const q = { from: '2026-10-01', to: '2026-10-11' };
+    const bought = await svc.list(user, scope, q);
+    expect(bought.items.map((i) => i.id)).toEqual(['a']);
+    expect(bought.period).toMatchObject({ visits: 2, spent: 900, buyers: 1, credit: 700, paid: 200, joined: 1 });
+    expect((await svc.list(user, scope, { ...q, dateOn: 'joined' })).items.map((i) => i.id)).toEqual(['b']);
+    expect((await svc.list(user, scope, { ...q, dateOn: 'khata' })).items[0].period).toEqual({ visits: 2, spent: 900, credit: 700, paid: 200 });
+  });
+});

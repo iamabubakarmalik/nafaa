@@ -8,7 +8,7 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
-import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.api';
+import { runKhataAction } from '../offlineKhataActions';
 
 export type KhataAction = 'payment' | 'udhaar' | 'opening';
 
@@ -32,12 +32,11 @@ export function KhataActionModal({ action, customer, money, onClose, onDone }: {
   const tooMuch = action === 'payment' && n > customer.balance + 0.009;
   const t = TITLES[action];
   const save = useMutation({
-    mutationFn: () => action === 'payment'
-      ? customerLedgerApi.receivePayment(customer.id, { amount: n, note: note || undefined })
-      : action === 'udhaar'
-        ? customerLedgerApi.addUdhaar(customer.id, { amount: n, note: note || undefined })
-        : customerLedgerApi.setOpeningBalance(customer.id, { balance: n, note: note || undefined }),
-    onSuccess: () => { toast.success(`${customer.name}: ${t.title} — ${money(n)}`); onDone(); onClose(); },
+    mutationFn: () => runKhataAction(action, customer.id, n, note || undefined),
+    onSuccess: (queued) => {
+      toast.success(`${customer.name}: ${t.title} — ${money(n)}${queued ? ' (internet aate hi server par jayega)' : ''}`);
+      onDone(); onClose();
+    },
     onError: (e: { response?: { data?: { message?: string } }; message?: string }) => toast.error(e?.response?.data?.message || e.message || 'Nahi hua'),
   });
   const quick = action === 'payment' && customer.balance > 0

@@ -26,3 +26,4 @@ export { PageHero, heroButton, heroIconButton, heroPrimaryButton, type HeroStat 
 export { StatCard } from './StatCard';
 export { Table, THead, TBody, Tr, Th, Td } from './Table';
 export { FilterMenu, type FilterOption } from './FilterMenu';
+export { DateRangeMenu, resolveRange, type DateRangeValue } from './DateRangeMenu';

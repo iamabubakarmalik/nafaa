@@ -4,7 +4,7 @@
  * with editable wording; statement per customer; this month's credit and
  * collection. Behind the app PIN, with amounts hidden by the privacy toggle.
  *
- * Keys: / search · U credit · N reminders · A analytics.
+ * Keys: / search · U credit · N reminders · A analytics · G guide.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -12,10 +12,11 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, ArrowDownWideNarrow, BarChart3, BookOpen, Download, FileText, History, MessageCircle, MessagesSquare, Plus,
-  Search, Settings2, Users, Wallet, X,
+  AlertTriangle, ArrowDownWideNarrow, BarChart3, BookOpen, CloudOff, Download, FileText, GraduationCap, History, Lock, MessageCircle,
+  MessagesSquare, Plus, Search, Settings2, Users, Wallet, X, type LucideIcon,
 } from 'lucide-react';
-import { Avatar, Button, Card, FilterMenu, Kbd, PageHero, Skeleton, heroButton, heroIconButton, heroPrimaryButton, type FilterOption } from '@/design-system/components';
+import { Avatar, Button, Card, DateRangeMenu, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, heroPrimaryButton, type FilterOption } from '@/design-system/components';
+import { rangeLabel } from '@core/lib/dateRange';
 import { AppLockGate } from '@core/security/AppLockGate';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
@@ -60,7 +61,10 @@ export function KhataBookPage() {
 }
 
 function KhataBook() {
-  const d = useDirectory({ status: 'active', type: 'khata', activity: 'all', sort: 'balance' }, 'nafaa-khata-v2');
+  const d = useDirectory({ status: 'active', type: 'khata', activity: 'all', sort: 'balance', dateOn: 'khata' }, 'nafaa-khata-v2');
+  const currentShop = useAuthStore((s) => s.currentShopId);
+  const hasShop = !!currentShop && currentShop !== 'all';
+  const [guide, setGuide] = useState(false);
   const { sales: money } = useMasked();
   const shop = useAuthStore((s) => s.tenant?.name) ?? 'Hamari dukaan';
   const canManage = usePermission(PERMISSIONS.KHATA_MANAGE);
@@ -90,6 +94,7 @@ function KhataBook() {
       else if (k === 'u' && canManage) setPicking('udhaar');
       else if (k === 'n') void startReminders();
       else if (k === 'a') setTab((t) => (t === 'list' ? 'analytics' : 'list'));
+      else if (k === 'g') setGuide(true);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -118,6 +123,7 @@ function KhataBook() {
       {picking && <CustomerPicker title={picking === 'opening' ? 'Kis ka purana khata?' : 'Kis ko udhaar?'} money={money} onClose={() => setPicking(null)} onPick={(c) => { setAct({ action: picking, customer: c }); setPicking(null); }} />}
       {wizard && <ReminderWizard customers={wizard} shop={shop} money={money} onClose={() => setWizard(null)} />}
       {templates && <TemplatesModal onClose={() => setTemplates(false)} />}
+      {guide && <KhataGuide onClose={() => setGuide(false)} />}
 
       <PageHero
         title="Khata"
@@ -131,6 +137,7 @@ function KhataBook() {
           <button type="button" onClick={() => void exportCsv()} className={heroIconButton} title="CSV"><Download className="h-4 w-4" /></button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
           <button type="button" onClick={() => setTemplates(true)} title="Paigham badlein" className={heroIconButton}><Settings2 className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {canManage && <button type="button" onClick={() => setPicking('opening')} title="Kaapi ka purana khata" className={heroButton}><History className="h-4 w-4" /><span className="hidden sm:inline">Purana khata</span></button>}
           {canManage && <button type="button" onClick={() => setPicking('udhaar')} className={heroPrimaryButton}><Plus className="h-4 w-4" />Udhaar</button>}
         </>}
@@ -141,6 +148,21 @@ function KhataBook() {
           { label: 'Advance jama', value: st ? money(st.advance) : '', hint: st ? `${st.advanceCount} customers` : '' },
         ]}
       />
+
+      {d.offline && (
+        <p className="flex items-center gap-2 rounded-2xl bg-sky-50 px-4 py-3 text-[0.8125rem] font-medium text-sky-800 ring-1 ring-sky-100">
+          <CloudOff className="h-4 w-4" />Internet nahi — computer par save khata dikh raha hai. Payment aur udhaar abhi bhi likh sakte hain, internet aate hi server par chale jayenge.
+        </p>
+      )}
+      {d.data?.period && (
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200/80">
+          <span className="text-[0.8125rem] font-semibold text-slate-900">{rangeLabel(d.data.period.from, d.data.period.to)}</span>
+          <span className="text-[0.8125rem] text-slate-600">Udhaar diya <strong className="tabular-nums text-rose-700">{money(d.data.period.credit)}</strong></span>
+          <span className="text-[0.8125rem] text-slate-600">Wusool hua <strong className="tabular-nums text-success-700">{money(d.data.period.paid)}</strong></span>
+          {d.data.period.credit > 0 && <span className="text-[0.8125rem] text-slate-600">Wapsi ki sharah <strong className="tabular-nums">{Math.round((d.data.period.paid / d.data.period.credit) * 100)}%</strong></span>}
+          <span className="text-[0.8125rem] text-slate-500">{d.count} customers ka len-den</span>
+        </div>
+      )}
 
       {/* Ageing buckets */}
       {st && (
@@ -180,10 +202,20 @@ function KhataBook() {
             {d.search ? <button type="button" onClick={() => d.setSearch('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
               : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
           </label>
-          <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={d.f.sort} options={SORTS} onChange={(v) => d.set('sort', v)} align="right" width="w-60" />
+          <div className="flex flex-wrap gap-2">
+            <DateRangeMenu value={d.range} onChange={d.setRange} startHour={d.startHour} label="Len-den" />
+            {hasShop && (
+              <button type="button" onClick={() => d.set('scope', d.f.scope === 'all' ? undefined : 'all')} title="Saari branches ka khata"
+                className={cn('h-11 rounded-2xl px-3 text-[0.8125rem] font-semibold transition', d.f.scope === 'all' ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-200' : 'bg-slate-100/80 text-slate-600 hover:bg-slate-200/70')}>
+                {d.f.scope === 'all' ? 'Saari branches' : 'Is branch ka'}
+              </button>
+            )}
+            <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={d.f.sort} options={SORTS} onChange={(v) => d.set('sort', v)} align="right" width="w-60" />
+          </div>
         </div>
-        {(d.f.aging || d.search) && (
+        {(d.f.aging || d.search || d.period) && (
           <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3 text-[0.75rem]">
+            {d.period && <span className="inline-flex h-7 items-center gap-1 rounded-full bg-brand-50 pl-2.5 pr-1 font-semibold text-brand-800">{rangeLabel(d.period.from, d.period.to)}<button type="button" onClick={() => d.setRange({ preset: 'all', custom: { from: '', to: '' } })} aria-label="Hatayein" className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-brand-100"><X className="h-3 w-3" /></button></span>}
             {d.f.aging && <span className="inline-flex h-7 items-center gap-1 rounded-full bg-brand-50 pl-2.5 pr-1 font-semibold text-brand-800">{AGING.find((a) => a.id === d.f.aging)?.label}<button type="button" onClick={() => d.set('aging', undefined)} aria-label="Hatayein" className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-brand-100"><X className="h-3 w-3" /></button></span>}
             <button type="button" onClick={d.clear} className="ml-auto font-semibold text-rose-700 hover:underline">Sab hatayein</button>
           </div>
@@ -269,7 +301,13 @@ function KhataBook() {
                     <span className={cn('shrink-0 rounded-lg px-2 py-0.5 text-[0.75rem] font-semibold', c.dueDays >= 90 ? 'bg-rose-600 text-white' : c.dueDays >= 30 ? 'bg-orange-50 text-orange-700' : c.dueDays >= 7 ? 'bg-amber-50 text-amber-800' : 'bg-slate-100 text-slate-600')}>{c.dueDays} din</span>
                   )}
                   {c.overLimit && <span className="shrink-0 rounded-lg bg-rose-50 px-2 py-0.5 text-[0.75rem] font-semibold text-rose-700">Had paar</span>}
-                  <span className={cn('w-28 shrink-0 text-right text-[1.0625rem] font-bold tabular-nums', c.balance > 0 ? 'text-rose-700' : c.balance < 0 ? 'text-success-700' : 'text-slate-400')}>
+                  {c.period && (
+                    <span className="hidden shrink-0 text-right text-[0.75rem] leading-tight md:block">
+                      {c.period.credit > 0 && <span className="block whitespace-nowrap text-rose-700">+{money(c.period.credit)} diya</span>}
+                      {c.period.paid > 0 && <span className="block whitespace-nowrap text-success-700">−{money(c.period.paid)} aaya</span>}
+                    </span>
+                  )}
+                  <span className={cn('min-w-[7rem] shrink-0 whitespace-nowrap text-right text-[1.0625rem] font-bold tabular-nums', c.balance > 0 ? 'text-rose-700' : c.balance < 0 ? 'text-success-700' : 'text-slate-400')}>
                     {Math.abs(c.balance) > 0.009 ? money(Math.abs(c.balance)) : 'Saaf'}
                     {c.balance < -0.009 && <span className="block text-[0.625rem] font-semibold uppercase">advance</span>}
                   </span>
@@ -294,5 +332,36 @@ function KhataBook() {
         </div>
       )}
     </div>
+  );
+}
+
+function KhataGuide({ onClose }: { onClose: () => void }) {
+  const steps: Array<{ icon: LucideIcon; color: string; title: string; text: string }> = [
+    { icon: Wallet, color: '#16a34a', title: 'Payment lein', text: 'Customer ke saamne "Payment" dabayein, raqam likhein. Poora baqi ek click mein bhar jata hai.' },
+    { icon: Plus, color: '#e11d48', title: 'Udhaar chadhayein', text: 'Bina bill ke udhaar (naqd paise diye) — upar "Udhaar" ya customer ke saamne "+".' },
+    { icon: History, color: '#7c3aed', title: 'Kaapi ka purana khata', text: '"Purana khata" — register ka purana baqi. Jo udhaar pehle se hai us mein jurta hai, kuch nahi mitta.' },
+    { icon: AlertTriangle, color: '#ea580c', title: 'Kitna purana', text: 'Upar ke chaar dabbe: 7 din, 30 din, 90 din se purana. Jo payment aati hai woh sab se purane udhaar mein ginti hai.' },
+    { icon: MessagesSquare, color: '#0891b2', title: 'Yaad-dihani', text: '"Yaad-dihani" sab udhaar walon ko ek ek kar ke WhatsApp. Purane udhaar par lehja khud sakht ho jata hai.' },
+    { icon: FileText, color: '#475569', title: 'Statement', text: 'Customer ke saamne kaghaz wala button — poora khata, print ya PDF.' },
+    { icon: Lock, color: '#db2777', title: 'Hifazat', text: 'Khata PIN ke peeche hai. Aankh wala button raqam chhupata hai — grahak saamne ho to.' },
+    { icon: CloudOff, color: '#0284c7', title: 'Internet ke bagair', text: 'Internet na ho to bhi payment aur udhaar likhein — internet aate hi khud server par chale jate hain.' },
+  ];
+  return (
+    <Modal open onClose={onClose} size="lg" title="Khata — aasaan tareeqa" description={`${steps.length} cheezein, bas itna yaad rakhein`}>
+      <ol className="grid gap-3 sm:grid-cols-2">
+        {steps.map((s, i) => (
+          <li key={s.title} className="flex gap-3 rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
+            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${s.color}17`, color: s.color }}>
+              <s.icon className="h-5 w-5" /><span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[0.625rem] font-bold text-white">{i + 1}</span>
+            </span>
+            <div><p className="text-[0.875rem] font-semibold text-slate-900">{s.title}</p><p className="mt-0.5 text-[0.8125rem] leading-relaxed text-slate-600">{s.text}</p></div>
+          </li>
+        ))}
+      </ol>
+      <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3 text-[0.75rem] text-slate-600 ring-1 ring-slate-200">
+        <span className="font-semibold text-slate-900">Jaldi ke liye:</span>
+        {[['/', 'dhoondein'], ['U', 'udhaar'], ['N', 'yaad-dihani'], ['A', 'analytics'], ['G', 'guide']].map(([k, t]) => <span key={k} className="inline-flex items-center gap-1"><Kbd>{k}</Kbd> {t}</span>)}
+      </div>
+    </Modal>
   );
 }

@@ -31,6 +31,7 @@ import { PAYMENT_LABELS, useChartTheme } from '@modules/dashboard/engine/useChar
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { customerLedgerApi, type LedgerEntry } from '@modules/customers/khata/api/customer-ledger.api';
+import { getCachedLedger } from '@core/lib/offline/offlineKhata';
 import { salesHistoryApi } from '@modules/sales/history/api';
 import { directoryApi } from './api';
 import { useDirectory } from './useDirectory';
@@ -80,7 +81,17 @@ export function CustomerProfilePage() {
 
   const customer = useQuery({ queryKey: ['customer', id], queryFn: () => customersApi.getOne(id), enabled: !!id });
   const insights = useQuery({ queryKey: ['customer-insights', id], queryFn: () => directoryApi.insights(id), enabled: !!id });
-  const ledger = useQuery({ queryKey: ['customer-ledger', id], queryFn: () => customerLedgerApi.list(id), enabled: !!id });
+  const ledger = useQuery({
+    queryKey: ['customer-ledger', id],
+    enabled: !!id,
+    queryFn: async () => {
+      try { return await customerLedgerApi.list(id); } catch (e) {
+        // Offline: the khata saved on this device.
+        const cached = await getCachedLedger(id).catch(() => { throw e; });
+        return { ...cached, shopBalance: cached.customer.balance, totalBalance: cached.customer.balance, isAllShops: true };
+      }
+    },
+  });
   const today = businessDayKey(new Date(), startHour);
   const bills = useInfiniteQuery({
     queryKey: ['sales-history', 'customer', id],

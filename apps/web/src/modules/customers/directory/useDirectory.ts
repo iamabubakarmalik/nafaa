@@ -6,6 +6,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { resolveRange, type DateRangeValue } from '@/design-system/components';
+import { useBusinessDayStart } from '@core/lib/business-day';
 import { directoryApi, type DirectoryFilters } from './api';
 
 export const DIRECTORY_KEY = 'customer-directory';
@@ -22,10 +24,13 @@ export function useDirectory(initial: Omit<DirectoryFilters, 'search'>, prefKey:
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const startHour = useBusinessDayStart();
+  const [range, setRangeState] = useState<DateRangeValue>({ preset: 'all', custom: { from: '', to: '' } });
+  const period = resolveRange(range, startHour);
   useEffect(() => { const t = setTimeout(() => setQuery(search), 250); return () => clearTimeout(t); }, [search]);
   useEffect(() => { try { localStorage.setItem(prefKey, JSON.stringify({ view, sort: f.sort })); } catch { /* storage blocked */ } }, [view, f.sort, prefKey]);
 
-  const filters: DirectoryFilters = { ...f, search: query };
+  const filters: DirectoryFilters = { ...f, search: query, from: period?.from, to: period?.to };
   const list = useInfiniteQuery({
     queryKey: [DIRECTORY_KEY, filters],
     queryFn: ({ pageParam }) => directoryApi.list(filters, pageParam, 48),
@@ -38,11 +43,13 @@ export function useDirectory(initial: Omit<DirectoryFilters, 'search'>, prefKey:
 
   const set = <K extends keyof typeof f>(key: K, value: (typeof f)[K]) => { setF((cur) => ({ ...cur, [key]: value })); setSelected(new Set()); };
   const hasFilters = !!query || f.type !== initial.type || f.activity !== initial.activity || f.status !== initial.status
-    || !!f.city || !!f.birthday || !!f.aging || (f.scope ?? 'branch') !== (initial.scope ?? 'branch');
+    || !!f.city || !!f.birthday || !!f.aging || (f.scope ?? 'branch') !== (initial.scope ?? 'branch') || range.preset !== 'all';
 
   return {
-    filters, f, set, search, setSearch, view, setView, hasFilters,
-    clear: () => { setF({ ...initial, sort: f.sort }); setSearch(''); setSelected(new Set()); },
+    filters, f, set, search, setSearch, view, setView, hasFilters, startHour,
+    range, period, setRange: (v: DateRangeValue) => { setRangeState(v); setSelected(new Set()); },
+    clear: () => { setF({ ...initial, sort: f.sort }); setSearch(''); setRangeState({ preset: 'all', custom: { from: '', to: '' } }); setSelected(new Set()); },
+    offline: !!first?.offline,
     data: first, items, count: first?.count ?? 0,
     loading: list.isLoading, fetching: list.isFetching, error: list.error,
     hasMore: !!list.hasNextPage, loadMore: () => list.fetchNextPage(), loadingMore: list.isFetchingNextPage,

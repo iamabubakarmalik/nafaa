@@ -70,6 +70,11 @@ export function CustomerCard({ c, money, shop, selected, selecting, onToggle, ca
           <p className="mt-0.5 text-[0.6875rem] text-slate-500">Had {money(c.creditLimit)}{c.overLimit ? ' — paar ho gayi' : ''}</p>
         </div>
       )}
+      {c.period && (c.period.spent > 0 || c.period.credit > 0 || c.period.paid > 0) && (
+        <p className="mt-2 rounded-lg bg-brand-50 px-2 py-1 text-[0.6875rem] text-brand-800">
+          Is muddat mein: {c.period.visits > 0 && `${money(c.period.spent)} · ${c.period.visits} bill`}{c.period.credit > 0 && ` · udhaar ${money(c.period.credit)}`}{c.period.paid > 0 && ` · diya ${money(c.period.paid)}`}
+        </p>
+      )}
       <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-center">
         <div><dt className="text-[0.6875rem] text-slate-500">Aaya</dt><dd className="text-[0.875rem] font-bold tabular-nums text-slate-900">{c.visits}</dd></div>
         <div><dt className="text-[0.6875rem] text-slate-500">Khareeda</dt><dd className="truncate text-[0.875rem] font-bold tabular-nums text-slate-900">{money(c.spent)}</dd></div>

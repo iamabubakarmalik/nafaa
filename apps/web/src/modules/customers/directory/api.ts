@@ -20,6 +20,10 @@ export interface DirectoryFilters {
   birthday?: 'month';
   sort: DirectorySort;
   scope?: 'branch' | 'all';
+  /** Business-day keys for a period; both or neither. */
+  from?: string;
+  to?: string;
+  dateOn?: 'sales' | 'joined' | 'khata';
 }
 
 export interface DirectoryCustomer {
@@ -31,6 +35,8 @@ export interface DirectoryCustomer {
   visits: number; spent: number; average: number; lastSaleAt: string | null; firstSaleAt: string | null; daysSinceVisit: number | null;
   /** Oldest unpaid credit, with payments settling the oldest first. */
   oldestDueAt: string | null; dueDays: number | null;
+  /** Only with a period: what happened in it. */
+  period: { visits: number; spent: number; credit: number; paid: number } | null;
 }
 
 type Bucket = { count: number; amount: number };
@@ -41,6 +47,9 @@ export interface DirectoryPage {
   tabs: Record<DirectoryType, number>;
   activity: Record<DirectoryActivity, number>;
   cities: Array<{ name: string; count: number }>;
+  period: { from: string; to: string; visits: number; spent: number; buyers: number; credit: number; paid: number; joined: number } | null;
+  /** True when built from data saved on this device because the server was unreachable. */
+  offline?: boolean;
   stats: {
     total: number; inactive: number; vip: number; newThisMonth: number; buyers: number; spent: number;
     receivable: number; owingCount: number; advance: number; advanceCount: number; overLimit: number;
@@ -64,12 +73,24 @@ export interface CustomerInsights {
 
 const params = (f: DirectoryFilters, page: number, limit: number) => ({
   search: f.search?.trim() || undefined, status: f.status, type: f.type, activity: f.activity, aging: f.aging, city: f.city,
-  birthday: f.birthday, sort: f.sort, scope: f.scope, page, limit,
+  birthday: f.birthday, sort: f.sort, scope: f.scope, from: f.from, to: f.to, dateOn: f.dateOn, page, limit,
 });
 
+const isNetFail = (e: unknown) => {
+  const s = (e as { response?: { status?: number } })?.response?.status;
+  return !s || s === 408 || s >= 502;
+};
+
 export const directoryApi = {
-  list: (f: DirectoryFilters, page = 1, limit = 40) =>
-    apiClient.get<{ data: DirectoryPage }>('/customers/directory', { params: params(f, page, limit) }).then((r) => r.data.data),
+  list: async (f: DirectoryFilters, page = 1, limit = 40): Promise<DirectoryPage> => {
+    try {
+      return await apiClient.get<{ data: DirectoryPage }>('/customers/directory', { params: params(f, page, limit) }).then((r) => r.data.data);
+    } catch (e) {
+      if (!isNetFail(e)) throw e;
+      const { localDirectory } = await import('./offlineDirectory');
+      return localDirectory(f, page, limit);
+    }
+  },
   insights: (id: string) => apiClient.get<{ data: CustomerInsights }>(`/customers/${id}/insights`).then((r) => r.data.data),
 };
 

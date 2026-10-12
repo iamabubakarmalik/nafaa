@@ -15,7 +15,7 @@ interface CachedLedgerData extends LedgerResponse {
   _cachedAt: number;
 }
 
-const LEDGER_CACHE_KEY = 'khata-ledger-cache';
+export const LEDGER_CACHE_KEY = 'khata-ledger-cache';
 
 /**
  * Build a minimal LedgerCustomer from an OfflineCustomer

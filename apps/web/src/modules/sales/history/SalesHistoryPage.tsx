@@ -33,7 +33,7 @@ import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { PAYMENT_COLORS } from '@modules/dashboard/engine/useChartTheme';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
 import { salesHistoryApi, type HistorySale, type HistorySort, type HistoryStatus } from './api';
-import { DATE_PRESETS, rangeLabel } from './dates';
+import { DATE_PRESETS, rangeLabel } from '@core/lib/dateRange';
 import { fetchAllSales, salesCsv, salesDoc } from './exportSales';
 import { useSalesAnalytics, useSalesHistory } from './useSalesHistory';
 import { ReceiptPrefsModal } from './components/ReceiptPrefsModal';
