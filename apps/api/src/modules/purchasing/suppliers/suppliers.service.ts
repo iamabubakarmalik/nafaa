@@ -188,19 +188,20 @@ export class SuppliersService {
     const topProductsRaw = await this.prisma.purchaseItem.groupBy({
       by: ['productId'],
       where: {
+        productId: { not: null },
         purchase: {
           supplierId: id,
           tenantId: user.tenantId,
           status: 'RECEIVED',
         },
       },
-      _sum: { quantity: true, total: true },
+      _sum: { baseQuantity: true, total: true },
       _count: { _all: true },
       orderBy: { _sum: { total: 'desc' } },
       take: 5,
     });
 
-    const productIds = topProductsRaw.map((p) => p.productId);
+    const productIds = topProductsRaw.map((p) => p.productId!);
     const products = await this.prisma.product.findMany({
       where: { id: { in: productIds } },
       select: {
@@ -214,8 +215,8 @@ export class SuppliersService {
     const productMap = new Map(products.map((p) => [p.id, p]));
     const topProducts = topProductsRaw.map((p) => ({
       productId: p.productId,
-      product: productMap.get(p.productId),
-      quantity: p._sum.quantity ?? 0,
+      product: productMap.get(p.productId!),
+      quantity: p._sum.baseQuantity ?? 0,
       total: p._sum.total ?? 0,
       orderCount: p._count._all,
     }));
@@ -277,6 +278,8 @@ export class SuppliersService {
             productId: true,
             costPrice: true,
             quantity: true,
+            conversionRate: true,
+            baseQuantity: true,
             purchase: { select: { purchasedAt: true, purchaseNumber: true } },
           },
           orderBy: { purchase: { purchasedAt: 'asc' } },
@@ -289,8 +292,9 @@ export class SuppliersService {
         .map((r) => ({
           date: format(r.purchase.purchasedAt, 'yyyy-MM-dd'),
           purchaseNumber: r.purchase.purchaseNumber,
-          costPrice: r.costPrice,
-          quantity: r.quantity,
+          // Per base unit, so a carton and a piece compare.
+          costPrice: r.costPrice / (r.conversionRate || 1),
+          quantity: r.baseQuantity || r.quantity,
         }));
       const first = rows[0]?.costPrice ?? 0;
       const last = rows[rows.length - 1]?.costPrice ?? 0;
@@ -499,8 +503,8 @@ export class SuppliersService {
       }),
       this.prisma.purchaseItem.groupBy({
         by: ['productId'],
-        where: { purchase: { tenantId: user.tenantId, status: 'RECEIVED' } },
-        _sum: { quantity: true, total: true },
+        where: { productId: { not: null }, purchase: { tenantId: user.tenantId, status: { in: ['RECEIVED', 'PARTIAL'] } } },
+        _sum: { baseQuantity: true, total: true },
         _count: { _all: true },
         orderBy: { _sum: { total: 'desc' } },
         take: 8,
@@ -627,18 +631,18 @@ export class SuppliersService {
     }));
 
     /* ─── Sab se zyada kharide gaye maal ─── */
-    const prodIds = topProductsRaw.map((p) => p.productId);
+    const prodIds = topProductsRaw.map((p) => p.productId!);
     const prods = await this.prisma.product.findMany({
       where: { id: { in: prodIds }, tenantId: user.tenantId },
       select: { id: true, name: true, sku: true, unit: true, stock: true, costPrice: true, images: { take: 1, select: { url: true } } },
     });
     const prodMap = new Map(prods.map((p) => [p.id, p]));
     const topProducts = topProductsRaw
-      .filter((p) => prodMap.has(p.productId))
+      .filter((p) => prodMap.has(p.productId!))
       .map((p) => ({
         productId: p.productId,
-        product: prodMap.get(p.productId),
-        quantity: p._sum.quantity ?? 0,
+        product: prodMap.get(p.productId!),
+        quantity: p._sum.baseQuantity ?? 0,
         total: p._sum.total ?? 0,
         orderCount: p._count._all,
       }));

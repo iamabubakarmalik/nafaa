@@ -114,6 +114,12 @@ export class CreateProductDto {
   @IsBoolean()
   isFeatured?: boolean;
 
+  /** Bought to make things (flour, fabric, spare parts); hidden from the POS. */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isRawMaterial?: boolean;
+
   @ApiPropertyOptional({ type: [String] })
   @IsOptional()
   @IsArray()

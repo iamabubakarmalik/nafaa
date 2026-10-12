@@ -99,8 +99,8 @@ export class MoneyService {
         _count: { _all: true },
       }),
       this.prisma.purchase.aggregate({
-        where: { tenantId, purchasedAt: { gte: monthStart } },
-        _sum: { total: true, paidAmount: true },
+        where: { tenantId, status: { in: ['RECEIVED', 'PARTIAL'] }, purchasedAt: { gte: monthStart } },
+        _sum: { receivedValue: true, paidAmount: true },
         _count: { _all: true },
       }),
       this.prisma.expense.aggregate({
@@ -210,7 +210,7 @@ export class MoneyService {
         netProfit: monthNet,
         margin: monthRevenue > 0 ? (monthNet / monthRevenue) * 100 : 0,
         bills: monthSales._count._all ?? 0,
-        purchases: Number(monthPurchases._sum.total ?? 0),
+        purchases: Number(monthPurchases._sum.receivedValue ?? 0),
         purchasesPaid: Number(monthPurchases._sum.paidAmount ?? 0),
         purchaseCount: monthPurchases._count._all ?? 0,
         supplierPaid: Number(monthSupplierPaid._sum?.amount ?? 0),
@@ -234,8 +234,8 @@ export class MoneyService {
           _count: { _all: true },
         }),
         this.prisma.purchase.aggregate({
-          where: { tenantId, purchasedAt: { gte: start, lte: end } },
-          _sum: { total: true, paidAmount: true },
+          where: { tenantId, status: { in: ['RECEIVED', 'PARTIAL'] }, purchasedAt: { gte: start, lte: end } },
+          _sum: { receivedValue: true, paidAmount: true },
           _count: { _all: true },
         }),
         this.prisma.expense.aggregate({
@@ -309,9 +309,9 @@ export class MoneyService {
         count: sales._count._all ?? 0,
       },
       purchases: {
-        total: Number(purchases._sum.total ?? 0),
+        total: Number(purchases._sum.receivedValue ?? 0),
         paid: purchasesPaid,
-        credit: Number(purchases._sum.total ?? 0) - purchasesPaid,
+        credit: Number(purchases._sum.receivedValue ?? 0) - purchasesPaid,
         count: purchases._count._all ?? 0,
       },
       expenseBreakdown: expenseByCat

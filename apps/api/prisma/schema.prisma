@@ -56,9 +56,12 @@ enum SaleStatus {
 }
 
 enum PurchaseStatus {
+  /// Ordered from the supplier, nothing received yet.
   PENDING
   RECEIVED
   CANCELLED
+  /// Part of an order has arrived.
+  PARTIAL
 }
 
 enum StockMovementType {
@@ -72,6 +75,8 @@ enum StockMovementType {
   LOSS
   TRANSFER_IN
   TRANSFER_OUT
+  /// Goods sent back to the supplier.
+  PURCHASE_RETURN
 }
 
 enum ExpenseStatus {
@@ -895,6 +900,8 @@ model Product {
   dimensions       String?
   hasVariants      Boolean                 @default(false)
   productType      String?
+  /// Bought and used in making things, not sold at the counter.
+  isRawMaterial    Boolean                 @default(false)
   expiryTracked    Boolean                 @default(false)
   isActive         Boolean                 @default(true)
   isFeatured       Boolean                 @default(false)
@@ -1477,6 +1484,19 @@ model Purchase {
   paymentMethod  PaymentMethod  @default(CASH)
   status         PurchaseStatus @default(RECEIVED)
   notes          String?
+  /// The supplier's own bill number.
+  supplierInvoiceNo String?
+  /// Freight, loading and similar costs added to the bill.
+  otherCharges   Float          @default(0)
+  taxAmount      Float          @default(0)
+  /// Value of what has been received (orders can arrive in parts).
+  receivedValue  Float          @default(0)
+  returnedAmount Float          @default(0)
+  dueDate        DateTime?
+  expectedAt     DateTime?
+  receivedAt     DateTime?
+  cancelledAt    DateTime?
+  cancelReason   String?
   purchasedAt    DateTime       @default(now())
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -1486,6 +1506,7 @@ model Purchase {
   shop      Shop?          @relation(fields: [shopId], references: [id], onDelete: SetNull)
   createdBy User?          @relation("UserPurchases", fields: [createdById], references: [id], onDelete: SetNull)
   items     PurchaseItem[]
+  returns   PurchaseReturn[]
 
   @@unique([tenantId, purchaseNumber])
   @@index([tenantId])
@@ -1495,20 +1516,73 @@ model Purchase {
   @@index([tenantId, shopId])
 }
 
+/// One bill line: a product (or variant), or a bakery raw material, bought
+/// in any unit. `quantity` and `costPrice` are in that unit; stock moves by
+/// `baseQuantity` (quantity × conversionRate).
 model PurchaseItem {
-  id         String   @id @default(uuid())
-  purchaseId String
-  productId  String
-  quantity   Float
-  costPrice  Float
-  total      Float
-  createdAt  DateTime @default(now())
+  id             String    @id @default(uuid())
+  purchaseId     String
+  productId      String?
+  variantId      String?
+  ingredientId   String?
+  itemName       String    @default("")
+  unitId         String?
+  unitName       String    @default("pcs")
+  conversionRate Float     @default(1)
+  quantity       Float
+  costPrice      Float
+  total          Float
+  baseQuantity   Float     @default(0)
+  /// Base units received and returned so far.
+  receivedQty    Float     @default(0)
+  returnedQty    Float     @default(0)
+  batchNo        String?
+  expiryDate     DateTime?
+  createdAt      DateTime  @default(now())
 
-  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
-  product  Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  purchase   Purchase          @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product    Product?          @relation(fields: [productId], references: [id], onDelete: Restrict)
+  ingredient BakeryIngredient? @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  returns    PurchaseReturnItem[]
 
   @@index([purchaseId])
   @@index([productId])
+  @@index([ingredientId])
+}
+
+/// Goods sent back to the supplier from one purchase.
+model PurchaseReturn {
+  id           String   @id @default(uuid())
+  tenantId     String
+  purchaseId   String
+  supplierId   String
+  shopId       String?
+  createdById  String?
+  returnNumber String
+  total        Float
+  reason       String?
+  createdAt    DateTime @default(now())
+
+  purchase Purchase             @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  items    PurchaseReturnItem[]
+
+  @@unique([tenantId, returnNumber])
+  @@index([tenantId])
+  @@index([purchaseId])
+}
+
+model PurchaseReturnItem {
+  id             String @id @default(uuid())
+  returnId       String
+  purchaseItemId String
+  /// Base units sent back.
+  quantity       Float
+  amount         Float
+
+  purchaseReturn PurchaseReturn @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  purchaseItem   PurchaseItem   @relation(fields: [purchaseItemId], references: [id], onDelete: Cascade)
+
+  @@index([returnId])
 }
 
 model StockMovement {
@@ -11515,7 +11589,8 @@ model BakeryIngredient {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  transactions BakeryIngredientTransaction[]
+  transactions  BakeryIngredientTransaction[]
+  purchaseItems PurchaseItem[]
 
   @@unique([tenantId, name])
   @@index([tenantId])

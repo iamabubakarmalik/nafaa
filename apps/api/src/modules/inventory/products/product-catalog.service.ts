@@ -22,6 +22,8 @@ export interface CatalogQuery extends ExtensionQuery {
   stock?: CatalogStock;
   active?: 'all' | 'active' | 'inactive';
   featured?: string;
+  /** 'raw' = only raw materials, 'sale' = only things sold at the counter. */
+  kindOf?: 'raw' | 'sale';
   sort?: CatalogSort;
   page?: string | number;
   limit?: string | number;
@@ -42,7 +44,7 @@ interface Row {
   id: string; name: string; sku: string | null; barcode: string | null; description: string | null;
   unit: string; price: number; costPrice: number; stock: number; lowStockAlert: number;
   categoryId: string | null; brandId: string | null; isActive: boolean; isFeatured: boolean;
-  hasVariants: boolean; expiryTracked: boolean; productType: string | null; createdAt: Date;
+  hasVariants: boolean; expiryTracked: boolean; productType: string | null; isRawMaterial: boolean; createdAt: Date;
   sold: number; revenue: number; lastSoldAt: Date | null; expiry: Date | null; expiringQty: number;
 }
 
@@ -66,7 +68,7 @@ export class ProductCatalogService {
         select: {
           id: true, name: true, sku: true, barcode: true, description: true, unit: true, price: true, costPrice: true,
           stock: true, lowStockAlert: true, categoryId: true, brandId: true, isActive: true, isFeatured: true,
-          hasVariants: true, expiryTracked: true, productType: true, createdAt: true,
+          hasVariants: true, expiryTracked: true, productType: true, isRawMaterial: true, createdAt: true,
         },
       }),
       shopId
@@ -170,6 +172,7 @@ export class ProductCatalogService {
       && (!q.brandId || r.brandId === q.brandId)
       && matchesActive(r)
       && (q.featured !== 'true' || r.isFeatured)
+      && (q.kindOf !== 'raw' || r.isRawMaterial) && (q.kindOf !== 'sale' || !r.isRawMaterial)
       && matchesExtensions(ext, r.id, r.stock, q));
 
     const byStock: Record<CatalogStock, (r: Row) => boolean> = {
@@ -218,7 +221,7 @@ export class ProductCatalogService {
       const d = detail.get(r.id);
       const perDay = r.sold / WINDOW_DAYS;
       return {
-        id: r.id, name: r.name, sku: r.sku, barcode: r.barcode, unit: r.unit, productType: r.productType,
+        id: r.id, name: r.name, sku: r.sku, barcode: r.barcode, unit: r.unit, productType: r.productType, isRawMaterial: r.isRawMaterial,
         price: r.price, costPrice: r.costPrice, wholesalePrice: d?.wholesalePrice ?? null, taxRate: d?.taxRate ?? 0,
         stock: r.stock, lowStockAlert: r.lowStockAlert, isActive: r.isActive, isFeatured: r.isFeatured,
         hasVariants: r.hasVariants, expiryTracked: r.expiryTracked, createdAt: r.createdAt,

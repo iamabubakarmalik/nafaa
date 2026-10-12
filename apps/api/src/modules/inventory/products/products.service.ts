@@ -84,6 +84,7 @@ export class ProductsService {
           expiryTracked: dto.expiryTracked ?? false,
           isActive: dto.isActive ?? true,
           isFeatured: dto.isFeatured ?? false,
+          isRawMaterial: dto.isRawMaterial ?? false,
         },
       });
 

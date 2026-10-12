@@ -92,7 +92,6 @@ export class CashRegisterService {
         where: {
           tenantId, ...shopWhere,
           paymentMethod: 'CASH',
-          status: { not: 'CANCELLED' },
           purchasedAt: { gte: since },
         },
         _sum: { paidAmount: true },

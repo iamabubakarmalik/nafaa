@@ -4,6 +4,7 @@ import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { SupplierLedgerService } from './supplier-ledger.service';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import {
   AddDueDto, AdjustmentDto, OpeningBalanceDto, PaymentDto, ReturnDto,
 } from './dto/ledger.dto';
@@ -46,8 +47,9 @@ export class SupplierLedgerController {
 
   /** Supplier ko paisa diya */
   @Post(':supplierId/payment')
-  payment(@GetUser() user: AuthenticatedUser, @Param('supplierId') supplierId: string, @Body() dto: PaymentDto) {
-    return this.service.recordPayment(user, supplierId, dto);
+  payment(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('supplierId') supplierId: string, @Body() dto: PaymentDto) {
+    // The branch that paid; its cash register shows the money going out.
+    return this.service.recordPayment(user, supplierId, dto, shop.shopId ?? undefined);
   }
 
   /** Maal wapas kiya */

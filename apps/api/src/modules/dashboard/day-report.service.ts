@@ -87,7 +87,7 @@ export class DayReportService {
         },
       }),
       this.prisma.purchase.aggregate({
-        where: { tenantId, paymentMethod: 'CASH', status: { not: 'CANCELLED' }, purchasedAt: { gte: from, lt: to }, ...shop },
+        where: { tenantId, paymentMethod: 'CASH', purchasedAt: { gte: from, lt: to }, ...shop },
         _sum: { paidAmount: true },
       }),
       this.prisma.supplierLedger.aggregate({

@@ -98,21 +98,21 @@ export class BusinessPulseService {
       this.prisma.purchase.aggregate({
         where: {
           tenantId: user.tenantId,
-          status: 'RECEIVED',
+          status: { in: ['RECEIVED', 'PARTIAL'] },
           purchasedAt: { gte: todayStart },
           ...shopScope,
         },
-        _sum: { total: true, paidAmount: true },
+        _sum: { receivedValue: true, paidAmount: true },
         _count: { _all: true },
       }),
       this.prisma.purchase.aggregate({
         where: {
           tenantId: user.tenantId,
-          status: 'RECEIVED',
+          status: { in: ['RECEIVED', 'PARTIAL'] },
           purchasedAt: { gte: monthStart },
           ...shopScope,
         },
-        _sum: { total: true, paidAmount: true },
+        _sum: { receivedValue: true, paidAmount: true },
         _count: { _all: true },
       }),
       this.prisma.purchase.count({
@@ -279,12 +279,12 @@ export class BusinessPulseService {
       },
 
       purchases: {
-        todayTotal: purchasesToday._sum.total ?? 0,
+        todayTotal: purchasesToday._sum.receivedValue ?? 0,
         todayCount: purchasesToday._count._all,
-        monthTotal: purchasesMonth._sum.total ?? 0,
+        monthTotal: purchasesMonth._sum.receivedValue ?? 0,
         monthPaid: purchasesMonth._sum.paidAmount ?? 0,
         monthUnpaid:
-          (purchasesMonth._sum.total ?? 0) - (purchasesMonth._sum.paidAmount ?? 0),
+          (purchasesMonth._sum.receivedValue ?? 0) - (purchasesMonth._sum.paidAmount ?? 0),
         monthCount: purchasesMonth._count._all,
         pendingCount: purchasesPending,
         recent: recentPurchases,

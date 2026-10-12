@@ -51,7 +51,8 @@ export class SupplierLedgerService {
    * Har jagah yehi raasta istemal hota hai taake ledger aur
    * `outstandingDue` kabhi alag na hon.
    */
-  private async post(
+  /** Writes one entry and moves the balance with it; purchases use this too. */
+  async post(
     user: AuthenticatedUser,
     supplierId: string,
     type: SupplierLedgerType,
@@ -63,13 +64,24 @@ export class SupplierLedgerService {
     tx?: Prisma.TransactionClient,
   ) {
     const run = async (db: Prisma.TransactionClient) => {
-      const current = await db.supplier.findUniqueOrThrow({
-        where: { id: supplierId },
-        select: { outstandingDue: true },
-      });
-      const balanceAfter = Number(current.outstandingDue) + this.delta(type, amount);
+      const delta = this.delta(type, amount);
+      // Atomic change, so a purchase and a payment at the same moment both count.
+      // A payment may not take the balance below zero.
+      if (type === 'PAYMENT_MADE') {
+        const ok = await db.supplier.updateMany({
+          where: { id: supplierId, outstandingDue: { gte: amount - 0.001 } },
+          data: { outstandingDue: { increment: delta } },
+        });
+        if (!ok.count) {
+          const s = await db.supplier.findUniqueOrThrow({ where: { id: supplierId }, select: { outstandingDue: true } });
+          throw new BadRequestException(`Sirf ${Number(s.outstandingDue).toFixed(0)} dena baqi hai — is se ziyada adaigi darj nahi hoti`);
+        }
+      } else {
+        await db.supplier.update({ where: { id: supplierId }, data: { outstandingDue: { increment: delta } } });
+      }
+      const after = await db.supplier.findUniqueOrThrow({ where: { id: supplierId }, select: { outstandingDue: true } });
 
-      const entry = await db.supplierLedger.create({
+      return db.supplierLedger.create({
         data: {
           tenantId: user.tenantId,
           supplierId,
@@ -77,20 +89,13 @@ export class SupplierLedgerService {
           shopId: opts.shopId,
           type,
           amount,
-          balanceAfter,
+          balanceAfter: Number(after.outstandingDue),
           reference: opts.reference,
           note: opts.note,
           paymentMethod: (opts.paymentMethod as any) ?? undefined,
           entryDate: opts.entryDate ? new Date(opts.entryDate) : new Date(),
         },
       });
-
-      await db.supplier.update({
-        where: { id: supplierId },
-        data: { outstandingDue: balanceAfter },
-      });
-
-      return entry;
     };
 
     return tx ? run(tx) : this.prisma.$transaction(run);
@@ -186,13 +191,8 @@ export class SupplierLedgerService {
   }
 
   /** Supplier ko paisa diya */
-  async recordPayment(user: AuthenticatedUser, supplierId: string, dto: PaymentDto) {
-    const s = await this.getSupplier(user, supplierId);
-    if (dto.amount > Number(s.outstandingDue)) {
-      throw new BadRequestException(
-        `Sirf ${Number(s.outstandingDue).toFixed(0)} dena baqi hai — is se ziyada adaigi darj nahi hoti`,
-      );
-    }
+  async recordPayment(user: AuthenticatedUser, supplierId: string, dto: PaymentDto, shopId?: string) {
+    await this.getSupplier(user, supplierId);
     return this.post(user, supplierId, 'PAYMENT_MADE', dto.amount, {
       reference: dto.reference,
       note: dto.note ?? 'Supplier ko adaigi',
@@ -200,6 +200,7 @@ export class SupplierLedgerService {
       /* Na bataya jaye to cash — dukaan par aam tor par yehi hota
          hai, aur purane client ye khaana bhejte hi nahi. */
       paymentMethod: dto.paymentMethod ?? 'CASH',
+      shopId,
     });
   }
 

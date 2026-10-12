@@ -258,13 +258,13 @@ export class DashboardService {
         _count: { _all: true },
       }),
       this.prisma.purchase.aggregate({
-        where: { tenantId, status: 'RECEIVED', purchasedAt: { gte: todayStart } },
-        _sum: { total: true },
+        where: { tenantId, status: { in: ['RECEIVED', 'PARTIAL'] }, purchasedAt: { gte: todayStart } },
+        _sum: { receivedValue: true },
         _count: { _all: true },
       }),
       this.prisma.purchase.aggregate({
-        where: { tenantId, status: 'RECEIVED', purchasedAt: { gte: monthStart } },
-        _sum: { total: true },
+        where: { tenantId, status: { in: ['RECEIVED', 'PARTIAL'] }, purchasedAt: { gte: monthStart } },
+        _sum: { receivedValue: true },
       }),
       this.prisma.expense.aggregate({
         where: { tenantId, status: 'PAID', expenseDate: { gte: todayStart } },
@@ -534,13 +534,13 @@ export class DashboardService {
       scope: shopId ? 'shop' : 'all',
       stats: {
         salesToday, ordersToday, cogsToday, grossProfitToday, netProfitToday, expensesToday,
-        purchasesToday: purchasesTodayAgg._sum.total ?? 0,
+        purchasesToday: purchasesTodayAgg._sum.receivedValue ?? 0,
         purchaseCountToday: purchasesTodayAgg._count._all ?? 0,
         expenseCountToday: expensesTodayAgg._count._all ?? 0,
         todayCredit, todayPaid, aovToday,
         salesYesterday, ordersYesterday, salesGrowthVsYesterday,
         salesMonth, ordersMonth, cogsMonth, grossProfitMonth, netProfitMonth, expensesMonth,
-        purchasesMonth: purchasesMonthAgg._sum.total ?? 0,
+        purchasesMonth: purchasesMonthAgg._sum.receivedValue ?? 0,
         aovMonth, salesLastMonth, salesGrowthVsLastMonth,
         totalOrders, totalRevenue: totalRevenue._sum.total ?? 0,
         totalProducts, lowStockCount, outOfStockCount, totalUsers,

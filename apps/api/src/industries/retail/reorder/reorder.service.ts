@@ -56,9 +56,10 @@ export class ReorderService {
         });
         // Take latest per product
         for (const pi of purchaseItems) {
-          if (!lastPurchaseMap.has(pi.productId)) {
+          if (pi.productId && !lastPurchaseMap.has(pi.productId)) {
             lastPurchaseMap.set(pi.productId, {
-              costPrice: pi.costPrice ?? 0,
+              // Per base unit, whatever unit it was bought in.
+              costPrice: (pi.costPrice ?? 0) / (pi.conversionRate || 1),
               supplierId: pi.purchase?.supplierId ?? null,
             });
           }

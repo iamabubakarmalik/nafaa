@@ -2,14 +2,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
-  ArrayMinSize,
-  IsArray,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-  ValidateNested,
+  ArrayMinSize, IsArray, IsBoolean, IsDateString, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, Max,
+  MaxLength, Min, ValidateNested,
 } from 'class-validator';
 
 // ─── Carpet roll payload (per-roll details) ────────────────
@@ -84,22 +78,29 @@ class PurchaseRollDto {
   notes?: string;
 }
 
-class CreatePurchaseItemDto {
-  @ApiProperty()
-  @IsString()
-  productId!: string;
+/**
+ * One bill line: a product (optionally a variant) or a bakery raw material.
+ * Quantity and cost are in the chosen unit: a product unit (`unitId`, e.g.
+ * carton = 24) or a purchase-only unit (`unitName` + `conversionRate`, e.g.
+ * bori = 50 kg). Without a unit the line is in base units.
+ */
+export class CreatePurchaseItemDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() productId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() variantId?: string;
+  @ApiPropertyOptional({ description: 'Bakery raw material' }) @IsOptional() @IsString() ingredientId?: string;
 
-  @ApiProperty({ example: 10 })
-  @IsNumber()
-  @Min(0)
-  quantity!: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() unitId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30) unitName?: string;
+  @ApiPropertyOptional({ description: 'Base units in one of this unit' })
+  @IsOptional() @IsNumber() @IsPositive() conversionRate?: number;
 
-  @ApiProperty({ example: 800 })
-  @IsNumber()
-  @Min(0)
-  costPrice!: number;
+  @ApiProperty({ example: 10 }) @IsNumber() @IsPositive() quantity!: number;
+  @ApiProperty({ example: 800, description: 'Cost of one unit as bought' }) @IsNumber() @Min(0) costPrice!: number;
+  @ApiPropertyOptional({ description: 'New selling price of one base unit' }) @IsOptional() @IsNumber() @Min(0) salePrice?: number;
 
-  // ─── NEW: Carpet rolls (optional, only for carpet products) ──
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(60) batchNo?: string;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() expiryDate?: string;
+
   @ApiPropertyOptional({ type: [PurchaseRollDto] })
   @IsOptional()
   @IsArray()
@@ -109,36 +110,21 @@ class CreatePurchaseItemDto {
 }
 
 export class CreatePurchaseDto {
-  @ApiProperty()
-  @IsString()
-  supplierId!: string;
+  @ApiProperty() @IsString() supplierId!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() shopId?: string;
 
-  // ─── NEW: Shop ID (optional, for multi-shop) ──
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  shopId?: string;
+  @ApiProperty({ enum: PaymentMethod, example: 'CASH' }) @IsEnum(PaymentMethod) paymentMethod!: PaymentMethod;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) discount?: number;
+  @ApiPropertyOptional({ description: 'Freight, loading and other costs' }) @IsOptional() @IsNumber() @Min(0) otherCharges?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) taxAmount?: number;
+  @ApiPropertyOptional({ description: 'Paid now; missing = paid in full' }) @IsOptional() @IsNumber() @Min(0) paidAmount?: number;
 
-  @ApiProperty({ enum: PaymentMethod, example: 'CASH' })
-  @IsEnum(PaymentMethod)
-  paymentMethod!: PaymentMethod;
-
-  @ApiPropertyOptional({ example: 0 })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  discount?: number;
-
-  @ApiPropertyOptional({ example: 0 })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  paidAmount?: number;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  notes?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) notes?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(60) supplierInvoiceNo?: string;
+  @ApiPropertyOptional({ description: 'Bill date (default now)' }) @IsOptional() @IsDateString() purchasedAt?: string;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() dueDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() expectedAt?: string;
+  @ApiPropertyOptional({ description: 'false = order only, goods not here yet' }) @IsOptional() @IsBoolean() receive?: boolean;
 
   @ApiProperty({ type: [CreatePurchaseItemDto] })
   @IsArray()
@@ -146,4 +132,37 @@ export class CreatePurchaseDto {
   @ValidateNested({ each: true })
   @Type(() => CreatePurchaseItemDto)
   items!: CreatePurchaseItemDto[];
+}
+
+class LineQtyDto {
+  @ApiProperty() @IsString() itemId!: string;
+  @ApiProperty({ description: 'In the line\'s unit' }) @IsNumber() @IsPositive() quantity!: number;
+}
+
+/** Goods of an order arriving, all or part. */
+export class ReceivePurchaseDto {
+  @ApiProperty({ type: [LineQtyDto] }) @IsArray() @ArrayMinSize(1) @ValidateNested({ each: true }) @Type(() => LineQtyDto) items!: LineQtyDto[];
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) paidAmount?: number;
+  @ApiPropertyOptional({ enum: PaymentMethod }) @IsOptional() @IsEnum(PaymentMethod) paymentMethod?: PaymentMethod;
+  @ApiPropertyOptional({ description: 'Close the order; the rest will not come' }) @IsOptional() @IsBoolean() close?: boolean;
+}
+
+/** Goods sent back to the supplier. */
+export class ReturnPurchaseDto {
+  @ApiProperty({ type: [LineQtyDto] }) @IsArray() @ArrayMinSize(1) @ValidateNested({ each: true }) @Type(() => LineQtyDto) items!: LineQtyDto[];
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) reason?: string;
+}
+
+export class CancelPurchaseDto {
+  @ApiProperty() @IsString() @MaxLength(200) reason!: string;
+}
+
+export class ListPurchasesDto {
+  @IsOptional() @IsString() from?: string;
+  @IsOptional() @IsString() to?: string;
+  @IsOptional() @IsIn(['all', 'PENDING', 'PARTIAL', 'RECEIVED', 'CANCELLED', 'credit', 'returned']) status?: string;
+  @IsOptional() @IsString() supplierId?: string;
+  @IsOptional() @IsString() @MaxLength(80) search?: string;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(200) limit?: number;
 }
