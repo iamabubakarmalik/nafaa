@@ -14,7 +14,7 @@ export function useSettings(options: { enabled?: boolean; retry?: boolean | numb
 export function useUpdateSettings() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<TenantSettings> & { managerPin?: string }) => settingsApi.update(data),
+    mutationFn: (data: Partial<TenantSettings>) => settingsApi.update(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['settings'] });
       toast.success('Save ho gaya ✅');

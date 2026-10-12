@@ -163,6 +163,10 @@ export const ROUTE_RULES: RouteRule[] = [
 
   /* ── Nizam ── */
   { match: /(^|\/)shops(\/|$)/, GET: P.SHOPS_VIEW, write: P.SHOPS_MANAGE },
+  // A full data export and account deletion are owner-level, not general settings edits.
+  { match: /^settings\/backup(\/|$)/, GET: P.BACKUP_MANAGE, write: P.BACKUP_MANAGE },
+  { match: /^settings\/danger(\/|$)/, GET: P.SETTINGS_MANAGE, write: P.SETTINGS_MANAGE },
+  { match: /^settings\/integrations(\/|$)/, GET: P.SETTINGS_MANAGE, write: P.SETTINGS_MANAGE },
   { match: /(^|\/)settings(\/|$)/, GET: P.SETTINGS_VIEW, write: P.SETTINGS_EDIT },
   { match: /(^|\/)activity-log(\/|$)/, GET: P.ACTIVITY_VIEW },
   { match: /(^|\/)backup(\/|$)/, GET: P.BACKUP_MANAGE, write: P.BACKUP_MANAGE },

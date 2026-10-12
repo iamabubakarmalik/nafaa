@@ -3,39 +3,46 @@ import { useUpdateSettings } from './useSettings';
 import type { TenantSettings } from '../api/settings.api';
 
 /**
- * Local draft + debounced auto-save.
- * Field pe input change → 800ms baad backend save → toast.
- * Save button bhi expose karta hai for instant save.
+ * Local draft with a debounced save. Every change made inside the debounce
+ * window is collected and sent in one request, so quick edits to several
+ * fields are all saved. A refetch keeps edits that are still waiting to save.
  */
 export function useAutoSave(initial: TenantSettings) {
   const [draft, setDraft] = useState<TenantSettings>(initial);
   const [dirty, setDirty] = useState(false);
-  const debounceRef = useRef<any>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingRef = useRef<Partial<TenantSettings>>({});
   const update = useUpdateSettings();
 
-  // Sync initial when refetched
   useEffect(() => {
-    setDraft(initial);
-    setDirty(false);
+    setDraft({ ...initial, ...pendingRef.current });
+    if (!Object.keys(pendingRef.current).length) setDirty(false);
   }, [initial]);
+
+  useEffect(() => () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+  }, []);
+
+  const flush = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = null;
+    const patch = pendingRef.current;
+    if (!Object.keys(patch).length) return;
+    pendingRef.current = {};
+    update.mutate(patch, {
+      onSuccess: () => { if (!Object.keys(pendingRef.current).length) setDirty(false); },
+      // Put the failed fields back so the next save retries them.
+      onError: () => { pendingRef.current = { ...patch, ...pendingRef.current }; },
+    });
+  };
 
   const set = <K extends keyof TenantSettings>(key: K, value: TenantSettings[K]) => {
     setDraft((d) => ({ ...d, [key]: value }));
+    pendingRef.current = { ...pendingRef.current, [key]: value };
     setDirty(true);
-
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      update.mutate({ [key]: value } as any, {
-        onSuccess: () => setDirty(false),
-      });
-    }, 800);
+    debounceRef.current = setTimeout(flush, 800);
   };
 
-  const saveNow = () => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!dirty) return;
-    update.mutate(draft, { onSuccess: () => setDirty(false) });
-  };
-
-  return { draft, set, saveNow, dirty, saving: update.isPending };
+  return { draft, set, saveNow: flush, dirty, saving: update.isPending };
 }

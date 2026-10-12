@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { hashPassword } from '../../../../common/utils/password.util';
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
 import { UpdateSettingsDto } from '../dto/update-settings.dto';
 import { DEFAULT_SETTINGS } from '../constants/settings.constants';
@@ -48,6 +47,13 @@ export class SettingsCoreService {
     });
 
     const { managerPin, ...safeSettings } = settings as any;
+    // Integration secrets never leave the server; the page only needs to know one is set.
+    if (safeSettings.integrations && typeof safeSettings.integrations === 'object') {
+      safeSettings.integrations = Object.fromEntries(Object.entries(safeSettings.integrations as Record<string, any>).map(([k, v]) => [k, {
+        ...v,
+        credentials: v?.credentials ? Object.fromEntries(Object.keys(v.credentials).map((c) => [c, '••••••'])) : undefined,
+      }]));
+    }
 
     return {
       settings: {
@@ -64,9 +70,8 @@ export class SettingsCoreService {
   /** Partial update — updates ONLY provided fields, syncs to Tenant model too */
   async update(user: AuthenticatedUser, dto: UpdateSettingsDto) {
     const data: any = { ...dto };
-    if (dto.managerPin) {
-      data.managerPin = await hashPassword(dto.managerPin);
-    }
+    // The owner PIN changes only through settings/security/set-pin, which checks the current PIN.
+    delete data.managerPin;
 
     const tenantSync: any = {};
     if (dto.shopName) tenantSync.name = dto.shopName;

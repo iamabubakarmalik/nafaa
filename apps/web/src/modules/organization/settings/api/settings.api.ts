@@ -120,7 +120,7 @@ const unwrap = <T>(res: any): T => (res?.data?.data !== undefined ? res.data.dat
 
 export const settingsApi = {
   get: () => apiClient.get('/settings').then((r) => unwrap<{ settings: TenantSettings; tenant: any; subscription?: any; plan?: any; notificationPref?: any }>(r)),
-  update: (data: Partial<TenantSettings> & { managerPin?: string }) =>
+  update: (data: Partial<TenantSettings>) =>
     apiClient.patch('/settings', data).then((r) => unwrap<TenantSettings>(r)),
   reset: (section: string) =>
     apiClient.post(`/settings/reset/${section}`).then((r) => unwrap<any>(r)),

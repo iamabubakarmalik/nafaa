@@ -120,8 +120,6 @@ export class UpdateSettingsDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() requirePinForVoid?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() requirePinForDiscount?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() requirePinForRefund?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsString() @Matches(/^[0-9]{4,6}$/, { message: 'PIN 4-6 digits ka hona chahiye' })
-  managerPin?: string;
 
   /**
    * WhatsApp ke tayyar paighaam — malik apne alfaaz me.

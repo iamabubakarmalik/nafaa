@@ -20,7 +20,10 @@ export class NotificationPrefsService {
     return prefs;
   }
 
-  async update(user: AuthenticatedUser, data: any) {
+  async update(user: AuthenticatedUser, body: any) {
+    // Only the known on/off switches; anything else in the body is ignored.
+    const KEYS = ['emailEnabled', 'smsEnabled', 'emailWelcome', 'emailPayment', 'emailExpiry', 'emailLowStock', 'emailMarketing', 'smsPayment', 'smsExpiry', 'smsCritical', 'smsMarketing'];
+    const data = Object.fromEntries(KEYS.filter((k) => typeof body?.[k] === 'boolean').map((k) => [k, body[k]]));
     return this.prisma.notificationPreference.upsert({
       where: { tenantId: user.tenantId },
       create: { tenantId: user.tenantId, ...data },
