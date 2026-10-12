@@ -36,7 +36,6 @@ import { salesHistoryApi, type HistorySale, type HistorySort, type HistoryStatus
 import { DATE_PRESETS, rangeLabel } from '@core/lib/dateRange';
 import { fetchAllSales, salesCsv, salesDoc } from './exportSales';
 import { useSalesAnalytics, useSalesHistory } from './useSalesHistory';
-import { ReceiptPrefsModal } from './components/ReceiptPrefsModal';
 import { SaleDrawer } from './components/SaleDrawer';
 import { ROW_GRID, SaleRow } from './components/SaleRow';
 import { SalesAnalytics } from './components/SalesAnalytics';
@@ -104,7 +103,6 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
   const [voidTarget, setVoidTarget] = useState<HistorySale | null>(null);
   const [returnTarget, setReturnTarget] = useState<HistorySale | null>(null);
   const [scanner, setScanner] = useState(false);
-  const [prefs, setPrefs] = useState(false);
   const [guide, setGuide] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -210,7 +208,6 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
       {returnTarget && (
         <ReturnModal sale={returnTarget} onClose={() => setReturnTarget(null)} onDone={() => { setReturnTarget(null); setOpen(null); refresh(); }} />
       )}
-      {prefs && <ReceiptPrefsModal onClose={() => setPrefs(false)} />}
       {guide && <SalesGuide onClose={() => setGuide(false)} />}
 
       {/* Header */}
@@ -229,7 +226,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
             <Download className="h-4 w-4" /> {exporting ? 'Ban raha…' : 'CSV'}
           </button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
-          <button type="button" onClick={() => setPrefs(true)} title="Receipt settings" className={heroIconButton}><Settings2 className="h-4 w-4" /></button>
+          <Link to="/settings?tab=receipt" title="Bill ka design" aria-label="Bill ka design" className={heroIconButton}><Settings2 className="h-4 w-4" /></Link>
           <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={st ? [

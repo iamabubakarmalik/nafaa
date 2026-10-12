@@ -35,6 +35,12 @@ export function tryDirectPrint(p: ReceiptPayload, width: PrinterWidth, fallback:
   const drawer = s.drawerOnCash && isCash(p);
 
   const desk = desktopPrinter();
+  if (desk?.el.printerRaw) {
+    void desk.el.printerRaw(desk.config, receiptBytes(p, width, { barcode: s.printBarcode, drawer })).then((r) => {
+      if (!r.success) { toast.error(`Printer: ${r.message ?? 'print nahi hua'} — browser se print kar rahe hain`); fallback(); }
+    }).catch((e: Error) => { toast.error(`Printer: ${e.message}`); fallback(); });
+    return true;
+  }
   if (desk) {
     void desk.el.printerReceipt(desk.config, {
       shopName: p.shopName, shopAddress: p.shopAddress, shopPhone: p.shopPhone,

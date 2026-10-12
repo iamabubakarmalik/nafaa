@@ -126,6 +126,7 @@ const electronAPI = {
   printerTest: (config: PrinterConfig) => ipcRenderer.invoke('printer:test', config) as Promise<PrintResult>,
   printerReceipt: (config: PrinterConfig, data: ReceiptData) =>
     ipcRenderer.invoke('printer:receipt', config, data) as Promise<PrintResult>,
+  printerRaw: (config: PrinterConfig, bytes: Uint8Array) => ipcRenderer.invoke('printer:raw', config, bytes) as Promise<PrintResult>,
   printerKitchen: (config: PrinterConfig, data: KitchenData) =>
     ipcRenderer.invoke('printer:kitchen', config, data) as Promise<PrintResult>,
 

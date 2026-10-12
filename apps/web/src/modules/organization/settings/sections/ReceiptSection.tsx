@@ -8,19 +8,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { FileText, Image as ImageIcon, LayoutTemplate, MessageSquareText, Printer, ScrollText, Sparkles } from 'lucide-react';
+import { FileText, FileType2, Image as ImageIcon, LayoutTemplate, MessageSquareText, Plus, Printer, ScrollText, Sparkles, Trash2, Wallet } from 'lucide-react';
 import { Button, Segmented } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { ReceiptPreview } from '@core/receipt/ReceiptPreview';
 import { printReceipt } from '@core/receipt/print';
 import { NAFAA, RECEIPT_SETUP_KEY, getReceiptSetup, receiptSetupApi, useReceiptSetup } from '@core/receipt/setup';
-import type { ReceiptDesign, ReceiptDoc, ReceiptPaper } from '@core/receipt/types';
-import { ChoiceGroup, Field, SectionCard, Select, TextArea, TextInput, Toggle } from '../components/UI';
+import type { PayAccount, ReceiptDesign, ReceiptDoc, ReceiptPaper } from '@core/receipt/types';
+import { PAY_KIND_LABEL } from '@core/receipt/html';
+import { ChoiceGroup, Field, NumberInput, SectionCard, Select, TextArea, TextInput, Toggle } from '../components/UI';
 import { SaveStatusBar } from './_SaveStatus';
 import type { TenantSettings } from '../api/settings.api';
 
 const SAMPLE: ReceiptDoc = {
-  saleNumber: 'NF-10234', date: new Date(), customerName: 'Ahmed Raza', customerPhone: '0300-1234567', cashierName: 'Bilal',
+  saleNumber: 'NF-10234', date: new Date(), customerName: 'Ahmed Raza', customerPhone: '0300-1234567', customerAddress: 'House 4, Street 9, Model Town', cashierName: 'Bilal',
   lines: [
     { name: "Olper's Doodh 1L", qty: 2, unit: 'pcs', price: 290, total: 580 },
     { name: 'Dawn Bread Bari', qty: 1, unit: 'pcs', price: 180, total: 160, discount: 20 },
@@ -68,11 +69,18 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
 
   const set = <K extends keyof ReceiptDesign>(k: K, v: ReceiptDesign[K]) => {
     setDraft((d) => ({ ...d, [k]: v }));
-    pending.current = { ...pending.current, [k]: v };
+    // Rows still being typed (no number yet) stay on screen but are not saved.
+    const saved = k === 'payAccounts' ? (v as PayAccount[]).filter((a) => a.number.trim()) : v;
+    pending.current = { ...pending.current, [k]: saved };
     setWaiting(true);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => void flush(), 700);
   };
+
+  const accounts = draft.payAccounts ?? [];
+  const setAccount = (i: number, patch: Partial<PayAccount>) => set('payAccounts', accounts.map((a, j) => (j === i ? { ...a, ...patch } : a)));
+  const addAccount = () => set('payAccounts', [...accounts, { kind: 'JAZZCASH', title: base.shop.name, number: '' }]);
+  const removeAccount = (i: number) => set('payAccounts', accounts.filter((_, j) => j !== i));
 
   const paper = previewPaper ?? draft.paper;
   const setup = useMemo(() => ({ shop: base.shop, design: draft }), [base.shop, draft]);
@@ -177,6 +185,91 @@ export function ReceiptSection(_props: { settings: TenantSettings }) {
             <div className="mt-3 flex items-start gap-2.5 rounded-xl bg-brand-50 p-3 text-xs leading-relaxed text-brand-900 ring-1 ring-brand-100">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
               <p>Har bill ke bilkul neeche <b>{NAFAA.name}</b> ki chhoti si line aati hai ({NAFAA.phone}).</p>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Paise kaise bhejein" desc="Udhaar ya online order wale bill par aap ke account chhapte hain, taake customer seedha bhej sake" icon={Wallet} color="emerald">
+            <div className="space-y-3">
+              {accounts.map((a, i) => (
+                <div key={i} className="grid gap-2 rounded-xl border border-slate-200 p-3 sm:grid-cols-[9rem_minmax(0,1fr)_minmax(0,1fr)_auto]">
+                  <Select value={a.kind} onChange={(v) => setAccount(i, { kind: v as PayAccount['kind'] })}
+                    options={Object.entries(PAY_KIND_LABEL).map(([value, label]) => ({ value, label }))} />
+                  <TextInput value={a.number} onChange={(v) => setAccount(i, { number: v })} maxLength={40}
+                    placeholder={a.kind === 'BANK' ? 'Account number' : a.kind === 'RAAST' ? 'Raast ID / number' : '03xx-xxxxxxx'} />
+                  <TextInput value={a.title} onChange={(v) => setAccount(i, { title: v })} maxLength={80} placeholder="Account title (naam)" />
+                  <button type="button" onClick={() => removeAccount(i)} aria-label="Hatayein"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+                  {a.kind === 'BANK' && (
+                    <div className="grid gap-2 sm:col-span-4 sm:grid-cols-2">
+                      <TextInput value={a.bank ?? ''} onChange={(v) => setAccount(i, { bank: v })} maxLength={60} placeholder="Bank ka naam (Meezan, HBL…)" />
+                      <TextInput value={a.iban ?? ''} onChange={(v) => setAccount(i, { iban: v.toUpperCase().replace(/\s/g, '') })} maxLength={40} placeholder="IBAN (PK..)" />
+                    </div>
+                  )}
+                </div>
+              ))}
+              {accounts.length < 6 && (
+                <Button size="sm" variant="secondary" onClick={addAccount} leftIcon={<Plus className="h-4 w-4" />}>Account jorein</Button>
+              )}
+            </div>
+            <div className="mt-4 grid gap-4">
+              <Field label="Kab chhapein">
+                <ChoiceGroup value={draft.payWhen} onChange={(v) => set('payWhen', v)} columns={3}
+                  options={[
+                    { value: 'due', label: 'Jab paise baqi hon', desc: 'Udhaar / online order' },
+                    { value: 'always', label: 'Har bill par' },
+                    { value: 'never', label: 'Kabhi nahi' },
+                  ]} />
+              </Field>
+              <Field label="Saath ki hidayat" hint="Misaal: Paise bhej kar screenshot 0321-xxxxxxx par WhatsApp karein">
+                <TextInput value={draft.payNote} onChange={(v) => set('payNote', v)} maxLength={120} />
+              </Field>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="A4 invoice" desc="Bari companies jaisa invoice — PDF, online order aur wholesale ke liye" icon={FileType2} color="indigo">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Upar ka unwaan" hint="INVOICE, TAX INVOICE, BILL, CASH MEMO…">
+                <TextInput value={draft.a4Title} onChange={(v) => set('a4Title', v.toUpperCase())} maxLength={30} />
+              </Field>
+              <Field label="Paise dene ki muddat" hint="Baqi wale bill par aakhri tareekh (0 = nahi)">
+                <NumberInput value={draft.dueDays} onChange={(v) => set('dueDays', v)} min={0} max={365} suffix="din" />
+              </Field>
+            </div>
+            <div className="mt-4">
+              <Field label="Header">
+                <ChoiceGroup value={draft.a4Layout} onChange={(v) => { set('a4Layout', v); setPreviewPaper('A4'); }} columns={3}
+                  options={[
+                    { value: 'band', label: 'Rangeen patti', desc: 'Upar poori rangeen patti' },
+                    { value: 'split', label: 'Do taraf', desc: 'Naam baayen, invoice daayen' },
+                    { value: 'minimal', label: 'Saada', desc: 'Beech me, kam rang' },
+                  ]} />
+              </Field>
+            </div>
+            <div className="mt-2">
+              <Toggle checked={draft.showStatus} onChange={(v) => set('showStatus', v)} label="PAID / UNPAID ka nishan" />
+              <Toggle checked={draft.showCustomerDetails} onChange={(v) => set('showCustomerDetails', v)} label="Customer ka pata aur NTN / CNIC" />
+              <Toggle checked={draft.showSku} onChange={(v) => set('showSku', v)} label="SKU / code ka khana" />
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Peeche ka hissa" desc="Bill ke baad aap ki shartein aur hidayat, dukaan aur Nafaa ki pehchaan ke saath" icon={ScrollText} color="rose">
+            <Field label="Shartein / hidayat" hint="Har line alag number ban kar chhapti hai">
+              <TextArea value={draft.backText} onChange={(v) => set('backText', v)} rows={5} maxLength={2000}
+                placeholder={'Maal 3 din me wapas ho sakta hai, bill ke saath\nElectronics par sirf company warranty\nUdhaar 30 din me ada karein'} />
+            </Field>
+            <div className="mt-3">
+              <Field label="Kahan chhapein">
+                <ChoiceGroup value={draft.backPrint} onChange={(v) => set('backPrint', v)} columns={3}
+                  options={[
+                    { value: 'none', label: 'Nahi' },
+                    { value: 'a4', label: 'Sirf A4', desc: 'Doosra safha' },
+                    { value: 'all', label: 'Har bill', desc: 'Thermal par ✂ ke baad' },
+                  ]} />
+              </Field>
+            </div>
+            <div className="mt-2">
+              <Toggle checked={draft.thermalPattern} onChange={(v) => set('thermalPattern', v)} label="Thermal bill ke peeche halka naam"
+                desc="Dukaan aur Nafaa ka naam halke nuqton me. Kuch printers par dhabbe aa sakte hain — test print kar ke dekhein." />
             </div>
           </SectionCard>
 

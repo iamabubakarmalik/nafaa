@@ -5,6 +5,7 @@ import { billQr } from '@core/payments/payQr';
 import { billReviewUrl } from '@integrations/google/google.api';
 import { fiscalFor } from '@integrations/tax-authority/taxAuthority.api';
 import { NAFAA, getReceiptSetup } from '@core/receipt/setup';
+import { PAY_KIND_LABEL } from '@core/receipt/html';
 
 /**
  * The same bill the browser prints (core/receipt), in the printer's own
@@ -84,10 +85,18 @@ export function receiptBytes(
     if (f.qrText) e.qr(f.qrText, width === '80' ? 5 : 4).feed(1);
     e.align('left');
   }
-  const q = d.showPayQr ? billQr(prevDue + due, p.saleNumber) : null;
-  if (q) {
-    e.rule().align('center').bold(true).line(`BAQI ${formatPKR(prevDue + due)} QR SE BHEJEIN`).bold(false);
-    e.line(q.label).qr(q.text, width === '80' ? 6 : 4).feed(1).align('left');
+  const owed = prevDue + due;
+  const accounts = (d.payAccounts ?? []).filter((a) => a.number?.trim());
+  const q = d.showPayQr && owed > 0 ? billQr(owed, p.saleNumber) : null;
+  if ((d.payWhen === 'always' || (d.payWhen === 'due' && owed > 0)) && (accounts.length || q)) {
+    e.rule().align('center').bold(true).line(owed > 0 ? `BAQI ${formatPKR(owed)} YAHAN BHEJEIN` : 'PAISE BHEJNE KE TAREEQE').bold(false).align('left');
+    for (const a of accounts) {
+      e.line(`${PAY_KIND_LABEL[a.kind] ?? 'Account'}${a.bank ? ` - ${a.bank}` : ''}`).bold(true).line(a.number).bold(false);
+      if (a.title) e.wrap(a.title);
+      if (a.iban) e.wrap(`IBAN ${a.iban}`);
+    }
+    if (q) e.align('center').line(q.label).qr(q.text, width === '80' ? 6 : 4).feed(1).align('left');
+    e.align('center').wrap(`Reference: ${p.saleNumber}${d.payNote ? ` - ${d.payNote}` : ''}`).align('left');
   }
   e.rule();
   if (o.barcode !== false && d.showBarcode) e.align('center').barcode(p.saleNumber).line(p.saleNumber);
@@ -100,6 +109,12 @@ export function receiptBytes(
   const review = d.showReviewQr ? billReviewUrl() : null;
   if (review) e.qr(review, width === '80' ? 4 : 3).line('Google par review dein *');
   e.rule('-').bold(true).line(NAFAA.name).bold(false).wrap(`${NAFAA.pitch} ${NAFAA.phone}`);
+  const back = d.backPrint === 'all' ? d.backText.split('\n').map((x) => x.trim()).filter(Boolean) : [];
+  if (back.length) {
+    e.feed(1).line('- - - - - - - - - - - - - - - -').bold(true).wrap(`${shop.name || p.shopName} - shartein`).bold(false).align('left');
+    back.forEach((t, i) => e.wrap(`${i + 1}. ${t}`));
+    e.align('center').rule('-').bold(true).line(NAFAA.name).bold(false).line(`${NAFAA.phone} - ${NAFAA.web}`);
+  }
   e.align('left').cut();
   return e.bytes();
 }

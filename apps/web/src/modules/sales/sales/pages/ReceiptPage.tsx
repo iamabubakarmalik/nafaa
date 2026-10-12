@@ -21,7 +21,7 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { ReceiptPreview } from '@core/receipt/ReceiptPreview';
 import { printReceipt } from '@core/receipt/print';
-import { useReceiptSetup, getReceiptSetup } from '@core/receipt/setup';
+import { devicePaper, getReceiptSetup, setDevicePaper, useReceiptSetup } from '@core/receipt/setup';
 import type { ReceiptPaper } from '@core/receipt/types';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { salesApi } from '@modules/sales/sales/api/sales.api';
@@ -46,7 +46,9 @@ export default function ReceiptPage() {
   const canDesign = usePermission(PERMISSIONS.SETTINGS_EDIT);
 
   const fromUrl = params.get('paper');
-  const [paper, setPaper] = useState<ReceiptPaper | null>(fromUrl === '58' || fromUrl === '80' || fromUrl === 'A4' ? fromUrl : null);
+  const [paper, setPaperState] = useState<ReceiptPaper | null>(fromUrl === '58' || fromUrl === '80' || fromUrl === 'A4' ? fromUrl : devicePaper());
+  // A paper picked here is remembered for this device (its printer).
+  const setPaper = (p: ReceiptPaper) => { setPaperState(p); setDevicePaper(p); };
   const shownPaper = paper ?? setup.design.paper;
   const [copies, setCopies] = useState<number | null>(null);
   const [voiding, setVoiding] = useState(false);
@@ -80,11 +82,11 @@ export default function ReceiptPage() {
   const whatsapp = () => {
     if (!doc) return;
     const phone = (doc.customerPhone ?? '').replace(/\D/g, '').replace(/^0/, '92');
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(receiptText(doc, setup.shop.name))}`, '_blank', 'noopener');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(receiptText(doc, setup.shop.name, setup.design.payAccounts))}`, '_blank', 'noopener');
   };
   const share = async () => {
     if (!doc) return;
-    const text = receiptText(doc, setup.shop.name);
+    const text = receiptText(doc, setup.shop.name, setup.design.payAccounts);
     if (navigator.share) { try { await navigator.share({ title: `Bill ${doc.saleNumber}`, text }); return; } catch { /* closed */ } }
     await navigator.clipboard?.writeText(text);
     toast.success('Bill copy ho gaya');
@@ -170,7 +172,7 @@ export default function ReceiptPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-2">
             <Action icon={<MessageCircle className="h-4 w-4 text-emerald-600" />} label="WhatsApp par bhejein" hint="W" onClick={whatsapp} />
             <Action icon={<Share2 className="h-4 w-4" />} label="Share / copy" onClick={share} />
-            <Action icon={<FileDown className="h-4 w-4" />} label="PDF save karein" hint="Print me 'Save as PDF'" onClick={() => { setPaper('A4'); window.setTimeout(() => printReceipt(doc, { paper: 'A4', setup, copies: 1 }), 50); }} />
+            <Action icon={<FileDown className="h-4 w-4" />} label="PDF save karein" hint="Print me 'Save as PDF'" onClick={() => printReceipt(doc, { paper: 'A4', setup, copies: 1 })} />
             <Action icon={<Copy className="h-4 w-4" />} label="Link copy" onClick={copyLink} />
             {data.actions.map((a) => <Action key={a.key} icon={<Wrench className="h-4 w-4" />} label={a.label} onClick={a.run} />)}
             {!isJewelry && !voided && canReturn && <Action icon={<RotateCcw className="h-4 w-4 text-amber-600" />} label="Wapsi (return)" onClick={() => setReturning(true)} disabled={offline} />}

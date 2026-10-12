@@ -271,6 +271,19 @@ export function setupPrinterHandlers() {
     }
   });
 
+  // The web app's own ESC/POS bytes, so desktop bills match every other print.
+  ipcMain.handle('printer:raw', async (_event, config: PrinterConfig, bytes: Uint8Array) => {
+    try {
+      const printer = createPrinter(config);
+      if (!(await printer.isPrinterConnected())) throw new Error('Printer connect nahi ho raha — IP/port check karein');
+      await printer.raw(Buffer.from(bytes));
+      return { success: true };
+    } catch (e: any) {
+      log.error('printer:raw error:', e);
+      return { success: false, message: e.message };
+    }
+  });
+
   ipcMain.handle('printer:kitchen', async (_event, config: PrinterConfig, data: KitchenData) => {
     try {
       await printKitchen(config, data);

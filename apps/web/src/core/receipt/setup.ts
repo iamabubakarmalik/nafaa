@@ -6,7 +6,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@core/api/client';
-import type { ReceiptDesign, ReceiptSetup } from './types';
+import type { ReceiptDesign, ReceiptPaper, ReceiptSetup } from './types';
 
 export const NAFAA = {
   name: 'Nafaa POS',
@@ -21,6 +21,9 @@ export const DEFAULT_DESIGN: ReceiptDesign = {
   showItemNumbers: true, showItemDetails: true, showSavings: true, showKhata: true, showBarcode: true,
   showPayQr: true, showReviewQr: true, showAmountInWords: true, showSignature: true,
   tagline: '', footer: '', terms: '', social: '', thanks: 'Shukriya! Phir tashreef laiye.', copies: 1, autoPrint: false,
+  payAccounts: [], payWhen: 'due', payNote: '',
+  a4Title: 'INVOICE', a4Layout: 'band', showStatus: true, showSku: false, showCustomerDetails: true, dueDays: 0,
+  backText: '', backPrint: 'none', thermalPattern: false,
 };
 
 const STORE = 'nafaa-receipt-setup';
@@ -48,6 +51,11 @@ export function getReceiptSetup(fallbackName?: string): ReceiptSetup {
   return normalizeSetup(current, fallbackName);
 }
 
+/** Paper for a print on this device: its own choice, else the shop's. */
+export function printPaper(setup: ReceiptSetup): ReceiptPaper {
+  return devicePaper() ?? setup.design.paper;
+}
+
 export async function fetchReceiptSetup(): Promise<ReceiptSetup> {
   const res = await apiClient.get<{ data: ReceiptSetup }>('/settings/receipt');
   const s = normalizeSetup(res.data.data);
@@ -62,6 +70,23 @@ export function useReceiptSetup() {
     placeholderData: current ? normalizeSetup(current) : undefined,
     staleTime: 5 * 60_000,
   });
+}
+
+const PAPER_KEY = 'nafaa.receipt.paper';
+
+/** This device's paper, when someone picked one on the bill page; null = shop default. */
+export function devicePaper(): ReceiptPaper | null {
+  try {
+    const v = localStorage.getItem(PAPER_KEY);
+    if (v === '58' || v === '80' || v === 'A4') return v;
+    // Older per-device choice from the sales page.
+    const old = JSON.parse(localStorage.getItem('nafaa.receipt.prefs') || 'null');
+    return old?.paperWidth === '58' || old?.paperWidth === '80' ? old.paperWidth : null;
+  } catch { return null; }
+}
+
+export function setDevicePaper(p: ReceiptPaper) {
+  try { localStorage.setItem(PAPER_KEY, p); } catch { /* storage blocked */ }
 }
 
 export const receiptSetupApi = {

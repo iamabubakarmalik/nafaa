@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { devicePaper } from '@core/receipt/setup';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -79,12 +80,9 @@ export const orderNote = (orderNumber: string) => `Order ${orderNumber}`;
 export const isOrderNote = (note?: string) => /^Order\s/.test(String(note ?? ''));
 
 function paperWidth(): '58' | '80' {
-  try {
-    const p = JSON.parse(localStorage.getItem('nafaa.receipt.prefs') || 'null');
-    if (p?.paperWidth === '58') return '58';
-    const legacy = JSON.parse(localStorage.getItem('nafaa.bakery.print') || 'null');
-    return legacy?.width === '58' ? '58' : '80';
-  } catch { return '80'; }
+  const p = devicePaper();
+  if (p === '58' || p === '80') return p;
+  try { return JSON.parse(localStorage.getItem('nafaa.bakery.print') || 'null')?.width === '58' ? '58' : '80'; } catch { return '80'; }
 }
 
 /**

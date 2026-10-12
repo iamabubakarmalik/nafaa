@@ -723,7 +723,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     if (!lastSale) return;
     const p = lastSale.printPayload;
     const phone = (lastSale.customerPhone ?? '').replace(/\D/g, '').replace(/^0/, '92');
-    const text = receiptText(toReceiptDoc(p), getReceiptSetup(p.shopName).shop.name);
+    const text = receiptText(toReceiptDoc(p), getReceiptSetup(p.shopName).shop.name, getReceiptSetup().design.payAccounts);
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
   }, [lastSale]);
 

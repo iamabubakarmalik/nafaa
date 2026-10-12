@@ -75,6 +75,8 @@ export interface ElectronAPI {
   windowClose: () => Promise<void>;
   printerTest: (config: PrinterConfig) => Promise<PrintResult>;
   printerReceipt: (config: PrinterConfig, data: ReceiptData) => Promise<PrintResult>;
+  /** Sends ready ESC/POS bytes; missing on desktop builds before this version. */
+  printerRaw?: (config: PrinterConfig, bytes: Uint8Array) => Promise<PrintResult>;
   printerKitchen: (config: PrinterConfig, data: KitchenData) => Promise<PrintResult>;
   scannerTest: () => Promise<{ supported: boolean; method: string; note: string }>;
   scannerEnableGlobal: () => Promise<{ enabled: boolean }>;

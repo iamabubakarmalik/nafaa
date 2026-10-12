@@ -12,6 +12,9 @@ const RECEIPT_DEFAULTS = {
   showItemNumbers: true, showItemDetails: true, showSavings: true, showKhata: true, showBarcode: true,
   showPayQr: true, showReviewQr: true, showAmountInWords: true, showSignature: true,
   tagline: '', footer: '', terms: '', social: '', thanks: 'Shukriya! Phir tashreef laiye.', copies: 1, autoPrint: false,
+  payAccounts: [], payWhen: 'due', payNote: '',
+  a4Title: 'INVOICE', a4Layout: 'band', showStatus: true, showSku: false, showCustomerDetails: true, dueDays: 0,
+  backText: '', backPrint: 'none', thermalPattern: false,
 } as Record<string, unknown>;
 const RECEIPT_KEYS = new Set(Object.keys(RECEIPT_DEFAULTS));
 
@@ -191,7 +194,8 @@ export class SettingsCoreService {
 
   /** Saves part of the design and keeps the older columns in step. */
   async updateReceiptConfig(user: AuthenticatedUser, dto: UpdateReceiptConfigDto) {
-    const next = { ...(await this.getReceiptConfig(user)), ...dto };
+    // Plain JSON (class instances from validation are not JSON values for Prisma).
+    const next = JSON.parse(JSON.stringify({ ...(await this.getReceiptConfig(user)), ...dto })) as Record<string, any>;
     const mirror = {
       receiptSize: next.paper === '58' ? 'THERMAL_58MM' : next.paper === 'A4' ? 'A4_BASIC' : 'THERMAL_80MM',
       receiptHeader: next.tagline || null,

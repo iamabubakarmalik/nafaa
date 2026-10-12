@@ -4,7 +4,8 @@
  * returns, service charges, discounts, khata and a status stamp.
  */
 
-import type { ReceiptDoc, ReceiptLineDoc, ReceiptRowDoc } from '@core/receipt/types';
+import type { PayAccount, ReceiptDoc, ReceiptLineDoc, ReceiptRowDoc } from '@core/receipt/types';
+import { PAY_KIND_LABEL } from '@core/receipt/html';
 import { formatPKR } from '@core/lib/format';
 
 export const PAYMENT_LABELS: Record<string, string> = {
@@ -65,6 +66,7 @@ export function saleToReceipt(sale: any): ReceiptDoc {
     return {
       name: lineName(it), qty, unit: it.product?.unit ?? it.unit ?? 'pcs', price, total,
       discount: discount || undefined, note: it.note || undefined, details: itemDetails(it),
+      sku: it.variantLink?.variant?.sku || it.product?.sku || undefined,
     };
   });
 
@@ -98,6 +100,8 @@ export function saleToReceipt(sale: any): ReceiptDoc {
     branchPhone: sale.shop?.phone ?? null,
     customerName: sale.customer?.name ?? sale.customerName ?? undefined,
     customerPhone: sale.customer?.phone ?? sale.customerPhone ?? undefined,
+    customerAddress: [sale.customer?.address, sale.customer?.area, sale.customer?.city].filter(Boolean).join(', ') || undefined,
+    customerTaxId: sale.customer?.ntn || sale.customer?.cnic || undefined,
     receivedByName: sale.receivedByName || undefined,
     receivedByPhone: sale.receivedByPhone || undefined,
     cashierName: sale.createdBy?.fullName ?? sale.cashierName ?? undefined,
@@ -115,8 +119,12 @@ export function saleToReceipt(sale: any): ReceiptDoc {
 }
 
 /** WhatsApp text of a bill. */
-export function receiptText(doc: ReceiptDoc, shopName: string): string {
+export function receiptText(doc: ReceiptDoc, shopName: string, accounts: PayAccount[] = []): string {
   const due = Math.max(doc.total - doc.paid, 0);
+  const owed = due + (doc.previousDue ?? 0);
+  const pay = owed > 0 && accounts.length
+    ? ['', `*Baqi ${formatPKR(owed)} yahan bhejein:*`, ...accounts.map((a) => `${PAY_KIND_LABEL[a.kind] ?? 'Account'}${a.bank ? ` (${a.bank})` : ''}: ${a.number}${a.title ? ` — ${a.title}` : ''}${a.iban ? `\nIBAN ${a.iban}` : ''}`), `Reference: ${doc.saleNumber}`]
+    : [];
   return [
     `*${shopName}*`,
     `Bill ${doc.saleNumber} · ${doc.date.toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}`,
@@ -127,6 +135,7 @@ export function receiptText(doc: ReceiptDoc, shopName: string): string {
     `*Total: ${formatPKR(doc.total)}*`,
     `${doc.paymentLabel}: ${formatPKR(doc.paid)}`,
     due > 0 ? `Udhaar: ${formatPKR(due)}` : '',
+    ...pay,
     '',
     'Shukriya!',
     '_Nafaa POS · 0324-1772933_',
