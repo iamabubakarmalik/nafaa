@@ -1,1381 +1,323 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+/**
+ * Barcode labels: build a list of items (search, scan, whole category,
+ * variants and pack units), design the sticker once for the whole shop and
+ * print it on a thermal roll or an A4 sticker sheet. The preview and the
+ * print use the same HTML, printed from a hidden frame.
+ */
+
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Printer, ScanLine, Plus, Minus, Search, X, Settings2, SlidersHorizontal,
-  Building2, DollarSign, Package, AlertCircle, Sparkles, Ruler,
-  Edit3, Wand2, CheckCircle2, RefreshCw, GraduationCap, RotateCcw,
-  Hash, Tag, Trash2, Eye, QrCode, LayoutGrid, Eraser, Type, Maximize2,
-  Layers,
-} from 'lucide-react';
-import JsBarcode from 'jsbarcode';
+import { toast } from 'sonner';
+import { Eye, GraduationCap, Layers, LayoutGrid, ListPlus, Printer, ScanLine, Settings2, TestTube2, Wand2 } from 'lucide-react';
+import { Button, PageHero, PageShell, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { printHtml } from '@core/receipt/print';
+import { getReceiptSetup, useReceiptSetup } from '@core/receipt/setup';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { fetchAllProducts } from '@modules/inventory/products/api/fetchAllProducts';
 import { productVariantsApi, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
 import { productUnitsApi, type ProductUnit } from '@modules/inventory/products/api/product-units.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
-import { settingsApi } from '@modules/organization/settings/api/settings.api';
-import { Button } from '@/design-system/components';
-import { formatPKRFull } from '@core/lib/format';
-import { toast } from 'sonner';
-import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
+import { barcodeLabelsApi } from '../api/barcode-labels.api';
+import { LabelQueue } from '../components/LabelQueue';
+import { LabelDesigner } from '../components/LabelDesigner';
+import { LabelSheetPreview } from '../components/LabelSheetPreview';
+import { LABEL_SETTINGS_KEY, useLabelConfig } from '../components/useLabelConfig';
+import { renderLabels, sheetLayout, type LabelData } from '../components/renderLabels';
+import {
+  MAX_QTY, loadQueue, nearestExpiry, resolveLine, sameItem, saveQueue, snapVariant, type QueueLine, type ResolvedLine,
+} from '../components/labelLines';
 
-/* ═════════════════════════════════════════════════════════════
-   NAFAA BARCODE LABEL STUDIO
-   ─────────────────────────────────────────────────────────────
-   Har dukaan ke label ka naap alag hota hai. Pehle yahan sirf
-   chaar tayyar naap thay — jiske roll ka naap 40×15 tha, uske
-   label ya to kat jate thay ya beech me khali jagah chhor dete
-   thay. Ab naap dukaan-daar ke haath me hai: chaar tayyar naap
-   ek click par, aur us ke sath apni marzi ka naap millimeter
-   tak.
+const SAMPLE: LabelData = { name: 'Namoona cheez', variant: 'Large', unit: 'Piece', sku: 'SKU-101', code: '2001234567893', price: 1250, oldPrice: 1500, expiry: '12/2027' };
+const PRODUCTS_KEY = ['products-for-labels', 'all'];
+const UNITS_KEY = ['product-units-for-labels'];
 
-   Barcode ki unchai, motai aur likhai ka naap bhi khud set ho
-   sakta hai — kyunke chhote label par bara barcode bilkul nahi
-   samata.
-
-   Sab settings browser me mehfooz — agli baar wohi milengi.
-   ═════════════════════════════════════════════════════════════ */
-
-interface LabelItem {
-  id: string;
-  product: Product;
-  variant?: ProductVariant;
-  /**
-   * Multi-unit wala label — dozen, carton, packet.
-   *
-   * Pehle yahan sirf product aur variant thay. Jis dukaan ne ek product
-   * ke teen package banaye hotay thay (piece, dozen, carton), unhen har
-   * package par product wala hi barcode chhapta tha — counter par teenon
-   * ek jaise scan hotay aur rate hamesha piece ka lagta tha.
-   */
-  unit?: ProductUnit;
-  copies: number;
-}
-
-type BarcodeFormat = 'CODE128' | 'CODE39' | 'EAN13' | 'UPC';
-
-interface Preset {
-  key: string;
-  label: string;
-  dims: string;
-  desc: string;
-  icon: string;
-  wMm: number;
-  hMm: number;
-}
-
-/** Tayyar naap — bazaar me sab se aam rolls */
-const PRESETS: Preset[] = [
-  { key: 'small',  label: 'Small',   dims: '40×25', desc: 'Choti cheezain — thermal roll', icon: '🏷️', wMm: 40, hMm: 25 },
-  { key: 'strip',  label: 'Patti',   dims: '40×15', desc: 'Patli patti — shelf par',        icon: '📏', wMm: 40, hMm: 15 },
-  { key: 'medium', label: 'Medium',  dims: '50×30', desc: 'Sab se common thermal',          icon: '📋', wMm: 50, hMm: 30 },
-  { key: 'large',  label: 'Large',   dims: '70×40', desc: 'A4 sheet — tafseel ke sath',     icon: '📄', wMm: 70, hMm: 40 },
-  { key: 'xlarge', label: 'X-Large', dims: '100×50', desc: 'Shelf ya box ka bara label',    icon: '📃', wMm: 100, hMm: 50 },
-];
-
-const FORMAT_HINTS: Record<BarcodeFormat, string> = {
-  CODE128: 'Universal — har scanner (recommended)',
-  CODE39: 'Purane scanners ke liye',
-  EAN13: 'Retail standard — sirf 12-13 digits',
-  UPC: 'USA standard — sirf 11-12 digits',
-};
-
-/** Industry ke hisaab se sirf shuruaati naap ka mashwara */
-const INDUSTRY_DEFAULT: Record<string, string> = {
-  jewelry: 'small', pharmacy: 'small', mobile: 'medium', retail: 'medium',
-  grocery: 'medium', restaurant: 'medium', garment: 'medium',
-  carpet: 'large', wholesale: 'large',
-};
-
-/**
- * Label ke naap se andar ki har cheez ka naap khud nikal aata hai.
- *
- * Dukaan-daar se ye poochna ke "barcode ki unchai kitni ho" be-maani
- * hai — wo label ka naap jaanta hai, barcode ki pixel unchai nahi.
- * Is liye khud hisab lagate hain; badalna ho to Advanced me mojood hai.
- */
-function autoScale(wMm: number, hMm: number) {
-  const area = wMm * hMm;
-  const tiny = hMm <= 18;
-  return {
-    barcodeHeight: Math.max(14, Math.min(72, Math.round(hMm * 1.25))),
-    barcodeWidth: Number(Math.max(0.8, Math.min(2.2, wMm / 34)).toFixed(2)),
-    fontSize: Math.max(6, Math.min(16, Math.round(wMm / 5))),
-    nameFont: Math.max(5, Math.min(15, Math.round(area / 190) + 5)),
-    priceFont: Math.max(6, Math.min(20, Math.round(area / 150) + 6)),
-    metaFont: Math.max(4, Math.min(11, Math.round(area / 260) + 4)),
-    /** Choti patti par shop ka naam jagah kha jata hai */
-    tight: tiny,
-  };
-}
-
-const PREFS_KEY = 'nafaa-label-prefs-v2';
-
-interface Prefs {
-  wMm: number; hMm: number;
-  barcodeFormat: BarcodeFormat;
-  showShopName: boolean; showPrice: boolean; showCategory: boolean;
-  showSku: boolean; showName: boolean;
-  gapMm: number;
-  autoSize: boolean;
-  barcodeHeight: number; barcodeWidth: number; fontSize: number;
-  nameFont: number; priceFont: number; metaFont: number;
-  customLine: string;
-}
-
-function loadPrefs(): Partial<Prefs> | null {
-  try {
-    const raw = localStorage.getItem(PREFS_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
-
-function BarcodeImage({
-  value, height, width, fontSize, format = 'CODE128',
-}: {
-  value: string; height: number; width: number; fontSize: number; format?: BarcodeFormat;
-}) {
-  const ref = useRef<SVGSVGElement>(null);
-  useEffect(() => {
-    if (!ref.current || !value) return;
-    const opts = { width, height, fontSize, margin: 0, displayValue: true } as any;
-    try {
-      JsBarcode(ref.current, value, { format, ...opts });
-    } catch {
-      // Chuna hua format is value ke liye theek nahi (jaise EAN13 me
-      // 13 se kam hindsay) — CODE128 har cheez chala leta hai.
-      try { JsBarcode(ref.current, value, { format: 'CODE128', ...opts }); }
-      catch { /* value hi ghalat hai */ }
-    }
-  }, [value, height, width, fontSize, format]);
-  return <svg ref={ref} />;
-}
+type NewLine = Omit<QueueLine, 'id' | 'qty'> & { stock: number };
+const newId = () => Math.random().toString(36).slice(2, 10);
 
 export default function BarcodeLabelsPage() {
-  const queryClient = useQueryClient();
-  const industry = useCurrentIndustry();
-  const searchRef = useRef<HTMLInputElement>(null);
+  const qc = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const guide = usePageGuide();
+  const { config, set, saving, missingBarcodes } = useLabelConfig();
+  const setupQ = useReceiptSetup();
+  const shopName = (setupQ.data ?? getReceiptSetup()).shop.name;
 
-  const startPreset = PRESETS.find(
-    (p) => p.key === (industry?.id ? INDUSTRY_DEFAULT[industry.id] : 'medium'),
-  ) ?? PRESETS[2];
+  const productsQ = useQuery({ queryKey: PRODUCTS_KEY, queryFn: () => fetchAllProducts(), staleTime: 60_000 });
+  const unitsQ = useQuery({ queryKey: UNITS_KEY, queryFn: productUnitsApi.listAll, staleTime: 60_000 });
+  const catsQ = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list, staleTime: 5 * 60_000 });
 
-  const saved = loadPrefs();
-
-  /* ─── Naap ─── */
-  const [wMm, setWMm] = useState<number>(saved?.wMm ?? startPreset.wMm);
-  const [hMm, setHMm] = useState<number>(saved?.hMm ?? startPreset.hMm);
-  const [gapMm, setGapMm] = useState<number>(saved?.gapMm ?? 2);
-  const [autoSize, setAutoSize] = useState<boolean>(saved?.autoSize ?? true);
-
-  /* ─── Barcode aur likhai (Advanced) ─── */
-  const auto = useMemo(() => autoScale(wMm, hMm), [wMm, hMm]);
-  const [barcodeHeight, setBarcodeHeight] = useState<number>(saved?.barcodeHeight ?? auto.barcodeHeight);
-  const [barcodeWidth, setBarcodeWidth] = useState<number>(saved?.barcodeWidth ?? auto.barcodeWidth);
-  const [fontSize, setFontSize] = useState<number>(saved?.fontSize ?? auto.fontSize);
-  const [nameFont, setNameFont] = useState<number>(saved?.nameFont ?? auto.nameFont);
-  const [priceFont, setPriceFont] = useState<number>(saved?.priceFont ?? auto.priceFont);
-  const [metaFont, setMetaFont] = useState<number>(saved?.metaFont ?? auto.metaFont);
-
-  /** Naap badle aur "khud set karo" on ho to sab dobara hisab */
-  useEffect(() => {
-    if (!autoSize) return;
-    setBarcodeHeight(auto.barcodeHeight);
-    setBarcodeWidth(auto.barcodeWidth);
-    setFontSize(auto.fontSize);
-    setNameFont(auto.nameFont);
-    setPriceFont(auto.priceFont);
-    setMetaFont(auto.metaFont);
-  }, [auto, autoSize]);
-
-  /* ─── Label par kya dikhe ─── */
-  const [showShopName, setShowShopName] = useState(saved?.showShopName ?? true);
-  const [showName, setShowName] = useState(saved?.showName ?? true);
-  const [showPrice, setShowPrice] = useState(saved?.showPrice ?? true);
-  const [showCategory, setShowCategory] = useState(saved?.showCategory ?? false);
-  const [showSku, setShowSku] = useState(saved?.showSku ?? false);
-  const [customLine, setCustomLine] = useState(saved?.customLine ?? '');
-  const [barcodeFormat, setBarcodeFormat] = useState<BarcodeFormat>(saved?.barcodeFormat ?? 'CODE128');
-
-  /* ─── Safhe ka intezam ─── */
-  const [selected, setSelected] = useState<LabelItem[]>([]);
-  const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [stockFilter, setStockFilter] = useState<'all' | 'with-barcode' | 'without-barcode'>('all');
-  const [showSettings, setShowSettings] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [unitPickerFor, setUnitPickerFor] = useState<Product | null>(null);
-  const [visible, setVisible] = useState(60);
-
-  /* ─── Settings mehfooz ─── */
-  useEffect(() => {
-    try {
-      localStorage.setItem(PREFS_KEY, JSON.stringify({
-        wMm, hMm, gapMm, autoSize, barcodeFormat,
-        showShopName, showName, showPrice, showCategory, showSku, customLine,
-        barcodeHeight, barcodeWidth, fontSize, nameFont, priceFont, metaFont,
-      }));
-    } catch { /* private mode */ }
-  }, [wMm, hMm, gapMm, autoSize, barcodeFormat, showShopName, showName, showPrice,
-      showCategory, showSku, customLine, barcodeHeight, barcodeWidth, fontSize,
-      nameFont, priceFont, metaFont]);
-
-  /* ─── Data ─── */
-  const { data: productsData, refetch: refetchProducts, isRefetching, isLoading } = useQuery({
-    queryKey: ['products-for-labels', 'all'],
-    // Pehle `limit: 500` tha — 1600 products wali dukaan ke 1100
-    // products yahan aate hi nahi thay, na unke label ban sakte thay.
-    queryFn: () => fetchAllProducts(),
-  });
-
-  /* Sari multi-units ek saath — kaun se product ke kitne package hain,
-     aur kis package ka apna barcode hai. */
-  const { data: allUnits = [] } = useQuery({
-    queryKey: ['product-units-for-labels'],
-    queryFn: () => productUnitsApi.listAll(),
-    staleTime: 60_000,
-  });
-
-  const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
-  const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: settingsApi.get });
-
-  const products = productsData?.items ?? [];
-
+  const products = useMemo(() => productsQ.data?.items ?? [], [productsQ.data]);
+  const byId = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
   const unitsByProduct = useMemo(() => {
-    const map = new Map<string, ProductUnit[]>();
-    for (const u of allUnits) {
-      const list = map.get(u.productId);
-      if (list) list.push(u);
-      else map.set(u.productId, [u]);
-    }
-    return map;
-  }, [allUnits]);
+    const m = new Map<string, ProductUnit[]>();
+    for (const u of unitsQ.data ?? []) m.set(u.productId, [...(m.get(u.productId) ?? []), u]);
+    return m;
+  }, [unitsQ.data]);
 
-  const filteredProducts = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    return products.filter((p) => {
-      if (categoryFilter && p.categoryId !== categoryFilter) return false;
-      if (stockFilter === 'with-barcode' && !p.barcode) return false;
-      if (stockFilter === 'without-barcode' && p.barcode) return false;
-      if (!q) return true;
-      return p.name.toLowerCase().includes(q)
-        || (p.sku || '').toLowerCase().includes(q)
-        || (p.barcode || '').toLowerCase().includes(q);
-    });
-  }, [products, search, categoryFilter, stockFilter]);
+  const [lines, setLines] = useState<QueueLine[]>(loadQueue);
+  const [skip, setSkip] = useState(0);
+  const [adding, setAdding] = useState(0);
+  useEffect(() => { saveQueue(lines); }, [lines]);
 
-  useEffect(() => { setVisible(60); }, [search, categoryFilter, stockFilter]);
+  const layout = sheetLayout(config);
+  useEffect(() => { setSkip((s) => Math.min(s, Math.max(0, layout.perPage - 1))); }, [layout.perPage]);
 
-  const stats = useMemo(() => {
-    const withBarcode = products.filter((p) => p.barcode).length;
-    return { total: products.length, withBarcode, withoutBarcode: products.length - withBarcode };
-  }, [products]);
-
-  const labelsToPrint = useMemo(
-    () => selected.flatMap((item) =>
-      Array.from({ length: item.copies }, (_, i) => ({ ...item, _key: `${item.id}-${i}` }))),
-    [selected],
+  const resolved = useMemo<ResolvedLine[]>(
+    () => lines.map((l) => resolveLine(l, byId.get(l.productId), unitsByProduct.get(l.productId), config)),
+    [lines, byId, unitsByProduct, config],
   );
+  const labels = useMemo(() => resolved.flatMap((r) => (r.data ? Array<LabelData>(r.line.qty).fill(r.data) : [])), [resolved]);
+  const missing = resolved.filter((r) => r.data && r.missingCode);
+  const pages = layout.roll ? Math.ceil(labels.length / layout.cols) : Math.ceil((labels.length + skip) / layout.perPage);
 
-  /* A4 par ek qatar me kitne label — dukaan-daar ko pehle se pata chale */
-  const perRow = Math.max(1, Math.floor((210 - 8) / (wMm + gapMm)));
-  const perCol = Math.max(1, Math.floor((297 - 8) / (hMm + gapMm)));
-  const perSheet = perRow * perCol;
-  const sheets = Math.ceil(labelsToPrint.length / perSheet) || 0;
-
-  /* ─── Mutations ─── */
-  const generateBarcodeMutation = useMutation({
-    mutationFn: productsApi.generateBarcode,
-    onSuccess: (updated) => {
-      toast.success(`✓ Barcode ban gaya: ${updated.barcode}`);
-      queryClient.invalidateQueries({ queryKey: ['products-for-labels'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
-    onError: () => toast.error('Barcode ban nahi saka'),
-  });
-
-  /**
-   * Unit ka barcode — jab dozen/carton ke label banane hain magar us
-   * package ka apna barcode kabhi bana hi nahi.
-   */
-  const generateUnitBarcodeMutation = useMutation({
-    mutationFn: (unitId: string) => productUnitsApi.generateBarcode(unitId),
-    onSuccess: (updated) => {
-      toast.success(`✓ ${updated.unitName} ka barcode: ${updated.barcode}`);
-      queryClient.invalidateQueries({ queryKey: ['product-units-for-labels'] });
-    },
-    onError: () => toast.error('Unit ka barcode ban nahi saka'),
-  });
-
-  const bulkGenerateMutation = useMutation({
-    mutationFn: productsApi.bulkGenerateBarcodes,
-    onSuccess: (result) => {
-      toast.success(`✓ ${result.count} barcode ban gaye!`);
-      queryClient.invalidateQueries({ queryKey: ['products-for-labels'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-    },
-    onError: () => toast.error('Bulk generate nahi hua'),
-  });
-
-  const updateProductMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: any }) => productsApi.update(id, payload),
-    onSuccess: () => {
-      toast.success('✓ Barcode save ho gaya');
-      queryClient.invalidateQueries({ queryKey: ['products-for-labels'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      setEditingProduct(null);
-    },
-    onError: () => toast.error('Save nahi hua'),
-  });
-
-  /* ─── Queue ke kaam ─── */
-  const addOneItem = (product: Product, variant?: ProductVariant, unit?: ProductUnit) => {
-    const id = [product.id, variant?.id, unit?.id].filter(Boolean).join('__');
-    setSelected((prev) => {
-      const existing = prev.find((p) => p.id === id);
-      if (existing) return prev.map((p) => (p.id === id ? { ...p, copies: p.copies + 1 } : p));
-      return [...prev, { id, product, variant, unit, copies: 1 }];
-    });
-  };
-
-  const addProduct = async (product: Product) => {
-    if (!product.barcode) {
-      if (confirm(`"${product.name}" ka barcode nahi hai. Abhi bana doon?`)) {
-        await generateBarcodeMutation.mutateAsync(product.id);
-        toast.info('Barcode ban gaya — ab dobara click karke add karein');
-      }
-      return;
+  /* ── Queue ── */
+  const firstQty = (stock: number) => (config.copies === 'stock' ? Math.min(MAX_QTY, Math.max(1, Math.floor(stock))) : 1);
+  const addLines = (items: NewLine[]) => setLines((prev) => {
+    const next = [...prev];
+    for (const { stock, ...it } of items) {
+      const i = next.findIndex((l) => sameItem(l, it));
+      const qty = firstQty(stock);
+      if (i >= 0) next[i] = { ...next[i], qty: Math.min(MAX_QTY, next[i].qty + qty) };
+      else next.push({ ...it, id: newId(), qty });
     }
-    if (product.hasVariants) {
-      try {
-        const variants = await productVariantsApi.list(product.id);
-        const active = variants.filter((v) => v.isActive);
-        if (active.length === 0) return addOneItem(product, undefined);
-        let added = 0;
-        active.forEach((v) => { if (v.barcode) { addOneItem(product, v); added++; } });
-        if (added === 0) {
-          addOneItem(product, undefined);
-          toast('Variants ka barcode nahi — product wala barcode laga diya');
-        } else {
-          toast.success(`✓ ${added} variants add ho gaye`);
-        }
-      } catch { addOneItem(product, undefined); }
-      return;
-    }
-    addOneItem(product, undefined);
-  };
+    return next;
+  });
 
-  const updateCopies = (id: string, delta: number) =>
-    setSelected((prev) => prev
-      .map((p) => (p.id === id ? { ...p, copies: Math.max(0, p.copies + delta) } : p))
-      .filter((p) => p.copies > 0));
+  const refreshVariants = (fresh: Product[]) => setLines((prev) => prev.map((l) => {
+    if (!l.variant) return l;
+    const v = fresh.find((p) => p.id === l.productId)?.variants?.find((x) => x.id === l.variant?.id);
+    return v ? { ...l, variant: snapVariant(v) } : l;
+  }));
 
-  const setCopies = (id: string, copies: number) =>
-    setSelected((prev) => prev
-      .map((p) => (p.id === id ? { ...p, copies: Math.max(0, copies) } : p))
-      .filter((p) => p.copies > 0));
-
-  const setAllCopies = (copies: number) => {
-    setSelected((prev) => prev.map((p) => ({ ...p, copies })));
-    toast.success(`Har cheez ki ${copies} copies`);
-  };
-
-  const removeItem = (id: string) => setSelected((prev) => prev.filter((p) => p.id !== id));
-
-  const handlePrint = () => {
-    if (selected.length === 0) return toast.error('Pehle products chunein');
-    window.print();
-  };
-
-  const handleAddAll = () => {
-    let added = 0;
-    filteredProducts.forEach((p) => { if (p.barcode) { addOneItem(p, undefined); added++; } });
-    if (added === 0) return toast.info('Is chaant me koi barcode wala product nahi');
-    toast.success(`✓ ${added} products add ho gaye`);
-  };
-
-  const handleBulkGenerateBarcodes = () => {
-    const withoutBarcode = filteredProducts.filter((p) => !p.barcode);
-    if (withoutBarcode.length === 0) return toast.info('Sab ke barcode pehle se hain 🎉');
-    if (confirm(`${withoutBarcode.length} products ke barcode bana doon?`)) {
-      bulkGenerateMutation.mutate(withoutBarcode.map((p) => p.id));
-    }
-  };
-
-  const applyPreset = (p: Preset) => { setWMm(p.wMm); setHMm(p.hMm); };
-
-  const resetAuto = () => {
-    setAutoSize(true);
-    const a = autoScale(wMm, hMm);
-    setBarcodeHeight(a.barcodeHeight); setBarcodeWidth(a.barcodeWidth);
-    setFontSize(a.fontSize); setNameFont(a.nameFont);
-    setPriceFont(a.priceFont); setMetaFont(a.metaFont);
-    toast.success('Naap dobara khud set ho gaye');
-  };
-
-  /* ─── Shortcuts ─── */
+  // Variant prices and codes saved on this device may be old; refresh them once.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showGuide) return setShowGuide(false);
-        if (editingProduct) return setEditingProduct(null);
-        return;
+    const ids = [...new Set(loadQueue().filter((l) => l.variant).map((l) => l.productId))].slice(0, 40);
+    if (!ids.length) return;
+    Promise.all(ids.map((id) => productsApi.getOne(id).catch(() => null))).then((r) => refreshVariants(r.filter(Boolean) as Product[]));
+  }, []);
+
+  const addProduct = async (p: Product, pick: { variantId?: string; unitId?: string } = {}, quiet = false) => {
+    setAdding((n) => n + 1);
+    try {
+      const full = p.hasVariants || p.expiryTracked ? await productsApi.getOne(p.id).catch(() => null) : null;
+      const variants = (full?.variants ?? []).filter((v) => v.isActive && (!pick.variantId || v.id === pick.variantId));
+      const unit = pick.unitId ? unitsByProduct.get(p.id)?.find((u) => u.id === pick.unitId) : undefined;
+      const rate = unit?.conversionRate || 1;
+      if (p.hasVariants && variants.length) {
+        addLines(variants.map((v) => ({ productId: p.id, variant: snapVariant(v), unitId: pick.unitId, expiry: full ? nearestExpiry(full, v.id) : null, stock: v.stock / rate })));
+        if (!quiet && variants.length > 1) toast.success(`${p.name}: ${variants.length} variant list me — har ek ka apna label`);
+      } else {
+        addLines([{ productId: p.id, unitId: pick.unitId, expiry: full ? nearestExpiry(full) : null, stock: p.stock / rate }]);
+        if (!quiet) toast.success(`${p.name}${unit ? ` (${unit.unitLabel || unit.unitName})` : ''} list me`);
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'p') { e.preventDefault(); handlePrint(); return; }
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
-      if (e.key.toLowerCase() === 's') setShowSettings((v) => !v);
-      if (e.key.toLowerCase() === 'g') setShowGuide(true);
+    } finally {
+      setAdding((n) => n - 1);
+    }
+  };
+
+  const scan = async (raw: string) => {
+    const code = raw.trim();
+    if (!code) return;
+    const unit = unitsQ.data?.find((u) => u.isActive && (u.barcode === code || u.sku === code));
+    const unitProduct = unit && byId.get(unit.productId);
+    if (unit && unitProduct) return addProduct(unitProduct, { unitId: unit.id, variantId: unit.variantId ?? undefined });
+    const hit = products.find((p) => p.barcode === code || p.sku === code);
+    if (hit) return addProduct(hit);
+    try {
+      const found = (await productsApi.byBarcode(code)) as Product & { matchedVariant?: ProductVariant };
+      return addProduct(byId.get(found.id) ?? found, { variantId: found.matchedVariant?.id });
+    } catch {
+      toast.error(`"${code}" se koi cheez nahi mili`);
+    }
+  };
+
+  const addCategory = async (categoryId: string) => {
+    const list = products.filter((p) => p.categoryId === categoryId && p.isActive !== false);
+    if (!list.length) { toast.info('Is category me koi cheez nahi'); return; }
+    if (list.length > 150 && !window.confirm(`${list.length} cheezein list me dalni hain?`)) return;
+    for (let i = 0; i < list.length; i += 6) await Promise.all(list.slice(i, i + 6).map((p) => addProduct(p, {}, true)));
+    toast.success(`${list.length} cheezein list me aa gayin`);
+  };
+
+  // Items sent from the products pages ("Label" button).
+  const handedOver = useRef(false);
+  useEffect(() => {
+    const ids = (location.state as { productIds?: string[] } | null)?.productIds;
+    if (handedOver.current || !ids?.length || !productsQ.data) return;
+    handedOver.current = true;
+    const list = ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
+    (async () => {
+      for (let i = 0; i < list.length; i += 6) await Promise.all(list.slice(i, i + 6).map((p) => addProduct(p, {}, true)));
+      if (list.length) toast.success(`${list.length} cheezein label ki list me`);
+    })();
+    navigate(location.pathname, { replace: true, state: null });
+  }, [productsQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const setQty = (id: string, qty: number) => setLines((prev) => prev.map((l) => (l.id === id ? { ...l, qty } : l)));
+  const setAllQty = (q: number | 'stock') => setLines((prev) => prev.map((l) => {
+    const r = resolved.find((x) => x.line.id === l.id);
+    return { ...l, qty: q === 'stock' ? Math.min(MAX_QTY, Math.max(1, r?.stock ?? 1)) : q };
+  }));
+  const setUnit = (id: string, unitId: string | undefined) => setLines((prev) => prev.map((l) => (l.id === id ? { ...l, unitId } : l)));
+  const remove = (id: string) => setLines((prev) => prev.filter((l) => l.id !== id));
+  const clear = () => { if (window.confirm('Poori list saaf karni hai?')) setLines([]); };
+
+  const refreshData = () => {
+    qc.invalidateQueries({ queryKey: PRODUCTS_KEY });
+    qc.invalidateQueries({ queryKey: UNITS_KEY });
+    qc.invalidateQueries({ queryKey: ['products'] });
+    qc.invalidateQueries({ queryKey: LABEL_SETTINGS_KEY });
+  };
+
+  /* ── Barcodes ── */
+  const assign = useMutation({
+    mutationFn: async () => {
+      const productIds = [...new Set(missing.filter((r) => !r.unit).map((r) => r.line.productId))];
+      const unitIds = [...new Set(missing.flatMap((r) => (r.unit ? [r.unit.id] : [])))];
+      let made = 0;
+      if (productIds.length) {
+        const res = await barcodeLabelsApi.assign(productIds, true);
+        made += res.products + res.variants;
+      }
+      for (const id of unitIds) { await productUnitsApi.generateBarcode(id); made++; }
+      const variantIds = [...new Set(lines.filter((l) => l.variant && productIds.includes(l.productId)).map((l) => l.productId))];
+      const fresh = await Promise.all(variantIds.map((id) => productsApi.getOne(id).catch(() => null)));
+      return { made, fresh: fresh.filter(Boolean) as Product[] };
+    },
+    onSuccess: ({ made, fresh }) => {
+      refreshVariants(fresh);
+      refreshData();
+      toast.success(made ? `${made} naye barcode ban gaye — scanner par chalenge` : 'Sab ke barcode pehle se hain');
+    },
+    onError: () => toast.error('Barcode nahi bane — internet check karke dobara koshish karein'),
+  });
+
+  const saveCode = async (r: ResolvedLine, code: string) => {
+    try {
+      const v = r.line.variant;
+      if (r.unit) await productUnitsApi.update(r.unit.id, { barcode: code });
+      else if (v) {
+        await productVariantsApi.update(r.line.productId, v.id, { name: v.name, price: v.price, barcode: code });
+        setLines((prev) => prev.map((l) => (l.variant?.id === v.id ? { ...l, variant: { ...v, barcode: code } } : l)));
+      } else await productsApi.update(r.line.productId, { barcode: code });
+      refreshData();
+      toast.success('Barcode save ho gaya');
+      return true;
+    } catch {
+      toast.error('Barcode save nahi hua — shayad ye code kisi aur cheez ka hai');
+      return false;
+    }
+  };
+
+  /* ── Preview and print ── */
+  const dConfig = useDeferredValue(config);
+  const dLabels = useDeferredValue(labels);
+  const dSkip = useDeferredValue(skip);
+  const preview = useMemo(() => {
+    const lay = sheetLayout(dConfig);
+    const room = lay.roll ? lay.cols * 4 : lay.perPage - dSkip;
+    const list = dLabels.length ? dLabels.slice(0, room) : Array<LabelData>(lay.roll ? lay.cols * 2 : room).fill(SAMPLE);
+    return {
+      html: renderLabels(list, dConfig, { shopName, preview: true, skip: dSkip, maxPages: lay.roll ? 4 : 1 }),
+      pages: lay.roll ? Math.ceil(list.length / lay.cols) : 1,
+      lay,
+      sample: !dLabels.length,
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  });
+  }, [dConfig, dLabels, dSkip, shopName]);
 
-  const anyModal = showGuide || !!editingProduct;
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = anyModal ? 'hidden' : prev;
-    return () => { document.body.style.overflow = prev; };
-  }, [anyModal]);
-
-  const shopName = (settings as any)?.shopName || 'My Shop';
-  const hasFilters = !!search || !!categoryFilter || stockFilter !== 'all';
-  const matchedPreset = PRESETS.find((p) => p.wMm === wMm && p.hMm === hMm);
-
-  /** Screen par label ka naap — 1mm ≈ 3.2px, taake asal naap ka andaza ho */
-  const PX = 3.2;
-
-  return (
-    <div className="space-y-4 sm:space-y-5 pb-10 print:space-y-0 print:p-0">
-      {showGuide && <LabelGuide onClose={() => setShowGuide(false)} />}
-
-      {/* ═══════════ HERO ═══════════ */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white p-5 sm:p-6 shadow-2xl print:hidden">
-        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-400/25 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
-        <div className="absolute inset-0 opacity-[0.06]"
-          style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #fff 1px, transparent 0)', backgroundSize: '22px 22px' }} />
-
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[11px] font-black border border-white/25 uppercase tracking-widest">
-              <ScanLine className="h-3.5 w-3.5 text-amber-300" /> Label Studio
-              {industry?.id && (<><span className="opacity-40">•</span><span>{industry.emoji} {industry.name}</span></>)}
-            </div>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">🏷️ Barcode Labels</h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-white/90 font-bold">
-              Apni marzi ka naap, apni marzi ka label — thermal roll se A4 sheet tak
-              {stats.withoutBarcode > 0 && (
-                <><span className="opacity-50 mx-1.5">•</span>
-                <strong className="text-amber-300">{stats.withoutBarcode}</strong> ko barcode chahiye</>
-              )}
-            </p>
-          </div>
-
-          <div className="flex gap-2 flex-wrap items-center shrink-0">
-            <button onClick={() => setShowGuide(true)}
-              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-black inline-flex items-center gap-1.5 shadow-lg transition">
-              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Guide</span>
-            </button>
-            <button onClick={() => refetchProducts()} disabled={isRefetching}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-black inline-flex items-center gap-1.5 backdrop-blur-md disabled:opacity-50 transition">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Taaza</span>
-            </button>
-            <button onClick={() => setShowSettings((v) => !v)}
-              className={`h-11 px-3 rounded-xl text-xs font-black inline-flex items-center gap-1.5 transition border backdrop-blur-md ${
-                showSettings ? 'bg-amber-400/90 border-amber-300 text-slate-900 shadow-lg' : 'bg-white/15 hover:bg-white/25 border-white/25'
-              }`}>
-              <Settings2 className="h-4 w-4" />
-              <span className="hidden sm:inline">{showSettings ? 'Chhupayein' : 'Settings'}</span>
-            </button>
-            <Button onClick={handlePrint} disabled={labelsToPrint.length === 0}
-              className="h-11 bg-white text-slate-900 hover:bg-slate-100 font-black shadow-lg disabled:opacity-50">
-              <Printer className="h-4 w-4" /> Print <span className="tabular-nums">{labelsToPrint.length}</span>
-            </Button>
-          </div>
-        </div>
-
-      </section>
-
-      {/* ═══════════ SETTINGS — alag panel, hero ke bahar ═══════════
-          Pehle ye sab hero ke andar tha: header itna bara ho jata tha
-          ke asal kaam (products chunna) screen se neeche chala jata.
-          Ab header baqi safhon jaisa chhota hai aur settings sirf
-          zaroorat par khulti hain. */}
-      {showSettings && (
-        <section className="rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-800 text-white border-2 border-emerald-700/40 p-4 sm:p-5 shadow-xl print:hidden">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="h-10 w-10 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center">
-                <Settings2 className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="font-black text-base leading-tight">Label ki Settings</div>
-                <div className="text-[11px] font-bold text-white/70">Naap, format aur label par kya dikhe</div>
-              </div>
-            </div>
-            <button onClick={() => setShowSettings(false)}
-              className="h-9 w-9 rounded-xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="space-y-4">
-
-            {/* ── Naap ── */}
-            <div className="rounded-2xl bg-white/10 backdrop-blur-md p-4 border border-white/20">
-              <label className="text-[10px] uppercase tracking-widest font-black text-white/80 mb-2.5 flex items-center gap-1.5">
-                <Ruler className="h-3 w-3" /> Label ka naap
-                {matchedPreset
-                  ? <span className="ml-1 px-1.5 py-0.5 rounded bg-white/20 text-[9px]">{matchedPreset.label}</span>
-                  : <span className="ml-1 px-1.5 py-0.5 rounded bg-amber-400 text-slate-900 text-[9px]">APNI MARZI</span>}
-              </label>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                {PRESETS.map((p) => {
-                  const on = wMm === p.wMm && hMm === p.hMm;
-                  return (
-                    <button key={p.key} onClick={() => applyPreset(p)}
-                      className={`px-3 py-2.5 rounded-xl text-left transition border-2 ${
-                        on ? 'bg-white text-slate-900 border-white shadow-lg' : 'bg-white/5 text-white border-white/20 hover:bg-white/10'
-                      }`}>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-base">{p.icon}</span>
-                        <span className="font-black text-xs">{p.label}</span>
-                      </div>
-                      <div className={`text-[10px] font-black mt-0.5 tabular-nums ${on ? 'text-emerald-700' : 'text-emerald-200'}`}>
-                        {p.dims}mm
-                      </div>
-                      <div className={`text-[9px] font-bold mt-0.5 ${on ? 'opacity-60' : 'opacity-60'}`}>{p.desc}</div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Apni marzi ka naap */}
-              <div className="mt-3 rounded-2xl bg-slate-950/30 border-2 border-white/20 p-3.5">
-                <div className="text-[10px] uppercase tracking-widest font-black text-amber-200 mb-2 flex items-center gap-1.5">
-                  <Maximize2 className="h-3 w-3" /> Apni marzi ka naap (millimeter me)
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <MmInput label="Chaurai (W)" value={wMm} onChange={setWMm} min={15} max={210} />
-                  <MmInput label="Unchai (H)" value={hMm} onChange={setHMm} min={8} max={297} />
-                  <MmInput label="Beech ka faasla" value={gapMm} onChange={setGapMm} min={0} max={20} />
-                  <div>
-                    <div className="text-[9px] uppercase tracking-wider font-black text-white/70 mb-1">A4 par</div>
-                    <div className="h-10 rounded-xl bg-white/10 border border-white/20 px-3 flex items-center text-xs font-black tabular-nums">
-                      {perRow} × {perCol} = {perSheet}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-2 text-[10px] font-bold text-white/60">
-                  Jo naap aap ke roll ka hai wohi likhein — label bilkul usi naap me chhapega.
-                  Misal: 40×15, 38×22, 30×20 — koi bhi.
-                </div>
-              </div>
-            </div>
-
-            {/* ── Format + kya dikhe ── */}
-            <div className="grid lg:grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-white/10 backdrop-blur-md p-4 border border-white/20">
-                <label className="text-[10px] uppercase tracking-widest font-black text-white/80 mb-1.5 flex items-center gap-1.5">
-                  <QrCode className="h-3 w-3" /> Barcode ka format
-                </label>
-                <select value={barcodeFormat} onChange={(e) => setBarcodeFormat(e.target.value as BarcodeFormat)}
-                  className="h-11 w-full rounded-xl bg-white text-slate-900 px-3 text-sm font-bold focus:outline-none">
-                  {(Object.entries(FORMAT_HINTS) as [BarcodeFormat, string][]).map(([f, hint]) => (
-                    <option key={f} value={f}>{f} — {hint}</option>
-                  ))}
-                </select>
-                <div className="mt-3">
-                  <label className="text-[10px] uppercase tracking-widest font-black text-white/80 mb-1.5 flex items-center gap-1.5">
-                    <Type className="h-3 w-3" /> Apni line (optional)
-                  </label>
-                  <input value={customLine} onChange={(e) => setCustomLine(e.target.value)}
-                    maxLength={40} placeholder="Jaise: Exchange 7 din — ya kuch bhi"
-                    className="h-11 w-full rounded-xl bg-white text-slate-900 px-3 text-sm font-bold focus:outline-none placeholder:text-slate-400" />
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-white/10 backdrop-blur-md p-4 border border-white/20">
-                <label className="text-[10px] uppercase tracking-widest font-black text-white/80 mb-1.5 flex items-center gap-1.5">
-                  <Eye className="h-3 w-3" /> Label par kya dikhe
-                </label>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
-                  <ToggleChip checked={showShopName} onChange={setShowShopName} icon={Building2} label="Shop" />
-                  <ToggleChip checked={showName} onChange={setShowName} icon={Package} label="Naam" />
-                  <ToggleChip checked={showPrice} onChange={setShowPrice} icon={DollarSign} label="Rate" />
-                  <ToggleChip checked={showCategory} onChange={setShowCategory} icon={Tag} label="Category" />
-                  <ToggleChip checked={showSku} onChange={setShowSku} icon={Hash} label="SKU" />
-                </div>
-
-                <button onClick={() => setShowAdvanced((v) => !v)}
-                  className="mt-3 h-9 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-[11px] font-black inline-flex items-center gap-1.5 transition">
-                  <SlidersHorizontal className="h-3.5 w-3.5" />
-                  {showAdvanced ? 'Advanced band karein' : 'Advanced — barcode aur likhai ka naap'}
-                </button>
-              </div>
-            </div>
-
-            {/* ── Advanced ── */}
-            {showAdvanced && (
-              <div className="rounded-2xl bg-slate-950/30 border-2 border-white/20 p-4">
-                <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={autoSize}
-                      onChange={(e) => { setAutoSize(e.target.checked); }}
-                      className="h-4 w-4 rounded accent-emerald-500" />
-                    <span className="text-[11px] font-black text-white">
-                      Naap khud set karo (label ke size ke hisab se)
-                    </span>
-                  </label>
-                  <button onClick={resetAuto}
-                    className="h-9 px-3 rounded-xl bg-white/15 hover:bg-white/25 text-[11px] font-black inline-flex items-center gap-1.5 transition">
-                    <RotateCcw className="h-3.5 w-3.5" /> Dobara khud set
-                  </button>
-                </div>
-
-                <div className={`grid sm:grid-cols-2 lg:grid-cols-3 gap-3 ${autoSize ? 'opacity-50 pointer-events-none' : ''}`}>
-                  <Slider label="Barcode ki unchai" value={barcodeHeight} onChange={setBarcodeHeight} min={10} max={90} unit="px" />
-                  <Slider label="Barcode ki motai" value={barcodeWidth} onChange={setBarcodeWidth} min={0.6} max={3} step={0.1} unit="×" />
-                  <Slider label="Barcode ke hindsay" value={fontSize} onChange={setFontSize} min={0} max={20} unit="px" />
-                  <Slider label="Naam ki likhai" value={nameFont} onChange={setNameFont} min={4} max={20} unit="px" />
-                  <Slider label="Rate ki likhai" value={priceFont} onChange={setPriceFont} min={5} max={26} unit="px" />
-                  <Slider label="Chhoti likhai" value={metaFont} onChange={setMetaFont} min={3} max={14} unit="px" />
-                </div>
-                <div className="mt-2 text-[10px] font-bold text-white/60">
-                  Barcode ke hindsay 0 kar dein to sirf lakeerein chhapengi — bohat chhote label par jagah bach jati hai.
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-200">
-              <CheckCircle2 className="h-3 w-3" />
-              Sab settings khud mehfooz ho jati hain — agli baar wohi milengi
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ═══════════ STATS ═══════════ */}
-      <section className="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3 print:hidden">
-        <StatCard label="Kul Products" value={stats.total} sub="Inventory me" icon={Package} tone="violet" />
-        <StatCard label="Barcode Ready" value={stats.withBarcode}
-          sub={`${stats.total > 0 ? Math.round((stats.withBarcode / stats.total) * 100) : 0}% tayyar`}
-          icon={CheckCircle2} tone="emerald" />
-        <StatCard label="Barcode Chahiye" value={stats.withoutBarcode}
-          sub={stats.withoutBarcode > 0 ? 'In ka barcode banana hai' : 'Sab tayyar 🎉'}
-          icon={AlertCircle} tone="amber"
-          action={stats.withoutBarcode > 0 ? (
-            <button onClick={handleBulkGenerateBarcodes} disabled={bulkGenerateMutation.isPending}
-              className="mt-1.5 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-black transition disabled:opacity-50 active:scale-95">
-              <Wand2 className="h-3 w-3" /> Sab ke bana do
-            </button>
-          ) : null} />
-        <StatCard label="Print Queue" value={labelsToPrint.length}
-          sub={sheets > 0 ? `${selected.length} cheezein · ${sheets} A4 sheet` : `${selected.length} cheezein`}
-          icon={Printer} tone="blue" highlight />
-      </section>
-
-      {/* ═══════════ MAIN ═══════════ */}
-      <section className="grid lg:grid-cols-[420px_1fr] gap-4 sm:gap-5 items-start print:grid-cols-1 print:gap-0">
-        {/* ─── PRODUCT PICKER ─── */}
-        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10">
-            <h3 className="font-black text-slate-900 dark:text-ink-white flex items-center gap-2">
-              <Package className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> Products Chunein
-            </h3>
-            <p className="text-[11px] font-bold text-slate-500 dark:text-ink-400 mt-0.5">
-              {filteredProducts.length.toLocaleString()} dikh rahe · click = queue me add
-            </p>
-          </div>
-
-          <div className="p-4 space-y-3 border-b-2 border-slate-100 dark:border-ink-800">
-            <div className="relative">
-              <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Naam, SKU, barcode… (/ dabao)"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-9 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
-              {search && (
-                <button onClick={() => setSearch('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
-                  <X className="h-3.5 w-3.5 text-slate-500" />
-                </button>
-              )}
-            </div>
-
-            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition">
-              <option value="">Sab Categories</option>
-              {(categories as any[]).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-
-            <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
-              {([
-                ['all', 'Sab'],
-                ['with-barcode', '✓ Barcode'],
-                ['without-barcode', '⚠ Baghair'],
-              ] as const).map(([v, l]) => (
-                <button key={v} onClick={() => setStockFilter(v)}
-                  className={`flex-1 h-9 rounded-lg text-[11px] font-black transition ${
-                    stockFilter === v ? 'bg-emerald-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-white dark:hover:bg-ink-700'
-                  }`}>{l}</button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={handleAddAll}
-                className="h-11 rounded-xl bg-gradient-to-r from-emerald-600 to-green-700 text-white text-xs font-black inline-flex items-center justify-center gap-1.5 shadow transition active:scale-[0.97]">
-                <Plus className="h-4 w-4" /> Sab Add ({filteredProducts.filter((p) => p.barcode).length})
-              </button>
-              <button onClick={handleBulkGenerateBarcodes} disabled={bulkGenerateMutation.isPending}
-                className="h-11 rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 text-white text-xs font-black inline-flex items-center justify-center gap-1.5 shadow disabled:opacity-50 transition active:scale-[0.97]">
-                <Sparkles className="h-4 w-4" /> Generate ({filteredProducts.filter((p) => !p.barcode).length})
-              </button>
-            </div>
-
-            {hasFilters && (
-              <button onClick={() => { setSearch(''); setCategoryFilter(''); setStockFilter('all'); }}
-                className="w-full h-9 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[11px] font-black inline-flex items-center justify-center gap-1.5 transition">
-                <Eraser className="h-3.5 w-3.5" /> Chaant hatayein
-              </button>
-            )}
-          </div>
-
-          <div className="max-h-[560px] overflow-y-auto divide-y divide-slate-100 dark:divide-ink-800">
-            {isLoading ? (
-              <div className="py-16 text-center text-sm font-bold text-slate-500">
-                <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2" /> Products aa rahe hain…
-              </div>
-            ) : filteredProducts.length === 0 ? (
-              <div className="py-16 text-center">
-                <Package className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm font-black text-slate-700 dark:text-ink-200">Kuch nahi mila</p>
-                <p className="text-[11px] font-bold text-slate-500 mt-0.5">Chaant badal kar dekhein</p>
-              </div>
-            ) : (
-              <>
-                {filteredProducts.slice(0, visible).map((p) => {
-                  const pUnits = unitsByProduct.get(p.id) ?? [];
-                  return (
-                  <div key={p.id}
-                    className="px-4 py-3 flex items-center gap-3 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition cursor-pointer"
-                    onClick={() => addProduct(p)}>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-black text-sm text-slate-900 dark:text-ink-white truncate">{p.name}</div>
-                      <div className="text-[11px] font-bold font-mono truncate">
-                        {p.barcode
-                          ? <span className="text-emerald-600 dark:text-emerald-400">{p.barcode}</span>
-                          : <span className="text-amber-600 dark:text-amber-400">⚠ barcode nahi</span>}
-                      </div>
-                    </div>
-                    <div className="text-sm font-black text-slate-700 dark:text-ink-200 tabular-nums shrink-0">
-                      {formatPKRFull(p.price)}
-                    </div>
-                    {pUnits.length > 0 && (
-                      <button onClick={(e) => { e.stopPropagation(); setUnitPickerFor(p); }}
-                        title="Dozen/carton ke alag label"
-                        className="h-8 px-2 rounded-lg bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300 text-[11px] font-black inline-flex items-center gap-1 shrink-0 hover:bg-violet-100 dark:hover:bg-violet-500/25 transition">
-                        <Layers className="h-3.5 w-3.5" /> {pUnits.length}
-                      </button>
-                    )}
-                    <button onClick={(e) => { e.stopPropagation(); setEditingProduct(p); }}
-                      title="Barcode badlein"
-                      className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 flex items-center justify-center shrink-0 hover:bg-blue-100 transition">
-                      <Edit3 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                  );
-                })}
-                {visible < filteredProducts.length && (
-                  <button onClick={() => setVisible((v) => v + 60)}
-                    className="w-full py-3 text-xs font-black text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">
-                    Aur {Math.min(60, filteredProducts.length - visible)} dikhayein
-                    <span className="text-slate-400 ml-1">({visible}/{filteredProducts.length})</span>
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* ─── QUEUE + PREVIEW ─── */}
-        <div className="space-y-4 print:space-y-0">
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5 print:hidden">
-            <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
-              <h3 className="font-black text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <Printer className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> Print Queue
-                <span className="text-xs font-bold text-slate-500">
-                  {selected.length} cheezein · {labelsToPrint.length} label
-                </span>
-              </h3>
-              {selected.length > 0 && (
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {[1, 2, 5, 10, 20].map((n) => (
-                    <button key={n} onClick={() => setAllCopies(n)}
-                      className="h-8 px-2.5 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[11px] font-black hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition">
-                      ×{n}
-                    </button>
-                  ))}
-                  <button onClick={() => setSelected([])}
-                    className="h-8 px-2.5 rounded-lg bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 text-[11px] font-black inline-flex items-center gap-1 transition">
-                    <Trash2 className="h-3 w-3" /> Saaf
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {selected.length === 0 ? (
-              <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-700 py-12 text-center">
-                <Package className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
-                <p className="font-black text-slate-700 dark:text-ink-200">Queue khaali hai</p>
-                <p className="text-[11px] font-bold text-slate-500 mt-0.5">Baein taraf se product par click karein</p>
-              </div>
-            ) : (
-              <div className="space-y-1.5 max-h-72 overflow-y-auto">
-                {selected.map((item) => (
-                  <div key={item.id} className="flex items-center gap-2 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-2.5">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-black text-sm text-slate-900 dark:text-ink-white truncate">
-                        {item.product.name}
-                        {item.variant ? ` — ${item.variant.name}` : ''}
-                        {item.unit ? ` — ${(item.unit.unitLabel || item.unit.unitName).toUpperCase()}` : ''}
-                      </div>
-                      <div className="text-[11px] font-mono font-bold text-slate-500 truncate">
-                        {item.unit?.barcode || item.variant?.barcode || item.product.barcode}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button onClick={() => updateCopies(item.id, -1)}
-                        className="h-8 w-8 rounded-lg bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:border-rose-400 transition">
-                        <Minus className="h-3.5 w-3.5 text-slate-600 dark:text-ink-300" />
-                      </button>
-                      <input type="number" min={1} value={item.copies}
-                        onChange={(e) => setCopies(item.id, Number(e.target.value) || 0)}
-                        className="h-8 w-14 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-center text-xs font-black tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500" />
-                      <button onClick={() => updateCopies(item.id, 1)}
-                        className="h-8 w-8 rounded-lg bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:border-emerald-400 transition">
-                        <Plus className="h-3.5 w-3.5 text-slate-600 dark:text-ink-300" />
-                      </button>
-                      <button onClick={() => removeItem(item.id)}
-                        className="h-8 w-8 rounded-lg bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center transition">
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* ─── PREVIEW ─── */}
-          <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5 print:border-none print:shadow-none print:p-0 print:rounded-none print:bg-white">
-            <div className="flex items-center justify-between mb-3 print:hidden flex-wrap gap-2">
-              <h3 className="font-black text-slate-900 dark:text-ink-white flex items-center gap-2">
-                <Eye className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> Print Preview
-              </h3>
-              <button onClick={() => setShowSettings(true)} title="Naap badlein"
-                className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-[11px] font-black text-slate-600 dark:text-ink-300 inline-flex items-center gap-1.5 transition">
-                <Ruler className="h-3.5 w-3.5" />
-                {matchedPreset ? matchedPreset.label : 'Apni marzi'} • {wMm}×{hMm}mm • faasla {gapMm}mm
-                <Settings2 className="h-3.5 w-3.5 opacity-60" />
-              </button>
-            </div>
-
-            <div className="flex flex-wrap justify-center print:justify-start label-sheet"
-              style={{ gap: `${gapMm}mm` }}>
-              {labelsToPrint.map((item) => {
-                /* Unit ka apna barcode/rate sab se pehle — label us package
-                   ka hai, poore product ka nahi. Unit na ho to purana hi
-                   rasta: variant, phir product. */
-                const barcodeValue = item.unit?.barcode || item.variant?.barcode || item.product.barcode || '';
-                const displayName = [
-                  item.product.name,
-                  item.variant?.name,
-                  item.unit ? (item.unit.unitLabel || item.unit.unitName).toUpperCase() : null,
-                ].filter(Boolean).join(' — ');
-                const displayPrice = item.unit?.price ?? item.variant?.price ?? item.product.price;
-                const displaySku = item.unit?.sku || item.variant?.sku || item.product.sku;
-
-                return (
-                  <div key={item._key}
-                    className="label-card border border-slate-300 bg-white text-center overflow-hidden flex flex-col items-center justify-center print:border-slate-700"
-                    style={{
-                      width: `${wMm * PX}px`,
-                      height: `${hMm * PX}px`,
-                      padding: `${Math.max(1, Math.round(hMm / 12))}px`,
-                    }}>
-                    {showShopName && (
-                      <div className="font-black text-slate-600 truncate leading-tight max-w-full"
-                        style={{ fontSize: `${metaFont}px` }}>{shopName}</div>
-                    )}
-                    {showName && (
-                      <div className="font-black text-slate-900 leading-tight max-w-full overflow-hidden"
-                        style={{ fontSize: `${nameFont}px`, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                        {displayName}
-                      </div>
-                    )}
-                    {showCategory && item.product.category && (
-                      <div className="text-slate-500 font-bold truncate max-w-full"
-                        style={{ fontSize: `${metaFont}px` }}>{(item.product.category as any).name}</div>
-                    )}
-                    {showSku && displaySku && (
-                      <div className="font-mono text-slate-600 truncate max-w-full"
-                        style={{ fontSize: `${metaFont}px` }}>{displaySku}</div>
-                    )}
-                    {barcodeValue && (
-                      <div className="flex justify-center max-w-full overflow-hidden">
-                        <BarcodeImage value={barcodeValue} height={barcodeHeight}
-                          width={barcodeWidth} fontSize={fontSize} format={barcodeFormat} />
-                      </div>
-                    )}
-                    {showPrice && (
-                      <div className="font-black text-slate-900 tabular-nums leading-none"
-                        style={{ fontSize: `${priceFont}px` }}>{formatPKRFull(displayPrice)}</div>
-                    )}
-                    {customLine && (
-                      <div className="text-slate-600 font-bold truncate max-w-full"
-                        style={{ fontSize: `${metaFont}px` }}>{customLine}</div>
-                    )}
-                  </div>
-                );
-              })}
-              {labelsToPrint.length === 0 && (
-                <div className="w-full text-center py-14 print:hidden">
-                  <Printer className="h-14 w-14 mx-auto text-slate-300 dark:text-ink-600 mb-3" />
-                  <p className="font-black text-slate-700 dark:text-ink-200">Preview khaali hai</p>
-                  <p className="text-[11px] font-bold text-slate-500 mt-1">
-                    Products add karein — yahan bilkul usi naap ka label dikhega jo chhapega
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {editingProduct && (
-        <EditBarcodeModal
-          product={editingProduct}
-          onClose={() => setEditingProduct(null)}
-          onSave={(barcode: string) => updateProductMutation.mutate({ id: editingProduct.id, payload: { barcode } })}
-          onGenerate={() => generateBarcodeMutation.mutate(editingProduct.id)}
-          saving={updateProductMutation.isPending || generateBarcodeMutation.isPending}
-        />
-      )}
-
-      {unitPickerFor && (
-        <UnitLabelModal
-          product={unitPickerFor}
-          units={unitsByProduct.get(unitPickerFor.id) ?? []}
-          onClose={() => setUnitPickerFor(null)}
-          onAdd={(unit) => addOneItem(unitPickerFor, undefined, unit)}
-          onGenerate={(unitId) => generateUnitBarcodeMutation.mutate(unitId)}
-          generating={generateUnitBarcodeMutation.isPending}
-        />
-      )}
-
-      {/* ═══ PRINT CSS — bilkul asal millimeter ═══ */}
-      <style>{`
-        @media print {
-          @page { margin: 4mm; size: auto; }
-          html, body {
-            background: white !important; color: #0f172a !important;
-            print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
-          }
-          .dark body, .dark { background: white !important; color: #0f172a !important; }
-          .print\\:hidden { display: none !important; }
-          [class*="fixed"] { display: none !important; }
-          html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
-          [class*="sidebar"], [class*="topbar"], nav[class*="fixed"] { display: none !important; }
-          [data-sonner-toaster], [data-sonner-toast], [class*="Toaster"] { display: none !important; visibility: hidden !important; }
-          .label-sheet { gap: ${gapMm}mm !important; }
-          .label-card {
-            width: ${wMm}mm !important;
-            height: ${hMm}mm !important;
-            min-height: ${hMm}mm !important;
-            max-height: ${hMm}mm !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-          }
-          .label-card svg { max-width: 100% !important; max-height: 100% !important; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-/* ─────────────── naap ke purzay ─────────────── */
-
-function MmInput({ label, value, onChange, min, max }: {
-  label: string; value: number; onChange: (v: number) => void; min: number; max: number;
-}) {
-  return (
-    <div>
-      <div className="text-[9px] uppercase tracking-wider font-black text-white/70 mb-1">{label}</div>
-      <div className="relative">
-        <input type="number" min={min} max={max} value={value}
-          onChange={(e) => {
-            const n = Number(e.target.value);
-            if (Number.isFinite(n)) onChange(Math.max(min, Math.min(max, n)));
-          }}
-          className="h-10 w-full rounded-xl bg-white text-slate-900 pl-3 pr-9 text-sm font-black tabular-nums focus:outline-none" />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">mm</span>
-      </div>
-    </div>
-  );
-}
-
-function Slider({ label, value, onChange, min, max, step = 1, unit }: {
-  label: string; value: number; onChange: (v: number) => void;
-  min: number; max: number; step?: number; unit?: string;
-}) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-[10px] uppercase tracking-wider font-black text-white/70">{label}</span>
-        <span className="text-[11px] font-black text-amber-200 tabular-nums">{value}{unit}</span>
-      </div>
-      <input type="range" min={min} max={max} step={step} value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-emerald-400" />
-    </div>
-  );
-}
-/* ═════════════════════════════════════════════════════════════
-   GUIDE
-   ═════════════════════════════════════════════════════════════ */
-function LabelGuide({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-3.5 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-500/15 dark:to-green-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-black text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Label Kaise Print Karein?
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <p className="text-sm font-bold text-slate-700 dark:text-ink-200 leading-relaxed">
-            Har cheez par <strong>barcode label</strong> laga dein — phir bikri ke waqt scanner se
-            <strong> ek second</strong> me cheez mil jati hai. Naam type karne ki zaroorat khatam.
-          </p>
-
-          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-4">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-ink-400 mb-2">
-              Teen qadam
-            </div>
-            <div className="space-y-2.5">
-              <FlowRow num="①" title="Naap set karein" desc="Apne roll ka naap — tayyar naap ya millimeter me apni marzi ka" />
-              <FlowRow num="②" title="Products chunein" desc="Click karke queue me daalein, copies set karein" />
-              <FlowRow num="③" title="Print dabayein" desc="Label bilkul usi naap me chhapega jo aap ne likha" />
-            </div>
-          </div>
-
-          <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-4">
-            <div className="text-[10px] font-black uppercase tracking-widest text-amber-800 dark:text-amber-300 mb-2 flex items-center gap-1.5">
-              <Ruler className="h-3 w-3" /> Apni marzi ka naap
-            </div>
-            <div className="space-y-2 text-xs font-bold text-amber-900 dark:text-amber-100">
-              <TipRow>
-                Aap ke roll ka naap 40×15 ho ya 38×22 — <strong>Settings me chaurai aur unchai likh dein</strong>.
-                Tayyar naap sirf jaldi ke liye hain, zaroori nahi.
-              </TipRow>
-              <TipRow>
-                <strong>Beech ka faasla</strong> wo khali jagah hai jo do label ke darmiyan chhorni hai —
-                roll wale aksar 2mm rakhte hain.
-              </TipRow>
-              <TipRow>
-                <strong>A4 par</strong> wala number batata hai ke ek sheet par kitne label aayenge.
-              </TipRow>
-            </div>
-          </div>
-
-          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-4 space-y-2 text-xs font-bold text-slate-700 dark:text-ink-200">
-            <TipRow><strong>Barcode nahi hai?</strong> — purple <strong>Generate</strong> button ek click me sab ke bana deta hai</TipRow>
-            <TipRow><strong>Chhota label</strong> — Advanced me "Naam" band kar dein aur barcode ke hindsay 0; sirf lakeerein rahengi aur sab kuch sama jayega</TipRow>
-            <TipRow><strong>Apni line</strong> — "Exchange 7 din" jaisi koi baat har label par likhwa sakte hain</TipRow>
-            <TipRow><strong>Pehla label zaya na karein</strong> — ek test print kar ke roll par rakh kar naap milayein</TipRow>
-            <TipRow><strong>Shortcuts</strong> — <strong>/</strong> search • <strong>S</strong> settings • <strong>Ctrl+P</strong> print • <strong>Esc</strong> band</TipRow>
-          </div>
-
-          <Button onClick={onClose} className="w-full h-12 bg-gradient-to-r from-emerald-600 to-green-700 font-black">
-            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FlowRow({ num, title, desc }: { num: string; title: string; desc: string }) {
-  return (
-    <div className="flex items-start gap-2.5">
-      <div className="h-7 w-7 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-xs font-extrabold shrink-0">
-        {num}
-      </div>
-      <div className="min-w-0">
-        <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{title}</div>
-        <div className="text-[11px] font-semibold text-slate-500 dark:text-ink-400">{desc}</div>
-      </div>
-    </div>
-  );
-}
-
-function TipRow({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      <CheckCircle2 className="h-4 w-4 mt-0.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-      <div className="leading-relaxed">{children}</div>
-    </div>
-  );
-}
-
-function ToggleChip({ checked, onChange, icon: Icon, label }: any) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className={`flex flex-col items-center justify-center gap-0.5 h-12 rounded-xl border-2 transition active:scale-95 ${
-        checked
-          ? 'bg-white border-white text-slate-900 shadow-md'
-          : 'bg-white/5 border-white/20 text-white hover:bg-white/10'
-      }`}
-    >
-      <Icon className="h-3.5 w-3.5" />
-      <span className="text-[9px] font-extrabold">{label}</span>
-    </button>
-  );
-}
-
-function StatCard({ label, value, sub, icon: Icon, tone, action, highlight }: any) {
-  const tones: Record<string, { wrap: string; icon: string; text: string }> = {
-    violet: {
-      wrap: 'border-violet-200 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-500/10',
-      icon: 'from-violet-500 to-purple-700 shadow-violet-500/30',
-      text: 'text-violet-700 dark:text-violet-300',
-    },
-    emerald: {
-      wrap: 'border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10',
-      icon: 'from-emerald-500 to-green-700 shadow-emerald-500/30',
-      text: 'text-emerald-700 dark:text-emerald-300',
-    },
-    amber: {
-      wrap: 'border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10',
-      icon: 'from-amber-500 to-orange-700 shadow-amber-500/30',
-      text: 'text-amber-700 dark:text-amber-300',
-    },
-    blue: {
-      wrap: 'border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10',
-      icon: 'from-blue-500 to-indigo-700 shadow-blue-500/30',
-      text: 'text-blue-700 dark:text-blue-300',
-    },
+  const print = (test = false) => {
+    const list = test ? [labels[0] ?? SAMPLE] : labels;
+    if (!list.length) { toast.error('Pehle list me koi cheez dalain'); return; }
+    printHtml(renderLabels(list, config, { shopName, skip }));
   };
-  const c = tones[tone];
+
+  const sheetName = layout.roll ? `Roll ${layout.w}×${layout.h} mm` : `A4 · ${layout.perPage} label`;
 
   return (
-    <div className={`rounded-2xl border-2 p-3 sm:p-4 ${c.wrap} ${highlight ? 'shadow-lg' : ''}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
-          <div className={`mt-1 text-xl sm:text-2xl font-extrabold tabular-nums ${c.text}`}>{value}</div>
-          {sub && <div className="text-[10px] text-slate-500 dark:text-ink-400 font-bold mt-0.5">{sub}</div>}
-          {action}
-        </div>
-        <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${c.icon} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Ek product ke sare package — aur har package ka apna label.
- *
- * Dukaan me aik hi cheez teen shakloon me bikti hai: khula piece,
- * dozen ka pack, aur carton. Teenon ka rate alag, aur scanner ko
- * teenon alag pehchanne chahiyen. Yahan se har package ka apna barcode
- * bhi ban jata hai aur usi ka label queue me chala jata hai.
- */
-function UnitLabelModal({
-  product, units, onClose, onAdd, onGenerate, generating,
-}: {
-  product: Product;
-  units: ProductUnit[];
-  onClose: () => void;
-  onAdd: (unit: ProductUnit) => void;
-  onGenerate: (unitId: string) => void;
-  generating: boolean;
-}) {
-  const withBarcode = units.filter((u) => u.barcode);
-  const missing = units.filter((u) => !u.barcode);
-
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 print:hidden"
-      onClick={onClose}>
-      <div className="w-full max-w-lg rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-2xl overflow-hidden"
-        onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-lg shadow-violet-500/30">
-            <Layers className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="font-black text-slate-900 dark:text-ink-white truncate">{product.name}</h3>
-            <p className="text-[11px] font-bold text-slate-500">
-              {units.length} package · har ek ka apna barcode aur rate
-            </p>
-          </div>
-          <button onClick={onClose}
-            className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center shrink-0">
-            <X className="h-4 w-4 text-slate-500" />
-          </button>
-        </div>
-
-        <div className="max-h-[50vh] overflow-y-auto divide-y divide-slate-100 dark:divide-ink-800">
-          {units.map((u) => (
-            <div key={u.id} className="px-5 py-3 flex items-center gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="font-black text-sm text-slate-900 dark:text-ink-white truncate">
-                  {(u.unitLabel || u.unitName).toUpperCase()}
-                  {u.isBase && <span className="ml-1.5 text-[10px] font-black text-emerald-600 dark:text-emerald-400">BASE</span>}
-                </div>
-                <div className="text-[11px] font-bold text-slate-500 truncate">
-                  1 = {u.conversionRate} {product.unit} · {formatPKRFull(u.price)}
-                </div>
-                <div className="text-[11px] font-mono font-bold truncate">
-                  {u.barcode
-                    ? <span className="text-emerald-600 dark:text-emerald-400">{u.barcode}</span>
-                    : <span className="text-amber-600 dark:text-amber-400">⚠ barcode nahi</span>}
-                </div>
-              </div>
-              {u.barcode ? (
-                <button onClick={() => onAdd(u)}
-                  className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black inline-flex items-center gap-1 shrink-0 transition active:scale-[0.97]">
-                  <Plus className="h-3.5 w-3.5" /> Label
-                </button>
-              ) : (
-                <button onClick={() => onGenerate(u.id)} disabled={generating}
-                  className="h-9 px-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-[11px] font-black inline-flex items-center gap-1 shrink-0 disabled:opacity-50 transition active:scale-[0.97]">
-                  <Sparkles className="h-3.5 w-3.5" /> Banao
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div className="px-5 py-3 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 flex items-center gap-2 flex-wrap">
+    <PageShell>
+      <PageHero
+        title="Barcode labels"
+        chip={<><ScanLine /> {sheetName}</>}
+        meta="Qeemat aur barcode ke sticker — roll ya A4 sheet par"
+        busy={productsQ.isFetching && !productsQ.isLoading}
+        actions={<>
+          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {missing.length > 0 && (
-            <button onClick={() => missing.forEach((u) => onGenerate(u.id))} disabled={generating}
-              className="h-10 px-3 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[11px] font-black inline-flex items-center gap-1.5 disabled:opacity-50 transition">
-              <Sparkles className="h-3.5 w-3.5" /> {missing.length} ke barcode banao
+            <button type="button" onClick={() => assign.mutate()} disabled={assign.isPending} className={heroButton}>
+              <Wand2 className="h-4 w-4" /> {assign.isPending ? 'Ban rahe hain…' : `Barcode banayen (${missing.length})`}
             </button>
           )}
-          <button onClick={() => { withBarcode.forEach(onAdd); onClose(); }}
-            disabled={withBarcode.length === 0}
-            className="h-10 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-green-700 text-white text-[11px] font-black inline-flex items-center gap-1.5 ml-auto disabled:opacity-40 transition active:scale-[0.97]">
-            <Plus className="h-3.5 w-3.5" /> Sab {withBarcode.length} add karo
+          <button type="button" onClick={() => print(true)} className={heroButton} title="Sirf ek label chhap kar naap check karein"><TestTube2 className="h-4 w-4" /> Test print</button>
+          <button type="button" onClick={() => print()} disabled={!labels.length} className={`${heroPrimaryButton} disabled:opacity-60`}>
+            <Printer className="h-4 w-4" /> Print <span className="tabular-nums">{labels.length}</span>
           </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+        </>}
+        stats={[
+          { label: 'Chhapne wale label', value: labels.length.toLocaleString('en-PK'), hint: `${lines.length} cheezein` },
+          { label: layout.roll ? 'Roll par' : 'A4 sheets', value: pages, hint: layout.roll ? `${layout.cols} label har line` : `${layout.perPage} har sheet` },
+          { label: 'List me barcode nahi', value: missing.length, hint: missingBarcodes ? `dukaan me ${missingBarcodes} cheezein bina barcode` : undefined },
+        ]}
+      />
 
-function EditBarcodeModal({ product, onClose, onSave, onGenerate, saving }: any) {
-  const [barcode, setBarcode] = useState(product.barcode || '');
-  const previewRef = useRef<SVGSVGElement>(null);
-
-  useEffect(() => {
-    if (previewRef.current && barcode) {
-      try {
-        JsBarcode(previewRef.current, barcode, {
-          format: 'CODE128', width: 2, height: 60, fontSize: 14, displayValue: true,
-        });
-      } catch { /* invalid */ }
-    }
-  }, [barcode]);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white dark:bg-ink-900 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border-2 border-blue-200 dark:border-blue-500/40"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 border-b-2 border-blue-200 dark:border-blue-500/30 flex items-center justify-between">
-          <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
-            <Edit3 className="h-4 w-4" /> Barcode Edit Karo
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+        <div className="space-y-4">
+          <LabelQueue
+            products={products} loading={productsQ.isLoading} categories={catsQ.data ?? []} unitsByProduct={unitsByProduct}
+            lines={resolved} busy={adding > 0}
+            onAdd={(p) => addProduct(p)} onScan={scan} onAddCategory={addCategory}
+            onQty={setQty} onAllQty={setAllQty} onUnit={setUnit} onRemove={remove} onClear={clear} onSaveCode={saveCode}
+          />
+          <LabelDesigner config={config} set={set} saving={saving} layout={layout} skip={skip} onSkip={setSkip} />
         </div>
 
-        <div className="p-5 space-y-4">
-          <div>
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400">Product</div>
-            <div className="font-extrabold text-slate-900 dark:text-ink-white mt-0.5">{product.name}</div>
-            {product.sku && (
-              <div className="text-xs font-mono text-slate-500 dark:text-ink-400 mt-0.5">SKU: {product.sku}</div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
-              Barcode Value
-            </label>
-            <input
-              type="text"
-              value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
-              placeholder="Barcode likho ya auto-generate karo"
-              className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-mono font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
-            />
-            <div className="text-[10px] text-slate-500 dark:text-ink-400 mt-1 font-semibold">
-              CODE128, CODE39, EAN-13, UPC — sab formats support
-            </div>
-          </div>
-
-          {barcode && (
-            <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 flex flex-col items-center">
-              <div className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400 mb-1">Live Preview</div>
-              <div className="bg-white p-2 rounded-lg">
-                <svg ref={previewRef} />
+        <aside className="space-y-3 lg:sticky lg:top-4">
+          <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <div>
+                <h2 className="flex items-center gap-1.5 text-[0.9375rem] font-semibold text-slate-900"><Eye className="h-4 w-4 text-slate-400" /> Preview</h2>
+                <p className="text-[0.75rem] text-slate-500">
+                  {preview.sample ? 'Namoona label — list me cheez dalein to asal dikhega' : layout.roll ? 'Pehle kuch label, bilkul isi tarah chhapenge' : 'Pehli sheet, bilkul isi tarah chhapegi'}
+                </p>
               </div>
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] tabular-nums text-slate-600">{preview.lay.pageW.toFixed(0)}×{preview.lay.pageH.toFixed(0)} mm</span>
             </div>
-          )}
-
-          <div className="flex gap-2 pt-1">
-            <Button
-              onClick={onGenerate}
-              loading={saving}
-              variant="secondary"
-              className="flex-1 bg-violet-600 hover:bg-violet-700 text-white border-violet-600 font-extrabold"
-            >
-              <Wand2 className="h-4 w-4" /> Auto
-            </Button>
-            <Button
-              onClick={() => onSave(barcode)}
-              loading={saving}
-              disabled={!barcode.trim()}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700 font-extrabold"
-            >
-              <CheckCircle2 className="h-4 w-4" /> Save
-            </Button>
+            <div className="max-h-[70vh] overflow-auto rounded-xl bg-slate-100 p-3">
+              <LabelSheetPreview html={preview.html} pageW={preview.lay.pageW} pageH={preview.lay.pageH} pages={preview.pages} />
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button variant="secondary" onClick={() => print(true)} leftIcon={<TestTube2 className="h-4 w-4" />}>Test print</Button>
+              <Button onClick={() => print()} disabled={!labels.length} leftIcon={<Printer className="h-4 w-4" />}>Print {labels.length}</Button>
+            </div>
+            <p className="mt-2 text-[0.6875rem] leading-snug text-slate-500">
+              Print ke dabbe me: Scale <b>100%</b> (ya "Actual size"), Margins <b>None</b>, Headers and footers <b>band</b>.
+              {layout.roll ? ' Printer ki setting me bhi label ka yehi naap rakhein.' : ''}
+            </p>
           </div>
-        </div>
+        </aside>
       </div>
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide title="Barcode labels — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: ListPlus, color: '#16a34a', title: 'Cheezein dalain', text: 'Naam likh kar dhoondein ya scanner se scan karein. Poori category bhi ek saath aa sakti hai. Har variant aur har pack (dozen, carton) ka alag label banta hai.' },
+            { icon: LayoutGrid, color: '#2563eb', title: 'Kaghaz chunein', text: 'Thermal roll ho to us ka naap (jaise 50×30). A4 sticker sheet ho to us ke dabbe par likhi ginti — 65, 40, 24, 21 ya 14.' },
+            { icon: Settings2, color: '#7c3aed', title: 'Label par kya ho', text: 'Naam, qeemat, barcode ke number, unit, expiry — jo chahiye on karein. Design poori dukaan ke liye save hota hai.' },
+            { icon: TestTube2, color: '#d97706', title: 'Pehle test print', text: '"Test print" sirf ek label chhapta hai. Sticker par naap theek baithe to poora print karein.' },
+            { icon: Printer, color: '#0891b2', title: 'Print ki setting', text: 'Print ke dabbe me Scale 100%, Margins None aur Headers/footers band rakhein — warna label khisak jate hain.' },
+            { icon: Layers, color: '#db2777', title: 'Barcode nahi hai?', text: 'Upar "Barcode banayen" list ki har bina barcode cheez ko naya EAN-13 de deta hai jo har scanner parhta hai.' },
+          ]}
+          tips={[
+            'Thermal label printer ki driver setting (Printing preferences) me bhi wohi paper size banayein jo yahan chuna hai, warna har label ke baad khali label nikalta hai.',
+            'Aadhi istemaal hui A4 sheet? "Shuru kahan se" me agle khali label ka number likh dein.',
+            'Pack (carton, dozen) ki qeemat khaali ho to label par piece ki qeemat × pack ki ginti chhapti hai.',
+            'Ye list isi device par yaad rehti hai — page band kar ke wapas aayein to wohi milegi.',
+          ]}
+          shortcuts={[['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }

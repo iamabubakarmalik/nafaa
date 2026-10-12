@@ -10,7 +10,7 @@ import ProductUnitsPage from './pages/ProductUnitsPage';
 import QuickKeysPage from './pages/QuickKeysPage';
 import BulkImportPage from './pages/BulkImportPage';
 import ReorderPage from './pages/ReorderPage';
-import BarcodeLabelsPage from './pages/BarcodeLabelsPage';
+import BarcodeLabelsPage from '@modules/inventory/barcodes/pages/BarcodeLabelsPage';
 import RetailProductEditor from './products/RetailProductEditor';
 import RetailProductDetail from './products/RetailProductDetail';
 

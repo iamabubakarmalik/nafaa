@@ -124,7 +124,7 @@ import ExpensesPage from '@modules/finance/expenses/pages/ExpensesPage';
 import StockMovementsPage from '@modules/inventory/stock-movements/pages/StockMovementsPage';
 import StockAdjustmentsPage from '@modules/inventory/stock-adjustments/pages/StockAdjustmentsPage';
 import LowStockGate from '@modules/inventory/low-stock/pages/LowStockGate';
-import TransfersGate from '@modules/inventory/transfers/pages/TransfersGate';
+import TransfersPage from '@modules/inventory/transfers/pages/TransfersPage';
 
 // ─── Reports ───────────────────────────────────────────────────
 import ReportsPage from '@modules/reports/reports/pages/ReportsPage';
@@ -674,7 +674,7 @@ export default function App() {
                   <Route path="/stock-movements" element={secure(PERMISSIONS.STOCK_MOVEMENTS_VIEW, <StockMovementsPage />)} />
                   <Route path="/stock-adjustments" element={secure(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, <StockAdjustmentsPage />)} />
                   <Route path="/low-stock" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <LowStockGate />)} />
-                  <Route path="/transfers" element={secure(PERMISSIONS.STOCK_TRANSFERS_MANAGE, <TransfersGate />)} />
+                  <Route path="/transfers" element={secure(PERMISSIONS.STOCK_TRANSFERS_MANAGE, <TransfersPage />)} />
 
                   {/* ── Reports ────────────────────────────────── */}
                   <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsGate />)} />
