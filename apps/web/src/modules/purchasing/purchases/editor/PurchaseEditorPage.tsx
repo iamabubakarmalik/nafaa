@@ -62,6 +62,14 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
   const suppliers = suppliersQ.data?.items ?? [];
   const supplier = suppliers.find((s) => s.id === bill.supplierId);
 
+  // Opened from a supplier's page: start with that supplier.
+  const preset = params.get('supplier');
+  useEffect(() => {
+    if (!preset || bill.supplierId) return;
+    const hit = suppliers.find((x) => x.id === preset);
+    if (hit) setBill((b) => ({ ...b, supplierId: hit.id, supplierName: hit.name }));
+  }, [preset, suppliers]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const results = useMemo(() => searchSources(sources, query), [sources, query]);
   const low = useMemo(() => sources.filter((s) => s.lowAt > 0 && s.stock <= s.lowAt).sort((a, b) => a.stock - b.stock).slice(0, 14), [sources]);
 

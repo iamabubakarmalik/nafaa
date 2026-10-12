@@ -661,8 +661,8 @@ export default function App() {
                   <Route path="/money" element={secure(PERMISSIONS.REPORTS_VIEW, <MoneyPage />)} />
 
                   {/* ── Suppliers & Purchases ──────────────────── */}
-                  <Route path="/suppliers/new" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SupplierFormPage />)} />
-                  <Route path="/suppliers/:id/edit" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SupplierFormPage />)} />
+                  <Route path="/suppliers/new" element={secure(PERMISSIONS.SUPPLIERS_EDIT, <SupplierFormPage />)} />
+                  <Route path="/suppliers/:id/edit" element={secure(PERMISSIONS.SUPPLIERS_EDIT, <SupplierFormPage />)} />
                   <Route path="/suppliers/:id" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SupplierDetailPage />)} />
                   <Route path="/suppliers" element={secure(PERMISSIONS.SUPPLIERS_VIEW, <SuppliersListPage />)} />
                   <Route path="/purchases/new" element={secure(PERMISSIONS.PURCHASES_CREATE, <PurchaseEditorGate />)} />

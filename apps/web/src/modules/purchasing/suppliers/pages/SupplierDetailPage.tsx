@@ -1,788 +1,280 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ResponsiveContainer, AreaChart, Area, BarChart, Bar, LineChart, Line,
-  PieChart, Pie, Cell, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ComposedChart,
-} from 'recharts';
-import {
-  Truck, ArrowLeft, Edit3, BookOpen, Phone, MessageCircle, Mail, MapPin,
-  Wallet, Package, TrendingUp, TrendingDown, Clock, CheckCircle2, AlertTriangle,
-  Printer, FileSpreadsheet, GraduationCap, Keyboard, RefreshCw, Landmark,
-  FileText, Copy, ChevronRight, Banknote, Loader2, ShoppingCart, BarChart3,
-  Hash, CalendarClock, HandCoins, Activity, Crown, Plus, PowerOff, Power,
-} from 'lucide-react';
+/**
+ * One supplier: what we owe and since when, the khata statement for any
+ * period (with print), their bills, how their rates moved, and contact and
+ * bank details. Pay, buy, order and message from the top.
+ */
+
+import { useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Button } from '@/design-system/components';
-import { formatPKR } from '@core/lib/format';
-import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
-import { suppliersApi } from '../api/suppliers.api';
-import { SupplierKhataModal } from '../components/SupplierKhataModal';
 import {
-  SUPPLIER_GRADIENT, Kpi, Panel, Empty, Teacher, Shortcuts,
-  fmtDate, fmtDateTime, initials, daysPhrase, waNumber, payMeta,
-  printHtml, a4Shell, downloadCsv,
-} from '../components/SuppliersKit';
+  ArrowLeft, Banknote, BookOpen, ClipboardList, Landmark, MessageCircle, Pencil, Phone, Printer, ShoppingCart, Trash2, TrendingDown, TrendingUp,
+} from 'lucide-react';
+import { Avatar, Button, DateRangeMenu, Modal, Tabs, resolveRange, type DateRangeValue } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { esc } from '@core/receipt/html';
+import { printHtml } from '@core/receipt/print';
+import { getReceiptSetup } from '@core/receipt/setup';
+import { purchasesApi } from '../../purchases/api/purchases.api';
+import { STATUS } from '../../purchases/pages/PurchasesListPage';
+import { suppliersApi } from '../api/suppliers.api';
+import { entryDelta, ledgerMeta, supplierLedgerApi } from '../api/supplier-ledger.api';
+import { SupplierMoneyModal, type MoneyKind } from '../components/SupplierMoneyModal';
 
-/* ═════════════════════════════════════════════════════════════
-   SUPPLIER DETAIL — ek supplier ka poora record
-   ─────────────────────────────────────────────────────────────
-   Teen sawal jin ka jawab dukaan-daar yahan dhoondta hai:
-   1. Is ka kitna dena hai aur kab se?
-   2. Is se kya kya aata hai, aur rate barh to nahi raha?
-   3. Kitne arse se maal nahi aaya?
-
-   Rate ka safar (price history) sab se kaam ki cheez hai —
-   ek hi cheez chupke chupke mehngi hoti rehti hai aur kisi ko
-   pata nahi chalta.
-   ═════════════════════════════════════════════════════════════ */
-
-type Tab = 'overview' | 'purchases' | 'products' | 'analytics';
+type Tab = 'khata' | 'bills' | 'rates' | 'info';
+const day = (v?: string | null) => (v ? new Date(v).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
 
 export default function SupplierDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const hideCost = useCostHidden();
+  const canEdit = usePermission(PERMISSIONS.SUPPLIERS_EDIT);
+  const canBuy = usePermission(PERMISSIONS.PURCHASES_CREATE);
+  const [tab, setTab] = useState<Tab>('khata');
+  const [money, setMoney] = useState<MoneyKind | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const q = useQuery({ queryKey: ['supplier', id], queryFn: () => suppliersApi.getOne(id!), enabled: !!id });
+  const s = q.data;
 
-  const [tab, setTab] = useState<Tab>('overview');
-  const [showKhata, setShowKhata] = useState(false);
-  const [showTeacher, setShowTeacher] = useState(false);
-  const [showKeys, setShowKeys] = useState(false);
+  if (q.isLoading) return <div className="flex justify-center py-24"><div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600" /></div>;
+  if (!s) return <div className="py-20 text-center"><p className="font-semibold text-slate-900">Supplier nahi mila</p><Button className="mt-4" variant="secondary" onClick={() => navigate('/suppliers')}>Wapas</Button></div>;
 
-  const { data: s, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['supplier', id],
-    queryFn: () => suppliersApi.getOne(id!),
-    enabled: !!id,
-  });
-
-  const toggleActive = useMutation({
-    mutationFn: () => suppliersApi.update(id!, { isActive: !s?.isActive } as any),
-    onSuccess: () => {
-      toast.success(s?.isActive ? 'Supplier band kar diya' : 'Supplier chalu kar diya');
-      qc.invalidateQueries({ queryKey: ['supplier', id] });
-      qc.invalidateQueries({ queryKey: ['suppliers'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Update nahi hua'),
-  });
-
-  /* ─── Keyboard ─── */
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const el = e.target as HTMLElement;
-      const typing = /input|textarea|select/i.test(el?.tagName ?? '') || el?.isContentEditable;
-      if (e.key === 'Escape') {
-        if (showKhata) return setShowKhata(false);
-        if (showTeacher) return setShowTeacher(false);
-        if (showKeys) return setShowKeys(false);
-      }
-      if (typing) return;
-      if (e.key.toLowerCase() === 'k') setShowKhata(true);
-      if (e.key.toLowerCase() === 'e') navigate(`/suppliers/${id}/edit`);
-      if (e.key.toLowerCase() === 'b') navigate('/suppliers');
-      if (e.key.toLowerCase() === 'a') setTab('analytics');
-      if (e.key.toLowerCase() === 't') setShowTeacher(true);
-      if (e.key === '?') setShowKeys(true);
-      if (e.key.toLowerCase() === 'p') doPrint();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  });
-
-  const due = Number(s?.outstandingDue ?? 0);
-  const wa = waNumber(s?.phone);
-  const stats = s?.stats;
-  const ledger = s?.ledger;
-
-  /* ─── Kis kis tarah ki cheez aati hai ─── */
-  const categories = useMemo(() => {
-    if (!s?.purchases) return [];
-    const map = new Map<string, { name: string; total: number; qty: number }>();
-    for (const p of s.purchases) {
-      for (const it of p.items ?? []) {
-        const key = it.product?.name ?? 'Doosra';
-        const hit = map.get(key) ?? { name: key, total: 0, qty: 0 };
-        hit.total += Number(it.total ?? 0);
-        hit.qty += Number(it.quantity ?? 0);
-        map.set(key, hit);
-      }
-    }
-    return [...map.values()].sort((a, b) => b.total - a.total).slice(0, 8);
-  }, [s]);
-
-  /* ─── Print: supplier ka poora kaghaz ─── */
-  const doPrint = () => {
-    if (!s) return;
-    const body = `
-      <div class="cards">
-        <div class="card"><div class="l">Kul bill</div><div class="v">${s.stats?.totalPurchases ?? 0}</div></div>
-        <div class="card"><div class="l">Kul kharidari</div><div class="v">${formatPKR(s.stats?.totalAmount ?? 0)}</div></div>
-        <div class="card"><div class="l">Diya</div><div class="v ok">${formatPKR(s.stats?.totalPaid ?? 0)}</div></div>
-        <div class="card"><div class="l">Hamara baqi</div><div class="v due">${formatPKR(Number(s.outstandingDue ?? 0))}</div></div>
-      </div>
-      <table>
-        <thead><tr><th>Bill #</th><th>Tareekh</th><th>Tareeqa</th><th class="r">Kul</th><th class="r">Diya</th><th class="r">Baqi</th></tr></thead>
-        <tbody>${(s.purchases ?? []).map((p) => {
-          const d = Number(p.total ?? 0) - Number(p.paidAmount ?? 0);
-          return `<tr>
-            <td><strong>${p.purchaseNumber}</strong></td>
-            <td>${fmtDate(p.purchasedAt)}</td>
-            <td>${payMeta(p.paymentMethod).label}</td>
-            <td class="r num">${formatPKR(Number(p.total ?? 0))}</td>
-            <td class="r num">${formatPKR(Number(p.paidAmount ?? 0))}</td>
-            <td class="r num ${d > 0 ? 'due' : 'ok'}">${formatPKR(d)}</td>
-          </tr>`;
-        }).join('')}</tbody>
-      </table>`;
-    printHtml(a4Shell(
-      s.name,
-      body,
-      [s.contactPerson, s.phone, s.city, s.ntn ? `NTN ${s.ntn}` : null].filter(Boolean).join(' · '),
-    ));
-  };
-
-  const doCsv = () => {
-    if (!s) return;
-    downloadCsv(`${s.name.replace(/\s+/g, '-').toLowerCase()}-bills.csv`, [
-      ['Bill #', 'Tareekh', 'Tareeqa', 'Halat', 'Kul', 'Diya', 'Baqi'],
-      ...(s.purchases ?? []).map((p) => [
-        p.purchaseNumber, fmtDate(p.purchasedAt), payMeta(p.paymentMethod).label, p.status,
-        Number(p.total ?? 0), Number(p.paidAmount ?? 0),
-        Number(p.total ?? 0) - Number(p.paidAmount ?? 0),
-      ]),
-    ]);
-    toast.success('CSV ban gaya');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="py-24 text-center">
-        <Loader2 className="h-7 w-7 animate-spin mx-auto text-teal-600 mb-3" />
-        <p className="text-sm font-bold text-slate-500">Supplier aa raha hai…</p>
-      </div>
-    );
-  }
-
-  if (!s) {
-    return (
-      <div className="rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800">
-        <Empty icon={Truck} title="Ye supplier nahi mila"
-          desc="Shayad delete ho gaya ya link ghalat hai."
-          action={<Link to="/suppliers"><Button><ArrowLeft className="h-4 w-4" /> Suppliers</Button></Link>} />
-      </div>
-    );
-  }
-
-  const money = (n: number) => (hideCost ? '•••' : formatPKR(n));
+  const phone = (s.phone ?? '').replace(/\D/g, '').replace(/^0/, '92');
+  const since = s.ledger.daysSincePayment;
 
   return (
-    <div className="space-y-5 pb-24">
-      {/* ─────── HERO ─────── */}
-      <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${SUPPLIER_GRADIENT} text-white p-5 sm:p-7`}>
-        <div className="absolute -top-16 -right-10 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-emerald-400/20 blur-3xl" />
-
-        <Link to="/suppliers" className="relative inline-flex items-center gap-1.5 text-xs font-extrabold text-white/80 hover:text-white transition">
-          <ArrowLeft className="h-3.5 w-3.5" /> Suppliers
-        </Link>
-
-        <div className="relative flex flex-wrap items-start justify-between gap-4 mt-3">
-          <div className="flex items-start gap-4 min-w-0">
-            <div className="h-16 w-16 rounded-3xl bg-white/20 border-2 border-white/30 flex items-center justify-center font-black text-xl shrink-0 overflow-hidden">
-              {s.logoUrl ? <img src={s.logoUrl} alt="" className="h-full w-full object-cover" /> : initials(s.name)}
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-black truncate">{s.name}</h1>
-              <div className="flex items-center gap-2 flex-wrap mt-1.5 text-[0.6875rem] font-extrabold">
-                {!s.isActive && <span className="px-2 py-0.5 rounded-full bg-black/30 border border-white/30">Band</span>}
-                {s.contactPerson && <span className="px-2 py-0.5 rounded-full bg-white/20">👤 {s.contactPerson}</span>}
-                {s.city && <span className="px-2 py-0.5 rounded-full bg-white/20">📍 {s.city}{s.area ? `, ${s.area}` : ''}</span>}
-                {s.paymentTerms && <span className="px-2 py-0.5 rounded-full bg-white/20">📅 {s.paymentTerms}</span>}
-                {s.ntn && <span className="px-2 py-0.5 rounded-full bg-white/20 font-mono">NTN {s.ntn}</span>}
-              </div>
-              <div className="flex items-center gap-2 flex-wrap mt-2">
-                {s.phone && (
-                  <a href={`tel:${s.phone}`} className="h-9 px-3 rounded-xl bg-white/20 hover:bg-white/30 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
-                    <Phone className="h-3.5 w-3.5" /> {s.phone}
-                  </a>
-                )}
-                {wa && (
-                  <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer"
-                    className="h-9 px-3 rounded-xl bg-emerald-500/90 hover:bg-emerald-400 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
-                    <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
-                  </a>
-                )}
-                {s.email && (
-                  <a href={`mailto:${s.email}`} className="h-9 px-3 rounded-xl bg-white/20 hover:bg-white/30 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
-                    <Mail className="h-3.5 w-3.5" /> Email
-                  </a>
-                )}
-              </div>
-            </div>
+    <div className="mx-auto max-w-6xl space-y-4 pb-10">
+      <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-6">
+        <div className="flex flex-wrap items-start gap-3">
+          <button type="button" onClick={() => navigate('/suppliers')} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
+          <Avatar name={s.name} url={s.logoUrl ?? undefined} size={52} className="ring-2 ring-white/40" />
+          <div className="min-w-0 flex-1">
+            <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold">{s.name}{!s.isActive && <span className="rounded-full bg-white/15 px-2 py-0.5 text-[0.75rem] font-medium">Band</span>}</h1>
+            <p className="text-[0.8125rem] text-white/75">{[s.contactPerson, s.phone, s.city].filter(Boolean).join(' · ') || 'Rabta darj nahi'}</p>
+            {s.paymentTerms && <p className="mt-0.5 text-[0.75rem] text-white/60">Shart: {s.paymentTerms}</p>}
           </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            <PrivacyToggle />
-            <button onClick={() => setShowTeacher(true)} title="Sikhein (T)"
-              className="h-11 w-11 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
-              <GraduationCap className="h-4 w-4" />
-            </button>
-            <button onClick={() => setShowKeys(true)} title="Shortcuts (?)"
-              className="h-11 w-11 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
-              <Keyboard className="h-4 w-4" />
-            </button>
-            <button onClick={() => refetch()} disabled={isRefetching} title="Taaza"
-              className="h-11 w-11 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-            </button>
-            <button onClick={doPrint} title="Print (P)"
-              className="h-11 w-11 rounded-2xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
-              <Printer className="h-4 w-4" />
-            </button>
-            <Link to={`/suppliers/${s.id}/edit`}
-              className="h-11 px-3.5 rounded-2xl bg-white/20 hover:bg-white/30 text-sm font-extrabold inline-flex items-center gap-1.5 transition">
-              <Edit3 className="h-4 w-4" /> <span className="hidden sm:inline">Badlein</span>
-            </Link>
-            <button onClick={() => setShowKhata(true)}
-              className="h-11 px-4 rounded-2xl bg-[#ffffff] text-violet-800 text-sm font-black inline-flex items-center gap-1.5 shadow-lg hover:bg-violet-50 transition">
-              <BookOpen className="h-4 w-4" /> Khata
-            </button>
+          <div className="text-right">
+            <p className="text-[0.75rem] text-white/70">Dena hai</p>
+            <p className="text-3xl font-bold tabular-nums">{formatPKR(s.outstandingDue)}</p>
+            {s.outstandingDue > 0 && since != null && <p className={cn('text-[0.75rem]', since > 60 ? 'text-amber-200' : 'text-white/70')}>Aakhri adaigi {since} din pehle</p>}
           </div>
         </div>
-
-        {/* baqi ki patti */}
-        <div className={`relative mt-5 rounded-2xl p-4 ${due > 0 ? 'bg-rose-500/25 border-2 border-rose-300/40' : 'bg-emerald-500/25 border-2 border-emerald-300/40'}`}>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-              <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-white/80">
-                {due > 0 ? 'Hum ne is supplier ko dena hai' : 'Hisab saaf hai'}
-              </div>
-              <div className="text-3xl font-black tabular-nums">{money(due)}</div>
-              <div className="text-[0.6875rem] font-bold text-white/85 mt-0.5">
-                {ledger?.lastPaymentAt
-                  ? `Aakhri adaigi ${money(Number(ledger.lastPaymentAmount ?? 0))} — ${daysPhrase(ledger.daysSincePayment)}`
-                  : due > 0 ? 'Ab tak ek bhi adaigi darj nahi' : 'Sab kuch chuka diya gaya'}
-              </div>
-            </div>
-            <button onClick={() => setShowKhata(true)}
-              className="h-12 px-5 rounded-2xl bg-[#ffffff] text-slate-900 text-sm font-black inline-flex items-center gap-2 shadow-lg transition">
-              <Banknote className="h-4 w-4" /> {due > 0 ? 'Paisa Dein' : 'Khata Dekhein'}
-            </button>
-          </div>
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {canEdit && <HeroBtn primary onClick={() => setMoney('payment')}><Banknote className="h-4 w-4" /> Adaigi</HeroBtn>}
+          {canBuy && <HeroBtn onClick={() => navigate(`/purchases/new?supplier=${s.id}`)}><ShoppingCart className="h-4 w-4" /> Kharidari</HeroBtn>}
+          {canBuy && <HeroBtn onClick={() => navigate(`/purchases/new?order=1&supplier=${s.id}`)}><ClipboardList className="h-4 w-4" /> Order</HeroBtn>}
+          {s.phone && <a href={`tel:${s.phone}`} className={heroBtnCls(false)}><Phone className="h-4 w-4" /> Call</a>}
+          {s.phone && <a href={`https://wa.me/${phone}`} target="_blank" rel="noopener noreferrer" className={heroBtnCls(false)}><MessageCircle className="h-4 w-4" /> WhatsApp</a>}
+          {canEdit && <HeroBtn onClick={() => setMoney('due')}><BookOpen className="h-4 w-4" /> Khata entry</HeroBtn>}
+          {canEdit && <Link to={`/suppliers/${s.id}/edit`} className={heroBtnCls(false)}><Pencil className="h-4 w-4" /> Badlein</Link>}
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+          <Stat label="Kul kharidari" value={formatPKR(s.stats.totalAmount)} hint={`${s.stats.totalPurchases} bill`} />
+          <Stat label="Kul diye" value={formatPKR(s.ledger.paymentsMade + s.stats.totalPaid)} />
+          <Stat label="Aksar bill" value={formatPKR(s.stats.averagePurchase)} />
+          <Stat label="Aakhri maal" value={s.stats.daysSinceLastPurchase == null ? '—' : `${s.stats.daysSinceLastPurchase} din pehle`} />
         </div>
       </div>
 
-      {/* ─────── KPI ─────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-2.5">
-        <Kpi icon={ShoppingCart} label="Kul bill" tone="blue" value={stats?.totalPurchases ?? 0}
-          sub={`Ausat ${money(stats?.averagePurchase ?? 0)}`} />
-        <Kpi icon={Package} label="Kul kharidari" tone="teal" value={money(stats?.totalAmount ?? 0)}
-          sub={`${money(stats?.totalPaid ?? 0)} diya`} />
-        <Kpi icon={Wallet} label="Hamara baqi" tone="rose" value={money(due)}
-          sub={due > 0 ? daysPhrase(ledger?.daysSincePayment) + ' se' : 'Saaf'} />
-        <Kpi icon={BookOpen} label="Purana hisab" tone="violet" value={money(ledger?.openingBalance ?? 0)}
-          sub="Khata shuru hone se pehle" />
-        <Kpi icon={HandCoins} label="Kul adaigi" tone="emerald" value={money(ledger?.paymentsMade ?? 0)}
-          sub={`${ledger?.entryCount ?? 0} khate ki entry`} />
-        <Kpi icon={TrendingDown} label="Maal wapas" tone="amber" value={money(ledger?.returns ?? 0)}
-          sub="Baqi me se ghata" />
-        <Kpi icon={Clock} label="Aakhri maal" tone="indigo"
-          value={stats?.lastPurchaseDate ? fmtDate(stats.lastPurchaseDate) : '—'}
-          sub={daysPhrase(stats?.daysSinceLastPurchase)} />
-        <Kpi icon={CalendarClock} label="Rishta" tone="slate" value={fmtDate(s.createdAt)}
-          sub={`${daysPhrase(Math.floor((Date.now() - new Date(s.createdAt).getTime()) / 86400000))} se`} />
-      </div>
+      <Tabs value={tab} onChange={setTab} label="Supplier"
+        items={[{ value: 'khata', label: 'Khata' }, { value: 'bills', label: 'Kharidari', count: s._count.purchases }, { value: 'rates', label: 'Rates' }, { value: 'info', label: 'Tafseel' }]} />
 
-      {/* ─────── TABS ─────── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        {([
-          { v: 'overview' as Tab, label: 'Khulasa', icon: Activity },
-          { v: 'purchases' as Tab, label: 'Bill', icon: ShoppingCart, n: s._count?.purchases },
-          { v: 'products' as Tab, label: 'Kya Aata Hai', icon: Package, n: s.topProducts?.length },
-          { v: 'analytics' as Tab, label: 'Analytics', icon: BarChart3 },
-        ]).map((t) => (
-          <button key={t.v} onClick={() => setTab(t.v)}
-            className={`h-11 px-4 rounded-2xl text-sm font-extrabold inline-flex items-center gap-2 shrink-0 transition ${
-              tab === t.v
-                ? 'bg-gradient-to-r from-teal-600 to-emerald-700 text-white shadow-lg shadow-teal-500/30'
-                : 'bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-teal-400'
-            }`}>
-            <t.icon className="h-4 w-4" /> {t.label}
-            {t.n !== undefined && t.n > 0 && (
-              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-ink-800'}`}>{t.n}</span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* ══════════ OVERVIEW ══════════ */}
-      {tab === 'overview' && (
-        <div className="grid lg:grid-cols-[1fr_340px] gap-4 items-start">
-          <div className="space-y-4 min-w-0">
-            {/* khata ka tootna */}
-            <Panel icon={BookOpen} title="Baqi Bana Kaise" desc="Har hissa alag alag" tone="violet"
-              right={
-                <button onClick={() => setShowKhata(true)}
-                  className="h-9 px-3 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
-                  Poora khata <ChevronRight className="h-3.5 w-3.5" />
-                </button>
-              }>
-              <div className="space-y-2">
-                {[
-                  { label: 'Purana hisab', value: ledger?.openingBalance ?? 0, sign: '+', tone: 'violet', desc: 'System se pehle ka' },
-                  { label: 'Udhaar par maal', value: ledger?.purchaseCredit ?? 0, sign: '+', tone: 'amber', desc: 'Bill ka bacha hua' },
-                  { label: 'Adaigi', value: ledger?.paymentsMade ?? 0, sign: '−', tone: 'emerald', desc: 'Jo hum ne diya' },
-                  { label: 'Maal wapas', value: ledger?.returns ?? 0, sign: '−', tone: 'blue', desc: 'Jo wapas kiya' },
-                  { label: 'Durusti', value: ledger?.adjustments ?? 0, sign: '±', tone: 'slate', desc: 'Haath se theek ki' },
-                ].map((r) => {
-                  const tones: Record<string, string> = {
-                    violet: 'text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-500/10',
-                    amber: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10',
-                    emerald: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10',
-                    blue: 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/10',
-                    slate: 'text-slate-700 dark:text-ink-300 bg-slate-50 dark:bg-ink-800/60',
-                  };
-                  return (
-                    <div key={r.label} className={`flex items-center justify-between gap-3 rounded-xl p-2.5 ${tones[r.tone]}`}>
-                      <div className="min-w-0">
-                        <div className="text-sm font-extrabold truncate">{r.label}</div>
-                        <div className="text-[0.6875rem] font-bold opacity-70">{r.desc}</div>
-                      </div>
-                      <div className="text-sm font-black tabular-nums shrink-0">
-                        {r.sign} {money(r.value)}
-                      </div>
-                    </div>
-                  );
-                })}
-                <div className={`flex items-center justify-between gap-3 rounded-2xl p-3 border-2 ${
-                  due > 0
-                    ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/40'
-                    : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/40'
-                }`}>
-                  <div className="text-sm font-black text-slate-900 dark:text-ink-white">Ab hamara dena</div>
-                  <div className={`text-xl font-black tabular-nums ${due > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
-                    {money(due)}
-                  </div>
-                </div>
-              </div>
-            </Panel>
-
-            {/* 30 din */}
-            <Panel icon={Activity} title="Pichlay 30 Din" desc="Rozana kitna maal aaya" tone="teal">
-              <div className="h-52">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={s.trend30Days ?? []}>
-                    <defs>
-                      <linearGradient id="sd30" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#0d9488" stopOpacity={0.35} />
-                        <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => String(v).slice(5)} />
-                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
-                    <Tooltip formatter={(v: any) => formatPKR(Number(v))}
-                      contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
-                    <Area type="monotone" dataKey="total" stroke="#0d9488" strokeWidth={2.5} fill="url(#sd30)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </Panel>
-
-            {/* haal ke bill */}
-            <Panel icon={ShoppingCart} title="Haal ke Bill" desc="Aakhri 20 kharidari" tone="blue"
-              right={
-                <button onClick={doCsv}
-                  className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
-                  <FileSpreadsheet className="h-3.5 w-3.5" /> CSV
-                </button>
-              }>
-              {(s.purchases ?? []).length === 0 ? (
-                <Empty icon={ShoppingCart} title="Is se abhi koi maal nahi aaya"
-                  desc="Kharidari ke safhe se pehla bill banayein."
-                  action={<Link to="/purchases"><Button><Plus className="h-4 w-4" /> Kharidari</Button></Link>} />
-              ) : (
-                <div className="space-y-1.5">
-                  {s.purchases.slice(0, 8).map((p) => <PurchaseRow key={p.id} p={p} money={money} />)}
-                  {s.purchases.length > 8 && (
-                    <button onClick={() => setTab('purchases')}
-                      className="w-full h-10 rounded-xl bg-slate-50 dark:bg-ink-800/60 text-xs font-extrabold text-slate-600 dark:text-ink-300 transition">
-                      Baqi {s.purchases.length - 8} bill dekhein
-                    </button>
-                  )}
-                </div>
-              )}
-            </Panel>
-          </div>
-
-          {/* sidebar */}
-          <div className="space-y-4">
-            <Panel icon={Truck} title="Tafseel" tone="slate">
-              <div className="space-y-2">
-                <Info label="Banda" value={s.contactPerson} icon={Truck} />
-                <Info label="Phone" value={s.phone} icon={Phone} mono copy />
-                <Info label="Doosra phone" value={s.altPhone} icon={Phone} mono copy />
-                <Info label="Email" value={s.email} icon={Mail} copy />
-                <Info label="Pata" value={[s.address, s.area, s.city].filter(Boolean).join(', ')} icon={MapPin} />
-                <Info label="NTN" value={s.ntn} icon={Hash} mono copy />
-                <Info label="CNIC" value={s.cnic} icon={Hash} mono copy />
-                <Info label="Payment terms" value={s.paymentTerms} icon={CalendarClock} />
-              </div>
-            </Panel>
-
-            {(s.bankName || s.accountNumber || s.iban) && (
-              <Panel icon={Landmark} title="Bank" desc="Adaigi bhejne ke liye" tone="emerald">
-                <div className="space-y-2">
-                  <Info label="Bank" value={s.bankName} icon={Landmark} />
-                  <Info label="Account" value={s.accountNumber} icon={Hash} mono copy />
-                  <Info label="IBAN" value={s.iban} icon={Hash} mono copy />
-                </div>
-              </Panel>
-            )}
-
-            {s.notes && (
-              <Panel icon={FileText} title="Yaad-dasht" tone="amber">
-                <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 whitespace-pre-wrap leading-relaxed">
-                  {s.notes}
-                </p>
-              </Panel>
-            )}
-
-            <Panel icon={Activity} title="Kaam" tone="teal">
-              <div className="space-y-2">
-                <Link to="/purchases"
-                  className="w-full h-11 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-700 text-white text-sm font-extrabold inline-flex items-center justify-center gap-2 shadow transition">
-                  <Plus className="h-4 w-4" /> Nayi Kharidari
-                </Link>
-                <button onClick={() => setShowKhata(true)}
-                  className="w-full h-11 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
-                  <BookOpen className="h-4 w-4" /> Khata (K)
-                </button>
-                <button onClick={doPrint}
-                  className="w-full h-11 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
-                  <Printer className="h-4 w-4" /> Print (P)
-                </button>
-                <button onClick={() => toggleActive.mutate()} disabled={toggleActive.isPending}
-                  className="w-full h-11 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 disabled:opacity-50 transition">
-                  {s.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-                  {s.isActive ? 'Band Karein' : 'Chalu Karein'}
-                </button>
-              </div>
-            </Panel>
-          </div>
-        </div>
-      )}
-
-      {/* ══════════ PURCHASES ══════════ */}
-      {tab === 'purchases' && (
-        <Panel icon={ShoppingCart} title="Saray Bill" desc={`${s._count?.purchases ?? 0} kharidari — aakhri 20 yahan`} tone="blue"
-          right={
-            <div className="flex gap-1.5">
-              <button onClick={doCsv} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
-                <FileSpreadsheet className="h-3.5 w-3.5" /> CSV
-              </button>
-              <button onClick={doPrint} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
-                <Printer className="h-3.5 w-3.5" /> Print
-              </button>
-            </div>
-          }>
-          {(s.purchases ?? []).length === 0 ? (
-            <Empty icon={ShoppingCart} title="Koi bill nahi" desc="Is supplier se abhi tak maal nahi aaya." />
-          ) : (
-            <div className="space-y-2">
-              {s.purchases.map((p) => <PurchaseRow key={p.id} p={p} money={money} expandable />)}
+      {tab === 'khata' && <Khata supplierId={s.id} name={s.name} canEdit={canEdit} />}
+      {tab === 'bills' && <Bills supplierId={s.id} />}
+      {tab === 'rates' && <Rates history={s.priceHistory} />}
+      {tab === 'info' && (
+        <div className="grid gap-3 md:grid-cols-2">
+          <Card title="Rabta">
+            <KV k="Rabta" v={s.contactPerson} /><KV k="Phone" v={s.phone} /><KV k="Doosra phone" v={s.altPhone} /><KV k="Email" v={s.email} />
+            <KV k="Pata" v={[s.address, s.area, s.city].filter(Boolean).join(', ')} /><KV k="CNIC" v={s.cnic} /><KV k="NTN" v={s.ntn} />
+          </Card>
+          <Card title="Bank" icon={<Landmark className="h-4 w-4" />}>
+            <KV k="Bank" v={s.bankName} /><KV k="Account #" v={s.accountNumber} mono /><KV k="IBAN" v={s.iban} mono />
+            <KV k="Shart" v={s.paymentTerms} />
+            {s.notes && <p className="mt-2 border-t border-slate-100 pt-2 text-[0.8125rem] text-slate-600">{s.notes}</p>}
+          </Card>
+          {canEdit && (
+            <div className="md:col-span-2">
+              <Button variant="secondary" onClick={() => setDeleting(true)} leftIcon={<Trash2 className="h-4 w-4 text-rose-600" />}>Supplier mitayein</Button>
             </div>
           )}
-        </Panel>
-      )}
-
-      {/* ══════════ PRODUCTS ══════════ */}
-      {tab === 'products' && (
-        <div className="space-y-4">
-          <Panel icon={Package} title="Is se Kya Kya Aata Hai" desc="Sab se zyada kharide gaye maal" tone="teal">
-            {(s.topProducts ?? []).length === 0 ? (
-              <Empty icon={Package} title="Abhi kuch nahi aaya" />
-            ) : (
-              <div className="grid sm:grid-cols-2 gap-2">
-                {s.topProducts.map((p, i) => (
-                  <Link key={p.productId} to={`/products/${p.productId}`}
-                    className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3 hover:bg-teal-50 dark:hover:bg-teal-500/10 transition">
-                    <div className="h-11 w-11 rounded-xl bg-slate-200 dark:bg-ink-700 flex items-center justify-center overflow-hidden shrink-0 text-lg">
-                      {p.product?.images?.[0]?.url
-                        ? <img src={p.product.images[0].url} alt="" className="h-full w-full object-cover" />
-                        : '📦'}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">
-                        {p.product?.name ?? '—'}
-                      </div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-                        {p.quantity} {p.product?.unit ?? ''} · {p.orderCount} bill
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-xs font-black text-slate-900 dark:text-ink-white tabular-nums">{money(p.total)}</div>
-                      <div className="text-[0.6875rem] font-bold text-slate-400">#{i + 1}</div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </Panel>
-
-          {/* rate ka safar */}
-          <Panel icon={TrendingUp} title="Rate Ka Safar" desc="Ek hi cheez har baar mehngi to nahi ho rahi" tone="rose">
-            {(s.priceHistory ?? []).length === 0 ? (
-              <Empty icon={TrendingUp} title="Rate ka moqabla nahi ho sakta"
-                desc="Jab ek hi cheez do ya zyada baar aayegi, tab yahan uska rate ka safar nazar aayega." />
-            ) : (
-              <div className="space-y-3">
-                {s.priceHistory.map((ph) => {
-                  const up = ph.changePct > 0.5;
-                  const down = ph.changePct < -0.5;
-                  return (
-                    <div key={ph.productId} className="rounded-2xl border-2 border-slate-200 dark:border-ink-800 p-3">
-                      <div className="flex items-center justify-between gap-3 flex-wrap mb-2">
-                        <div className="min-w-0">
-                          <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{ph.productName}</div>
-                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-                            {ph.points.length} dafa aaya · pehla {money(ph.firstCost)} → abhi {money(ph.lastCost)}
-                          </div>
-                        </div>
-                        <span className={`px-2.5 py-1 rounded-xl text-[0.6875rem] font-black tabular-nums inline-flex items-center gap-1 shrink-0 ${
-                          up ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                             : down ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                             : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'
-                        }`}>
-                          {up ? <TrendingUp className="h-3.5 w-3.5" /> : down ? <TrendingDown className="h-3.5 w-3.5" /> : null}
-                          {ph.changePct > 0 ? '+' : ''}{ph.changePct.toFixed(1)}%
-                        </span>
-                      </div>
-                      {ph.points.length > 1 && (
-                        <div className="h-28">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={ph.points}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                              <XAxis dataKey="date" tick={{ fontSize: 9 }} tickFormatter={(v) => String(v).slice(5)} />
-                              <YAxis tick={{ fontSize: 9 }} width={44} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
-                              <Tooltip formatter={(v: any) => formatPKR(Number(v))}
-                                labelFormatter={(l) => `Tareekh ${l}`}
-                                contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
-                              <Line type="monotone" dataKey="costPrice" stroke={up ? '#e11d48' : down ? '#10b981' : '#64748b'}
-                                strokeWidth={2.5} dot={{ r: 3 }} />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      )}
-                      {up && ph.changePct > 15 && (
-                        <div className="mt-2 rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-2.5 flex items-start gap-2">
-                          <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
-                          <div className="text-[0.6875rem] font-bold text-rose-900 dark:text-rose-200">
-                            Rate {ph.changePct.toFixed(0)}% barh chuka hai — bechne ka rate bhi dekh lein warna munafa khatam ho jayega.
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </Panel>
         </div>
       )}
 
-      {/* ══════════ ANALYTICS ══════════ */}
-      {tab === 'analytics' && (
-        <div className="space-y-4">
-          <Panel icon={TrendingUp} title="12 Mahine" desc="Kis mahine kitna maal aaya aur kitna diya" tone="teal">
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={s.months12 ?? []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                  <XAxis dataKey="label" tick={{ fontSize: 11, fontWeight: 700 }} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
-                  <Tooltip formatter={(v: any, n: any) => [formatPKR(Number(v)), n === 'total' ? 'Kharidari' : n === 'paid' ? 'Diya' : 'Bill']}
-                    contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
-                  <Legend formatter={(v) => (v === 'total' ? 'Kharidari' : v === 'paid' ? 'Diya' : 'Bill')} />
-                  <Bar dataKey="total" fill="#0d9488" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="paid" fill="#34d399" radius={[6, 6, 0, 0]} />
-                  <Line type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={2.5} dot={{ r: 3 }} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          </Panel>
-
-          <div className="grid lg:grid-cols-2 gap-4">
-            <Panel icon={Banknote} title="Adaigi Ka Tareeqa" desc="Cash, bank ya wallet" tone="emerald">
-              {(s.paymentBreakdown ?? []).length === 0 ? (
-                <Empty icon={Banknote} title="Abhi koi adaigi nahi" />
-              ) : (
-                <div className="h-56">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie dataKey="total" nameKey="paymentMethod" cx="50%" cy="50%" innerRadius={48} outerRadius={78} paddingAngle={3}
-                        data={(s.paymentBreakdown ?? []).map((p) => ({ ...p, paymentMethod: payMeta(p.paymentMethod).label }))}>
-                        {(s.paymentBreakdown ?? []).map((p, i) => <Cell key={i} fill={payMeta(p.paymentMethod).hex} />)}
-                      </Pie>
-                      <Tooltip formatter={(v: any, n: any) => [formatPKR(Number(v)), n]}
-                        contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </Panel>
-
-            <Panel icon={Package} title="Kaun Si Cheez Par Kitna" desc="Bill ki lines ke hisab se" tone="indigo">
-              {categories.length === 0 ? (
-                <Empty icon={Package} title="Abhi kuch nahi aaya" />
-              ) : (
-                <div className="h-56">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={categories} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-                      <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
-                      <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 10, fontWeight: 700 }} />
-                      <Tooltip formatter={(v: any) => formatPKR(Number(v))}
-                        contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
-                      <Bar dataKey="total" fill="#6366f1" radius={[0, 6, 6, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </Panel>
-          </div>
-
-          <Panel icon={Activity} title="Pichlay 30 Din" desc="Rozana" tone="slate">
-            <div className="h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={s.trend30Days ?? []}>
-                  <defs>
-                    <linearGradient id="sd30b" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => String(v).slice(5)} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
-                  <Tooltip formatter={(v: any) => formatPKR(Number(v))}
-                    contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0', fontWeight: 700 }} />
-                  <Area type="monotone" dataKey="total" stroke="#6366f1" strokeWidth={2.5} fill="url(#sd30b)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </Panel>
-        </div>
-      )}
-
-      {/* ─────── MODALS ─────── */}
-      {showKhata && <SupplierKhataModal supplierId={s.id} onClose={() => setShowKhata(false)} />}
-
-      {showTeacher && (
-        <Teacher onClose={() => setShowTeacher(false)}
-          title="Supplier ka safha"
-          subtitle="Yahan se kya kya pata chalta hai"
-          steps={[
-            { icon: '💰', head: 'Upar wali patti', body: 'Sab se pehle wohi nazar aata hai jo sab se zyada ahem hai: is supplier ko hum ne kitna dena hai aur aakhri dafa paisa kab diya tha.' },
-            { icon: '📖', head: 'Baqi bana kaise', body: 'Khulasa me poora tootna hai — purana hisab, udhaar par liya maal, adaigi, wapas kiya maal aur haath se ki gayi durusti. In sab ka jamaa hi wo number hai jo upar likha hai.' },
-            { icon: '📈', head: 'Rate ka safar', body: '"Kya Aata Hai" me har cheez ka rate ka safar hai. Agar koi cheez 15% se zyada mehngi ho chuki hai to safha khud warning deta hai — aksar ye chupke chupke hota hai aur munafa kha jata hai.' },
-            { icon: '🧾', head: 'Bill', body: 'Har bill ka kul, diya hua aur bacha hua alag nazar aata hai. CSV aur print dono mojood hain.' },
-            { icon: '⏰', head: 'Aakhri maal', body: 'Agar bohat arse se maal nahi aaya to shayad rate ya quality ka masla hai — ya supplier ne dukaan badal li. Rabta kar lein.' },
-            { icon: '🚫', head: 'Band karna', body: 'Jis se ab kaam nahi karna use "band" kar dein — purana record mehfooz rahega, naye bill me nazar nahi aayega.' },
-          ]}
-          tips={[
-            'K dabayein — khata foran khul jata hai.',
-            'E se badlein, B se wapas list par.',
-            'Bank ki tafseel par click karne se copy ho jati hai.',
-            'Print A4 par poora record nikalta hai — supplier ko dikhane ke liye.',
-          ]} />
-      )}
-
-      {showKeys && (
-        <Shortcuts onClose={() => setShowKeys(false)} list={[
-          ['K', 'Khata kholein'],
-          ['E', 'Badlein'],
-          ['B', 'Wapas list par'],
-          ['A', 'Analytics'],
-          ['P', 'Print'],
-          ['T', 'Sikhein'],
-          ['?', 'Ye list'],
-          ['Esc', 'Band karein'],
-        ]} />
-      )}
+      {money && <SupplierMoneyModal supplier={s} initial={money} onClose={() => setMoney(null)} />}
+      {deleting && <DeleteModal id={s.id} name={s.name} onClose={() => setDeleting(false)} onDone={() => { qc.invalidateQueries({ queryKey: ['suppliers'] }); navigate('/suppliers'); }} />}
     </div>
   );
 }
 
-/* ─────── purzay ─────── */
-function PurchaseRow({ p, money, expandable }: { p: any; money: (n: number) => string; expandable?: boolean }) {
-  const [open, setOpen] = useState(false);
-  const d = Number(p.total ?? 0) - Number(p.paidAmount ?? 0);
-  const meta = payMeta(p.paymentMethod);
-
-  return (
-    <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-800 overflow-hidden">
-      <button onClick={() => expandable && setOpen((o) => !o)}
-        className={`w-full p-3 flex items-center gap-3 text-left ${expandable ? 'hover:bg-slate-50 dark:hover:bg-ink-800/60' : ''} transition`}>
-        <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center shrink-0">
-          <Package className="h-4 w-4 text-slate-500" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white font-mono truncate">{p.purchaseNumber}</div>
-          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 flex items-center gap-2 flex-wrap">
-            <span>{fmtDate(p.purchasedAt)}</span>
-            <span className="px-1.5 rounded" style={{ background: `${meta.hex}22`, color: meta.hex }}>{meta.label}</span>
-            {p.items?.length > 0 && <span>{p.items.length} cheezein</span>}
-          </div>
-        </div>
-        <div className="text-right shrink-0">
-          <div className="text-sm font-black text-slate-900 dark:text-ink-white tabular-nums">{money(Number(p.total ?? 0))}</div>
-          {d > 0
-            ? <div className="text-[0.6875rem] font-extrabold text-rose-600 tabular-nums">{money(d)} udhaar</div>
-            : <div className="text-[0.6875rem] font-extrabold text-emerald-600">Poora diya</div>}
-        </div>
-        {expandable && <ChevronRight className={`h-4 w-4 text-slate-400 shrink-0 transition ${open ? 'rotate-90' : ''}`} />}
-      </button>
-
-      {open && p.items?.length > 0 && (
-        <div className="border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/40 p-3 space-y-1.5">
-          {p.items.map((it: any) => (
-            <div key={it.id} className="flex items-center gap-2 text-[0.6875rem] font-bold">
-              <span className="flex-1 min-w-0 truncate text-slate-700 dark:text-ink-200">{it.product?.name ?? '—'}</span>
-              <span className="text-slate-500 tabular-nums shrink-0">
-                {it.quantity} {it.product?.unit ?? ''} × {money(Number(it.costPrice ?? 0))}
-              </span>
-              <span className="text-slate-900 dark:text-ink-white tabular-nums shrink-0 w-20 text-right">
-                {money(Number(it.total ?? 0))}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+const heroBtnCls = (primary: boolean) => cn('inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold transition',
+  primary ? 'bg-white text-brand-800 hover:bg-brand-50' : 'bg-white/15 text-white ring-1 ring-white/25 hover:bg-white/25');
+function HeroBtn({ children, onClick, primary }: { children: React.ReactNode; onClick: () => void; primary?: boolean }) {
+  return <button type="button" onClick={onClick} className={heroBtnCls(!!primary)}>{children}</button>;
+}
+function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return <div><p className="text-[0.75rem] text-white/70">{label}</p><p className="font-semibold tabular-nums">{value}{hint && <span className="ml-1 text-[0.6875rem] font-normal text-white/60">{hint}</span>}</p></div>;
+}
+function Card({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
+  return <div className="rounded-2xl border border-slate-200 bg-white p-4"><p className="mb-2 flex items-center gap-1.5 font-semibold text-slate-900">{icon}{title}</p>{children}</div>;
+}
+function KV({ k, v, mono }: { k: string; v?: string | null; mono?: boolean }) {
+  return <div className="flex justify-between gap-3 border-t border-slate-50 py-1.5 text-sm first:border-0"><span className="text-slate-500">{k}</span><span className={cn('text-right text-slate-900', mono && 'font-mono')}>{v || '—'}</span></div>;
 }
 
-function Info({ label, value, icon: Icon, mono, copy }: {
-  label: string; value?: string | null; icon: any; mono?: boolean; copy?: boolean;
-}) {
-  if (!value) return null;
+function Khata({ supplierId, name, canEdit }: { supplierId: string; name: string; canEdit: boolean }) {
+  const qc = useQueryClient();
+  const startHour = useBusinessDayStart();
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'all', custom: { from: '', to: '' } });
+  const period = resolveRange(range, startHour);
+  const q = useQuery({ queryKey: ['supplier-statement', supplierId, period?.from, period?.to], queryFn: () => supplierLedgerApi.statement(supplierId, period ?? undefined) });
+  const st = q.data;
+  const rows = useMemo(() => [...(st?.entries ?? [])].sort((a, b) => b.entryDate.localeCompare(a.entryDate) || b.createdAt.localeCompare(a.createdAt)), [st]);
+  const remove = useMutation({
+    mutationFn: (entryId: string) => supplierLedgerApi.removeEntry(supplierId, entryId),
+    onSuccess: () => { toast.success('Entry hata di'); ['supplier', 'supplier-statement', 'suppliers'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi hata'),
+  });
+
+  const print = () => {
+    if (!st) return;
+    const shop = getReceiptSetup().shop;
+    const body = [...rows].reverse().map((e) => {
+      const m = ledgerMeta(e.type);
+      const dlt = entryDelta(e);
+      return `<tr><td>${day(e.entryDate)}</td><td>${esc(m.label)}${e.reference ? ` · ${esc(e.reference)}` : ''}${e.note ? `<div class="n">${esc(e.note)}</div>` : ''}</td><td class="r">${dlt > 0 ? formatPKR(dlt) : ''}</td><td class="r">${dlt < 0 ? formatPKR(-dlt) : ''}</td><td class="r b">${formatPKR(e.balanceAfter)}</td></tr>`;
+    }).join('');
+    printHtml(`<!doctype html><html><head><meta charset="utf-8"><title>Khata ${esc(name)}</title><style>
+      @page{size:A4;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}body{font:12px Arial,sans-serif;color:#0f172a}
+      h1{font-size:20px}h2{font-size:14px;color:#475569;margin:2px 0 14px}.top{display:flex;justify-content:space-between;border-bottom:3px solid #0f766e;padding-bottom:10px;margin-bottom:12px}
+      table{width:100%;border-collapse:collapse}th{background:#0f766e;color:#fff;text-align:left;padding:7px;font-size:11px}td{padding:7px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+      .r{text-align:right;white-space:nowrap}.b{font-weight:700}.n{color:#64748b;font-size:11px}.sum{margin-top:12px;text-align:right;font-size:16px;font-weight:700}
+      .f{margin-top:24px;color:#64748b;font-size:10px;text-align:center}</style></head><body>
+      <div class="top"><div><h1>${esc(shop.name)}</h1><div>${esc(shop.address ?? '')} ${esc(shop.phone ?? '')}</div></div><div style="text-align:right"><h1>Supplier khata</h1><h2>${esc(name)}</h2><div>${period ? `${period.from} — ${period.to}` : 'Shuru se aaj tak'}</div></div></div>
+      <table><thead><tr><th>Tareekh</th><th>Tafseel</th><th class="r">Dena barha</th><th class="r">Diye / kam</th><th class="r">Baqi</th></tr></thead><tbody>${body}</tbody></table>
+      <div class="sum">Abhi dena hai: ${formatPKR(st.supplier.outstandingDue)}</div>
+      <div class="f">Nafaa POS · 0324-1772933 · nafaa.pk</div></body></html>`);
+  };
+
   return (
-    <div className="flex items-start gap-2.5 rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2.5">
-      <Icon className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-      <div className="min-w-0 flex-1">
-        <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500">{label}</div>
-        <div className={`text-sm font-extrabold text-slate-900 dark:text-ink-white break-words ${mono ? 'font-mono' : ''}`}>
-          {value}
-        </div>
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="all" />
+        <Button variant="secondary" size="sm" onClick={print} disabled={!st} leftIcon={<Printer className="h-4 w-4" />}>Statement print</Button>
+        {st && (
+          <div className="ml-auto flex flex-wrap gap-x-4 text-sm">
+            <span>Barha <b className="tabular-nums text-amber-700">{formatPKR(st.totals.added)}</b></span>
+            <span>Diye <b className="tabular-nums text-emerald-700">{formatPKR(st.totals.paid)}</b></span>
+          </div>
+        )}
       </div>
-      {copy && (
-        <button onClick={() => { navigator.clipboard.writeText(value); toast.success('Copy ho gaya'); }}
-          className="h-7 w-7 rounded-lg hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center shrink-0 transition">
-          <Copy className="h-3.5 w-3.5 text-slate-500" />
-        </button>
+      {q.isLoading ? <div className="h-40 animate-pulse rounded-2xl bg-slate-100" /> : !rows.length ? (
+        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">Is muddat me koi entry nahi</div>
+      ) : (
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+          <table className="w-full min-w-[40rem] text-sm">
+            <thead className="bg-slate-50 text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
+              <tr><th className="px-3 py-2">Tareekh</th><th className="px-3 py-2">Tafseel</th><th className="px-3 py-2 text-right">Dena barha</th><th className="px-3 py-2 text-right">Diye / kam</th><th className="px-3 py-2 text-right">Baqi</th><th className="w-8" /></tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {rows.map((e) => {
+                const m = ledgerMeta(e.type);
+                const dlt = entryDelta(e);
+                const manual = !(e.type === 'PURCHASE_CREDIT' && e.reference) && !(e.type === 'PURCHASE_RETURN' && e.reference?.startsWith('PO-'));
+                return (
+                  <tr key={e.id}>
+                    <td className="whitespace-nowrap px-3 py-2 text-slate-600">{day(e.entryDate)}</td>
+                    <td className="px-3 py-2"><span className="font-medium text-slate-900">{m.emoji} {m.label}</span>{e.reference && <span className="ml-1 text-slate-500">· {e.reference}</span>}{e.note && <p className="text-[0.75rem] text-slate-500">{e.note}</p>}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-amber-700">{dlt > 0 ? formatPKR(dlt) : ''}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-emerald-700">{dlt < 0 ? formatPKR(-dlt) : ''}</td>
+                    <td className="px-3 py-2 text-right font-semibold tabular-nums">{formatPKR(e.balanceAfter)}</td>
+                    <td className="px-1">{canEdit && manual && (
+                      <button type="button" aria-label="Entry hatayein" onClick={() => { if (confirm('Yeh entry hata dein?')) remove.mutate(e.id); }} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>
+                    )}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
+  );
+}
+
+function Bills({ supplierId }: { supplierId: string }) {
+  const [page, setPage] = useState(1);
+  const q = useQuery({ queryKey: ['purchase-list', { supplierId, page }], queryFn: () => purchasesApi.page({ supplierId, page, limit: 20, status: 'all' }) });
+  const d = q.data;
+  if (q.isLoading) return <div className="h-40 animate-pulse rounded-2xl bg-slate-100" />;
+  if (!d?.items.length) return <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">Is supplier se abhi koi kharidari nahi</div>;
+  return (
+    <div className="space-y-2">
+      {d.items.map((p) => (
+        <Link key={p.id} to={`/purchases/${p.id}`} className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 hover:border-slate-300">
+          <div className="min-w-0 flex-1">
+            <p className="flex flex-wrap items-center gap-2 font-medium text-slate-900">{p.purchaseNumber}<span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] ring-1', STATUS[p.status].tone)}>{STATUS[p.status].label}</span></p>
+            <p className="truncate text-[0.8125rem] text-slate-500">{day(p.purchasedAt)} · {p.items.map((i) => i.itemName).slice(0, 3).join(', ')}{p.items.length > 3 ? ` +${p.items.length - 3}` : ''}</p>
+          </div>
+          <p className="font-semibold tabular-nums">{formatPKR(p.status === 'PENDING' ? p.total : p.receivedValue)}</p>
+        </Link>
+      ))}
+      {d.pages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
+          <span className="text-sm text-slate-600">{page} / {d.pages}</span>
+          <Button variant="secondary" size="sm" disabled={page >= d.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Rates({ history }: { history: Array<{ productId: string; productName: string; unit: string; points: Array<{ date: string; costPrice: number; quantity: number }>; firstCost: number; lastCost: number; changePct: number }> }) {
+  if (!history?.length) return <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">Rates ka record abhi nahi</div>;
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {history.map((h) => {
+        const max = Math.max(...h.points.map((p) => p.costPrice), 1);
+        const min = Math.min(...h.points.map((p) => p.costPrice));
+        const up = h.changePct > 0.5;
+        const down = h.changePct < -0.5;
+        return (
+          <div key={h.productId} className="rounded-2xl border border-slate-200 bg-white p-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0"><p className="truncate font-medium text-slate-900">{h.productName}</p><p className="text-[0.75rem] text-slate-500">{h.points.length} dafa · fi {h.unit}</p></div>
+              <span className={cn('inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[0.75rem] font-semibold', up ? 'bg-rose-50 text-rose-700' : down ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600')}>
+                {up ? <TrendingUp className="h-3 w-3" /> : down ? <TrendingDown className="h-3 w-3" /> : null}{h.changePct > 0 ? '+' : ''}{h.changePct.toFixed(0)}%
+              </span>
+            </div>
+            <div className="mt-3 flex h-16 items-end gap-1" aria-hidden>
+              {h.points.slice(-24).map((p, i) => (
+                <div key={i} title={`${p.date}: ${formatPKR(p.costPrice)}`} className="flex-1 rounded-t bg-brand-500/70" style={{ height: `${Math.max(((p.costPrice - min * 0.9) / (max - min * 0.9 || 1)) * 100, 8)}%` }} />
+              ))}
+            </div>
+            <div className="mt-2 flex justify-between text-[0.75rem] text-slate-500"><span>Pehli {formatPKR(h.firstCost)}</span><span>Ab {formatPKR(h.lastCost)}</span></div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DeleteModal({ id, name, onClose, onDone }: { id: string; name: string; onClose: () => void; onDone: () => void }) {
+  const mut = useMutation({
+    mutationFn: () => suppliersApi.remove(id),
+    onSuccess: () => { toast.success('Supplier mit gaya'); onDone(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi mita'),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title={`${name} mitayein?`} description="Jis supplier se kharidari ho chuki ya baqi ho, woh nahi mitta — use 'Badlein' se band kar dein."
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={mut.isPending} onClick={() => mut.mutate()}>Mitayein</Button></>}>
+      <p className="text-sm text-slate-600">Yeh wapas nahi hota.</p>
+    </Modal>
   );
 }
