@@ -1,23 +1,16 @@
-import { Loader2, CheckCircle2, Cloud, CloudOff } from 'lucide-react';
+import { CheckCircle2, CloudOff, Loader2 } from 'lucide-react';
+import { cn } from '@core/lib/cn';
 
+/** Small save state shown at the top of a section; changes save by themselves. */
 export function SaveStatusBar({ saving, dirty }: { saving: boolean; dirty: boolean }) {
-  if (saving) {
-    return (
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/15 border-2 border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 text-[0.6875rem] font-extrabold">
-        <Loader2 className="h-3 w-3 animate-spin" /> Saving...
-      </div>
-    );
-  }
-  if (dirty) {
-    return (
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-500/15 border-2 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-300 text-[0.6875rem] font-extrabold">
-        <CloudOff className="h-3 w-3" /> Unsaved changes
-      </div>
-    );
-  }
+  const [Icon, text, tone] = saving
+    ? [Loader2, 'Save ho raha hai…', 'text-blue-700 bg-blue-50 ring-blue-100']
+    : dirty
+      ? [CloudOff, 'Abhi save nahi hua', 'text-amber-700 bg-amber-50 ring-amber-100']
+      : [CheckCircle2, 'Sab save hai', 'text-emerald-700 bg-emerald-50 ring-emerald-100'];
   return (
-    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 border-2 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold">
-      <CheckCircle2 className="h-3 w-3" /> All saved
+    <div role="status" className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.75rem] font-medium ring-1', tone)}>
+      <Icon className={cn('h-3.5 w-3.5', saving && 'animate-spin')} /> {text}
     </div>
   );
 }

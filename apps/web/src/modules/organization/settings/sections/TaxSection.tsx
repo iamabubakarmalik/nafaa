@@ -1,4 +1,4 @@
-import { Calculator, Percent, DollarSign, Receipt, TrendingUp, Info } from 'lucide-react';
+import { Calculator, Percent, Receipt, Info } from 'lucide-react';
 import { ChoiceGroup, Field, NumberInput, TextInput, Toggle, SectionCard, Alert, Divider, StatPill } from '../components/UI';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
@@ -99,41 +99,6 @@ export function TaxSection({ settings }: { settings: TenantSettings }) {
         )}
       </SectionCard>
 
-      <SectionCard title="Pricing Rules" desc="Default markup aur rounding" icon={DollarSign} color="emerald">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Default Markup" hint="Cost price ke upar default profit %">
-            <NumberInput
-              value={draft.defaultMarkup}
-              onChange={(v) => set('defaultMarkup', v)}
-              min={0}
-              step={5}
-              suffix="%"
-            />
-          </Field>
-          <Field label="Round Prices To" hint="Nearest amount pe automatically round">
-            <ChoiceGroup
-              value={String(draft.roundPriceTo)}
-              onChange={(v) => set('roundPriceTo', Number(v))}
-              columns={3}
-              options={[
-                { value: '1', label: 'Rs 1', emoji: '💵' },
-                { value: '5', label: 'Rs 5', emoji: '💴' },
-                { value: '10', label: 'Rs 10', emoji: '💶' },
-              ]}
-            />
-          </Field>
-        </div>
-
-        {/* Markup example */}
-        <div className="mt-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3">
-          <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-1 flex items-center gap-1">
-            <TrendingUp className="h-3 w-3" /> Markup Example
-          </div>
-          <div className="text-xs font-semibold text-slate-700 dark:text-ink-200">
-            Cost <strong>Rs 100</strong> → Selling price <strong className="text-emerald-700 dark:text-emerald-300">Rs {(100 * (1 + draft.defaultMarkup / 100)).toFixed(0)}</strong> ({draft.defaultMarkup}% profit)
-          </div>
-        </div>
-      </SectionCard>
 
       <Alert tone="amber" icon={Info}>
         Pakistan me standard GST <strong>17%</strong> hai. FBR PRAL integration ke liye <strong>Integrations</strong> section me FBR POS setup karo.

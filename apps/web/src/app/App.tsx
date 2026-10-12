@@ -683,7 +683,7 @@ export default function App() {
                   {/* ── Settings & System ──────────────────────── */}
                   <Route path="/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsPage />)} />
                   <Route path="/marketplace/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceSettingsPage />)} />
-                  <Route path="/integrations" element={<IntegrationHubPage />} />
+                  <Route path="/integrations" element={secure(PERMISSIONS.SETTINGS_VIEW, <IntegrationHubPage />)} />
                   <Route path="/online-orders" element={secure(PERMISSIONS.SALES_VIEW, <OnlineOrdersPage />)} />
                   <Route path="/online-orders/cod" element={secure(PERMISSIONS.SALES_VIEW, <CodPage />)} />
                   <Route path="/online-orders/reports" element={secure(PERMISSIONS.SALES_VIEW, <OnlineReportsPage />)} />
@@ -692,7 +692,7 @@ export default function App() {
                   <Route path="/online-store/foodpanda" element={secure(PERMISSIONS.SETTINGS_VIEW, <FoodpandaPage />)} />
                   <Route path="/settings/accounting" element={secure(PERMISSIONS.SETTINGS_VIEW, <AccountingPage />)} />
                   <Route path="/settings/hardware" element={secure(PERMISSIONS.POS_USE, <HardwarePage />)} />
-                  <Route path="/settings/printing" element={<PrintSettingsPage />} />
+                  <Route path="/settings/printing" element={secure(PERMISSIONS.POS_USE, <PrintSettingsPage />)} />
                   {/* Every signed-in user can change their own look; business defaults are checked inside. */}
                   <Route path="/settings/appearance" element={<AppearancePage />} />
                   <Route path="/settings/developer" element={secure(PERMISSIONS.SETTINGS_VIEW, <DeveloperPage />)} />

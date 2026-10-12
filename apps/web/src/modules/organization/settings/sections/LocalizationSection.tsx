@@ -58,19 +58,6 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
     if (CURRENCY_MAP[v]) set('currencySymbol', CURRENCY_MAP[v]);
   };
 
-  const now = new Date();
-  const previewDate = (() => {
-    const dd = String(now.getDate()).padStart(2, '0');
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const yyyy = now.getFullYear();
-    const mmm = now.toLocaleString('en', { month: 'short' });
-    switch (draft.dateFormat) {
-      case 'MM/DD/YYYY': return `${mm}/${dd}/${yyyy}`;
-      case 'YYYY-MM-DD': return `${yyyy}-${mm}-${dd}`;
-      case 'DD MMM YYYY': return `${dd} ${mmm} ${yyyy}`;
-      default: return `${dd}/${mm}/${yyyy}`;
-    }
-  })();
 
   return (
     <div className="space-y-4">
@@ -91,7 +78,7 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
         </Field>
       </SectionCard>
 
-      <SectionCard title="Currency & Format" desc="Prices, dates aur timezone" icon={DollarSign} color="amber">
+      <SectionCard title="Currency & Format" desc="Rupay ki nishani, time zone aur din ka aaghaz" icon={DollarSign} color="amber">
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Currency" badge={<SyncedBadge />}>
             <Select
@@ -157,24 +144,12 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
                 : `Din ${hourLabel(Number(draft.businessDayStartHour))} se agle din ${hourLabel(Number(draft.businessDayStartHour))} tak chalta hai. Is se pehle ki bikri pichhle din me girti hai.`}
             </p>
           </Field>
-          <Field label="Date Format" hint={`Preview: ${previewDate}`}>
-            <Select
-              value={draft.dateFormat}
-              onChange={(v) => set('dateFormat', v)}
-              options={[
-                { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY (15/08/2026)' },
-                { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY (08/15/2026)' },
-                { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD (2026-08-15)' },
-                { value: 'DD MMM YYYY', label: 'DD MMM YYYY (15 Aug 2026)' },
-              ]}
-            />
-          </Field>
         </div>
 
         <div className="mt-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex items-center justify-between gap-3 flex-wrap">
           <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300">Live Preview</div>
           <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
-            {draft.currencySymbol} 1,234.50 <span className="opacity-40 mx-1">•</span> {previewDate}
+            {draft.currencySymbol} 1,234.50
           </div>
         </div>
       </SectionCard>
@@ -225,19 +200,6 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
           </div>
         </Field>
 
-        <Field label="First Day of Week" hint="Calendar aur reports me kaunsa din pehla ho">
-          <div className="mt-1">
-            <Select
-              value={draft.firstDayOfWeek}
-              onChange={(v) => set('firstDayOfWeek', v)}
-              options={[
-                { value: 'mon', label: 'Monday' },
-                { value: 'sun', label: 'Sunday' },
-                { value: 'sat', label: 'Saturday' },
-              ]}
-            />
-          </div>
-        </Field>
       </SectionCard>
 
       <Alert tone="blue" icon={MapPin}>

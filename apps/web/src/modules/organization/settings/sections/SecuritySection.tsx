@@ -1,23 +1,13 @@
-import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-  Shield, KeyRound, Lock, Award, AlertTriangle, CheckCircle2,
-  Smartphone, Trash2, RefreshCw, Clock, Unlock, Sparkles,
-  Globe, Eye, EyeOff, ShieldCheck, Activity, LogOut,
-} from 'lucide-react';
+import { Lock, Award, AlertTriangle, CheckCircle2, Smartphone, RefreshCw, Activity, LogOut } from 'lucide-react';
 import { settingsApi, type SecurityScore } from '@modules/organization/settings/api/settings.api';
-import { Field, NumberInput, Toggle, SectionCard, Alert, Divider } from '../components/UI';
-import { Button } from '@/design-system/components';
-import { useAutoSave } from '../hooks/useAutoSave';
+import { SectionCard } from '../components/UI';
 import type { TenantSettings } from '../api/settings.api';
-import { SaveStatusBar } from './_SaveStatus';
 import { OwnerPinCard, PageLocksCard } from './_OwnerPin';
 import { AccountPasswordCard } from './_AccountPassword';
 
-export function SecuritySection({ settings }: { settings: TenantSettings }) {
-  const { draft, set, saving, dirty } = useAutoSave(settings);
-  const qc = useQueryClient();
+export function SecuritySection(_props: { settings: TenantSettings }) {
 
   const { data: score } = useQuery<SecurityScore>({
     queryKey: ['security-score'],
@@ -49,8 +39,6 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
   return (
     <>
       <div className="space-y-4">
-        <SaveStatusBar saving={saving} dirty={dirty} />
-
         {/* Security score */}
         {score && (
           <div className={[
@@ -131,41 +119,6 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
 
         {/* ═══ Account ka password ═══ */}
         <AccountPasswordCard />
-
-        {/* Session settings */}
-        <SectionCard title="Session Management" desc="Auto logout aur login attempts" icon={Clock} color="amber">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="Auto Logout" hint="Inactivity ke baad user logout ho jaye">
-              <NumberInput
-                value={draft.autoLogoutMinutes}
-                onChange={(v) => set('autoLogoutMinutes', v)}
-                min={5}
-                max={480}
-                suffix="min"
-              />
-            </Field>
-            <Field label="Max Login Attempts" hint="Ghalat password ke baad account lock ho">
-              <NumberInput
-                value={draft.maxLoginAttempts}
-                onChange={(v) => set('maxLoginAttempts', v)}
-                min={3}
-                max={10}
-                suffix="tries"
-              />
-            </Field>
-          </div>
-        </SectionCard>
-
-        {/* 2FA */}
-        <SectionCard title="Two-Factor Authentication" desc="Login pe extra security" icon={ShieldCheck} color="emerald">
-          <Toggle
-            checked={draft.enableTwoFactor}
-            onChange={(v) => set('enableTwoFactor', v)}
-            label="Enable 2FA on Login"
-            desc="Har login pe Email OTP verification hoga"
-            icon={ShieldCheck}
-          />
-        </SectionCard>
 
         {/* Active sessions */}
         {sessions && sessions.length > 0 && (

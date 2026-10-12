@@ -1,13 +1,11 @@
-import { Receipt, Printer, FileText, QrCode, Barcode, User, Building2, Hash } from 'lucide-react';
-import { ChoiceGroup, Field, NumberInput, TextInput, Toggle, SectionCard, Alert, Divider, StatPill, TextArea } from '../components/UI';
+import { Receipt, Printer, FileText, QrCode, Barcode, User, Building2 } from 'lucide-react';
+import { ChoiceGroup, Field, Toggle, SectionCard, Alert, TextArea } from '../components/UI';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
 import { SaveStatusBar } from './_SaveStatus';
 
 export function ReceiptSection({ settings }: { settings: TenantSettings }) {
   const { draft, set, saving, dirty } = useAutoSave(settings);
-
-  const nextInvoice = `${draft.invoicePrefix || 'INV-'}${String(draft.invoiceStartNumber).padStart(6, '0')}`;
 
   return (
     <div className="space-y-4">
@@ -29,26 +27,6 @@ export function ReceiptSection({ settings }: { settings: TenantSettings }) {
           />
         </Field>
 
-        <Divider label="Invoice Numbering" />
-
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Invoice Prefix" hint={`Next receipt: ${nextInvoice}`}>
-            <TextInput
-              value={draft.invoicePrefix}
-              onChange={(v: string) => set('invoicePrefix', v)}
-              placeholder="INV-"
-              maxLength={20}
-              prefix={<Hash className="h-4 w-4" />}
-            />
-          </Field>
-          <Field label="Starting Number">
-            <NumberInput
-              value={draft.invoiceStartNumber}
-              onChange={(v) => set('invoiceStartNumber', v)}
-              min={1}
-            />
-          </Field>
-        </div>
       </SectionCard>
 
       {/* Header / footer */}
@@ -115,7 +93,7 @@ export function ReceiptSection({ settings }: { settings: TenantSettings }) {
       </SectionCard>
 
       {/* Printing */}
-      <SectionCard title="Printing Behavior" desc="Auto-print aur copies" icon={Printer} color="blue">
+      <SectionCard title="Printing Behavior" desc="Bill ke baad khud print" icon={Printer} color="blue">
         <Toggle
           checked={draft.autoPrintReceipt}
           onChange={(v) => set('autoPrintReceipt', v)}
@@ -124,20 +102,6 @@ export function ReceiptSection({ settings }: { settings: TenantSettings }) {
           icon={Printer}
         />
 
-        {draft.autoPrintReceipt && (
-          <>
-            <Divider />
-            <Field label="Copies Count" hint="Kitni copies print hongi har sale par">
-              <NumberInput
-                value={draft.printCopiesCount}
-                onChange={(v) => set('printCopiesCount', v)}
-                min={1}
-                max={5}
-                suffix="copies"
-              />
-            </Field>
-          </>
-        )}
       </SectionCard>
 
       <Alert tone="blue" icon={Printer}>

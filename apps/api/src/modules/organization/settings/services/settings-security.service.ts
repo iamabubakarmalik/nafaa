@@ -397,15 +397,12 @@ export class SettingsSecurityService {
     ]);
 
     const checks = [
-      { key: 'managerPin', label: 'Manager PIN set hai', done: !!settings?.managerPin, weight: 20 },
-      { key: 'twoFactor', label: '2FA enabled', done: !!settings?.enableTwoFactor, weight: 20 },
-      { key: 'refundPin', label: 'Refund pe PIN required', done: !!settings?.requirePinForRefund, weight: 10 },
-      { key: 'voidPin', label: 'Void pe PIN required', done: !!settings?.requirePinForVoid, weight: 10 },
-      { key: 'emailVerified', label: 'Owner email verified', done: !!ownerUser?.emailVerified, weight: 15 },
-      { key: 'passwordSet', label: 'Password set', done: !!ownerUser?.passwordHash, weight: 15 },
-      { key: 'autoLogout', label: 'Auto-logout <= 60 min', done: (settings?.autoLogoutMinutes ?? 60) <= 60, weight: 10 },
+      { key: 'managerPin', label: 'Malik ka PIN laga hai', done: !!settings?.managerPin, weight: 30 },
+      { key: 'refundPin', label: 'Wapsi par PIN', done: !!settings?.requirePinForRefund, weight: 15 },
+      { key: 'voidPin', label: 'Bill cancel par PIN', done: !!settings?.requirePinForVoid, weight: 15 },
+      { key: 'emailVerified', label: 'Malik ka email tasdeeq shuda', done: !!ownerUser?.emailVerified, weight: 20 },
+      { key: 'passwordSet', label: 'Password laga hai', done: !!ownerUser?.passwordHash, weight: 20 },
     ];
-
     const score = checks.reduce((s, c) => s + (c.done ? c.weight : 0), 0);
     const level = score >= 80 ? 'STRONG' : score >= 50 ? 'MEDIUM' : 'WEAK';
 

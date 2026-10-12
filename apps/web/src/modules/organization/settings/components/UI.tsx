@@ -1,24 +1,17 @@
-import { ReactNode } from 'react';
-import { Sparkles, ChevronRight } from 'lucide-react';
+/**
+ * Building blocks for the settings sections: field, switch row, inputs,
+ * choice cards, section card, pills and notes. Styled to match the design
+ * system (thin borders, brand colour, auto dark mode through the palette).
+ */
 
-/* ═════════════════════════════════════════════════════════════
-   NAFAA SETTINGS — Shared UI Kit (Billion-$ Grade)
-   ─────────────────────────────────────────────────────────────
-   • Fully typed props — no implicit `any`
-   • Complete dark mode
-   • Consistent focus rings, transitions, tokens
-   • Icons in toggles, prefix/suffix in inputs, error states
-   ═════════════════════════════════════════════════════════════ */
+import { useEffect, useState, type ComponentType, type ReactNode } from 'react';
+import { ChevronDown, Sparkles } from 'lucide-react';
+import { cn } from '@core/lib/cn';
 
-/* ─── FIELD ─── */
-export function Field({
-  label,
-  hint,
-  required,
-  badge,
-  error,
-  children,
-}: {
+type Icon = ComponentType<{ className?: string }>;
+
+/* ─── Field ─── */
+export function Field({ label, hint, required, badge, error, children }: {
   label: string;
   hint?: string;
   required?: boolean;
@@ -28,103 +21,67 @@ export function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[0.8125rem] font-extrabold text-slate-800 dark:text-ink-100 flex items-center gap-1.5">
+      <label className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-800">
         <span>{label}</span>
-        {required && <span className="text-rose-600 dark:text-rose-400">*</span>}
+        {required && <span className="text-rose-600">*</span>}
         {badge}
       </label>
       {children}
-      {error ? (
-        <p className="text-xs text-rose-600 dark:text-rose-400 font-bold">{error}</p>
-      ) : hint ? (
-        <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold leading-snug">
-          {hint}
-        </p>
-      ) : null}
+      {error ? <p className="text-xs font-medium text-rose-600">{error}</p>
+        : hint ? <p className="text-xs leading-snug text-slate-500">{hint}</p> : null}
     </div>
   );
 }
 
-/* ─── SYNCED BADGE ─── */
+/* ─── Badge for values that came from onboarding ─── */
 export function SyncedBadge({ label = 'Synced' }: { label?: string }) {
   return (
-    <span
-      title="Ye field aap ke onboarding setup se aaya hai"
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/40 text-[0.625rem] font-black text-emerald-700 dark:text-emerald-300 uppercase tracking-wider"
-    >
-      <Sparkles className="h-2.5 w-2.5" />
-      {label}
+    <span title="Ye aap ke shuru ke setup se aaya hai"
+      className="inline-flex items-center gap-1 rounded-md bg-brand-50 px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-brand-700 ring-1 ring-brand-200">
+      <Sparkles className="h-2.5 w-2.5" /> {label}
     </span>
   );
 }
 
-/* ─── TOGGLE ─── */
-interface ToggleProps {
+/* ─── Switch row ─── */
+export function Toggle({ checked, onChange, label, desc, disabled, icon: I }: {
   checked: boolean;
   onChange: (value: boolean) => void;
   label: string;
-  desc?: string;
+  desc?: ReactNode;
   disabled?: boolean;
-  icon?: any;
-}
-export function Toggle({ checked, onChange, label, desc, disabled, icon: Icon }: ToggleProps) {
+  icon?: Icon;
+}) {
   return (
-    <div
-      className={[
-        'flex items-center justify-between gap-4 py-3.5 border-b border-slate-100 dark:border-ink-800 last:border-0 transition',
-        disabled
-          ? 'opacity-50'
-          : 'hover:bg-slate-50/60 dark:hover:bg-ink-800/40 -mx-2 px-2 rounded-lg',
-      ].join(' ')}
-    >
-      <div className="flex-1 min-w-0 flex items-start gap-2.5">
-        {Icon && (
-          <div
-            className={[
-              'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition',
-              checked
-                ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                : 'bg-slate-100 dark:bg-ink-800 text-slate-500 dark:text-ink-400',
-            ].join(' ')}
-          >
-            <Icon className="h-4 w-4" />
-          </div>
+    <label className={cn('-mx-2 flex items-center justify-between gap-4 rounded-xl px-2 py-3 transition',
+      disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-slate-50')}>
+      <span className="flex min-w-0 flex-1 items-start gap-3">
+        {I && (
+          <span className={cn('mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition',
+            checked ? 'bg-brand-50 text-brand-700' : 'bg-slate-100 text-slate-500')}>
+            <I className="h-4 w-4" />
+          </span>
         )}
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-extrabold text-slate-800 dark:text-ink-100">
-            {label}
-          </div>
-          {desc && (
-            <div className="text-xs text-slate-500 dark:text-ink-400 mt-0.5 font-semibold leading-snug">
-              {desc}
-            </div>
-          )}
-        </div>
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        disabled={disabled}
+        <span className="min-w-0">
+          <span className="block text-sm font-semibold text-slate-900">{label}</span>
+          {desc && <span className="mt-0.5 block text-xs leading-snug text-slate-500">{desc}</span>}
+        </span>
+      </span>
+      <button type="button" role="switch" aria-checked={checked} aria-label={label} disabled={disabled}
         onClick={() => onChange(!checked)}
-        className={[
-          'relative h-7 w-12 rounded-full p-0.5 transition-all shrink-0 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:ring-offset-2 dark:focus:ring-offset-ink-900',
-          checked
-            ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-md shadow-emerald-500/30'
-            : 'bg-slate-300 dark:bg-ink-700',
-        ].join(' ')}
-      >
-        <div
-          className="h-6 w-6 bg-white rounded-full shadow-md transition-transform"
-          style={{ transform: `translateX(${checked ? 20 : 0}px)` }}
-        />
+        className={cn('relative h-6 w-11 shrink-0 rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2',
+          checked ? 'bg-brand-600' : 'bg-slate-300')}>
+        <span className={cn('absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform', checked && 'translate-x-5')} />
       </button>
-    </div>
+    </label>
   );
 }
 
-/* ─── TEXT INPUT (typed) ─── */
-interface TextInputProps {
+const box = 'flex items-center rounded-xl border border-slate-200 bg-white transition focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/15';
+const affix = 'select-none text-sm font-medium text-slate-500';
+
+/* ─── Text input ─── */
+export function TextInput({ value, onChange, placeholder, type = 'text', disabled, maxLength, prefix, suffix, error, autoFocus, onBlur }: {
   value: string | null | undefined;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -136,57 +93,21 @@ interface TextInputProps {
   error?: string;
   autoFocus?: boolean;
   onBlur?: () => void;
-}
-export function TextInput({
-  value,
-  onChange,
-  placeholder,
-  type = 'text',
-  disabled,
-  maxLength,
-  prefix,
-  suffix,
-  error,
-  autoFocus,
-  onBlur,
-}: TextInputProps) {
+}) {
   return (
-    <div
-      className={[
-        'relative flex items-center rounded-xl border-2 bg-white dark:bg-ink-800 transition',
-        error
-          ? 'border-rose-400 dark:border-rose-500/60 focus-within:border-rose-500 focus-within:ring-2 focus-within:ring-rose-500/20'
-          : 'border-slate-200 dark:border-ink-700 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20',
-        disabled ? 'bg-slate-50 dark:bg-ink-900/50' : '',
-      ].join(' ')}
-    >
-      {prefix && (
-        <span className="pl-3 text-sm font-extrabold text-slate-500 dark:text-ink-400 select-none">
-          {prefix}
-        </span>
-      )}
-      <input
-        type={type}
-        value={value ?? ''}
-        onChange={(e) => onChange(e.target.value)}
-        onBlur={onBlur}
-        placeholder={placeholder}
-        disabled={disabled}
-        maxLength={maxLength}
-        autoFocus={autoFocus}
-        className="w-full h-11 px-3 bg-transparent text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 outline-none disabled:text-slate-400 dark:disabled:text-ink-500"
-      />
-      {suffix && (
-        <span className="pr-3 text-sm font-extrabold text-slate-500 dark:text-ink-400 select-none">
-          {suffix}
-        </span>
-      )}
+    <div className={cn(box, error && 'border-rose-400 focus-within:border-rose-500 focus-within:ring-rose-500/15', disabled && 'bg-slate-50 opacity-70')}>
+      {prefix && <span className={cn(affix, 'pl-3')}>{prefix}</span>}
+      <input type={type} value={value ?? ''} onChange={(e) => onChange(e.target.value)} onBlur={onBlur}
+        placeholder={placeholder} disabled={disabled} maxLength={maxLength} autoFocus={autoFocus}
+        className="h-10 w-full bg-transparent px-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+      {suffix && <span className={cn(affix, 'pr-3')}>{suffix}</span>}
     </div>
   );
 }
 
-/* ─── NUMBER INPUT (typed) ─── */
-interface NumberInputProps {
+/* ─── Number input ─── */
+// Keeps its own text while typing, so the box can be emptied and retyped.
+export function NumberInput({ value, onChange, min, max, step = 1, disabled, prefix, suffix }: {
   value: number | null | undefined;
   onChange: (value: number) => void;
   min?: number;
@@ -195,177 +116,87 @@ interface NumberInputProps {
   disabled?: boolean;
   prefix?: ReactNode;
   suffix?: ReactNode;
-}
-export function NumberInput({
-  value,
-  onChange,
-  min,
-  max,
-  step = 1,
-  disabled,
-  prefix,
-  suffix,
-}: NumberInputProps) {
+}) {
+  const [text, setText] = useState(String(value ?? 0));
+  useEffect(() => { if (Number(text) !== Number(value ?? 0)) setText(String(value ?? 0)); }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+  const clamp = (n: number) => Math.min(max ?? Infinity, Math.max(min ?? -Infinity, n));
   return (
-    <div
-      className={[
-        'relative flex items-center rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800',
-        'focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition',
-        disabled ? 'bg-slate-50 dark:bg-ink-900/50 opacity-60' : '',
-      ].join(' ')}
-    >
-      {prefix && (
-        <span className="pl-3 text-sm font-extrabold text-slate-500 dark:text-ink-400 select-none">
-          {prefix}
-        </span>
-      )}
-      <input
-        type="number"
-        value={value ?? 0}
-        onChange={(e) => onChange(Number(e.target.value))}
-        min={min}
-        max={max}
-        step={step}
-        disabled={disabled}
-        className="w-full h-11 px-3 bg-transparent text-sm font-extrabold tabular-nums text-slate-900 dark:text-ink-white outline-none"
-      />
-      {suffix && (
-        <span className="pr-3 text-sm font-extrabold text-slate-500 dark:text-ink-400 select-none">
-          {suffix}
-        </span>
-      )}
+    <div className={cn(box, disabled && 'bg-slate-50 opacity-60')}>
+      {prefix && <span className={cn(affix, 'pl-3')}>{prefix}</span>}
+      <input type="number" inputMode="decimal" value={text} min={min} max={max} step={step} disabled={disabled}
+        onChange={(e) => {
+          setText(e.target.value);
+          if (e.target.value !== '' && Number.isFinite(Number(e.target.value))) onChange(clamp(Number(e.target.value)));
+        }}
+        onBlur={() => { if (text === '') { setText(String(min ?? 0)); onChange(min ?? 0); } }}
+        className="h-10 w-full bg-transparent px-3 text-sm font-semibold tabular-nums text-slate-900 outline-none" />
+      {suffix && <span className={cn(affix, 'pr-3')}>{suffix}</span>}
     </div>
   );
 }
 
-/* ─── SELECT (typed) ─── */
-interface SelectOption {
-  value: string;
-  label: string;
-}
-interface SelectProps {
+/* ─── Select ─── */
+export function Select({ value, onChange, options, disabled, placeholder }: {
   value: string | null | undefined;
   onChange: (value: string) => void;
-  options: SelectOption[];
+  options: Array<{ value: string; label: string }>;
   disabled?: boolean;
   placeholder?: string;
-}
-export function Select({ value, onChange, options, disabled, placeholder }: SelectProps) {
+}) {
   return (
     <div className="relative">
-      <select
-        value={value ?? ''}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className={[
-          'w-full h-11 pl-3 pr-9 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800',
-          'text-sm font-semibold text-slate-900 dark:text-ink-white outline-none appearance-none',
-          'focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition',
-          'disabled:bg-slate-50 dark:disabled:bg-ink-900/50 disabled:opacity-60',
-        ].join(' ')}
-      >
+      <select value={value ?? ''} onChange={(e) => onChange(e.target.value)} disabled={disabled}
+        className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-3 pr-9 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 disabled:opacity-60">
         {placeholder && <option value="">{placeholder}</option>}
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
+        {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
-      <ChevronRight className="h-4 w-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
     </div>
   );
 }
 
-/* ─── TEXTAREA (typed) ─── */
-interface TextAreaProps {
+/* ─── Text area ─── */
+export function TextArea({ value, onChange, placeholder, rows = 3, maxLength, disabled }: {
   value: string | null | undefined;
   onChange: (value: string) => void;
   placeholder?: string;
   rows?: number;
   maxLength?: number;
   disabled?: boolean;
-}
-export function TextArea({
-  value,
-  onChange,
-  placeholder,
-  rows = 3,
-  maxLength,
-  disabled,
-}: TextAreaProps) {
+}) {
   return (
-    <textarea
-      value={value ?? ''}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      rows={rows}
-      maxLength={maxLength}
-      disabled={disabled}
-      className={[
-        'w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800',
-        'text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500',
-        'outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition resize-y',
-        'disabled:bg-slate-50 dark:disabled:bg-ink-900/50 disabled:opacity-60',
-      ].join(' ')}
-    />
+    <div>
+      <textarea value={value ?? ''} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
+        rows={rows} maxLength={maxLength} disabled={disabled}
+        className="w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 disabled:opacity-60" />
+      {maxLength && <p className="mt-1 text-right text-[0.6875rem] tabular-nums text-slate-400">{(value ?? '').length}/{maxLength}</p>}
+    </div>
   );
 }
 
-/* ─── CHOICE GROUP (typed) ─── */
-interface ChoiceOption {
-  value: string | number;
-  label: string;
-  desc?: string;
-  emoji?: string;
-  icon?: any;
-}
-interface ChoiceGroupProps {
+/* ─── Choice cards ─── */
+export function ChoiceGroup({ value, onChange, options, columns = 2 }: {
   value: string | number;
   onChange: (value: any) => void;
-  options: ChoiceOption[];
+  options: Array<{ value: string | number; label: string; desc?: string; emoji?: string; icon?: Icon }>;
   columns?: 1 | 2 | 3 | 4;
-}
-export function ChoiceGroup({ value, onChange, options, columns = 2 }: ChoiceGroupProps) {
-  const gridCls: Record<number, string> = {
-    1: 'grid-cols-1',
-    2: 'grid-cols-1 sm:grid-cols-2',
-    3: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3',
-    4: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4',
-  };
+}) {
+  const grid = { 1: 'grid-cols-1', 2: 'grid-cols-1 sm:grid-cols-2', 3: 'grid-cols-2 md:grid-cols-3', 4: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4' }[columns];
   return (
-    <div className={`grid gap-2 ${gridCls[columns]}`}>
+    <div role="radiogroup" className={cn('grid gap-2', grid)}>
       {options.map((o) => {
-        const active = String(value) === String(o.value);
-        const Icon = o.icon;
+        const on = String(value) === String(o.value);
+        const I = o.icon;
         return (
-          <button
-            key={String(o.value)}
-            type="button"
-            onClick={() => onChange(o.value)}
-            className={[
-              'text-left p-3 rounded-xl border-2 transition-all active:scale-[0.98]',
-              active
-                ? 'border-emerald-500 dark:border-emerald-500/60 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/15 dark:to-ink-800/60 shadow-md ring-2 ring-emerald-200 dark:ring-emerald-500/20'
-                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300 dark:hover:border-ink-600 hover:shadow-sm',
-            ].join(' ')}
-          >
-            <div
-              className={[
-                'font-extrabold text-sm flex items-center gap-1.5',
-                active
-                  ? 'text-emerald-700 dark:text-emerald-300'
-                  : 'text-slate-900 dark:text-ink-white',
-              ].join(' ')}
-            >
-              {o.emoji && <span className="text-base">{o.emoji}</span>}
-              {Icon && <Icon className="h-4 w-4" />}
-              <span>{o.label}</span>
-            </div>
-            {o.desc && (
-              <div className="text-xs text-slate-500 dark:text-ink-400 mt-0.5 font-semibold leading-snug">
-                {o.desc}
-              </div>
-            )}
+          <button key={String(o.value)} type="button" role="radio" aria-checked={on} onClick={() => onChange(o.value)}
+            className={cn('rounded-xl border p-3 text-left transition active:scale-[0.99]',
+              on ? 'border-brand-500 bg-brand-50/60 ring-1 ring-brand-500' : 'border-slate-200 bg-white hover:border-slate-300')}>
+            <span className={cn('flex items-center gap-1.5 text-sm font-semibold', on ? 'text-brand-800' : 'text-slate-900')}>
+              {o.emoji && <span className="text-base leading-none">{o.emoji}</span>}
+              {I && <I className="h-4 w-4" />}
+              {o.label}
+            </span>
+            {o.desc && <span className="mt-0.5 block text-xs leading-snug text-slate-500">{o.desc}</span>}
           </button>
         );
       })}
@@ -373,141 +204,83 @@ export function ChoiceGroup({ value, onChange, options, columns = 2 }: ChoiceGro
   );
 }
 
-/* ─── SECTION CARD ─── */
-type SectionColor =
-  | 'emerald' | 'blue' | 'amber' | 'violet' | 'rose' | 'pink'
-  | 'cyan' | 'sky' | 'slate' | 'orange' | 'indigo';
+/* ─── Section card ─── */
+type Tone = 'emerald' | 'blue' | 'amber' | 'violet' | 'rose' | 'pink' | 'cyan' | 'sky' | 'slate' | 'orange' | 'indigo';
+const TONES: Record<Tone, string> = {
+  emerald: 'bg-emerald-50 text-emerald-700', blue: 'bg-blue-50 text-blue-700', sky: 'bg-sky-50 text-sky-700',
+  amber: 'bg-amber-50 text-amber-700', orange: 'bg-orange-50 text-orange-700', violet: 'bg-violet-50 text-violet-700',
+  indigo: 'bg-indigo-50 text-indigo-700', rose: 'bg-rose-50 text-rose-700', pink: 'bg-pink-50 text-pink-700',
+  cyan: 'bg-cyan-50 text-cyan-700', slate: 'bg-slate-100 text-slate-700',
+};
 
-interface SectionCardProps {
+export function SectionCard({ title, desc, icon: I, color = 'emerald', action, badge, children, id }: {
   title: string;
-  desc?: string;
-  icon?: any;
-  color?: SectionColor;
+  desc?: ReactNode;
+  icon?: Icon;
+  color?: Tone;
   action?: ReactNode;
   badge?: ReactNode;
   children: ReactNode;
   id?: string;
-}
-export function SectionCard({
-  title,
-  desc,
-  icon: Icon,
-  color = 'emerald',
-  action,
-  badge,
-  children,
-  id,
-}: SectionCardProps) {
-  const colorMap: Record<SectionColor, { text: string; bg: string; ring: string; grad: string }> = {
-    emerald: { text: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-100 dark:bg-emerald-500/20', ring: 'ring-emerald-200 dark:ring-emerald-500/30', grad: 'from-emerald-500 to-emerald-700' },
-    blue:    { text: 'text-blue-700 dark:text-blue-300',       bg: 'bg-blue-100 dark:bg-blue-500/20',       ring: 'ring-blue-200 dark:ring-blue-500/30',       grad: 'from-blue-500 to-blue-700' },
-    sky:     { text: 'text-sky-700 dark:text-sky-300',         bg: 'bg-sky-100 dark:bg-sky-500/20',         ring: 'ring-sky-200 dark:ring-sky-500/30',         grad: 'from-sky-500 to-cyan-700' },
-    amber:   { text: 'text-amber-700 dark:text-amber-300',     bg: 'bg-amber-100 dark:bg-amber-500/20',     ring: 'ring-amber-200 dark:ring-amber-500/30',     grad: 'from-amber-500 to-orange-600' },
-    orange:  { text: 'text-orange-700 dark:text-orange-300',   bg: 'bg-orange-100 dark:bg-orange-500/20',   ring: 'ring-orange-200 dark:ring-orange-500/30',   grad: 'from-orange-500 to-red-600' },
-    violet:  { text: 'text-violet-700 dark:text-violet-300',   bg: 'bg-violet-100 dark:bg-violet-500/20',   ring: 'ring-violet-200 dark:ring-violet-500/30',   grad: 'from-violet-500 to-purple-700' },
-    indigo:  { text: 'text-indigo-700 dark:text-indigo-300',   bg: 'bg-indigo-100 dark:bg-indigo-500/20',   ring: 'ring-indigo-200 dark:ring-indigo-500/30',   grad: 'from-indigo-500 to-indigo-700' },
-    rose:    { text: 'text-rose-700 dark:text-rose-300',       bg: 'bg-rose-100 dark:bg-rose-500/20',       ring: 'ring-rose-200 dark:ring-rose-500/30',       grad: 'from-rose-500 to-red-600' },
-    pink:    { text: 'text-pink-700 dark:text-pink-300',       bg: 'bg-pink-100 dark:bg-pink-500/20',       ring: 'ring-pink-200 dark:ring-pink-500/30',       grad: 'from-pink-500 to-fuchsia-600' },
-    cyan:    { text: 'text-cyan-700 dark:text-cyan-300',       bg: 'bg-cyan-100 dark:bg-cyan-500/20',       ring: 'ring-cyan-200 dark:ring-cyan-500/30',       grad: 'from-cyan-500 to-teal-600' },
-    slate:   { text: 'text-slate-700 dark:text-ink-300',     bg: 'bg-slate-100 dark:bg-ink-800',        ring: 'ring-slate-200 dark:ring-ink-700',        grad: 'from-slate-500 to-slate-700' },
-  };
-  const c = colorMap[color] || colorMap.emerald;
-
+}) {
   return (
-    <section
-      id={id}
-      className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden scroll-mt-24"
-    >
-      <header className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 bg-gradient-to-br from-slate-50/60 to-white dark:from-ink-900/60 dark:to-ink-900/30 flex items-center gap-3 flex-wrap">
-        {Icon && (
-          <div
-            className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${c.grad} text-white flex items-center justify-center shrink-0 shadow-md ring-4 ${c.ring}`}
-          >
-            <Icon className="h-5 w-5" />
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-base sm:text-lg leading-tight">
-              {title}
-            </h3>
+    <section id={id} data-setting-card={title}
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow">
+      <header className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-4 py-3.5 sm:px-5">
+        {I && <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl', TONES[color])}><I className="h-[1.125rem] w-[1.125rem]" /></span>}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-[0.9375rem] font-semibold leading-tight text-slate-900">{title}</h3>
             {badge}
           </div>
-          {desc && (
-            <p className="text-xs sm:text-[0.8125rem] text-slate-500 dark:text-ink-400 mt-0.5 font-semibold leading-snug">
-              {desc}
-            </p>
-          )}
+          {desc && <p className="mt-0.5 text-xs leading-snug text-slate-500">{desc}</p>}
         </div>
         {action && <div className="shrink-0">{action}</div>}
       </header>
-      <div className="p-5">{children}</div>
+      <div className="px-4 py-3 sm:px-5 sm:py-4">{children}</div>
     </section>
   );
 }
 
-/* ─── STAT PILL ─── */
+/* ─── Pill ─── */
 type PillTone = 'emerald' | 'blue' | 'amber' | 'rose' | 'slate';
-interface StatPillProps {
-  label: string;
-  value: string | number;
-  tone?: PillTone;
-  icon?: any;
-}
-export function StatPill({ label, value, tone = 'emerald', icon: Icon }: StatPillProps) {
-  const tones: Record<PillTone, string> = {
-    emerald: 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/40',
-    blue: 'bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/40',
-    amber: 'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/40',
-    rose: 'bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-500/40',
-    slate: 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 border-slate-200 dark:border-ink-700',
-  };
+const PILLS: Record<PillTone, string> = {
+  emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200', blue: 'bg-blue-50 text-blue-700 ring-blue-200',
+  amber: 'bg-amber-50 text-amber-700 ring-amber-200', rose: 'bg-rose-50 text-rose-700 ring-rose-200', slate: 'bg-slate-100 text-slate-600 ring-slate-200',
+};
+export function StatPill({ label, value, tone = 'emerald', icon: I }: { label: string; value: string | number; tone?: PillTone; icon?: Icon }) {
   return (
-    <div
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold ${tones[tone]}`}
-    >
-      {Icon && <Icon className="h-3 w-3" />}
+    <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold ring-1', PILLS[tone])}>
+      {I && <I className="h-3 w-3" />}
       <span className="opacity-70">{label}</span>
       <span className="tabular-nums">{value}</span>
-    </div>
+    </span>
   );
 }
 
-/* ─── DIVIDER ─── */
+/* ─── Divider ─── */
 export function Divider({ label }: { label?: string }) {
-  if (!label) return <div className="h-px bg-slate-200 dark:bg-ink-800 my-4" />;
+  if (!label) return <div className="my-3 h-px bg-slate-100" />;
   return (
     <div className="my-4 flex items-center gap-3">
-      <div className="flex-1 h-px bg-slate-200 dark:bg-ink-800" />
-      <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-ink-400">
-        {label}
-      </span>
-      <div className="flex-1 h-px bg-slate-200 dark:bg-ink-800" />
+      <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400">{label}</span>
+      <span className="h-px flex-1 bg-slate-100" />
     </div>
   );
 }
 
-/* ─── INLINE ALERT ─── */
+/* ─── Note ─── */
 type AlertTone = 'blue' | 'emerald' | 'amber' | 'rose' | 'violet';
-interface AlertProps {
-  tone?: AlertTone;
-  title?: string;
-  children: ReactNode;
-  icon?: any;
-}
-export function Alert({ tone = 'blue', title, children, icon: Icon }: AlertProps) {
-  const tones: Record<AlertTone, string> = {
-    blue: 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30 text-blue-900 dark:text-blue-200',
-    emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-200',
-    amber: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-900 dark:text-amber-200',
-    rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-900 dark:text-rose-200',
-    violet: 'bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/30 text-violet-900 dark:text-violet-200',
-  };
+const NOTES: Record<AlertTone, string> = {
+  blue: 'bg-blue-50 text-blue-900 ring-blue-100', emerald: 'bg-emerald-50 text-emerald-900 ring-emerald-100',
+  amber: 'bg-amber-50 text-amber-900 ring-amber-100', rose: 'bg-rose-50 text-rose-900 ring-rose-100', violet: 'bg-violet-50 text-violet-900 ring-violet-100',
+};
+export function Alert({ tone = 'blue', title, children, icon: I }: { tone?: AlertTone; title?: string; children: ReactNode; icon?: Icon }) {
   return (
-    <div className={`rounded-xl border-2 p-3 flex items-start gap-2.5 ${tones[tone]}`}>
-      {Icon && <Icon className="h-4 w-4 shrink-0 mt-0.5" />}
-      <div className="flex-1 min-w-0 text-xs font-semibold leading-relaxed">
-        {title && <div className="font-extrabold mb-0.5">{title}</div>}
+    <div className={cn('mt-3 flex items-start gap-2.5 rounded-xl p-3 ring-1', NOTES[tone])}>
+      {I && <I className="mt-0.5 h-4 w-4 shrink-0 opacity-80" />}
+      <div className="min-w-0 flex-1 text-xs leading-relaxed">
+        {title && <p className="mb-0.5 font-semibold">{title}</p>}
         {children}
       </div>
     </div>

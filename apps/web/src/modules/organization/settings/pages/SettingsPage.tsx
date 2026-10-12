@@ -1,15 +1,22 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+/**
+ * Settings control centre. Sections are grouped (shop, counter, customers,
+ * system) and shown to staff according to their permissions; people who may
+ * only view settings see every control locked. The search finds a single
+ * setting, opens its section and points at it.
+ */
+
+import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Settings as SettingsIcon, Store, Building2, Bell, Shield,
-  Receipt, ShoppingBag, Package, Users, Percent, Sparkles,
-  Plug, Database, AlertTriangle, Search, X, ChevronRight,
-  Loader2, CheckCircle2, Globe, MessageCircle,
+  AlertTriangle, Bell, Building2, CreditCard, Database, Eye, Globe, KeyRound, MessageCircle,
+  Package, Percent, Plug, Receipt, Search, Settings as SettingsIcon, Shield, ShoppingBag, Store, X,
 } from 'lucide-react';
+import { PageHero } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
 import { useSettings } from '../hooks/useSettings';
 import { OnboardingSyncBanner } from '../components/OnboardingSyncBanner';
-
-// Sections
 import { BusinessProfileSection } from '../sections/BusinessProfileSection';
 import { BusinessConfigSection } from '../sections/BusinessConfigSection';
 import { LocalizationSection } from '../sections/LocalizationSection';
@@ -29,409 +36,265 @@ type TabId =
   | 'business' | 'config' | 'localization' | 'tax' | 'receipt' | 'pos'
   | 'inventory' | 'customer' | 'notifications' | 'whatsapp' | 'security'
   | 'integrations' | 'backup' | 'danger';
+type Group = 'shop' | 'counter' | 'customers' | 'system';
 
 interface TabDef {
   id: TabId;
   label: string;
   desc: string;
-  icon: any;
-  color: string;
-  group: 'business' | 'operations' | 'customer' | 'system';
-  keywords: string[];
+  icon: ComponentType<{ className?: string }>;
+  group: Group;
+  /** Needed on top of settings access. */
+  permission?: PermissionKey;
   danger?: boolean;
 }
 
 const TABS: TabDef[] = [
-  // ── Business
-  { id: 'business',     label: 'Business Profile',  desc: 'Naam, address, logo, contact',       icon: Store,      color: 'emerald', group: 'business',   keywords: ['profile', 'shop', 'name', 'address', 'logo', 'phone'] },
-  { id: 'config',       label: 'Business Config',   desc: 'Type & feature toggles',              icon: Building2,  color: 'indigo',  group: 'business',   keywords: ['type', 'features', 'variants', 'combo', 'imei'] },
-  { id: 'localization', label: 'Localization',      desc: 'Language, currency, timezone',        icon: Globe,      color: 'violet',  group: 'business',   keywords: ['language', 'currency', 'timezone', 'urdu', 'pkr'] },
-  { id: 'tax',          label: 'Tax & Pricing',     desc: 'GST, taxes, markup, rounding',        icon: Percent,    color: 'amber',   group: 'business',   keywords: ['tax', 'gst', 'markup', 'price', 'rounding'] },
-
-  // ── Operations
-  { id: 'receipt',      label: 'Receipt & Invoice', desc: 'Print size, header, footer',          icon: Receipt,     color: 'sky',     group: 'operations', keywords: ['receipt', 'invoice', 'print', 'header', 'footer'] },
-  { id: 'pos',          label: 'POS',               desc: 'Checkout behavior, discounts',        icon: ShoppingBag, color: 'blue',    group: 'operations', keywords: ['pos', 'checkout', 'discount', 'barcode'] },
-  { id: 'inventory',    label: 'Inventory',         desc: 'Stock alerts, expiry, reorder',       icon: Package,     color: 'cyan',    group: 'operations', keywords: ['inventory', 'stock', 'expiry', 'reorder', 'low'] },
-
-  // ── Customer
-  { id: 'customer',     label: 'Customers',         desc: 'Udhaar, loyalty points',              icon: Users,       color: 'pink',    group: 'customer',   keywords: ['customer', 'credit', 'udhaar', 'loyalty', 'points'] },
-  { id: 'notifications',label: 'Notifications',     desc: 'Email, SMS, WhatsApp, push',          icon: Bell,        color: 'rose',    group: 'customer',   keywords: ['notification', 'email', 'sms', 'whatsapp', 'push'] },
-  { id: 'whatsapp',     label: 'WhatsApp',          desc: 'Apne paighaam — bill, udhaar, shukriya', icon: MessageCircle, color: 'emerald', group: 'customer', keywords: ['whatsapp', 'message', 'paighaam', 'template', 'bill', 'udhaar'] },
-
-  // ── System
-  { id: 'security',     label: 'Security',          desc: 'PIN, 2FA, sessions, activity',        icon: Shield,      color: 'emerald', group: 'system',     keywords: ['security', 'pin', '2fa', 'password', 'sessions'] },
-  { id: 'integrations', label: 'Integrations',      desc: 'FBR, Daraz, WhatsApp, Stripe...',     icon: Plug,        color: 'orange',  group: 'system',     keywords: ['fbr', 'daraz', 'whatsapp', 'stripe', 'zapier', 'webhook', 'integration'] },
-  { id: 'backup',       label: 'Backup & Export',   desc: 'Data export, backups',                icon: Database,    color: 'slate',   group: 'system',     keywords: ['backup', 'export', 'download', 'csv', 'json'] },
-  { id: 'danger',       label: 'Danger Zone',       desc: 'Transfer ownership, delete account',  icon: AlertTriangle, color: 'rose',   group: 'system',     keywords: ['delete', 'danger', 'transfer', 'ownership'], danger: true },
+  { id: 'business', label: 'Dukaan ki maloomat', desc: 'Naam, pata, logo, rabta', icon: Store, group: 'shop' },
+  { id: 'config', label: 'Karobar ki qisam', desc: 'Business type aur features', icon: Building2, group: 'shop' },
+  { id: 'localization', label: 'Zubaan aur waqt', desc: 'Currency, time zone, din ka aaghaz', icon: Globe, group: 'shop' },
+  { id: 'tax', label: 'Tax', desc: 'GST, tax number, hisaab', icon: Percent, group: 'shop' },
+  { id: 'pos', label: 'Counter ke usool', desc: 'Payment, chhoot, PIN', icon: ShoppingBag, group: 'counter' },
+  { id: 'receipt', label: 'Raseed', desc: 'Size, upar neeche ki likhai', icon: Receipt, group: 'counter' },
+  { id: 'inventory', label: 'Stock', desc: 'Kam stock, minus stock', icon: Package, group: 'counter' },
+  { id: 'customer', label: 'Udhaar aur loyalty', desc: 'Credit limit, points', icon: CreditCard, group: 'customers' },
+  { id: 'notifications', label: 'Notifications', desc: 'Email, kam stock, rozana report', icon: Bell, group: 'customers' },
+  { id: 'whatsapp', label: 'WhatsApp paighaam', desc: 'Bill, udhaar, shukriya', icon: MessageCircle, group: 'customers' },
+  { id: 'security', label: 'Security aur PIN', desc: 'Malik ka PIN, password, sessions', icon: Shield, group: 'system' },
+  { id: 'integrations', label: 'Integrations', desc: 'FBR, Daraz, payments', icon: Plug, group: 'system', permission: PERMISSIONS.SETTINGS_MANAGE },
+  { id: 'backup', label: 'Backup aur export', desc: 'Data download', icon: Database, group: 'system', permission: PERMISSIONS.BACKUP_MANAGE },
+  { id: 'danger', label: 'Khatarnak kaam', desc: 'Malikana tabdeel, account band', icon: AlertTriangle, group: 'system', permission: PERMISSIONS.SETTINGS_MANAGE, danger: true },
 ];
 
-const GROUP_META: Record<string, { label: string; icon: any }> = {
-  business:   { label: 'Business',   icon: Store },
-  operations: { label: 'Operations', icon: ShoppingBag },
-  customer:   { label: 'Customers',  icon: Users },
-  system:     { label: 'System',     icon: SettingsIcon },
-};
+const GROUPS: Record<Group, string> = { shop: 'Dukaan', counter: 'Counter', customers: 'Customers', system: 'Nizam' };
 
-function gradFor(color: string): string {
-  const map: Record<string, string> = {
-    emerald: 'from-emerald-500 to-emerald-700',
-    blue:    'from-blue-500 to-blue-700',
-    sky:     'from-sky-500 to-cyan-700',
-    amber:   'from-amber-500 to-orange-600',
-    orange:  'from-orange-500 to-red-600',
-    violet:  'from-violet-500 to-purple-700',
-    indigo:  'from-indigo-500 to-indigo-700',
-    rose:    'from-rose-500 to-red-600',
-    pink:    'from-pink-500 to-fuchsia-600',
-    cyan:    'from-cyan-500 to-teal-600',
-    slate:   'from-slate-500 to-slate-700',
-  };
-  return map[color] || map.emerald;
-}
+/** One row per setting, for the search. `find` is the text shown next to the control. */
+const INDEX: Array<{ tab: TabId; find: string; words?: string }> = [
+  { tab: 'business', find: 'Shop Name', words: 'naam dukaan' }, { tab: 'business', find: 'Shop Logo', words: 'logo tasveer' },
+  { tab: 'business', find: 'Phone', words: 'number mobile rabta' }, { tab: 'business', find: 'Street Address', words: 'pata address' },
+  { tab: 'config', find: 'Change Business Type', words: 'industry qisam' }, { tab: 'config', find: 'Active Features', words: 'features' },
+  { tab: 'localization', find: 'Currency', words: 'rupay pkr' }, { tab: 'localization', find: 'Timezone', words: 'waqt time zone' },
+  { tab: 'localization', find: 'Din kab shuru hota hai', words: 'business day raat' }, { tab: 'localization', find: 'Preferred Language', words: 'urdu english zubaan' },
+  { tab: 'tax', find: 'Enable Tax on Sales', words: 'gst sales tax' }, { tab: 'tax', find: 'Tax Rate', words: 'gst percent' },
+  { tab: 'tax', find: 'Tax Number / NTN', words: 'ntn strn' },
+  { tab: 'pos', find: 'Pehle se chuna payment', words: 'cash card default payment' },
+  { tab: 'pos', find: 'Har bill par customer zaroori', words: 'walk in customer' },
+  { tab: 'pos', find: 'Haath se chhoot', words: 'discount' }, { tab: 'pos', find: 'Zyada se zyada chhoot', words: 'discount max limit had' },
+  { tab: 'pos', find: 'Bill cancel par PIN', words: 'void pin' }, { tab: 'pos', find: 'Wapsi par PIN', words: 'refund return pin' },
+  { tab: 'pos', find: 'Har chhoot par PIN', words: 'discount pin' },
+  { tab: 'receipt', find: 'Receipt Size', words: 'printer 58 80 a4' }, { tab: 'receipt', find: 'Header Text', words: 'raseed upar' },
+  { tab: 'receipt', find: 'Footer Text', words: 'raseed neeche shukriya' }, { tab: 'receipt', find: 'Auto-Print After Sale', words: 'print khud' },
+  { tab: 'inventory', find: 'Kam stock ki had', words: 'low stock alert' }, { tab: 'inventory', find: 'Stock khatam hone par bhi bechein', words: 'negative minus stock' },
+  { tab: 'customer', find: 'Udhaar par bechna', words: 'credit khata' }, { tab: 'customer', find: 'Naye customer ki credit limit', words: 'credit limit had' },
+  { tab: 'customer', find: 'Loyalty points', words: 'points inaam' }, { tab: 'customer', find: 'Points kab khatam hon', words: 'expiry points' },
+  { tab: 'notifications', find: 'Email Notifications', words: 'email' }, { tab: 'notifications', find: 'Low Stock Alerts', words: 'kam stock' },
+  { tab: 'notifications', find: 'Send Daily Sales Summary', words: 'rozana report' },
+  { tab: 'whatsapp', find: 'WhatsApp Paighaam', words: 'message template' },
+  { tab: 'security', find: 'Malik ka PIN', words: 'pin owner' }, { tab: 'security', find: 'Kaun Se Safhe Lock Ho', words: 'lock page' },
+  { tab: 'security', find: 'Account ka Password', words: 'password' }, { tab: 'security', find: 'Active Sessions', words: 'login device' },
+  { tab: 'integrations', find: 'Integrations', words: 'fbr daraz stripe' },
+  { tab: 'backup', find: 'Export Data', words: 'backup download csv' },
+  { tab: 'danger', find: 'Transfer Ownership', words: 'malik tabdeel' }, { tab: 'danger', find: 'Delete Shop Permanently', words: 'delete band' },
+];
 
 export default function SettingsPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = (searchParams.get('tab') as TabId) || 'business';
-  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
-  const [search, setSearch] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const [params, setParams] = useSearchParams();
+  const canEdit = usePermission(PERMISSIONS.SETTINGS_EDIT);
+  const canManage = usePermission(PERMISSIONS.SETTINGS_MANAGE);
+  const canBackup = usePermission(PERMISSIONS.BACKUP_MANAGE);
+  const allowed = (t: TabDef) => !t.permission || (t.permission === PERMISSIONS.BACKUP_MANAGE ? canBackup : canManage);
+  const tabs = TABS.filter(allowed);
+  const can = (id: TabId) => tabs.some((t) => t.id === id);
 
+  const fromUrl = params.get('tab') as TabId | null;
+  const [active, setActive] = useState<TabId>(tabs.some((t) => t.id === fromUrl) ? fromUrl! : 'business');
+  const [query, setQuery] = useState('');
+  const contentRef = useRef<HTMLDivElement>(null);
   const { data, isLoading, isFetching } = useSettings();
+  const settings = data?.settings;
 
   useEffect(() => {
-    if (searchParams.get('tab') !== activeTab) {
-      searchParams.set('tab', activeTab);
-      setSearchParams(searchParams, { replace: true });
-    }
-    contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+    if (params.get('tab') !== active) { params.set('tab', active); setParams(params, { replace: true }); }
+  }, [active]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const filteredTabs = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    if (!q) return TABS;
-    return TABS.filter((t) =>
-      t.label.toLowerCase().includes(q) ||
-      t.desc.toLowerCase().includes(q) ||
-      t.keywords.some((k) => k.includes(q))
-    );
-  }, [search]);
+  const open = (id: TabId, find?: string) => {
+    setActive(id);
+    setQuery('');
+    window.setTimeout(() => {
+      const root = contentRef.current;
+      if (!root) return;
+      const needle = find?.toLowerCase();
+      const target = needle
+        ? [...root.querySelectorAll<HTMLElement>('[data-setting-card]')].find((el) => el.textContent?.toLowerCase().includes(needle))
+        : null;
+      (target ?? root).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (target) {
+        target.classList.add('ring-2', 'ring-brand-500');
+        window.setTimeout(() => target.classList.remove('ring-2', 'ring-brand-500'), 1600);
+      }
+    }, 80);
+  };
 
-  const groupedTabs = useMemo(() => {
-    const g: Record<string, TabDef[]> = { business: [], operations: [], customer: [], system: [] };
-    filteredTabs.forEach((t) => g[t.group].push(t));
-    return g;
-  }, [filteredTabs]);
+  const results = useMemo(() => {
+    const q = query.toLowerCase().trim();
+    if (!q) return [];
+    const ok = new Set(tabs.map((t) => t.id));
+    const hits = INDEX.filter((r) => ok.has(r.tab) && `${r.find} ${r.words ?? ''}`.toLowerCase().includes(q));
+    const tabHits = tabs.filter((t) => `${t.label} ${t.desc}`.toLowerCase().includes(q)).map((t) => ({ tab: t.id, find: undefined as string | undefined }));
+    return [...hits, ...tabHits].slice(0, 8);
+  }, [query, tabs]);
 
-  const currentTab = TABS.find((t) => t.id === activeTab)!;
-  const settings = data?.settings;
-  const tenant = data?.tenant;
+  const current = TABS.find((t) => t.id === active) ?? TABS[0];
+  const pinOn = !!settings?.hasManagerPin;
 
   return (
-    <div className="space-y-4 pb-8">
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-cyan-700 dark:from-ink-950 dark:via-emerald-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
-        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-400/25 blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
+    <div className="space-y-4 pb-10">
+      <PageHero
+        title="Settings"
+        chip={<><SettingsIcon /> {data?.tenant?.name || settings?.shopName || 'Dukaan'}</>}
+        busy={isFetching && !isLoading}
+        meta="Har tabdeeli khud save hoti hai"
+        loading={isLoading}
+        stats={settings ? [
+          { label: 'Malik ka PIN', value: pinOn ? 'Laga hua' : 'Nahi laga' },
+          { label: 'Chhoot ki had', value: settings.allowDiscount ? `${settings.maxDiscountPercent}%` : 'Band' },
+          { label: 'Udhaar', value: settings.allowCredit ? 'Chalu' : 'Band' },
+          { label: 'Loyalty', value: settings.enableLoyalty ? 'Chalu' : 'Band' },
+        ] : undefined}
+      />
 
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
-              <SettingsIcon className="h-3.5 w-3.5 text-amber-300" />
-              Settings & Configuration
-              {isFetching && !isLoading && <Loader2 className="h-3 w-3 animate-spin text-emerald-300" />}
-            </div>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">
-              ⚙️ {tenant?.name || settings?.shopName || 'Business Settings'}
-            </h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-white/90 font-semibold">
-              Business config, POS, receipts, integrations — sab kuch aik jagah
-              <span className="opacity-50 mx-2">•</span>
-              <span className="text-emerald-300">{TABS.length} sections</span>
-              <span className="opacity-50 mx-2">•</span>
-              <span className="inline-flex items-center gap-1 text-emerald-300">
-                <CheckCircle2 className="h-3 w-3" /> Auto-save
-              </span>
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
-            >
-              <SettingsIcon className="h-4 w-4" /> Sections
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Onboarding sync banner */}
       <OnboardingSyncBanner />
 
-      {/* ═══ LAYOUT ═══ */}
-      <div className="grid lg:grid-cols-[280px_1fr] gap-4">
-        {/* Sidebar (desktop) */}
-        <aside className="hidden lg:block">
-          <SidebarNav
-            groupedTabs={groupedTabs}
-            activeTab={activeTab}
-            onSelect={setActiveTab}
-            search={search}
-            setSearch={setSearch}
-          />
-        </aside>
-
-        {/* Sidebar drawer (mobile) */}
-        {sidebarOpen && (
-          <div
-            className="lg:hidden fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <div
-              className="absolute inset-y-0 left-0 w-[320px] max-w-[85vw] bg-white dark:bg-ink-900 shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-200"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="sticky top-0 z-10 px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 bg-white/95 dark:bg-ink-900/95 backdrop-blur flex items-center justify-between">
-                <h2 className="font-extrabold text-slate-900 dark:text-ink-white">Settings Sections</h2>
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center transition"
-                >
-                  <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-                </button>
-              </div>
-              <div className="p-3">
-                <SidebarNav
-                  groupedTabs={groupedTabs}
-                  activeTab={activeTab}
-                  onSelect={(id) => {
-                    setActiveTab(id);
-                    setSidebarOpen(false);
-                  }}
-                  search={search}
-                  setSearch={setSearch}
-                  embedded
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Content */}
-        <div ref={contentRef} className="min-w-0 space-y-4">
-          {/* Section header bar */}
-          <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 px-4 py-3 flex items-center gap-3">
-            <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${gradFor(currentTab.color)} text-white flex items-center justify-center shadow-md shrink-0`}>
-              <currentTab.icon className="h-5 w-5" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-widest flex items-center gap-1">
-                <span>{GROUP_META[currentTab.group].label}</span>
-                <ChevronRight className="h-3 w-3" />
-                <span className="text-emerald-600 dark:text-emerald-400">Active</span>
-              </div>
-              <h2 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">
-                {currentTab.label}
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
-                {currentTab.desc}
-              </p>
-            </div>
-            {isFetching && !isLoading && (
-              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/15 border-2 border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-300 text-[0.6875rem] font-extrabold">
-                <Loader2 className="h-3 w-3 animate-spin" /> Syncing
-              </div>
+      <div className="grid gap-4 lg:grid-cols-[17rem_minmax(0,1fr)]">
+        <aside className="min-w-0 lg:sticky lg:top-4 lg:self-start">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Setting dhoondein…" aria-label="Setting dhoondein"
+              onKeyDown={(e) => { if (e.key === 'Enter' && results[0]) open(results[0].tab, results[0].find); if (e.key === 'Escape') setQuery(''); }}
+              className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
+            {query && (
+              <button type="button" onClick={() => setQuery('')} aria-label="Saaf karein"
+                className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100">
+                <X className="h-3.5 w-3.5" />
+              </button>
             )}
-          </div>
-
-          {/* Loading / Empty / Content */}
-          {isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : !settings ? (
-            <EmptyState />
-          ) : (
-            <div className="space-y-4">
-              {activeTab === 'business'      && <BusinessProfileSection settings={settings} />}
-              {activeTab === 'config'        && <BusinessConfigSection />}
-              {activeTab === 'localization'  && <LocalizationSection settings={settings} />}
-              {activeTab === 'tax'           && <TaxSection settings={settings} />}
-              {activeTab === 'receipt'       && <ReceiptSection settings={settings} />}
-              {activeTab === 'pos'           && <POSSection settings={settings} />}
-              {activeTab === 'inventory'     && <InventorySection settings={settings} />}
-              {activeTab === 'customer'      && <CustomerSection settings={settings} />}
-              {activeTab === 'notifications' && <NotificationsSection settings={settings} />}
-              {activeTab === 'whatsapp'      && <WhatsappSection settings={settings} />}
-              {activeTab === 'security'      && <SecuritySection settings={settings} />}
-              {activeTab === 'integrations'  && <IntegrationsSection />}
-              {activeTab === 'backup'        && <BackupSection />}
-              {activeTab === 'danger'        && <DangerZoneSection />}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   SIDEBAR NAV
-   ═════════════════════════════════════════════════════════════ */
-function SidebarNav({
-  groupedTabs,
-  activeTab,
-  onSelect,
-  search,
-  setSearch,
-  embedded,
-}: {
-  groupedTabs: Record<string, TabDef[]>;
-  activeTab: TabId;
-  onSelect: (id: TabId) => void;
-  search: string;
-  setSearch: (v: string) => void;
-  embedded?: boolean;
-}) {
-  const totalMatches = Object.values(groupedTabs).reduce((s, arr) => s + arr.length, 0);
-  return (
-    <div className={embedded ? '' : 'sticky top-4 space-y-3'}>
-      {/* Search */}
-      <div className="relative">
-        <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search settings..."
-          className="h-11 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 pl-9 pr-9 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
-        />
-        {search && (
-          <button
-            onClick={() => setSearch('')}
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center transition"
-          >
-            <X className="h-3.5 w-3.5 text-slate-500" />
-          </button>
-        )}
-      </div>
-
-      {search && (
-        <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-wider px-1">
-          {totalMatches} match{totalMatches !== 1 ? 'es' : ''}
-        </div>
-      )}
-
-      {/* Groups */}
-      <nav className="space-y-4">
-        {Object.entries(groupedTabs).map(([groupKey, tabs]) => {
-          if (tabs.length === 0) return null;
-          const meta = GROUP_META[groupKey];
-          return (
-            <div key={groupKey}>
-              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-ink-400 mb-1.5 px-2 flex items-center gap-1.5">
-                <meta.icon className="h-3 w-3" />
-                {meta.label}
-              </div>
-              <div className="space-y-1">
-                {tabs.map((tab) => {
-                  const active = activeTab === tab.id;
-                  const Icon = tab.icon;
+            {query && (
+              <div className="absolute inset-x-0 top-full z-30 mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                {results.length === 0 ? (
+                  <p className="px-3 py-4 text-center text-sm text-slate-500">"{query}" nahi mila</p>
+                ) : results.map((r, i) => {
+                  const t = TABS.find((x) => x.id === r.tab)!;
                   return (
-                    <button
-                      key={tab.id}
-                      onClick={() => onSelect(tab.id)}
-                      className={[
-                        'w-full text-left px-2.5 py-2 rounded-xl transition-all active:scale-[0.98] group flex items-center gap-2.5',
-                        active
-                          ? `bg-gradient-to-r ${gradFor(tab.color)} text-white shadow-md`
-                          : tab.danger
-                            ? 'hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-700 dark:text-rose-400'
-                            : 'hover:bg-slate-100 dark:hover:bg-ink-800 text-slate-700 dark:text-ink-200',
-                      ].join(' ')}
-                    >
-                      <div
-                        className={[
-                          'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition',
-                          active
-                            ? 'bg-white/20 backdrop-blur'
-                            : tab.danger
-                              ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400'
-                              : 'bg-slate-100 dark:bg-ink-800 group-hover:bg-white dark:group-hover:bg-ink-700',
-                        ].join(' ')}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-extrabold leading-tight truncate">
-                          {tab.label}
-                        </div>
-                        <div
-                          className={[
-                            'text-[0.6875rem] font-semibold leading-tight mt-0.5 truncate',
-                            active ? 'text-white/80' : 'text-slate-500 dark:text-ink-400',
-                          ].join(' ')}
-                        >
-                          {tab.desc}
-                        </div>
-                      </div>
-                      {active && <ChevronRight className="h-4 w-4 shrink-0" />}
+                    <button key={i} type="button" onClick={() => open(r.tab, r.find)}
+                      className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-slate-50">
+                      <t.icon className="h-4 w-4 shrink-0 text-slate-400" />
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium text-slate-900">{r.find ?? t.label}</span>
+                        <span className="block truncate text-[0.6875rem] text-slate-500">{t.label}</span>
+                      </span>
                     </button>
                   );
                 })}
               </div>
+            )}
+          </div>
+
+          {/* Phones: one scrolling row of sections */}
+          <nav aria-label="Settings sections" className="-mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1 lg:hidden">
+            {tabs.map((t) => (
+              <button key={t.id} type="button" onClick={() => open(t.id)} aria-current={active === t.id ? 'page' : undefined}
+                className={cn('inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.8125rem] font-medium ring-1 transition',
+                  active === t.id ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200')}>
+                <t.icon className="h-3.5 w-3.5" /> {t.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Desktop: grouped list */}
+          <nav aria-label="Settings sections" className="mt-3 hidden space-y-4 lg:block">
+            {(Object.keys(GROUPS) as Group[]).map((g) => {
+              const list = tabs.filter((t) => t.group === g);
+              if (!list.length) return null;
+              return (
+                <div key={g}>
+                  <p className="mb-1 px-2 text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400">{GROUPS[g]}</p>
+                  <div className="space-y-0.5">
+                    {list.map((t) => {
+                      const on = active === t.id;
+                      return (
+                        <button key={t.id} type="button" onClick={() => open(t.id)} aria-current={on ? 'page' : undefined}
+                          className={cn('flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left transition',
+                            on ? 'bg-brand-50 text-brand-800' : t.danger ? 'text-rose-700 hover:bg-rose-50' : 'text-slate-700 hover:bg-slate-100')}>
+                          <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                            on ? 'bg-brand-600 text-white' : t.danger ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-500')}>
+                            <t.icon className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-semibold">{t.label}</span>
+                            <span className={cn('block truncate text-[0.6875rem]', on ? 'text-brand-700/80' : 'text-slate-500')}>{t.desc}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </nav>
+        </aside>
+
+        <div ref={contentRef} className="min-w-0 scroll-mt-4 space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className={cn('flex h-10 w-10 items-center justify-center rounded-xl', current.danger ? 'bg-rose-50 text-rose-600' : 'bg-brand-50 text-brand-700')}>
+              <current.icon className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-400">{GROUPS[current.group]}</p>
+              <h2 className="text-lg font-semibold leading-tight text-slate-900">{current.label}</h2>
             </div>
-          );
-        })}
-
-        {totalMatches === 0 && (
-          <div className="text-center py-8 px-4">
-            <Search className="h-8 w-8 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
-            <p className="text-xs font-extrabold text-slate-500 dark:text-ink-400">
-              "{search}" ke liye kuch nahi mila
-            </p>
-            <button
-              onClick={() => setSearch('')}
-              className="mt-2 text-xs font-extrabold text-emerald-600 dark:text-emerald-400 hover:underline"
-            >
-              Clear search
-            </button>
+            {!pinOn && settings && active !== 'security' && (
+              <button type="button" onClick={() => open('security', 'Malik ka PIN')}
+                className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-[0.75rem] font-medium text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100">
+                <KeyRound className="h-3.5 w-3.5" /> Malik ka PIN lagayein
+              </button>
+            )}
           </div>
-        )}
-      </nav>
 
-      {/* Auto-save hint */}
-      {!embedded && (
-        <div className="mt-6 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 flex items-start gap-2">
-          <Sparkles className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-          <div className="text-[0.6875rem] font-semibold text-emerald-900 dark:text-emerald-200 leading-snug">
-            <strong>Auto-save on:</strong> koi bhi change karo, 800ms baad khud save ho jayega. Save button ki zaroorat nahi.
-          </div>
+          {!canEdit && (
+            <div className="flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2 text-sm text-slate-600">
+              <Eye className="h-4 w-4 shrink-0" /> Aap settings sirf dekh sakte hain — badalne ki ijazat malik se lein.
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="space-y-3">{[0, 1, 2].map((i) => <div key={i} className="h-40 animate-pulse rounded-2xl bg-slate-100" />)}</div>
+          ) : !settings ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+              <SettingsIcon className="mx-auto h-8 w-8 text-slate-300" />
+              <p className="mt-3 font-semibold text-slate-900">Settings load nahi huin</p>
+              <p className="mt-1 text-sm text-slate-500">Page dobara kholein ya internet dekhein</p>
+            </div>
+          ) : (
+            // A disabled fieldset locks every control for people who may only look.
+            <fieldset disabled={!canEdit} className="min-w-0 space-y-4">
+              {active === 'business' && <BusinessProfileSection settings={settings} />}
+              {active === 'config' && <BusinessConfigSection />}
+              {active === 'localization' && <LocalizationSection settings={settings} />}
+              {active === 'tax' && <TaxSection settings={settings} />}
+              {active === 'receipt' && <ReceiptSection settings={settings} />}
+              {active === 'pos' && <POSSection settings={settings} onOpenSecurity={() => open('security', 'Malik ka PIN')} />}
+              {active === 'inventory' && <InventorySection settings={settings} />}
+              {active === 'customer' && <CustomerSection settings={settings} />}
+              {active === 'notifications' && <NotificationsSection settings={settings} />}
+              {active === 'whatsapp' && <WhatsappSection settings={settings} />}
+              {active === 'security' && <SecuritySection settings={settings} />}
+              {active === 'integrations' && can('integrations') && <IntegrationsSection />}
+              {active === 'backup' && can('backup') && <BackupSection />}
+              {active === 'danger' && can('danger') && <DangerZoneSection />}
+            </fieldset>
+          )}
         </div>
-      )}
-    </div>
-  );
-}
-
-/* ══════════ EMPTY STATE ══════════ */
-function EmptyState() {
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-10 text-center">
-      <div className="h-16 w-16 rounded-3xl bg-slate-100 dark:bg-ink-800 mx-auto flex items-center justify-center">
-        <SettingsIcon className="h-8 w-8 text-slate-400 dark:text-ink-500" />
       </div>
-      <h3 className="mt-4 font-extrabold text-slate-900 dark:text-ink-white">
-        Settings load nahi ho rahi
-      </h3>
-      <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-semibold">
-        Page refresh karein ya support se rabta karein
-      </p>
     </div>
   );
 }
