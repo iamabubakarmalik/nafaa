@@ -71,7 +71,7 @@ export default function PetshopProductDetailPage() {
 
   const { data: movementsRaw } = useQuery({
     queryKey: ['stock-movements-for-product', id],
-    queryFn: () => (stockMovementsApi as any).list({ productId: id }).catch(() => []),
+    queryFn: () => stockMovementsApi.forProduct(id!).catch(() => []),
     enabled: !!id,
     retry: false,
   });

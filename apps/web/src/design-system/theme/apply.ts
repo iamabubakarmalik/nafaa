@@ -12,7 +12,7 @@
 
 import { buildScale, readableOn, SCALE_STEPS, type ColorScale, type ScaleStep } from '../tokens/color';
 import DARK_RULES from '../tailwind/dark-rules.json';
-import { DENSITIES, RADII } from '../tokens/layout';
+import { DENSITIES, PAGE_WIDTHS, RADII } from '../tokens/layout';
 import { CANVAS_TONES } from '../tokens/surfaces';
 import { findLatinFont, findUrduFont, MONO_STACK, TEXT_SCALES, type FontOption } from '../tokens/typography';
 import type { ResolvedAppearance } from './appearance';
@@ -78,6 +78,7 @@ export function themeVariables(a: ResolvedAppearance, dark = false): Record<stri
 
   vars['--density-scale'] = String((DENSITIES[a.density] ?? DENSITIES.comfortable).scale);
   vars['--radius-scale'] = String((RADII[a.radius] ?? RADII.default).scale);
+  vars['--page-max'] = (PAGE_WIDTHS[a.pageWidth] ?? PAGE_WIDTHS.wide).max;
 
   Object.assign(vars, surfaceVariables(a, scale, dark));
   if (a.contrast === 'high') Object.assign(vars, highContrastVariables(dark));

@@ -88,7 +88,7 @@ export default function LoyaltyPage() {
   const pointsFor = s ? Math.round(1 / (s.pointsPerRupee || 0.01)) : 100;
 
   return (
-    <div className="mx-auto w-full max-w-[96rem] space-y-4 pb-12">
+    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
       {adjusting && <AdjustModal member={adjusting} onClose={() => setAdjusting(null)} onDone={() => { setAdjusting(null); refresh(); }} />}
       {historyOf && <HistoryModal member={historyOf} onClose={() => setHistoryOf(null)} />}
       {rules && o && <RulesModal overview={o} onClose={() => setRules(false)} onSaved={() => { setRules(false); refresh(); qc.invalidateQueries({ queryKey: ['settings'] }); }} />}

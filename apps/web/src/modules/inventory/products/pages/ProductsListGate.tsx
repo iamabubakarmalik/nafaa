@@ -34,7 +34,7 @@ const IndustryFallback = lazy(() => import('./ProductsListPage'));
 
 function Loading() {
   return (
-    <div className="mx-auto w-full max-w-[96rem] space-y-4">
+    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4">
       <Skeleton className="h-32 w-full rounded-3xl" />
       <Skeleton className="h-16 w-full rounded-3xl" />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">{Array.from({ length: 10 }, (_, i) => <Skeleton key={i} className="h-[22rem] rounded-2xl" />)}</div>

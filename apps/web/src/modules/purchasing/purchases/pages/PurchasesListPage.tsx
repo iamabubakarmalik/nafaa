@@ -4,15 +4,19 @@
  * a time from the server, with totals for the whole filter.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Banknote, CalendarRange, ClipboardList, FileDown, Filter, GraduationCap, MousePointerClick, PackageCheck, Plus, RotateCcw, Search, Truck, Users, Wheat, X } from 'lucide-react';
+import {
+  ArrowRight, Banknote, BarChart3, CalendarRange, ClipboardList, FileDown, Filter, GraduationCap, ListChecks, MousePointerClick, PackageCheck, Plus,
+  RotateCcw, Truck, Users, Wheat, X,
+} from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import { purchasesListDoc } from '../../print';
 import {
-  Button, DateRangeMenu, FilterMenu, PageHero, Tabs, heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -39,6 +43,7 @@ export default function PurchasesListPage() {
   const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
   const [status, setStatus] = useState<StatusFilter>('all');
   const [supplierId, setSupplierId] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -63,7 +68,7 @@ export default function PurchasesListPage() {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || isTyping() || isDialogOpen()) return;
       if (e.key === 'n' || e.key === 'N') { e.preventDefault(); navigate('/purchases/new'); }
-      if (e.key === '/') { e.preventDefault(); document.getElementById('purchase-search')?.focus(); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -71,18 +76,27 @@ export default function PurchasesListPage() {
 
   const supplierOptions = useMemo(() => [{ value: '', label: 'Sab suppliers' }, ...(suppliersQ.data?.items ?? []).map((x) => ({ value: x.id, label: x.name }))], [suppliersQ.data]);
 
+  const statusOptions: Array<{ value: StatusFilter; label: string }> = [
+    { value: 'all', label: 'Sab' }, { value: 'PENDING', label: 'Khule orders' }, { value: 'PARTIAL', label: 'Aadha aaya' },
+    { value: 'RECEIVED', label: 'Aa gaya' }, { value: 'credit', label: 'Udhaar par liya' }, { value: 'returned', label: 'Wapsi hui' }, { value: 'CANCELLED', label: 'Cancel' },
+  ];
+  const filtered = status !== 'all' || !!supplierId || !!query;
+  const clear = () => { setStatus('all'); setSupplierId(''); setSearch(''); };
+  const toggleStatus = (v: StatusFilter) => setStatus((x) => (x === v ? 'all' : v));
+  const t = data?.totals;
+
   return (
-    <div className="space-y-4 pb-10">
+    <PageShell>
       <PageHero
         title="Kharidari"
         chip={<><Truck /> Purchases aur orders</>}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={summaryQ.isLoading}
         actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!data?.items.length} /></span>
           <Link to="/suppliers" className={heroButton}><Users className="h-4 w-4" /> Suppliers</Link>
           <Link to="/purchases/new?order=1" className={heroButton}><ClipboardList className="h-4 w-4" /> Order</Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           <Link to="/purchases/new" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi kharidari</Link>
         </>}
         stats={s ? [
@@ -93,51 +107,57 @@ export default function PurchasesListPage() {
         ] : undefined}
       />
 
-      <Tabs label="Kharidari" value={tab} onChange={setTab} items={[{ value: 'bills', label: 'Bills', count: data?.total }, { value: 'analytics', label: 'Analytics' }]} />
+      {/* Totals for the current filter */}
+      <KpiRow cols={4}>
+        {!t ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={ListChecks} color="#475569" label="Bill" value={data!.total.toLocaleString('en-PK')} hint="is filter me" />
+            <KpiCard icon={PackageCheck} color="#16a34a" label="Maal aaya" value={money(t.value)} />
+            <KpiCard icon={Banknote} color="#2563eb" label="Diye" value={money(t.paid)} hint="udhaar wale dekhein"
+              onClick={() => toggleStatus('credit')} active={status === 'credit'} />
+            <KpiCard icon={RotateCcw} color="#d97706" label="Wapas" value={money(t.returned)} hint="wapsi wale dekhein"
+              onClick={() => toggleStatus('returned')} active={status === 'returned'} />
+          </>
+        )}
+      </KpiRow>
+
+      {/* Filters */}
+      {tab === 'analytics' ? (
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Saare charts isi muddat ke hain; pichli itni hi muddat se muqabla</p>}>
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
+        </FilterBar>
+      ) : (
+        <FilterBar
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bill #, supplier ya cheez…" label="Dhoondein" />}
+          chips={filtered ? <>
+            {status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{statusOptions.find((o) => o.value === status)?.label}</FilterChip>}
+            {supplierId && <FilterChip onRemove={() => setSupplierId('')}>{supplierOptions.find((o) => o.value === supplierId)?.label ?? 'Supplier'}</FilterChip>}
+            {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+          </> : undefined}
+          onClear={clear}>
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
+          <FilterMenu icon={Filter} label="Halat" value={status} active={status !== 'all'} onChange={setStatus} options={statusOptions} />
+          <FilterMenu icon={Users} label="Supplier" value={supplierId} active={!!supplierId} onChange={setSupplierId} options={supplierOptions} width="w-72" align="right" />
+        </FilterBar>
+      )}
+
+      {/* Tabs */}
+      <ViewTabs value={tab} onChange={setTab}
+        right={tab === 'bills' && s && !showInsights
+          ? <button type="button" onClick={() => setShowInsights(true)} className="text-[0.8125rem] font-medium text-brand-700 hover:underline">Hafte ka graph aur top suppliers dikhayein</button>
+          : undefined}
+        hint={<><Kbd>N</Kbd> nayi kharidari · <Kbd>/</Kbd> dhoondein</>}
+        tabs={[{ id: 'bills', label: 'Bills', icon: ListChecks, count: data?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
       {tab === 'analytics' ? (
-        <>
-          <div className="flex flex-wrap items-center gap-2">
-            <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
-            <span className="text-[0.8125rem] text-slate-500">Saare charts isi muddat ke hain; pichli itni hi muddat se muqabla</span>
-          </div>
-          <PurchaseAnalytics range={period} money={money} />
-        </>
+        <PurchaseAnalytics range={period} money={money} />
       ) : (<>
       {s && showInsights && <Insights s={s} money={money} onClose={() => setShowInsights(false)} />}
-      {s && !showInsights && (
-        <button type="button" onClick={() => setShowInsights(true)} className="text-[0.8125rem] font-medium text-brand-700 hover:underline">Hafte ka graph aur top suppliers dikhayein</button>
-      )}
-
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-[12rem] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input id="purchase-search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Bill #, supplier ya cheez…  ( / )" aria-label="Dhoondein"
-            className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-8 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-          {search && <button type="button" onClick={() => setSearch('')} aria-label="Saaf" className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"><X className="h-4 w-4" /></button>}
-        </div>
-        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
-        <FilterMenu icon={Filter} label="Halat" value={status} active={status !== 'all'} onChange={setStatus}
-          options={[
-            { value: 'all', label: 'Sab' }, { value: 'PENDING', label: 'Khule orders' }, { value: 'PARTIAL', label: 'Aadha aaya' },
-            { value: 'RECEIVED', label: 'Aa gaya' }, { value: 'credit', label: 'Udhaar par liya' }, { value: 'returned', label: 'Wapsi hui' }, { value: 'CANCELLED', label: 'Cancel' },
-          ]} />
-        <FilterMenu icon={Users} label="Supplier" value={supplierId} active={!!supplierId} onChange={setSupplierId} options={supplierOptions} width="w-72" align="right" />
-      </div>
-
-      {data && (
-        <div className="flex flex-wrap gap-x-6 gap-y-1 rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-slate-200">
-          <span className="text-slate-500">{data.total} bill</span>
-          <span>Maal aaya <b className="tabular-nums">{money(data.totals.value)}</b></span>
-          <span>Diye <b className="tabular-nums">{money(data.totals.paid)}</b></span>
-          {data.totals.returned > 0 && <span>Wapas <b className="tabular-nums text-amber-700">{money(data.totals.returned)}</b></span>}
-        </div>
-      )}
 
       {listQ.isLoading ? (
-        <div className="space-y-2">{[0, 1, 2, 3, 4].map((i) => <div key={i} className="h-20 animate-pulse rounded-2xl bg-slate-100" />)}</div>
+        <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
       ) : !data?.items.length ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <PackageCheck className="mx-auto h-10 w-10 text-slate-300" />
           <p className="mt-3 font-semibold text-slate-900">Is filter me koi kharidari nahi</p>
           <p className="mt-1 text-sm text-slate-500">Muddat ya filter badlein, ya nayi kharidari karein</p>
@@ -178,7 +198,7 @@ export default function PurchasesListPage() {
           <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }
 
@@ -190,7 +210,7 @@ function Row({ p, money }: { p: PurchaseListRow; money: (n: number) => string })
   const first = p.items.slice(0, 3).map((i) => `${Number(i.quantity.toFixed(2))} ${i.unitName} ${i.itemName}`).join(' · ');
   return (
     <li>
-      <Link to={`/purchases/${p.id}`} className="group flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-slate-300 hover:shadow-md sm:p-4">
+      <Link to={`/purchases/${p.id}`} className="group flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 transition hover:shadow-md hover:ring-slate-300 sm:p-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-slate-900">{p.supplier.name}</span>
@@ -227,7 +247,7 @@ function Insights({ s, money, onClose }: { s: Summary; money: (n: number) => str
   return (
     <div className="relative grid gap-3 lg:grid-cols-3">
       <button type="button" onClick={onClose} aria-label="Chhupayein" className="absolute -top-2 right-0 z-10 rounded-full bg-white p-1 text-slate-400 ring-1 ring-slate-200 hover:text-slate-700"><X className="h-3.5 w-3.5" /></button>
-      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
         <p className="text-[0.8125rem] font-semibold text-slate-800">Pichle 7 din</p>
         <div className="mt-3 flex h-24 items-end gap-1.5">
           {s.salesTrend7Days.map((d) => (
@@ -239,7 +259,7 @@ function Insights({ s, money, onClose }: { s: Summary; money: (n: number) => str
         </div>
         <p className="mt-2 text-[0.75rem] text-slate-500">Is mahine {money(s.monthPurchases)} · pichle mahine {money(s.lastMonthPurchases)}</p>
       </div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
         <p className="text-[0.8125rem] font-semibold text-slate-800">Sab se zyada kharidari</p>
         <ul className="mt-2 space-y-2">
           {topSup.map((t) => (
@@ -253,7 +273,7 @@ function Insights({ s, money, onClose }: { s: Summary; money: (n: number) => str
           {!topSup.length && <li className="text-[0.8125rem] text-slate-400">Abhi koi nahi</li>}
         </ul>
       </div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
         <p className="text-[0.8125rem] font-semibold text-slate-800">Is mahine zyada khareeda</p>
         <ul className="mt-2 divide-y divide-slate-100">
           {topItems.map((t, i) => (

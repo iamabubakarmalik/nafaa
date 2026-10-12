@@ -193,7 +193,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   const HeroExtra = config.HeroExtra;
 
   return (
-    <div className="mx-auto w-full max-w-[96rem] space-y-4 pb-12">
+    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
       {scanner && <BarcodeScanner onDetected={(code: string) => void onScan(code)} onClose={() => setScanner(false)} />}
       {stockItem && <StockModal item={stockItem} chips={config.stockChips?.(stockItem)} money={money} onClose={() => setStockItem(null)} onSaved={() => void c.refresh()} />}
       {guide && <ProductsGuide extra={config.guide} onClose={() => setGuide(false)} />}

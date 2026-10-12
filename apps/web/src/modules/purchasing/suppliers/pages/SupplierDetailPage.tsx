@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, Banknote, BookOpen, ClipboardList, GraduationCap, Landmark, MessageCircle, Pencil, Phone, ShoppingCart, Trash2, TrendingDown, TrendingUp,
 } from 'lucide-react';
-import { Avatar, Button, Card as DsCard, DateRangeMenu, Modal, Tabs, resolveRange, type DateRangeValue } from '@/design-system/components';
+import { Avatar, Button, Card as DsCard, DateRangeMenu, Modal, PageShell, Tabs, resolveRange, type DateRangeValue } from '@/design-system/components';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { PAYMENT_COLORS, PAYMENT_LABELS, useChartTheme } from '@modules/dashboard/engine/useChartTheme';
@@ -53,7 +53,7 @@ export default function SupplierDetailPage() {
   const since = s.ledger.daysSincePayment;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 pb-10">
+    <PageShell>
       <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-6">
         <div className="flex flex-wrap items-start gap-3">
           <button type="button" onClick={() => navigate('/suppliers')} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
@@ -127,7 +127,7 @@ export default function SupplierDetailPage() {
       )}
       {money && <SupplierMoneyModal supplier={s} initial={money} onClose={() => setMoney(null)} />}
       {deleting && <DeleteModal id={s.id} name={s.name} onClose={() => setDeleting(false)} onDone={() => { qc.invalidateQueries({ queryKey: ['suppliers'] }); navigate('/suppliers'); }} />}
-    </div>
+    </PageShell>
   );
 }
 

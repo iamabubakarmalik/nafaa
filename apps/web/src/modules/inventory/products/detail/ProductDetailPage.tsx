@@ -142,7 +142,7 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [can.edit, can.stock, config.paths, id, navigate, tabs]);
 
-  if (product.isLoading) return <div className="mx-auto max-w-[96rem] space-y-4"><Skeleton className="h-72 rounded-3xl" /><Skeleton className="h-96 rounded-3xl" /></div>;
+  if (product.isLoading) return <div className="mx-auto max-w-[var(--page-max,96rem)] space-y-4"><Skeleton className="h-72 rounded-3xl" /><Skeleton className="h-96 rounded-3xl" /></div>;
   if (!p || !ctx) {
     return (
       <div className="mx-auto max-w-lg rounded-3xl bg-white p-8 text-center ring-1 ring-slate-200">
@@ -193,7 +193,7 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
   const active = tabs.find((t) => t.id === tab) ?? tabs[0];
 
   return (
-    <div className="mx-auto w-full max-w-[96rem] space-y-4 pb-12">
+    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
       {stockOpen && <StockModal item={{ id: p.id, name: p.name, unit: p.unit, stock, price: p.price }} chips={config.stockChips} money={money} onClose={() => setStockOpen(false)} onSaved={refresh} />}
 
       <div className="flex flex-wrap items-center justify-between gap-3">

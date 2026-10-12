@@ -4,14 +4,19 @@
  * messaged or bought from in one tap. Owed money is shown by age.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowDownWideNarrow, Banknote, BookOpen, Filter, GraduationCap, MapPin, MessageCircle, Phone, Plus, Search, ShoppingCart, TrendingUp, Truck, Users, X } from 'lucide-react';
+import {
+  ArrowDownWideNarrow, Banknote, BarChart3, BookOpen, Clock, Filter, GraduationCap, MapPin, MessageCircle, Phone, Plus, ShoppingCart, TrendingUp, Truck, Users,
+} from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import { suppliersDoc } from '../../print';
-import { Avatar, Button, FilterMenu, PageHero, Tabs, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import {
+  Avatar, Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { usePermission } from '@core/hooks/usePermission';
@@ -31,6 +36,7 @@ export default function SuppliersListPage() {
   const navigate = useNavigate();
   const canEdit = usePermission(PERMISSIONS.SUPPLIERS_EDIT);
   const canBuy = usePermission(PERMISSIONS.PURCHASES_CREATE);
+  const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
   const [q, setQ] = useState('');
   const [dues, setDues] = useState<Dues>('all');
@@ -56,26 +62,32 @@ export default function SuppliersListPage() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || isTyping() || isDialogOpen()) return;
-      if (e.key === '/') { e.preventDefault(); document.getElementById('supplier-search')?.focus(); }
+      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
       if ((e.key === 'n' || e.key === 'N') && canEdit) { e.preventDefault(); navigate('/suppliers/new'); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [navigate, canEdit]);
 
+  const DUES = [{ value: 'all' as const, label: 'Sab' }, { value: 'due' as const, label: 'Jinhe dena hai' }, { value: 'clear' as const, label: 'Hisaab saaf' }];
+  const STATUSES = [{ value: 'active' as const, label: 'Chalu' }, { value: 'inactive' as const, label: 'Band' }, { value: 'all' as const, label: 'Sab' }];
+  const filtered = dues !== 'all' || status !== 'active' || !!city || !!q;
+  const clear = () => { setDues('all'); setStatus('active'); setCity(''); setSearch(''); };
+  const AGING_COLORS = ['#16a34a', '#d97706', '#ea580c', '#e11d48'];
+
   return (
-    <div className="space-y-4 pb-10">
+    <PageShell>
       <PageHero
         title="Suppliers"
         chip={<><Truck /> Jin se maal aata hai</>}
         busy={listQ.isFetching && !listQ.isLoading}
         loading={sumQ.isLoading}
         actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800">
             <PrintButton doc={async () => suppliersDoc((await suppliersApi.list({ ...params, page: 1, limit: 500 })).items)} disabled={!items.length} />
           </span>
           <Link to="/purchases" className={heroButton}><ShoppingCart className="h-4 w-4" /> Kharidari</Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {canEdit && <Link to="/suppliers/new" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya supplier</Link>}
         </>}
         stats={s ? [
@@ -86,41 +98,43 @@ export default function SuppliersListPage() {
         ] : undefined}
       />
 
-      <Tabs label="Suppliers" value={tab} onChange={setTab} items={[{ value: 'list', label: 'Suppliers', count: meta?.total }, { value: 'analytics', label: 'Analytics' }]} />
-
-      {tab === 'analytics' ? <SupplierAnalytics /> : (<>
+      {/* Owed money by age */}
       {!!s?.dueAging?.some((b) => b.amount > 0) && (
-        <div className="grid gap-2 sm:grid-cols-4">
-          {s.dueAging!.map((b) => (
-            <div key={b.bucket} className="rounded-2xl border border-slate-200 bg-white px-3 py-2.5">
-              <p className="text-[0.75rem] text-slate-500">{b.bucket}</p>
-              <p className="font-semibold tabular-nums text-slate-900">{formatPKR(b.amount)}</p>
-              <p className="text-[0.6875rem] text-slate-400">{b.count} supplier</p>
-            </div>
+        <KpiRow cols={4}>
+          {s.dueAging!.map((b, i) => (
+            <KpiCard key={b.bucket} icon={Clock} color={AGING_COLORS[Math.min(i, AGING_COLORS.length - 1)]} label={b.bucket} value={formatPKR(b.amount)} hint={`${b.count} supplier`} />
           ))}
-        </div>
+        </KpiRow>
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-[12rem] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input id="supplier-search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Naam, phone ya shehar…  ( / )" aria-label="Dhoondein"
-            className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-8 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-          {search && <button type="button" onClick={() => setSearch('')} aria-label="Saaf" className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"><X className="h-4 w-4" /></button>}
-        </div>
-        <FilterMenu icon={Banknote} label="Baqi" value={dues} active={dues !== 'all'} onChange={setDues}
-          options={[{ value: 'all', label: 'Sab' }, { value: 'due', label: 'Jinhe dena hai' }, { value: 'clear', label: 'Hisaab saaf' }]} />
-        <FilterMenu icon={Filter} label="Halat" value={status} active={status !== 'active'} onChange={setStatus}
-          options={[{ value: 'active', label: 'Chalu' }, { value: 'inactive', label: 'Band' }, { value: 'all', label: 'Sab' }]} />
-        {cities.length > 2 && <FilterMenu icon={MapPin} label="Shehar" value={city} active={!!city} onChange={setCity} options={cities} />}
-        <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sort} active={sort !== 'due'} onChange={setSort} align="right"
-          options={[{ value: 'due', label: 'Sab se zyada baqi' }, { value: 'recent', label: 'Haal hi me' }, { value: 'purchased', label: 'Sab se zyada kharidari' }, { value: 'orders', label: 'Sab se zyada bill' }, { value: 'name', label: 'Naam (A–Z)' }]} />
-      </div>
+      {/* Filters */}
+      {tab === 'list' && (
+        <FilterBar
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, phone ya shehar…" label="Dhoondein" />}
+          chips={filtered ? <>
+            {dues !== 'all' && <FilterChip onRemove={() => setDues('all')}>{DUES.find((o) => o.value === dues)?.label}</FilterChip>}
+            {status !== 'active' && <FilterChip onRemove={() => setStatus('active')}>{status === 'inactive' ? 'Band' : 'Sab halat'}</FilterChip>}
+            {city && <FilterChip onRemove={() => setCity('')}>{city}</FilterChip>}
+            {q && <FilterChip onRemove={() => setSearch('')}>"{q}"</FilterChip>}
+          </> : undefined}
+          onClear={clear}>
+          <FilterMenu icon={Banknote} label="Baqi" value={dues} active={dues !== 'all'} onChange={setDues} options={DUES} />
+          <FilterMenu icon={Filter} label="Halat" value={status} active={status !== 'active'} onChange={setStatus} options={STATUSES} />
+          {cities.length > 2 && <FilterMenu icon={MapPin} label="Shehar" value={city} active={!!city} onChange={setCity} options={cities} />}
+          <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sort} active={sort !== 'due'} onChange={setSort} align="right"
+            options={[{ value: 'due', label: 'Sab se zyada baqi' }, { value: 'recent', label: 'Haal hi me' }, { value: 'purchased', label: 'Sab se zyada kharidari' }, { value: 'orders', label: 'Sab se zyada bill' }, { value: 'name', label: 'Naam (A–Z)' }]} />
+        </FilterBar>
+      )}
 
+      {/* Tabs */}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>N</Kbd> naya supplier · <Kbd>/</Kbd> dhoondein</>}
+        tabs={[{ id: 'list', label: 'Suppliers', icon: Users, count: meta?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
+
+      {tab === 'analytics' ? <SupplierAnalytics /> : (<>
       {listQ.isLoading ? (
-        <div className="grid gap-3 md:grid-cols-2">{[0, 1, 2, 3].map((i) => <div key={i} className="h-36 animate-pulse rounded-2xl bg-slate-100" />)}</div>
+        <div className="grid gap-3 md:grid-cols-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-36 rounded-2xl" />)}</div>
       ) : !items.length ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <Users className="mx-auto h-10 w-10 text-slate-300" />
           <p className="mt-3 font-semibold text-slate-900">Koi supplier nahi mila</p>
           {canEdit && <Button className="mt-4" onClick={() => navigate('/suppliers/new')} leftIcon={<Plus className="h-4 w-4" />}>Naya supplier</Button>}
@@ -132,7 +146,7 @@ export default function SuppliersListPage() {
             const paid = daysAgo(x.lastPaymentAt);
             const phone = (x.phone ?? '').replace(/\D/g, '').replace(/^0/, '92');
             return (
-              <div key={x.id} className={cn('rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md', x.outstandingDue > 0 ? 'border-rose-100' : 'border-slate-200', !x.isActive && 'opacity-70')}>
+              <div key={x.id} className={cn('rounded-2xl bg-white p-4 shadow-sm ring-1 transition hover:shadow-md', x.outstandingDue > 0 ? 'ring-rose-100' : 'ring-slate-200/80', !x.isActive && 'opacity-70')}>
                 <Link to={`/suppliers/${x.id}`} className="flex items-start gap-3">
                   <Avatar name={x.name} url={x.logoUrl ?? undefined} size={44} />
                   <div className="min-w-0 flex-1">
@@ -186,6 +200,6 @@ export default function SuppliersListPage() {
         />
       )}
       {paying && <SupplierMoneyModal supplier={paying} onClose={() => setPaying(null)} />}
-    </div>
+    </PageShell>
   );
 }

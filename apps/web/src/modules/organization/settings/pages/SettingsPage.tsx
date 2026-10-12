@@ -11,7 +11,7 @@ import {
   AlertTriangle, Bell, Building2, CreditCard, Database, Eye, Globe, KeyRound, MessageCircle,
   Package, Percent, Plug, Receipt, Search, Settings as SettingsIcon, Shield, ShoppingBag, Store, X,
 } from 'lucide-react';
-import { PageHero } from '@/design-system/components';
+import { PageHero, PageShell } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
@@ -153,7 +153,7 @@ export default function SettingsPage() {
   const pinOn = !!settings?.hasManagerPin;
 
   return (
-    <div className="space-y-4 pb-10">
+    <PageShell>
       <PageHero
         title="Settings"
         chip={<><SettingsIcon /> {data?.tenant?.name || settings?.shopName || 'Dukaan'}</>}
@@ -300,6 +300,6 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

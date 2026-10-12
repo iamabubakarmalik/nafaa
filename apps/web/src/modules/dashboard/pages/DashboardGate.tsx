@@ -46,7 +46,7 @@ const GeneralDashboard = lazy(() => import('../general/GeneralDashboard'));
 
 function Loading() {
   return (
-    <div className="mx-auto w-full max-w-[96rem] space-y-4">
+    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4">
       <Skeleton className="h-10 w-72" />
       <Skeleton className="h-56 w-full rounded-3xl" />
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-6">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>

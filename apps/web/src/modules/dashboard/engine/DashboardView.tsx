@@ -80,7 +80,7 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
 
   return (
     <DashboardLayoutContext.Provider value={ctx}>
-    <div className="mx-auto w-full max-w-[96rem] space-y-4 pb-10">
+    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-10">
       <EmailVerifyBanner />
       <SubscriptionBanner />
 

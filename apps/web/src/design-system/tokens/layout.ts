@@ -18,3 +18,11 @@ export const RADII = {
   round: { label: 'Extra round', scale: 1.4 },
 } as const;
 export type Radius = keyof typeof RADII;
+
+/** How wide page content may grow on big screens. */
+export const PAGE_WIDTHS = {
+  normal: { label: 'Normal', max: '80rem' },
+  wide: { label: 'Chauri', max: '96rem' },
+  full: { label: 'Poori screen', max: '100%' },
+} as const;
+export type PageWidth = keyof typeof PAGE_WIDTHS;

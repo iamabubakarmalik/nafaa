@@ -131,7 +131,7 @@ export function CustomersPage() {
   if (d.period) chips.push([rangeLabel(d.period.from, d.period.to), () => d.setRange({ preset: 'all', custom: { from: '', to: '' } })]);
 
   return (
-    <div className="mx-auto w-full max-w-[96rem] space-y-4 pb-12">
+    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
       {adding && <QuickAddModal onClose={() => setAdding(false)} onCreated={(id) => { setAdding(false); d.refresh(); navigate(`/customers/${id}`); }} />}
       {guide && <CustomersGuide onClose={() => setGuide(false)} />}
 

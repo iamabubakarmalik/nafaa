@@ -127,7 +127,7 @@ export function CustomerProfilePage() {
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  if (customer.isLoading) return <div className="mx-auto max-w-[96rem] space-y-4"><Skeleton className="h-56 rounded-3xl" /><Skeleton className="h-96 rounded-3xl" /></div>;
+  if (customer.isLoading) return <div className="mx-auto max-w-[var(--page-max,96rem)] space-y-4"><Skeleton className="h-56 rounded-3xl" /><Skeleton className="h-96 rounded-3xl" /></div>;
   if (!c) {
     return (
       <div className="mx-auto max-w-lg rounded-3xl bg-white p-8 text-center ring-1 ring-slate-200">
@@ -186,7 +186,7 @@ export function CustomerProfilePage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[96rem] space-y-4 pb-12">
+    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
       {action && <KhataActionModal action={action} customer={{ id, name: c.name, balance }} money={money} onClose={() => setAction(null)} onDone={reload} />}
       {confirmDelete && (
         <Modal open onClose={() => setConfirmDelete(false)} size="sm" title={`${c.name} ko mitayein?`}

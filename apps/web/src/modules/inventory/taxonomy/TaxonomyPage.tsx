@@ -12,11 +12,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   AlertTriangle, ArrowDownUp, ArrowRight, Check, CheckSquare, Download, Eye, EyeOff, Filter, GitMerge,
-  HelpCircle, LayoutGrid, List, MoreHorizontal, Package, Pencil, Plus, Search, Sparkles, Trash2, X,
+  GraduationCap, Inbox, LayoutGrid, List, MoreHorizontal, Package, Pencil, Plus, Sparkles, Trash2,
 } from 'lucide-react';
 import {
-  Button, DateRangeMenu, FilterMenu, Modal, PageHero, Segmented, heroButton, heroIconButton, heroPrimaryButton,
-  resolveRange, type DateRangeValue,
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton,
+  heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useBusinessDayStart } from '@core/lib/business-day';
@@ -185,16 +185,31 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
   const linked = totals ? totals.totalProducts - totals.unlinked : 0;
   const productsLink = (i: TaxonomyItem) => `/products?${config.productParam}=${i.id}`;
 
+  const counts = useMemo(() => ({
+    used: items.filter((i) => (i.stats?.products ?? 0) > 0).length,
+    unused: items.filter((i) => !i.stats?.products).length,
+    low: items.filter((i) => (i.stats?.lowStock ?? 0) + (i.stats?.outOfStock ?? 0) > 0).length,
+    off: items.filter((i) => !i.isActive).length,
+  }), [items]);
+  const toggleShow = (v: Show) => setShow((x) => (x === v ? 'all' : v));
+  const SHOWS: Array<{ value: Show; label: string }> = [
+    { value: 'all', label: 'Sab' },
+    { value: 'used', label: 'Products wali' },
+    { value: 'unused', label: 'Khaali (koi product nahi)' },
+    { value: 'low', label: 'Kam ya khatam stock' },
+    ...(config.canSwitchOff ? [{ value: 'off' as const, label: 'Band' }] : []),
+  ];
+
   return (
-    <div className="space-y-4 pb-24">
+    <PageShell className="pb-24">
       <PageHero
         title={config.title}
         chip={<><config.icon /> {config.industry.emoji} {config.industry.name}</>}
         busy={isFetching && !isLoading}
         loading={isLoading}
         actions={<>
-          <button type="button" className={heroIconButton} onClick={() => setGuide(true)} aria-label="Guide"><HelpCircle className="h-4 w-4" /></button>
           <button type="button" className={heroButton} onClick={exportCsv} disabled={!list.length}><Download className="h-4 w-4" /> CSV</button>
+          <button type="button" className={heroIconButton} onClick={() => setGuide(true)} title="Guide" aria-label="Guide"><GraduationCap className="h-4 w-4" /></button>
           <button type="button" className={heroPrimaryButton} onClick={() => setEditing('new')}><Plus className="h-4 w-4" /> Nayi {config.one}</button>
         </>}
         stats={totals ? [
@@ -204,6 +219,18 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
           { label: 'Stock ki qeemat', value: cost(totals.stockValue) },
         ] : undefined}
       />
+
+      {/* Item counts; a card toggles its filter */}
+      <KpiRow cols={config.canSwitchOff ? 4 : 3}>
+        {isLoading ? Array.from({ length: config.canSwitchOff ? 4 : 3 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            <KpiCard icon={Package} color="#16a34a" label="Products wali" value={counts.used} hint={`${linked} products jure`} onClick={() => toggleShow('used')} active={show === 'used'} />
+            <KpiCard icon={Inbox} color="#64748b" label="Khaali" value={counts.unused} hint="koi product nahi" onClick={() => toggleShow('unused')} active={show === 'unused'} />
+            <KpiCard icon={AlertTriangle} color="#d97706" label="Kam ya khatam stock" value={counts.low} hint="dabayein" onClick={() => toggleShow('low')} active={show === 'low'} />
+            {config.canSwitchOff && <KpiCard icon={EyeOff} color="#e11d48" label="Band" value={counts.off} hint="dabayein" onClick={() => toggleShow('off')} active={show === 'off'} />}
+          </>
+        )}
+      </KpiRow>
 
       {totals && totals.unlinked > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-100">
@@ -216,7 +243,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
       )}
 
       {suggestions.length > 0 && (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4">
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-4">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <Sparkles className="h-4 w-4 text-brand-600" />
             <p className="flex-1 text-sm font-semibold text-slate-800">{config.industry.name} ke liye mashware</p>
@@ -233,41 +260,40 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
         </div>
       )}
 
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-[12rem] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={`${cap(config.one)} dhoondein…  ( / )`} aria-label="Dhoondein"
-            className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-8 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-          {search && <button type="button" onClick={() => setSearch('')} aria-label="Saaf" className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400"><X className="h-4 w-4" /></button>}
-        </div>
+      {/* Filters */}
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={`${cap(config.one)} dhoondein…`} label="Dhoondein" />}
+        chips={show !== 'all' || search.trim() ? <>
+          {show !== 'all' && <FilterChip onRemove={() => setShow('all')}>{SHOWS.find((o) => o.value === show)?.label}</FilterChip>}
+          {search.trim() && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
+        </> : undefined}
+        onClear={() => { setShow('all'); setSearch(''); }}>
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} allowAll={false} defaultPreset="month" />
-        <FilterMenu icon={Filter} label="Dikhayein" value={show} active={show !== 'all'} onChange={setShow}
-          options={[
-            { value: 'all', label: 'Sab' },
-            { value: 'used', label: 'Products wali' },
-            { value: 'unused', label: 'Khaali (koi product nahi)' },
-            { value: 'low', label: 'Kam ya khatam stock' },
-            ...(config.canSwitchOff ? [{ value: 'off' as const, label: 'Band' }] : []),
-          ]} />
+        <FilterMenu icon={Filter} label="Dikhayein" value={show} active={show !== 'all'} onChange={setShow} options={SHOWS} />
         <FilterMenu icon={ArrowDownUp} label="Tarteeb" value={sort} active={sort !== 'sales'} onChange={setSort} align="right"
           options={[
             { value: 'sales', label: 'Sab se zyada bikri' }, { value: 'products', label: 'Sab se zyada products' },
             { value: 'stock', label: 'Stock ki qeemat' }, { value: 'name', label: 'Naam (A–Z)' }, { value: 'new', label: 'Naye pehle' },
           ]} />
-        <Segmented label="Shakal" value={view} onChange={setView}
-          items={[{ value: 'grid', label: <LayoutGrid className="h-4 w-4" aria-label="Cards" /> }, { value: 'list', label: <List className="h-4 w-4" aria-label="List" /> }]} />
-      </div>
+        <div className="inline-flex rounded-2xl bg-slate-100/80 p-1" role="radiogroup" aria-label="Shakal">
+          {([['grid', LayoutGrid, 'Cards'], ['list', List, 'List']] as const).map(([v, Icon, label]) => (
+            <button key={v} type="button" role="radio" aria-checked={view === v} onClick={() => setView(v)} title={label} aria-label={label}
+              className={cn('flex h-9 w-9 items-center justify-center rounded-xl transition', view === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800')}>
+              <Icon className="h-4 w-4" />
+            </button>
+          ))}
+        </div>
+      </FilterBar>
 
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="h-36 animate-pulse rounded-2xl bg-slate-100" />)}</div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{[0, 1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-36 rounded-2xl" />)}</div>
       ) : isError ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <p className="font-semibold text-slate-900">Load nahi hua</p>
           <Button className="mt-3" variant="secondary" onClick={() => refetch()}>Dobara koshish</Button>
         </div>
       ) : list.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <config.icon className="mx-auto h-8 w-8 text-slate-300" />
           <p className="mt-3 font-semibold text-slate-900">{items.length ? 'Is filter me kuch nahi' : `Abhi koi ${config.one} nahi`}</p>
           <p className="mt-1 text-sm text-slate-500">{items.length ? 'Filter ya search badlein' : 'Upar mashware se ya "Nayi" dabakar banayein'}</p>
@@ -279,7 +305,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
             const s = i.stats;
             const on = selected.has(i.id);
             return (
-              <div key={i.id} className={cn('group relative rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md', on ? 'border-brand-500 ring-1 ring-brand-500' : 'border-slate-200', !i.isActive && 'opacity-70')}>
+              <div key={i.id} className={cn('group relative rounded-2xl bg-white p-4 shadow-sm transition hover:shadow-md', on ? 'ring-2 ring-brand-500' : 'ring-1 ring-slate-200/80', !i.isActive && 'opacity-70')}>
                 <div className="flex items-start gap-3">
                   <button type="button" onClick={() => pick(i.id)} aria-label={on ? 'Chunna hatayein' : 'Chunein'} className="relative">
                     <Avatar item={i} size="lg" />
@@ -314,9 +340,9 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
           })}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
           <table className="w-full min-w-[40rem] text-sm">
-            <thead className="bg-slate-50 text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
+            <thead className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="w-10 px-3 py-2"><span className="sr-only">Chunein</span></th>
                 <th className="px-3 py-2">Naam</th><th className="px-3 py-2 text-right">Products</th><th className="px-3 py-2 text-right">Bikri</th>
@@ -375,7 +401,7 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
           <p className="mt-4 text-[0.8125rem] text-slate-500">Shortcuts: <b>/</b> dhoondein · <b>N</b> nayi {config.one}</p>
         </Modal>
       )}
-    </div>
+    </PageShell>
   );
 }
 

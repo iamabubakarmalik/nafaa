@@ -118,7 +118,7 @@ function KhataBook() {
   const month = summary.data?.thisMonth;
 
   return (
-    <div className="mx-auto w-full max-w-[96rem] space-y-4 pb-12">
+    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
       {act && <KhataActionModal action={act.action} customer={act.customer} money={money} onClose={() => setAct(null)} onDone={done} />}
       {picking && <CustomerPicker title={picking === 'opening' ? 'Kis ka purana khata?' : 'Kis ko udhaar?'} money={money} onClose={() => setPicking(null)} onPick={(c) => { setAct({ action: picking, customer: c }); setPicking(null); }} />}
       {wizard && <ReminderWizard customers={wizard} shop={shop} money={money} onClose={() => setWizard(null)} />}

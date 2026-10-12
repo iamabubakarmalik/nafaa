@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import {
   CANVAS_TONES, industryIdentity, LATIN_FONTS, TEXT_SCALES, URDU_FONTS,
-  type CanvasTone, type Density, type Radius, type SidebarMode, type SidebarStyle, type TextScale, type ThemeMode,
+  type CanvasTone, type Density, type PageWidth, type Radius, type SidebarMode, type SidebarStyle, type TextScale, type ThemeMode,
 } from '@/design-system';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { cn } from '@core/lib/cn';
@@ -64,6 +64,22 @@ function CornerVisual({ radius }: { radius: Radius }) {
     <div className="flex h-16 items-center justify-center gap-2">
       <span className="h-9 w-14 border-2 border-brand-500 bg-brand-50" style={{ borderRadius: r }} />
       <span className="h-7 w-10 bg-brand-600" style={{ borderRadius: r }} />
+    </div>
+  );
+}
+
+/** A screen with the content block at the chosen width. */
+function WidthVisual({ width }: { width: PageWidth }) {
+  const w = width === 'normal' ? '62%' : width === 'wide' ? '80%' : '96%';
+  return (
+    <div className="flex h-16 items-stretch gap-1 rounded-md bg-slate-100 p-1.5 ring-1 ring-slate-200">
+      <span className="w-2.5 shrink-0 rounded-sm bg-slate-300" />
+      <div className="flex flex-1 justify-center">
+        <div className="flex flex-col gap-1" style={{ width: w }}>
+          <span className="h-3 rounded-sm bg-brand-500" />
+          <span className="flex-1 rounded-sm bg-white ring-1 ring-slate-200" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -229,6 +245,14 @@ export default function AppearancePage() {
                 label: t.label,
                 visual: <div className="flex h-14 items-center justify-center font-semibold text-slate-800" style={{ fontSize: `${(t.rootPercent / 100) * 1.25}rem` }}>Aa</div>,
               }))} />
+          </SettingCard>
+
+          <SettingCard title="Page width" description="Bari screen par page kitna phaile — har page par ek jaisa" source={ed.sourceOf('pageWidth')} onReset={resetFor('pageWidth')}>
+            <ChoiceGrid<PageWidth> label="Page width" columns={3} value={a.pageWidth} onChange={(v) => ed.set('pageWidth', v)} options={[
+              { value: 'normal', label: 'Normal', description: 'Parhne me aasaan, beech me', visual: <WidthVisual width="normal" /> },
+              { value: 'wide', label: 'Chauri', description: 'Sab se behtar (default)', visual: <WidthVisual width="wide" /> },
+              { value: 'full', label: 'Poori screen', description: 'Bari screen par zyada data', visual: <WidthVisual width="full" /> },
+            ]} />
           </SettingCard>
 
           <div className="grid gap-5 md:grid-cols-2">

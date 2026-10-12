@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { AlertTriangle, Boxes, CalendarClock, ChevronDown, ClipboardList, PackagePlus, Plus, Save, ScanLine, Search, Trash2, Truck, UserPlus, Wheat, X,
   GraduationCap, Wallet, Calculator, Ruler,
 } from 'lucide-react';
-import { Button, Modal, PageHero, Segmented, heroButton, heroIconButton } from '@/design-system/components';
+import { Button, Modal, PageHero, PageShell, Segmented, heroButton, heroIconButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -128,7 +128,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
   const order = bill.mode === 'order';
 
   return (
-    <div className="space-y-4 pb-24">
+    <PageShell className="pb-24">
       <PageHero
         title={order ? 'Naya order' : 'Nayi kharidari'}
         chip={<><Truck /> {order ? 'Supplier ko order — maal baad me' : 'Maal aa gaya — stock abhi barhega'}</>}
@@ -357,7 +357,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
         <QuickSupplierModal initialName={newSupplier} onClose={() => setNewSupplier(null)}
           onCreated={(s) => { setNewSupplier(null); qc.invalidateQueries({ queryKey: ['suppliers'] }); setBill({ ...bill, supplierId: s.id, supplierName: s.name }); }} />
       )}
-    </div>
+    </PageShell>
   );
 }
 

@@ -1,771 +1,405 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+/**
+ * Stock movements: every unit that came in or went out, a page at a time
+ * from the server, grouped by business day. Filters (period, type group,
+ * direction, person, product, search) live in the URL, so a filtered view
+ * can be shared or bookmarked. A second tab shows analytics for the same
+ * filter.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Activity, ArrowDown, ArrowUp, Search, X, Calendar, Package,
-  TrendingUp, TrendingDown, FileSpreadsheet, RefreshCw, BarChart3,
-  Printer, GraduationCap, CheckCircle2, Info, Filter, Zap,
+  Activity, ArrowDownRight, ArrowDownUp, ArrowUpRight, BarChart3, CalendarRange, ExternalLink, FileSpreadsheet, GraduationCap, Hash,
+  History, Layers, MousePointerClick, Package, PackageOpen, Rows3, Scale, User, Users, X,
 } from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print';
 import {
-  ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
-  XAxis, YAxis, Tooltip, CartesianGrid, Legend,
-} from 'recharts';
-import { stockMovementsApi, type StockMovementType } from '@modules/inventory/stock-movements/api/stock-movements.api';
-import { Button } from '@/design-system/components';
-import { useAuthStore } from '@core/stores/auth.store';
-import { useBusinessDayStart, setToDayStart, setToDayEnd } from '@core/lib/business-day';
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, PageHero, PageShell, SearchField, ViewTabs, heroButton, heroIconButton,
+  resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { businessDayKey, useBusinessDayStart } from '@core/lib/business-day';
+import type { DatePreset } from '@core/lib/dateRange';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { purchasesApi } from '@modules/purchasing/purchases/api/purchases.api';
+import { stockMovementsApi, type MovementQuery, type StockMovement } from '../api/stock-movements.api';
+import { MOVEMENT_GROUPS, MOVEMENT_META, fmtQty, movementMeta, type MovementGroup } from '../components/movementMeta';
+import { MovementAnalytics } from '../components/MovementAnalytics';
+import { downloadMovementsCsv, movementsDoc } from '../components/print';
 
-/* ═════════════════════════════════════════════════════════════
-   NAFAA STOCK MOVEMENTS — GLOBAL FULL BEST v3
-   ─────────────────────────────────────────────────────────────
-   🌍 GLOBAL — har industry ka ledger same (IN/OUT rows)
-   🌙 Dark mode complete
-   🎓 Teacher modal — "audit trail kya hai" universal
-   ⌨️  / = search • R = refresh • Esc = teacher band
-   📅 Smart date presets • 🖨️ Print/PDF perfect
-   ═════════════════════════════════════════════════════════════ */
+type Direction = 'all' | 'in' | 'out';
+const PAGE_SIZES = ['50', '100', '200'] as const;
+const DEFAULT_PRESET: DatePreset = 'month';
+/** Sent for "Sab" so the server does not fall back to its 30-day default. */
+const ALL_FROM = '2000-01-01';
 
-const formatDate = (v: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
-
-const formatDateShort = (v: string) =>
-  new Intl.DateTimeFormat('en-PK', { month: 'short', day: 'numeric' }).format(new Date(v));
-
-const formatQty = (q: number) => q.toFixed(q % 1 === 0 ? 0 : 2);
-
-const typeConfig: Record<StockMovementType, { label: string; light: string; dark: string; icon: any; isPositive: boolean; color: string; emoji: string }> = {
-  PURCHASE_IN: {
-    label: 'Purchase',
-    light: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    dark: 'dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40',
-    icon: ArrowUp, isPositive: true, color: '#10b981', emoji: '📦',
-  },
-  SALE_OUT: {
-    label: 'Sale',
-    light: 'bg-rose-100 text-rose-700 border-rose-200',
-    dark: 'dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/40',
-    icon: ArrowDown, isPositive: false, color: '#ef4444', emoji: '💰',
-  },
-  ADJUSTMENT_IN: {
-    label: 'Adjustment +',
-    light: 'bg-blue-100 text-blue-700 border-blue-200',
-    dark: 'dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40',
-    icon: ArrowUp, isPositive: true, color: '#3b82f6', emoji: '➕',
-  },
-  ADJUSTMENT_OUT: {
-    label: 'Adjustment −',
-    light: 'bg-orange-100 text-orange-700 border-orange-200',
-    dark: 'dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/40',
-    icon: ArrowDown, isPositive: false, color: '#f97316', emoji: '➖',
-  },
-  RETURN_IN: {
-    label: 'Return',
-    light: 'bg-violet-100 text-violet-700 border-violet-200',
-    dark: 'dark:bg-violet-500/20 dark:text-violet-300 dark:border-violet-500/40',
-    icon: ArrowUp, isPositive: true, color: '#8b5cf6', emoji: '↩️',
-  },
-  OPENING_BALANCE: {
-    label: 'Opening',
-    light: 'bg-slate-100 text-slate-700 border-slate-200',
-    dark: 'dark:bg-ink-700 dark:text-ink-200 dark:border-ink-600',
-    icon: ArrowUp, isPositive: true, color: '#64748b', emoji: '🎬',
-  },
-};
-
-type DateFilter = 'all' | 'today' | 'yesterday' | 'week' | 'month';
-
-const DATE_PRESETS: { v: DateFilter; l: string }[] = [
-  { v: 'today',     l: 'Aaj' },
-  { v: 'yesterday', l: 'Kal' },
-  { v: 'week',      l: '7 Din' },
-  { v: 'month',     l: '30 Din' },
-  { v: 'all',       l: 'Sab' },
-];
+/** "Kharidari: supplier se maal aaya. …" for every type in one direction. */
+const describe = (dir: 'in' | 'out') =>
+  `${Object.values(MOVEMENT_META).filter((x) => x.dir === dir).map((x) => `${x.label}: ${x.hint.toLowerCase()}`).join('. ')}.`;
+const timeOf = (v: string) => new Date(v).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' });
+const dayTitle = (key: string, today: string, yesterday: string) =>
+  key === today ? 'Aaj' : key === yesterday ? 'Kal' : new Date(`${key}T12:00:00`).toLocaleDateString('en-PK', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
 export default function StockMovementsPage() {
-  const tenantName = useAuthStore((s) => s.tenant?.name);
-  const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
+  const startHour = useBusinessDayStart();
+  const { cost: money } = useMasked();
+  const guide = usePageGuide();
+  const [sp, setSp] = useSearchParams();
+
+  const setParams = (patch: Record<string, string | null>) => setSp((prev) => {
+    const next = new URLSearchParams(prev);
+    for (const [k, v] of Object.entries(patch)) { if (v) next.set(k, v); else next.delete(k); }
+    return next;
+  }, { replace: true });
+
+  const tab = sp.get('tab') === 'analytics' ? 'analytics' : 'ledger';
+  const range: DateRangeValue = { preset: (sp.get('p') as DatePreset) || DEFAULT_PRESET, custom: { from: sp.get('from') ?? '', to: sp.get('to') ?? '' } };
+  const groups = (sp.get('g') ?? '').split(',').filter((g): g is MovementGroup => MOVEMENT_GROUPS.some((x) => x.id === g));
+  const direction = (['in', 'out'].includes(sp.get('dir') ?? '') ? sp.get('dir') : 'all') as Direction;
+  const userId = sp.get('user') ?? '';
+  const productId = sp.get('product') ?? '';
+  const query = sp.get('q') ?? '';
+  const size = Number(PAGE_SIZES.find((s) => s === sp.get('size')) ?? 50);
+
   const searchRef = useRef<HTMLInputElement>(null);
+  const [search, setSearch] = useState(query);
+  const [page, setPage] = useState(1);
+  useEffect(() => { setSearch(query); }, [query]);
+  useEffect(() => {
+    const t = setTimeout(() => { if (search.trim() !== query) setParams({ q: search.trim() || null }); }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
 
-  /* Dukaan ka apna din — raat 12 baje band hone wali dukaan ke
-
-     liye raat 1 baje ki bikri abhi "aaj" ki hai */
-
-  const bdStart = useBusinessDayStart();
-
-  const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<StockMovementType | 'all'>('all');
-  const [dateFilter, setDateFilter] = useState<DateFilter>('week');
-  const [showTeacher, setShowTeacher] = useState(false);
-
-  const { data: movements = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['stock-movements'],
-    queryFn: stockMovementsApi.list,
-  });
-
-  const filtered = useMemo(() => {
-    let result = [...movements];
-    const q = search.toLowerCase().trim();
-    if (q) {
-      result = result.filter((m: any) =>
-        m.product?.name?.toLowerCase().includes(q) ||
-        (m.reference || '').toLowerCase().includes(q) ||
-        (m.product?.sku || '').toLowerCase().includes(q) ||
-        (m.note || '').toLowerCase().includes(q),
-      );
-    }
-    if (typeFilter !== 'all') result = result.filter((m) => m.type === typeFilter);
-    if (dateFilter !== 'all') {
-      const now = new Date();
-      let cutoff = new Date();
-      let end: Date | null = null;
-      if (dateFilter === 'today') {
-        setToDayStart(cutoff, bdStart);
-      } else if (dateFilter === 'yesterday') {
-        cutoff.setDate(now.getDate() - 1);
-        setToDayStart(cutoff, bdStart);
-        end = new Date(cutoff); setToDayEnd(end, bdStart);
-      } else if (dateFilter === 'week') {
-        cutoff.setDate(now.getDate() - 7);
-      } else if (dateFilter === 'month') {
-        cutoff.setMonth(now.getMonth() - 1);
-      }
-      result = result.filter((m: any) => {
-        const d = new Date(m.createdAt);
-        if (end) return d >= cutoff && d <= end;
-        return d >= cutoff;
-      });
-    }
-    return result;
-  }, [movements, search, typeFilter, dateFilter]);
-
-  const stats = useMemo(() => {
-    const today = new Date().toDateString();
-    const todayMovements = movements.filter((m: any) => new Date(m.createdAt).toDateString() === today);
-    const totalIn = filtered.filter((m: any) => m.quantity > 0).reduce((s: number, m: any) => s + m.quantity, 0);
-    const totalOut = filtered.filter((m: any) => m.quantity < 0).reduce((s: number, m: any) => s + Math.abs(m.quantity), 0);
-    const netChange = totalIn - totalOut;
-    // Biggest movement
-    const biggest = [...filtered].sort((a: any, b: any) => Math.abs(b.quantity) - Math.abs(a.quantity))[0];
-    return {
-      total: movements.length,
-      filtered: filtered.length,
-      today: todayMovements.length,
-      totalIn, totalOut, netChange,
-      biggest,
-    };
-  }, [movements, filtered]);
-
-  // 7-day trend
-  const trendData = useMemo(() => {
-    const buckets: Record<string, { date: string; label: string; in: number; out: number }> = {};
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      setToDayStart(d, bdStart);
-      const key = d.toISOString().slice(0, 10);
-      buckets[key] = { date: key, label: formatDateShort(d.toISOString()), in: 0, out: 0 };
-    }
-    for (const m of movements as any[]) {
-      const key = new Date(m.createdAt).toISOString().slice(0, 10);
-      if (buckets[key]) {
-        if (m.quantity > 0) buckets[key].in += m.quantity;
-        else buckets[key].out += Math.abs(m.quantity);
-      }
-    }
-    return Object.values(buckets);
-  }, [movements]);
-
-  // Type breakdown
-  const typeBreakdown = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const m of movements as any[]) {
-      map.set(m.type, (map.get(m.type) || 0) + 1);
-    }
-    return Array.from(map.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([type, count]) => ({
-        name: typeConfig[type as StockMovementType]?.label || type,
-        value: count,
-        color: typeConfig[type as StockMovementType]?.color || '#64748b',
-      }));
-  }, [movements]);
-
-  const typeCounts = useMemo(() => {
-    const m: Record<string, number> = { all: movements.length };
-    (movements as any[]).forEach((mov) => { m[mov.type] = (m[mov.type] || 0) + 1; });
-    return m;
-  }, [movements]);
-
-  const exportCSV = () => {
-    if (filtered.length === 0) return;
-    const summary = [
-      [`Stock Movements — ${tenantName || 'Nafaa'}`],
-      [`Shop: ${shopName || 'All'}  •  Generated: ${new Date().toLocaleString('en-PK')}`],
-      [`Total: ${filtered.length}  •  IN: +${formatQty(stats.totalIn)}  •  OUT: -${formatQty(stats.totalOut)}  •  Net: ${stats.netChange > 0 ? '+' : ''}${formatQty(stats.netChange)}`],
-      [''],
-    ];
-    const headers = ['Date', 'Type', 'Product', 'SKU', 'Quantity', 'Balance After', 'Reference', 'Note'];
-    const rows = filtered.map((m: any) => [
-      new Date(m.createdAt).toLocaleString('en-PK'),
-      typeConfig[m.type as StockMovementType]?.label || m.type,
-      m.product?.name || '',
-      m.product?.sku || '',
-      formatQty(m.quantity),
-      formatQty(m.balanceAfter),
-      m.reference || '',
-      m.note || '',
-    ]);
-    const csv = [...summary, headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `stock-movements-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const period = resolveRange(range, startHour);
+  const today = businessDayKey(new Date(), startHour);
+  const types = groups.flatMap((g) => MOVEMENT_GROUPS.find((x) => x.id === g)!.types).join(',');
+  // A product's history is all time unless a period is picked.
+  const dates = period ?? (productId ? {} : { from: ALL_FROM, to: today });
+  const q: MovementQuery = {
+    ...dates, type: types || undefined, direction, userId: userId || undefined, productId: productId || undefined, search: query || undefined,
   };
+  const qKey = JSON.stringify(q);
+  useEffect(() => { setPage(1); }, [qKey, size]);
 
-  /* Keyboard shortcuts */
+  const listQ = useQuery({ queryKey: ['stock-movements', q, page, size], queryFn: () => stockMovementsApi.list({ ...q, page, limit: size }), placeholderData: (prev) => prev });
+  // Chip counts ignore the type filter so every chip keeps its number.
+  const countsQ = useQuery({
+    queryKey: ['stock-movements', 'counts', { ...q, type: undefined }],
+    queryFn: () => stockMovementsApi.list({ ...q, type: undefined, page: 1, limit: 1 }),
+    enabled: !!types, placeholderData: (prev) => prev,
+  });
+  const analyticsQ = useQuery({ queryKey: ['stock-movements', 'analytics', q], queryFn: () => stockMovementsApi.analytics(q), staleTime: 30_000, placeholderData: (prev) => prev });
+  const peopleQ = useQuery({ queryKey: ['stock-movements', 'people'], queryFn: stockMovementsApi.people, staleTime: 5 * 60_000 });
+
+  const data = listQ.data;
+  const byType = (types ? countsQ.data : data)?.totals.byType ?? [];
+  const groupCount = (g: (typeof MOVEMENT_GROUPS)[number]) => byType.filter((x) => g.types.includes(x.type)).reduce((s, x) => s + x.count, 0);
+  const allCount = byType.reduce((s, x) => s + x.count, 0);
+
+  // The product strip keeps the name once loaded, even if a filter empties the list.
+  const [productInfo, setProductInfo] = useState<StockMovement['product'] | null>(null);
+  const loadedProduct = data?.items.find((m) => m.product.id === productId)?.product;
+  useEffect(() => { if (loadedProduct) setProductInfo(loadedProduct); }, [loadedProduct]);
+  const product = productId ? (loadedProduct ?? (productInfo?.id === productId ? productInfo : null)) : null;
+
+  const people = peopleQ.data ?? [];
+  const personName = people.find((p) => p.id === userId)?.fullName;
+  const filtersOn = groups.length > 0 || direction !== 'all' || !!userId || !!query || !!productId;
+  const periodText = period ? (period.from === period.to ? period.from : `${period.from} — ${period.to}`) : productId ? 'Sab history' : 'Sab tareekhen';
+  const filterLabels = [
+    ...groups.map((g) => MOVEMENT_GROUPS.find((x) => x.id === g)!.label),
+    ...(direction !== 'all' ? [direction === 'in' ? 'Sirf aaya' : 'Sirf gaya'] : []),
+    ...(personName ? [personName] : []),
+    ...(product ? [product.name] : []),
+    ...(query ? [`"${query}"`] : []),
+  ];
+
+  const clearFilters = () => { setSearch(''); setParams({ g: null, dir: null, user: null, product: null, q: null }); };
+  const toggleGroup = (g: MovementGroup) => setParams({ g: (groups.includes(g) ? groups.filter((x) => x !== g) : [...groups, g]).join(',') || null });
+  const pickProduct = (id: string) => { setParams({ product: id, p: 'all', from: null, to: null }); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const pickReference = (ref: string) => { setSearch(ref); setParams({ q: ref }); };
+
+  const printDoc = async () => movementsDoc(await stockMovementsApi.list({ ...q, page: 1, limit: 500 }), periodText, filterLabels);
+  const exportCsv = () => data && downloadMovementsCsv(data.items, `stock-movements-${period?.from ?? 'sab'}-${period?.to ?? today}.csv`);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showTeacher) return setShowTeacher(false);
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
-      if (e.key.toLowerCase() === 'r') { e.preventDefault(); refetch(); }
+      if (e.metaKey || e.ctrlKey || isTyping() || isDialogOpen()) return;
+      if (e.key === '/') { e.preventDefault(); setParams({ tab: null }); setTimeout(() => searchRef.current?.focus(), 0); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showTeacher, refetch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  /* Body scroll lock */
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = showTeacher ? 'hidden' : prev;
-    return () => { document.body.style.overflow = prev; };
-  }, [showTeacher]);
+  // Rows grouped by business day, newest first, with the day's totals.
+  const days = useMemo(() => {
+    const out: Array<{ key: string; rows: StockMovement[]; valueIn: number; valueOut: number }> = [];
+    for (const m of data?.items ?? []) {
+      const key = businessDayKey(new Date(m.createdAt), startHour);
+      let d = out[out.length - 1];
+      if (!d || d.key !== key) { d = { key, rows: [], valueIn: 0, valueOut: 0 }; out.push(d); }
+      d.rows.push(m);
+      if (m.value >= 0) d.valueIn += m.value; else d.valueOut -= m.value;
+    }
+    return out;
+  }, [data, startHour]);
+  const yesterday = useMemo(() => { const d = new Date(); d.setDate(d.getDate() - 1); return businessDayKey(d, startHour); }, [startHour]);
 
-  const hasFilters = !!search || typeFilter !== 'all' || dateFilter !== 'week';
-  const clearFilters = () => { setSearch(''); setTypeFilter('all'); setDateFilter('week'); };
-  const printDate = new Date().toLocaleString('en-PK', { dateStyle: 'full', timeStyle: 'short' });
+  // Latest balance per branch, only when page one holds the product's newest unfiltered rows.
+  const nowStock = useMemo(() => {
+    if (!product || !data || page !== 1 || period || groups.length || direction !== 'all' || userId || query) return null;
+    const seen = new Map<string, { name: string; balance: number }>();
+    for (const m of data.items) {
+      const k = m.shop?.id ?? '-';
+      if (!seen.has(k)) seen.set(k, { name: m.shop?.name ?? 'Purana stock', balance: m.balanceAfter });
+    }
+    return [...seen.values()];
+  }, [product, data, page, period, groups.length, direction, userId, query]);
+
+  const a = analyticsQ.data?.totals;
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10 print:space-y-3">
-      {showTeacher && <MovementsTeacher onClose={() => setShowTeacher(false)} />}
+    <PageShell>
+      <PageHero
+        title="Stock ka hisaab"
+        chip={<><Activity /> {periodText}</>}
+        meta="Har aaya aur gaya maal, ek jagah"
+        busy={(listQ.isFetching && !listQ.isLoading) || (analyticsQ.isFetching && !analyticsQ.isLoading)}
+        loading={listQ.isLoading}
+        actions={<>
+          <button type="button" onClick={exportCsv} disabled={!data?.items.length} title="Is safhe ki entries CSV me" className={heroButton}><FileSpreadsheet className="h-4 w-4" /> CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!data?.items.length} /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: 'Entries', value: (data?.total ?? 0).toLocaleString('en-PK') },
+          { label: 'Aaya', value: `+${fmtQty(data?.totals.qtyIn ?? 0)}`, hint: a ? money(a.valueIn) : undefined },
+          { label: 'Gaya', value: `−${fmtQty(data?.totals.qtyOut ?? 0)}`, hint: a ? money(a.valueOut) : undefined },
+          { label: 'Farq (cost)', value: a ? money(a.net) : '—' },
+        ]}
+      />
 
-      {/* ═══ PRINT-ONLY HEADER ═══ */}
-      <div className="hidden print:block">
-        <div className="border-b-4 border-blue-600 pb-3 mb-4">
-          <h1 className="text-2xl font-black text-slate-900 leading-tight">
-            📊 {tenantName || 'My Store'} — Stock Movements
-          </h1>
-          <p className="text-xs text-slate-600 font-semibold mt-1">
-            {shopName ? `Shop: ${shopName}  •  ` : ''}{filtered.length} movements • IN: +{formatQty(stats.totalIn)} • OUT: -{formatQty(stats.totalOut)}
-          </p>
-          <p className="text-xs text-slate-500 mt-0.5">Generated: {printDate}</p>
-        </div>
+      {/* Filters */}
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); if (!v) setParams({ q: null }); }}
+          placeholder="Cheez, SKU, barcode, bill # ya note…" label="Dhoondein" />}
+        chips={filtersOn ? <>
+          {groups.map((g) => <FilterChip key={g} onRemove={() => toggleGroup(g)}>{MOVEMENT_GROUPS.find((x) => x.id === g)!.label}</FilterChip>)}
+          {direction !== 'all' && <FilterChip onRemove={() => setParams({ dir: null })}>{direction === 'in' ? 'Sirf aaya' : 'Sirf gaya'}</FilterChip>}
+          {userId && <FilterChip onRemove={() => setParams({ user: null })}>{personName ?? 'Kis ne'}</FilterChip>}
+          {productId && <FilterChip onRemove={() => setParams({ product: null })}>{product?.name ?? 'Ek cheez'}</FilterChip>}
+          {query && <FilterChip onRemove={() => { setSearch(''); setParams({ q: null }); }}>"{query}"</FilterChip>}
+        </> : undefined}
+        onClear={clearFilters}>
+        <DateRangeMenu value={range} startHour={startHour} defaultPreset={DEFAULT_PRESET}
+          onChange={(v) => setParams({ p: v.preset === DEFAULT_PRESET ? null : v.preset, from: v.preset === 'custom' ? v.custom.from : null, to: v.preset === 'custom' ? v.custom.to : null })} />
+        <FilterMenu icon={ArrowDownUp} label="Aaya ya gaya" value={direction} active={direction !== 'all'} onChange={(v) => setParams({ dir: v === 'all' ? null : v })}
+          options={[{ value: 'all', label: 'Sab' }, { value: 'in', label: 'Aaya', icon: ArrowDownRight, color: '#16a34a' }, { value: 'out', label: 'Gaya', icon: ArrowUpRight, color: '#e11d48' }]} />
+        <FilterMenu icon={Users} label="Kis ne" value={userId} active={!!userId} onChange={(v) => setParams({ user: v || null })} width="w-72" align="right"
+          options={[{ value: '', label: 'Sab log' }, ...people.map((p) => ({ value: p.id, label: p.fullName }))]} />
+      </FilterBar>
+
+      {/* Type groups with counts */}
+      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]">
+        <Chip active={!groups.length} onClick={() => setParams({ g: null })} label="Sab qism" count={allCount} icon={Layers} color="#64748b" />
+        {MOVEMENT_GROUPS.map((g) => <Chip key={g.id} active={groups.includes(g.id)} onClick={() => toggleGroup(g.id)} label={g.label} count={groupCount(g)} icon={g.icon} color={g.color} />)}
       </div>
 
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-ink-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
-        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
+      {/* Tabs */}
+      <ViewTabs value={tab} onChange={(v) => setParams({ tab: v === 'ledger' ? null : v })}
+        hint={<><Kbd>/</Kbd> dhoondein · <Kbd>G</Kbd> guide</>}
+        tabs={[{ id: 'ledger', label: 'Ledger', icon: History, count: data?.total ?? null }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+      {productId && (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 px-4 py-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand-700 ring-1 ring-brand-200"><Package className="h-5 w-5" /></span>
           <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
-              <Activity className="h-3.5 w-3.5 text-amber-300" /> Audit Trail
-              {shopName && (
-                <>
-                  <span className="opacity-40">•</span>
-                  <span className="text-cyan-200">🏪 {shopName}</span>
-                </>
-              )}
-            </div>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">📊 Stock Movements</h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-white/90 font-semibold">
-              <strong className="text-cyan-200">{stats.total}</strong> total
-              <span className="opacity-50 mx-1.5">•</span>
-              <strong className="text-amber-300">{stats.today}</strong> aaj
-              <span className="opacity-50 mx-1.5">•</span>
-              Net <strong className={stats.netChange >= 0 ? 'text-emerald-300' : 'text-rose-300'}>
-                {stats.netChange > 0 ? '+' : ''}{formatQty(stats.netChange)}
-              </strong>
+            <p className="truncate font-semibold text-slate-900">{product?.name ?? 'Ek cheez'}</p>
+            <p className="text-[0.75rem] text-slate-600">
+              {product?.sku ? `${product.sku} · ` : ''}{period ? `Sirf ${periodText} — sab history ke liye muddat "Sab" karein` : 'Is cheez ki sab history, pehle din se'}
             </p>
-          </div>
-          <div className="flex gap-2 flex-wrap items-center shrink-0">
-            <button
-              onClick={() => setShowTeacher(true)}
-              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition"
-              title="Kaise kaam karta hai?"
-            >
-              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Guide</span>
-            </button>
-            <button
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md disabled:opacity-50 transition"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
-            >
-              <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Print</span>
-            </button>
-            <button
-              onClick={exportCSV}
-              disabled={filtered.length === 0}
-              className="h-11 px-3 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-2xl transition disabled:opacity-50"
-            >
-              <FileSpreadsheet className="h-4 w-4" /> <span className="hidden sm:inline">CSV</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Biggest movement callout */}
-        {stats.biggest && (
-          <div className="relative mt-4 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-3 flex items-center gap-3 flex-wrap">
-            <div className="h-9 w-9 rounded-xl bg-amber-500 flex items-center justify-center shrink-0 shadow-lg">
-              <Zap className="h-4 w-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">Sab se bara movement</div>
-              <div className="font-extrabold text-sm truncate">
-                {stats.biggest.product?.name} — <span className={stats.biggest.quantity > 0 ? 'text-emerald-300' : 'text-rose-300'}>
-                  {stats.biggest.quantity > 0 ? '+' : ''}{formatQty(stats.biggest.quantity)} {stats.biggest.product?.unit}
-                </span>
-                <span className="text-white/60 text-xs font-semibold ml-1">
-                  ({typeConfig[stats.biggest.type as StockMovementType]?.label})
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Keyboard hints */}
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
-          <Kbd>/</Kbd><span className="text-white/60">Search</span>
-          <span className="text-white/30 mx-1">•</span>
-          <Kbd>R</Kbd><span className="text-white/60">Refresh</span>
-        </div>
-      </section>
-
-      {/* ═══ KPIs ═══ */}
-      <section className="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3">
-        <Kpi icon={Calendar} tone="blue" label="Aaj" value={stats.today} sub="Movements today" />
-        <Kpi icon={TrendingUp} tone="emerald" label="Stock IN" value={`+${formatQty(stats.totalIn)}`} sub="Filtered range" />
-        <Kpi icon={TrendingDown} tone="rose" label="Stock OUT" value={`−${formatQty(stats.totalOut)}`} sub="Filtered range" />
-        <Kpi
-          icon={Activity} tone="violet"
-          label="Net Change"
-          value={`${stats.netChange > 0 ? '+' : ''}${formatQty(stats.netChange)}`}
-          sub={stats.netChange > 0 ? '📈 Stock barh raha' : stats.netChange < 0 ? '📉 Stock kam ho raha' : 'Balanced'}
-          isPositive={stats.netChange > 0}
-          isNegative={stats.netChange < 0}
-        />
-      </section>
-
-      {/* ═══ CHARTS ═══ */}
-      {movements.length > 0 && (
-        <section className="grid lg:grid-cols-[1.5fr_1fr] gap-4 print:hidden">
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white">7-Din Movement Trend</h3>
-                <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Stock IN vs OUT daily</p>
-              </div>
-              <BarChart3 className="h-5 w-5 text-blue-500" />
-            </div>
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendData}>
-                  <defs>
-                    <linearGradient id="inGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity={0.5} />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="outGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#ef4444" stopOpacity={0.5} />
-                      <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:opacity-20" />
-                  <XAxis dataKey="label" stroke="#64748b" fontSize={11} />
-                  <YAxis stroke="#64748b" fontSize={11} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0' }} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Area type="monotone" dataKey="in" name="Stock IN" stroke="#10b981" fill="url(#inGrad)" strokeWidth={2.5} />
-                  <Area type="monotone" dataKey="out" name="Stock OUT" stroke="#ef4444" fill="url(#outGrad)" strokeWidth={2.5} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white">Type Breakdown</h3>
-                <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Movement types split</p>
-              </div>
-              <Filter className="h-5 w-5 text-violet-500" />
-            </div>
-            {typeBreakdown.length > 0 ? (
-              <div className="h-[260px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={typeBreakdown}
-                      cx="50%" cy="45%" outerRadius={85} innerRadius={42}
-                      dataKey="value"
-                      label={(entry: any) => `${entry.value}`}
-                      labelLine={false}
-                    >
-                      {typeBreakdown.map((entry, idx) => (
-                        <Cell key={`cell-${idx}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: 12 }} />
-                    <Legend wrapperStyle={{ fontSize: 10, paddingTop: 12 }} iconType="circle" />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-[260px] flex items-center justify-center text-sm text-slate-500 dark:text-ink-400 font-semibold">
-                Koi data nahi
-              </div>
+            {nowStock && nowStock.length > 0 && (
+              <p className="mt-1 flex flex-wrap gap-x-3 text-[0.75rem] text-slate-700">
+                <span className="font-semibold">Abhi stock:</span>
+                {nowStock.map((s) => <span key={s.name} className="tabular-nums">{s.name} <b>{fmtQty(s.balance)}</b> {product?.unit}</span>)}
+              </p>
             )}
           </div>
-        </section>
+          <Link to={`/products/${productId}`} className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">Cheez kholein <ExternalLink className="h-3.5 w-3.5" /></Link>
+          <button type="button" onClick={() => setParams({ product: null })} aria-label="Product filter hatayein" className="rounded-full p-1 text-slate-500 hover:bg-white hover:text-slate-800"><X className="h-4 w-4" /></button>
+        </div>
       )}
 
-      {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3 print:hidden">
-        <div className="flex gap-2 flex-wrap">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              ref={searchRef}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Product, SKU, reference, note... (/ shortcut)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
-                <X className="h-4 w-4 text-slate-400" />
-              </button>
-            )}
+      {tab === 'analytics' ? (
+        <MovementAnalytics data={analyticsQ.data} loading={analyticsQ.isLoading} money={money} />
+      ) : listQ.isLoading ? (
+        <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">
+          {[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="h-[4.5rem] animate-pulse rounded-xl bg-slate-100" />)}
+        </div>
+      ) : listQ.isError ? (
+        <div className="rounded-3xl bg-rose-50 p-6 text-center ring-1 ring-rose-200">
+          <p className="font-semibold text-rose-800">Entries load nahi ho sakin</p>
+          <Button className="mt-3" variant="secondary" size="sm" onClick={() => listQ.refetch()}>Dobara koshish</Button>
+        </div>
+      ) : !data?.items.length ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <PackageOpen className="mx-auto h-10 w-10 text-slate-300" />
+          {filtersOn ? (<>
+            <p className="mt-3 font-semibold text-slate-900">Is filter me koi entry nahi</p>
+            <p className="mt-1 text-sm text-slate-500">Muddat lambi karein ya filter hatayein</p>
+            <Button className="mt-4" variant="secondary" onClick={clearFilters}>Filter hatayein</Button>
+          </>) : (<>
+            <p className="mt-3 font-semibold text-slate-900">Is muddat me stock nahi hila</p>
+            <p className="mt-1 text-sm text-slate-500">Bikri, kharidari, wapsi, adjustment aur transfer yahan khud darj hote hain</p>
+            {range.preset !== 'all' && <Button className="mt-4" variant="secondary" onClick={() => setParams({ p: 'all', from: null, to: null })}>Sab tareekhen dekhein</Button>}
+          </>)}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {days.map((d) => (
+            <section key={d.key} className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+              <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 sm:px-5">
+                <h2 className="text-[0.875rem] font-semibold text-slate-900">{dayTitle(d.key, today, yesterday)} <span className="font-normal text-slate-500">· {d.rows.length}</span></h2>
+                <p className="text-[0.75rem] tabular-nums text-slate-500">
+                  <span className="text-emerald-700">Aaya {money(d.valueIn)}</span> · <span className="text-rose-700">Gaya {money(d.valueOut)}</span>
+                </p>
+              </header>
+              <ul className="divide-y divide-slate-100">
+                {d.rows.map((m) => <Row key={m.id} m={m} money={money} productFiltered={!!productId} onProduct={pickProduct} onReference={pickReference} />)}
+              </ul>
+            </section>
+          ))}
+        </div>
+      )}
+
+      {tab === 'ledger' && data && data.total > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[0.8125rem] text-slate-500">{(page - 1) * size + 1}–{Math.min(page * size, data.total)} / {data.total.toLocaleString('en-PK')}</p>
+          <div className="flex items-center gap-2">
+            {data.pages > 1 && <>
+              <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
+              <span className="text-sm text-slate-600">Safha {page} / {data.pages}</span>
+              <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+            </>}
+            <FilterMenu icon={Rows3} label={`${size} fi safha`} value={String(size)} align="right" width="w-48"
+              onChange={(v) => setParams({ size: v === '50' ? null : v })} options={PAGE_SIZES.map((s) => ({ value: s, label: `${s} entries` }))} />
           </div>
         </div>
+      )}
 
-        {/* Date presets */}
-        <div className="flex gap-2 flex-wrap items-center">
-          <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1 items-center">
-            <Calendar className="h-3.5 w-3.5 text-slate-400 ml-1.5 shrink-0" />
-            {DATE_PRESETS.map((o) => (
-              <button
-                key={o.v}
-                onClick={() => setDateFilter(o.v)}
-                className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold transition whitespace-nowrap ${
-                  dateFilter === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
-                }`}
-              >
-                {o.l}
-              </button>
-            ))}
-          </div>
-
-          {hasFilters && (
-            <button
-              onClick={clearFilters}
-              className="text-xs font-extrabold text-rose-600 dark:text-rose-400 hover:text-rose-700 inline-flex items-center gap-1 transition"
-            >
-              <X className="h-3 w-3" /> Filters clear
-            </button>
-          )}
-
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
-            {filtered.length} / {movements.length} movements
-          </div>
-        </div>
-
-        {/* Type pills */}
-        <div className="flex gap-1.5 flex-wrap items-center">
-          <button
-            onClick={() => setTypeFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-              typeFilter === 'all' ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 shadow-sm' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
-            }`}
-          >
-            Sab <span className={`ml-1 tabular-nums ${typeFilter === 'all' ? 'opacity-70' : 'text-slate-400 dark:text-ink-500'}`}>{typeCounts.all}</span>
-          </button>
-          {(Object.entries(typeConfig) as [StockMovementType, any][]).map(([key, cfg]) => {
-            const count = typeCounts[key] || 0;
-            if (count === 0) return null;
-            const active = typeFilter === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setTypeFilter(key)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition inline-flex items-center gap-1 border ${
-                  active ? `${cfg.light} ${cfg.dark} shadow-sm ring-2` : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-300 hover:border-slate-300 dark:hover:border-ink-600'
-                }`}
-              >
-                <span>{cfg.emoji}</span>
-                {cfg.label}
-                <span className={`ml-0.5 tabular-nums ${active ? 'opacity-70' : 'text-slate-400 dark:text-ink-500'}`}>{count}</span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ═══ TABLE ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:border-0 print:rounded-none print:shadow-none">
-        <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between flex-wrap gap-2 print:hidden">
-          <div>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Sab Movements</h3>
-            <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
-              {filtered.length} events dikh rahi hain
-            </p>
-          </div>
-        </div>
-
-        {isLoading ? (
-          <div className="p-6 space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="p-12 sm:p-16 text-center">
-            <div className="mx-auto h-16 w-16 rounded-3xl bg-gradient-to-br from-blue-100 to-cyan-200 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center">
-              <Activity className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            </div>
-            <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
-              {hasFilters ? 'Filter me kuch nahi mila' : 'Koi movement record nahi'}
-            </h4>
-            <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">
-              {hasFilters
-                ? 'Date range badhao ya filters clear karo'
-                : 'Sales aur purchases ke saath movements automatic record hote hain — abhi shuruwat karo'}
-            </p>
-            {hasFilters && (
-              <Button variant="secondary" className="mt-4 font-extrabold" onClick={clearFilters}>
-                <X className="h-4 w-4" /> Filters Clear
-              </Button>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm print:text-[0.6875rem]">
-              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
-                <tr>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Type</th>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Product</th>
-                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Quantity</th>
-                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Balance After</th>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Reference</th>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
-                {filtered.map((m: any) => {
-                  const cfg = typeConfig[m.type as StockMovementType] ?? {
-                    label: m.type,
-                    light: 'bg-slate-100 text-slate-700 border-slate-200',
-                    dark: 'dark:bg-ink-700 dark:text-ink-200 dark:border-ink-600',
-                    icon: Package,
-                    isPositive: m.quantity > 0,
-                    color: '#64748b',
-                    emoji: '📦',
-                  };
-                  const Icon = cfg.icon || Package;
-                  const isPositive = m.quantity > 0;
-                  return (
-                    <tr key={m.id} className="hover:bg-blue-50/40 dark:hover:bg-blue-500/5 transition">
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold border ${cfg.light} ${cfg.dark}`}>
-                          <Icon className="h-3 w-3" />
-                          {cfg.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Link to={`/products/${m.productId}`} className="hover:underline">
-                          <div className="font-extrabold text-slate-900 dark:text-ink-white">{m.product?.name}</div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-mono">{m.product?.sku || '—'}</div>
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`font-extrabold text-base tabular-nums ${
-                          isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'
-                        }`}>
-                          {isPositive ? '+' : ''}{formatQty(m.quantity)} <span className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{m.product?.unit}</span>
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-ink-white tabular-nums">
-                        {formatQty(m.balanceAfter)} <span className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{m.product?.unit}</span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-700 dark:text-ink-300 font-mono text-xs">{m.reference || '—'}</td>
-                      <td className="px-4 py-3 text-slate-500 dark:text-ink-400 text-xs font-semibold">{formatDate(m.createdAt)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
-      {/* ═══ PRINT CSS ═══ */}
-      <style>{`
-        @media print {
-          @page { size: A4 landscape; margin: 10mm 8mm; }
-          html, body {
-            background: white !important; color: #0f172a !important;
-            print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
-          }
-          .dark body, .dark { background: white !important; color: #0f172a !important; }
-          .print\\:hidden { display: none !important; }
-          .print\\:block { display: block !important; }
-          section, div { box-shadow: none !important; }
-          [class*="fixed"] { display: none !important; }
-          html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
-          [class*="sidebar"], [class*="topbar"], nav[class*="fixed"] { display: none !important; }
-          table { font-size: 9px !important; border-collapse: collapse !important; width: 100% !important; }
-          thead { display: table-header-group !important; }
-          thead th { background: #0ea5e9 !important; color: white !important; padding: 5px 4px !important; font-size: 8px !important; font-weight: 800 !important; border: 1px solid #0284c7 !important; }
-          tbody tr { page-break-inside: avoid !important; }
-          tbody td { padding: 5px 4px !important; border: 1px solid #e2e8f0 !important; color: #0f172a !important; }
-          tbody tr:nth-child(even) td { background: #f8fafc !important; }
-          .text-emerald-700, [class*="emerald-400"] { color: #047857 !important; }
-          .text-rose-700, [class*="rose-400"] { color: #be123c !important; }
-          [data-sonner-toaster], [data-sonner-toast], [class*="Toaster"] { display: none !important; visibility: hidden !important; }
-        }
-      `}</style>
-    </div>
+      {guide.isOpen && (
+        <PageGuide title="Stock ka hisaab — aasaan tareeqa" onClose={guide.close}
+          description="Har cheez ka aana jana yahan khud likha jata hai — aap ko kuch likhna nahi padta"
+          steps={[
+            { icon: ArrowDownRight, color: '#16a34a', title: 'Aaya (+)', text: describe('in') },
+            { icon: ArrowUpRight, color: '#e11d48', title: 'Gaya (−)', text: describe('out') },
+            { icon: MousePointerClick, color: '#2563eb', title: 'Maal kahan gaya?', text: 'Kisi bhi cheez ke naam par click karein — us ki poori history pehle din se khul jayegi: kab aaya, kab bika, kab kharab hua.' },
+            { icon: Scale, color: '#7c3aed', title: '"Baqi" ka matlab', text: 'Har entry ke baad us branch me kitna stock bacha. Do entries ke beech farq ho to wahi jagah dekhein jahan ginti ghalat hui.' },
+            { icon: Hash, color: '#0891b2', title: 'Bill / reference', text: 'Reference par click karein to us bill ki sab entries aa jati hain. Teer wala nishan bill ka safha kholta hai.' },
+            { icon: CalendarRange, color: '#d97706', title: 'Filter', text: 'Muddat, qism (Bikri, Wapas, Kharab…), Aaya / Gaya aur "Kis ne" se list chhoti karein. Link copy karein to filter saath jata hai.' },
+            { icon: History, color: '#0d9488', title: 'Analytics', text: 'Roz ka aana jana, kis wajah se maal hila, sab se zyada hilne wali cheezein aur kis ne kitni entries kin.' },
+            { icon: FileSpreadsheet, color: '#64748b', title: 'Print aur CSV', text: 'Print se A4, PDF ya thermal par is filter ki list (500 tak). CSV is safhe ki entries Excel ke liye.' },
+          ]}
+          tips={[
+            'Value hamesha cost par hai (bechne ki qeemat par nahi), taake nuqsan aur stock ki asal qeemat pata chale.',
+            'Kharab ya gum maal ka hisaab "Kharab / Gum" chip se dekhein — har mahine check karein.',
+            'Branch ka naam har entry par likha hai; "Baqi" usi branch ka stock hai, poori dukaan ka nahi.',
+          ]}
+          shortcuts={[['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   MOVEMENTS TEACHER — Universal guide
-   ═════════════════════════════════════════════════════════════ */
-function MovementsTeacher({ onClose }: { onClose: () => void }) {
+function Chip({ active, onClick, label, count, icon: I, color }: { active: boolean; onClick: () => void; label: string; count: number; icon: typeof Layers; color: string }) {
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Stock Movements — Guide
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
-            Ye <strong>stock ka poora hisaab-kitab</strong> hai — har baar jab maal andar aata hai
-            ya bahar jata hai, yahan record ho jata hai <strong>automatic</strong>. Kuch bhi manually
-            nahi karna!
-          </p>
-
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-1">
-              📋 6 Types ka Ledger
-            </div>
-            <TypeRow emoji="📦" label="Purchase" color="text-emerald-700 dark:text-emerald-400" desc="Supplier se maal aaya → stock +" />
-            <TypeRow emoji="💰" label="Sale" color="text-rose-700 dark:text-rose-400" desc="Customer ko bika → stock −" />
-            <TypeRow emoji="➕" label="Adjustment +" color="text-blue-700 dark:text-blue-400" desc="Manually barhaya (ganti-mistake fix)" />
-            <TypeRow emoji="➖" label="Adjustment −" color="text-orange-700 dark:text-orange-400" desc="Manually kam (damage, chori, kharaab)" />
-            <TypeRow emoji="↩️" label="Return" color="text-violet-700 dark:text-violet-400" desc="Customer ne wapas kiya → stock +" />
-            <TypeRow emoji="🎬" label="Opening" color="text-slate-700 dark:text-ink-300" desc="Product banate waqt initial stock" />
-          </div>
-
-          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            <TipRow><strong>Balance After</strong> — us movement ke baad us product ka total stock</TipRow>
-            <TipRow><strong>Reference</strong> — sale/purchase ka number, click karke original bill dekh sakte ho</TipRow>
-            <TipRow><strong>Sab se bara movement</strong> hero me highlight — kaunsa event sab se important tha</TipRow>
-            <TipRow><strong>Kab check karein?</strong> — jab stock number galat lage, "kal 50 tha, aaj 40 kaise?" → yahan pura history</TipRow>
-            <TipRow><strong>⌨️ /</strong> — search &nbsp;•&nbsp; <strong>R</strong> — refresh</TipRow>
-          </div>
-
-          <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-3 text-xs font-semibold text-amber-900 dark:text-amber-200">
-            💡 <strong>Ye read-only hai</strong> — yahan se kuch add/edit nahi hota. Stock change ke liye
-            Sales/Purchases/Adjustments use karo — record khud yahan aa jayega.
-          </div>
-
-          <Button
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 font-extrabold shadow-lg shadow-blue-500/40 h-12"
-            onClick={onClose}
-          >
-            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya!
-          </Button>
-        </div>
-      </div>
-    </div>
+    <button type="button" onClick={onClick} aria-pressed={active}
+      className={cn('inline-flex h-10 shrink-0 items-center gap-2 rounded-2xl px-3.5 text-[0.8125rem] font-semibold transition',
+        active ? 'bg-slate-900 text-white shadow' : 'bg-white text-slate-700 ring-1 ring-slate-200/80 hover:bg-slate-50')}>
+      <I className="h-4 w-4" style={active ? undefined : { color }} />
+      {label}
+      <span className={cn('min-w-[1.5rem] rounded-full px-1.5 text-center text-[0.6875rem] tabular-nums', active ? 'bg-white/20' : 'bg-slate-100 text-slate-600')}>{count.toLocaleString('en-PK')}</span>
+    </button>
   );
 }
 
-function TypeRow({ emoji, label, color, desc }: { emoji: string; label: string; color: string; desc: string }) {
-  return (
-    <div className="flex items-start gap-2 rounded-lg bg-white dark:bg-ink-800 border border-blue-100 dark:border-blue-500/20 p-2">
-      <span className="text-base shrink-0">{emoji}</span>
-      <div className="min-w-0 flex-1">
-        <div className={`text-xs font-extrabold ${color}`}>{label}</div>
-        <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-semibold">{desc}</div>
-      </div>
-    </div>
-  );
-}
+/** Page a reference number opens, by its prefix. */
+const REF_PAGES: Array<{ prefix: string; to: string; title: string }> = [
+  { prefix: 'NF-', to: '/sales', title: 'Bikri ka safha' },
+  { prefix: 'RET-', to: '/returns', title: 'Wapsi ka safha' },
+  { prefix: 'TR-', to: '/transfers', title: 'Transfers ka safha' },
+  { prefix: 'PR-', to: '/purchases', title: 'Kharidari ka safha' },
+];
 
-function TipRow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-      <span>{children}</span>
-    </div>
-  );
-}
-
-function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm">
-      {children}
-    </kbd>
-  );
-}
-
-function Kpi({ icon: Icon, label, value, sub, tone, isPositive, isNegative }: any) {
-  const tones: Record<string, string> = {
-    blue: 'from-blue-500 to-blue-700 shadow-blue-500/40',
-    emerald: 'from-emerald-500 to-emerald-700 shadow-emerald-500/40',
-    rose: 'from-rose-500 to-rose-700 shadow-rose-500/40',
-    violet: 'from-violet-500 to-purple-600 shadow-violet-500/40',
+function RefChip({ reference, onFilter }: { reference: string; onFilter: (ref: string) => void }) {
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+  const page = REF_PAGES.find((r) => reference.startsWith(r.prefix));
+  // Purchase numbers open the bill itself; the list endpoint resolves the number to its id.
+  const openPurchase = async () => {
+    setBusy(true);
+    try {
+      const hit = (await purchasesApi.page({ search: reference, limit: 1 })).items.find((p) => p.purchaseNumber === reference);
+      navigate(hit ? `/purchases/${hit.id}` : '/purchases');
+    } finally { setBusy(false); }
   };
   return (
-    <div className={[
-      'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm transition-all',
-      isPositive ? 'border-emerald-300 dark:border-emerald-500/40' : isNegative ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-ink-800',
-    ].join(' ')}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
+    <span className="inline-flex items-center overflow-hidden rounded-md bg-slate-100 text-[0.6875rem] font-medium text-slate-700 ring-1 ring-slate-200">
+      <button type="button" onClick={() => onFilter(reference)} title="Is reference ki sab entries" className="px-1.5 py-0.5 font-mono hover:bg-slate-200">{reference}</button>
+      {reference.startsWith('PO-') ? (
+        <button type="button" onClick={openPurchase} disabled={busy} title="Kharidari ka bill kholein" className="border-l border-slate-200 px-1 py-0.5 hover:bg-slate-200 disabled:opacity-50"><ExternalLink className="h-3 w-3" /></button>
+      ) : page && (
+        <Link to={page.to} title={page.title} className="border-l border-slate-200 px-1 py-0.5 hover:bg-slate-200"><ExternalLink className="h-3 w-3" /></Link>
+      )}
+    </span>
+  );
+}
+
+function Row({ m, money, productFiltered, onProduct, onReference }: {
+  m: StockMovement;
+  money: (n: number) => string;
+  productFiltered: boolean;
+  onProduct: (id: string) => void;
+  onReference: (ref: string) => void;
+}) {
+  const meta = movementMeta(m.type);
+  const isIn = m.quantity > 0;
+  return (
+    <li className="flex gap-3 px-3 py-2.5 sm:px-4">
+      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${meta.color}17`, color: meta.color }} title={meta.hint}>
+        <meta.icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          {productFiltered ? (
+            <span className="truncate font-medium text-slate-900">{m.product.name}</span>
+          ) : (
+            <button type="button" onClick={() => onProduct(m.product.id)} title="Is cheez ki sab history" className="truncate text-left font-medium text-slate-900 hover:text-brand-700 hover:underline">{m.product.name}</button>
+          )}
+          {m.variant && <span className="rounded bg-slate-100 px-1.5 text-[0.6875rem] text-slate-600">{m.variant.name}</span>}
+          <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', meta.tone)}>{meta.label}</span>
         </div>
-        <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <Icon className="h-5 w-5" />
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.75rem] text-slate-500">
+          <span className="tabular-nums">{timeOf(m.createdAt)}</span>
+          {m.shop && <span>· {m.shop.name}</span>}
+          {m.createdBy && <span className="inline-flex items-center gap-0.5">· <User className="h-3 w-3" />{m.createdBy.fullName}</span>}
+          {m.reference && <RefChip reference={m.reference} onFilter={onReference} />}
         </div>
+        {m.note && <p className="mt-0.5 line-clamp-2 text-[0.75rem] italic text-slate-500">{m.note}</p>}
       </div>
-    </div>
+      <div className="shrink-0 text-right">
+        <p className={cn('text-[0.9375rem] font-bold tabular-nums', isIn ? 'text-emerald-600' : 'text-rose-600')}>
+          {isIn ? '+' : '−'}{fmtQty(Math.abs(m.quantity))} <span className="text-[0.75rem] font-medium">{m.product.unit}</span>
+        </p>
+        <p className="text-[0.75rem] tabular-nums text-slate-500" title="Is entry ke baad branch me bacha stock">Baqi {fmtQty(m.balanceAfter)}</p>
+        <p className="text-[0.6875rem] tabular-nums text-slate-400">{money(Math.abs(m.value))}</p>
+      </div>
+    </li>
   );
 }

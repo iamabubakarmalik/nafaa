@@ -17,7 +17,7 @@
 import { isHexColor } from '../tokens/color';
 import { DEFAULT_BRAND_HEX } from '../tokens/presets';
 import { DEFAULT_LATIN_FONT, DEFAULT_URDU_FONT, type TextScale } from '../tokens/typography';
-import type { Density, Radius } from '../tokens/layout';
+import type { Density, PageWidth, Radius } from '../tokens/layout';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type Language = 'en' | 'roman_ur' | 'ur';
@@ -39,6 +39,8 @@ export interface Appearance {
   textScale: TextScale;
   density: Density;
   radius: Radius;
+  /** Max width of page content on large screens. */
+  pageWidth: PageWidth;
   reduceMotion: boolean;
   /** "high" darkens secondary text and lines for readability. */
   contrast: 'normal' | 'high';
@@ -58,6 +60,7 @@ export const DEFAULT_APPEARANCE: Appearance = {
   textScale: 'md',
   density: 'comfortable',
   radius: 'default',
+  pageWidth: 'wide',
   reduceMotion: false,
   contrast: 'normal',
   language: 'roman_ur',

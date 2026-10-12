@@ -10,7 +10,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ArrowLeft, Ban, BookOpen, GraduationCap, MessageCircle, PackageCheck, Phone, Printer, RotateCcw, Wheat } from 'lucide-react';
-import { Button, Modal } from '@/design-system/components';
+import { Button, Modal, PageShell } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { usePermission } from '@core/hooks/usePermission';
@@ -73,7 +73,7 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4 pb-10">
+    <PageShell>
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={() => navigate(-1)} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"><ArrowLeft className="h-4 w-4" /></button>
         <div className="mr-auto min-w-0">
@@ -201,7 +201,7 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
       {modal === 'receive' && <ReceiveModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}
       {modal === 'return' && <ReturnModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}
       {modal === 'cancel' && <CancelModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}
-    </div>
+    </PageShell>
   );
 }
 

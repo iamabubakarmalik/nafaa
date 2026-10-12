@@ -111,7 +111,7 @@ export default function DiscountsPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[96rem] space-y-4 pb-12">
+    <div className="mx-auto w-full max-w-[var(--page-max,96rem)] space-y-4 pb-12">
       {editing && <CodeEditor code={editing === 'new' ? null : editing} shops={list.data?.shops ?? []} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); void refresh(); }} />}
       {guide && <DiscountsGuide onClose={() => setGuide(false)} />}
 

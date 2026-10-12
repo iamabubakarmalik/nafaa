@@ -14,9 +14,12 @@ import { toast } from 'sonner';
 import {
   ArrowDownWideNarrow, Ban, BarChart3, BookOpen, CalendarRange, CheckCircle2, CloudOff, Download, FileDown, GraduationCap,
   ListChecks, ListFilter, MousePointerClick, Package, RotateCcw, ScanLine, Search, Settings2, ShoppingCart, Sparkles,
-  Trophy, UserRound, Wallet, X, type LucideIcon,
+  Trophy, UserRound, Wallet, type LucideIcon,
 } from 'lucide-react';
-import { Button, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, type FilterOption } from '@/design-system/components';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, type FilterOption,
+} from '@/design-system/components';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
@@ -60,35 +63,7 @@ const SORTS: Array<FilterOption<HistorySort>> = [
   { value: 'high', label: 'Bari raqam pehle' }, { value: 'low', label: 'Chhoti raqam pehle' },
 ];
 
-function FilterChip({ children, onRemove }: { children: ReactNode; onRemove: () => void }) {
-  return (
-    <span className="inline-flex h-7 items-center gap-1 rounded-full bg-brand-50 pl-2.5 pr-1 text-[0.75rem] font-semibold text-brand-800 ring-1 ring-brand-100">
-      {children}
-      <button type="button" onClick={onRemove} aria-label="Hatayein" className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-brand-100"><X className="h-3 w-3" /></button>
-    </span>
-  );
-}
-
 const noExtras = () => () => null;
-
-function Kpi({ icon: Icon, color, label, value, hint, onClick, active }: {
-  icon: LucideIcon; color: string; label: string; value: ReactNode; hint?: ReactNode; onClick?: () => void; active?: boolean;
-}) {
-  const Tag = onClick ? 'button' : 'div';
-  return (
-    <Tag type={onClick ? 'button' : undefined} onClick={onClick}
-      className={cn('flex min-w-0 flex-col rounded-2xl bg-white px-4 py-3 text-left shadow-sm ring-1 transition',
-        active ? 'ring-2 ring-brand-500' : 'ring-slate-200/80', onClick && 'hover:-translate-y-0.5 hover:shadow-md')}>
-      <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[0.8125rem] font-medium text-slate-500">{label}</span>
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-3.5 w-3.5" /></span>
-      </div>
-      <div className="mt-0.5 truncate text-[1.1875rem] font-bold tabular-nums tracking-tight text-slate-900">{value}</div>
-      {hint && <div className="mt-0.5 truncate text-[0.75rem] text-slate-500">{hint}</div>}
-    </Tag>
-  );
-}
-
 
 export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
   const h = useSalesHistory();
@@ -198,7 +173,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
 
   const st = h.stats;
   return (
-    <div className="mx-auto w-full max-w-[96rem] space-y-4 pb-12">
+    <PageShell>
       {scanner && <BarcodeScanner onDetected={(c: string) => { setScanner(false); void openBill(c); }} onClose={() => setScanner(false)} />}
       {open && (
         <SaleDrawer sale={open} money={money} cost={cost} costHidden={costHidden} waLink={billWa(open)} extra={extraFor(open)}
@@ -238,87 +213,63 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
       />
 
       {/* Secondary numbers */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+      <KpiRow>
         {h.loading || !st ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            <Kpi icon={BookOpen} color="#d97706" label="Udhaar" value={money(st.credit)} hint={`${st.creditCount} bill · dabayein`}
+            <KpiCard icon={BookOpen} color="#d97706" label="Udhaar" value={money(st.credit)} hint={`${st.creditCount} bill · dabayein`}
               onClick={() => h.setStatus(h.status === 'credit' ? 'all' : 'credit')} active={h.status === 'credit'} />
-            <Kpi icon={Sparkles} color="#db2777" label="Discount" value={money(st.discount)} hint={st.total ? `${((st.discount / (st.total + st.discount)) * 100).toFixed(1)}% bikri ka` : undefined} />
-            <Kpi icon={RotateCcw} color="#ea580c" label="Maal wapas" value={money(st.refunded)} hint={`${st.voided} void bill`}
+            <KpiCard icon={Sparkles} color="#db2777" label="Discount" value={money(st.discount)} hint={st.total ? `${((st.discount / (st.total + st.discount)) * 100).toFixed(1)}% bikri ka` : undefined} />
+            <KpiCard icon={RotateCcw} color="#ea580c" label="Maal wapas" value={money(st.refunded)} hint={`${st.voided} void bill`}
               onClick={() => h.setStatus(h.status === 'returned' ? 'all' : 'returned')} active={h.status === 'returned'} />
-            <Kpi icon={Package} color="#0891b2" label="Cheezein biki" value={String(Number(st.qty.toFixed(2)))} hint={`${st.lines} lines`} />
-            <Kpi icon={Trophy} color="#16a34a" label="Sab se bara bill" value={st.best ? money(st.best.total) : '—'} hint={st.best ? `${st.best.saleNumber} · kholein` : undefined}
+            <KpiCard icon={Package} color="#0891b2" label="Cheezein biki" value={String(Number(st.qty.toFixed(2)))} hint={`${st.lines} lines`} />
+            <KpiCard icon={Trophy} color="#16a34a" label="Sab se bara bill" value={st.best ? money(st.best.total) : '—'} hint={st.best ? `${st.best.saleNumber} · kholein` : undefined}
               onClick={st.best ? () => void openBill(st.best!.saleNumber) : undefined} />
           </>
         )}
-      </div>
+      </KpiRow>
 
       {/* Filters */}
-      <div className="relative z-10 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:p-4">
-        <div className="flex flex-col gap-2 xl:flex-row">
-          <label className="group relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
-            <input ref={searchRef} value={h.search} onChange={(e) => h.setSearch(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && /^[A-Z]{2}-\d+$/i.test(h.search.trim())) void openBill(h.search); }}
-              placeholder="Bill number, customer, phone, product ya barcode…" aria-label="Bikri dhoondein"
-              className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-12 pr-16 text-[0.9375rem] outline-none ring-1 ring-transparent transition focus:bg-white focus:ring-2 focus:ring-brand-500" />
-            {h.search
-              ? <button type="button" onClick={() => h.setSearch('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
-              : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <FilterMenu icon={CalendarRange} label="Tareekh" value={h.preset} active={h.preset !== 'today'} width="w-72"
-              options={[...DATE_PRESETS.map((p) => ({ value: p.id, label: p.label })), { value: 'custom' as const, label: 'Apni tareekh', hint: 'Neeche se chunein' }]}
-              onChange={(v) => h.setPreset(v)}
-              footer={() => (
-                <div className="mt-1 grid grid-cols-2 gap-2 border-t border-slate-100 p-2 pt-3">
-                  {(['from', 'to'] as const).map((k) => (
-                    <label key={k} className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                      {k === 'from' ? 'Se' : 'Tak'}
-                      <input type="date" value={h.custom[k] || (h.range[k] === 'all' ? '' : h.range[k])} max={businessDayKey(new Date(), h.startHour)}
-                        onChange={(e) => { h.setCustom({ ...h.custom, [k]: e.target.value }); h.setPreset('custom'); }}
-                        className="mt-1 block h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] font-normal normal-case tracking-normal text-slate-900" />
-                    </label>
-                  ))}
-                </div>
-              )} />
-            <FilterMenu icon={Wallet} label="Payment" value={h.method ?? 'all'} active={!!h.method}
-              options={[{ value: 'all', label: 'Har payment' }, ...POS_PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label, icon: m.icon, color: PAYMENT_COLORS[m.id] }))]}
-              onChange={(v) => h.setMethod(v === 'all' ? undefined : (v as PaymentMethod))} />
-            <FilterMenu icon={ListFilter} label="Bill" value={h.status} active={h.status !== 'all'} options={STATUSES} onChange={h.setStatus} />
-            {team.length > 1 && (
-              <FilterMenu icon={UserRound} label="Staff" value={h.staffId ?? 'all'} active={!!h.staffId}
-                options={[{ value: 'all', label: 'Sab staff' }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]}
-                onChange={(v) => h.setStaffId(v === 'all' ? undefined : v)} />
-            )}
-            <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={h.sort} options={SORTS} onChange={h.setSort} align="right" width="w-56" />
-          </div>
-        </div>
-
-        {h.hasFilters && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
-            <span className="mr-1 text-[0.75rem] font-medium text-slate-500">Lage filter:</span>
-            {h.method && <FilterChip onRemove={() => h.setMethod(undefined)}>{POS_PAYMENT_METHODS.find((m) => m.id === h.method)?.label ?? h.method}</FilterChip>}
-            {h.status !== 'all' && <FilterChip onRemove={() => h.setStatus('all')}>{STATUSES.find((x) => x.value === h.status)?.label}</FilterChip>}
-            {h.staffId && <FilterChip onRemove={() => h.setStaffId(undefined)}>{team.find((m) => m.id === h.staffId)?.fullName ?? 'Staff'}</FilterChip>}
-            {h.search.trim() && <FilterChip onRemove={() => h.setSearch('')}>"{h.search.trim()}"</FilterChip>}
-            <button type="button" onClick={h.clear} className="ml-auto inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[0.75rem] font-semibold text-rose-700 hover:bg-rose-50"><X className="h-3.5 w-3.5" />Sab hatayein</button>
-          </div>
-        )}
-      </div>
+      <FilterBar
+        search={<SearchField ref={searchRef} value={h.search} onChange={h.setSearch}
+          onEnter={() => { if (/^[A-Z]{2}-\d+$/i.test(h.search.trim())) void openBill(h.search); }}
+          placeholder="Bill number, customer, phone, product ya barcode…" label="Bikri dhoondein" />}
+        chips={h.hasFilters ? <>
+          {h.method && <FilterChip onRemove={() => h.setMethod(undefined)}>{POS_PAYMENT_METHODS.find((m) => m.id === h.method)?.label ?? h.method}</FilterChip>}
+          {h.status !== 'all' && <FilterChip onRemove={() => h.setStatus('all')}>{STATUSES.find((x) => x.value === h.status)?.label}</FilterChip>}
+          {h.staffId && <FilterChip onRemove={() => h.setStaffId(undefined)}>{team.find((m) => m.id === h.staffId)?.fullName ?? 'Staff'}</FilterChip>}
+          {h.search.trim() && <FilterChip onRemove={() => h.setSearch('')}>"{h.search.trim()}"</FilterChip>}
+        </> : undefined}
+        onClear={h.clear}>
+          <FilterMenu icon={CalendarRange} label="Tareekh" value={h.preset} active={h.preset !== 'today'} width="w-72"
+            options={[...DATE_PRESETS.map((p) => ({ value: p.id, label: p.label })), { value: 'custom' as const, label: 'Apni tareekh', hint: 'Neeche se chunein' }]}
+            onChange={(v) => h.setPreset(v)}
+            footer={() => (
+              <div className="mt-1 grid grid-cols-2 gap-2 border-t border-slate-100 p-2 pt-3">
+                {(['from', 'to'] as const).map((k) => (
+                  <label key={k} className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                    {k === 'from' ? 'Se' : 'Tak'}
+                    <input type="date" value={h.custom[k] || (h.range[k] === 'all' ? '' : h.range[k])} max={businessDayKey(new Date(), h.startHour)}
+                      onChange={(e) => { h.setCustom({ ...h.custom, [k]: e.target.value }); h.setPreset('custom'); }}
+                      className="mt-1 block h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] font-normal normal-case tracking-normal text-slate-900" />
+                  </label>
+                ))}
+              </div>
+            )} />
+          <FilterMenu icon={Wallet} label="Payment" value={h.method ?? 'all'} active={!!h.method}
+            options={[{ value: 'all', label: 'Har payment' }, ...POS_PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label, icon: m.icon, color: PAYMENT_COLORS[m.id] }))]}
+            onChange={(v) => h.setMethod(v === 'all' ? undefined : (v as PaymentMethod))} />
+          <FilterMenu icon={ListFilter} label="Bill" value={h.status} active={h.status !== 'all'} options={STATUSES} onChange={h.setStatus} />
+          {team.length > 1 && (
+            <FilterMenu icon={UserRound} label="Staff" value={h.staffId ?? 'all'} active={!!h.staffId}
+              options={[{ value: 'all', label: 'Sab staff' }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]}
+              onChange={(v) => h.setStaffId(v === 'all' ? undefined : v)} />
+          )}
+          <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={h.sort} options={SORTS} onChange={h.setSort} align="right" width="w-56" />
+      </FilterBar>
 
       {/* Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="tablist" className="inline-flex gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/80">
-          {([['bills', ListChecks, 'Bill', h.count], ['analytics', BarChart3, 'Analytics', null]] as const).map(([id, Icon, text, n]) => (
-            <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
-              className={cn('inline-flex h-9 items-center gap-2 rounded-xl px-4 text-[0.875rem] font-semibold transition', tab === id ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100')}>
-              <Icon className="h-4 w-4" />{text}
-              {n !== null && <span className={cn('rounded-full px-1.5 text-[0.6875rem] tabular-nums', tab === id ? 'bg-white/20' : 'bg-slate-100 text-slate-600')}>{n}</span>}
-            </button>
-          ))}
-        </div>
-        <p className="hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>A</Kbd> se badlein</p>
-      </div>
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>A</Kbd> se badlein</>}
+        tabs={[{ id: 'bills', label: 'Bill', icon: ListChecks, count: h.count }, { id: 'analytics', label: 'Analytics', icon: BarChart3 }]} />
 
       {tab === 'analytics' ? (
         <SalesAnalytics data={analytics.data} stats={st} loading={analytics.isLoading} money={money} cost={cost} costHidden={costHidden} salesHidden={salesHidden} />
@@ -365,7 +316,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
           )}
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }
 

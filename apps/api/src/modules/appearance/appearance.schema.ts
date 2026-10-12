@@ -17,6 +17,7 @@ export type AppearanceLayer = Partial<{
   textScale: 'sm' | 'md' | 'lg' | 'xl';
   density: 'comfortable' | 'compact';
   radius: 'sharp' | 'default' | 'round';
+  pageWidth: 'normal' | 'wide' | 'full';
   reduceMotion: boolean;
   contrast: 'normal' | 'high';
   language: 'en' | 'roman_ur' | 'ur';
@@ -30,6 +31,7 @@ const ENUMS: Record<string, readonly string[]> = {
   textScale: ['sm', 'md', 'lg', 'xl'],
   density: ['comfortable', 'compact'],
   radius: ['sharp', 'default', 'round'],
+  pageWidth: ['normal', 'wide', 'full'],
   language: ['en', 'roman_ur', 'ur'],
   contrast: ['normal', 'high'],
 };

@@ -122,7 +122,7 @@ import ExpensesPage from '@modules/finance/expenses/pages/ExpensesPage';
 
 // ─── Inventory ─────────────────────────────────────────────────
 import StockMovementsPage from '@modules/inventory/stock-movements/pages/StockMovementsPage';
-import StockAdjustmentsGate from '@modules/inventory/stock-adjustments/pages/StockAdjustmentsGate';
+import StockAdjustmentsPage from '@modules/inventory/stock-adjustments/pages/StockAdjustmentsPage';
 import LowStockGate from '@modules/inventory/low-stock/pages/LowStockGate';
 import TransfersGate from '@modules/inventory/transfers/pages/TransfersGate';
 
@@ -672,7 +672,7 @@ export default function App() {
 
                   {/* ── Inventory ──────────────────────────────── */}
                   <Route path="/stock-movements" element={secure(PERMISSIONS.STOCK_MOVEMENTS_VIEW, <StockMovementsPage />)} />
-                  <Route path="/stock-adjustments" element={secure(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, <StockAdjustmentsGate />)} />
+                  <Route path="/stock-adjustments" element={secure(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, <StockAdjustmentsPage />)} />
                   <Route path="/low-stock" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <LowStockGate />)} />
                   <Route path="/transfers" element={secure(PERMISSIONS.STOCK_TRANSFERS_MANAGE, <TransfersGate />)} />
 
