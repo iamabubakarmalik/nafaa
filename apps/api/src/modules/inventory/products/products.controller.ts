@@ -14,6 +14,8 @@ import { QueryProductsDto } from './dto/query-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ShopIdParam } from '../../../common/shop-scope';
+import { freshInStoreEan } from '../barcode-labels/barcode.helper';
+import { AssignBarcodesDto } from '../barcode-labels/dto/label-config.dto';
 
 @ApiTags('Products')
 @ApiBearerAuth()
@@ -323,10 +325,6 @@ export class ProductsController {
     @GetUser() user: AuthenticatedUser,
     @Param('id') id: string,
   ) {
-    const timestamp = Date.now().toString().slice(-10);
-    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-    const barcode = `200${timestamp}${random}`.slice(0, 13);
-
     const product = await this.prisma.product.findFirst({
       where: { id, tenantId: user.tenantId },
     });
@@ -334,14 +332,14 @@ export class ProductsController {
 
     return this.prisma.product.update({
       where: { id },
-      data: { barcode },
+      data: { barcode: await freshInStoreEan(this.prisma, user.tenantId) },
     });
   }
 
   @Post('bulk-generate-barcodes')
   async bulkGenerateBarcodes(
     @GetUser() user: AuthenticatedUser,
-    @Body() body: { productIds: string[] },
+    @Body() body: AssignBarcodesDto,
   ) {
     const products = await this.prisma.product.findMany({
       where: {
@@ -349,20 +347,16 @@ export class ProductsController {
         tenantId: user.tenantId,
         OR: [{ barcode: null }, { barcode: '' }],
       },
+      select: { id: true },
     });
-
-    const updates = await Promise.all(
-      products.map((p, idx) => {
-        const timestamp = Date.now().toString().slice(-10);
-        const random = (idx + Math.floor(Math.random() * 100)).toString().padStart(2, '0');
-        const barcode = `200${timestamp}${random}`.slice(0, 13);
-        return this.prisma.product.update({
-          where: { id: p.id },
-          data: { barcode },
-        });
-      }),
-    );
-
+    const taken = new Set<string>();
+    const updates = [];
+    for (const p of products) {
+      updates.push(await this.prisma.product.update({
+        where: { id: p.id },
+        data: { barcode: await freshInStoreEan(this.prisma, user.tenantId, taken) },
+      }));
+    }
     return { count: updates.length, products: updates };
   }
 

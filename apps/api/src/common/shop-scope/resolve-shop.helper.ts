@@ -1,4 +1,4 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ShopScope } from './shop-scope.types';
 
 /**
@@ -45,4 +45,15 @@ export async function resolveWriteShopId(
     );
   }
   return main.id;
+}
+
+/**
+ * Staff who are tied to one branch (manager, cashier, staff) may only move
+ * stock in that branch; owners may act in any branch of their business.
+ */
+export function assertShopAccess(user: { role: string; shopId?: string | null }, shopId: string, action = 'Yeh kaam') {
+  if (user.role === 'OWNER' || user.role === 'SUPER_ADMIN') return;
+  if (user.shopId && user.shopId !== shopId) {
+    throw new ForbiddenException(`${action} sirf apni branch me kar sakte hain`);
+  }
 }

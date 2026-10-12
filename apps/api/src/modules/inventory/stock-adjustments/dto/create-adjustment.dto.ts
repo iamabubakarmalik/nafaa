@@ -1,13 +1,25 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { StockMovementType } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
-  IsEnum,
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsIn,
+  IsInt,
+  IsPositive,
+  Max,
+  MaxLength,
+  ValidateNested,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   Min,
 } from 'class-validator';
+
+/** Only these change stock by hand; sales, purchases and transfers have their own flows. */
+export const ADJUSTMENT_TYPES = ['ADJUSTMENT_IN', 'ADJUSTMENT_OUT', 'DAMAGE', 'LOSS'] as const;
+export type AdjustmentType = (typeof ADJUSTMENT_TYPES)[number];
 
 export class CreateAdjustmentDto {
   @ApiProperty({ description: 'Product ID' })
@@ -50,8 +62,8 @@ export class CreateAdjustmentDto {
     enum: ['ADJUSTMENT_IN', 'ADJUSTMENT_OUT', 'DAMAGE', 'LOSS'],
     description: 'Type of adjustment',
   })
-  @IsEnum(StockMovementType)
-  type!: StockMovementType;
+  @IsIn(ADJUSTMENT_TYPES)
+  type!: AdjustmentType;
 
   @ApiProperty({
     example: 5,
@@ -93,4 +105,47 @@ export class CreateAdjustmentDto {
   @IsOptional()
   @IsString()
   rollAction?: 'ADJUST_LENGTH' | 'MARK_DAMAGED' | 'MARK_LOST' | 'RESTORE';
+}
+
+/** One line of a multi-line adjustment, in base units or a pack unit. */
+export class AdjustmentLineDto {
+  @IsString() @IsNotEmpty() productId!: string;
+  @IsOptional() @IsString() variantId?: string;
+  @IsIn(ADJUSTMENT_TYPES) type!: AdjustmentType;
+  @IsNumber() @IsPositive() quantity!: number;
+  /** Base units in one of the unit used (carton = 24); default 1. */
+  @IsOptional() @IsNumber() @IsPositive() conversionRate?: number;
+  @IsOptional() @IsString() @MaxLength(30) unitName?: string;
+  @IsOptional() @IsString() @MaxLength(120) reason?: string;
+}
+
+export class BatchAdjustmentDto {
+  @IsOptional() @IsString() shopId?: string;
+  @IsString() @IsNotEmpty() @MaxLength(120) reason!: string;
+  @IsOptional() @IsString() @MaxLength(500) note?: string;
+  @IsArray() @ArrayMinSize(1) @ArrayMaxSize(500) @ValidateNested({ each: true }) @Type(() => AdjustmentLineDto) items!: AdjustmentLineDto[];
+}
+
+/** Physical stock count: what is on the shelf; the difference is adjusted. */
+export class CountLineDto {
+  @IsString() @IsNotEmpty() productId!: string;
+  @IsOptional() @IsString() variantId?: string;
+  @IsNumber() @Min(0) counted!: number;
+}
+
+export class StockCountDto {
+  @IsOptional() @IsString() shopId?: string;
+  @IsOptional() @IsString() @MaxLength(500) note?: string;
+  @IsArray() @ArrayMinSize(1) @ArrayMaxSize(2000) @ValidateNested({ each: true }) @Type(() => CountLineDto) items!: CountLineDto[];
+}
+
+export class ListAdjustmentsDto {
+  @IsOptional() @IsString() from?: string;
+  @IsOptional() @IsString() to?: string;
+  @IsOptional() @IsIn(['all', ...ADJUSTMENT_TYPES]) type?: string;
+  @IsOptional() @IsString() @MaxLength(120) reason?: string;
+  @IsOptional() @IsString() @MaxLength(80) search?: string;
+  @IsOptional() @IsString() productId?: string;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) page?: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(200) limit?: number;
 }

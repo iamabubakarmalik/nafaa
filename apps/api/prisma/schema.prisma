@@ -1595,6 +1595,10 @@ model StockMovement {
   balanceAfter Float
   reference    String?
   note         String?
+  /// Variant moved, who did it, and the cost of one base unit at that time.
+  variantId    String?
+  createdById  String?
+  unitCost     Float?
   createdAt    DateTime          @default(now())
 
   tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1603,6 +1607,8 @@ model StockMovement {
 
   @@index([tenantId])
   @@index([tenantId, createdAt])
+  @@index([tenantId, type, createdAt])
+  @@index([tenantId, productId, createdAt])
   @@index([productId])
   @@index([shopId])
   @@index([tenantId, shopId])
@@ -1620,6 +1626,14 @@ model StockAdjustment {
   type         StockMovementType
   quantity     Float
   reason       String
+  /// Cost of one base unit and the value moved (for loss / write-off totals).
+  unitCost     Float             @default(0)
+  value        Float             @default(0)
+  /// Lines saved together (a stock count or a multi-line adjustment) share it.
+  groupRef     String?
+  /// Stock count: what the system said and what was counted.
+  systemQty    Float?
+  countedQty   Float?
   note         String?
   createdAt    DateTime          @default(now())
 
@@ -1652,6 +1666,12 @@ model StockTransfer {
   notes          String?
   transferredAt  DateTime?
   receivedAt     DateTime?
+  receivedById   String?
+  cancelledAt    DateTime?
+  cancelledById  String?
+  cancelReason   String?
+  /// Cost value of what was sent.
+  value          Float          @default(0)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
@@ -1681,6 +1701,9 @@ model StockTransferItem {
   // Electronics: kaun sa serial unit ja raha hai (quantity hamesha 1)
   serialId     String?
   quantity     Float
+  /// What arrived (less than quantity = short in transit) and its unit cost.
+  receivedQty  Float    @default(0)
+  unitCost     Float    @default(0)
   notes        String?
   createdAt    DateTime @default(now())
 
@@ -2121,6 +2144,8 @@ model TenantSettings {
 
   integrations  Json? // { FBR_POS: {...}, DARAZ: {...}, ... }
   receiptConfig Json? // (already exists — keep)
+  /// Barcode label design shared by every counter.
+  labelConfig   Json?
 
   // ===== 5. POS SETTINGS =====
   defaultPaymentMethod   String  @default("CASH")

@@ -35,6 +35,9 @@ export interface StockDelta {
   preventNegative?: boolean;
   /** Shown in the error when `preventNegative` trips. */
   label?: string;
+  /** Recorded on the movement: who did it, and the cost of one base unit (default: current cost). */
+  userId?: string | null;
+  unitCost?: number | null;
 }
 
 export interface StockDeltaResult {
@@ -71,49 +74,51 @@ export async function applyStockDelta(
     );
   }
 
-  const existing = await tx.shopStock.findFirst({
-    where: { shopId, productId, variantId },
-    select: { id: true, stock: true },
+  // Make sure the branch row exists, then change it atomically so two
+  // writers at once (two counters, a sale and a transfer) both count.
+  let row = await tx.shopStock.findFirst({ where: { shopId, productId, variantId }, select: { id: true } });
+  if (!row) {
+    row = await tx.shopStock.create({
+      data: { tenantId, shopId, productId, variantId, stock: 0, isActive: true },
+      select: { id: true },
+    });
+  }
+  const shopStockId: string = row.id;
+  const changed = await tx.shopStock.updateMany({
+    where: { id: shopStockId, ...(preventNegative && delta < 0 ? { stock: { gte: -delta - 0.0001 } } : {}) },
+    data: { stock: { increment: delta } },
   });
-
-  const before = existing ? Number(existing.stock) : 0;
-  const after = before + delta;
-
-  if (preventNegative && after < -0.0001) {
+  if (!changed.count) {
+    const now = await tx.shopStock.findUnique({ where: { id: shopStockId }, select: { stock: true } });
     throw new BadRequestException(
-      `${label ?? 'Item'} is shop mein kaafi nahi hai. Available: ${before}, chahiye: ${Math.abs(delta)}`,
+      `${label ?? 'Item'} is shop mein kaafi nahi hai. Available: ${Number(now?.stock ?? 0)}, chahiye: ${Math.abs(delta)}`,
     );
   }
-
-  let shopStockId: string;
-  if (existing) {
-    const updated = await tx.shopStock.update({
-      where: { id: existing.id },
-      data: { stock: after },
-      select: { id: true },
-    });
-    shopStockId = updated.id;
-  } else {
-    const created = await tx.shopStock.create({
-      data: { tenantId, shopId, productId, variantId, stock: after, isActive: true },
-      select: { id: true },
-    });
-    shopStockId = created.id;
-  }
+  const after = Number((await tx.shopStock.findUnique({ where: { id: shopStockId }, select: { stock: true } }))?.stock ?? 0);
 
   const globalStock = await recacheProductStock(tx, productId, variantId);
 
   if (movementType) {
+    let unitCost = input.unitCost ?? null;
+    if (unitCost == null) {
+      const src = variantId
+        ? await tx.productVariant.findUnique({ where: { id: variantId }, select: { costPrice: true } })
+        : await tx.product.findUnique({ where: { id: productId }, select: { costPrice: true } });
+      unitCost = Number(src?.costPrice ?? 0);
+    }
     await tx.stockMovement.create({
       data: {
         tenantId,
         shopId,
         productId,
+        variantId,
         type: movementType,
         quantity: delta,
         balanceAfter: after,
         reference,
         note,
+        createdById: input.userId ?? null,
+        unitCost,
       },
     });
   }
