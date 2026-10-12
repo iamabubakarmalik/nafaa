@@ -25,6 +25,8 @@ export interface CatalogFilters {
   etype?: string;
   serial?: 'tracked' | 'mismatch';
   kind?: 'made' | 'bought';
+  /** 'raw' = raw materials only, 'sale' = things sold at the counter. */
+  kindOf?: 'raw' | 'sale';
 }
 
 export interface ElectronicsFacts {
@@ -90,7 +92,7 @@ export interface CatalogPage {
 
 const params = (f: CatalogFilters, page: number, limit: number) => ({
   search: f.search?.trim() || undefined, categoryId: f.categoryId, brandId: f.brandId, stock: f.stock,
-  active: f.active, featured: f.featured ? 'true' : undefined, sort: f.sort, page, limit,
+  active: f.active, featured: f.featured ? 'true' : undefined, kindOf: f.kindOf, sort: f.sort, page, limit,
   tagId: f.tagId, condition: f.condition, etype: f.etype, serial: f.serial, kind: f.kind,
 });
 
@@ -126,7 +128,8 @@ async function localCatalog(f: CatalogFilters, page: number, limit: number): Pro
     && (!f.categoryId || (f.categoryId === 'none' ? !p.categoryId : p.categoryId === f.categoryId))
     && (!f.brandId || p.brandId === f.brandId)
     && (f.active === 'all' || (f.active === 'inactive' ? !p.isActive : p.isActive))
-    && (!f.featured || p.isFeatured));
+    && (!f.featured || p.isFeatured)
+    && (f.kindOf !== 'raw' || p.isRawMaterial) && (f.kindOf !== 'sale' || !p.isRawMaterial));
   const test: Record<CatalogStock, (p: Local) => boolean> = {
     all: () => true, in: (p) => stockOf(p) > 0, low: (p) => stockOf(p) > 0 && stockOf(p) <= alertOf(p),
     out: (p) => stockOf(p) <= 0, dead: () => false, expiring: () => false,

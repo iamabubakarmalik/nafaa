@@ -38,6 +38,7 @@ function productPayload(core: CoreDraft, isEdit: boolean) {
     lowStockAlert: Number(core.lowStockAlert) || 0,
     isActive: core.isActive,
     isFeatured: core.isFeatured,
+    isRawMaterial: core.isRawMaterial,
     expiryTracked: core.expiryTracked || core.batches.length > 0,
     weight: core.weight ?? undefined,
     productType: core.productType ?? undefined,

@@ -47,7 +47,7 @@ export function useProductCatalog(decorate?: (item: PosItem) => PosItem, deps: u
     staleTime: 30_000,
   });
   const items = useMemo(() => {
-    const list = ((data?.items ?? []) as Product[]).filter((p) => p.isActive !== false).map(toPosItem);
+    const list = ((data?.items ?? []) as Product[]).filter((p) => p.isActive !== false && !(p as { isRawMaterial?: boolean }).isRawMaterial).map(toPosItem);
     return decorate ? list.map(decorate) : list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, ...deps]);

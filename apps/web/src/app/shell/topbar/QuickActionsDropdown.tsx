@@ -81,7 +81,7 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
       { key: 'customer', to: '/customers/new', label: 'Add customer', icon: Users, tone: 'pink', permission: PERMISSIONS.CUSTOMERS_EDIT },
       { key: 'supplier', to: '/suppliers/new', label: 'Add supplier', icon: Truck, tone: 'orange', permission: PERMISSIONS.SUPPLIERS_VIEW, keywords: 'vendor' },
       { key: 'expense', to: '/expenses', label: 'Record expense', icon: Wallet, tone: 'amber', permission: PERMISSIONS.EXPENSES_VIEW, keywords: 'kharcha' },
-      { key: 'purchase', to: '/purchases', label: 'New purchase', icon: PackagePlus, tone: 'rose', permission: PERMISSIONS.PURCHASES_VIEW, keywords: 'buy stock' },
+      { key: 'purchase', to: '/purchases/new', label: 'New purchase', icon: PackagePlus, tone: 'rose', permission: PERMISSIONS.PURCHASES_CREATE, keywords: 'buy stock' },
       { key: 'transfer', to: '/transfers', label: 'Stock transfer', icon: ArrowRightLeft, tone: 'cyan', permission: PERMISSIONS.STOCK_TRANSFERS_MANAGE },
     ];
     const industry: Action[] = [];

@@ -1,417 +1,334 @@
-import { useQuery } from '@tanstack/react-query';
-import { Link, useParams } from 'react-router-dom';
-import {
-  ArrowLeft, Truck, Building2, Calendar, Package, Printer,
-  Receipt, Wallet, CheckCircle2, Layers, AlertTriangle,
-  ExternalLink, FileText, User, CreditCard, Banknote, Smartphone,
-  Zap, Building, ShoppingCart, Phone, Mail, MapPin, Hash,
-  TrendingUp, ArrowRight, Award, Sparkles,
-} from 'lucide-react';
-import { Button } from '@/design-system/components';
-import { formatPKR, formatPKRFull } from '@core/lib/format';
-import { purchasesApi } from '@modules/purchasing/purchases/api/purchases.api';
+/**
+ * One purchase or order: what was ordered, received and sent back in the
+ * unit it was bought in, money, and the actions that fit its state — receive
+ * an order (all or part), return goods, cancel, print (A4 purchase bill or
+ * order) and send the order to the supplier on WhatsApp.
+ */
 
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+import { useState, type ReactNode } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { ArrowLeft, Ban, MessageCircle, PackageCheck, Phone, Printer, RotateCcw, Wheat } from 'lucide-react';
+import { Button, Modal } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { formatPKR } from '@core/lib/format';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { renderReceipt } from '@core/receipt/html';
+import { printHtml } from '@core/receipt/print';
+import { getReceiptSetup } from '@core/receipt/setup';
+import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { purchasesApi, type Purchase, type PurchaseItem } from '../api/purchases.api';
+import { STATUS } from './PurchasesListPage';
 
-const formatQty = (q: number) => q.toFixed(q % 1 === 0 ? 0 : 2);
+export interface PurchaseDetailConfig {
+  /** Extra under a line, e.g. electronics serial entry. */
+  itemExtra?: (args: { item: PurchaseItem; purchase: Purchase }) => ReactNode;
+}
 
-const paymentLabels: Record<string, string> = {
-  CASH: 'Cash', CARD: 'Card', JAZZCASH: 'JazzCash',
-  EASYPAISA: 'EasyPaisa', BANK_TRANSFER: 'Bank Transfer',
-};
+const money = (n: number) => formatPKR(n);
+const q3 = (n: number) => Number((n ?? 0).toFixed(3)).toLocaleString('en-PK');
+const rate = (i: PurchaseItem) => i.conversionRate || 1;
+const left = (i: PurchaseItem) => Math.max((i.baseQuantity ?? i.quantity) - (i.receivedQty ?? 0), 0);
+const canReturn = (i: PurchaseItem) => Math.max((i.receivedQty ?? 0) - (i.returnedQty ?? 0), 0);
+const nameOf = (i: PurchaseItem) => i.itemName || i.product?.name || i.ingredient?.name || 'Cheez';
+const baseUnit = (i: PurchaseItem) => i.product?.unit ?? i.ingredient?.unit ?? 'pcs';
+const day = (v?: string | null) => (v ? new Date(v).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
 
-const paymentIcons: Record<string, any> = {
-  CASH: Banknote, CARD: CreditCard, JAZZCASH: Smartphone,
-  EASYPAISA: Zap, BANK_TRANSFER: Building,
-};
-
-const statusColors: Record<string, string> = {
-  RECEIVED: 'bg-emerald-100 text-emerald-700 border-emerald-300',
-  PENDING: 'bg-amber-100 text-amber-700 border-amber-300',
-  CANCELLED: 'bg-rose-100 text-rose-700 border-rose-300',
-};
-
-export default function PurchaseDetailPage() {
+export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseDetailConfig }) {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const canEdit = usePermission(PERMISSIONS.PURCHASES_CREATE);
+  const [modal, setModal] = useState<'receive' | 'return' | 'cancel' | null>(null);
+  const q = useQuery({ queryKey: ['purchase', id], queryFn: () => purchasesApi.getOne(id!), enabled: !!id });
+  const p = q.data;
 
-  const { data: purchase, isLoading } = useQuery({
-    queryKey: ['purchase-detail', id],
-    queryFn: () => purchasesApi.getOne(id!),
-    enabled: !!id,
-  });
+  const refresh = () => {
+    ['purchase', 'purchase-list', 'purchases-summary', 'suppliers', 'product-catalog', 'products', 'purchase-sources', 'dashboard-overview']
+      .forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+  };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="inline-block h-10 w-10 rounded-full border-4 border-orange-200 border-t-orange-600 animate-spin" />
-      </div>
-    );
-  }
+  if (q.isLoading) return <div className="flex justify-center py-24"><div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600" /></div>;
+  if (!p) return <div className="py-20 text-center"><p className="font-semibold text-slate-900">Kharidari nahi mili</p><Button className="mt-4" variant="secondary" onClick={() => navigate('/purchases')}>Wapas</Button></div>;
 
-  if (!purchase) {
-    return (
-      <div className="rounded-3xl bg-white border border-slate-200 p-16 text-center">
-        <AlertTriangle className="h-12 w-12 text-rose-400 mx-auto mb-3" />
-        <h3 className="font-bold text-slate-900">Purchase not found</h3>
-        <Link to="/purchases" className="mt-4 text-sm font-bold text-orange-600 hover:underline inline-block">
-          ← Back to Purchases
-        </Link>
-      </div>
-    );
-  }
+  const st = STATUS[p.status];
+  const open = p.status === 'PENDING' || p.status === 'PARTIAL';
+  const received = p.receivedValue ?? (p.status === 'RECEIVED' ? p.total : 0);
+  const credit = Math.max(received - p.paidAmount, 0);
+  const isOrder = p.status === 'PENDING';
 
-  const balance = Math.max(purchase.total - purchase.paidAmount, 0);
-  const carpetRolls = purchase.carpetRolls ?? [];
-  const hasCarpetRolls = carpetRolls.length > 0;
-  const totalSqftCreated = carpetRolls.reduce((s: number, r: any) => s + Number(r.originalSqft), 0);
-  const PayIcon = paymentIcons[purchase.paymentMethod] || CreditCard;
-  const totalItems = purchase.items.reduce((sum: number, it: any) => sum + it.quantity, 0);
+  const print = () => {
+    const setup = getReceiptSetup();
+    const doc = {
+      saleNumber: p.purchaseNumber,
+      date: new Date(p.purchasedAt),
+      customerName: p.supplier.name,
+      customerPhone: p.supplier.phone ?? undefined,
+      customerAddress: p.supplier.address ?? undefined,
+      cashierName: p.createdBy?.fullName,
+      branchName: p.shop?.name,
+      infoRows: [
+        ...(p.supplierInvoiceNo ? [{ label: 'Supplier bill #', value: p.supplierInvoiceNo }] : []),
+        ...(p.expectedAt ? [{ label: 'Maal aana hai', value: day(p.expectedAt) }] : []),
+      ],
+      lines: p.items.map((i) => ({
+        name: nameOf(i), qty: i.quantity, unit: i.unitName ?? baseUnit(i), price: i.costPrice, total: i.total,
+        details: [rate(i) !== 1 ? `= ${q3(i.baseQuantity ?? i.quantity * rate(i))} ${baseUnit(i)}` : '', i.batchNo ? `Batch ${i.batchNo}` : '', i.expiryDate ? `Expiry ${day(i.expiryDate)}` : ''].filter(Boolean),
+      })),
+      subtotal: p.subtotal,
+      discount: p.discount,
+      extraRows: [
+        ...((p.otherCharges ?? 0) > 0 ? [{ label: 'Kiraya / loading', value: `+${money(p.otherCharges!)}` }] : []),
+        ...((p.taxAmount ?? 0) > 0 ? [{ label: 'Tax', value: `+${money(p.taxAmount!)}` }] : []),
+        ...((p.returnedAmount ?? 0) > 0 ? [{ label: 'Maal wapas', value: `−${money(p.returnedAmount!)}` }] : []),
+      ],
+      total: p.total,
+      paid: isOrder ? p.total : p.paidAmount,
+      paymentLabel: `Diye (${POS_PAYMENT_METHODS.find((m) => m.id === p.paymentMethod)?.label ?? p.paymentMethod})`,
+    };
+    const design = { ...setup.design, a4Title: isOrder ? 'PURCHASE ORDER' : 'PURCHASE BILL', showStatus: !isOrder, payWhen: 'never' as const, showKhata: false, showSavings: false, backPrint: 'none' as const, showBarcode: true };
+    printHtml(renderReceipt(doc, { ...setup, design }, { paper: 'A4' }));
+  };
+
+  const whatsapp = () => {
+    const lines = [
+      `*Order — ${p.purchaseNumber}*`, `${getReceiptSetup().shop.name}`, '',
+      ...p.items.map((i, n) => `${n + 1}. ${nameOf(i)} — ${q3(i.quantity)} ${i.unitName ?? baseUnit(i)}`),
+      '', p.expectedAt ? `Maal ${day(p.expectedAt)} tak bhej dein.` : 'Maal jaldi bhej dein.', 'Shukriya!',
+    ];
+    const phone = (p.supplier.phone ?? '').replace(/\D/g, '').replace(/^0/, '92');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank', 'noopener');
+  };
 
   return (
-    <div className="space-y-6 print:space-y-3">
-      {/* Action bar */}
-      <div className="flex items-center justify-between gap-2 flex-wrap print:hidden">
-        <Link to="/purchases" className="inline-flex items-center gap-2 rounded-xl bg-white border-2 border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition">
-          <ArrowLeft className="h-4 w-4" /> Back to Purchases
-        </Link>
-        <Button onClick={() => window.print()} className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800">
-          <Printer className="h-4 w-4" /> Print Invoice
-        </Button>
+    <div className="mx-auto max-w-6xl space-y-4 pb-10">
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"><ArrowLeft className="h-4 w-4" /></button>
+        <div className="mr-auto min-w-0">
+          <h1 className="flex flex-wrap items-center gap-2 text-lg font-semibold text-slate-900">
+            {p.purchaseNumber}<span className={cn('rounded-full px-2 py-0.5 text-[0.75rem] font-medium ring-1', st.tone)}>{st.label}</span>
+          </h1>
+          <p className="text-[0.8125rem] text-slate-500">{day(p.purchasedAt)}{p.shop?.name ? ` · ${p.shop.name}` : ''}{p.createdBy?.fullName ? ` · ${p.createdBy.fullName}` : ''}</p>
+        </div>
+        <Button variant="secondary" onClick={print} leftIcon={<Printer className="h-4 w-4" />}>Print</Button>
+        {open && <Button variant="secondary" onClick={whatsapp} leftIcon={<MessageCircle className="h-4 w-4 text-emerald-600" />}>Order bhejein</Button>}
+        {canEdit && open && <Button onClick={() => setModal('receive')} leftIcon={<PackageCheck className="h-4 w-4" />}>Maal aaya</Button>}
       </div>
 
-      {/* ═══ HEADER ═══ */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-orange-700 text-white p-6 sm:p-8 print:bg-white print:text-slate-900 print:border-b-4 print:border-double print:border-slate-700 shadow-2xl">
-        <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-orange-400/20 blur-2xl print:hidden" />
-        <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-amber-400/15 blur-2xl print:hidden" />
+      {p.status === 'CANCELLED' && <p className="rounded-xl bg-slate-100 px-3 py-2 text-sm text-slate-700">Cancel {day(p.cancelledAt)}{p.cancelReason ? ` — ${p.cancelReason}` : ''}</p>}
 
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-extrabold print:hidden">
-              <Truck className="h-3 w-3 text-amber-300" /> Purchase Order
-            </div>
-            <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold font-mono">{purchase.purchaseNumber}</h1>
-            <div className="mt-3 flex items-center gap-3 text-sm text-white/80 print:text-slate-600 flex-wrap">
-              <span className="inline-flex items-center gap-1">
-                <Calendar className="h-3.5 w-3.5" />
-                {formatDate(purchase.purchasedAt)}
-              </span>
-              <span>•</span>
-              <span className="inline-flex items-center gap-1">
-                <Building2 className="h-3.5 w-3.5" />
-                {purchase.supplier?.name}
-              </span>
-              {purchase.createdBy && (
-                <>
-                  <span>•</span>
-                  <span className="inline-flex items-center gap-1">
-                    <User className="h-3.5 w-3.5" />
-                    By {purchase.createdBy.fullName}
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-          <div className="text-right">
-            <span className={`px-3 py-1 rounded-full border-2 text-xs font-extrabold ${statusColors[purchase.status]}`}>
-              {purchase.status}
-            </span>
-            <div className="mt-2 text-[0.6875rem] uppercase tracking-wider text-white/60 print:text-slate-500">Payment</div>
-            <div className="text-sm font-extrabold mt-0.5 inline-flex items-center gap-1.5">
-              <PayIcon className="h-3.5 w-3.5" />
-              {paymentLabels[purchase.paymentMethod] || purchase.paymentMethod}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ STATS BOXES ═══ */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatBox label="Subtotal" value={formatPKRFull(purchase.subtotal)} icon={Receipt} color="slate" />
-        {purchase.discount > 0 && (
-          <StatBox label="Discount" value={`-${formatPKRFull(purchase.discount)}`} icon={Wallet} color="amber" />
-        )}
-        <StatBox label="Total" value={formatPKRFull(purchase.total)} icon={CheckCircle2} color="orange" highlight />
-        <StatBox label="Paid" value={formatPKRFull(purchase.paidAmount)} icon={CreditCard} color="emerald" />
-        {balance > 0 && (
-          <StatBox label="Balance Due" value={formatPKRFull(balance)} icon={AlertTriangle} color="rose" />
-        )}
-      </div>
-
-      {/* ═══ SUPPLIER CARD ═══ */}
-      <div className="rounded-3xl bg-white border-2 border-violet-200 p-5 shadow-sm">
-        <div className="flex items-start gap-4 flex-wrap">
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-violet-500/30 shrink-0">
-            <Building2 className="h-6 w-6" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-extrabold">Supplier Information</div>
-            <h3 className="text-xl font-extrabold text-slate-900 mt-0.5">{purchase.supplier?.name}</h3>
-            <div className="mt-2 grid sm:grid-cols-2 gap-2 text-xs">
-              {purchase.supplier?.phone && (
-                <div className="inline-flex items-center gap-1 text-slate-600">
-                  <Phone className="h-3 w-3" />
-                  <span className="font-bold">{purchase.supplier.phone}</span>
-                </div>
-              )}
-              {purchase.supplier?.email && (
-                <div className="inline-flex items-center gap-1 text-slate-600">
-                  <Mail className="h-3 w-3" />
-                  <span className="font-bold">{purchase.supplier.email}</span>
-                </div>
-              )}
-              {purchase.supplier?.address && (
-                <div className="inline-flex items-center gap-1 text-slate-600">
-                  <MapPin className="h-3 w-3" />
-                  <span>{purchase.supplier.address}</span>
-                </div>
-              )}
-              {purchase.supplier?.contactPerson && (
-                <div className="inline-flex items-center gap-1 text-slate-600">
-                  <User className="h-3 w-3" />
-                  <span>Contact: <span className="font-bold">{purchase.supplier.contactPerson}</span></span>
-                </div>
-              )}
-            </div>
-          </div>
-          <Link
-            to={`/suppliers/${purchase.supplier?.id}`}
-            className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-violet-100 hover:bg-violet-200 text-violet-700 text-xs font-extrabold transition print:hidden"
-          >
-            View Profile <ExternalLink className="h-3 w-3" />
-          </Link>
-        </div>
-      </div>
-
-      {/* ═══ ITEMS TABLE ═══ */}
-      <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b-2 border-slate-200 flex items-center gap-2">
-          <Package className="h-5 w-5 text-slate-600" />
-          <h3 className="font-bold text-slate-900">
-            Items Purchased <span className="text-slate-500 font-normal">({purchase.items.length} items • {formatQty(totalItems)} total qty)</span>
-          </h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gradient-to-r from-slate-100 to-slate-50 border-b-2 border-slate-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 w-12">#</th>
-                <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Product</th>
-                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Qty</th>
-                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Cost</th>
-                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700">Total</th>
-              </tr>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+          <table className="w-full min-w-[42rem] text-sm">
+            <thead className="bg-slate-50 text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
+              <tr><th className="px-3 py-2">Cheez</th><th className="px-3 py-2 text-right">Miqdar</th><th className="px-3 py-2 text-right">Rate</th><th className="px-3 py-2 text-right">Raqam</th><th className="px-3 py-2 text-right">Halat</th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {purchase.items.map((item: any, idx: number) => {
-                const itemRolls = carpetRolls.filter((r: any) => r.product.id === item.product.id);
+              {p.items.map((i) => {
+                const r = rate(i);
+                const got = (i.receivedQty ?? 0) / r;
+                const back = (i.returnedQty ?? 0) / r;
                 return (
-                  <tr key={item.id} className="hover:bg-slate-50 transition">
-                    <td className="px-4 py-3 text-slate-500 font-mono text-xs">{idx + 1}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-11 w-11 rounded-xl bg-slate-100 overflow-hidden flex items-center justify-center shrink-0">
-                          {item.product.images?.[0]?.url ? (
-                            <img src={item.product.images[0].url} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            <Package className="h-5 w-5 text-slate-400" />
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-extrabold text-slate-900 text-sm">{item.product.name}</div>
-                          <div className="text-[0.6875rem] text-slate-500 font-mono uppercase">{item.product.unit}</div>
-                          {itemRolls.length > 0 && (
-                            <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700">
-                              <Layers className="h-2.5 w-2.5" />
-                              {itemRolls.length} roll{itemRolls.length !== 1 ? 's' : ''} created
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                  <tr key={i.id} className="align-top">
+                    <td className="px-3 py-2.5">
+                      <p className="flex items-center gap-1.5 font-medium text-slate-900">{i.ingredientId && <Wheat className="h-3.5 w-3.5 text-amber-600" />}{nameOf(i)}</p>
+                      <p className="text-[0.75rem] text-slate-500">
+                        {r !== 1 && `1 ${i.unitName} = ${q3(r)} ${baseUnit(i)} · `}{i.batchNo && `Batch ${i.batchNo} · `}{i.expiryDate && `Expiry ${day(i.expiryDate)}`}
+                      </p>
+                      {config.itemExtra?.({ item: i, purchase: p })}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="font-extrabold text-slate-900 tabular-nums">
-                        {formatQty(item.quantity)}
-                      </div>
-                      <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">{item.product.unit}</div>
-                    </td>
-                    <td className="px-4 py-3 text-right text-sm font-bold text-slate-700 tabular-nums">
-                      {formatPKR(item.costPrice)}
-                    </td>
-                    <td className="px-4 py-3 text-right font-extrabold text-orange-700 text-base tabular-nums">
-                      {formatPKRFull(item.total)}
+                    <td className="px-3 py-2.5 text-right tabular-nums">{q3(i.quantity)} {i.unitName}{r !== 1 && <span className="block text-[0.75rem] text-slate-500">{q3(i.baseQuantity ?? i.quantity * r)} {baseUnit(i)}</span>}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums">{money(i.costPrice)}</td>
+                    <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{money(i.total)}</td>
+                    <td className="px-3 py-2.5 text-right text-[0.75rem]">
+                      {p.status !== 'RECEIVED' && p.status !== 'CANCELLED' && <span className="block text-slate-600">Aaya {q3(got)} / {q3(i.quantity)}</span>}
+                      {back > 0 && <span className="block text-amber-700">Wapas {q3(back)}</span>}
+                      {p.status === 'RECEIVED' && !back && <span className="text-emerald-600">Poora aaya</span>}
                     </td>
                   </tr>
                 );
               })}
             </tbody>
-            <tfoot className="bg-gradient-to-r from-slate-50 to-white border-t-2 border-slate-300">
-              <tr>
-                <td colSpan={4} className="px-4 py-3 text-right text-sm font-bold text-slate-700">Subtotal</td>
-                <td className="px-4 py-3 text-right font-extrabold text-slate-900 tabular-nums">{formatPKRFull(purchase.subtotal)}</td>
-              </tr>
-              {purchase.discount > 0 && (
-                <tr>
-                  <td colSpan={4} className="px-4 py-2 text-right text-sm font-bold text-amber-700">Discount</td>
-                  <td className="px-4 py-2 text-right font-extrabold text-amber-700 tabular-nums">-{formatPKRFull(purchase.discount)}</td>
-                </tr>
-              )}
-              <tr className="bg-orange-50 border-t-2 border-orange-300">
-                <td colSpan={4} className="px-4 py-3 text-right text-base font-extrabold text-slate-900">GRAND TOTAL</td>
-                <td className="px-4 py-3 text-right text-2xl font-extrabold text-orange-700 tabular-nums">{formatPKRFull(purchase.total)}</td>
-              </tr>
-              <tr>
-                <td colSpan={4} className="px-4 py-2 text-right text-xs font-bold text-emerald-700">Paid ({paymentLabels[purchase.paymentMethod]})</td>
-                <td className="px-4 py-2 text-right font-extrabold text-emerald-700 tabular-nums">{formatPKRFull(purchase.paidAmount)}</td>
-              </tr>
-              {balance > 0 && (
-                <tr>
-                  <td colSpan={4} className="px-4 py-2 text-right text-xs font-bold text-rose-700">Balance Due</td>
-                  <td className="px-4 py-2 text-right font-extrabold text-rose-700 tabular-nums">{formatPKRFull(balance)}</td>
-                </tr>
-              )}
-            </tfoot>
           </table>
         </div>
-      </div>
 
-      {/* ═══ CARPET ROLLS CREATED ═══ */}
-      {hasCarpetRolls && (
-        <div className="rounded-3xl bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-200 overflow-hidden shadow-sm">
-          <div className="px-5 py-4 border-b-2 border-emerald-200 flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <div className="h-10 w-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                <Layers className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-emerald-900">Carpet Rolls Created</h3>
-                <p className="text-[0.6875rem] text-emerald-700 font-bold">
-                  {carpetRolls.length} rolls • {totalSqftCreated.toFixed(2)} sqft total
-                </p>
-              </div>
+        <aside className="space-y-3">
+          <Link to={`/suppliers/${p.supplier.id}`} className="block rounded-2xl border border-slate-200 bg-white p-4 hover:border-slate-300">
+            <p className="text-[0.75rem] text-slate-500">Supplier</p>
+            <p className="font-semibold text-slate-900">{p.supplier.name}</p>
+            {p.supplier.phone && <p className="mt-0.5 flex items-center gap-1 text-[0.8125rem] text-slate-600"><Phone className="h-3.5 w-3.5" /> {p.supplier.phone}</p>}
+            {p.supplierInvoiceNo && <p className="mt-1 text-[0.8125rem] text-slate-600">Supplier ka bill # {p.supplierInvoiceNo}</p>}
+            <p className="mt-2 text-[0.8125rem] font-medium text-brand-700">Khata aur adaigi →</p>
+          </Link>
+
+          <div className="space-y-1.5 rounded-2xl border border-slate-200 bg-white p-4 text-sm">
+            <KV k="Cheezein" v={money(p.subtotal)} />
+            {p.discount > 0 && <KV k="Discount" v={`−${money(p.discount)}`} />}
+            {(p.otherCharges ?? 0) > 0 && <KV k="Kiraya / loading" v={`+${money(p.otherCharges!)}`} />}
+            {(p.taxAmount ?? 0) > 0 && <KV k="Tax" v={`+${money(p.taxAmount!)}`} />}
+            <div className="flex justify-between rounded-xl bg-slate-900 px-3 py-2 text-white"><span className="font-semibold">{isOrder ? 'Order' : 'Kul bill'}</span><span className="font-bold tabular-nums">{money(p.total)}</span></div>
+            {p.status === 'PARTIAL' && <KV k="Ab tak maal aaya" v={money(received)} />}
+            {!isOrder && <KV k="Diye" v={money(p.paidAmount)} />}
+            {!isOrder && credit > 0 && <KV k="Udhaar par" v={money(credit)} tone="text-rose-600" />}
+            {(p.returnedAmount ?? 0) > 0 && <KV k="Maal wapas" v={money(p.returnedAmount!)} tone="text-amber-700" />}
+            {p.dueDate && credit > 0 && <KV k="Dena hai tak" v={day(p.dueDate)} />}
+            {p.notes && <p className="border-t border-slate-100 pt-2 text-[0.8125rem] text-slate-600">{p.notes}</p>}
+          </div>
+
+          {canEdit && p.status !== 'CANCELLED' && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-2">
+              {(p.status === 'RECEIVED' || p.status === 'PARTIAL') && (
+                <button type="button" onClick={() => setModal('return')} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"><RotateCcw className="h-4 w-4 text-amber-600" /> Maal wapas karein</button>
+              )}
+              {!(p.returnedAmount ?? 0) && (
+                <button type="button" onClick={() => setModal('cancel')} className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-rose-700 hover:bg-rose-50"><Ban className="h-4 w-4" /> {isOrder ? 'Order cancel' : 'Bill cancel'}</button>
+              )}
             </div>
-            <Link
-              to="/carpet-rolls"
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition print:hidden"
-            >
-              Manage Rolls <ExternalLink className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-emerald-100/50 border-b border-emerald-200">
-                <tr>
-                  <th className="px-4 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Roll #</th>
-                  <th className="px-4 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Product / Variant</th>
-                  <th className="px-4 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Dimensions</th>
-                  <th className="px-4 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Sqft</th>
-                  <th className="px-4 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Cost/sqft</th>
-                  <th className="px-4 py-2 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Sale/sqft</th>
-                  <th className="px-4 py-2 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-emerald-900">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-emerald-100">
-                {carpetRolls.map((roll: any) => {
-                  const fullWidth = Number(roll.widthFt) + Number(roll.widthInch || 0) / 12;
-                  return (
-                    <tr key={roll.id} className="hover:bg-emerald-50/30 transition">
-                      <td className="px-4 py-2.5">
-                        <Link to={`/carpet-rolls/${roll.id}`} className="font-mono font-extrabold text-emerald-700 hover:underline text-xs print:no-underline">
-                          {roll.rollNumber}
-                        </Link>
-                        {roll.designCode && (
-                          <div className="text-[0.625rem] font-mono text-slate-500 mt-0.5">{roll.designCode}</div>
-                        )}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <div className="font-bold text-slate-900 text-xs">{roll.product.name}</div>
-                        {roll.variant && (
-                          <div className="text-[0.6875rem] text-violet-700 font-bold flex items-center gap-1 mt-0.5">
-                            {roll.variant.colorHex && (
-                              <span className="h-2 w-2 rounded-full border border-slate-300" style={{ backgroundColor: roll.variant.colorHex }} />
-                            )}
-                            {roll.variant.name}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-2.5 text-right text-xs">
-                        <div className="font-bold text-slate-900">
-                          {fullWidth.toFixed(2)}ft × {Number(roll.originalLengthFt).toFixed(1)}ft
-                        </div>
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
-                        <div className="text-sm font-extrabold text-emerald-700 tabular-nums">
-                          {Number(roll.originalSqft).toFixed(2)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-2.5 text-right text-xs font-bold text-slate-700 tabular-nums">
-                        {formatPKR(roll.costPerSqft)}
-                      </td>
-                      <td className="px-4 py-2.5 text-right text-xs font-bold text-blue-700 tabular-nums">
-                        {roll.salePricePerSqft > 0 ? formatPKR(roll.salePricePerSqft) : '—'}
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold ${
-                          roll.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-700' :
-                          roll.status === 'FINISHED' ? 'bg-slate-100 text-slate-700' :
-                          'bg-amber-100 text-amber-700'
-                        }`}>
-                          {roll.status}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* ═══ NOTES ═══ */}
-      {purchase.notes && (
-        <div className="rounded-2xl bg-amber-50 border-2 border-amber-200 p-4 flex items-start gap-3">
-          <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-            <FileText className="h-5 w-5" />
-          </div>
-          <div>
-            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-900">Notes</div>
-            <div className="text-sm text-amber-900 mt-0.5 font-semibold">{purchase.notes}</div>
-          </div>
-        </div>
-      )}
+          {!!p.carpetRolls?.length && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-800">Rolls ({p.carpetRolls.length})</p>
+              {p.carpetRolls.map((r) => (
+                <div key={r.id} className="flex justify-between gap-2 border-t border-slate-100 py-1.5 text-[0.8125rem] first:border-0">
+                  <span className="min-w-0 truncate text-slate-700">{r.rollNumber}{r.variant?.name ? ` · ${r.variant.name}` : ''} · {r.widthFt}ft{r.widthInch ? ` ${r.widthInch}in` : ''} × {r.originalLengthFt}ft</span>
+                  <span className="shrink-0 tabular-nums text-slate-500">{Number(r.remainingSqft.toFixed(1))}/{Number(r.originalSqft.toFixed(1))} sqft</span>
+                </div>
+              ))}
+            </div>
+          )}
 
-      {/* ═══ FOOTER ═══ */}
-      <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 p-4 text-center print:bg-white">
-        <div className="text-sm font-extrabold text-slate-900 inline-flex items-center gap-2">
-          <Award className="h-4 w-4 text-amber-500" />
-          Stock Successfully Received & Updated
-          <Award className="h-4 w-4 text-amber-500" />
-        </div>
-        <div className="text-[0.6875rem] text-slate-500 mt-2 inline-flex items-center gap-1">
-          <Sparkles className="h-2.5 w-2.5" />
-          Powered by Nafaa POS • Generated {formatDate(new Date().toISOString())}
-        </div>
+          {!!p.returns?.length && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-800">Wapsi</p>
+              {p.returns.map((r) => (
+                <div key={r.id} className="flex justify-between border-t border-slate-100 py-1.5 text-[0.8125rem] first:border-0">
+                  <span className="text-slate-600">{r.returnNumber} · {day(r.createdAt)}{r.reason ? ` · ${r.reason}` : ''}</span>
+                  <span className="font-medium tabular-nums text-amber-700">{money(r.total)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </aside>
       </div>
+
+      {modal === 'receive' && <ReceiveModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}
+      {modal === 'return' && <ReturnModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}
+      {modal === 'cancel' && <CancelModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}
     </div>
   );
 }
 
-function StatBox({ label, value, icon: Icon, color, highlight }: any) {
-  const colors: Record<string, string> = {
-    slate: 'from-slate-50 to-slate-100 border-slate-200 text-slate-900',
-    orange: 'from-orange-50 to-amber-50 border-orange-300 text-orange-900',
-    emerald: 'from-emerald-50 to-green-50 border-emerald-200 text-emerald-900',
-    amber: 'from-amber-50 to-orange-50 border-amber-200 text-amber-900',
-    rose: 'from-rose-50 to-pink-50 border-rose-200 text-rose-900',
-  };
+function KV({ k, v, tone }: { k: string; v: string; tone?: string }) {
+  return <div className="flex justify-between"><span className="text-slate-500">{k}</span><span className={cn('font-medium tabular-nums', tone ?? 'text-slate-900')}>{v}</span></div>;
+}
+
+/** Quantity per line in its own unit, limited to `max`. */
+function QtyLines({ p, max, qty, setQty }: { p: Purchase; max: (i: PurchaseItem) => number; qty: Record<string, number>; setQty: (v: Record<string, number>) => void }) {
   return (
-    <div className={`rounded-2xl bg-gradient-to-br border-2 p-4 ${colors[color]} ${highlight ? 'shadow-lg' : ''}`}>
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className="h-3.5 w-3.5" />
-        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold opacity-80">{label}</div>
+    <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200">
+      {p.items.filter((i) => max(i) > 0).map((i) => {
+        const m = max(i) / rate(i);
+        return (
+          <li key={i.id} className="flex items-center gap-3 px-3 py-2">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-slate-900">{nameOf(i)}</p>
+              <p className="text-[0.75rem] text-slate-500">Zyada se zyada {q3(m)} {i.unitName}</p>
+            </div>
+            <input type="number" min={0} max={m} step="any" value={qty[i.id] ?? ''} placeholder="0" aria-label={`${nameOf(i)} miqdar`}
+              onChange={(e) => setQty({ ...qty, [i.id]: Math.min(Math.max(Number(e.target.value) || 0, 0), m) })}
+              className="h-9 w-24 rounded-lg border border-slate-200 px-2 text-right text-sm font-semibold tabular-nums outline-none focus:border-brand-500" />
+            <span className="w-12 text-[0.75rem] text-slate-500">{i.unitName}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function ReceiveModal({ p, onClose, onDone }: { p: Purchase; onClose: () => void; onDone: () => void }) {
+  const [qty, setQty] = useState<Record<string, number>>(() => Object.fromEntries(p.items.map((i) => [i.id, left(i) / rate(i)])));
+  const [paid, setPaid] = useState('');
+  const [method, setMethod] = useState<PaymentMethod>(p.paymentMethod ?? 'CASH');
+  const [close, setClose] = useState(false);
+  const factor = p.subtotal > 0 ? p.total / p.subtotal : 1;
+  const value = p.items.reduce((s, i) => s + (qty[i.id] ?? 0) * i.costPrice * factor, 0);
+  const mut = useMutation({
+    mutationFn: () => purchasesApi.receive(p.id, {
+      items: Object.entries(qty).filter(([, v]) => v > 0).map(([itemId, quantity]) => ({ itemId, quantity })),
+      paidAmount: Number(paid) || 0, paymentMethod: method, close,
+    }),
+    onSuccess: (r) => { toast.success(r.status === 'RECEIVED' ? 'Maal aa gaya — order mukammal' : 'Itna maal aa gaya — baqi baad me'); onDone(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi hua'),
+  });
+  return (
+    <Modal open onClose={onClose} size="lg" title="Maal aaya" description="Jitna aaya utna likhein; baqi order khula rahega"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={mut.isPending} onClick={() => mut.mutate()} disabled={value <= 0 && !close}>Stock me daalein</Button></>}>
+      <QtyLines p={p} max={left} qty={qty} setQty={setQty} />
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl bg-slate-50 p-3 text-sm"><p className="text-slate-500">Is maal ki qeemat</p><p className="text-xl font-bold tabular-nums">{money(value)}</p></div>
+        <div>
+          <label className="text-[0.75rem] text-slate-500">Abhi kitne diye
+            <input type="number" min={0} value={paid} onChange={(e) => setPaid(e.target.value)} placeholder="0 = udhaar"
+              className="mt-1 h-9 w-full rounded-lg border border-slate-200 px-2.5 text-right text-sm outline-none focus:border-brand-500" />
+          </label>
+          <div className="mt-2 flex flex-wrap gap-1">
+            {POS_PAYMENT_METHODS.map((m) => (
+              <button key={m.id} type="button" onClick={() => setMethod(m.id)} aria-pressed={method === m.id}
+                className={cn('rounded-lg px-2 py-1 text-[0.75rem] ring-1', method === m.id ? 'bg-brand-600 text-white ring-brand-600' : 'text-slate-600 ring-slate-200')}>{m.label}</button>
+            ))}
+          </div>
+        </div>
       </div>
-      <div className={`font-extrabold tabular-nums ${highlight ? 'text-2xl' : 'text-xl'}`}>{value}</div>
-    </div>
+      <label className="mt-3 flex items-center gap-2 text-sm text-slate-700">
+        <input type="checkbox" checked={close} onChange={(e) => setClose(e.target.checked)} className="h-4 w-4 accent-brand-600" /> Baqi maal nahi aayega — order band karein
+      </label>
+    </Modal>
+  );
+}
+
+function ReturnModal({ p, onClose, onDone }: { p: Purchase; onClose: () => void; onDone: () => void }) {
+  const [qty, setQty] = useState<Record<string, number>>({});
+  const [reason, setReason] = useState('');
+  const factor = p.subtotal > 0 ? p.total / p.subtotal : 1;
+  const value = p.items.reduce((s, i) => s + (qty[i.id] ?? 0) * i.costPrice * factor, 0);
+  const mut = useMutation({
+    mutationFn: () => purchasesApi.returnGoods(p.id, { items: Object.entries(qty).filter(([, v]) => v > 0).map(([itemId, quantity]) => ({ itemId, quantity })), reason: reason.trim() || undefined }),
+    onSuccess: () => { toast.success(`${money(value)} ka maal wapas — supplier ka khata kam ho gaya`); onDone(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi hua'),
+  });
+  return (
+    <Modal open onClose={onClose} size="lg" title="Supplier ko maal wapas" description="Stock kam hoga aur supplier ko dena (khata) utna ghat jayega"
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button loading={mut.isPending} disabled={value <= 0} onClick={() => mut.mutate()} leftIcon={<RotateCcw className="h-4 w-4" />}>Wapas karein · {money(value)}</Button></>}>
+      <QtyLines p={p} max={canReturn} qty={qty} setQty={setQty} />
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {['Kharab maal', 'Ghalat maal aaya', 'Expiry qareeb', 'Zyada aa gaya'].map((r) => (
+          <button key={r} type="button" onClick={() => setReason(r)} className={cn('rounded-full px-3 py-1 text-[0.8125rem] ring-1', reason === r ? 'bg-amber-600 text-white ring-amber-600' : 'text-slate-600 ring-slate-200')}>{r}</button>
+        ))}
+      </div>
+      <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wajah" aria-label="Wajah" maxLength={200}
+        className="mt-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-amber-500" />
+    </Modal>
+  );
+}
+
+function CancelModal({ p, onClose, onDone }: { p: Purchase; onClose: () => void; onDone: () => void }) {
+  const [reason, setReason] = useState('');
+  const isOrder = p.status === 'PENDING';
+  const mut = useMutation({
+    mutationFn: () => purchasesApi.cancel(p.id, reason.trim()),
+    onSuccess: () => { toast.success(isOrder ? 'Order cancel' : 'Bill cancel — stock aur khata wapas'); onDone(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi hua'),
+  });
+  return (
+    <Modal open onClose={onClose} size="sm" title={isOrder ? 'Order cancel karein?' : 'Bill cancel karein?'}
+      description={isOrder ? 'Stock par koi asar nahi.' : `Aaya hua maal stock se nikal jayega aur supplier ka khata ulat jayega.${p.paidAmount > 0 ? ` Diye hue ${money(p.paidAmount)} supplier se wapas lene honge.` : ''}`}
+      footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={mut.isPending} disabled={!reason.trim()} onClick={() => mut.mutate()}>Cancel karein</Button></>}>
+      <input data-autofocus value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wajah likhein" aria-label="Wajah" maxLength={200}
+        className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-rose-500" />
+    </Modal>
   );
 }

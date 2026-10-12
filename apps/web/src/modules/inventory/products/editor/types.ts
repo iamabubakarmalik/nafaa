@@ -61,6 +61,8 @@ export interface CoreDraft {
   lowStockAlert: number;
   isActive: boolean;
   isFeatured: boolean;
+  /** Bought to make things; not sold at the counter. */
+  isRawMaterial: boolean;
   expiryTracked: boolean;
   weight: number | null;
   productType: string | null;

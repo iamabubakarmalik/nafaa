@@ -10,7 +10,7 @@ import type { CoreDraft, EditorDraft, UnitDraft } from './types';
 export const emptyCore = (unit = 'pcs'): CoreDraft => ({
   name: '', description: '', categoryId: null, brandId: null, sku: '', barcode: '', unit,
   price: 0, costPrice: 0, wholesalePrice: null, taxRate: 0, stock: 0, lowStockAlert: 5,
-  isActive: true, isFeatured: false, expiryTracked: false, weight: null, productType: null,
+  isActive: true, isFeatured: false, isRawMaterial: false, expiryTracked: false, weight: null, productType: null,
   tagIds: [], images: [], units: [], variants: [], batches: [],
 });
 
@@ -31,7 +31,7 @@ export async function loadCore(id: string): Promise<CoreDraft> {
     name: p.name ?? '', description: any.description ?? '', categoryId: any.categoryId ?? any.category?.id ?? null,
     brandId: any.brandId ?? any.brand?.id ?? null, sku: any.sku ?? '', barcode: any.barcode ?? '', unit: any.unit ?? 'pcs',
     price: num(any.price), costPrice: num(any.costPrice), wholesalePrice: any.wholesalePrice ?? null, taxRate: num(any.taxRate),
-    stock: num(any.stock), lowStockAlert: num(any.lowStockAlert ?? 5), isActive: any.isActive !== false, isFeatured: !!any.isFeatured,
+    stock: num(any.stock), lowStockAlert: num(any.lowStockAlert ?? 5), isActive: any.isActive !== false, isFeatured: !!any.isFeatured, isRawMaterial: !!any.isRawMaterial,
     expiryTracked: !!any.expiryTracked, weight: any.weight ?? null, productType: any.productType ?? null,
     tagIds: (any.tags ?? []).map((t: any) => t.tagId ?? t.tag?.id ?? t.id).filter(Boolean),
     images: [...images].sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary) || a.sortOrder - b.sortOrder).map((i) => ({ id: i.id, url: i.url })),

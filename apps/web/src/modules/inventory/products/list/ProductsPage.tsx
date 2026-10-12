@@ -14,6 +14,7 @@ import {
   AlertTriangle, ArrowDownWideNarrow, BarChart3, Boxes, CalendarClock, Check, CloudOff, Download, FileUp, Filter, GraduationCap,
   LayoutGrid, Layers, ListChecks, MousePointerClick, Package, Plus, RefreshCw, ScanLine, Search, Snowflake, Sparkles, Star,
   Table2, Tag, ToggleRight, Wallet, X, type LucideIcon,
+  Wheat,
 } from 'lucide-react';
 import { Button, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, heroPrimaryButton, type FilterOption } from '@/design-system/components';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
@@ -183,6 +184,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   if (c.f.etype) filterChips.push([labelOf('etype', c.f.etype), () => c.set('etype', undefined)]);
   if (c.f.serial) filterChips.push([c.f.serial === 'mismatch' ? 'Serial ginti ghalat' : 'Serial wale', () => c.set('serial', undefined)]);
   if (c.f.featured) filterChips.push(['Sirf khaas', () => c.set('featured', undefined)]);
+  if (c.f.kindOf) filterChips.push([c.f.kindOf === 'raw' ? 'Raw material' : 'Bechne wale', () => c.set('kindOf', undefined)]);
   if (c.f.active !== 'active') filterChips.push([c.f.active === 'inactive' ? 'Band wale' : 'Chalu + band', () => c.set('active', 'active')]);
   if (c.search.trim()) filterChips.push([`"${c.search.trim()}"`, () => c.setSearch('')]);
 
@@ -301,6 +303,9 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
               }
               return null;
             })}
+            <FilterMenu icon={Wheat} label="Qism" value={c.f.kindOf ?? 'all'} active={!!c.f.kindOf}
+              options={[{ value: 'all', label: 'Sab' }, { value: 'sale', label: 'Bechne wale' }, { value: 'raw', label: 'Raw material (kacha maal)' }]}
+              onChange={(v) => c.set('kindOf', v === 'all' ? undefined : (v as 'raw' | 'sale'))} />
             <FilterMenu icon={ToggleRight} label="Halat" value={c.f.active} active={c.f.active !== 'active'} options={STATUS} onChange={(v) => c.set('active', v)} />
             <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={c.sort} align="right" width="w-64"
               options={[...SORTS, ...(costHidden ? [] : COST_SORTS), ...(config.sorts ?? [])]} onChange={c.setSort} />

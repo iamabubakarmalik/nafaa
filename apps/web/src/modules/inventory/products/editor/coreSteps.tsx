@@ -57,6 +57,7 @@ export function basicStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; after?:
               <div className="grid gap-2 sm:grid-cols-2">
                 <Toggle on={c.isActive} onChange={(isActive) => ctx.setCore({ isActive })} title="Chalu" hint="Band ho to POS par nahi dikhti" />
                 <Toggle on={c.isFeatured} onChange={(isFeatured) => ctx.setCore({ isFeatured })} title="Khaas" hint="POS aur store mein upar dikhti hai" />
+                <Toggle on={c.isRawMaterial} onChange={(isRawMaterial) => ctx.setCore({ isRawMaterial })} title="Raw material (kacha maal)" hint="Sirf kharidari aur banane me — POS par nahi bikti" />
               </div>
               {opts.after?.(ctx)}
             </div>

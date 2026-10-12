@@ -1,4 +1,3 @@
-// apps/web/src/industries/electronics/pages/ElectronicsPurchasesPage.tsx
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -8,92 +7,71 @@ import { toast } from 'sonner';
 import { Button } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
-import PurchasesPage from '@modules/purchasing/purchases/pages/PurchasesPage';
+import { PurchaseEditorPage } from '@modules/purchasing/purchases/editor/PurchaseEditorPage';
+import PurchaseDetailPage from '@modules/purchasing/purchases/pages/PurchaseDetailPage';
 import { serialTrackingApi } from '../api/serial-tracking.api';
 import { electronicsPosApi } from '../api/electronics-pos.api';
 
-/* ═════════════════════════════════════════════════════════════
-   ELECTRONICS KHARIDARI
-   ─────────────────────────────────────────────────────────────
-   Poora page ab global hai (`@modules/purchasing`). Electronics
-   me sirf ek cheez extra hai: serial wali cheez khareedne par
-   uske serial numbers daalna. Wohi yahan se lagta hai.
-   ═════════════════════════════════════════════════════════════ */
+/**
+ * Electronics purchases: the shared editor and bill, plus serial numbers.
+ * Serial products get a badge on the bill being written, and a button on
+ * each received line to enter that unit's serials.
+ */
 
-export default function ElectronicsPurchasesPage() {
+function useSerialProducts() {
   const currentShopId = useAuthStore((s) => s.currentShopId);
-  const [serialFor, setSerialFor] = useState<{
-    productId: string; productName: string; expected: number;
-    costPrice: number; supplierRef: string;
-  } | null>(null);
-
-  /* Kaunse products serial wale hain */
   const { data: catalog } = useQuery({
     queryKey: ['electronics-pos-catalog', currentShopId, '', 'purchases'],
     queryFn: () => electronicsPosApi.catalog({ shopId: currentShopId || undefined }),
   });
-
-  const serialProductIds = new Set(
-    (catalog?.items ?? []).filter((p) => p.requiresSerial).map((p) => p.id),
-  );
-
   const { data: allSerials = [] } = useQuery({
     queryKey: ['electronics-serials-all'],
     queryFn: () => serialTrackingApi.list({}),
   });
+  const ids = new Set((catalog?.items ?? []).filter((p) => p.requiresSerial).map((p) => p.id));
+  const count = new Map<string, number>();
+  for (const s of allSerials as any[]) count.set(s.productId, (count.get(s.productId) ?? 0) + 1);
+  return { ids, count, currentShopId };
+}
 
-  const serialCountByProduct = new Map<string, number>();
-  for (const s of allSerials as any[]) {
-    serialCountByProduct.set(s.productId, (serialCountByProduct.get(s.productId) ?? 0) + 1);
-  }
+export function ElectronicsPurchaseEditor() {
+  const { ids } = useSerialProducts();
+  return (
+    <PurchaseEditorPage config={{
+      lineBadge: (productId) => ids.has(productId) ? (
+        <span className="inline-flex items-center gap-0.5 rounded bg-violet-100 px-1 text-[0.625rem] font-semibold text-violet-700"><Barcode className="h-2.5 w-2.5" /> Serial</span>
+      ) : null,
+    }} />
+  );
+}
 
+export function ElectronicsPurchaseDetail() {
+  const { ids, count, currentShopId } = useSerialProducts();
+  const [serialFor, setSerialFor] = useState<{ productId: string; productName: string; expected: number; costPrice: number; supplierRef: string } | null>(null);
   return (
     <>
       {serialFor && (
-        <BulkSerialModal
-          {...serialFor}
-          shopId={currentShopId}
-          alreadyHave={serialCountByProduct.get(serialFor.productId) ?? 0}
-          onClose={() => setSerialFor(null)}
-        />
+        <BulkSerialModal {...serialFor} shopId={currentShopId} alreadyHave={count.get(serialFor.productId) ?? 0} onClose={() => setSerialFor(null)} />
       )}
-
-      <PurchasesPage
-        gradient="from-slate-950 via-teal-900 to-emerald-700"
-        emoji="🔌"
-        industryLabel="Electronics"
-        /* Bill banate waqt: serial wali cheez par badge */
-        draftLineExtra={({ productId }) =>
-          serialProductIds.has(productId) ? (
-            <span className="px-1 rounded bg-violet-100 text-violet-700 text-[0.625rem] font-extrabold inline-flex items-center gap-0.5">
-              <Barcode className="h-2.5 w-2.5" /> Serial
-            </span>
-          ) : null
-        }
-        /* Record me: bill ki line ke neeche serial daalne ka button */
-        itemExtra={({ item, purchase }) => {
-          if (!serialProductIds.has(item.product.id)) return null;
-          const have = serialCountByProduct.get(item.product.id) ?? 0;
+      <PurchaseDetailPage config={{
+        itemExtra: ({ item, purchase }) => {
+          if (!item.productId || !ids.has(item.productId)) return null;
+          const have = count.get(item.productId) ?? 0;
           return (
-            <div className="mt-2 rounded-lg bg-violet-50 border border-violet-200 px-2.5 py-2 flex items-center gap-2 flex-wrap">
-              <span className="text-[0.6875rem] font-bold text-violet-800 flex-1 min-w-0">
-                Serial wali cheez — abhi <b>{have}</b> units darj hain
-              </span>
-              <button
+            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-violet-50 px-2.5 py-2 ring-1 ring-violet-200">
+              <span className="min-w-0 flex-1 text-[0.75rem] text-violet-800">Serial wali cheez — abhi <b>{have}</b> units darj</span>
+              <button type="button"
                 onClick={() => setSerialFor({
-                  productId: item.product.id,
-                  productName: item.product.name,
-                  expected: item.quantity,
-                  costPrice: item.costPrice,
-                  supplierRef: purchase.purchaseNumber,
+                  productId: item.productId!, productName: item.itemName || item.product?.name || '',
+                  expected: item.baseQuantity ?? item.quantity, costPrice: item.costPrice / (item.conversionRate || 1), supplierRef: purchase.purchaseNumber,
                 })}
-                className="h-8 px-2.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 shrink-0 transition">
-                <Plus className="h-3 w-3" /> Serial Daalein
+                className="inline-flex h-8 shrink-0 items-center gap-1 rounded-lg bg-violet-600 px-2.5 text-[0.75rem] font-semibold text-white hover:bg-violet-700">
+                <Plus className="h-3 w-3" /> Serial daalein
               </button>
             </div>
           );
-        }}
-      />
+        },
+      }} />
     </>
   );
 }
