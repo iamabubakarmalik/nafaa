@@ -53,6 +53,8 @@ export class ShopsService {
           isMain: true,
           isActive: true,
           type: 'SHOP',
+          // Every shop starts with a safe account on the Shop accounts page.
+          moneyAccounts: { create: { tenantId: user.tenantId, name: 'Tijori (cash)', kind: 'CASH' } },
         },
       });
 
@@ -159,6 +161,8 @@ export class ShopsService {
           phone: dto.phone,
           isMain: dto.isMain ?? false,
           type: dto.type ?? 'SHOP',
+          // Every shop starts with a safe account on the Shop accounts page.
+          moneyAccounts: { create: { tenantId: user.tenantId, name: 'Tijori (cash)', kind: 'CASH' } },
         },
       });
 

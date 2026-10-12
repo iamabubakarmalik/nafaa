@@ -1,7 +1,8 @@
 /**
  * Shop accounts API: the position (cash, stock, credit, dues), the account
- * cards for a period, the merged money ledger and analytics. Cash put into
- * or taken out of the drawer goes through the cash register endpoint.
+ * cards for a period, the merged money ledger and analytics, and the money
+ * accounts (safe, bank, wallet) with their movements. Plain cash in or out
+ * of the drawer goes through the cash register endpoint.
  */
 
 import { apiClient } from '@core/api/client';
@@ -119,6 +120,86 @@ export interface DrawerMovePayload {
   requestId?: string;
 }
 
+export type MoneyAccountKind = 'CASH' | 'BANK' | 'WALLET';
+export type MoneyEntryType = 'DEPOSIT' | 'WITHDRAW' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'ADJUSTMENT';
+export type AutoSource = 'SALE' | 'BOOKING' | 'BOOKING_REFUND' | 'REFUND' | 'PURCHASE' | 'SUPPLIER' | 'EXPENSE';
+
+/** A safe, bank account or mobile wallet with its live balance. */
+export interface MoneyAccountRow {
+  id: string;
+  shopId: string | null;
+  shop: { id: string; name: string } | null;
+  name: string;
+  kind: MoneyAccountKind;
+  method: MoneyAccount | null;
+  bankName: string | null;
+  accountTitle: string | null;
+  accountNumber: string | null;
+  iban: string | null;
+  openingBalance: number;
+  openingDate: string;
+  isDefault: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  balance: number;
+  todayIn: number;
+  todayOut: number;
+  /** True when sales and payments of its method land here by themselves. */
+  auto: boolean;
+  entryCount: number;
+}
+
+export interface MoneyAccountList { accounts: MoneyAccountRow[]; total: number }
+
+export interface MoneyAccountInput {
+  name: string;
+  kind: MoneyAccountKind;
+  method: MoneyAccount | null;
+  bankName?: string;
+  accountTitle?: string;
+  accountNumber?: string;
+  iban?: string;
+  openingBalance?: number;
+  openingDate?: string;
+  isDefault?: boolean;
+  scope?: 'SHOP' | 'BUSINESS';
+}
+
+export interface StatementLine {
+  id: string;
+  at: string;
+  kind: AutoSource | MoneyEntryType;
+  direction: MoneyDirection;
+  amount: number;
+  reference: string | null;
+  party: string | null;
+  note: string | null;
+  by: string | null;
+  balance: number;
+}
+
+export interface AccountStatement {
+  account: Pick<MoneyAccountRow, 'id' | 'name' | 'kind' | 'method' | 'bankName' | 'accountTitle' | 'accountNumber' | 'iban' | 'auto'> & { shop: string | null };
+  from: string;
+  to: string;
+  opening: number;
+  in: number;
+  out: number;
+  closing: number;
+  lines: StatementLine[];
+}
+
+interface MoveBase {
+  amount: number;
+  reason: string;
+  note?: string;
+  /** One key per movement; a retry with the same key is not posted twice. */
+  requestId: string;
+  allowNegative?: boolean;
+}
+
+export interface MoveResult { duplicate: boolean; entryId: string; transferGroupId: string | null }
+
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const moneyApi = {
@@ -133,6 +214,38 @@ export const moneyApi = {
 
   analytics: (q: MoneyPeriod) =>
     apiClient.get<{ data: MoneyAnalytics }>('/finance/money/analytics', { params: q }).then(unwrap),
+
+  moneyAccounts: (inactive = false) =>
+    apiClient.get<{ data: MoneyAccountList }>('/finance/money/money-accounts', { params: inactive ? { inactive: 'true' } : {} }).then(unwrap),
+
+  createAccount: (body: MoneyAccountInput) =>
+    apiClient.post<{ data: MoneyAccountRow }>('/finance/money/money-accounts', body).then(unwrap),
+
+  updateAccount: (id: string, body: Partial<Omit<MoneyAccountInput, 'scope'>> & { isActive?: boolean }) =>
+    apiClient.patch<{ data: MoneyAccountRow }>(`/finance/money/money-accounts/${id}`, body).then(unwrap),
+
+  /** Removes an unused account, or turns off one with entries (balance must be zero). */
+  removeAccount: (id: string) =>
+    apiClient.delete<{ data: { removed: boolean; deactivated: boolean } }>(`/finance/money/money-accounts/${id}`).then(unwrap),
+
+  importReceiptAccounts: () =>
+    apiClient.post<{ data: { created: number; skipped: number } }>('/finance/money/money-accounts/import-receipt').then(unwrap),
+
+  statement: (id: string, q: { from?: string; to?: string }) =>
+    apiClient.get<{ data: AccountStatement }>(`/finance/money/money-accounts/${id}/statement`, { params: q }).then(unwrap),
+
+  transfer: (body: MoveBase & { fromAccountId: string; toAccountId: string }) =>
+    apiClient.post<{ data: MoveResult }>('/finance/money/transfer', body).then(unwrap),
+
+  drawerToAccount: (body: MoveBase & { accountId: string; registerId?: string }) =>
+    apiClient.post<{ data: MoveResult }>('/finance/money/drawer-to-account', body).then(unwrap),
+
+  accountToDrawer: (body: MoveBase & { accountId: string; registerId?: string }) =>
+    apiClient.post<{ data: MoveResult }>('/finance/money/account-to-drawer', body).then(unwrap),
+
+  /** Deposit, withdraw or adjustment (an adjustment may be negative). */
+  entry: (body: Omit<MoveBase, 'amount'> & { accountId: string; type: 'DEPOSIT' | 'WITHDRAW' | 'ADJUSTMENT'; amount: number; entryDate?: string }) =>
+    apiClient.post<{ data: MoveResult }>('/finance/money/entry', body).then(unwrap),
 
   /** Cash into or out of the open drawer of the active branch. */
   drawerMove: (payload: DrawerMovePayload) =>

@@ -123,6 +123,24 @@ enum SupplierLedgerType {
   ADJUSTMENT
 }
 
+// Where the shop keeps money besides the drawer: a safe, a bank account, a
+// mobile wallet.
+enum MoneyAccountKind {
+  CASH
+  BANK
+  WALLET
+}
+
+// Manual movement on a money account. Amount is positive; the type gives the
+// direction. ADJUSTMENT is the one exception and carries its own sign.
+enum MoneyEntryType {
+  DEPOSIT
+  WITHDRAW
+  TRANSFER_IN
+  TRANSFER_OUT
+  ADJUSTMENT
+}
+
 enum CashRegisterStatus {
   OPEN
   CLOSED
@@ -380,6 +398,8 @@ model Tenant {
   shops               Shop[]
   cashRegisters       CashRegister[]
   cashTransactions    CashTransaction[]
+  moneyAccounts       MoneyAccount[]
+  moneyAccountEntries MoneyAccountEntry[]
   activityLogs        ActivityLog[]
   notifications       Notification[]
   transfers           StockTransfer[]
@@ -635,6 +655,8 @@ model Shop {
   stockMovements   StockMovement[]
   stockAdjustments StockAdjustment[]
   saleReturns      SaleReturn[]
+  moneyAccounts    MoneyAccount[]
+  moneyEntries     MoneyAccountEntry[]
 
   // ── Marketplace relations ──
   marketplaceProfile  ShopMarketplaceProfile?
@@ -691,6 +713,8 @@ model User {
   cashRegistersOpened CashRegister[]          @relation("UserOpenedRegisters")
   cashRegistersClosed CashRegister[]          @relation("UserClosedRegisters")
   cashTransactions    CashTransaction[]       @relation("UserCashTx")
+  moneyAccountsMade   MoneyAccount[]          @relation("UserMoneyAccounts")
+  moneyEntriesMade    MoneyAccountEntry[]     @relation("UserMoneyEntries")
   activityLogs        ActivityLog[]           @relation("UserActivities")
   notifications       Notification[]          @relation("UserNotifications")
   transfersCreated    StockTransfer[]         @relation("UserTransfers")
@@ -1804,6 +1828,70 @@ model CashRegister {
   @@index([tenantId])
   @@index([tenantId, status])
   @@index([shopId])
+}
+
+// A place the shop keeps money (safe, bank, wallet). The balance is worked
+// out by common/helpers/account-balance.helper.ts, never stored.
+model MoneyAccount {
+  id             String           @id @default(uuid())
+  tenantId       String
+  /// Null = the whole business, not one branch.
+  shopId         String?
+  name           String
+  kind           MoneyAccountKind
+  /// Payment method whose money lands here automatically (default account only).
+  method         PaymentMethod?
+  bankName       String?
+  accountTitle   String?
+  accountNumber  String?
+  iban           String?
+  openingBalance Float            @default(0)
+  openingDate    DateTime         @default(now())
+  /// Default account for its method in its branch; one per (tenant, shop, method).
+  isDefault      Boolean          @default(false)
+  isActive       Boolean          @default(true)
+  sortOrder      Int              @default(0)
+  createdById    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  tenant    Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop      Shop?               @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  createdBy User?               @relation("UserMoneyAccounts", fields: [createdById], references: [id], onDelete: SetNull)
+  entries   MoneyAccountEntry[]
+
+  @@index([tenantId])
+  @@index([tenantId, shopId])
+  @@index([tenantId, method])
+}
+
+model MoneyAccountEntry {
+  id              String         @id @default(uuid())
+  tenantId        String
+  shopId          String?
+  accountId       String
+  type            MoneyEntryType
+  amount          Float
+  reason          String?
+  note            String?
+  /// Shared by the two sides of a transfer.
+  transferGroupId String?
+  /// Client key; a retry with the same key is not posted twice.
+  requestId       String?
+  /// Drawer the cash came from or went to.
+  cashRegisterId  String?
+  createdById     String?
+  entryDate       DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+
+  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop      Shop?        @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  account   MoneyAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  createdBy User?        @relation("UserMoneyEntries", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, requestId])
+  @@index([tenantId, accountId, entryDate])
+  @@index([transferGroupId])
 }
 
 model CashTransaction {

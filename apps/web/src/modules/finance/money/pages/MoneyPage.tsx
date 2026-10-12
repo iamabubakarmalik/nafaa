@@ -1,10 +1,12 @@
 /**
  * Shop accounts: how much money came in and went out of each account (cash,
  * bank, card, JazzCash, Easypaisa), the cash that should be in each open
- * drawer, what the shop owns and owes, a merged ledger of every movement,
- * and analytics. Cash can be put into or taken out of the drawer here.
+ * drawer, the real balance of the safe, bank and wallet accounts, what the
+ * shop owns and owes, a merged ledger of every movement, and analytics.
+ * Cash can be put into or taken out of the drawer, and money moved between
+ * the drawer and the accounts.
  *
- * Keys: / search · L ledger · A analytics · I cash in · O cash out · G guide.
+ * Keys: / search · L ledger · A analytics · I cash in · O cash out · B move money · G guide.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -12,7 +14,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowDownCircle, ArrowDownToLine, ArrowUpCircle, ArrowUpFromLine, BarChart3, BookOpen, Calculator, ChevronRight, Coins, Filter,
-  GraduationCap, Landmark, LayoutGrid, ListChecks, Package, Printer, Scale, Store, Truck, Wallet,
+  GraduationCap, Landmark, LayoutGrid, ListChecks, Package, Printer, Scale, Store, Truck, Wallet, ArrowLeftRight,
 } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
@@ -31,9 +33,13 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import {
   moneyApi, type MoneyAccount, type MoneyAccounts, type MoneyDirection, type MoneyDrawer, type MoneyEntry, type MoneyLedgerQuery,
-  type MoneyPosition, type MoneySource,
+  type MoneyAccountRow, type MoneyPosition, type MoneySource,
 } from '../api/money.api';
+import { AccountEntryModal, type EntryKind } from '../components/AccountEntryModal';
+import { AccountFormModal } from '../components/AccountFormModal';
 import { DrawerMoveModal } from '../components/DrawerMoveModal';
+import { MoneyAccountsPanel } from '../components/MoneyAccountsPanel';
+import { MoveMoneyModal } from '../components/MoveMoneyModal';
 import { MoneyAnalytics } from '../components/MoneyAnalytics';
 import { ACCOUNTS, ACCOUNT_IDS, MONEY_KEY, SOURCES, SOURCE_IDS, entryLink, entryTitle, when } from '../components/meta';
 import { statementDoc } from '../components/print';
@@ -45,6 +51,10 @@ export default function MoneyPage() {
   const startHour = useBusinessDayStart();
   const { sales: money, cost } = useMasked();
   const canMoveCash = usePermission(PERMISSIONS.CASH_REGISTER_OPEN);
+  const canMoveMoney = usePermission(PERMISSIONS.EXPENSES_CREATE);
+  const canSetup = usePermission(PERMISSIONS.SETTINGS_EDIT);
+  const role = useAuthStore((s) => s.user?.role);
+  const isOwner = role === 'OWNER' || role === 'SUPER_ADMIN';
   const allShops = isAllShops(useAuthStore((s) => s.currentShopId));
   const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
   const [account, setAccount] = useState<'' | MoneyAccount>('');
@@ -55,6 +65,10 @@ export default function MoneyPage() {
   const [page, setPage] = useState(1);
   const [tab, setTab] = useState<Tab>('accounts');
   const [move, setMove] = useState<'CASH_IN' | 'CASH_OUT' | null>(null);
+  const [showInactive, setShowInactive] = useState(false);
+  const [form, setForm] = useState<{ account?: MoneyAccountRow } | null>(null);
+  const [transfer, setTransfer] = useState<{ from?: string; to?: string } | null>(null);
+  const [entry, setEntry] = useState<{ account: MoneyAccountRow; kind: EntryKind } | null>(null);
   const guide = usePageGuide();
 
   useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
@@ -70,6 +84,12 @@ export default function MoneyPage() {
   };
 
   const accountsQ = useQuery({ queryKey: [MONEY_KEY, 'accounts', base], queryFn: () => moneyApi.accounts(base), placeholderData: (p) => p, refetchInterval: 60_000 });
+  const moneyAccountsQ = useQuery({
+    queryKey: [MONEY_KEY, 'money-accounts', showInactive],
+    queryFn: () => moneyApi.moneyAccounts(showInactive),
+    placeholderData: (p) => p,
+    refetchInterval: 60_000,
+  });
   const positionQ = useQuery({ queryKey: [MONEY_KEY, 'position'], queryFn: moneyApi.position, refetchInterval: 60_000 });
   const listQ = useQuery({
     queryKey: [MONEY_KEY, 'ledger', ledgerQ, page],
@@ -82,6 +102,11 @@ export default function MoneyPage() {
   const pos = positionQ.data;
   const ledger = listQ.data;
   const drawer = !allShops ? acc?.cash.drawers[0] ?? null : null;
+  const moneyAccounts = moneyAccountsQ.data;
+  const activeAccounts = moneyAccounts?.accounts.filter((a) => a.isActive) ?? [];
+  const accountsTotal = moneyAccounts?.total ?? 0;
+  /** Drawer cash plus every active account in view. */
+  const totalBalance = (acc?.cash.inHand ?? 0) + accountsTotal;
   const nonCashIn = acc ? acc.accounts.filter((a) => a.method !== 'CASH').reduce((s, a) => s + a.in, 0) : 0;
   const typeLabel = type === 'in' ? 'Sirf aaya' : type === 'out' ? 'Sirf gaya' : type ? SOURCES[type].label : '';
   const filtered = !!account || !!type || !!query;
@@ -102,11 +127,12 @@ export default function MoneyPage() {
       if (k === 'l') { e.preventDefault(); setTab('ledger'); }
       if (canMoveCash && k === 'i') { e.preventDefault(); setMove('CASH_IN'); }
       if (canMoveCash && k === 'o') { e.preventDefault(); setMove('CASH_OUT'); }
+      if (canMoveMoney && k === 'b') { e.preventDefault(); setTransfer({}); }
       if (e.key === '/') { e.preventDefault(); setTab('ledger'); window.setTimeout(() => searchRef.current?.focus(), 0); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [canMoveCash]);
+  }, [canMoveCash, canMoveMoney]);
 
   const clear = () => { setAccount(''); setType(''); setSearch(''); };
   const openLedger = (a: MoneyAccount | '', t: TypeFilter = '') => { setAccount(a); setType(t); setTab('ledger'); };
@@ -123,12 +149,16 @@ export default function MoneyPage() {
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Statement" disabled={!acc} /></span>
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canMoveMoney && (
+            <button type="button" onClick={() => setTransfer({})} title="Paisa bhejein (B)" className={heroIconButton}><ArrowLeftRight className="h-4 w-4" /></button>
+          )}
           {canMoveCash && <>
             <button type="button" onClick={() => setMove('CASH_OUT')} title="Cash nikalein (O)" className={heroIconButton}><ArrowUpFromLine className="h-4 w-4" /></button>
             <button type="button" onClick={() => setMove('CASH_IN')} title="Cash daalein (I)" className={heroPrimaryButton}><ArrowDownToLine className="h-4 w-4" /> Cash daalein</button>
           </>}
         </>}
         stats={acc ? [
+          { label: 'Kul paisa (golak + accounts)', value: money(totalBalance), hint: `${activeAccounts.length} account + golak` },
           { label: 'Bacha (aaya − gaya)', value: money(acc.totals.net) },
           { label: 'Aaya', value: money(acc.totals.in) },
           { label: 'Gaya', value: money(acc.totals.out) },
@@ -144,7 +174,8 @@ export default function MoneyPage() {
             onClick={() => openToday('in')} />
           <KpiCard icon={ArrowUpCircle} color="#e11d48" label="Aaj gaya" value={money(acc.totals.todayOut)} hint="Kharch, kharidari, wapsi"
             onClick={() => openToday('out')} />
-          <KpiCard icon={Landmark} color={ACCOUNTS.BANK_TRANSFER.color} label="Bank aur wallets me aaya" value={money(nonCashIn)} hint="Bank, card, JazzCash, Easypaisa" />
+          <KpiCard icon={Landmark} color={ACCOUNTS.BANK_TRANSFER.color} label="Tijori, bank aur wallets" value={moneyAccounts ? money(accountsTotal) : '—'}
+            hint={`Asal balance · is muddat ${money(nonCashIn)} aaya`} onClick={() => setTab('accounts')} />
           <KpiCard icon={Scale} color="#0891b2" label="Dukaan ki maliyat" value={pos ? cost(pos.netWorth) : '—'} hint="Cash + maal + lena − dena" />
         </>}
       </KpiRow>
@@ -170,7 +201,7 @@ export default function MoneyPage() {
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<><Kbd>/</Kbd> dhoondein · <Kbd>L</Kbd> ledger · <Kbd>A</Kbd> analytics{canMoveCash && <> · <Kbd>I</Kbd>/<Kbd>O</Kbd> cash</>}</>}
+        hint={<><Kbd>/</Kbd> dhoondein · <Kbd>L</Kbd> ledger · <Kbd>A</Kbd> analytics{canMoveCash && <> · <Kbd>I</Kbd>/<Kbd>O</Kbd> cash</>}{canMoveMoney && <> · <Kbd>B</Kbd> bhejein</>}</>}
         tabs={[
           { id: 'accounts', label: 'Accounts', icon: LayoutGrid },
           { id: 'ledger', label: 'Ledger', icon: ListChecks, count: tab === 'ledger' ? ledger?.total ?? null : null },
@@ -178,19 +209,33 @@ export default function MoneyPage() {
         ]} />
 
       {tab === 'analytics' ? <MoneyAnalytics filters={base} money={money} /> : tab === 'accounts' ? (
-        <AccountsView acc={acc} pos={pos} money={money} cost={cost} allShops={allShops} canMoveCash={canMoveCash}
-          onAccount={(a) => openLedger(a)} onMove={setMove} />
+        <div className="space-y-4">
+          <MoneyAccountsPanel list={moneyAccounts} money={money} period={period} periodText={periodText}
+            showInactive={showInactive} setShowInactive={setShowInactive} canSetup={canSetup} canMove={canMoveMoney}
+            onNew={() => setForm({})} onEdit={(a) => setForm({ account: a })} onMove={(from, to) => setTransfer({ from, to })}
+            onEntry={(a, kind) => setEntry({ account: a, kind })} />
+          <AccountsView acc={acc} pos={pos} money={money} cost={cost} allShops={allShops} canMoveCash={canMoveCash}
+            onAccount={(a) => openLedger(a)} onMove={setMove} />
+        </div>
       ) : (
         <LedgerView ledger={ledger} loading={listQ.isLoading} money={money} filtered={filtered} onClear={clear}
           page={page} setPage={setPage} />
       )}
 
       {move && <DrawerMoveModal kind={move} drawer={drawer} allShops={allShops} onClose={() => setMove(null)} />}
+      {form && <AccountFormModal account={form.account} allShops={allShops} isOwner={isOwner} onClose={() => setForm(null)} />}
+      {transfer && (
+        <MoveMoneyModal accounts={activeAccounts} drawer={drawer} allShops={allShops} canDrawer={canMoveCash}
+          from={transfer.from} to={transfer.to} onClose={() => setTransfer(null)} />
+      )}
+      {entry && <AccountEntryModal account={entry.account} kind={entry.kind} onClose={() => setEntry(null)} />}
 
       {guide.isOpen && (
         <PageGuide title="Shop accounts — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: Landmark, color: '#7c3aed', title: 'Accounts', text: 'Har payment ka tareeqa ek account hai: Cash, Bank transfer, Card, JazzCash aur Easypaisa. Card par click karein to us ki sari entries Ledger me khul jati hain.' },
+            { icon: Landmark, color: '#2563eb', title: 'Tijori, bank aur wallets', text: '"Naya account" se bank, JazzCash ya tijori banayein. Default account par us tareeqe ki bikri, wapsi, kharch aur adaigi khud judti hai, is liye balance asal hota hai. Statement me har line aur chalta balance milta hai.' },
+            { icon: ArrowLeftRight, color: '#0891b2', title: 'Paisa bhejein', text: 'Golak se bank me jama, bank se khulle laye, ya wallet se bank — "Paisa bhejein" dabayein. Dono taraf ka hisaab saath badalta hai aur golak wala hissa Cash register me bhi judta hai.' },
             { icon: Wallet, color: '#16a34a', title: 'Golak ka cash', text: 'Khule register ki shuru ki raqam + cash bikri + khata wasooli + daala cash − nikala cash − cash kharch, kharidari, supplier adaigi aur wapsi. Yahi golak me hona chahiye.' },
             { icon: ListChecks, color: '#2563eb', title: 'Ledger', text: 'Bikri, wapsi, khata, kharidari, supplier, kharch aur golak ki har entry ek jagah — nayi sab se upar. Entry par click karein to asal bill ya khata khulta hai.' },
             { icon: ArrowDownToLine, color: '#059669', title: 'Cash daalna / nikalna', text: 'Malik ne paise liye, bank me jama karaye ya khulle laye? "Cash daalein" ya nikalne wala button dabayein, raqam aur wajah likhein. Ye Cash register me bhi judta hai.' },
@@ -202,8 +247,10 @@ export default function MoneyPage() {
             'Bikri me wohi raqam judti hai jo rakh li gayi — customer ko diya hua change nikal kar.',
             'Branch chuni ho to sirf us branch ka hisaab dikhta hai; "Sab branches" par poora karobar.',
             'Cash daalne ya nikalne ke liye "Cash register" ki ijazat aur khula register chahiye.',
+            'Account banane ke liye "Settings badalna" aur paisa bhejne ke liye "Kharch likhna" ki ijazat chahiye.',
+            'Kul paisa = golak + sab chalu accounts. Branch chuni ho to us branch ke aur poore karobar wale accounts gine jate hain.',
           ]}
-          shortcuts={[['/', 'dhoondein'], ['L', 'ledger'], ['A', 'analytics'], ['I', 'cash daalein'], ['O', 'cash nikalein'], ['G', 'guide']]}
+          shortcuts={[['/', 'dhoondein'], ['L', 'ledger'], ['A', 'analytics'], ['I', 'cash daalein'], ['O', 'cash nikalein'], ['B', 'paisa bhejein'], ['G', 'guide']]}
         />
       )}
     </PageShell>

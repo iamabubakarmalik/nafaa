@@ -4,11 +4,14 @@
  */
 
 import {
-  ArrowDownToLine, ArrowUpFromLine, BookOpen, Building2, CreditCard, Receipt, ShoppingCart, Smartphone, Truck, Undo2, Wallet,
+  ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, BookOpen, Building2, CalendarCheck, CreditCard, Landmark, PiggyBank, Receipt, Scale,
+  ShoppingCart, Smartphone, Truck, Undo2, Vault, Wallet,
   type LucideIcon,
 } from 'lucide-react';
 import { PAYMENT_COLORS } from '@modules/dashboard/engine/useChartTheme';
-import type { MoneyAccount, MoneyDirection, MoneyEntry, MoneySource } from '../api/money.api';
+import type {
+  AutoSource, MoneyAccount, MoneyAccountKind, MoneyDirection, MoneyEntry, MoneyEntryType, MoneySource,
+} from '../api/money.api';
 
 export const ACCOUNTS: Record<MoneyAccount, { label: string; short: string; icon: LucideIcon; color: string; hint: string }> = {
   CASH: { label: 'Cash', short: 'Cash', icon: Wallet, color: PAYMENT_COLORS.CASH, hint: 'Golak / drawer' },
@@ -30,6 +33,41 @@ export const SOURCES: Record<MoneySource, { label: string; icon: LucideIcon; col
   CASH_OUT: { label: 'Cash nikala', icon: ArrowUpFromLine, color: '#e11d48', direction: 'out', hint: 'Golak se haath se nikala' },
 };
 export const SOURCE_IDS = Object.keys(SOURCES) as MoneySource[];
+
+/** Kinds of money account (safe, bank, wallet). */
+export const KINDS: Record<MoneyAccountKind, { label: string; icon: LucideIcon; color: string; hint: string }> = {
+  CASH: { label: 'Tijori / cash', icon: Vault, color: '#16a34a', hint: 'Golak se alag rakha cash' },
+  BANK: { label: 'Bank account', icon: Landmark, color: '#2563eb', hint: 'HBL, Meezan, UBL waghera' },
+  WALLET: { label: 'Mobile wallet', icon: Smartphone, color: '#dc2626', hint: 'JazzCash, Easypaisa, NayaPay' },
+};
+export const KIND_IDS = Object.keys(KINDS) as MoneyAccountKind[];
+
+/** Lines of an account statement: automatic sources and manual entries. */
+export const STATEMENT_KINDS: Record<AutoSource | MoneyEntryType, { label: string; icon: LucideIcon; color: string }> = {
+  SALE: { label: 'Bikri', icon: ShoppingCart, color: '#16a34a' },
+  BOOKING: { label: 'Booking', icon: CalendarCheck, color: '#0d9488' },
+  BOOKING_REFUND: { label: 'Booking wapsi', icon: Undo2, color: '#f97316' },
+  REFUND: { label: 'Wapsi', icon: Undo2, color: '#f97316' },
+  PURCHASE: { label: 'Kharidari', icon: Truck, color: '#6366f1' },
+  SUPPLIER: { label: 'Supplier adaigi', icon: Truck, color: '#7c3aed' },
+  EXPENSE: { label: 'Kharch', icon: Receipt, color: '#d97706' },
+  DEPOSIT: { label: 'Jama', icon: PiggyBank, color: '#059669' },
+  WITHDRAW: { label: 'Nikala', icon: ArrowUpFromLine, color: '#e11d48' },
+  TRANSFER_IN: { label: 'Aaya (transfer)', icon: ArrowLeftRight, color: '#0891b2' },
+  TRANSFER_OUT: { label: 'Bheja (transfer)', icon: ArrowLeftRight, color: '#7c3aed' },
+  ADJUSTMENT: { label: 'Durusti', icon: Scale, color: '#64748b' },
+};
+
+/** Account number with all but the last 4 digits hidden. */
+export function maskNumber(v: string | null | undefined): string {
+  const s = (v ?? '').replace(/\s+/g, '');
+  if (!s) return '';
+  return s.length <= 4 ? s : `•••• ${s.slice(-4)}`;
+}
+
+/** One key per form; a double click or retry posts once. */
+export const newRequestId = () =>
+  typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 /** Every query of this page lives under this key. */
 export const MONEY_KEY = 'money';

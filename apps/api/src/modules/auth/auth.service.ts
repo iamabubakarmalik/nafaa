@@ -97,6 +97,8 @@ export class AuthService {
           isMain: true,
           isActive: true,
           type: 'SHOP',
+          // Every shop starts with a safe account on the Shop accounts page.
+          moneyAccounts: { create: { tenantId: tenant.id, name: 'Tijori (cash)', kind: 'CASH' } },
         },
       });
 
@@ -380,6 +382,8 @@ export class AuthService {
           isMain: true,
           isActive: true,
           type: 'SHOP',
+          // Every shop starts with a safe account on the Shop accounts page.
+          moneyAccounts: { create: { tenantId: tenant.id, name: 'Tijori (cash)', kind: 'CASH' } },
         },
       });
 

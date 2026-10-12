@@ -1,15 +1,15 @@
 /**
- * Account statement for the current filter: every printed movement with
- * money in, money out and a running net (from the first printed entry), then
- * totals. A PrintDoc, so the shared print button prints it on A4, as a PDF
- * or on a thermal slip.
+ * Printed statements, as PrintDocs (A4, PDF or thermal slip via the shared
+ * print button): the ledger for the current filter with a running net, and
+ * one money account's statement with its running balance.
  */
 
 import { formatPKR } from '@core/lib/format';
 import type { PrintDoc } from '@core/print';
-import type { MoneyLedger } from '../api/money.api';
-import { ACCOUNTS, SOURCES, entryTitle, when } from './meta';
+import type { AccountStatement, MoneyLedger } from '../api/money.api';
+import { ACCOUNTS, KINDS, SOURCES, STATEMENT_KINDS, entryTitle, maskNumber, when } from './meta';
 
+/** Ledger for the current filter: every printed movement, a running net from the first one, then totals. */
 export function statementDoc(ledger: MoneyLedger, opts: { title: string; period: string; filter: string }): PrintDoc {
   // Oldest first, so the running net reads like a bank statement.
   const rows = [...ledger.items].reverse();
@@ -72,5 +72,58 @@ export function statementDoc(ledger: MoneyLedger, opts: { title: string; period:
     footer: ledger.total > ledger.items.length
       ? `Pehli ${ledger.items.length} entries chhapi hain (kul ${ledger.total}). Khulasa poori muddat ka hai; source wali lines sirf chhapi hui entries ki hain.`
       : undefined,
+  };
+}
+
+/**
+ * One money account's statement: opening, every automatic and manual line
+ * with the running balance, and closing.
+ */
+export function accountStatementDoc(s: AccountStatement, period: string): PrintDoc {
+  const a = s.account;
+  const number = [a.bankName, a.accountNumber && maskNumber(a.accountNumber)].filter(Boolean).join(' · ');
+  return {
+    title: `${a.name} statement`,
+    subtitle: period,
+    meta: [
+      ['Qism', KINDS[a.kind].label],
+      ...(number ? [['Account', number] as [string, string]] : []),
+      ...(a.accountTitle ? [['Title', a.accountTitle] as [string, string]] : []),
+      ['Branch', a.shop ?? 'Poora karobar'],
+      ['Shuru', formatPKR(s.opening)],
+      ['Aakhir', formatPKR(s.closing)],
+    ],
+    sections: [
+      {
+        kind: 'table',
+        columns: [
+          { label: 'Waqt' }, { label: 'Qism', wideOnly: true }, { label: 'Tafseel' }, { label: 'Ref', wideOnly: true },
+          { label: 'Aaya', align: 'right' }, { label: 'Gaya', align: 'right' }, { label: 'Balance', align: 'right', wideOnly: true },
+        ],
+        rows: [
+          ['', '', 'Shuru ka balance', '', '', '', formatPKR(s.opening)],
+          ...s.lines.map((l) => [
+            when(l.at),
+            STATEMENT_KINDS[l.kind].label,
+            [l.party, l.note].filter(Boolean).join(' · ') || STATEMENT_KINDS[l.kind].label,
+            l.reference ?? '',
+            l.direction === 'in' ? formatPKR(l.amount) : '',
+            l.direction === 'out' ? formatPKR(l.amount) : '',
+            formatPKR(l.balance),
+          ]),
+        ],
+      },
+      {
+        kind: 'rows',
+        title: 'Khulasa',
+        rows: [
+          { label: 'Shuru ka balance', value: formatPKR(s.opening) },
+          { label: `Aaya (${s.lines.filter((l) => l.direction === 'in').length})`, value: `+${formatPKR(s.in)}`, sub: true },
+          { label: `Gaya (${s.lines.filter((l) => l.direction === 'out').length})`, value: `−${formatPKR(s.out)}`, sub: true },
+          { label: 'Aakhri balance', value: formatPKR(s.closing), strong: true },
+        ],
+      },
+    ],
+    footer: a.auto ? 'Bikri, wapsi, kharch aur adaigi is account ke payment tareeqe se khud judti hain.' : undefined,
   };
 }

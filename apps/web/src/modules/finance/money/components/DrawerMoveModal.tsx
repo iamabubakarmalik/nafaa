@@ -13,7 +13,7 @@ import { Button, Input, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { moneyApi, type MoneyDrawer } from '../api/money.api';
-import { MONEY_KEY, apiError } from './meta';
+import { MONEY_KEY, apiError, newRequestId } from './meta';
 
 type Kind = 'CASH_IN' | 'CASH_OUT';
 
@@ -37,8 +37,7 @@ export function DrawerMoveModal({ kind: initial, drawer, allShops, onClose }: {
   const [tried, setTried] = useState(false);
   const busy = useRef(false);
   // Kept for the life of the modal, so a double click or retry posts once.
-  const [requestId] = useState(() =>
-    typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const [requestId] = useState(newRequestId);
 
   const value = Number(amount) || 0;
   const out = kind === 'CASH_OUT';
