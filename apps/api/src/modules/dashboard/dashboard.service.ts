@@ -9,6 +9,7 @@ import {
   tzParts
 } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
+import { computeLiveCash } from '../../common/helpers/live-cash.helper';
 
 @Injectable()
 export class DashboardService {
@@ -550,7 +551,7 @@ export class DashboardService {
         inventoryValueAtCost, inventoryValueAtPrice,
         potentialProfit: inventoryValueAtPrice - inventoryValueAtCost,
         registerOpen: !!currentRegister,
-        registerExpected: currentRegister?.expectedBalance ?? 0,
+        registerExpected: currentRegister ? (await computeLiveCash(this.prisma, tenantId, currentRegister)).expected : 0,
         registerOpening: currentRegister?.openingBalance ?? 0,
         returnsTodayCount: returnsToday._count._all ?? 0,
         returnsTodayAmount: returnsToday._sum.refundAmount ?? 0,

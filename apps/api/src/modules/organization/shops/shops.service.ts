@@ -8,6 +8,7 @@ import { hashPassword } from '../../../common/utils/password.util';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CreateShopDto } from './dto/create-shop.dto';
 import { DEFAULT_ROLE_PERMISSIONS } from '../../../common/constants/permissions.constants';
+import { computeLiveCash } from '../../../common/helpers/live-cash.helper';
 
 @Injectable()
 export class ShopsService {
@@ -636,7 +637,7 @@ export class ShopsService {
           `.then((r) => Number(r[0]?.count ?? 0)).catch(() => 0),
           this.prisma.cashRegister.findFirst({
             where: { shopId: shop.id, status: 'OPEN' },
-            select: { id: true, expectedBalance: true, openedAt: true, openingBalance: true },
+            select: { id: true, shopId: true, expectedBalance: true, openedAt: true, openingBalance: true },
           }),
           this.prisma.shopStock.aggregate({
             where: { shopId: shop.id, isActive: true },
@@ -713,7 +714,7 @@ export class ShopsService {
           lowStockCount,
           totalStock: totalStock._sum.stock ?? 0,
           registerOpen: !!openRegister,
-          registerBalance: openRegister?.expectedBalance ?? 0,
+          registerBalance: openRegister ? (await computeLiveCash(this.prisma, user.tenantId, openRegister)).expected : 0,
           registerOpening: openRegister?.openingBalance ?? 0,
           registerOpenedAt: openRegister?.openedAt ?? null,
 

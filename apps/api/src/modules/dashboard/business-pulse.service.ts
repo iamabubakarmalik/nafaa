@@ -7,6 +7,7 @@ import {
   startOfBusinessDayTz, startOfBusinessMonthTz, tzParts,
 } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
+import { computeLiveCash } from '../../common/helpers/live-cash.helper';
 
 /* ═════════════════════════════════════════════════════════════
    BUSINESS PULSE — har dukaan ke wohi sawal
@@ -208,7 +209,7 @@ export class BusinessPulseService {
         select: {
           id: true, registerNumber: true, openingBalance: true,
           expectedBalance: true, totalCashIn: true, totalCashOut: true,
-          openedAt: true,
+          openedAt: true, shopId: true,
         },
       }),
 
@@ -332,7 +333,7 @@ export class BusinessPulseService {
       cash: {
         registerOpen: !!openRegister,
         register: openRegister,
-        expected: openRegister?.expectedBalance ?? 0,
+        expected: openRegister ? (await computeLiveCash(this.prisma, user.tenantId, openRegister)).expected : 0,
         opening: openRegister?.openingBalance ?? 0,
       },
 
