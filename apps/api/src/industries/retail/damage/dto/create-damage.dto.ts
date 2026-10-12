@@ -1,17 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DamageReasonCode } from '@prisma/client';
 import {
-  IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Min,
+  ArrayMaxSize, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min,
 } from 'class-validator';
 
 export class CreateDamageDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Branch the goods are in; the active branch when left out' })
   @IsOptional()
   @IsString()
   shopId?: string;
 
   @ApiProperty()
   @IsString()
+  @IsNotEmpty()
   productId!: string;
 
   @ApiPropertyOptional()
@@ -24,30 +25,32 @@ export class CreateDamageDto {
   @IsString()
   batchId?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'ProductUnit the quantity is counted in (carton, dozen); base unit when left out' })
   @IsOptional()
   @IsString()
   unitId?: string;
 
-  @ApiProperty({ example: 5 })
+  @ApiProperty({ example: 5, description: 'Quantity in the chosen unit' })
   @IsNumber()
-  @Min(0.01)
+  @Min(0.001)
   quantity!: number;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Cost of one base unit; current cost price when left out' })
   @IsOptional()
   @IsNumber()
   @Min(0)
   unitCost?: number;
 
-  @ApiPropertyOptional({ example: 50, description: 'Salvage value (e.g. sold at discount)' })
+  @ApiPropertyOptional({ example: 50, description: 'Amount recovered (e.g. sold at discount)' })
   @IsOptional()
   @IsNumber()
   @Min(0)
   salvageValue?: number;
 
-  @ApiProperty({ example: 'Products expired last week' })
+  @ApiProperty({ example: 'Expiry ho gaya' })
   @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
   reason!: string;
 
   @ApiPropertyOptional({ enum: DamageReasonCode })
@@ -58,12 +61,14 @@ export class CreateDamageDto {
   @ApiPropertyOptional({ type: [String] })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(10)
   @IsString({ each: true })
   photos?: string[];
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   notes?: string;
 
   @ApiPropertyOptional()

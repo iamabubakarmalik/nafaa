@@ -8,6 +8,6 @@ export function useRetailAttention(): AttentionItem[] {
   const { data: alerts = {} } = useRetailAlerts();
   const items: AttentionItem[] = [];
   if (alerts.pendingReorders) items.push({ icon: RefreshCw, level: 'info', text: `${alerts.pendingReorders} reorder tayyar hain`, to: '/retail/reorders', cta: 'Reorder' });
-  if (alerts.damagesToday) items.push({ icon: ShieldAlert, level: 'neutral', text: `Aaj ${alerts.damagesToday} damage darj hue`, to: '/retail/damage', cta: 'Damage log' });
+  if (alerts.damagesToday) items.push({ icon: ShieldAlert, level: 'neutral', text: `Aaj ${alerts.damagesToday} damage darj hue`, to: '/damage', cta: 'Damage log' });
   return items;
 }

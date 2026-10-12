@@ -1,13 +1,11 @@
-import { LayoutDashboard, Sparkles, Layers, AlertTriangle, Zap, Download, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, Sparkles, Layers, Download, RefreshCw } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import RetailDashboard from './dashboard/RetailDashboard';
 import RetailPos from './pos/RetailPos';
 import CombosPage from './pages/CombosPage';
 import ComboFormPage from './pages/ComboFormPage';
-import DamageLogPage from './pages/DamageLogPage';
 import ProductUnitsPage from './pages/ProductUnitsPage';
-import QuickKeysPage from './pages/QuickKeysPage';
 import BulkImportPage from './pages/BulkImportPage';
 import ReorderPage from './pages/ReorderPage';
 import BarcodeLabelsPage from '@modules/inventory/barcodes/pages/BarcodeLabelsPage';
@@ -57,8 +55,6 @@ export const RetailPack: IndustryPack = {
       items: [
         { to: '/retail/combos',       label: 'Combos',           icon: Sparkles },
         { to: '/retail/product-units',label: 'Multi-Units',      icon: Layers },
-        { to: '/retail/damage',       label: 'Damage & Wastage', icon: AlertTriangle },
-        { to: '/retail/quick-keys',   label: 'Quick Keys',       icon: Zap },
         { to: '/retail/reorders',     label: 'Smart Reorder',    icon: RefreshCw, badge: 'AI' },
       ],
     },
@@ -83,9 +79,7 @@ export const RetailPack: IndustryPack = {
     { path: '/retail/combos',           element: CombosPage },
 
     // Retail features
-    { path: '/retail/damage',         element: DamageLogPage },
     { path: '/retail/product-units',  element: ProductUnitsPage },
-    { path: '/retail/quick-keys',     element: QuickKeysPage },
     { path: '/retail/bulk-import',    element: BulkImportPage },
     { path: '/retail/reorders',       element: ReorderPage },
     { path: '/retail/barcode-labels', element: BarcodeLabelsPage },
@@ -111,8 +105,6 @@ export const RetailPack: IndustryPack = {
   featureFlags: [
     { key: 'retailCombos',    label: 'Combo Products',      defaultEnabled: true },
     { key: 'retailMultiUnit', label: 'Multi-Unit Pricing',  defaultEnabled: true },
-    { key: 'retailDamage',    label: 'Damage Tracking',     defaultEnabled: true },
-    { key: 'retailQuickKeys', label: 'Quick Keys',          defaultEnabled: true },
     { key: 'retailReorder',   label: 'Smart Reorder',       defaultEnabled: false },
   ],
 };

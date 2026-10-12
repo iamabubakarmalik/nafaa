@@ -376,11 +376,22 @@ export function usePosEngine(config: PosIndustryConfig) {
     });
   }, [itemsById]);
 
-  const addQuickKey = useCallback((qk: QuickKey) => {
+  const addQuickKey = useCallback(async (qk: QuickKey) => {
     if (qk.comboId) { const b = bundles.find((x) => x.id === qk.comboId); return b ? addBundle(b) : toast.error('Combo nahi mila'); }
-    if (qk.productId) { const it = itemsById.get(qk.productId); return it ? addItem(it) : toast.error('Product nahi mila'); }
-    toast.error('Quick key set nahi hai');
-  }, [bundles, itemsById, addBundle, addItem]);
+    if (!qk.productId) return toast.error('Quick key set nahi hai');
+    const it = itemsById.get(qk.productId);
+    if (!it) return toast.error('Product nahi mila');
+    // A key may fix the pack unit and the variant; otherwise the usual pickers open.
+    const unit = qk.unitId ? (await unitsFor(it)).find((u) => u.id === qk.unitId) : undefined;
+    let variant: AddOptions['variant'];
+    if (qk.variantId) {
+      try {
+        const v = (await productVariantsApi.list(it.id)).find((x) => x.id === qk.variantId && x.isActive);
+        if (v) variant = { id: v.id, name: v.name, price: v.price, stock: v.stock };
+      } catch { /* offline: fall back to the variant picker */ }
+    }
+    return addItem(it, { ...(unit && { unit }), ...(variant && { variant }) });
+  }, [bundles, itemsById, addBundle, addItem, unitsFor]);
 
   engineApiRef.current = {
     addItem: (item, opts) => { void addItem(item, opts); },

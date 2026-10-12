@@ -3,7 +3,7 @@ import {
   Building2, CheckCircle2, ClipboardCheck, Cloud, CreditCard, Database, Download, Eye, FileText, Gauge, Gift,
   Globe, Hash, Layers, LayoutDashboard, Megaphone, MessageCircle, Navigation, Package, PackagePlus, Percent,
   Plug, Receipt, RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart,
-  Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap,
+  Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap, PackageX,
   Landmark, Send, Printer, QrCode, Search, HandCoins, Palette,
 } from 'lucide-react';
 import { PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
@@ -71,6 +71,7 @@ export const posNavGroups: NavGroup[] = [
       { to: '/sales', label: 'Sales history', icon: Receipt, permission: P.SALES_VIEW, keywords: 'bills invoices' },
       { to: '/bookings', label: 'Bookings', icon: BookmarkPlus, permission: P.SALES_VIEW, keywords: 'advance reserve' },
       { to: '/returns', label: 'Returns', icon: RotateCcw, permission: P.RETURNS_VIEW, keywords: 'refund wapsi' },
+      { to: '/quick-keys', label: 'Quick keys', icon: Zap, permission: P.PRODUCTS_VIEW, keywords: 'pos shortcut buttons fast' },
       { to: '/cash-register', label: 'Cash register', icon: Wallet, permission: P.CASH_REGISTER_VIEW, needsShop: true, keywords: 'till drawer' },
     ],
   },
@@ -101,6 +102,7 @@ export const posNavGroups: NavGroup[] = [
       { to: '/products', label: 'Products', icon: Package, permission: P.PRODUCTS_VIEW, keywords: 'items stock' },
       { to: '/catalog', label: 'Catalog', icon: Eye, permission: P.PRODUCTS_VIEW },
       { to: '/low-stock', label: 'Low stock', icon: AlertTriangle, permission: P.LOW_STOCK_VIEW, keywords: 'reorder khatam' },
+      { to: '/damage', label: 'Kharab maal', icon: PackageX, permission: P.PRODUCTS_VIEW, keywords: 'damage wastage expiry toota report approve' },
       { to: '/stock-adjustments', label: 'Adjustments', icon: ClipboardCheck, permission: P.STOCK_ADJUSTMENTS_MANAGE, needsShop: true, keywords: 'count correction' },
       { to: '/transfers', label: 'Transfers', icon: ArrowRightLeft, permission: P.STOCK_TRANSFERS_MANAGE, keywords: 'branch move' },
       { to: '/stock-movements', label: 'Stock movements', icon: Activity, permission: P.STOCK_MOVEMENTS_VIEW },

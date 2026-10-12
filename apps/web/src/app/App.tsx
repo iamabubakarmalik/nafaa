@@ -178,9 +178,9 @@ import CarpetBulkImportPage from '@industries/carpet/pages/CarpetBulkImportPage'
 // ─── Retail Industry ───────────────────────────────────────────
 import CombosPage from '@industries/retail/pages/CombosPage';
 import ComboFormPage from '@industries/retail/pages/ComboFormPage';
-import DamageLogPage from '@industries/retail/pages/DamageLogPage';
+import DamagePage from '@modules/inventory/damage/pages/DamagePage';
 import ProductUnitsPage from '@industries/retail/pages/ProductUnitsPage';
-import QuickKeysPage from '@industries/retail/pages/QuickKeysPage';
+import QuickKeysPage from '@modules/pos/quick-keys/QuickKeysPage';
 import BulkImportPage from '@industries/retail/pages/BulkImportPage';
 import ReorderPage from '@industries/retail/pages/ReorderPage';
 
@@ -794,9 +794,11 @@ export default function App() {
                   <Route path="/retail/combos/new" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ComboFormPage />)} />
                   <Route path="/retail/combos/:id/edit" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ComboFormPage />)} />
                   <Route path="/retail/combos" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CombosPage />)} />
-                  <Route path="/retail/damage" element={secure(PERMISSIONS.PRODUCTS_VIEW, <DamageLogPage />)} />
+                  <Route path="/damage" element={secure(PERMISSIONS.PRODUCTS_VIEW, <DamagePage />)} />
+                  <Route path="/retail/damage" element={<Navigate to="/damage" replace />} />
                   <Route path="/retail/product-units" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductUnitsPage />)} />
-                  <Route path="/retail/quick-keys" element={secure(PERMISSIONS.PRODUCTS_VIEW, <QuickKeysPage />)} />
+                  <Route path="/quick-keys" element={secure(PERMISSIONS.PRODUCTS_VIEW, <QuickKeysPage />)} />
+                  <Route path="/retail/quick-keys" element={<Navigate to="/quick-keys" replace />} />
                   <Route path="/retail/bulk-import" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BulkImportPage />)} />
                   <Route path="/retail/reorders" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ReorderPage />)} />
                   <Route path="/retail/barcode-labels" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BarcodeLabelsPage />)} />
