@@ -83,7 +83,6 @@ import ProductFormPage from '@modules/inventory/products/pages/ProductFormPage';
 import ProductFormGate from '@modules/inventory/products/pages/ProductFormGate';
 import ProductViewGate from '@modules/inventory/products/pages/ProductViewGate';
 import CatalogPage from '@modules/catalog/pages/CatalogPage';
-import CatalogGate from '@modules/catalog/pages/CatalogGate';
 import CategoriesPage from '@modules/inventory/categories/pages/CategoriesPage';
 
 // ─── Mobile Industry ───────────────────────────────────────────
@@ -625,7 +624,7 @@ export default function App() {
                   <Route path="/products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductViewGate />)} />
                   <Route path="/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductsListGate />)} />
 
-                  <Route path="/catalog" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CatalogGate />)} />
+                  <Route path="/catalog" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CatalogPage />)} />
                   <Route path="/brands" element={secure(PERMISSIONS.BRANDS_VIEW, <BrandsPage />)} />
                   <Route path="/tags" element={secure(PERMISSIONS.TAGS_VIEW, <TagsPage />)} />
                   <Route path="/categories" element={secure(PERMISSIONS.CATEGORIES_VIEW, <CategoriesPage />)} />
