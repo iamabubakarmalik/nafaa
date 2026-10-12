@@ -1,237 +1,201 @@
 import {
   BadRequestException, Injectable, NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
-import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
+import { ShopScope, assertShopAccess, resolveWriteShopId } from '../../../common/shop-scope';
 import { OpenRegisterDto } from './dto/open-register.dto';
 import { CloseRegisterDto } from './dto/close-register.dto';
 import { CashTransactionDto } from './dto/cash-transaction.dto';
+import { checkDenominations, type Denominations } from './dto/denominations';
+import { computeLiveCash, type CashWindow } from '../../../common/helpers/live-cash.helper';
+
+type Db = Prisma.TransactionClient;
+
+/** What went into and out of the drawer during one shift. */
+export type CashBreakdown = Awaited<ReturnType<CashRegisterService['computeCash']>>;
+
+/** Stored with the CLOSING entry so a shift report prints what was seen at close. */
+export interface ClosingSnapshot {
+  v: 1;
+  cash: Omit<CashBreakdown, 'openedAt' | 'openHours'>;
+  denominations?: Denominations;
+}
+
+/** Window in which an identical cash in/out without a request key is treated as a repeat. */
+const DUPLICATE_MS = 10_000;
+const round2 = (v: number) => Math.round(v * 100) / 100;
+const n = (v: unknown) => Number(v ?? 0);
+
+/** Parses the JSON kept in a cash entry's `reference`; anything else is ignored. */
+export function readReference<T>(reference: string | null | undefined): T | null {
+  if (!reference || reference[0] !== '{') return null;
+  try {
+    return JSON.parse(reference) as T;
+  } catch {
+    return null;
+  }
+}
+
+/** The breakdown without the clock fields, for storing. */
+function snapshotOf(cash: CashBreakdown): ClosingSnapshot['cash'] {
+  const copy: Partial<CashBreakdown> = { ...cash };
+  delete copy.openedAt;
+  delete copy.openHours;
+  return copy as ClosingSnapshot['cash'];
+}
+
+const PEOPLE = {
+  openedBy: { select: { id: true, fullName: true } },
+  closedBy: { select: { id: true, fullName: true } },
+  shop: { select: { id: true, name: true } },
+} as const;
 
 @Injectable()
 export class CashRegisterService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Register khulne se ab tak golak me jo kuch aaya aur gaya.
-   *
-   * Ye hisab `getCurrent()` aur `close()` DONO istemal karte hain.
-   * Pehle dono ke apne apne query thay aur wo aapas me alag ho gaye
-   * — kharch par `shopId` ka filter sirf ek jagah laga tha. Ab ek
-   * hi jagah, to dobara aisa nahi hoga.
+   * Drawer cash for one shift from `openedAt` up to `until` (now when left
+   * out), plus the non-cash takings shown beside it. The live card, closing
+   * and the shift report all use this one calculation.
    */
-  private async computeLiveCash(tenantId: string, register: {
-    shopId: string | null;
-    openedAt: Date;
-    openingBalance: number;
-    totalCashIn: number;
-    totalCashOut: number;
-  }) {
-    const since = register.openedAt;
-    const shopWhere = register.shopId ? { shopId: register.shopId } : {};
+  async computeCash(tenantId: string, register: CashWindow, until?: Date, db: Db = this.prisma) {
+    const window = { gte: register.openedAt, ...(until && { lte: until }) };
+    const saleWhere: Prisma.SaleWhereInput = {
+      tenantId, ...(register.shopId ? { shopId: register.shopId } : {}), status: { not: 'VOIDED' }, soldAt: window,
+    };
 
-    const [
-      cashSales, allSales, cashExpenses, cashReturns,
-      cashPurchases, supplierPayments,
-    ] = await Promise.all([
-      // ─── AANA ─────────────────────────────────────────────
-      /** Cash wali bikri — yehi golak me aati hai */
-      this.prisma.sale.aggregate({
-        where: {
-          tenantId, ...shopWhere,
-          status: { not: 'VOIDED' },
-          paymentMethod: 'CASH',
-          soldAt: { gte: since },
-        },
-        _sum: { paidAmount: true },
+    const [drawer, allSales, byMethod] = await Promise.all([
+      computeLiveCash(db, tenantId, register, until),
+      db.sale.aggregate({
+        where: saleWhere,
+        _sum: { total: true, paidAmount: true, changeAmount: true, creditAmount: true },
         _count: { _all: true },
       }),
-
-      /** Saari bikri — cash ke ilawa bhi, taake poori tasveer bane */
-      this.prisma.sale.aggregate({
-        where: {
-          tenantId, ...shopWhere,
-          status: { not: 'VOIDED' },
-          soldAt: { gte: since },
-        },
-        _sum: { total: true, paidAmount: true, creditAmount: true },
-        _count: { _all: true },
-      }),
-
-      // ─── JAANA ────────────────────────────────────────────
-      /* Kharch — SIRF isi dukaan ka. Pehle `shopId` ka koi filter
-         nahi tha: do dukaanon wale tenant me doosri dukaan ka
-         kharch bhi isi golak se ghata diya jata tha. */
-      this.prisma.expense.aggregate({
-        where: {
-          tenantId, ...shopWhere,
-          paymentMethod: 'CASH',
-          status: 'PAID',
-          expenseDate: { gte: since },
-        },
-        _sum: { amount: true },
-        _count: { _all: true },
-      }),
-
-      /** Wapsi — cash wapas kiya to golak se nikla */
-      this.prisma.saleReturn.aggregate({
-        where: {
-          tenantId,
-          refundMethod: 'CASH',
-          returnedAt: { gte: since },
-          sale: { ...shopWhere },
-        },
-        _sum: { refundAmount: true },
-        _count: { _all: true },
-      }),
-
-      /* Kharidari jis ka paisa mauqe par cash diya gaya.
-         `paidAmount` hi ginte hain, `total` nahi — udhaar par liya
-         hua maal golak se paisa nahi nikalta. */
-      this.prisma.purchase.aggregate({
-        where: {
-          tenantId, ...shopWhere,
-          paymentMethod: 'CASH',
-          purchasedAt: { gte: since },
-        },
-        _sum: { paidAmount: true },
-        _count: { _all: true },
-      }),
-
-      /* Supplier ko baad me di gayi adaigi (khate se).
-         Sirf CASH wali — bank ya cheque se di gayi raqam golak se
-         nahi nikalti. NULL bhi cash ginte hain: us column se pehle
-         ki entriyon par kuch likha hi nahi gaya tha. */
-      this.prisma.supplierLedger.aggregate({
-        where: {
-          tenantId,
-          type: 'PAYMENT_MADE',
-          entryDate: { gte: since },
-          OR: [{ paymentMethod: 'CASH' }, { paymentMethod: null }],
-          ...(register.shopId
-            ? { AND: [{ OR: [{ shopId: register.shopId }, { shopId: null }] }] }
-            : {}),
-        },
-        _sum: { amount: true },
+      db.sale.groupBy({
+        by: ['paymentMethod'],
+        where: saleWhere,
+        _sum: { total: true, paidAmount: true, changeAmount: true },
         _count: { _all: true },
       }),
     ]);
 
-    const n = (v: unknown) => Number(v ?? 0);
-
-    const cashSalesTotal = n(cashSales._sum.paidAmount);
-    const expensesTotal = n(cashExpenses._sum.amount);
-    const returnsTotal = n(cashReturns._sum?.refundAmount);
-    const purchasesTotal = n(cashPurchases._sum.paidAmount);
-    const supplierPaidTotal = n(supplierPayments._sum.amount);
-
-    const openingBalance = n(register.openingBalance);
-    const cashIn = n(register.totalCashIn);
-    const cashOut = n(register.totalCashOut);
-
-    const expected =
-      openingBalance +
-      cashSalesTotal +
-      cashIn -
-      cashOut -
-      expensesTotal -
-      returnsTotal -
-      purchasesTotal -
-      supplierPaidTotal;
+    const collected = n(allSales._sum.paidAmount) - n(allSales._sum.changeAmount);
+    const cashCollected = byMethod.find((m) => m.paymentMethod === 'CASH');
+    const cashTaken = n(cashCollected?._sum.paidAmount) - n(cashCollected?._sum.changeAmount);
 
     return {
-      openingBalance,
-      cashSales: cashSalesTotal,
-      cashSalesCount: cashSales._count._all ?? 0,
-      cashIn,
-      cashOut,
-      expenses: expensesTotal,
-      expenseCount: cashExpenses._count._all ?? 0,
-      returns: returnsTotal,
-      returnCount: cashReturns._count._all ?? 0,
-      purchases: purchasesTotal,
-      purchaseCount: cashPurchases._count._all ?? 0,
-      supplierPaid: supplierPaidTotal,
-      supplierPaidCount: supplierPayments._count._all ?? 0,
-      expected,
+      ...drawer,
 
-      /** Golak ke bahar ka paisa — card, wallet, udhaar */
+      /** Money that did not come into the drawer: card, wallet, credit. */
       allSalesTotal: n(allSales._sum.total),
-      allSalesPaid: n(allSales._sum.paidAmount),
+      allSalesPaid: round2(collected),
       creditGiven: n(allSales._sum.creditAmount),
       billCount: allSales._count._all ?? 0,
-      nonCashCollected: n(allSales._sum.paidAmount) - cashSalesTotal,
+      nonCashCollected: round2(collected - cashTaken),
+      byMethod: byMethod
+        .map((m) => ({
+          method: m.paymentMethod,
+          total: n(m._sum.total),
+          paid: round2(n(m._sum.paidAmount) - n(m._sum.changeAmount)),
+          count: m._count._all ?? 0,
+        }))
+        .sort((a, b) => b.total - a.total),
 
       openedAt: register.openedAt,
-      /** Register kitni der se khula hai (ghante) */
-      openHours: (Date.now() - new Date(register.openedAt).getTime()) / 3_600_000,
+      /** Hours the register has been (or was) open. */
+      openHours: ((until ?? new Date()).getTime() - new Date(register.openedAt).getTime()) / 3_600_000,
     };
   }
 
-  /**
-   * Khula hua register — poore live hisab ke sath.
-   *
-   * Pehle yahan sirf database ki row wapas ki jati thi. Us ka
-   * `expectedBalance` sirf HAATH SE ki gayi cash in/out par badalta
-   * hai — bikri par nahi. Bikri ka hisab sirf band karte waqt lagta
-   * tha.
-   *
-   * Nateeja: dukaan-daar din bhar ghalat "mutawaqqa" raqam dekhta
-   * tha. Subah 5,000 se register khola, din bhar 40,000 ki cash
-   * bikri hui — aur screen phir bhi 5,000 dikhati rehti.
-   */
+  /** The open till: the given one, or the newest open one in scope. */
+  private async findOpen(user: AuthenticatedUser, scope: ShopScope, registerId?: string) {
+    const register = await this.prisma.cashRegister.findFirst({
+      where: { tenantId: user.tenantId, status: 'OPEN', ...scope.where, ...(registerId && { id: registerId }) },
+      orderBy: { openedAt: 'desc' },
+    });
+    if (!register) {
+      throw new BadRequestException(registerId ? 'Ye register band ho chuka hai' : 'Koi register open nahi hai');
+    }
+    if (register.shopId) assertShopAccess(user, register.shopId, 'Register ka kaam');
+    return register;
+  }
+
+  /** Locks the register row for this transaction and confirms it is still open. */
+  private async lockOpen(tx: Prisma.TransactionClient, id: string) {
+    const rows = await tx.$queryRaw<Array<{ status: string }>>`SELECT status::text AS status FROM "CashRegister" WHERE id = ${id} FOR UPDATE`;
+    if (rows[0]?.status !== 'OPEN') throw new BadRequestException('Ye register band ho chuka hai');
+  }
+
+  /** An open register with its live count and recent entries. */
+  private async withLive<T extends CashWindow & { transactions: Array<{ type: string; reference: string | null }> }>(tenantId: string, register: T) {
+    const live = await this.computeCash(tenantId, register);
+    const opening = register.transactions.find((t) => t.type === 'OPENING');
+    return {
+      ...register,
+      /** Live figure; the stored column only moves on manual cash in/out. */
+      expectedBalance: live.expected,
+      live,
+      openingDenominations: readReference<{ denominations?: Denominations }>(opening?.reference)?.denominations ?? null,
+    };
+  }
+
+  private openInclude() {
+    return {
+      ...PEOPLE,
+      transactions: {
+        orderBy: { createdAt: 'desc' as const },
+        take: 50,
+        include: { createdBy: { select: { id: true, fullName: true } } },
+      },
+    };
+  }
+
+  /** The open register of the branch in view, with the live count. */
   async getCurrent(user: AuthenticatedUser, scope: ShopScope) {
     const register = await this.prisma.cashRegister.findFirst({
       where: { tenantId: user.tenantId, status: 'OPEN', ...scope.where },
-      include: {
-        openedBy: { select: { id: true, fullName: true } },
-        shop: true,
-        transactions: {
-          orderBy: { createdAt: 'desc' },
-          take: 50,
-          include: { createdBy: { select: { id: true, fullName: true } } },
-        },
-      },
+      orderBy: { openedAt: 'desc' },
+      include: this.openInclude(),
     });
-
     if (!register) return null;
+    return this.withLive(user.tenantId, register);
+  }
 
-    const live = await this.computeLiveCash(user.tenantId, register);
-
-    return {
-      ...register,
-      /** LIVE — database wale purane number ki jagah */
-      expectedBalance: live.expected,
-      live,
-    };
+  /** Every open register in scope (one per branch), each with its live count. */
+  async listOpen(user: AuthenticatedUser, scope: ShopScope) {
+    const registers = await this.prisma.cashRegister.findMany({
+      where: { tenantId: user.tenantId, status: 'OPEN', ...scope.where },
+      orderBy: { openedAt: 'asc' },
+      include: this.openInclude(),
+    });
+    return Promise.all(registers.map((r) => this.withLive(user.tenantId, r)));
   }
 
   async open(user: AuthenticatedUser, scope: ShopScope, dto: OpenRegisterDto) {
-    const shopId = await resolveWriteShopId(
-      this.prisma,
-      user.tenantId,
-      scope,
-      dto.shopId,
-    );
+    const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope, dto.shopId);
+    assertShopAccess(user, shopId, 'Register kholna');
 
     const shop = await this.prisma.shop.findFirst({
       where: { id: shopId, tenantId: user.tenantId, isActive: true },
     });
     if (!shop) throw new NotFoundException('Shop not found or inactive');
-
-    // Check if this shop already has an open register
-    const existing = await this.prisma.cashRegister.findFirst({
-      where: { tenantId: user.tenantId, shopId, status: 'OPEN' },
-    });
-    if (existing) {
-      throw new BadRequestException(
-        `${shop.name} ka register pehle se open hai. Pehle close karein.`,
-      );
-    }
-
-    const registerNumber = `CR-${shop.name.slice(0, 3).toUpperCase()}-${Date.now().toString().slice(-6)}`;
+    const denominations = checkDenominations(dto.denominations, dto.openingBalance);
 
     return this.prisma.$transaction(async (tx) => {
+      // Two openings at once wait on the branch row, so only one passes the check below.
+      await tx.$queryRaw`SELECT id FROM "Shop" WHERE id = ${shopId} FOR UPDATE`;
+      const existing = await tx.cashRegister.findFirst({
+        where: { tenantId: user.tenantId, shopId, status: 'OPEN' },
+        select: { id: true },
+      });
+      if (existing) {
+        throw new BadRequestException(`${shop.name} ka register pehle se open hai. Pehle close karein.`);
+      }
+
+      const registerNumber = `CR-${shop.name.replace(/[^a-z0-9]/gi, '').slice(0, 3).toUpperCase() || 'REG'}-${Date.now().toString().slice(-7)}`;
       const register = await tx.cashRegister.create({
         data: {
           tenantId: user.tenantId,
@@ -254,6 +218,7 @@ export class CashRegisterService {
           amount: dto.openingBalance,
           reason: `${shop.name} register opened`,
           note: dto.notes,
+          reference: denominations ? JSON.stringify({ v: 1, denominations }) : undefined,
         },
       });
 
@@ -261,30 +226,37 @@ export class CashRegisterService {
     });
   }
 
-  async addTransaction(
-    user: AuthenticatedUser,
-    scope: ShopScope,
-    dto: CashTransactionDto,
-  ) {
-    const register = await this.prisma.cashRegister.findFirst({
-      where: {
-        tenantId: user.tenantId,
-        status: 'OPEN',
-        ...scope.where,
-      },
-    });
-    if (!register) throw new BadRequestException('Koi register open nahi hai');
+  async addTransaction(user: AuthenticatedUser, scope: ShopScope, dto: CashTransactionDto) {
+    const register = await this.findOpen(user, scope, dto.registerId);
+    const requestRef = dto.requestId ? `req:${dto.requestId}` : undefined;
 
     return this.prisma.$transaction(async (tx) => {
-      const change = dto.type === 'CASH_IN' ? dto.amount : -dto.amount;
-      const newExpected = register.expectedBalance + change;
+      await this.lockOpen(tx, register.id);
+      // A repeat of the same request (double click, retry) returns the first entry.
+      if (requestRef) {
+        const done = await tx.cashTransaction.findFirst({
+          where: { tenantId: user.tenantId, cashRegisterId: register.id, reference: requestRef },
+        });
+        if (done) return done;
+      } else {
+        // Without a key, the same entry by the same person within a few seconds is a double post.
+        const twin = await tx.cashTransaction.findFirst({
+          where: {
+            tenantId: user.tenantId, cashRegisterId: register.id, createdById: user.id,
+            type: dto.type, amount: dto.amount, reason: dto.reason.trim(),
+            createdAt: { gte: new Date(Date.now() - DUPLICATE_MS) },
+          },
+        });
+        if (twin) return twin;
+      }
 
+      const isIn = dto.type === 'CASH_IN';
       await tx.cashRegister.update({
         where: { id: register.id },
         data: {
-          expectedBalance: newExpected,
-          totalCashIn: { increment: dto.type === 'CASH_IN' ? dto.amount : 0 },
-          totalCashOut: { increment: dto.type === 'CASH_OUT' ? dto.amount : 0 },
+          expectedBalance: { increment: isIn ? dto.amount : -dto.amount },
+          totalCashIn: { increment: isIn ? dto.amount : 0 },
+          totalCashOut: { increment: isIn ? 0 : dto.amount },
         },
       });
 
@@ -295,50 +267,43 @@ export class CashRegisterService {
           createdById: user.id,
           type: dto.type,
           amount: dto.amount,
-          reason: dto.reason,
-          note: dto.note,
+          reason: dto.reason.trim(),
+          note: dto.note?.trim() || undefined,
+          reference: requestRef,
         },
       });
     });
   }
 
   async close(user: AuthenticatedUser, scope: ShopScope, dto: CloseRegisterDto) {
-    const register = await this.prisma.cashRegister.findFirst({
-      where: {
-        tenantId: user.tenantId,
-        status: 'OPEN',
-        ...scope.where,
-      },
-    });
-    if (!register) throw new BadRequestException('Koi register open nahi hai');
-
-    /* Band karte waqt wohi hisab jo din bhar screen par chalta
-       raha — ek hi jagah se. Pehle yahan apne alag query thay aur
-       dono taraf ka hisab chup-chaap alag ho gaya tha. */
-    const live = await this.computeLiveCash(user.tenantId, register as any);
-
-    const totalCashSales = live.cashSales;
-    const totalCashExpenses = live.expenses;
-    const expectedFinal = live.expected;
-
-    const difference = dto.closingBalance - expectedFinal;
+    const register = await this.findOpen(user, scope, dto.registerId);
+    const denominations = checkDenominations(dto.denominations, dto.closingBalance);
 
     return this.prisma.$transaction(async (tx) => {
-      const updated = await tx.cashRegister.update({
+      // Holding the row lock keeps cash in/out out until the count is saved.
+      await this.lockOpen(tx, register.id);
+      const closedAt = new Date();
+      const cash = await this.computeCash(user.tenantId, register, closedAt, tx);
+      const difference = round2(dto.closingBalance - cash.expected);
+
+      await tx.cashRegister.update({
         where: { id: register.id },
         data: {
           status: 'CLOSED',
           closedById: user.id,
           closingBalance: dto.closingBalance,
-          expectedBalance: expectedFinal,
+          expectedBalance: cash.expected,
           difference,
-          totalSales: totalCashSales,
-          totalExpenses: totalCashExpenses,
-          closedAt: new Date(),
+          totalSales: cash.cashSales,
+          totalExpenses: cash.expenses,
+          totalCashIn: cash.cashIn,
+          totalCashOut: cash.cashOut,
+          closedAt,
           notes: dto.notes ?? register.notes,
         },
       });
 
+      const snapshot: ClosingSnapshot = { v: 1, cash: snapshotOf(cash), ...(denominations && { denominations }) };
       await tx.cashTransaction.create({
         data: {
           tenantId: user.tenantId,
@@ -348,28 +313,27 @@ export class CashRegisterService {
           amount: dto.closingBalance,
           reason: 'Register closed',
           note:
-            `Difference: ${difference} | opening ${live.openingBalance}` +
-            ` + bikri ${live.cashSales} + daala ${live.cashIn}` +
-            ` − nikala ${live.cashOut} − kharch ${live.expenses}` +
-            ` − wapsi ${live.returns} − kharidari ${live.purchases}` +
-            ` − supplier ${live.supplierPaid}`,
+            `Difference: ${difference} | opening ${cash.openingBalance}` +
+            ` + bikri ${cash.cashSales} + booking ${cash.bookingReceived} + khata ${cash.khataReceived}` +
+            ` + daala ${cash.cashIn}` +
+            ` − nikala ${cash.cashOut} − kharch ${cash.expenses}` +
+            ` − wapsi ${cash.returns} − booking wapsi ${cash.bookingRefunds} − kharidari ${cash.purchases}` +
+            ` − supplier ${cash.supplierPaid}`,
+          reference: JSON.stringify(snapshot),
         },
       });
 
-      return updated;
-    });
+      return tx.cashRegister.findUniqueOrThrow({ where: { id: register.id }, include: PEOPLE });
+    }, { timeout: 20_000 });
   }
 
+  /** Last 30 shifts in scope (kept for the mobile app). */
   async history(user: AuthenticatedUser, scope: ShopScope) {
     return this.prisma.cashRegister.findMany({
-      where: { tenantId: user.tenantId, ...scope.where },
+      where: { tenantId: user.tenantId, ...scope.where, NOT: { status: 'CLOSED', closedAt: null } },
       orderBy: { openedAt: 'desc' },
       take: 30,
-      include: {
-        openedBy: { select: { id: true, fullName: true } },
-        closedBy: { select: { id: true, fullName: true } },
-        shop: true,
-      },
+      include: { ...PEOPLE, shop: true },
     });
   }
 }

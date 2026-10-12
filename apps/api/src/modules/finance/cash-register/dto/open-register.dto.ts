@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsNumber, IsObject, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import type { Denominations } from './denominations';
 
 export class OpenRegisterDto {
   @ApiProperty({ example: 5000 })
@@ -16,5 +17,12 @@ export class OpenRegisterDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   notes?: string;
+
+  /** Optional note/coin count; must add up to openingBalance. */
+  @ApiPropertyOptional({ example: { '1000': 3, '500': 4 } })
+  @IsOptional()
+  @IsObject()
+  denominations?: Denominations;
 }

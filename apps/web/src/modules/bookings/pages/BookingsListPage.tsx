@@ -1,674 +1,342 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+/**
+ * Bookings: advance orders and reservations. Tabs: open bookings by pickup
+ * day (late ones first), the full record for a period, a pickup calendar and
+ * analytics. Each row has quick actions: WhatsApp reminder, payment, ready,
+ * sale at pickup, new date, slip print and cancel.
+ *
+ * Keys: N new booking · U upcoming · C calendar · A analytics · / search · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router-dom';
 import {
-  BookmarkPlus, Search, Calendar, Clock, User,
-  Package, DollarSign, AlertTriangle, CheckCircle2,
-  XCircle, RefreshCw, ChevronRight, Sparkles, Wallet, Hourglass,
-  Zap, GraduationCap, Printer, Download, X,
+  AlarmClock, BarChart3, BookmarkPlus, CalendarClock, CalendarDays, ChevronDown, ClipboardList, Filter, GraduationCap, ListChecks,
+  MessageCircle, PackageCheck, Plus, Printer, ShoppingCart, Store, Undo2, UserRound, Wallet, XCircle,
 } from 'lucide-react';
-import { bookingsApi, type BookingStatus } from '@modules/bookings/api/bookings.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
 import { toast } from 'sonner';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue, type FilterOption,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useAuthStore } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { teamApi } from '@modules/organization/team/api/team.api';
+import { bookingsApi, type Booking, type BookingQuery, type BookingStatusFilter } from '../api/bookings.api';
+import { CancelModal, ConvertModal, PaymentModal, RescheduleModal, useMarkReady } from '../components/ActionModals';
+import { BookingCalendar } from '../components/BookingCalendar';
+import { BookingPrintModal } from '../components/BookingPrintModal';
+import { BookingsAnalytics } from '../components/BookingsAnalytics';
+import { BOOKINGS_KEY, PICKUP, STATUS, bookingWaLink, daysFromPickup, dayText, isOpen, itemLabel, itemsSummary, pickupState, qtyText, when } from '../components/meta';
+import { bookingsDoc } from '../components/print';
 
-/* ═════════════════════════════════════════════════════════════
-   NAFAA BOOKINGS LIST — GLOBAL FULL BEST v3
-   ─────────────────────────────────────────────────────────────
-   🌍 GLOBAL — har industry (jeweler, tailor, mobile, carpet...)
-   🌙 Dark mode complete
-   🎓 Teacher modal — "advance/booking kya hota hai" universal
-   ⌨️  / = search • N = naya • 1-6 = filters • Esc = band
-   ⚠️ Expiring soon banner • 🖨️ Print • 📊 CSV export
-   ═════════════════════════════════════════════════════════════ */
+type Tab = 'upcoming' | 'all' | 'calendar' | 'analytics';
+type Action = 'pay' | 'convert' | 'cancel' | 'date' | 'print';
 
-const formatShortDate = (v: string) =>
-  new Intl.DateTimeFormat('en-PK', { month: 'short', day: 'numeric' }).format(new Date(v));
-
-const statusConfig: Record<BookingStatus, { label: string; color: string; bg: string; darkBg: string; icon: any }> = {
-  PENDING:          { label: 'Pending',      color: '#64748b', bg: 'bg-slate-100 text-slate-700 border-slate-300',      darkBg: 'dark:bg-ink-500/20 dark:text-ink-300 dark:border-ink-500/40',    icon: Hourglass },
-  ADVANCE_PAID:     { label: 'Advance Paid', color: '#f59e0b', bg: 'bg-amber-100 text-amber-800 border-amber-300',      darkBg: 'dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40',    icon: Wallet },
-  READY_FOR_PICKUP: { label: 'Ready',        color: '#3b82f6', bg: 'bg-blue-100 text-blue-800 border-blue-300',         darkBg: 'dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40',       icon: Zap },
-  CONVERTED:        { label: 'Converted',    color: '#10b981', bg: 'bg-emerald-100 text-emerald-800 border-emerald-300', darkBg: 'dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40', icon: CheckCircle2 },
-  CANCELLED:        { label: 'Cancelled',    color: '#ef4444', bg: 'bg-rose-100 text-rose-800 border-rose-300',         darkBg: 'dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/40',       icon: XCircle },
-  EXPIRED:          { label: 'Expired',      color: '#dc2626', bg: 'bg-red-100 text-red-800 border-red-300',            darkBg: 'dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/40',          icon: AlertTriangle },
-};
-
-type StatusFilter = 'all' | BookingStatus;
-
-const FILTER_ORDER: StatusFilter[] = ['all', 'PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP', 'CONVERTED', 'CANCELLED'];
+const OPEN_FILTERS: Array<FilterOption<BookingStatusFilter>> = [
+  { value: 'ACTIVE', label: 'Sab khuli' },
+  { value: 'OVERDUE', label: 'Late', hint: 'Pickup ka din guzar gaya', icon: AlarmClock, color: '#e11d48' },
+  ...(['PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP'] as const).map((k) => ({ value: k, label: STATUS[k].label, hint: STATUS[k].hint, icon: STATUS[k].icon, color: STATUS[k].color })),
+];
+const ALL_FILTERS: Array<FilterOption<BookingStatusFilter | 'all'>> = [
+  { value: 'all', label: 'Sab' },
+  { value: 'ACTIVE', label: 'Khuli', hint: 'Abhi bikri ya cancel nahi hui' },
+  { value: 'OVERDUE', label: 'Late', icon: AlarmClock, color: '#e11d48' },
+  ...(Object.keys(STATUS) as Array<keyof typeof STATUS>).map((k) => ({ value: k, label: STATUS[k].label, icon: STATUS[k].icon, color: STATUS[k].color })),
+];
 
 export default function BookingsListPage() {
-  const tenantName = useAuthStore((s) => s.tenant?.name);
-  const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
+  const navigate = useNavigate();
+  const startHour = useBusinessDayStart();
+  const { sales: money } = useMasked();
+  const shopName = useAuthStore((s) => s.tenant?.name) ?? 'Hamari dukaan';
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
+  const [tab, setTab] = useState<Tab>('upcoming');
+  const [openStatus, setOpenStatus] = useState<BookingStatusFilter>('ACTIVE');
+  const [status, setStatus] = useState<BookingStatusFilter | 'all'>('all');
+  const [staffId, setStaffId] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
-
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [showTeacher, setShowTeacher] = useState(false);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [action, setAction] = useState<{ kind: Action; b: Booking } | null>(null);
+  const guide = usePageGuide();
+  const ready = useMarkReady();
 
-  const { data: summary } = useQuery({
-    queryKey: ['bookings-summary'],
-    queryFn: () => bookingsApi.summary(),
-  });
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [range, status, openStatus, staffId, query, tab]);
 
-  const { data: bookings = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['bookings-list', statusFilter],
-    queryFn: () =>
-      bookingsApi.list({
-        status: statusFilter === 'all' ? undefined : statusFilter,
-      }),
-  });
+  const period = resolveRange(range, startHour);
+  const base = { staffId: staffId || undefined, search: query || undefined };
+  const periodFilters = { ...(period ?? {}), ...base };
+  // Upcoming shows every open booking by pickup day, whatever the period.
+  const filters: BookingQuery = tab === 'upcoming'
+    ? { ...base, status: openStatus, sort: 'pickup' }
+    : { ...periodFilters, status: status === 'all' ? undefined : status };
+  const q: BookingQuery = { ...filters, page, limit: 30 };
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return bookings;
-    const q = search.toLowerCase().trim();
-    return bookings.filter(
-      (b) =>
-        b.bookingNumber.toLowerCase().includes(q) ||
-        b.customer?.name.toLowerCase().includes(q) ||
-        b.customer?.phone?.toLowerCase().includes(q),
-    );
-  }, [bookings, search]);
+  const listQ = useQuery({ queryKey: [BOOKINGS_KEY, 'records', q], queryFn: () => bookingsApi.records(q), placeholderData: (p) => p, enabled: tab === 'upcoming' || tab === 'all' });
+  const overQ = useQuery({ queryKey: [BOOKINGS_KEY, 'overview', period], queryFn: () => bookingsApi.overview(period ?? {}), placeholderData: (p) => p, refetchInterval: 60_000 });
+  const { data: team = [] } = useQuery({ queryKey: ['team'], queryFn: () => teamApi.list().catch(() => []), staleTime: 5 * 60_000 });
 
-  /* Expiring soon list — hero banner ke liye */
-  const expiringSoonList = useMemo(() => {
-    const now = Date.now();
-    const threeDays = 3 * 24 * 60 * 60 * 1000;
-    return bookings.filter((b) => {
-      if (!b.expectedPickupAt) return false;
-      if (b.status === 'CONVERTED' || b.status === 'CANCELLED' || b.status === 'EXPIRED') return false;
-      const diff = new Date(b.expectedPickupAt).getTime() - now;
-      return diff >= 0 && diff <= threeDays;
-    }).slice(0, 5);
-  }, [bookings]);
+  const o = overQ.data;
+  const data = listQ.data;
+  const rows = data?.items ?? [];
+  const staffName = team.find((t) => t.id === staffId)?.fullName;
+  const statusOn = tab === 'upcoming' ? openStatus !== 'ACTIVE' : tab === 'all' && status !== 'all';
+  const filtered = !!staffId || !!query || statusOn;
+  const statusLabel = tab === 'upcoming' ? OPEN_FILTERS.find((f) => f.value === openStatus)?.label : ALL_FILTERS.find((f) => f.value === status)?.label;
+  const filterText = [statusOn && statusLabel, staffName, query && `"${query}"`].filter(Boolean).join(' · ');
+  const printDoc = async () => bookingsDoc(
+    await bookingsApi.records({ ...filters, page: 1, limit: 300 }),
+    tab === 'upcoming' ? 'Khuli bookings (pickup ke hisaab se)' : 'Bookings',
+    tab === 'upcoming' || !period ? 'Sab tareekhen' : `${period.from} — ${period.to}`, filterText,
+  );
 
-  const exportCSV = () => {
-    if (filtered.length === 0) return toast.error('Koi data nahi');
-    const summaryRows = [
-      [`Bookings Report — ${tenantName || 'My Store'}`],
-      [`${shopName ? `Shop: ${shopName}  •  ` : ''}Generated: ${new Date().toLocaleString('en-PK')}`],
-      [`Total: ${filtered.length}  •  Advance Held: ${(summary?.totalAdvanceHeld ?? 0).toFixed(2)}  •  Due: ${(summary?.totalBalanceDue ?? 0).toFixed(2)}`],
-      [''],
-    ];
-    const headers = ['Booking #', 'Customer', 'Phone', 'Status', 'Total', 'Paid', 'Balance', 'Refunded', 'Items', 'Created', 'Pickup', 'Notes'];
-    const rows = filtered.map((b) => [
-      b.bookingNumber,
-      b.customer?.name || '',
-      b.customer?.phone || '',
-      statusConfig[b.status]?.label || b.status,
-      b.total.toFixed(2),
-      b.totalPaid.toFixed(2),
-      b.balanceDue.toFixed(2),
-      (b.totalRefunded || 0).toFixed(2),
-      b._count?.items ?? b.items?.length ?? 0,
-      new Date(b.createdAt).toLocaleDateString('en-PK'),
-      b.expectedPickupAt ? new Date(b.expectedPickupAt).toLocaleDateString('en-PK') : '',
-      b.notes || '',
-    ]);
-    const csv = [...summaryRows, headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `bookings-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success(`${filtered.length} bookings export ho gayi`);
-  };
-
-  /* Keyboard shortcuts */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showTeacher) return setShowTeacher(false);
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
-      if (e.key.toLowerCase() === 'n') { e.preventDefault(); window.location.href = '/bookings/new'; }
-      const num = Number(e.key);
-      if (num >= 1 && num <= FILTER_ORDER.length) {
-        e.preventDefault();
-        setStatusFilter(FILTER_ORDER[num - 1]);
-      }
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const k = e.key.toLowerCase();
+      if (k === 'n') { e.preventDefault(); navigate('/bookings/new'); }
+      if (k === 'u') { e.preventDefault(); setTab('upcoming'); }
+      if (k === 'c') { e.preventDefault(); setTab('calendar'); }
+      if (k === 'a') { e.preventDefault(); setTab('analytics'); }
+      if (e.key === '/') { e.preventDefault(); setTab((t) => (t === 'analytics' || t === 'calendar' ? 'all' : t)); window.setTimeout(() => searchRef.current?.focus(), 0); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showTeacher]);
+  }, [navigate]);
 
-  /* Body scroll lock jab teacher khula ho */
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = showTeacher ? 'hidden' : prev;
-    return () => { document.body.style.overflow = prev; };
-  }, [showTeacher]);
-
-  const activeCount = (summary?.counts.pending ?? 0) + (summary?.counts.advancePaid ?? 0) + (summary?.counts.ready ?? 0);
-  const printDate = new Date().toLocaleString('en-PK', { dateStyle: 'full', timeStyle: 'short' });
+  const clear = () => { setStatus('all'); setOpenStatus('ACTIVE'); setStaffId(''); setSearch(''); };
+  const showUpcoming = (s: BookingStatusFilter) => { setTab('upcoming'); setOpenStatus(s); };
+  const staffOptions: Array<FilterOption<string>> = useMemo(() => [{ value: '', label: 'Sab staff' }, ...team.map((t) => ({ value: t.id, label: t.fullName }))], [team]);
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10 print:space-y-3">
-      {showTeacher && <BookingsTeacher onClose={() => setShowTeacher(false)} />}
+    <PageShell>
+      <PageHero
+        title="Bookings"
+        chip={<><BookmarkPlus /> Advance aur reserve</>}
+        meta="Advance lein, maal rakhein, pickup par bill banayein"
+        busy={(listQ.isFetching && !listQ.isLoading) || overQ.isFetching}
+        loading={overQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!(tab === 'upcoming' || tab === 'all') || !rows.length} /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/bookings/new" title="Nayi booking (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi booking</Link>
+        </>}
+        stats={o ? [
+          { label: 'Khuli bookings ki raqam', value: money(o.active.value), hint: `${o.active.count} booking` },
+          { label: 'Advance hath me', value: money(o.active.held) },
+          { label: 'Baqi wasooli', value: money(o.active.balance) },
+          { label: 'Agle 7 din pickup', value: o.upcoming },
+        ] : [{ label: 'Khuli bookings ki raqam', value: '—' }]}
+      />
 
-      {/* ═══ PRINT-ONLY HEADER ═══ */}
-      <div className="hidden print:block">
-        <div className="flex items-center justify-between border-b-4 border-blue-600 pb-3 mb-4">
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 leading-tight">
-              📚 {tenantName || 'My Store'} — Bookings Report
-            </h1>
-            <p className="text-xs text-slate-600 font-semibold mt-1">
-              {shopName ? `Shop: ${shopName}  •  ` : ''}{filtered.length} bookings • Advance held: {formatPKR(summary?.totalAdvanceHeld ?? 0)}
-            </p>
-          </div>
-          <div className="text-right">
-            <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Generated</div>
-            <div className="text-xs font-bold text-slate-900">{printDate}</div>
-          </div>
-        </div>
-      </div>
+      <KpiRow cols={5}>
+        {!o ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={BookmarkPlus} color="#2563eb" label="Aaj ki bookings" value={o.today.count} hint={o.today.count ? money(o.today.value) : 'Abhi koi nahi'}
+            onClick={() => { setTab('all'); setStatus('all'); setRange({ preset: 'today', custom: { from: '', to: '' } }); }} />
+          <KpiCard icon={CalendarClock} color="#d97706" label="Pickup baqi" value={o.active.count}
+            hint={o.pickupToday ? `${o.pickupToday} aaj · ${money(o.active.balance)} baqi` : `${money(o.active.balance)} baqi`}
+            onClick={() => showUpcoming('ACTIVE')} active={tab === 'upcoming' && openStatus === 'ACTIVE'} />
+          <KpiCard icon={Wallet} color="#16a34a" label="Advance mila" value={money(o.collected.net)}
+            hint={o.collected.refunded ? `${money(o.collected.refunded)} wapas diye` : `${o.collected.payments} payment · ${period ? 'is muddat' : 'aaj'}`} />
+          <KpiCard icon={AlarmClock} color="#e11d48" label="Late" value={o.overdue.count} hint={o.overdue.count ? `${money(o.overdue.balance)} baqi · yaad dilayein` : 'Sab waqt par'}
+            onClick={() => showUpcoming('OVERDUE')} active={tab === 'upcoming' && openStatus === 'OVERDUE'} />
+          <KpiCard icon={PackageCheck} color="#7c3aed" label="Tayyar, lene nahi aaye" value={o.ready.count} hint={o.ready.count ? `${money(o.ready.balance)} baqi` : 'Koi intezar me nahi'}
+            onClick={() => showUpcoming('READY_FOR_PICKUP')} active={tab === 'upcoming' && openStatus === 'READY_FOR_PICKUP'} />
+        </>}
+      </KpiRow>
 
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
-        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Booking number, customer, phone ya note…" label="Dhoondein" />}
+        chips={filtered ? <>
+          {statusOn && <FilterChip onRemove={() => (tab === 'upcoming' ? setOpenStatus('ACTIVE') : setStatus('all'))}>{statusLabel}</FilterChip>}
+          {staffId && <FilterChip onRemove={() => setStaffId('')}>{staffName ?? 'Staff'}</FilterChip>}
+          {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+        </> : undefined}
+        onClear={clear}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" label="Booking ki muddat" />
+        {tab === 'upcoming' && <FilterMenu icon={Filter} label="Haal" value={openStatus} active={openStatus !== 'ACTIVE'} onChange={setOpenStatus} options={OPEN_FILTERS} />}
+        {tab === 'all' && <FilterMenu icon={Filter} label="Haal" value={status} active={status !== 'all'} onChange={setStatus} options={ALL_FILTERS} />}
+        {team.length > 1 && <FilterMenu icon={UserRound} label="Staff" value={staffId} active={!!staffId} onChange={setStaffId} align="right" options={staffOptions} />}
+      </FilterBar>
 
-        <div className="relative flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-          <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" /> Advance & Booking
-              {shopName && (
-                <>
-                  <span className="opacity-40">•</span>
-                  <span className="text-emerald-200">🏪 {shopName}</span>
-                </>
-              )}
-            </div>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">📚 Bookings</h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-white/90 font-semibold">
-              <strong className="text-blue-200">{activeCount}</strong> active
-              <span className="opacity-50 mx-1.5">•</span>
-              Advance <strong className="text-emerald-300">{formatPKR(summary?.totalAdvanceHeld ?? 0)}</strong>
-              {(summary?.totalBalanceDue ?? 0) > 0 && (
-                <>
-                  <span className="opacity-50 mx-1.5">•</span>
-                  Due <strong className="text-amber-300">{formatPKR(summary?.totalBalanceDue ?? 0)}</strong>
-                </>
-              )}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap shrink-0">
-            <button
-              onClick={() => setShowTeacher(true)}
-              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition"
-              title="Booking kya hai?"
-            >
-              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Guide</span>
-            </button>
-            <button
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md disabled:opacity-50 transition"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
-            >
-              <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Print</span>
-            </button>
-            <button
-              onClick={exportCSV}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
-            >
-              <Download className="h-4 w-4" /> <span className="hidden sm:inline">CSV</span>
-            </button>
-            <Link
-              to="/bookings/new"
-              className="h-11 px-4 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-2xl transition"
-            >
-              <BookmarkPlus className="h-4 w-4" /> Nayi Booking <Kbd>N</Kbd>
-            </Link>
-          </div>
-        </div>
+      <ViewTabs value={tab} onChange={setTab}
+        hint={tab === 'upcoming' ? <>Muddat ka filter yahan nahi lagta — har khuli booking pickup ke din se</> : <><Kbd>N</Kbd> nayi · <Kbd>U</Kbd> upcoming · <Kbd>C</Kbd> calendar · <Kbd>A</Kbd> analytics</>}
+        tabs={[
+          { id: 'upcoming', label: 'Upcoming', icon: CalendarClock, count: o?.active.count ?? null },
+          { id: 'all', label: 'Sab record', icon: ListChecks },
+          { id: 'calendar', label: 'Calendar', icon: CalendarDays },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        ]} />
 
-        {/* Keyboard hints */}
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
-          <Kbd>/</Kbd><span className="text-white/60">Search</span>
-          <span className="text-white/30 mx-1">•</span>
-          <Kbd>N</Kbd><span className="text-white/60">Nayi booking</span>
-          <span className="text-white/30 mx-1">•</span>
-          <Kbd>1</Kbd>–<Kbd>6</Kbd><span className="text-white/60">Filters</span>
-        </div>
-      </section>
-
-      {/* ═══ EXPIRING SOON BANNER ═══ */}
-      {expiringSoonList.length > 0 && (
-        <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-2 border-amber-300 dark:border-amber-500/40 p-4 print:hidden">
-          <div className="flex items-start gap-3 flex-wrap">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md shadow-amber-500/40 shrink-0">
-              <Clock className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">
-                ⏰ {expiringSoonList.length} bookings 3 din me pickup wali hain
-              </h3>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {expiringSoonList.map((b) => {
-                  const days = Math.ceil((new Date(b.expectedPickupAt!).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-                  return (
-                    <Link
-                      key={b.id}
-                      to={`/bookings/${b.id}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-ink-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200 transition"
-                    >
-                      {b.bookingNumber}
-                      <span className="text-amber-600 dark:text-amber-400">· {days === 0 ? 'Aaj' : `${days}d`}</span>
-                    </Link>
-                  );
-                })}
+      {tab === 'analytics' ? <BookingsAnalytics filters={periodFilters} money={money} />
+        : tab === 'calendar' ? <BookingCalendar filters={base} startHour={startHour} money={money} />
+          : (<>
+            {data && rows.length > 0 && (
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-2xl bg-white px-4 py-2.5 text-[0.8125rem] shadow-sm ring-1 ring-slate-200/80">
+                <span className="text-slate-500">{data.total} booking</span>
+                <span>Kul <b className="tabular-nums text-slate-900">{money(data.totals.value)}</b></span>
+                <span>Mil chuka <b className="tabular-nums text-emerald-700">{money(data.totals.paid)}</b></span>
+                <span>Baqi <b className="tabular-nums text-amber-700">{money(data.totals.balance)}</b></span>
               </div>
-            </div>
-            <button
-              onClick={() => setStatusFilter('READY_FOR_PICKUP')}
-              className="h-10 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold shrink-0 transition shadow-md inline-flex items-center gap-1.5"
-            >
-              Ready wale dekho →
-            </button>
-          </div>
-        </section>
-      )}
-
-      {/* ═══ KPIs ═══ */}
-      <section className="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3">
-        <Kpi
-          icon={BookmarkPlus} tone="blue"
-          label="Active Bookings" value={activeCount}
-          sub={`${summary?.counts.pending ?? 0} pending • ${summary?.counts.ready ?? 0} ready`}
-        />
-        <Kpi
-          icon={Wallet} tone="emerald"
-          label="Advance Held" value={formatPKR(summary?.totalAdvanceHeld ?? 0)}
-          sub="Customers ka paisa"
-          isHighlight
-        />
-        <Kpi
-          icon={DollarSign} tone="amber"
-          label="Balance Due" value={formatPKR(summary?.totalBalanceDue ?? 0)}
-          sub="Delivery pe milega"
-        />
-        <Kpi
-          icon={AlertTriangle} tone="rose"
-          label="Expiring Soon" value={summary?.expiringSoon ?? 0}
-          sub="Agle 3 din me"
-          onClick={(summary?.expiringSoon ?? 0) > 0 ? () => setStatusFilter('READY_FOR_PICKUP') : undefined}
-        />
-      </section>
-
-      {/* ═══ FILTERS ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
-        <div className="relative">
-          <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            ref={searchRef}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Booking #, customer, phone... (/ shortcut)"
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center"
-            >
-              <X className="h-4 w-4 text-slate-400" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-2 flex-wrap items-center">
-          <FilterChip active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} label="Sab" count={bookings.length} />
-          <FilterChip active={statusFilter === 'PENDING'} onClick={() => setStatusFilter('PENDING')} label="Pending" count={summary?.counts.pending ?? 0} color="slate" />
-          <FilterChip active={statusFilter === 'ADVANCE_PAID'} onClick={() => setStatusFilter('ADVANCE_PAID')} label="Advance Paid" count={summary?.counts.advancePaid ?? 0} color="amber" />
-          <FilterChip active={statusFilter === 'READY_FOR_PICKUP'} onClick={() => setStatusFilter('READY_FOR_PICKUP')} label="Ready" count={summary?.counts.ready ?? 0} color="blue" />
-          <FilterChip active={statusFilter === 'CONVERTED'} onClick={() => setStatusFilter('CONVERTED')} label="Converted" count={summary?.counts.converted ?? 0} color="emerald" />
-          <FilterChip active={statusFilter === 'CANCELLED'} onClick={() => setStatusFilter('CANCELLED')} label="Cancelled" count={summary?.counts.cancelled ?? 0} color="rose" />
-
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
-            {filtered.length} bookings
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ LIST ═══ */}
-      {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 sm:p-16 text-center">
-          <div className="mx-auto h-20 w-20 rounded-3xl bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center">
-            <BookmarkPlus className="h-9 w-9 text-blue-500 dark:text-blue-400" />
-          </div>
-          <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
-            {search || statusFilter !== 'all' ? 'Kuch nahi mila' : 'Abhi koi booking nahi'}
-          </h4>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-md mx-auto">
-            {search || statusFilter !== 'all'
-              ? 'Filter change kar ke dekho ya search clear karo'
-              : 'Customer se advance le kar item reserve karo — full payment aur pickup baad me'}
-          </p>
-          <div className="mt-5 flex gap-2 justify-center flex-wrap">
-            {(search || statusFilter !== 'all') ? (
-              <Button variant="secondary" onClick={() => { setSearch(''); setStatusFilter('all'); }}>
-                <X className="h-4 w-4" /> Filter hatao
-              </Button>
-            ) : (
-              <>
-                <button
-                  onClick={() => setShowTeacher(true)}
-                  className="h-11 px-4 rounded-xl bg-amber-100 dark:bg-amber-500/20 hover:bg-amber-200 dark:hover:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-xs font-extrabold inline-flex items-center gap-1.5 border-2 border-amber-300 dark:border-amber-500/40 transition"
-                >
-                  <GraduationCap className="h-4 w-4" /> Pehle Seekh Lo
-                </button>
-                <Link to="/bookings/new">
-                  <Button className="bg-blue-600 hover:bg-blue-700 font-extrabold">
-                    <BookmarkPlus className="h-4 w-4" /> Nayi Booking
-                  </Button>
-                </Link>
-              </>
             )}
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map((booking) => {
-            const cfg = statusConfig[booking.status];
-            const StatusIcon = cfg.icon;
-            const daysUntilPickup = booking.expectedPickupAt
-              ? Math.ceil((new Date(booking.expectedPickupAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-              : null;
 
-            return (
-              <Link
-                key={booking.id}
-                to={`/bookings/${booking.id}`}
-                className="block rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-lg dark:hover:shadow-blue-500/10 transition p-4 group"
-              >
-                <div className="flex items-start gap-3 sm:gap-4">
-                  {/* Icon */}
-                  <div
-                    className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md"
-                    style={{ backgroundColor: `${cfg.color}20` }}
-                  >
-                    <StatusIcon className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: cfg.color }} />
-                  </div>
-
-                  {/* Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold text-slate-900 dark:text-ink-white font-mono text-sm">
-                        {booking.bookingNumber}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold border ${cfg.bg} ${cfg.darkBg}`}>
-                        {cfg.label}
-                      </span>
-                      {daysUntilPickup !== null && daysUntilPickup <= 3 && daysUntilPickup >= 0 && booking.status !== 'CONVERTED' && booking.status !== 'CANCELLED' && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40">
-                          <Clock className="h-2.5 w-2.5" />
-                          {daysUntilPickup === 0 ? 'Aaj' : `${daysUntilPickup}d baaki`}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-600 dark:text-ink-300">
-                      <User className="h-3 w-3" />
-                      <span className="font-semibold text-slate-800 dark:text-ink-200">{booking.customer?.name}</span>
-                      {booking.customer?.phone && (
-                        <>
-                          <span className="opacity-50">•</span>
-                          <span>{booking.customer.phone}</span>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500 dark:text-ink-400 flex-wrap">
-                      <span className="inline-flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        Banayi {formatShortDate(booking.createdAt)}
-                      </span>
-                      {booking.expectedPickupAt && (
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          Pickup: {formatShortDate(booking.expectedPickupAt)}
-                        </span>
-                      )}
-                      <span className="inline-flex items-center gap-1">
-                        <Package className="h-3 w-3" />
-                        {booking._count?.items ?? booking.items?.length ?? 0} item{(booking._count?.items ?? 1) !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-
-                    {booking.notes && (
-                      <div className="mt-1.5 text-[0.6875rem] text-slate-500 dark:text-ink-400 italic line-clamp-1">
-                        📝 {booking.notes}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Amounts */}
-                  <div className="text-right shrink-0">
-                    <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
-                      {formatPKR(booking.total)}
-                    </div>
-                    <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-extrabold mt-0.5">
-                      Paid: {formatPKR(booking.totalPaid)}
-                    </div>
-                    {booking.balanceDue > 0 && (
-                      <div className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold">
-                        Due: {formatPKR(booking.balanceDue)}
-                      </div>
-                    )}
-                    {booking.totalRefunded > 0 && (
-                      <div className="text-[0.6875rem] text-rose-700 dark:text-rose-400 font-extrabold">
-                        Refunded: {formatPKR(booking.totalRefunded)}
-                      </div>
-                    )}
-                    <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300">
-                      Details <ChevronRight className="h-3 w-3" />
-                    </div>
-                  </div>
+            {listQ.isLoading ? (
+              <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-[4.5rem] rounded-xl" />)}</div>
+            ) : !rows.length ? (
+              <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+                {tab === 'upcoming' && !filtered ? <PackageCheck className="mx-auto h-10 w-10 text-emerald-400" /> : <ClipboardList className="mx-auto h-10 w-10 text-slate-300" />}
+                <p className="mt-3 font-semibold text-slate-900">
+                  {filtered ? 'Is filter me koi booking nahi' : tab === 'upcoming' ? 'Koi khuli booking nahi' : 'Is muddat me koi booking nahi'}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">Customer ne advance diya ya maal rakhwana hai? Booking banayein, pickup par ek click me bill ban jayega.</p>
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  <Button onClick={() => navigate('/bookings/new')} leftIcon={<Plus className="h-4 w-4" />}>Nayi booking</Button>
+                  {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
                 </div>
-              </Link>
-            );
-          })}
+              </div>
+            ) : (
+              <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+                {rows.map((b) => (
+                  <Row key={b.id} b={b} money={money} startHour={startHour} shop={shopName} onAction={(kind) => setAction({ kind, b })}
+                    readyBusy={ready.isPending && ready.variables?.id === b.id}
+                    onReady={(r) => ready.mutate({ id: b.id, ready: r })} />
+                ))}
+              </ul>
+            )}
+
+            {data && data.pages > 1 && (
+              <div className="flex items-center justify-center gap-2">
+                <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
+                <span className="text-sm text-slate-600">Safha {page} / {data.pages}</span>
+                <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+              </div>
+            )}
+          </>)}
+
+      {action?.kind === 'pay' && <PaymentModal booking={action.b} onClose={() => setAction(null)} />}
+      {action?.kind === 'convert' && <ConvertModal booking={action.b} onClose={() => setAction(null)} />}
+      {action?.kind === 'cancel' && <CancelModal booking={action.b} onClose={() => setAction(null)} />}
+      {action?.kind === 'date' && <RescheduleModal booking={action.b} onClose={() => setAction(null)} />}
+      {action?.kind === 'print' && <PrintLoader id={action.b.id} onClose={() => setAction(null)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Bookings — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: BookmarkPlus, color: '#2563eb', title: 'Booking banayein', text: '"Nayi booking" dabayein, customer chunein, cheezen dalein, pickup ki tareekh aur advance likhein. IMEI ya carpet piece ho to woh reserve ho jata hai.' },
+            { icon: Wallet, color: '#16a34a', title: 'Advance aur baqi', text: 'Advance customer ke khate me jama hota hai. Baad me aur paise aayein to "Payment" dabayein. Poora paisa aate hi booking "Tayyar" ho jati hai.' },
+            { icon: MessageCircle, color: '#22c55e', title: 'WhatsApp yaad dihani', text: 'Har booking par WhatsApp ka button hai: tayyar ho to "le jayein", pickup qareeb ho to yaad dihani, late ho to narmi se yaad.' },
+            { icon: ShoppingCart, color: '#7c3aed', title: 'Pickup par bikri', text: '"Bikri" dabayein: bill banta hai, stock is branch se nikalta hai, advance bill me lag jata hai aur baqi chahein to udhaar me.' },
+            { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Cancel par advance wapas de sakte hain ya khate me rehne de sakte hain. Wapsi par malik ka PIN mang sakta hai (Settings).' },
+            { icon: Store, color: '#0891b2', title: 'Branch', text: 'Har booking apni branch ki hoti hai. Staff sirf apni branch ki booking badal sakta hai.' },
+          ]}
+          tips={[
+            'Upcoming tab me late bookings sab se upar hoti hain — roz subah ek nazar dalein.',
+            'Calendar me har din ke pickup aur baqi raqam dikhti hai.',
+            'Booking slip 80mm ya A4 par print hoti hai; do copies: ek customer ki, ek dukaan ki.',
+            'Booking ke waqt stock nahi ghatta; bikri par ghatta hai.',
+          ]}
+          shortcuts={[['N', 'nayi booking'], ['U', 'upcoming'], ['C', 'calendar'], ['A', 'analytics'], ['/', 'dhoondein'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
+  );
+}
+
+/** The list row has no payments; the slip needs the full booking. */
+function PrintLoader({ id, onClose }: { id: string; onClose: () => void }) {
+  const q = useQuery({ queryKey: [BOOKINGS_KEY, 'one', id], queryFn: () => bookingsApi.getOne(id) });
+  useEffect(() => { if (q.isError) { toast.error('Booking load nahi hui'); onClose(); } }, [q.isError, onClose]);
+  return q.data ? <BookingPrintModal booking={q.data} onClose={onClose} /> : null;
+}
+
+function Row({ b, money, startHour, shop, onAction, onReady, readyBusy }: {
+  b: Booking; money: (n: number) => string; startHour: number; shop: string;
+  onAction: (a: Action) => void; onReady: (ready: boolean) => void; readyBusy: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const s = STATUS[b.status];
+  const ps = pickupState(b, startHour);
+  const late = ps === 'overdue' && b.expectedPickupAt ? daysFromPickup(b.expectedPickupAt, startHour) : 0;
+  const active = isOpen(b);
+  const wa = bookingWaLink(b, shop, startHour);
+  const meta = [b.bookingNumber, when(b.createdAt), b.createdBy?.fullName, b.shop?.name].filter(Boolean).join(' · ');
+  return (
+    <li>
+      <div className="flex flex-wrap items-center gap-3 px-3 py-2.5 sm:flex-nowrap sm:px-4">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-slate-200" style={{ backgroundColor: `${s.color}14`, color: s.color }}>
+          <s.icon className="h-4 w-4" />
+        </span>
+        <Link to={`/bookings/${b.id}`} className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="truncate font-semibold text-slate-900">{b.customer?.name ?? 'Customer'}</span>
+            <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', s.tone)}><s.icon className="h-3 w-3" />{s.label}</span>
+            {ps !== 'none' && (
+              <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', PICKUP[ps].tone)}>
+                <CalendarClock className="h-3 w-3" />{ps === 'overdue' ? `${late} din late` : ps === 'soon' || ps === 'later' ? dayText(b.expectedPickupAt) : PICKUP[ps].label}
+              </span>
+            )}
+          </span>
+          <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{itemsSummary(b) || 'Koi cheez nahi'}</span>
+          <span className="block truncate text-[0.6875rem] text-slate-400">{meta}</span>
+        </Link>
+        <div className="ml-auto text-right">
+          <p className="font-bold tabular-nums text-slate-900">{money(b.total)}</p>
+          <p className={cn('text-[0.75rem] tabular-nums', b.balanceDue > 0 && active ? 'text-amber-700' : 'text-slate-500')}>
+            {active ? (b.balanceDue > 0 ? `Baqi ${money(b.balanceDue)}` : 'Poora mila') : b.sale ? b.sale.saleNumber : s.label}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {wa && active && (
+            <a href={wa} target="_blank" rel="noreferrer" title="WhatsApp yaad dihani" aria-label="WhatsApp"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-emerald-600 ring-1 ring-slate-200 hover:bg-emerald-50"><MessageCircle className="h-4 w-4" /></a>
+          )}
+          {active && b.balanceDue > 0 && <Button size="sm" variant="secondary" onClick={() => onAction('pay')} leftIcon={<Wallet className="h-4 w-4" />}><span className="hidden sm:inline">Payment</span></Button>}
+          {active && <Button size="sm" onClick={() => onAction('convert')} leftIcon={<ShoppingCart className="h-4 w-4" />}>Bikri</Button>}
+        </div>
+        <button type="button" onClick={() => setOpen((v) => !v)} aria-label="Aur" aria-expanded={open} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+          <ChevronDown className={cn('h-4 w-4 transition', open && 'rotate-180')} />
+        </button>
+      </div>
+      {open && (
+        <div className="space-y-3 border-t border-slate-100 bg-slate-50/60 px-4 py-3 text-[0.8125rem] text-slate-700 sm:pl-[4.25rem]">
+          <ul className="space-y-1">
+            {(b.items ?? []).map((i) => (
+              <li key={i.id} className="flex justify-between gap-3">
+                <span className="truncate">{itemLabel(i)} × {qtyText(i.quantity)} {i.product?.unit ?? ''}{i.note ? <span className="text-slate-500"> · {i.note}</span> : null}</span>
+                <span className="shrink-0 tabular-nums">{money(i.total)}</span>
+              </li>
+            ))}
+          </ul>
+          <dl className="grid gap-x-6 gap-y-1 sm:grid-cols-3">
+            <Fact k="Diya" v={money(b.totalPaid - b.totalRefunded)} />
+            {b.expectedPickupAt && <Fact k="Pickup" v={dayText(b.expectedPickupAt)} />}
+            {b.expiresAt && <Fact k="Aakhri din" v={dayText(b.expiresAt)} />}
+            {b.customer?.phone && <Fact k="Phone" v={b.customer.phone} />}
+            {b.cancelReason && <Fact k="Cancel ki wajah" v={b.cancelReason} />}
+          </dl>
+          {b.notes && <p className="whitespace-pre-line rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">{b.notes}</p>}
+          <div className="flex flex-wrap gap-2">
+            {active && b.status !== 'READY_FOR_PICKUP' && <Button size="sm" variant="secondary" loading={readyBusy} onClick={() => onReady(true)} leftIcon={<PackageCheck className="h-4 w-4" />}>Tayyar hai</Button>}
+            {b.status === 'READY_FOR_PICKUP' && <Button size="sm" variant="ghost" loading={readyBusy} onClick={() => onReady(false)} leftIcon={<Undo2 className="h-4 w-4" />}>Abhi tayyar nahi</Button>}
+            {active && <Button size="sm" variant="secondary" onClick={() => onAction('date')} leftIcon={<CalendarClock className="h-4 w-4" />}>Tareekh badlein</Button>}
+            <Button size="sm" variant="secondary" onClick={() => onAction('print')} leftIcon={<Printer className="h-4 w-4" />}>Slip</Button>
+            <Link to={`/bookings/${b.id}`} className="inline-flex h-8 items-center rounded-lg px-3 text-[0.8125rem] font-medium text-brand-700 hover:bg-brand-50">Poori tafseel</Link>
+            {active && <Button size="sm" variant="ghost" className="ml-auto text-rose-700" onClick={() => onAction('cancel')} leftIcon={<XCircle className="h-4 w-4" />}>Cancel</Button>}
+          </div>
         </div>
       )}
-
-      {/* ═══ PRINT CSS ═══ */}
-      <style>{`
-        @media print {
-          @page { size: A4; margin: 12mm 10mm; }
-          html, body {
-            background: white !important; color: #0f172a !important;
-            print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
-          }
-          .dark body, .dark { background: white !important; color: #0f172a !important; }
-          [class*="fixed"] { display: none !important; }
-          html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
-          [class*="sidebar"], [class*="topbar"], nav[class*="fixed"] { display: none !important; }
-          [data-sonner-toaster], [data-sonner-toast], [class*="Toaster"] { display: none !important; visibility: hidden !important; }
-          a { color: inherit !important; text-decoration: none !important; }
-        }
-      `}</style>
-    </div>
+    </li>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   BOOKINGS TEACHER — Universal guide
-   ═════════════════════════════════════════════════════════════ */
-function BookingsTeacher({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Bookings — Complete Guide
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
-            <strong>Booking = advance/token.</strong> Customer ne cheez pasand ki, thora paisa diya,
-            baaki delivery pe dega. Tab tak item aap ki taraf reserved.
-          </p>
-
-          {/* Live misal */}
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-3">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
-              💍 Misal: Sonar ki dukan
-            </div>
-            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
-              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
-                <strong>Total:</strong> Rs 80,000 (haar) &nbsp;•&nbsp; <strong>Advance:</strong> Rs 20,000 today
-              </div>
-              <div className="rounded-lg bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/40 p-2 font-extrabold text-emerald-700 dark:text-emerald-300">
-                ✅ 3 din baad customer aaya → Rs 60,000 diya → haar pickup → CONVERTED (sale ban gayi)
-              </div>
-            </div>
-          </div>
-
-          {/* Statuses explained */}
-          <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/60 dark:bg-ink-800/40 p-4 space-y-1.5">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400 mb-2">
-              📊 6 Statuses ka matlab
-            </div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-ink-200">
-              <div>⏳ <strong>Pending</strong> — abhi paisa nahi diya</div>
-              <div>💰 <strong>Advance Paid</strong> — token mila, kaam chal raha</div>
-              <div>⚡ <strong>Ready</strong> — item tayyar, pickup ka intezaar</div>
-              <div>✅ <strong>Converted</strong> — sale ban gayi, done!</div>
-              <div>❌ <strong>Cancelled</strong> — customer ne mana kiya</div>
-              <div>⚠️ <strong>Expired</strong> — pickup date nikal gayi</div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            <TipRow><strong>💼 Kaunse dhande me?</strong> — Jeweler, tailor, mobile (order booking), carpet (custom), electronics — jahan advance chalta hai</TipRow>
-            <TipRow><strong>💰 Advance Held</strong> — customer ka paisa aap ke paas hai (KPI me total dikhta hai)</TipRow>
-            <TipRow><strong>⏰ Expiring Soon banner</strong> — 3 din me pickup wali bookings alag dikhti hain — customer ko WhatsApp karo!</TipRow>
-            <TipRow><strong>Cancel = auto refund</strong> — jitna advance diya tha, wo record ho jata hai</TipRow>
-            <TipRow><strong>⌨️ N</strong> — nayi booking &nbsp;•&nbsp; <strong>1-6</strong> — filters &nbsp;•&nbsp; <strong>/</strong> — search</TipRow>
-          </div>
-
-          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            💡 <strong>Poora chakkar:</strong> Customer aaye → advance liya (Booking) → item tayyar (Ready) →
-            pickup pe baqi payment (Converted). Ek page pe sab track!
-          </div>
-
-          <Button
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 font-extrabold shadow-lg shadow-blue-500/40 h-12"
-            onClick={onClose}
-          >
-            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya!
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TipRow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-      <span>{children}</span>
-    </div>
-  );
-}
-
-function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[0.625rem]">
-      {children}
-    </kbd>
-  );
-}
-
-function Kpi({ icon: Icon, label, value, sub, tone, isHighlight, onClick }: any) {
-  const tones: Record<string, string> = {
-    blue: 'from-blue-500 to-blue-700 shadow-blue-500/40',
-    emerald: 'from-emerald-500 to-green-600 shadow-emerald-500/40',
-    amber: 'from-amber-500 to-orange-600 shadow-amber-500/40',
-    rose: 'from-rose-500 to-red-600 shadow-rose-500/40',
-  };
-  const Comp: any = onClick ? 'button' : 'div';
-  return (
-    <Comp
-      onClick={onClick}
-      className={[
-        'rounded-2xl border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all',
-        onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
-        isHighlight
-          ? 'bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 border-emerald-300 dark:border-emerald-500/40'
-          : 'bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-ink-800',
-      ].join(' ')}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
-        </div>
-        <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </Comp>
-  );
-}
-
-function FilterChip({ active, onClick, label, count, color }: {
-  active: boolean; onClick: () => void; label: string; count: number; color?: string;
-}) {
-  const colorMap: Record<string, string> = {
-    slate: 'border-slate-400 bg-slate-100 text-slate-700 dark:border-ink-500 dark:bg-ink-700 dark:text-ink-200',
-    amber: 'border-amber-400 bg-amber-100 text-amber-700 dark:border-amber-500 dark:bg-amber-500/20 dark:text-amber-300',
-    blue: 'border-blue-400 bg-blue-100 text-blue-700 dark:border-blue-500 dark:bg-blue-500/20 dark:text-blue-300',
-    emerald: 'border-emerald-400 bg-emerald-100 text-emerald-700 dark:border-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-300',
-    rose: 'border-rose-400 bg-rose-100 text-rose-700 dark:border-rose-500 dark:bg-rose-500/20 dark:text-rose-300',
-  };
-  const activeColor = color && colorMap[color]
-    ? colorMap[color]
-    : 'border-blue-500 bg-blue-100 text-blue-800 dark:border-blue-500 dark:bg-blue-500/20 dark:text-blue-300';
-
-  return (
-    <button
-      onClick={onClick}
-      className={`h-9 px-3 rounded-xl border-2 font-extrabold text-xs inline-flex items-center gap-2 transition ${
-        active
-          ? `${activeColor} shadow-sm`
-          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:border-slate-300 dark:hover:border-ink-600'
-      }`}
-    >
-      {label}
-      <span className={`px-1.5 py-0 rounded text-[0.6875rem] tabular-nums ${active ? 'bg-white/60 dark:bg-ink-white/20' : 'bg-slate-100 dark:bg-ink-700'}`}>
-        {count}
-      </span>
-    </button>
-  );
+function Fact({ k, v }: { k: string; v: string }) {
+  return <div className="flex justify-between gap-3 sm:block"><dt className="text-[0.75rem] text-slate-500">{k}</dt><dd className="font-medium tabular-nums text-slate-900">{v}</dd></div>;
 }

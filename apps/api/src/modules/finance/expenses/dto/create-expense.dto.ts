@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  Max,
   Min,
 } from 'class-validator';
 
@@ -27,6 +28,7 @@ export class CreateExpenseDto {
   @ApiProperty({ example: 50000 })
   @IsNumber()
   @Min(0)
+  @Max(1_000_000_000)
   amount!: number;
 
   @ApiPropertyOptional()
@@ -40,14 +42,14 @@ export class CreateExpenseDto {
 
   @ApiPropertyOptional({
     description:
-      'Kharcha kis din hua. Pehle ye field hi nahi thi — har expense par ' +
-      'aaj ki tareekh lag jati thi, is liye purana bill darj hi nahi hota tha.',
+      'Day of the expense. A business-day key ("2026-10-13") or a full ISO time. ' +
+      "Today's key is saved with the current time so a cash expense lands in the open shift. Defaults to now.",
   })
   @IsOptional()
   @IsDateString()
   expenseDate?: string;
 
-  @ApiPropertyOptional({ description: 'Bill/receipt ki tasveer ka URL' })
+  @ApiPropertyOptional({ description: 'Photo of the bill or receipt' })
   @IsOptional()
   @IsString()
   attachmentUrl?: string;
@@ -56,16 +58,29 @@ export class CreateExpenseDto {
   @IsOptional()
   @IsEnum(ExpenseStatus)
   status?: ExpenseStatus;
+
+  @ApiPropertyOptional({ description: 'Branch of the expense; defaults to the open branch, then the main one' })
+  @IsOptional()
+  @IsString()
+  shopId?: string;
 }
 
-/** Sab kuch optional — sirf jo badla hai wohi bhejna kaafi ho */
+/** Every field optional: send only what changed. An empty string clears category or photo. */
 export class UpdateExpenseDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) title?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @IsNotEmpty() @MaxLength(120) title?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) description?: string;
-  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) amount?: number;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Max(1_000_000_000) amount?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
   @ApiPropertyOptional({ enum: PaymentMethod }) @IsOptional() @IsEnum(PaymentMethod) paymentMethod?: PaymentMethod;
   @ApiPropertyOptional() @IsOptional() @IsDateString() expenseDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() attachmentUrl?: string;
   @ApiPropertyOptional({ enum: ExpenseStatus }) @IsOptional() @IsEnum(ExpenseStatus) status?: ExpenseStatus;
+}
+
+/** Pays a pending bill now. */
+export class PayExpenseDto {
+  @ApiPropertyOptional({ enum: PaymentMethod, description: 'How it was paid; keeps the saved method when left out' })
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  paymentMethod?: PaymentMethod;
 }

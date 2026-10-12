@@ -1,1149 +1,323 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { PosShopGuard } from '@modules/pos/components';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Wallet, PlayCircle, StopCircle, ArrowDownToLine, ArrowUpFromLine,
-  Banknote, CalendarClock, TrendingUp, AlertCircle, History,
-  CheckCircle2, AlertTriangle, Calculator, Sparkles, Receipt,
-  Activity, Clock, User as UserIcon, Download, GraduationCap,
-  X, RefreshCw, Printer, Coins, HandCoins, Timer, Zap,
-  ShieldCheck, Search,
-} from 'lucide-react';
-import { cashRegisterApi } from '@modules/finance/cash-register/api/cash-register.api';
-import { Button, Input } from '@/design-system/components';
-import { formatPKR } from '@core/lib/format';
+/**
+ * Cash register (galla) for every industry. "Aaj ka galla" shows the open
+ * shift of each branch with its live count and the till actions (open,
+ * cash in/out, close with a note-by-note count). "Shifts record" lists
+ * every shift of a period with its short/over; "Analytics" shows shorts
+ * and overs by staff and day, cash sales and the average float. Each
+ * shift prints as an X/Z-report.
+ *
+ * Keys: O open shift · I cash in · U cash out · C close · / search · A analytics · G guide.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useAuthStore, useShopParam } from '@core/stores/auth.store';
+import {
+  AlertTriangle, ArrowDownToLine, BarChart3, Calculator, CircleDot, ClipboardList, Filter, GraduationCap, ListChecks, PlayCircle,
+  Printer, StopCircle, Store, TrendingUp, UserRound, Wallet,
+} from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { useBusinessDayStart } from '@core/lib/business-day';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useAuthStore, useCanSwitchShops, useIsAllShops, useShopParam } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { shopsApi } from '@modules/organization/shops/api/shops.api';
+import { cashRegisterApi, type CashRegister, type ShiftQuery, type ShiftRow, type ShiftStatus } from '../api/cash-register.api';
+import { CashAnalytics } from '../components/CashAnalytics';
+import { CashMoveModal } from '../components/CashMoveModal';
+import { CloseShiftModal } from '../components/CloseShiftModal';
+import { OpenShiftModal } from '../components/OpenShiftModal';
+import { ShiftDetailModal } from '../components/ShiftDetailModal';
+import { ClosedTill, TillCard, type TillActions } from '../components/TillCard';
+import { CASH_KEY, DIFF, STATUS_FILTERS, diffKind, duration, signed, when } from '../components/meta';
+import { shiftsDoc } from '../components/print';
 
-/* ═════════════════════════════════════════════════════════════
-   NAFAA CASH REGISTER — GLOBAL FULL BEST v3
-   ─────────────────────────────────────────────────────────────
-   🌍 GLOBAL — Retail/Restaurant/Pharmacy/Salon sab me
-   🌙 Dark mode complete
-   🎓 Teacher modal — Cash reconciliation, short/surplus fix
-   ⌨️  O open • I in • U out • C close • T guide • Esc
-   🧮 Denomination calculator (PKR notes)
-   ⚠️ Smart close warning (>5% diff)
-   ⏱️ Live session timer
-   🖨️ Print + 📊 CSV
-   ═════════════════════════════════════════════════════════════ */
-
-const PKR_DENOMS = [
-  { value: 5000, label: '5000' },
-  { value: 1000, label: '1000' },
-  { value: 500, label: '500' },
-  { value: 100, label: '100' },
-  { value: 50, label: '50' },
-  { value: 20, label: '20' },
-  { value: 10, label: '10' },
-];
-
-const formatDate = (v: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
-
-const formatRelative = (v: string) => {
-  const d = new Date(v);
-  const diff = Math.floor((Date.now() - d.getTime()) / 1000);
-  if (diff < 60) return 'Abhi';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
-};
-
-const txTypeConfig: Record<string, { label: string; tone: string; darkTone: string; icon: any; isIncome: boolean }> = {
-  OPENING:  { label: 'Opening Balance', tone: 'bg-blue-100 text-blue-700',       darkTone: 'dark:bg-blue-500/20 dark:text-blue-300',       icon: PlayCircle,       isIncome: true },
-  SALE:     { label: 'Sale Received',   tone: 'bg-emerald-100 text-emerald-700', darkTone: 'dark:bg-emerald-500/20 dark:text-emerald-300', icon: Receipt,          isIncome: true },
-  CASH_IN:  { label: 'Cash In',         tone: 'bg-emerald-100 text-emerald-700', darkTone: 'dark:bg-emerald-500/20 dark:text-emerald-300', icon: ArrowDownToLine,  isIncome: true },
-  CASH_OUT: { label: 'Cash Out',        tone: 'bg-rose-100 text-rose-700',       darkTone: 'dark:bg-rose-500/20 dark:text-rose-300',       icon: ArrowUpFromLine,  isIncome: false },
-  EXPENSE:  { label: 'Expense',         tone: 'bg-amber-100 text-amber-700',     darkTone: 'dark:bg-amber-500/20 dark:text-amber-300',     icon: ArrowUpFromLine,  isIncome: false },
-  CLOSING:  { label: 'Closing',         tone: 'bg-slate-100 text-slate-700',     darkTone: 'dark:bg-ink-700 dark:text-ink-300',        icon: StopCircle,       isIncome: false },
-};
+type Tab = 'today' | 'shifts' | 'analytics';
 
 export default function CashRegisterPage() {
-  const queryClient = useQueryClient();
-  const currentShopId = useShopParam();
+  const startHour = useBusinessDayStart();
+  const { sales: money } = useMasked();
+  const canOpen = usePermission(PERMISSIONS.CASH_REGISTER_OPEN);
+  const canClose = usePermission(PERMISSIONS.CASH_REGISTER_CLOSE);
+  const shopId = useShopParam();
+  const allShops = useIsAllShops();
+  const isOwner = useCanSwitchShops();
+  const assigned = useAuthStore((s) => s.user?.assignedShop);
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  const openingRef = useRef<HTMLInputElement>(null);
-  const txAmountRef = useRef<HTMLInputElement>(null);
-  const closingRef = useRef<HTMLInputElement>(null);
+  const [tab, setTab] = useState<Tab>('today');
+  const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
+  const [branch, setBranch] = useState('');
+  const [staff, setStaff] = useState('');
+  const [status, setStatus] = useState<'' | ShiftStatus>('');
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [opening, setOpening] = useState<{ id: string; name: string } | null>(null);
+  const [move, setMove] = useState<{ r: CashRegister; kind: 'CASH_IN' | 'CASH_OUT' } | null>(null);
+  const [closing, setClosing] = useState<CashRegister | null>(null);
+  const [report, setReport] = useState<string | null>(null);
 
-  const [openingBalance, setOpeningBalance] = useState('');
-  const [openingNotes, setOpeningNotes] = useState('');
-  const [closingBalance, setClosingBalance] = useState('');
-  const [closingNotes, setClosingNotes] = useState('');
-  const [txAmount, setTxAmount] = useState('');
-  const [txReason, setTxReason] = useState('');
-  const [showTeacher, setShowTeacher] = useState(false);
-  const [showDenomCalc, setShowDenomCalc] = useState<'opening' | 'closing' | null>(null);
-  const [denomCounts, setDenomCounts] = useState<Record<number, string>>({});
-  const [tick, setTick] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [range, branch, staff, status, query]);
+  useEffect(() => { setBranch(''); setStaff(''); }, [shopId]);
 
-  const { data: current, isLoading } = useQuery({
-    queryKey: ['cash-register-current', currentShopId],
-    queryFn: () => cashRegisterApi.current(currentShopId || undefined),
-    enabled: !!currentShopId,
-    refetchInterval: 30000,
+  const shopsQ = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list, enabled: isOwner, staleTime: 5 * 60_000 });
+  const tillShops = (shopsQ.data ?? []).filter((s) => s.isActive && s.type === 'SHOP');
+  const liveQ = useQuery({ queryKey: [CASH_KEY, 'live', shopId ?? 'all'], queryFn: cashRegisterApi.live, refetchInterval: 30_000 });
+  const live = liveQ.data ?? [];
+
+  const period = resolveRange(range, startHour);
+  const base: Omit<ShiftQuery, 'page' | 'limit' | 'status'> = {
+    ...(period ?? {}), shopId: allShops ? branch || undefined : undefined, staffId: staff || undefined, search: query || undefined,
+  };
+  const listQ = useQuery({
+    queryKey: [CASH_KEY, 'shifts', shopId ?? 'all', { ...base, status, page }],
+    queryFn: () => cashRegisterApi.shifts({ ...base, status: status || undefined, page, limit: 30 }),
+    placeholderData: (p) => p, enabled: tab === 'shifts',
   });
-
-  const { data: history = [] } = useQuery({
-    queryKey: ['cash-register-history', currentShopId],
-    queryFn: () => cashRegisterApi.history(currentShopId || undefined),
-    enabled: !!currentShopId,
+  const periodQ = useQuery({
+    queryKey: [CASH_KEY, 'shifts', shopId ?? 'all', { ...base, page: 1, limit: 1 }],
+    queryFn: () => cashRegisterApi.shifts({ ...base, page: 1, limit: 1 }),
+    placeholderData: (p) => p,
   });
+  const pt = periodQ.data?.totals;
 
-  const openMutation = useMutation({
-    mutationFn: cashRegisterApi.open,
-    onSuccess: () => {
-      toast.success('Register open ho gaya', { description: 'Aap ka din shuru ho chuka hai' });
-      setOpeningBalance(''); setOpeningNotes(''); setDenomCounts({});
-      queryClient.invalidateQueries({ queryKey: ['cash-register-current'] });
-      queryClient.invalidateQueries({ queryKey: ['cash-register-history'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Open fail ho gaya'),
-  });
+  // A till slot for every branch on the owner's all-branches view, else for the branch in view.
+  const shopName = (tillShops.find((s) => s.id === shopId) ?? assigned)?.name ?? live[0]?.shop?.name ?? 'Branch';
+  const slotOf = (x: CashRegister) => ({ shop: { id: x.shopId ?? x.id, name: x.shop?.name ?? x.registerNumber }, r: x as CashRegister | undefined });
+  const slots: Array<{ shop: { id: string; name: string }; r?: CashRegister }> = allShops
+    ? [
+      ...tillShops.map((s) => ({ shop: { id: s.id, name: s.name }, r: live.find((x) => x.shopId === s.id) })),
+      ...live.filter((x) => !tillShops.some((s) => s.id === x.shopId)).map(slotOf),
+    ]
+    : shopId ? [{ shop: { id: shopId, name: shopName }, r: live[0] }] : live.map(slotOf);
+  const single = live.length === 1 ? live[0] : null;
+  const closedSlot = !allShops && shopId && !live.length ? { id: shopId, name: shopName } : null;
+  const inDrawer = live.reduce((s, r) => s + r.expectedBalance, 0);
+  const liveSales = live.reduce((s, r) => s + (r.live?.cashSales ?? 0), 0);
 
-  const txMutation = useMutation({
-    mutationFn: (payload: any) => cashRegisterApi.transaction(payload, currentShopId || undefined),
-    onSuccess: (_, vars: any) => {
-      toast.success(`${vars.type === 'CASH_IN' ? 'Cash added' : 'Cash withdrawn'}`, {
-        description: `${formatPKR(vars.amount)} • ${vars.reason}`,
-      });
-      setTxAmount(''); setTxReason('');
-      queryClient.invalidateQueries({ queryKey: ['cash-register-current'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Transaction fail'),
-  });
-
-  const closeMutation = useMutation({
-    mutationFn: (payload: any) => cashRegisterApi.close(payload, currentShopId || undefined),
-    onSuccess: (data: any) => {
-      const diff = data?.difference || 0;
-      if (diff === 0) toast.success('Register closed — All cash matched!', { description: '🎯 Perfect day! No discrepancy' });
-      else if (diff > 0) toast.success(`Register closed — +${formatPKR(diff)} surplus`, { description: 'Extra cash mila — kahin se aaya?' });
-      else toast.error(`Register closed — ${formatPKR(Math.abs(diff))} short`, { description: '⚠️ Cash missing — check karein' });
-      setClosingBalance(''); setClosingNotes(''); setDenomCounts({});
-      queryClient.invalidateQueries({ queryKey: ['cash-register-current'] });
-      queryClient.invalidateQueries({ queryKey: ['cash-register-history'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Close fail ho gaya'),
-  });
-
-  const handleOpen = () => {
-    if (!currentShopId) return toast.error('Top-bar se shop select karein');
-    const bal = Number(openingBalance);
-    if (isNaN(bal) || bal < 0) return toast.error('Valid opening balance likhein');
-    openMutation.mutate({ shopId: currentShopId, openingBalance: bal, notes: openingNotes.trim() || undefined });
+  const actions: TillActions = {
+    canOpen, canClose,
+    onMove: (r, kind) => setMove({ r, kind }),
+    onClose: setClosing,
+    onReport: setReport,
   };
 
-  const handleTx = (type: 'CASH_IN' | 'CASH_OUT') => {
-    const amt = Number(txAmount);
-    if (isNaN(amt) || amt <= 0) return toast.error('Valid amount likhein');
-    if (!txReason.trim()) return toast.error('Reason likhein');
-    txMutation.mutate({ type, amount: amt, reason: txReason.trim() });
-  };
+  const staffOptions = periodQ.data?.staff ?? [];
+  const filtered = !!branch || !!staff || !!status || !!query;
+  const branchLabel = tillShops.find((s) => s.id === branch)?.name;
+  const staffLabel = staffOptions.find((s) => s.id === staff)?.fullName;
+  const statusMeta = STATUS_FILTERS.find((s) => s.value === status);
+  const periodText = period ? `${period.from} — ${period.to}` : 'Sab tareekhen';
+  const filterText = [branchLabel, staffLabel, statusMeta?.label, query && `"${query}"`].filter(Boolean).join(' · ');
+  const printDoc = async () => shiftsDoc(await cashRegisterApi.shifts({ ...base, status: status || undefined, page: 1, limit: 200 }), periodText, filterText);
+  const clear = () => { setBranch(''); setStaff(''); setStatus(''); setSearch(''); };
+  const show = (s: '' | ShiftStatus) => { setTab('shifts'); setStatus(s); };
 
-  const handleClose = () => {
-    const bal = Number(closingBalance);
-    if (isNaN(bal) || bal < 0) return toast.error('Valid closing balance likhein');
-    // Smart warning for large discrepancy
-    if (current) {
-      const diff = Math.abs(bal - current.expectedBalance);
-      const pct = current.expectedBalance > 0 ? (diff / current.expectedBalance) * 100 : 0;
-      if (pct > 5 && diff > 500) {
-        const proceed = confirm(
-          `⚠️ Bara farak detect hua!\n\nExpected: ${formatPKR(current.expectedBalance)}\nActual: ${formatPKR(bal)}\nDifference: ${formatPKR(diff)} (${pct.toFixed(1)}%)\n\nKya aap sure hain? Cash dobara gino, warna audit issue ban sakta hai.`
-        );
-        if (!proceed) return;
-      }
-    }
-    closeMutation.mutate({ closingBalance: bal, notes: closingNotes.trim() || undefined });
-  };
-
-  // Denomination calculator total
-  const denomTotal = useMemo(() => {
-    return PKR_DENOMS.reduce((sum, d) => sum + (Number(denomCounts[d.value]) || 0) * d.value, 0);
-  }, [denomCounts]);
-
-  const applyDenomTotal = () => {
-    if (showDenomCalc === 'opening') setOpeningBalance(String(denomTotal));
-    if (showDenomCalc === 'closing') setClosingBalance(String(denomTotal));
-    setShowDenomCalc(null);
-    toast.success(`${formatPKR(denomTotal)} apply ho gaya`);
-  };
-
-  const closingDiff = useMemo(() => {
-    if (!current || !closingBalance) return null;
-    const actual = Number(closingBalance);
-    if (isNaN(actual)) return null;
-    return actual - current.expectedBalance;
-  }, [closingBalance, current]);
-
-  // Live session timer
-  useEffect(() => {
-    if (!current) return;
-    const id = setInterval(() => setTick((t) => t + 1), 60000);
-    return () => clearInterval(id);
-  }, [current]);
-
-  const sessionDuration = current ? Math.floor((Date.now() - new Date(current.openedAt).getTime()) / 60000) : 0;
-  const hoursOpen = Math.floor(sessionDuration / 60);
-  const minutesOpen = sessionDuration % 60;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _ = tick; // force re-render
-
-  const exportHistoryCSV = () => {
-    if (history.length === 0) return toast.error('No history');
-    const summary = [
-      ['Cash Register History'],
-      [`Generated: ${new Date().toLocaleString('en-PK')}  •  Sessions: ${history.length}`],
-      [''],
-    ];
-    const headers = ['Register #', 'Opened By', 'Opened At', 'Closed At', 'Opening', 'Sales', 'Cash In', 'Cash Out', 'Closing', 'Difference', 'Status'];
-    const rows = history.map((r) => [
-      r.registerNumber, r.openedBy?.fullName || '—',
-      new Date(r.openedAt).toLocaleString('en-PK'),
-      r.closedAt ? new Date(r.closedAt).toLocaleString('en-PK') : '—',
-      r.openingBalance.toFixed(2), r.totalSales.toFixed(2),
-      (r.totalCashIn || 0).toFixed(2), (r.totalCashOut || 0).toFixed(2),
-      r.closingBalance.toFixed(2), r.difference.toFixed(2), r.status,
-    ]);
-    const csv = [...summary, headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `cash-register-history-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('History exported');
-  };
-
-  /* Keyboard shortcuts */
+  // Till shortcuts act on the only open till in view.
+  const keyRef = useRef({ single, closedSlot, canOpen, canClose });
+  keyRef.current = { single, closedSlot, canOpen, canClose };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showTeacher) return setShowTeacher(false);
-        if (showDenomCalc) return setShowDenomCalc(null);
-      }
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key.toLowerCase() === 't') { e.preventDefault(); setShowTeacher(true); }
-      if (!current && e.key.toLowerCase() === 'o') { e.preventDefault(); openingRef.current?.focus(); }
-      if (current && e.key.toLowerCase() === 'i') { e.preventDefault(); txAmountRef.current?.focus(); }
-      if (current && e.key.toLowerCase() === 'u') { e.preventDefault(); txAmountRef.current?.focus(); }
-      if (current && e.key.toLowerCase() === 'c') { e.preventDefault(); closingRef.current?.focus(); }
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const k = e.key.toLowerCase();
+      const { single: one, closedSlot: shut, canOpen: mayOpen, canClose: mayClose } = keyRef.current;
+      if (k === 'a') { e.preventDefault(); setTab('analytics'); return; }
+      if (e.key === '/') { e.preventDefault(); setTab('shifts'); window.setTimeout(() => searchRef.current?.focus(), 0); return; }
+      if (!['o', 'i', 'u', 'c'].includes(k)) return;
+      e.preventDefault();
+      setTab('today');
+      if (k === 'o') { if (shut && mayOpen) setOpening(shut); return; }
+      if (!one) { toast.info('Pehle upar se ek branch chunein'); return; }
+      if ((k === 'i' || k === 'u') && mayOpen) setMove({ r: one, kind: k === 'i' ? 'CASH_IN' : 'CASH_OUT' });
+      if (k === 'c' && mayClose) setClosing(one);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showTeacher, showDenomCalc, current]);
-
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = (showTeacher || showDenomCalc) ? 'hidden' : prev;
-    return () => { document.body.style.overflow = prev; };
-  }, [showTeacher, showDenomCalc]);
-
-  const netCashFlow = current ? current.totalCashIn - current.totalCashOut : 0;
-
-  // A till belongs to one counter — the consolidated "All Shops" view has no
-  // register to open, close or count.
-  if (!currentShopId) {
-    return <PosShopGuard action="cash register chalane" />;
-  }
+  }, []);
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10">
-      {showTeacher && <CashRegisterTeacher onClose={() => setShowTeacher(false)} />}
-      {showDenomCalc && (
-        <DenominationCalculator
-          mode={showDenomCalc}
-          counts={denomCounts}
-          setCounts={setDenomCounts}
-          total={denomTotal}
-          onApply={applyDenomTotal}
-          onClose={() => setShowDenomCalc(null)}
-        />
-      )}
+    <PageShell>
+      <PageHero
+        title="Cash register"
+        chip={<><Wallet /> Galla</>}
+        meta="Shift kholein, cash in/out likhein, band karte waqt gin kar milayein"
+        busy={liveQ.isFetching && !liveQ.isLoading}
+        loading={liveQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!periodQ.data?.total} label="Shifts" /></span>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {single && canClose
+            ? <button type="button" onClick={() => setClosing(single)} title="Shift band (C)" className={heroPrimaryButton}><StopCircle className="h-4 w-4" /> Shift band karein</button>
+            : closedSlot && canOpen && <button type="button" onClick={() => setOpening(closedSlot)} title="Shift kholein (O)" className={heroPrimaryButton}><PlayCircle className="h-4 w-4" /> Shift kholein</button>}
+        </>}
+        stats={[
+          { label: 'Galle me abhi hona chahiye', value: money(inDrawer), hint: live.length ? `${live.length} khuli shift` : 'Koi shift khuli nahi' },
+          { label: 'Khuli shift ki cash bikri', value: money(liveSales) },
+          { label: 'Is muddat kam nikle', value: pt ? money(pt.shortAmount) : '—', hint: pt?.short ? `${pt.short} shift` : undefined },
+          { label: 'Zyada nikle', value: pt ? money(pt.overAmount) : '—', hint: pt?.over ? `${pt.over} shift` : undefined },
+        ]}
+      />
 
-      {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-ink-950 dark:via-emerald-950 dark:to-emerald-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
-        <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-400/25 blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
+      <KpiRow cols={5}>
+        {!pt || liveQ.isLoading ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={Wallet} color="#16a34a" label="Galle me abhi" value={money(inDrawer)}
+            hint={live.length ? `${live.length} khuli shift` : 'Shift kholein'} onClick={() => setTab('today')} active={tab === 'today'} />
+          <KpiCard icon={ArrowDownToLine} color="#0d9488" label="Cash bikri (khuli shift)" value={money(liveSales)}
+            hint={`${live.reduce((s, r) => s + (r.live?.cashSalesCount ?? 0), 0)} bill`} onClick={() => setTab('today')} />
+          <KpiCard icon={AlertTriangle} color="#e11d48" label="Paise kam nikle" value={money(pt.shortAmount)} hint={`${pt.short} shift · is muddat`}
+            onClick={() => show('SHORT')} active={tab === 'shifts' && status === 'SHORT'} />
+          <KpiCard icon={TrendingUp} color="#0284c7" label="Paise zyada nikle" value={money(pt.overAmount)} hint={`${pt.over} shift · is muddat`}
+            onClick={() => show('OVER')} active={tab === 'shifts' && status === 'OVER'} />
+          <KpiCard icon={Calculator} color="#475569" label="Ausat opening float" value={money(pt.avgFloat)} hint={`${pt.shifts} shift · ${pt.matched} barabar`}
+            onClick={() => show('')} active={tab === 'shifts' && !status} />
+        </>}
+      </KpiRow>
 
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0 flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25 uppercase tracking-widest shadow-lg">
-              <Wallet className="h-3.5 w-3.5 text-amber-300" /> Daily Cash Management
-            </div>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">💰 Cash Register</h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-white/90 font-semibold max-w-xl">
-              Din ke shuru aur akhir me cash count karo — automatic reconciliation aur audit trail.
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap items-center shrink-0">
-            {current && (
-              <div className="rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 px-4 py-2.5 shadow-lg">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" />
-                  <span className="text-xs font-extrabold uppercase tracking-wider">OPEN</span>
-                </div>
-                <div className="text-[0.6875rem] text-white/70 mt-0.5 font-mono">{current.registerNumber}</div>
-                <div className="text-[0.6875rem] text-amber-300 mt-0.5 flex items-center gap-1 font-extrabold">
-                  <Timer className="h-2.5 w-2.5" />
-                  {hoursOpen}h {minutesOpen}m
-                </div>
-              </div>
-            )}
-            <button
-              onClick={() => setShowTeacher(true)}
-              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-lg transition"
-            >
-              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Guide</span>
-            </button>
-            {history.length > 0 && (
-              <button
-                onClick={exportHistoryCSV}
-                className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
-              >
-                <Download className="h-4 w-4" /> <span className="hidden sm:inline">CSV</span>
-              </button>
-            )}
-            <button
-              onClick={() => window.print()}
-              className="h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-extrabold inline-flex items-center gap-1.5 backdrop-blur-md transition"
-            >
-              <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Print</span>
-            </button>
-          </div>
-        </div>
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={(v) => { setSearch(v); if (v) setTab((t) => (t === 'today' ? 'shifts' : t)); }} placeholder="Register number, staff ka naam ya note…" label="Shift dhoondein" />}
+        chips={filtered ? <>
+          {branch && <FilterChip onRemove={() => setBranch('')}>{branchLabel}</FilterChip>}
+          {staff && <FilterChip onRemove={() => setStaff('')}>{staffLabel ?? 'Staff'}</FilterChip>}
+          {status && <FilterChip onRemove={() => setStatus('')}>{statusMeta?.label}</FilterChip>}
+          {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+        </> : undefined}
+        onClear={clear}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" />
+        {allShops && tillShops.length > 1 && (
+          <FilterMenu icon={Store} label={branchLabel ?? 'Branch'} value={branch} active={!!branch} onChange={setBranch}
+            options={[{ value: '', label: 'Sab branches' }, ...tillShops.map((s) => ({ value: s.id, label: s.name }))]} />
+        )}
+        <FilterMenu icon={UserRound} label={staffLabel ?? 'Staff'} value={staff} active={!!staff} onChange={setStaff}
+          options={[{ value: '', label: 'Sab staff' }, ...staffOptions.map((s) => ({ value: s.id, label: s.fullName, hint: `${s.shifts} shift` }))]} />
+        <FilterMenu icon={Filter} label={statusMeta?.label ?? 'Haal'} value={status} active={!!status} align="right"
+          onChange={(v) => show(v)}
+          options={[{ value: '' as '' | ShiftStatus, label: 'Sab shifts' }, ...STATUS_FILTERS.map((s) => ({ value: s.value as '' | ShiftStatus, label: s.label, hint: s.hint, icon: s.icon, color: s.color }))]} />
+      </FilterBar>
 
-        <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center">
-          {!current && <><Kbd>O</Kbd><span className="text-white/60">Open</span><span className="text-white/30 mx-1">•</span></>}
-          {current && <>
-            <Kbd>I</Kbd><span className="text-white/60">Cash In</span>
-            <span className="text-white/30 mx-1">•</span>
-            <Kbd>U</Kbd><span className="text-white/60">Cash Out</span>
-            <span className="text-white/30 mx-1">•</span>
-            <Kbd>C</Kbd><span className="text-white/60">Close</span>
-            <span className="text-white/30 mx-1">•</span>
-          </>}
-          <Kbd>T</Kbd><span className="text-white/60">Guide</span>
-          <span className="text-white/30 mx-1">•</span>
-          <Kbd>Esc</Kbd><span className="text-white/60">Band</span>
-        </div>
-      </section>
+      <ViewTabs value={tab} onChange={setTab}
+        hint={tab === 'today'
+          ? <>Muddat ka filter yahan nahi lagta · <Kbd>I</Kbd> cash in · <Kbd>U</Kbd> cash out · <Kbd>C</Kbd> band</>
+          : <><Kbd>/</Kbd> dhoondein · <Kbd>A</Kbd> analytics · <Kbd>G</Kbd> guide</>}
+        tabs={[
+          { id: 'today', label: 'Aaj ka galla', icon: Wallet, count: live.length || null },
+          { id: 'shifts', label: 'Shifts record', icon: ListChecks, count: periodQ.data?.total ?? null },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        ]} />
 
-      {isLoading ? (
-        <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-12 text-center">
-          <div className="inline-block h-10 w-10 rounded-full border-4 border-emerald-200 dark:border-emerald-800 border-t-emerald-600 dark:border-t-emerald-400 animate-spin" />
-        </div>
-      ) : !current ? (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-6 sm:p-8">
-          <div className="max-w-md mx-auto text-center">
-            <div className="mx-auto h-20 w-20 sm:h-24 sm:w-24 rounded-3xl bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-500/20 dark:to-emerald-500/30 flex items-center justify-center shadow-inner">
-              <PlayCircle className="h-10 w-10 sm:h-12 sm:w-12 text-emerald-700 dark:text-emerald-400" />
-            </div>
-            <h3 className="mt-5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white">Register Open Karo</h3>
-            <p className="mt-1.5 text-sm text-slate-500 dark:text-ink-400 font-semibold">
-              Din shuru karne se pehle apna opening cash count enter karo.
-            </p>
-
-            <div className="mt-6 space-y-4 text-left">
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-extrabold text-slate-700 dark:text-ink-300">Opening Cash Balance *</label>
-                  <button
-                    onClick={() => setShowDenomCalc('opening')}
-                    className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
-                  >
-                    <Calculator className="h-3 w-3" /> Note-wise ginti
-                  </button>
-                </div>
-                <input
-                  ref={openingRef}
-                  type="number"
-                  value={openingBalance}
-                  onChange={(e) => setOpeningBalance(e.target.value)}
-                  placeholder="5000"
-                  className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-lg font-extrabold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition tabular-nums"
-                />
-                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-1 font-semibold">
-                  Drawer me jitna cash hai woh count karke likho
-                </div>
-              </div>
-
-              <Input
-                label="Notes (optional)"
-                value={openingNotes}
-                onChange={(e) => setOpeningNotes(e.target.value)}
-                placeholder="Morning shift opened by..."
-              />
-
-              <Button
-                className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 font-extrabold shadow-lg shadow-emerald-500/30"
-                size="lg"
-                loading={openMutation.isPending}
-                onClick={handleOpen}
-                disabled={!openingBalance}
-              >
-                <PlayCircle className="h-5 w-5" />
-                Open Register
-              </Button>
-            </div>
-          </div>
-        </section>
-      ) : (
-        <>
-          {/* Stats Grid — ab poora tootna
-              Pehle sirf chaar khane thay aur "Expected" bhi ghalat
-              tha: bikri us me ginti hi nahi thi. Subah 5,000 se
-              register khola, din bhar 40,000 cash bika — screen
-              phir bhi 5,000 dikhati rehti thi. */}
-          <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-            <StatCard
-              label="Subah kholte waqt"
-              value={formatPKR(current.openingBalance)}
-              sub={formatRelative(current.openedAt)}
-              subIcon={CalendarClock}
-              icon={PlayCircle}
-              tone="slate"
-            />
-            <StatCard
-              label="Cash bikri"
-              value={formatPKR(current.live?.cashSales ?? 0)}
-              sub={`${current.live?.cashSalesCount ?? 0} bill — golak me aaya`}
-              icon={TrendingUp}
-              tone="emerald"
-              tinted
-            />
-            <StatCard
-              label="Golak se nikla"
-              value={formatPKR(
-                (current.live?.expenses ?? 0) + (current.live?.returns ?? 0) +
-                (current.live?.purchases ?? 0) + (current.live?.supplierPaid ?? 0) +
-                current.totalCashOut
-              )}
-              sub={[
-                `Kharch ${formatPKR(current.live?.expenses ?? 0)}`,
-                (current.live?.purchases ?? 0) > 0 ? `maal ${formatPKR(current.live?.purchases ?? 0)}` : null,
-                (current.live?.supplierPaid ?? 0) > 0 ? `supplier ${formatPKR(current.live?.supplierPaid ?? 0)}` : null,
-                (current.live?.returns ?? 0) > 0 ? `wapsi ${formatPKR(current.live?.returns ?? 0)}` : null,
-              ].filter(Boolean).join(' · ')}
-              icon={ArrowUpFromLine}
-              tone="rose"
-              tinted
-            />
-            <StatCard
-              label="Golak me hona chahiye"
-              value={formatPKR(current.expectedBalance)}
-              sub="Ab ginn kar milayein"
-              icon={Calculator}
-              tone="emerald"
-              highlight
-            />
-          </section>
-
-          {/* ── Poora hisab — har qadam ── */}
-          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow">
-                <Calculator className="h-4 w-4" />
-              </div>
-              <div>
-                <h3 className="font-black text-slate-900 dark:text-ink-white">Golak Ka Poora Hisab</h3>
-                <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-                  Register khulne se ab tak — har paisa
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <LedgerRow label="Subah kholte waqt" value={current.openingBalance} sign="+" tone="slate" />
-              <LedgerRow label="Cash bikri" value={current.live?.cashSales ?? 0} sign="+" tone="emerald"
-                note={`${current.live?.cashSalesCount ?? 0} bill`} />
-              {current.totalCashIn > 0 && (
-                <LedgerRow label="Haath se daala" value={current.totalCashIn} sign="+" tone="emerald" />
-              )}
-              {current.totalCashOut > 0 && (
-                <LedgerRow label="Haath se nikala" value={current.totalCashOut} sign="−" tone="rose" />
-              )}
-              {(current.live?.expenses ?? 0) > 0 && (
-                <LedgerRow label="Cash kharch" value={current.live?.expenses ?? 0} sign="−" tone="amber"
-                  note={`${current.live?.expenseCount ?? 0} kharch`} />
-              )}
-              {(current.live?.returns ?? 0) > 0 && (
-                <LedgerRow label="Wapsi me diya" value={current.live?.returns ?? 0} sign="−" tone="amber"
-                  note={`${current.live?.returnCount ?? 0} wapsi`} />
-              )}
-              {(current.live?.purchases ?? 0) > 0 && (
-                <LedgerRow label="Maal khareeda (cash)" value={current.live?.purchases ?? 0} sign="−" tone="rose"
-                  note={`${current.live?.purchaseCount ?? 0} kharidari`} />
-              )}
-              {(current.live?.supplierPaid ?? 0) > 0 && (
-                <LedgerRow label="Supplier ko diya" value={current.live?.supplierPaid ?? 0} sign="−" tone="rose"
-                  note={`${current.live?.supplierPaidCount ?? 0} adaigi`} />
-              )}
-              <LedgerRow label="Golak me hona chahiye" value={current.expectedBalance} sign="=" tone="final" big />
-            </div>
-
-            {/* Golak ke bahar ka paisa — taake ghalat-fehmi na ho */}
-            {(current.live?.nonCashCollected ?? 0) > 0 || (current.live?.creditGiven ?? 0) > 0 ? (
-              <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3">
-                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">
-                  Ye golak me nahi aaya
-                </div>
-                <div className="grid sm:grid-cols-2 gap-2">
-                  {(current.live?.nonCashCollected ?? 0) > 0 && (
-                    <div className="rounded-xl bg-white dark:bg-ink-900 p-2.5">
-                      <div className="text-[0.6875rem] font-bold text-slate-500">Card / wallet / bank</div>
-                      <div className="text-base font-black text-blue-700 dark:text-blue-400 tabular-nums">
-                        {formatPKR(current.live?.nonCashCollected ?? 0)}
-                      </div>
-                    </div>
-                  )}
-                  {(current.live?.creditGiven ?? 0) > 0 && (
-                    <div className="rounded-xl bg-white dark:bg-ink-900 p-2.5">
-                      <div className="text-[0.6875rem] font-bold text-slate-500">Udhaar par gaya</div>
-                      <div className="text-base font-black text-amber-700 dark:text-amber-400 tabular-nums">
-                        {formatPKR(current.live?.creditGiven ?? 0)}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <p className="text-[0.6875rem] font-bold text-slate-400 mt-2">
-                  Kul bikri {formatPKR(current.live?.allSalesTotal ?? 0)} me se sirf cash wala hissa golak me aata hai.
-                </p>
-              </div>
-            ) : null}
-          </section>
-
-          {/* Sales summary bar */}
-          <section className="rounded-2xl bg-gradient-to-br from-blue-50 to-emerald-50 dark:from-blue-500/10 dark:to-emerald-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-4 flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="h-10 w-10 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 flex items-center justify-center shrink-0">
-                <TrendingUp className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-widest">Today's Sales</div>
-                <div className="text-xl sm:text-2xl font-extrabold text-blue-700 dark:text-blue-400 tabular-nums">{formatPKR(current.totalSales)}</div>
-              </div>
-              <div className="h-8 w-px bg-blue-200 dark:bg-blue-500/30 hidden sm:block" />
-              <div>
-                <div className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-widest">Net Flow</div>
-                <div className={`text-sm sm:text-base font-extrabold tabular-nums ${netCashFlow >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-                  {netCashFlow >= 0 ? '+' : ''}{formatPKR(netCashFlow)}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-xs">
-              <div className="text-right">
-                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-extrabold uppercase">Started</div>
-                <div className="font-extrabold text-slate-900 dark:text-ink-white">{formatDate(current.openedAt)}</div>
-              </div>
-              {current.openedBy && (
-                <div className="text-right">
-                  <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-extrabold uppercase">By</div>
-                  <div className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-1">
-                    <UserIcon className="h-3 w-3" />
-                    {current.openedBy.fullName}
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section className="grid lg:grid-cols-2 gap-4 sm:gap-5">
-            {/* Transaction panel */}
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 shrink-0">
-                  <Banknote className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Cash Transaction</h3>
-                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Cash add/remove (vendor payment, owner withdrawal)</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5">Amount</label>
-                  <input
-                    ref={txAmountRef}
-                    type="number"
-                    value={txAmount}
-                    onChange={(e) => setTxAmount(e.target.value)}
-                    placeholder="1000"
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-extrabold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition tabular-nums"
-                  />
-                </div>
-                <Input
-                  label="Reason"
-                  value={txReason}
-                  onChange={(e) => setTxReason(e.target.value)}
-                  placeholder="Owner withdrawal, vendor payment, change purchase"
-                />
-
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    onClick={() => handleTx('CASH_IN')}
-                    loading={txMutation.isPending}
-                    className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 font-extrabold shadow-md shadow-emerald-500/30"
-                    disabled={!txAmount || !txReason.trim()}
-                  >
-                    <ArrowDownToLine className="h-4 w-4" />
-                    Cash In
-                  </Button>
-                  <Button
-                    onClick={() => handleTx('CASH_OUT')}
-                    loading={txMutation.isPending}
-                    className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 font-extrabold shadow-md shadow-rose-500/30"
-                    disabled={!txAmount || !txReason.trim()}
-                  >
-                    <ArrowUpFromLine className="h-4 w-4" />
-                    Cash Out
-                  </Button>
-                </div>
-              </div>
-
-              {/* Session Activity */}
-              <div className="mt-6 pt-6 border-t-2 border-slate-100 dark:border-ink-800">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-extrabold text-slate-700 dark:text-ink-200 flex items-center gap-1.5">
-                    <Activity className="h-4 w-4" />
-                    Session Activity
-                  </h4>
-                  {current.transactions && current.transactions.length > 0 && (
-                    <span className="text-xs text-slate-500 dark:text-ink-400 font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800">
-                      {current.transactions.length}
-                    </span>
-                  )}
-                </div>
-                {!current.transactions?.length ? (
-                  <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-ink-700 p-6 text-center">
-                    <Activity className="h-8 w-8 text-slate-300 dark:text-ink-600 mx-auto mb-1" />
-                    <p className="text-sm font-extrabold text-slate-700 dark:text-ink-300">Abhi koi transaction nahi</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                    {current.transactions.slice(0, 15).map((tx: any) => {
-                      const cfg = txTypeConfig[tx.type] || txTypeConfig.CASH_IN;
-                      const Icon = cfg.icon;
-                      return (
-                        <div key={tx.id} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/50 p-3 flex items-center gap-3">
-                          <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${cfg.tone} ${cfg.darkTone}`}>
-                            <Icon className="h-4 w-4" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{cfg.label}</div>
-                            {tx.reason && <div className="text-xs text-slate-600 dark:text-ink-400 truncate font-semibold">{tx.reason}</div>}
-                            <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold">{formatRelative(tx.createdAt)}</div>
-                          </div>
-                          <div className={`font-extrabold text-sm shrink-0 tabular-nums ${cfg.isIncome ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-                            {cfg.isIncome ? '+' : '-'}{formatPKR(Math.abs(tx.amount))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Close panel */}
-            <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-rose-50 to-white dark:from-rose-500/10 dark:to-ink-900/60 border-2 border-rose-200 dark:border-rose-500/40 shadow-sm p-5 sm:p-6">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center shadow-lg shadow-rose-500/30 shrink-0">
-                  <StopCircle className="h-5 w-5" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Close Register</h3>
-                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Din ke akhir me cash count karo</p>
-                </div>
-              </div>
-
-              <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 mb-4 flex items-start gap-3">
-                <Sparkles className="h-5 w-5 text-amber-700 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                <div className="text-xs text-amber-900 dark:text-amber-200 font-semibold leading-relaxed">
-                  <strong>Step 1:</strong> Drawer me actual cash physically gin lo.<br/>
-                  <strong>Step 2:</strong> Neeche woh exact amount likho.<br/>
-                  <strong>Step 3:</strong> System batayega kitna match hua ya farak hai.
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-sm font-extrabold text-slate-700 dark:text-ink-300">Closing Cash Count (drawer me) *</label>
-                    <button
-                      onClick={() => setShowDenomCalc('closing')}
-                      className="text-xs font-extrabold text-rose-700 dark:text-rose-400 hover:underline inline-flex items-center gap-1"
-                    >
-                      <Calculator className="h-3 w-3" /> Note-wise ginti
-                    </button>
-                  </div>
-                  <input
-                    ref={closingRef}
-                    type="number"
-                    value={closingBalance}
-                    onChange={(e) => setClosingBalance(e.target.value)}
-                    placeholder={String(current.expectedBalance)}
-                    className="h-12 w-full rounded-xl border-2 border-rose-200 dark:border-rose-500/40 bg-white dark:bg-ink-800 px-4 text-lg font-extrabold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 transition tabular-nums"
-                  />
-                </div>
-                <Input
-                  label="Closing Notes"
-                  value={closingNotes}
-                  onChange={(e) => setClosingNotes(e.target.value)}
-                  placeholder="End of day shift, all reconciled"
-                />
-
-                {closingDiff !== null && (
-                  <div className={`rounded-2xl p-4 border-2 ${
-                    closingDiff === 0
-                      ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/40'
-                      : closingDiff > 0
-                        ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-300 dark:border-blue-500/40'
-                        : 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/40'
-                  }`}>
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
-                        {closingDiff === 0 ? (
-                          <>
-                            <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                            <span className="font-extrabold text-emerald-900 dark:text-emerald-200 text-sm">Perfect Match! 🎯</span>
-                          </>
-                        ) : closingDiff > 0 ? (
-                          <>
-                            <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                            <span className="font-extrabold text-blue-900 dark:text-blue-200 text-sm">Surplus (Extra)</span>
-                          </>
-                        ) : (
-                          <>
-                            <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
-                            <span className="font-extrabold text-rose-900 dark:text-rose-200 text-sm">Short (Missing)</span>
-                          </>
-                        )}
-                      </div>
-                      <div className={`text-lg sm:text-xl font-extrabold tabular-nums ${
-                        closingDiff === 0 ? 'text-emerald-700 dark:text-emerald-400' :
-                        closingDiff > 0 ? 'text-blue-700 dark:text-blue-400' : 'text-rose-700 dark:text-rose-400'
-                      }`}>
-                        {closingDiff > 0 ? '+' : ''}{formatPKR(closingDiff)}
-                      </div>
-                    </div>
-                    <div className="mt-1.5 text-[0.6875rem] text-slate-600 dark:text-ink-300 font-semibold">
-                      Expected: <strong>{formatPKR(current.expectedBalance)}</strong> • Actual: <strong>{formatPKR(Number(closingBalance) || 0)}</strong>
-                    </div>
-                  </div>
-                )}
-
-                <Button
-                  className="w-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 font-extrabold shadow-lg shadow-rose-500/30"
-                  size="lg"
-                  loading={closeMutation.isPending}
-                  onClick={handleClose}
-                  disabled={!closingBalance}
-                >
-                  <StopCircle className="h-5 w-5" />
-                  Close Register
-                </Button>
-              </div>
-            </div>
-          </section>
-        </>
-      )}
-
-      {/* History */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-        <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <History className="h-5 w-5 text-slate-700 dark:text-ink-300" />
-            <div>
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Register History</h3>
-              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">{history.length} sessions</p>
-            </div>
-          </div>
-        </div>
-
-        {history.length === 0 ? (
-          <div className="p-12 text-center">
-            <History className="h-12 w-12 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
-            <p className="font-extrabold text-slate-700 dark:text-ink-200">Abhi koi history nahi</p>
-            <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">Pehla register session close karo</p>
+      {tab === 'analytics' ? <CashAnalytics filters={base} money={money} /> : tab === 'today' ? (
+        liveQ.isLoading ? <Skeleton className="h-72 rounded-3xl" /> : !slots.length ? (
+          <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+            <Store className="mx-auto h-10 w-10 text-slate-300" />
+            <p className="mt-3 font-semibold text-slate-900">Koi khuli shift nahi</p>
+            <p className="mt-1 text-sm text-slate-500">Shift kholne ke liye upar se ek branch chunein.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-ink-800/60 text-slate-600 dark:text-ink-300">
-                <tr>
-                  <th className="text-left px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Register #</th>
-                  <th className="text-left px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Opened By</th>
-                  <th className="text-left px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Date</th>
-                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Opening</th>
-                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Sales</th>
-                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Closing</th>
-                  <th className="text-right px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Diff</th>
-                  <th className="text-center px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
-                {history.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
-                    <td className="px-4 sm:px-6 py-3 font-mono text-xs font-extrabold text-slate-900 dark:text-ink-white">{r.registerNumber}</td>
-                    <td className="px-4 sm:px-6 py-3 text-slate-700 dark:text-ink-300 font-semibold">{r.openedBy?.fullName || '—'}</td>
-                    <td className="px-4 sm:px-6 py-3 text-slate-600 dark:text-ink-400 text-xs font-semibold whitespace-nowrap">{formatDate(r.openedAt)}</td>
-                    <td className="px-4 sm:px-6 py-3 text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(r.openingBalance)}</td>
-                    <td className="px-4 sm:px-6 py-3 text-right font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(r.totalSales)}</td>
-                    <td className="px-4 sm:px-6 py-3 text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(r.closingBalance)}</td>
-                    <td className="px-4 sm:px-6 py-3 text-right">
-                      <span className={`font-extrabold tabular-nums ${
-                        r.difference === 0 ? 'text-emerald-700 dark:text-emerald-400' :
-                        r.difference > 0 ? 'text-blue-700 dark:text-blue-400' : 'text-rose-700 dark:text-rose-400'
-                      }`}>
-                        {r.difference > 0 ? '+' : ''}{formatPKR(r.difference)}
-                      </span>
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-center">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
-                        r.status === 'OPEN'
-                          ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                          : 'bg-slate-100 dark:bg-ink-700 text-slate-700 dark:text-ink-300'
-                      }`}>
-                        {r.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className={cn('grid gap-4', allShops && slots.length > 1 && 'xl:grid-cols-2')}>
+            {slots.map(({ shop, r }) => r
+              ? <TillCard key={r.id} r={r} compact={allShops && slots.length > 1} keys={!!single} actions={actions} />
+              : <ClosedTill key={shop.id} shop={shop} canOpen={canOpen} keys={!allShops} onOpen={() => setOpening(shop)} />)}
+          </div>
+        )
+      ) : (<>
+        {listQ.isLoading ? (
+          <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+        ) : !listQ.data?.items.length ? (
+          <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+            <ClipboardList className="mx-auto h-10 w-10 text-slate-300" />
+            <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi shift nahi' : 'Is muddat me koi shift nahi'}</p>
+            <p className="mt-1 text-sm text-slate-500">Har shift kholne aur band karne par yahan record banta hai — kis ne kholi, kitna gina aur kitna farak aaya.</p>
+            {filtered && <Button className="mt-4" variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+          </div>
+        ) : (
+          <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+            {listQ.data.items.map((r) => <ShiftLine key={r.id} r={r} money={money} showShop={allShops} onOpen={() => setReport(r.id)} />)}
+          </ul>
+        )}
+        {listQ.data && listQ.data.pages > 1 && (
+          <div className="flex items-center justify-center gap-2">
+            <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
+            <span className="text-sm text-slate-600">Safha {page} / {listQ.data.pages}</span>
+            <Button variant="secondary" size="sm" disabled={page >= listQ.data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
           </div>
         )}
-      </section>
+      </>)}
 
-      {/* Print CSS */}
-      <style>{`
-        @media print {
-          @page { size: A4 landscape; margin: 12mm 10mm; }
-          html, body { background: white !important; color: #0f172a !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; }
-          .dark body, .dark { background: white !important; color: #0f172a !important; }
-          [class*="fixed"] { display: none !important; }
-          html, body, #root { height: auto !important; min-height: 0 !important; overflow: visible !important; }
-          [class*="sidebar"], [class*="topbar"], nav[class*="fixed"] { display: none !important; }
-          [data-sonner-toaster], [data-sonner-toast], [class*="Toaster"] { display: none !important; visibility: hidden !important; }
-        }
-      `}</style>
-    </div>
+      {opening && <OpenShiftModal shop={opening} onClose={() => setOpening(null)} />}
+      {move && <CashMoveModal register={move.r} kind={move.kind} onClose={() => setMove(null)} />}
+      {closing && <CloseShiftModal register={closing} onClose={() => setClosing(null)} onClosed={(id) => { setClosing(null); setReport(id); }} />}
+      {report && <ShiftDetailModal id={report} onClose={() => setReport(null)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Cash register — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: PlayCircle, color: '#16a34a', title: 'Shift kholein', text: 'Din ya shift ke shuru me galla ginein — kul raqam likhein ya note gin kar. Ek branch me ek waqt me ek hi shift khulti hai.' },
+            { icon: Wallet, color: '#0d9488', title: 'Hisaab khud chalta hai', text: 'Cash bikri, booking ki cash raqam aur khata wusooli galle me judti hai; cash kharch, wapsi, cash kharidari aur supplier ko di gayi raqam ghat jati hai. "Hona chahiye" har waqt taaza rehta hai.' },
+            { icon: ArrowDownToLine, color: '#2563eb', title: 'Cash in / out', text: 'Khula paisa daala, malik ne paise liye ya bank me jama karwaye? Wajah ke saath likhein taake shift ke aakhir me farak na aaye.' },
+            { icon: StopCircle, color: '#e11d48', title: 'Band karein aur milayein', text: 'Shift ke aakhir me galla note gin kar likhein. Paise kam ya zyada hon to wajah likhna zaroori hai. Band hote hi Z-report print ho sakti hai.' },
+            { icon: Printer, color: '#7c3aed', title: 'X / Z-report', text: 'Khuli shift ka X-report aur band shift ka Z-report — A4, PDF ya thermal par. Shifts record me kisi bhi shift par click karein.' },
+            { icon: BarChart3, color: '#d97706', title: 'Analytics', text: 'Kis staff ki shift me paise kam nikalte hain, roz ki cash bikri aur ausat opening float — karobari din ke hisaab se.' },
+          ]}
+          tips={[
+            'Khata wusooli aur supplier ki adaigi khud hisaab me judti hain — inhein dobara "Cash in / out" se mat likhein.',
+            'Shift band karne ke liye "Cash register band" ki ijazat chahiye — Team settings me de sakte hain.',
+            'Sab branches wale view me har branch ka galla alag dikhta hai; wahin se khol aur band kar sakte hain.',
+          ]}
+          shortcuts={[['O', 'shift kholein'], ['I', 'cash in'], ['U', 'cash out'], ['C', 'shift band'], ['/', 'dhoondein'], ['A', 'analytics'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   DENOMINATION CALCULATOR — Note-wise cash counter
-   ═════════════════════════════════════════════════════════════ */
-function DenominationCalculator({ mode, counts, setCounts, total, onApply, onClose }: any) {
+function ShiftLine({ r, money, showShop, onOpen }: { r: ShiftRow; money: (n: number) => string; showShop: boolean; onOpen: () => void }) {
+  const open = r.status === 'OPEN';
+  const kind = diffKind(r.difference);
+  const D = DIFF[kind];
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className={`px-5 py-3 border-b-2 sticky top-0 z-10 flex items-center justify-between ${
-          mode === 'opening'
-            ? 'border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/15 dark:to-teal-500/15'
-            : 'border-rose-200 dark:border-rose-500/30 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-500/15 dark:to-pink-500/15'
-        }`}>
-          <h3 className={`font-extrabold flex items-center gap-2 ${
-            mode === 'opening' ? 'text-emerald-900 dark:text-emerald-200' : 'text-rose-900 dark:text-rose-200'
-          }`}>
-            <Coins className="h-5 w-5" /> Note-wise Cash Ginti
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-3">
-          <p className="text-xs font-semibold text-slate-600 dark:text-ink-400">
-            Har note kitne hain woh likho. Total auto calculate hoga.
-          </p>
-
-          <div className="space-y-2">
-            {PKR_DENOMS.map((d) => {
-              const count = Number(counts[d.value]) || 0;
-              const subtotal = count * d.value;
-              return (
-                <div key={d.value} className="flex items-center gap-2 sm:gap-3 rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-2.5">
-                  <div className="w-16 sm:w-20 shrink-0">
-                    <div className="rounded-lg bg-gradient-to-br from-amber-100 to-yellow-200 dark:from-amber-500/30 dark:to-yellow-500/30 border border-amber-300 dark:border-amber-500/40 py-1.5 text-center font-mono font-extrabold text-amber-900 dark:text-amber-200 text-sm">
-                      Rs {d.label}
-                    </div>
-                  </div>
-                  <span className="text-slate-400 dark:text-ink-500 font-bold">×</span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={counts[d.value] || ''}
-                    onChange={(e) => setCounts({ ...counts, [d.value]: e.target.value })}
-                    placeholder="0"
-                    className="h-10 w-16 sm:w-20 rounded-lg border-2 border-slate-300 dark:border-ink-600 bg-white dark:bg-ink-800 px-2 text-center font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition tabular-nums"
-                  />
-                  <span className="text-slate-400 dark:text-ink-500 font-bold">=</span>
-                  <div className="flex-1 text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums text-sm">
-                    {formatPKR(subtotal)}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className={`rounded-2xl p-4 border-2 ${
-            mode === 'opening'
-              ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/40'
-              : 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/40'
-          }`}>
-            <div className="flex items-center justify-between">
-              <span className={`text-sm font-extrabold uppercase tracking-wider ${
-                mode === 'opening' ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-800 dark:text-rose-300'
-              }`}>
-                Total
-              </span>
-              <span className={`text-2xl font-extrabold tabular-nums ${
-                mode === 'opening' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'
-              }`}>
-                {formatPKR(total)}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1" onClick={() => setCounts({})}>
-              <RefreshCw className="h-4 w-4" /> Reset
-            </Button>
-            <Button
-              className={`flex-1 font-extrabold ${
-                mode === 'opening'
-                  ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-lg shadow-emerald-500/30'
-                  : 'bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 shadow-lg shadow-rose-500/30'
-              }`}
-              onClick={onApply}
-              disabled={total === 0}
-            >
-              <CheckCircle2 className="h-4 w-4" /> Apply
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   CASH REGISTER TEACHER — Universal reconciliation guide
-   ═════════════════════════════════════════════════════════════ */
-function CashRegisterTeacher({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/15 dark:to-teal-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Cash Register — Guide
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
-            <strong>Cash register = din ke cash ka accountability system.</strong> Subha kya tha, din bhar kya aya, kya gaya, aur shaam ko kya bacha —
-            sab track. Chori/loss ka pata seedha lagta hai.
-          </p>
-
-          {/* Daily workflow */}
-          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300">
-              📅 Daily Workflow — 3 Steps
-            </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
-              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
-                <strong>🌅 Subah — Open:</strong> Drawer ka cash gino, "Open Register" karo. Ye tumhara starting point hai.
-              </div>
-              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
-                <strong>☀️ Din bhar — Track:</strong> POS sales auto-add hoti hain. Vendor payment/owner withdrawal = Cash Out. Extra cash aya = Cash In.
-              </div>
-              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
-                <strong>🌙 Shaam — Close:</strong> Drawer ka actual cash gino, "Close Register" karo. Expected vs Actual = difference dikhta hai.
-              </div>
-            </div>
-          </div>
-
-          {/* Formula */}
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-1">
-              <Calculator className="h-3 w-3" /> Expected Balance Formula
-            </div>
-            <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2.5 font-mono text-xs text-slate-800 dark:text-ink-200 space-y-0.5">
-              <div>Expected = Opening</div>
-              <div className="text-emerald-700 dark:text-emerald-400">+ Sales (cash)</div>
-              <div className="text-emerald-700 dark:text-emerald-400">+ Cash In</div>
-              <div className="text-rose-700 dark:text-rose-400">− Cash Out</div>
-              <div className="border-t border-slate-200 dark:border-ink-700 pt-1 mt-1 font-extrabold">= Drawer me hona chahiye</div>
-            </div>
-          </div>
-
-          {/* Short/Surplus troubleshooting */}
-          <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-2">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
-              <AlertTriangle className="h-3 w-3" /> Short/Surplus — Kya Karein?
-            </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
-              <div className="rounded-lg bg-rose-100 dark:bg-rose-500/20 border border-rose-300 dark:border-rose-500/40 p-2">
-                🔴 <strong>Short (missing):</strong> Cash kam nikla. Reasons: change ghalat diya, cash out record nahi hua, chori. Rs 50-100 chhota — normal. Rs 500+ = investigate.
-              </div>
-              <div className="rounded-lg bg-blue-100 dark:bg-blue-500/20 border border-blue-300 dark:border-blue-500/40 p-2">
-                🔵 <strong>Surplus (extra):</strong> Cash zyada nikla. Reasons: customer se extra le liya, refund miss ho gaya. Log karo — kisi ka udhaar/refund pending ho sakta hai.
-              </div>
-              <div className="rounded-lg bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/40 p-2">
-                🟢 <strong>Perfect match:</strong> Rare hai! Roz ho to system tight hai. Celebrate! 🎉
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            <TipRow><strong>🧮 Note-wise ginti</strong> — Calculator button use karo, 5000/1000/500/100/50/20/10 alag alag count, mistake ka chance kam.</TipRow>
-            <TipRow><strong>💵 Cash In examples</strong> — Owner ne extra paisa daala, refund reversal, previous shift bacha hua.</TipRow>
-            <TipRow><strong>💸 Cash Out examples</strong> — Vendor payment, tea/chai kharcha, owner withdrawal, chotay expenses.</TipRow>
-            <TipRow><strong>⚠️ {'>'}5% farak</strong> — System warning karega. Dobara gino, warna audit issue.</TipRow>
-            <TipRow><strong>👥 Shift handover</strong> — Ek session close karo, doosri open. Har staff ka accountability alag.</TipRow>
-            <TipRow><strong>🔒 Chori prevention</strong> — Roz close karo, difference track karo. 2-3 din continuous short = red flag.</TipRow>
-            <TipRow><strong>📝 Notes zaroor</strong> — Har unusual transaction pe note likho. 1 mahine baad kaam ata hai.</TipRow>
-          </div>
-
-          <div className="rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 p-3 text-xs font-semibold text-violet-800 dark:text-violet-200">
-            💡 <strong>Pro tip:</strong> Har hafte "Register History" CSV export karo — Excel me monthly trends dekho. Agar ek staff ka register hamesha short hota hai, red flag hai. Data se chori pakadti hai.
-          </div>
-
-          <Button
-            className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 font-extrabold shadow-lg shadow-emerald-500/40 h-12"
-            onClick={onClose}
-          >
-            <ShieldCheck className="h-4 w-4" /> Samajh Gaya — Cash Manage Karo!
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TipRow({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-      <span>{children}</span>
-    </div>
-  );
-}
-
-function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm">
-      {children}
-    </kbd>
-  );
-}
-
-/** Golak ke hisab ki ek line — jama, manhaa, ya kul */
-function LedgerRow({ label, value, sign, tone, note, big }: any) {
-  const map: Record<string, string> = {
-    slate: 'text-slate-700 dark:text-ink-200',
-    emerald: 'text-emerald-700 dark:text-emerald-400',
-    rose: 'text-rose-700 dark:text-rose-400',
-    amber: 'text-amber-700 dark:text-amber-400',
-    final: 'text-white',
-  };
-  return (
-    <div className={`flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5 ${
-      big ? 'bg-slate-900 dark:bg-ink-800' : 'bg-slate-50 dark:bg-ink-800/60'
-    }`}>
-      <div className="min-w-0 flex items-center gap-2">
-        <span className={`h-6 w-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
-          big ? 'bg-white/20 text-white'
-              : sign === '+' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
-                             : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400'
-        }`}>{sign}</span>
-        <div>
-          <div className={`font-black ${big ? 'text-sm text-white' : 'text-sm text-slate-700 dark:text-ink-200'}`}>
-            {label}
-          </div>
-          {note && <div className={`text-[0.6875rem] font-bold ${big ? 'text-white/60' : 'text-slate-400'}`}>{note}</div>}
-        </div>
-      </div>
-      <div className={`font-black tabular-nums shrink-0 ${big ? 'text-xl text-white' : `text-base ${map[tone]}`}`}>
-        {formatPKR(value)}
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ label, value, sub, subIcon: SubIcon, icon: Icon, tone, tinted, highlight }: any) {
-  const tones: Record<string, string> = {
-    slate: 'from-slate-700 to-slate-900 shadow-slate-500/40',
-    emerald: 'from-emerald-500 to-emerald-700 shadow-emerald-500/40',
-    rose: 'from-rose-500 to-rose-700 shadow-rose-500/40',
-    blue: 'from-blue-500 to-blue-700 shadow-blue-500/40',
-  };
-  const tintBg: Record<string, string> = {
-    emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30',
-    rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30',
-    slate: 'bg-white dark:bg-ink-900/80 border-slate-200 dark:border-ink-800',
-  };
-  const textAccent: Record<string, string> = {
-    emerald: 'text-emerald-900 dark:text-emerald-200',
-    rose: 'text-rose-900 dark:text-rose-200',
-    slate: 'text-slate-900 dark:text-ink-white',
-  };
-  return (
-    <div className={`rounded-2xl border-2 p-3 sm:p-4 shadow-sm transition-all ${
-      highlight
-        ? `bg-gradient-to-br ${tones[tone]} text-white border-transparent shadow-lg`
-        : tinted
-          ? `${tintBg[tone]}`
-          : 'bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-ink-800'
-    }`}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className={`text-[0.6875rem] uppercase tracking-widest font-extrabold ${
-            highlight ? 'text-white/80' : tinted ? textAccent[tone] : 'text-slate-500 dark:text-ink-400'
-          } opacity-90`}>{label}</div>
-          <div className={`mt-1.5 text-lg sm:text-xl lg:text-2xl font-extrabold tabular-nums truncate ${
-            highlight ? 'text-white' : tinted ? textAccent[tone] : 'text-slate-900 dark:text-ink-white'
-          }`}>{value}</div>
-          {sub && (
-            <div className={`text-[0.6875rem] font-bold mt-0.5 truncate flex items-center gap-1 ${
-              highlight ? 'text-white/80' : tinted ? textAccent[tone] + ' opacity-80' : 'text-slate-500 dark:text-ink-400'
-            }`}>
-              {SubIcon && <SubIcon className="h-2.5 w-2.5 shrink-0" />}
-              {sub}
-            </div>
-          )}
-        </div>
-        <div className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${
-          highlight
-            ? 'bg-white/20 backdrop-blur text-white'
-            : `bg-gradient-to-br ${tones[tone]} text-white shadow-lg`
-        }`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </div>
+    <li>
+      <button type="button" onClick={onOpen} className="flex w-full flex-wrap items-center gap-3 px-3 py-2.5 text-left transition hover:bg-slate-50 sm:flex-nowrap sm:px-4">
+        <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', open ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500')}>
+          {open ? <CircleDot className="h-4 w-4 animate-pulse" /> : <Wallet className="h-4 w-4" />}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="truncate font-semibold text-slate-900">{when(r.openedAt)}{r.closedAt ? ` — ${new Date(r.closedAt).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' })}` : ''}</span>
+            {open
+              ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-medium text-emerald-700 ring-1 ring-emerald-200">Khuli</span>
+              : <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', D.tone)}><D.icon className="h-3 w-3" />{D.label}</span>}
+          </span>
+          <span className="mt-0.5 block truncate text-[0.75rem] text-slate-400">
+            <span className="font-mono">{r.registerNumber}</span>
+            {showShop && r.shop ? ` · ${r.shop.name}` : ''} · {r.openedBy?.fullName ?? '—'}
+            {r.closedBy && r.closedBy.id !== r.openedBy?.id ? ` → ${r.closedBy.fullName}` : ''} · {duration(r.openedAt, r.closedAt)}
+            {r.notes ? ` · ${r.notes}` : ''}
+          </span>
+        </span>
+        <span className="hidden text-right sm:block">
+          <span className="block text-[0.6875rem] text-slate-400">Opening · cash bikri</span>
+          <span className="block text-[0.8125rem] tabular-nums text-slate-700">{money(r.openingBalance)} · {money(r.totalSales)}</span>
+        </span>
+        <span className="ml-auto text-right">
+          <span className="block text-[0.6875rem] text-slate-400">{open ? 'Hona chahiye' : `Gina · hona chahiye ${money(r.expectedBalance)}`}</span>
+          <span className="block text-base font-bold tabular-nums text-slate-900">{open ? money(r.expectedBalance) : money(r.closingBalance)}</span>
+        </span>
+        {!open && (
+          <span className={cn('w-24 text-right text-[0.875rem] font-semibold tabular-nums', kind === 'short' ? 'text-rose-700' : kind === 'over' ? 'text-sky-700' : 'text-emerald-700')}>
+            {kind === 'match' ? 'Barabar' : signed(r.difference)}
+          </span>
+        )}
+      </button>
+    </li>
   );
 }

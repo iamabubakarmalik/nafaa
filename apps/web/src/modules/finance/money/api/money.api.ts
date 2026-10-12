@@ -1,11 +1,15 @@
-import { apiClient } from '@core/api/client';
+/**
+ * Shop accounts API: the position (cash, stock, credit, dues), the account
+ * cards for a period, the merged money ledger and analytics. Cash put into
+ * or taken out of the drawer goes through the cash register endpoint.
+ */
 
-/* ═════════════════════════════════════════════════════════════
-   DUKAAN KA HISAB — "mera paisa kahan hai?"
-   ─────────────────────────────────────────────────────────────
-   Nafaa har cheez alag safhe par batata tha. Ye woh ek jagah hai
-   jahan sab jama ho kar poori tasveer banti hai.
-   ═════════════════════════════════════════════════════════════ */
+import { apiClient } from '@core/api/client';
+import type { ShopStamp } from '@core/lib/shopScope';
+
+export type MoneyAccount = 'CASH' | 'BANK_TRANSFER' | 'CARD' | 'JAZZCASH' | 'EASYPAISA';
+export type MoneySource = 'SALE' | 'KHATA' | 'CASH_IN' | 'REFUND' | 'PURCHASE' | 'SUPPLIER' | 'EXPENSE' | 'CASH_OUT';
+export type MoneyDirection = 'in' | 'out';
 
 export interface MoneyPosition {
   cashInHand: number;
@@ -18,23 +22,9 @@ export interface MoneyPosition {
   payables: number;
   payableCount: number;
   netWorth: number;
-  /** Golak me se wo hissa jo supplier ka nahi — isi se kharidari karein */
+  /** Drawer cash that is not owed to suppliers. */
   spendable: number;
-  /** Supplier ka paisa golak se zyada ho to kitna kam par raha hai */
   shortfall: number;
-
-  registers: Array<{
-    id: string; registerNumber: string; shop: string | null;
-    openingBalance: number; expectedBalance: number;
-    totalSales: number; totalCashIn: number; totalCashOut: number; totalExpenses: number;
-    openedAt: string;
-  }>;
-
-  today: {
-    revenue: number; paid: number; credit: number;
-    cogs: number; profit: number; bills: number;
-  };
-
   month: {
     revenue: number; paid: number; credit: number; cogs: number;
     grossProfit: number; expenses: number; expenseCount: number;
@@ -44,49 +34,107 @@ export interface MoneyPosition {
   };
 }
 
-export interface MoneyFlow {
+export interface MoneyDrawer {
+  id: string;
+  registerNumber: string;
+  shop: { id: string; name: string } | null;
+  openedAt: string;
+  openedBy: string | null;
+  opening: number;
+  sales: number;
+  khata: number;
+  cashIn: number;
+  cashOut: number;
+  refunds: number;
+  purchases: number;
+  suppliers: number;
+  expenses: number;
+  /** Booking payments taken in cash, less booking refunds paid in cash. */
+  bookings: number;
+  expected: number;
+}
+
+export interface AccountRow { method: MoneyAccount; in: number; out: number; net: number; count: number }
+export interface SourceRow { source: MoneySource; direction: MoneyDirection; amount: number; count: number }
+
+export interface MoneyAccounts {
   from: string;
   to: string;
-  in: { salesPaid: number; recovered: number; total: number };
-  out: { purchasesPaid: number; supplierPayments: number; expenses: number; total: number };
-  net: number;
-  sales: {
-    revenue: number; cogs: number; discount: number; credit: number;
-    grossProfit: number; netProfit: number; count: number;
-  };
-  purchases: { total: number; paid: number; credit: number; count: number };
-  expenseBreakdown: Array<{
-    categoryId: string | null; name: string; color: string;
-    icon: string | null; amount: number; count: number;
-  }>;
+  accounts: Array<AccountRow & { todayIn: number; todayOut: number }>;
+  bySource: SourceRow[];
+  totals: { in: number; out: number; net: number; todayIn: number; todayOut: number };
+  cash: { inHand: number; drawers: MoneyDrawer[] };
 }
 
-export interface MoneyTrendRow {
-  month: string; label: string;
-  revenue: number; cogs: number; grossProfit: number;
-  expenses: number; netProfit: number; margin: number;
-  purchases: number; purchasesPaid: number;
-  cashIn: number; credit: number; bills: number;
+export interface MoneyEntry {
+  id: string;
+  source: MoneySource;
+  direction: MoneyDirection;
+  method: MoneyAccount;
+  amount: number;
+  at: string;
+  reference: string | null;
+  party: string | null;
+  note: string | null;
+  by: string | null;
+  linkId: string | null;
+  shop: ShopStamp | null;
 }
 
-export interface MoneyDailyRow {
-  date: string; label: string;
-  revenue: number; cogs: number; profit: number;
-  cashIn: number; out: number; bills: number;
+export interface MoneyLedger {
+  items: MoneyEntry[];
+  total: number;
+  page: number;
+  pages: number;
+  totals: { in: number; out: number; net: number };
 }
 
-const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
+export interface MoneyAnalytics {
+  from: string;
+  to: string;
+  grouping: 'day' | 'month';
+  trend: Array<{ key: string; in: number; out: number; net: number }>;
+  bySource: SourceRow[];
+  byAccount: AccountRow[];
+  totals: { in: number; out: number; net: number };
+  expenseCategories: Array<{ id: string | null; name: string; color: string; amount: number; count: number }>;
+}
+
+export interface MoneyPeriod { from?: string; to?: string; account?: MoneyAccount }
+export interface MoneyLedgerQuery extends MoneyPeriod {
+  source?: MoneySource;
+  direction?: MoneyDirection;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface DrawerMovePayload {
+  type: 'CASH_IN' | 'CASH_OUT';
+  amount: number;
+  reason: string;
+  note?: string;
+  registerId?: string;
+  /** One key per entry; a retry with the same key is not posted twice. */
+  requestId?: string;
+}
+
+const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const moneyApi = {
   position: () =>
-    apiClient.get('/finance/money/position').then(unwrap<MoneyPosition>),
+    apiClient.get<{ data: MoneyPosition }>('/finance/money/position').then(unwrap),
 
-  flow: (from?: string, to?: string) =>
-    apiClient.get('/finance/money/flow', { params: { from, to } }).then(unwrap<MoneyFlow>),
+  accounts: (q: MoneyPeriod) =>
+    apiClient.get<{ data: MoneyAccounts }>('/finance/money/accounts', { params: q }).then(unwrap),
 
-  trend: (months = 12) =>
-    apiClient.get('/finance/money/trend', { params: { months } }).then(unwrap<MoneyTrendRow[]>),
+  ledger: (q: MoneyLedgerQuery) =>
+    apiClient.get<{ data: MoneyLedger }>('/finance/money/ledger', { params: q }).then(unwrap),
 
-  daily: (from?: string, to?: string) =>
-    apiClient.get('/finance/money/daily', { params: { from, to } }).then(unwrap<MoneyDailyRow[]>),
+  analytics: (q: MoneyPeriod) =>
+    apiClient.get<{ data: MoneyAnalytics }>('/finance/money/analytics', { params: q }).then(unwrap),
+
+  /** Cash into or out of the open drawer of the active branch. */
+  drawerMove: (payload: DrawerMovePayload) =>
+    apiClient.post('/cash-register/transaction', payload),
 };

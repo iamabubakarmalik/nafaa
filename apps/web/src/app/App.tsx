@@ -645,9 +645,9 @@ export default function App() {
 
                   {/* ── Sales / POS ────────────────────────────── */}
                   <Route path="/pos" element={secure(PERMISSIONS.POS_USE, <PosGate />)} />
-                  <Route path="/bookings/new" element={secure(PERMISSIONS.SALES_VIEW, <BookingFormPage />)} />
-                  <Route path="/bookings/:id" element={secure(PERMISSIONS.SALES_VIEW, <BookingDetailPage />)} />
-                  <Route path="/bookings" element={secure(PERMISSIONS.SALES_VIEW, <BookingsListPage />)} />
+                  <Route path="/bookings/new" element={secure(PERMISSIONS.SERVICE_BOOKINGS_MANAGE, <BookingFormPage />)} />
+                  <Route path="/bookings/:id" element={secure(PERMISSIONS.SERVICE_BOOKINGS_VIEW, <BookingDetailPage />)} />
+                  <Route path="/bookings" element={secure(PERMISSIONS.SERVICE_BOOKINGS_VIEW, <BookingsListPage />)} />
                   <Route path="/sales" element={secure(PERMISSIONS.SALES_VIEW, <SalesGate />)} />
                   <Route path="/returns" element={secure(PERMISSIONS.RETURNS_VIEW, <ReturnsPage />)} />
                   <Route path="/discounts" element={secure(PERMISSIONS.DISCOUNTS_VIEW, <DiscountsPage />)} />

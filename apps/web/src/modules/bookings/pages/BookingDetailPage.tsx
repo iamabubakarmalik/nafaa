@@ -1,1094 +1,284 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft, User, Phone, Calendar, Clock, Package,
-  DollarSign, Wallet, X, CheckCircle2,
-  XCircle, RefreshCw, Plus, AlertTriangle,
-  Hourglass, Zap, MessageSquare, EyeOff,
-  ArrowRight, CreditCard, Building2, Smartphone, Banknote,
-  Trash2, Receipt, ShoppingCart, Layers, Scissors,
-  GraduationCap, Printer, Copy, Share2, Percent,
-} from 'lucide-react';
+/**
+ * One booking: items, money, payment history, pickup timing and every
+ * action — payment, ready, sale at pickup, new date, WhatsApp reminder,
+ * slip print, cancel and (once cancelled) delete.
+ *
+ * Keys: P payment · C sale · R ready · D date · S slip · W WhatsApp · X cancel · G guide.
+ */
+
+import { useEffect, useState, type ReactNode } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { bookingsApi, type BookingStatus } from '@modules/bookings/api/bookings.api';
+import {
+  AlarmClock, ArrowLeft, BookmarkPlus, CalendarClock, Copy, GraduationCap, MessageCircle, PackageCheck, Phone, Printer, Receipt,
+  ShoppingCart, StickyNote, Trash2, Undo2, UserRound, Wallet, XCircle,
+} from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { Button, Card, Modal, PageHero, PageShell, Skeleton, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { useBusinessDayStart } from '@core/lib/business-day';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useAuthStore } from '@core/stores/auth.store';
-import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
+import { bookingsApi } from '../api/bookings.api';
+import { CancelModal, ConvertModal, PaymentModal, RescheduleModal, useMarkReady, useRefreshBookings } from '../components/ActionModals';
+import { BookingPrintModal } from '../components/BookingPrintModal';
+import { BOOKINGS_KEY, PICKUP, STATUS, apiError, bookingWaLink, daysFromPickup, dayText, isOpen, itemLabel, pickupState, qtyText, when } from '../components/meta';
 
-/* ═════════════════════════════════════════════════════════════
-   NAFAA BOOKING DETAIL — GLOBAL FULL BEST v3
-   ─────────────────────────────────────────────────────────────
-   🌍 Universal — jeweler, tailor, mobile, carpet, electronics
-   🌙 Dark mode complete
-   🎓 Teacher modal — status flow & actions guide
-   ⌨️  P = Pay • C = Convert • X = Cancel • Esc = close
-   🖨️ Print receipt • 📋 Copy booking # • 📱 WhatsApp share
-   ⚠️ Overdue banner • Countdown to pickup
-   ═════════════════════════════════════════════════════════════ */
-
-const formatDate = (v: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
-
-const formatShort = (v: string) =>
-  new Intl.DateTimeFormat('en-PK', { month: 'short', day: 'numeric' }).format(new Date(v));
-
-const statusConfig: Record<BookingStatus, { label: string; color: string; bg: string; icon: any; hint: string }> = {
-  PENDING:           { label: 'Pending',      color: '#64748b', bg: 'from-slate-500 to-slate-700',    icon: Hourglass,     hint: 'Abhi tak koi payment nahi' },
-  ADVANCE_PAID:      { label: 'Advance Paid', color: '#f59e0b', bg: 'from-amber-500 to-orange-600',   icon: Wallet,        hint: 'Token mila, kaam chal raha' },
-  READY_FOR_PICKUP:  { label: 'Ready',        color: '#3b82f6', bg: 'from-blue-500 to-blue-700',      icon: Zap,           hint: 'Item tayyar, pickup ka intezaar' },
-  CONVERTED:         { label: 'Converted',    color: '#10b981', bg: 'from-emerald-500 to-green-700',  icon: CheckCircle2,  hint: 'Sale ban gayi ✅' },
-  CANCELLED:         { label: 'Cancelled',    color: '#ef4444', bg: 'from-rose-500 to-red-700',       icon: XCircle,       hint: 'Booking cancel ho gayi' },
-  EXPIRED:           { label: 'Expired',      color: '#dc2626', bg: 'from-red-600 to-red-800',        icon: AlertTriangle, hint: 'Pickup date nikal gayi' },
-};
-
-const paymentIcons: Record<string, any> = {
-  CASH: Banknote, CARD: CreditCard, JAZZCASH: Smartphone, EASYPAISA: Zap, BANK_TRANSFER: Building2,
-};
+type Dialog = 'pay' | 'convert' | 'cancel' | 'date' | 'print' | 'delete';
+const method = (m: string) => POS_PAYMENT_METHODS.find((x) => x.id === m)?.label ?? m;
 
 export default function BookingDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const tenantName = useAuthStore((s) => s.tenant?.name);
-  const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
+  const startHour = useBusinessDayStart();
+  const shopName = useAuthStore((s) => s.tenant?.name) ?? 'Hamari dukaan';
+  const [dialog, setDialog] = useState<Dialog | null>(null);
+  const guide = usePageGuide();
+  const ready = useMarkReady();
+  const refresh = useRefreshBookings();
 
-  const [showAddPayment, setShowAddPayment] = useState(false);
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
-  const [paymentNotes, setPaymentNotes] = useState('');
-  const [showCancel, setShowCancel] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
-  const [refundAdvance, setRefundAdvance] = useState(true);
-  const [showConvert, setShowConvert] = useState(false);
-  const [additionalPayment, setAdditionalPayment] = useState('');
-  const [showTeacher, setShowTeacher] = useState(false);
+  const q = useQuery({ queryKey: [BOOKINGS_KEY, 'one', id], queryFn: () => bookingsApi.getOne(id!), enabled: !!id });
+  const b = q.data;
 
-  const { data: booking, isLoading } = useQuery({
-    queryKey: ['booking', id],
-    queryFn: () => bookingsApi.getOne(id!),
-    enabled: !!id,
-  });
-
-  const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['booking', id] });
-    queryClient.invalidateQueries({ queryKey: ['bookings-list'] });
-    queryClient.invalidateQueries({ queryKey: ['bookings-summary'] });
-  };
-
-  const addPaymentMutation = useMutation({
-    mutationFn: (payload: any) => bookingsApi.addPayment(id!, payload),
-    onSuccess: () => {
-      toast.success('Payment added');
-      setShowAddPayment(false);
-      setPaymentAmount('');
-      setPaymentNotes('');
-      invalidate();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  const cancelMutation = useMutation({
-    mutationFn: (payload: any) => bookingsApi.cancel(id!, payload),
-    onSuccess: () => {
-      toast.success('Booking cancelled');
-      setShowCancel(false);
-      invalidate();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  const convertMutation = useMutation({
-    mutationFn: (payload: any) => bookingsApi.convert(id!, payload),
-    onSuccess: (data) => {
-      toast.success(`Sale ${data.sale.saleNumber} created`);
-      setShowConvert(false);
-      invalidate();
-      queryClient.invalidateQueries({ queryKey: ['sales-list'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
-      navigate(`/sales/${data.sale.id}/receipt`);
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
-  });
-
-  const removeMutation = useMutation({
+  const remove = useMutation({
     mutationFn: () => bookingsApi.remove(id!),
-    onSuccess: () => {
-      toast.success('Booking deleted');
-      navigate('/bookings');
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed'),
+    onSuccess: () => { toast.success('Booking mita di'); refresh(); navigate('/bookings'); },
+    onError: (e) => toast.error(apiError(e, 'Mitayi nahi gayi')),
   });
 
-  // Countdown / overdue calculation
-  const pickupInfo = useMemo(() => {
-    if (!booking?.expectedPickupAt) return null;
-    const pickup = new Date(booking.expectedPickupAt).getTime();
-    const now = Date.now();
-    const diffMs = pickup - now;
-    const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-    return {
-      days,
-      isOverdue: diffMs < 0 && !['CONVERTED', 'CANCELLED', 'EXPIRED'].includes(booking.status),
-      isSoon: diffMs >= 0 && diffMs <= 3 * 24 * 60 * 60 * 1000 && !['CONVERTED', 'CANCELLED', 'EXPIRED'].includes(booking.status),
-    };
-  }, [booking]);
+  const active = !!b && isOpen(b);
+  const canPay = active && b.balanceDue > 0;
+  const wa = b ? bookingWaLink(b, shopName, startHour) : null;
 
-  const canPay = booking && ['PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP'].includes(booking.status) && booking.balanceDue > 0;
-  const canConvert = booking && ['PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP'].includes(booking.status);
-  const canCancel = booking && !['CONVERTED', 'CANCELLED', 'EXPIRED'].includes(booking.status);
-  const canDelete = booking && ['CANCELLED', 'EXPIRED'].includes(booking.status);
-
-  // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showAddPayment) return setShowAddPayment(false);
-        if (showCancel) return setShowCancel(false);
-        if (showConvert) return setShowConvert(false);
-        if (showTeacher) return setShowTeacher(false);
-      }
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (showAddPayment || showCancel || showConvert || showTeacher) return;
-
+      if (!b || e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
       const k = e.key.toLowerCase();
-      if (k === 'p' && canPay) { e.preventDefault(); setShowAddPayment(true); }
-      if (k === 'c' && canConvert) { e.preventDefault(); setShowConvert(true); }
-      if (k === 'x' && canCancel) { e.preventDefault(); setShowCancel(true); }
-      if (k === 'g') { e.preventDefault(); setShowTeacher(true); }
+      const hit = (d: Dialog) => { e.preventDefault(); setDialog(d); };
+      if (k === 'p' && canPay) hit('pay');
+      else if (k === 'c' && active) hit('convert');
+      else if (k === 'x' && active) hit('cancel');
+      else if (k === 'd' && active) hit('date');
+      else if (k === 's') hit('print');
+      else if (k === 'r' && active) { e.preventDefault(); ready.mutate({ id: b.id, ready: b.status !== 'READY_FOR_PICKUP' }); }
+      else if (k === 'w' && wa) { e.preventDefault(); window.open(wa, '_blank'); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showAddPayment, showCancel, showConvert, showTeacher, canPay, canConvert, canCancel]);
+  }, [b, canPay, active, wa, ready]);
 
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = (showAddPayment || showCancel || showConvert || showTeacher) ? 'hidden' : prev;
-    return () => { document.body.style.overflow = prev; };
-  }, [showAddPayment, showCancel, showConvert, showTeacher]);
-
-  const copyBookingNumber = () => {
-    if (!booking) return;
-    navigator.clipboard.writeText(booking.bookingNumber);
-    toast.success(`Copied: ${booking.bookingNumber}`);
-  };
-
-  const shareWhatsApp = () => {
-    if (!booking) return;
-    const phone = booking.customer?.phone?.replace(/\D/g, '');
-    if (!phone) return toast.error('Customer ka phone nahi hai');
-    const msg = encodeURIComponent(
-      `Assalam-o-Alaikum ${booking.customer?.name}!\n\n` +
-      `Booking *${booking.bookingNumber}*:\n` +
-      `• Total: ${formatPKR(booking.total)}\n` +
-      `• Advance paid: ${formatPKR(booking.totalPaid)}\n` +
-      `• Balance due: ${formatPKR(booking.balanceDue)}\n` +
-      (booking.expectedPickupAt ? `• Pickup: ${formatShort(booking.expectedPickupAt)}\n` : '') +
-      `\n${tenantName || ''}${shopName ? ` — ${shopName}` : ''}`
-    );
-    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="p-8 flex items-center justify-center">
-        <div className="h-10 w-10 rounded-full border-4 border-blue-200 dark:border-blue-500/30 border-t-blue-600 animate-spin" />
-      </div>
-    );
+  if (q.isLoading) {
+    return <PageShell><Skeleton className="h-32 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-3"><Skeleton className="h-80 rounded-3xl lg:col-span-2" /><Skeleton className="h-80 rounded-3xl" /></div></PageShell>;
   }
-
-  if (!booking) {
+  if (!b) {
     return (
-      <div className="p-12 text-center">
-        <div className="mx-auto h-16 w-16 rounded-3xl bg-rose-100 dark:bg-rose-500/20 flex items-center justify-center">
-          <AlertTriangle className="h-8 w-8 text-rose-600 dark:text-rose-400" />
+      <PageShell>
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <BookmarkPlus className="mx-auto h-10 w-10 text-slate-300" />
+          <p className="mt-3 font-semibold text-slate-900">Booking nahi mili</p>
+          <p className="mt-1 text-sm text-slate-500">Shayad mita di gayi ya doosri branch ki hai.</p>
+          <Link to="/bookings" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:underline"><ArrowLeft className="h-4 w-4" />Bookings par wapas</Link>
         </div>
-        <h3 className="mt-4 font-extrabold text-slate-900 dark:text-ink-white">Booking not found</h3>
-        <Link to="/bookings" className="mt-4 inline-block text-blue-600 dark:text-blue-400 font-bold hover:underline">
-          ← Back to bookings
-        </Link>
-      </div>
+      </PageShell>
     );
   }
 
-  const cfg = statusConfig[booking.status];
-  const StatusIcon = cfg.icon;
+  const s = STATUS[b.status];
+  const ps = pickupState(b, startHour);
+  const late = ps === 'overdue' && b.expectedPickupAt ? daysFromPickup(b.expectedPickupAt, startHour) : 0;
+  const expired = active && b.expiresAt && new Date(b.expiresAt).getTime() < Date.now();
+  const paid = b.totalPaid - b.totalRefunded;
+  const pct = b.total > 0 ? Math.min(100, (b.totalPaid / b.total) * 100) : 0;
+  const copy = () => { void navigator.clipboard?.writeText(b.bookingNumber); toast.success(`${b.bookingNumber} copy ho gaya`); };
 
   return (
-    <>
-      {/* ═══ ADD PAYMENT MODAL ═══ */}
-      {showAddPayment && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setShowAddPayment(false)}
-        >
-          <div
-            className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="bg-gradient-to-br from-emerald-600 to-green-700 text-white p-5">
-              <div className="flex items-center justify-between">
-                <h3 className="font-extrabold text-lg inline-flex items-center gap-2">
-                  <Wallet className="h-5 w-5" /> Add Payment
-                </h3>
-                <button onClick={() => setShowAddPayment(false)} className="h-8 w-8 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <p className="text-xs mt-1 text-white/90 font-bold">Balance due: {formatPKR(booking.balanceDue)}</p>
-            </div>
-            <div className="p-5 space-y-3">
-              <div>
-                <label className="text-xs uppercase font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">Amount (PKR) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  max={booking.balanceDue}
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  autoFocus
-                  placeholder="0"
-                  className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-lg font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500"
-                />
-                <div className="mt-1.5 flex gap-1 flex-wrap">
-                  <button
-                    onClick={() => setPaymentAmount(String(booking.balanceDue))}
-                    className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-500/30"
-                  >
-                    Full ({formatPKR(booking.balanceDue)})
-                  </button>
-                  <button
-                    onClick={() => setPaymentAmount(String(Math.floor(booking.balanceDue / 2)))}
-                    className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-700 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-600"
-                  >
-                    ½ Half
-                  </button>
-                  {[0.25, 0.75].map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setPaymentAmount(String(Math.round(booking.balanceDue * p)))}
-                      className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-700 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-600 inline-flex items-center gap-0.5"
-                    >
-                      <Percent className="h-2 w-2" />{(p * 100).toFixed(0)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="text-xs uppercase font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">Method</label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500"
-                >
-                  <option value="CASH">💵 Cash</option>
-                  <option value="CARD">💳 Card</option>
-                  <option value="JAZZCASH">📱 JazzCash</option>
-                  <option value="EASYPAISA">📱 EasyPaisa</option>
-                  <option value="BANK_TRANSFER">🏦 Bank Transfer</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs uppercase font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">Note (optional)</label>
-                <input
-                  value={paymentNotes}
-                  onChange={(e) => setPaymentNotes(e.target.value)}
-                  placeholder="e.g. transaction ID, bank name..."
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500"
-                />
-              </div>
-              <Button
-                className="w-full bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 font-extrabold h-12"
-                onClick={() => {
-                  const amt = Number(paymentAmount);
-                  if (!(amt > 0)) return toast.error('Amount required');
-                  if (amt > booking.balanceDue) return toast.error('Amount exceeds balance');
-                  addPaymentMutation.mutate({ amount: amt, paymentMethod, notes: paymentNotes.trim() || undefined });
-                }}
-                loading={addPaymentMutation.isPending}
-              >
-                <CheckCircle2 className="h-4 w-4" /> Record Payment
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+    <PageShell>
+      <Link to="/bookings" className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-brand-700"><ArrowLeft className="h-4 w-4" />Bookings</Link>
 
-      {/* ═══ CANCEL MODAL ═══ */}
-      {showCancel && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setShowCancel(false)}
-        >
-          <div
-            className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="bg-gradient-to-br from-rose-600 to-red-700 text-white p-5 flex items-center justify-between">
-              <h3 className="font-extrabold text-lg inline-flex items-center gap-2">
-                <XCircle className="h-5 w-5" /> Cancel Booking
-              </h3>
-              <button onClick={() => setShowCancel(false)} className="h-8 w-8 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="p-5 space-y-3">
-              <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-300 dark:border-amber-500/40 p-3 flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400 mt-0.5 shrink-0" />
-                <div className="text-xs text-amber-900 dark:text-amber-200 font-bold">
-                  Reserved items (rolls, IMEIs, cut pieces) wapis inventory me release ho jaenge.
-                </div>
-              </div>
-              <div>
-                <label className="text-xs uppercase font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">Reason</label>
-                <textarea
-                  value={cancelReason}
-                  onChange={(e) => setCancelReason(e.target.value)}
-                  rows={3}
-                  placeholder='"Customer mind change, refund"'
-                  className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-rose-500"
-                />
-              </div>
-              {booking.totalPaid > 0 && (
-                <label className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-300 dark:border-emerald-500/40 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={refundAdvance}
-                    onChange={(e) => setRefundAdvance(e.target.checked)}
-                    className="h-4 w-4 rounded text-emerald-600"
-                  />
-                  <div className="flex-1">
-                    <div className="text-sm font-extrabold text-emerald-900 dark:text-emerald-200">
-                      Refund advance ({formatPKR(booking.totalPaid)})
-                    </div>
-                    <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-bold">
-                      Customer ka paisa wapis
-                    </div>
+      <PageHero
+        title={<button type="button" onClick={copy} title="Copy" className="inline-flex items-center gap-2">{b.bookingNumber}<Copy className="h-4 w-4 opacity-60" /></button>}
+        chip={<><s.icon /> {s.label}</>}
+        meta={`${b.customer?.name ?? ''} · ${when(b.createdAt)}${b.createdBy ? ` · ${b.createdBy.fullName}` : ''}`}
+        busy={q.isFetching}
+        actions={<>
+          {wa && <a href={wa} target="_blank" rel="noreferrer" title="WhatsApp (W)" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+          <button type="button" onClick={() => setDialog('print')} title="Slip print (S)" className={heroButton}><Printer className="h-4 w-4" />Slip</button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {active && <button type="button" onClick={() => setDialog('convert')} title="Bikri (C)" className={heroPrimaryButton}><ShoppingCart className="h-4 w-4" />Bikri karein</button>}
+          {b.sale && <Link to={`/sales/${b.sale.id}/receipt`} className={heroPrimaryButton}><Receipt className="h-4 w-4" />Bill {b.sale.saleNumber}</Link>}
+        </>}
+        stats={[
+          { label: 'Kul', value: formatPKR(b.total), hint: `${b.items?.length ?? 0} cheez` },
+          { label: 'Diya', value: formatPKR(paid), hint: b.totalRefunded ? `${formatPKR(b.totalRefunded)} wapas` : undefined },
+          { label: 'Baqi', value: formatPKR(active ? b.balanceDue : 0) },
+          { label: 'Pickup', value: b.expectedPickupAt ? dayText(b.expectedPickupAt) : '—' },
+        ]}
+      />
+
+      {ps === 'overdue' && (
+        <Banner tone="rose" icon={AlarmClock} text={`Pickup ka din ${late} din pehle guzar gaya. Customer ko yaad dilayein ya nayi tareekh rakhein.`}
+          action={<>{wa && <a href={wa} target="_blank" rel="noreferrer" className="text-[0.8125rem] font-semibold underline">WhatsApp</a>}<button type="button" onClick={() => setDialog('date')} className="text-[0.8125rem] font-semibold underline">Tareekh badlein</button></>} />
+      )}
+      {(ps === 'today' || ps === 'tomorrow') && <Banner tone="amber" icon={CalendarClock} text={`${PICKUP[ps].label} — maal tayyar rakhein${b.balanceDue > 0 ? `, ${formatPKR(b.balanceDue)} wasool karne hain` : ''}.`} />}
+      {expired && <Banner tone="rose" icon={AlarmClock} text={`Aakhri din (${dayText(b.expiresAt)}) guzar gaya. Booking khud cancel nahi hoti — faisla karein.`} />}
+      {b.status === 'CANCELLED' && <Banner tone="slate" icon={XCircle} text={`Cancel ${b.cancelledAt ? when(b.cancelledAt) : ''}${b.cancelReason ? ` — ${b.cancelReason}` : ''}. ${b.totalRefunded ? `${formatPKR(b.totalRefunded)} wapas diye.` : b.totalPaid ? `${formatPKR(b.totalPaid)} advance customer ke khate me jama hai.` : ''}`} />}
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
+          <Card className="rounded-3xl" title="Cheezen" description={active ? 'Booking ke waqt stock nahi ghatta; bikri par is branch se nikalta hai' : undefined}>
+            <ul className="divide-y divide-slate-100">
+              {(b.items ?? []).map((i) => (
+                <li key={i.id} className="flex items-start gap-3 py-2.5">
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[0.75rem] font-semibold text-slate-600" style={i.variant?.colorHex ? { backgroundColor: i.variant.colorHex } : undefined}>
+                    {i.variant?.colorHex ? '' : qtyText(i.quantity)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-slate-900">{itemLabel(i)}</p>
+                    <p className="text-[0.75rem] text-slate-500">{qtyText(i.quantity)} {i.product?.unit ?? ''} × {formatPKR(i.price)}{i.lineDiscount ? ` · chhoot ${formatPKR(i.lineDiscount)}` : ''}</p>
+                    {(i.imei || i.cutPiece || i.roll) && (
+                      <p className="mt-0.5 text-[0.75rem] text-slate-600">
+                        {i.imei && <>IMEI <span className="font-mono">{i.imei.imei1}</span></>}
+                        {i.cutPiece && <>Piece {i.cutPiece.pieceCode} · {i.cutPiece.widthFt}×{i.cutPiece.lengthFt} ft</>}
+                        {i.roll && <>Roll {i.roll.rollNumber}{i.cutSqft ? ` · ${qtyText(i.cutSqft)} sqft` : ''}</>}
+                      </p>
+                    )}
+                    {i.note && <p className="mt-0.5 text-[0.75rem] text-slate-600">{i.note}</p>}
+                    {i.internalNote && <p className="mt-0.5 text-[0.75rem] italic text-slate-500">Team: {i.internalNote}</p>}
                   </div>
-                </label>
-              )}
-              <Button
-                className="w-full bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 hover:to-red-800 font-extrabold h-12"
-                onClick={() => cancelMutation.mutate({
-                  reason: cancelReason.trim() || undefined,
-                  refundAdvance,
-                  refundMethod: booking.paymentMethod,
-                })}
-                loading={cancelMutation.isPending}
-              >
-                <XCircle className="h-4 w-4" /> Confirm Cancel
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+                  <p className="shrink-0 font-semibold tabular-nums text-slate-900">{formatPKR(i.total)}</p>
+                </li>
+              ))}
+            </ul>
+            <dl className="mt-2 space-y-1 border-t border-slate-100 pt-3 text-[0.875rem]">
+              <Line k="Subtotal" v={formatPKR(b.subtotal)} />
+              {b.discount > 0 && <Line k="Chhoot" v={`−${formatPKR(b.discount)}`} />}
+              {(b.serviceChargesBreakdown ?? []).map((c, n) => <Line key={n} k={c.label} v={`+${formatPKR(Number(c.amount))}`} />)}
+              <Line k="Kul" v={formatPKR(b.total)} strong />
+            </dl>
+          </Card>
 
-      {/* ═══ CONVERT MODAL ═══ */}
-      {showConvert && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setShowConvert(false)}
-        >
-          <div
-            className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="bg-gradient-to-br from-emerald-600 to-green-700 text-white p-5 flex items-center justify-between">
-              <h3 className="font-extrabold text-lg inline-flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" /> Convert to Sale
-              </h3>
-              <button onClick={() => setShowConvert(false)} className="h-8 w-8 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </button>
+          <Card className="rounded-3xl" title="Payments" description="Har advance, baad ki payment aur wapsi"
+            actions={canPay ? <Button size="sm" onClick={() => setDialog('pay')} leftIcon={<Wallet className="h-4 w-4" />}>Payment (P)</Button> : undefined}>
+            <div className="mb-3">
+              <div className="h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-emerald-500" style={{ width: `${pct}%` }} /></div>
+              <p className="mt-1 text-[0.75rem] text-slate-500">{Math.round(pct)}% mil chuka · baqi {formatPKR(active ? b.balanceDue : 0)}</p>
             </div>
-            <div className="p-5 space-y-3">
-              <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-300 dark:border-emerald-500/40 p-3">
-                <div className="text-xs text-emerald-900 dark:text-emerald-200 font-bold">
-                  Sale banate hi items customer ke naam ho jaenge. Stock adjust ho ga.
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-center rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/50 p-3">
-                <div>
-                  <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">Total</div>
-                  <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(booking.total)}</div>
-                </div>
-                <div>
-                  <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Paid</div>
-                  <div className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(booking.totalPaid)}</div>
-                </div>
-                <div>
-                  <div className="text-[0.625rem] uppercase font-extrabold text-amber-700 dark:text-amber-400">Balance</div>
-                  <div className="text-sm font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">{formatPKR(booking.balanceDue)}</div>
-                </div>
-              </div>
-              {booking.balanceDue > 0 && (
-                <div>
-                  <label className="text-xs uppercase font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">
-                    Additional Payment (optional)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max={booking.balanceDue}
-                    value={additionalPayment}
-                    onChange={(e) => setAdditionalPayment(e.target.value)}
-                    placeholder="0"
-                    className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-lg font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500"
-                  />
-                  <div className="mt-1.5 flex gap-1 flex-wrap">
-                    <button
-                      onClick={() => setAdditionalPayment(String(booking.balanceDue))}
-                      className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-500/30"
-                    >
-                      Pay Full
-                    </button>
-                    <button
-                      onClick={() => setAdditionalPayment('')}
-                      className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-700 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-600"
-                    >
-                      Skip (add to khata)
-                    </button>
-                  </div>
-                </div>
-              )}
-              <Button
-                className="w-full bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 font-extrabold h-12"
-                onClick={() => convertMutation.mutate({
-                  additionalPayment: Number(additionalPayment) || 0,
-                  paymentMethod: booking.paymentMethod,
-                })}
-                loading={convertMutation.isPending}
-              >
-                <ShoppingCart className="h-4 w-4" /> Complete Sale
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ TEACHER ═══ */}
-      {showTeacher && <BookingDetailTeacher onClose={() => setShowTeacher(false)} status={booking.status} />}
-
-      <div className="space-y-5 pb-10 print:space-y-3">
-        {/* PRINT HEADER */}
-        <div className="hidden print:block">
-          <div className="flex items-center justify-between border-b-4 border-blue-600 pb-3 mb-4">
-            <div>
-              <h1 className="text-2xl font-black text-slate-900 leading-tight">
-                📚 {tenantName || 'My Store'} — Booking Receipt
-              </h1>
-              <p className="text-xs text-slate-600 font-semibold mt-1">
-                {shopName ? `${shopName}  •  ` : ''}Booking: {booking.bookingNumber}
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="text-[0.6875rem] uppercase font-bold text-slate-500">Printed</div>
-              <div className="text-xs font-bold text-slate-900">{new Date().toLocaleString('en-PK')}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Header nav */}
-        <div className="flex items-center justify-between flex-wrap gap-2 print:hidden">
-          <Link
-            to="/bookings"
-            className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-300 hover:text-blue-600 dark:hover:text-blue-400 font-bold transition"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to Bookings
-          </Link>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={copyBookingNumber}
-              className="h-9 px-3 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-300 text-xs font-extrabold inline-flex items-center gap-1.5 transition"
-              title="Copy booking number"
-            >
-              <Copy className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Copy #</span>
-            </button>
-            {booking.customer?.phone && (
-              <button
-                onClick={shareWhatsApp}
-                className="h-9 px-3 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold inline-flex items-center gap-1.5 transition"
-                title="Share via WhatsApp"
-              >
-                <Share2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">WhatsApp</span>
-              </button>
-            )}
-            <button
-              onClick={() => window.print()}
-              className="h-9 px-3 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-300 text-xs font-extrabold inline-flex items-center gap-1.5 transition"
-            >
-              <Printer className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Print</span>
-            </button>
-            <button
-              onClick={() => setShowTeacher(true)}
-              className="h-9 px-3 rounded-lg bg-amber-100 dark:bg-amber-500/20 hover:bg-amber-200 dark:hover:bg-amber-500/30 text-amber-700 dark:text-amber-300 text-xs font-extrabold inline-flex items-center gap-1.5 transition"
-            >
-              <GraduationCap className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Guide</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Overdue / soon banner */}
-        {pickupInfo?.isOverdue && (
-          <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-300 dark:border-rose-500/40 p-3 flex items-center gap-2 print:hidden">
-            <AlertTriangle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0" />
-            <div className="flex-1 text-xs font-extrabold text-rose-800 dark:text-rose-200">
-              ⚠️ Pickup date {Math.abs(pickupInfo.days)} din pehle thi — customer se raabta karo!
-            </div>
-            {booking.customer?.phone && (
-              <button
-                onClick={shareWhatsApp}
-                className="h-8 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
-              >
-                <Phone className="h-3 w-3" /> Call
-              </button>
-            )}
-          </div>
-        )}
-        {pickupInfo?.isSoon && !pickupInfo.isOverdue && (
-          <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-300 dark:border-amber-500/40 p-3 flex items-center gap-2 print:hidden">
-            <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
-            <div className="flex-1 text-xs font-extrabold text-amber-800 dark:text-amber-200">
-              ⏰ Pickup {pickupInfo.days === 0 ? 'aaj' : `${pickupInfo.days} din me`} — customer ko yaad karao
-            </div>
-          </div>
-        )}
-
-        {/* Hero */}
-        <section className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${cfg.bg} text-white p-6 shadow-2xl`}>
-          <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/10 blur-3xl animate-pulse" />
-          <div className="absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-white/5 blur-3xl" />
-          <div className="relative flex items-start justify-between gap-4 flex-wrap">
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-xs font-extrabold border border-white/25">
-                <StatusIcon className="h-3 w-3" />
-                {cfg.label}
-                <span className="opacity-60 mx-0.5">•</span>
-                <span className="opacity-90">{cfg.hint}</span>
-              </div>
-              <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold font-mono">{booking.bookingNumber}</h1>
-              <div className="mt-2 flex items-center gap-3 text-sm text-white/90 flex-wrap">
-                <span className="inline-flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  <strong>{booking.customer?.name}</strong>
-                </span>
-                {booking.customer?.phone && (
-                  <>
-                    <span className="opacity-50">•</span>
-                    <span className="inline-flex items-center gap-1">
-                      <Phone className="h-3 w-3" />
-                      {booking.customer.phone}
+            {!(b.payments ?? []).length ? <p className="py-6 text-center text-sm text-slate-500">Abhi koi payment nahi aayi</p> : (
+              <ul className="divide-y divide-slate-100">
+                {(b.payments ?? []).map((p) => (
+                  <li key={p.id} className="flex items-center justify-between gap-3 py-2 text-[0.8125rem]">
+                    <span className="min-w-0">
+                      <span className="block font-medium text-slate-900">{p.type === 'REFUND' ? 'Wapsi' : p.type === 'ADVANCE' ? 'Advance' : 'Mazeed payment'} · {method(p.paymentMethod)}</span>
+                      <span className="block truncate text-[0.75rem] text-slate-500">{when(p.paidAt)}{p.createdBy ? ` · ${p.createdBy.fullName}` : ''}{p.notes ? ` · ${p.notes}` : ''}{p.reference ? ` · ${p.reference}` : ''}</span>
                     </span>
-                  </>
-                )}
-                <span className="opacity-50">•</span>
-                <span className="inline-flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {formatDate(booking.createdAt)}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex gap-2 flex-wrap print:hidden">
-              {canPay && (
-                <Button
-                  onClick={() => setShowAddPayment(true)}
-                  className="bg-white text-slate-900 hover:bg-slate-100 font-extrabold shadow-lg"
-                >
-                  <Plus className="h-4 w-4" /> Add Payment <Kbd>P</Kbd>
-                </Button>
-              )}
-              {canConvert && (
-                <Button
-                  onClick={() => setShowConvert(true)}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg font-extrabold"
-                >
-                  <ShoppingCart className="h-4 w-4" /> Convert to Sale <Kbd>C</Kbd>
-                </Button>
-              )}
-              {canCancel && (
-                <button
-                  onClick={() => setShowCancel(true)}
-                  className="h-10 px-4 rounded-xl bg-white/15 hover:bg-rose-500/40 backdrop-blur text-white text-sm font-extrabold transition inline-flex items-center gap-2 border border-white/20"
-                >
-                  <XCircle className="h-4 w-4" /> Cancel <Kbd>X</Kbd>
-                </button>
-              )}
-              {canDelete && (
-                <button
-                  onClick={() => {
-                    if (confirm('Permanently delete this booking? Yeh action wapis nahi ho sakti.')) removeMutation.mutate();
-                  }}
-                  className="h-10 px-4 rounded-xl bg-white/15 hover:bg-rose-500/40 backdrop-blur text-white text-sm font-extrabold transition inline-flex items-center gap-2 border border-white/20"
-                >
-                  <Trash2 className="h-4 w-4" /> Delete
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Shortcuts hint */}
-          <div className="relative mt-3 hidden sm:flex flex-wrap gap-1.5 text-[0.6875rem] font-bold items-center print:hidden">
-            {canPay && (<><Kbd>P</Kbd><span className="text-white/60">Pay</span><span className="text-white/30 mx-1">•</span></>)}
-            {canConvert && (<><Kbd>C</Kbd><span className="text-white/60">Convert</span><span className="text-white/30 mx-1">•</span></>)}
-            {canCancel && (<><Kbd>X</Kbd><span className="text-white/60">Cancel</span><span className="text-white/30 mx-1">•</span></>)}
-            <Kbd>G</Kbd><span className="text-white/60">Guide</span>
-          </div>
-        </section>
-
-        {/* KPIs */}
-        <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <MiniKpi label="Total" value={formatPKR(booking.total)} color="slate" icon={DollarSign} />
-          <MiniKpi label="Paid" value={formatPKR(booking.totalPaid)} color="emerald" icon={CheckCircle2} />
-          <MiniKpi label="Balance Due" value={formatPKR(booking.balanceDue)} color="amber" icon={Wallet} />
-          {booking.totalRefunded > 0 ? (
-            <MiniKpi label="Refunded" value={formatPKR(booking.totalRefunded)} color="rose" icon={RefreshCw} />
-          ) : (
-            <MiniKpi label="Items" value={String(booking.items?.length ?? 0)} color="blue" icon={Package} />
-          )}
-        </section>
-
-        {/* Progress bar */}
-        {booking.total > 0 && (
-          <div className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-700 p-4 print:hidden">
-            <div className="flex items-center justify-between text-xs font-extrabold mb-2">
-              <span className="text-slate-700 dark:text-ink-300">Payment Progress</span>
-              <span className="text-emerald-700 dark:text-emerald-400 tabular-nums">
-                {((booking.totalPaid / booking.total) * 100).toFixed(1)}%
-              </span>
-            </div>
-            <div className="h-3 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-emerald-500 to-green-600 transition-all duration-500"
-                style={{ width: `${Math.min((booking.totalPaid / booking.total) * 100, 100)}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Converted → sale link */}
-        {booking.status === 'CONVERTED' && booking.sale && (
-          <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 border-2 border-emerald-300 dark:border-emerald-500/40 p-4 flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow">
-                <CheckCircle2 className="h-6 w-6" />
-              </div>
-              <div>
-                <div className="font-extrabold text-emerald-900 dark:text-emerald-200">Converted to Sale</div>
-                <div className="text-xs text-emerald-700 dark:text-emerald-400 font-bold font-mono">{booking.sale.saleNumber}</div>
-              </div>
-            </div>
-            <Link
-              to={`/sales/${booking.sale.id}/receipt`}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-extrabold shadow transition"
-            >
-              <Receipt className="h-4 w-4" /> View Receipt <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        )}
-
-        <div className="grid xl:grid-cols-[1fr_400px] gap-5">
-          {/* LEFT */}
-          <div className="space-y-5">
-            {/* Items */}
-            <div className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between">
-                <h3 className="font-extrabold text-slate-900 dark:text-ink-white inline-flex items-center gap-2">
-                  <Package className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  Reserved Items ({booking.items?.length ?? 0})
-                </h3>
-              </div>
-              <div className="divide-y divide-slate-100 dark:divide-ink-800">
-                {booking.items?.map((item, idx) => (
-                  <div key={item.id} className="p-4 flex items-start gap-3">
-                    <div className="text-xs font-mono font-extrabold text-slate-500 dark:text-ink-400 w-6">#{idx + 1}</div>
-                    <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0">
-                      {item.variant?.imageUrl ? (
-                        <img src={item.variant.imageUrl} alt={item.product?.name} className="h-full w-full object-cover" />
-                      ) : item.variant?.colorHex ? (
-                        <div className="h-full w-full" style={{ backgroundColor: item.variant.colorHex }} />
-                      ) : (
-                        <Package className="h-5 w-5 text-slate-400" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{item.product?.name}</div>
-                      {item.variant?.name && (
-                        <div className="text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-300">{item.variant.name}</div>
-                      )}
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {item.imei && (
-                          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 text-[0.625rem] font-mono font-extrabold">
-                            <Smartphone className="h-2 w-2" /> {item.imei.imei1}
-                          </div>
-                        )}
-                        {item.roll && (
-                          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[0.625rem] font-extrabold">
-                            <Layers className="h-2 w-2" /> {item.roll.rollNumber}
-                          </div>
-                        )}
-                        {item.cutPiece && (
-                          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-800 dark:text-violet-300 text-[0.625rem] font-extrabold">
-                            <Scissors className="h-2 w-2" /> {item.cutPiece.pieceCode}
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">
-                        {formatPKR(item.price)} × {item.quantity} {item.product?.unit}
-                        {item.lineDiscount > 0 && <span className="text-rose-700 dark:text-rose-400 ml-2">-{formatPKR(item.lineDiscount)}</span>}
-                      </div>
-                      {item.note && (
-                        <div className="mt-1.5 inline-flex items-start gap-1 rounded bg-amber-100 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-500/40 px-1.5 py-0.5 text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
-                          <MessageSquare className="h-2.5 w-2.5 mt-0.5" /> {item.note}
-                        </div>
-                      )}
-                      {item.internalNote && (
-                        <div className="mt-1 inline-flex items-start gap-1 rounded bg-slate-100 dark:bg-ink-800 border border-slate-300 dark:border-ink-700 px-1.5 py-0.5 text-[0.6875rem] font-bold text-slate-700 dark:text-ink-300 italic print:hidden">
-                          <EyeOff className="h-2.5 w-2.5 mt-0.5" /> {item.internalNote}
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(item.total)}</div>
-                    </div>
-                  </div>
+                    <span className={cn('shrink-0 font-semibold tabular-nums', p.type === 'REFUND' ? 'text-rose-700' : 'text-emerald-700')}>{p.type === 'REFUND' ? '−' : '+'}{formatPKR(p.amount)}</span>
+                  </li>
                 ))}
-              </div>
-            </div>
-
-            {/* Payments log */}
-            <div className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800">
-                <h3 className="font-extrabold text-slate-900 dark:text-ink-white inline-flex items-center gap-2">
-                  <Wallet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  Payment History ({booking.payments?.length ?? 0})
-                </h3>
-              </div>
-              {booking.payments && booking.payments.length > 0 ? (
-                <div className="divide-y divide-slate-100 dark:divide-ink-800">
-                  {booking.payments.map((pay) => {
-                    const PayIcon = paymentIcons[pay.paymentMethod] || CreditCard;
-                    const isRefund = pay.type === 'REFUND';
-                    return (
-                      <div key={pay.id} className={`p-3 flex items-center gap-3 ${isRefund ? 'bg-rose-50/50 dark:bg-rose-500/5' : ''}`}>
-                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
-                          isRefund ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400' : 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
-                        }`}>
-                          <PayIcon className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${
-                              pay.type === 'ADVANCE' ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300' :
-                              pay.type === 'ADDITIONAL' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
-                              'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                            }`}>
-                              {pay.type}
-                            </span>
-                            <span className="text-xs font-bold text-slate-700 dark:text-ink-300">{pay.paymentMethod}</span>
-                          </div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-0.5">{formatDate(pay.paidAt)}</div>
-                          {pay.notes && <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 italic mt-0.5">{pay.notes}</div>}
-                        </div>
-                        <div className={`text-right font-extrabold tabular-nums ${isRefund ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
-                          {isRefund ? '-' : '+'}{formatPKR(pay.amount)}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="p-8 text-center">
-                  <Wallet className="h-8 w-8 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
-                  <p className="text-sm text-slate-500 dark:text-ink-400 font-bold">Koi payment nahi</p>
-                  {canPay && (
-                    <button
-                      onClick={() => setShowAddPayment(true)}
-                      className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 hover:bg-emerald-200 dark:hover:bg-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold transition"
-                    >
-                      <Plus className="h-3 w-3" /> Add first payment
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* RIGHT */}
-          <aside className="space-y-4">
-            {/* Timeline */}
-            <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
-              <h3 className="font-extrabold text-slate-900 dark:text-ink-white mb-3 inline-flex items-center gap-2">
-                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                Timeline
-              </h3>
-              <div className="space-y-3 text-sm">
-                <TimelineRow label="Created" value={formatDate(booking.createdAt)} icon={Calendar} color="slate" />
-                {booking.expectedPickupAt && (
-                  <TimelineRow
-                    label="Pickup"
-                    value={formatDate(booking.expectedPickupAt)}
-                    icon={Clock}
-                    color={pickupInfo?.isOverdue ? 'rose' : pickupInfo?.isSoon ? 'amber' : 'blue'}
-                    badge={pickupInfo && !['CONVERTED', 'CANCELLED', 'EXPIRED'].includes(booking.status)
-                      ? pickupInfo.isOverdue ? `${Math.abs(pickupInfo.days)}d late` : pickupInfo.days === 0 ? 'Aaj' : `${pickupInfo.days}d baaki`
-                      : undefined}
-                  />
-                )}
-                {booking.expiresAt && (
-                  <TimelineRow label="Expires" value={formatDate(booking.expiresAt)} icon={AlertTriangle} color="amber" />
-                )}
-                {booking.convertedAt && (
-                  <TimelineRow label="Converted" value={formatDate(booking.convertedAt)} icon={CheckCircle2} color="emerald" />
-                )}
-                {booking.cancelledAt && (
-                  <TimelineRow label="Cancelled" value={formatDate(booking.cancelledAt)} icon={XCircle} color="rose" />
-                )}
-              </div>
-              {booking.cancelReason && (
-                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-ink-800">
-                  <div className="text-[0.625rem] uppercase font-extrabold text-rose-700 dark:text-rose-400 mb-1">Cancel Reason</div>
-                  <div className="text-xs text-slate-700 dark:text-ink-300 italic">"{booking.cancelReason}"</div>
-                </div>
-              )}
-            </div>
-
-            {/* Financial summary */}
-            <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 dark:from-ink-950 dark:to-blue-950 text-white p-5 shadow-xl space-y-2 border border-white/10">
-              <div className="text-xs uppercase tracking-wider font-extrabold text-white/70 mb-2">Summary</div>
-              <RowLine label="Subtotal" value={formatPKR(booking.subtotal)} />
-              {booking.discount > 0 && (
-                <RowLine label="Discount" value={`-${formatPKR(booking.discount)}`} highlight="amber" />
-              )}
-              {booking.serviceCharges > 0 && (
-                <RowLine label="Service Charges" value={`+${formatPKR(booking.serviceCharges)}`} highlight="orange" />
-              )}
-              <div className="pt-2 border-t border-white/15">
-                <RowLine label="TOTAL" value={formatPKR(booking.total)} bold big />
-              </div>
-              <div className="pt-2 border-t border-white/15">
-                <RowLine label="Paid" value={formatPKR(booking.totalPaid)} highlight="emerald" />
-                {booking.totalRefunded > 0 && (
-                  <RowLine label="Refunded" value={`-${formatPKR(booking.totalRefunded)}`} highlight="rose" />
-                )}
-                {booking.balanceDue > 0 && (
-                  <RowLine label="Balance Due" value={formatPKR(booking.balanceDue)} highlight="amber" bold />
-                )}
-              </div>
-            </div>
-
-            {/* Notes */}
-            {(booking.notes || booking.internalNotes) && (
-              <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
-                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Notes</h3>
-                {booking.notes && (
-                  <div className="rounded-lg bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-300 dark:border-amber-500/40 p-3">
-                    <div className="text-[0.625rem] uppercase font-extrabold text-amber-800 dark:text-amber-300 mb-1 inline-flex items-center gap-1">
-                      <MessageSquare className="h-2.5 w-2.5" /> Customer Note
-                    </div>
-                    <div className="text-xs font-bold text-amber-900 dark:text-amber-200">{booking.notes}</div>
-                  </div>
-                )}
-                {booking.internalNotes && (
-                  <div className="rounded-lg bg-slate-100 dark:bg-ink-800 border-2 border-slate-300 dark:border-ink-700 p-3 print:hidden">
-                    <div className="text-[0.625rem] uppercase font-extrabold text-slate-700 dark:text-ink-300 mb-1 inline-flex items-center gap-1">
-                      <EyeOff className="h-2.5 w-2.5" /> Internal Note
-                    </div>
-                    <div className="text-xs font-bold text-slate-800 dark:text-ink-200 italic">{booking.internalNotes}</div>
-                  </div>
-                )}
-              </div>
+              </ul>
             )}
-          </aside>
+          </Card>
         </div>
-      </div>
 
-      {/* Print CSS */}
-      <style>{`
-        @media print {
-          @page { size: A4; margin: 12mm 10mm; }
-          html, body {
-            background: white !important; color: #0f172a !important;
-            print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
-          }
-          .dark body, .dark { background: white !important; color: #0f172a !important; }
-          [class*="sidebar"], [class*="topbar"], nav[class*="fixed"] { display: none !important; }
-          [data-sonner-toaster], [data-sonner-toast] { display: none !important; }
-          a { color: inherit !important; text-decoration: none !important; }
-        }
-      `}</style>
-    </>
-  );
-}
+        <div className="space-y-4">
+          <Card className="rounded-3xl" title="Customer">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><UserRound className="h-5 w-5" /></span>
+              <div className="min-w-0">
+                <Link to={`/customers/${b.customerId}`} className="block truncate font-semibold text-slate-900 hover:text-brand-700">{b.customer?.name}</Link>
+                {b.customer?.phone && <a href={`tel:${b.customer.phone}`} className="inline-flex items-center gap-1 text-[0.8125rem] text-slate-600 hover:text-brand-700"><Phone className="h-3.5 w-3.5" />{b.customer.phone}</a>}
+              </div>
+            </div>
+            {typeof b.customer?.balance === 'number' && b.customer.balance !== 0 && (
+              <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] ring-1 ring-slate-200">
+                Khata: <b className={cn('tabular-nums', b.customer.balance > 0 ? 'text-rose-700' : 'text-emerald-700')}>{b.customer.balance > 0 ? `${formatPKR(b.customer.balance)} dena hai` : `${formatPKR(-b.customer.balance)} jama hai`}</b>
+              </p>
+            )}
+          </Card>
 
-/* ═════════════════════════════════════════════════════════════
-   Helpers
-   ═════════════════════════════════════════════════════════════ */
-function MiniKpi({ label, value, icon: Icon, color }: any) {
-  const colors: Record<string, string> = {
-    slate: 'from-slate-600 to-slate-800 shadow-slate-500/30',
-    emerald: 'from-emerald-500 to-green-600 shadow-emerald-500/30',
-    amber: 'from-amber-500 to-orange-600 shadow-amber-500/30',
-    rose: 'from-rose-500 to-red-600 shadow-rose-500/30',
-    blue: 'from-blue-500 to-blue-700 shadow-blue-500/30',
-  };
-  return (
-    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-4 flex items-center gap-3 shadow-sm">
-      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}>
-        <Icon className="h-5 w-5" />
-      </div>
-      <div className="min-w-0">
-        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">{label}</div>
-        <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
-      </div>
-    </div>
-  );
-}
+          <Card className="rounded-3xl" title="Waqt" actions={active ? <Button size="sm" variant="secondary" onClick={() => setDialog('date')} leftIcon={<CalendarClock className="h-4 w-4" />}>Badlein</Button> : undefined}>
+            <dl className="space-y-2 text-[0.8125rem]">
+              <Line k="Booking" v={when(b.createdAt)} />
+              <Line k="Pickup" v={b.expectedPickupAt ? dayText(b.expectedPickupAt) : 'Nahi rakhi'} />
+              {b.expiresAt && <Line k="Aakhri din" v={dayText(b.expiresAt)} />}
+              {b.convertedAt && <Line k="Bikri" v={when(b.convertedAt)} />}
+              {b.shop && <Line k="Branch" v={b.shop.name} />}
+            </dl>
+          </Card>
 
-function TimelineRow({ label, value, icon: Icon, color, badge }: any) {
-  const colors: Record<string, string> = {
-    slate: 'text-slate-600 dark:text-ink-400',
-    blue: 'text-blue-600 dark:text-blue-400',
-    amber: 'text-amber-600 dark:text-amber-400',
-    emerald: 'text-emerald-600 dark:text-emerald-400',
-    rose: 'text-rose-600 dark:text-rose-400',
-  };
-  const badgeColors: Record<string, string> = {
-    slate: 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300',
-    blue: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300',
-    amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
-    emerald: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
-    rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
-  };
-  return (
-    <div className="flex items-start gap-2">
-      <Icon className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${colors[color]}`} />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">{label}</div>
-          {badge && (
-            <span className={`text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded ${badgeColors[color]}`}>
-              {badge}
-            </span>
+          {active && (
+            <Card className="rounded-3xl" title="Kaam">
+              <div className="grid gap-2">
+                <Button onClick={() => setDialog('convert')} leftIcon={<ShoppingCart className="h-4 w-4" />}>Bikri karein (C)</Button>
+                {canPay && <Button variant="secondary" onClick={() => setDialog('pay')} leftIcon={<Wallet className="h-4 w-4" />}>Payment lein (P)</Button>}
+                {b.status === 'READY_FOR_PICKUP'
+                  ? <Button variant="ghost" loading={ready.isPending} onClick={() => ready.mutate({ id: b.id, ready: false })} leftIcon={<Undo2 className="h-4 w-4" />}>Abhi tayyar nahi (R)</Button>
+                  : <Button variant="secondary" loading={ready.isPending} onClick={() => ready.mutate({ id: b.id, ready: true })} leftIcon={<PackageCheck className="h-4 w-4" />}>Tayyar hai (R)</Button>}
+                <Button variant="ghost" className="text-rose-700" onClick={() => setDialog('cancel')} leftIcon={<XCircle className="h-4 w-4" />}>Cancel (X)</Button>
+              </div>
+              <p className="mt-2 text-[0.6875rem] text-slate-500">"Tayyar" par customer ko WhatsApp bhejein: maal le jayein.</p>
+            </Card>
+          )}
+
+          {(b.notes || b.internalNotes) && (
+            <Card className="rounded-3xl" title={<span className="inline-flex items-center gap-2"><StickyNote className="h-4 w-4 text-amber-500" />Notes</span>}>
+              {b.notes && <p className="whitespace-pre-line text-[0.8125rem] text-slate-800">{b.notes}</p>}
+              {b.internalNotes && <p className="mt-2 whitespace-pre-line rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Team: {b.internalNotes}</p>}
+            </Card>
+          )}
+
+          {(b.status === 'CANCELLED' || b.status === 'EXPIRED') && (
+            <Button variant="ghost" className="w-full text-rose-700" onClick={() => setDialog('delete')} leftIcon={<Trash2 className="h-4 w-4" />}>Booking mitayein</Button>
           )}
         </div>
-        <div className="text-xs font-bold text-slate-800 dark:text-ink-200">{value}</div>
       </div>
+
+      {dialog === 'pay' && <PaymentModal booking={b} onClose={() => setDialog(null)} />}
+      {dialog === 'convert' && <ConvertModal booking={b} onClose={() => setDialog(null)} />}
+      {dialog === 'cancel' && <CancelModal booking={b} onClose={() => setDialog(null)} />}
+      {dialog === 'date' && <RescheduleModal booking={b} onClose={() => setDialog(null)} />}
+      {dialog === 'print' && <BookingPrintModal booking={b} onClose={() => setDialog(null)} />}
+      {dialog === 'delete' && (
+        <Modal open onClose={() => setDialog(null)} size="sm" title="Booking mitayein?" description="Record hamesha ke liye hat jayega. Khate ki entries rahengi."
+          footer={<>
+            <Button variant="secondary" onClick={() => setDialog(null)}>Rehne dein</Button>
+            <Button variant="danger" loading={remove.isPending} onClick={() => remove.mutate()} leftIcon={<Trash2 className="h-4 w-4" />}>Mitayein</Button>
+          </>}>
+          <p className="text-sm text-slate-600">{b.bookingNumber} · {b.customer?.name}</p>
+        </Modal>
+      )}
+
+      {guide.isOpen && (
+        <PageGuide title="Booking — kya kya kar sakte hain" onClose={guide.close}
+          steps={[
+            { icon: Wallet, color: '#16a34a', title: 'Payment', text: 'Customer aur paise de to "Payment lein". Poora paisa aate hi booking "Tayyar" ho jati hai.' },
+            { icon: PackageCheck, color: '#7c3aed', title: 'Tayyar', text: 'Maal tayyar ho jaye to "Tayyar hai" dabayein aur WhatsApp par customer ko bata dein.' },
+            { icon: ShoppingCart, color: '#2563eb', title: 'Bikri', text: 'Customer maal le jaye to "Bikri karein": bill banta hai, stock nikalta hai, advance bill me lagta hai.' },
+            { icon: CalendarClock, color: '#d97706', title: 'Tareekh', text: 'Pickup aage peeche ho to "Badlein" se nayi tareekh rakhein.' },
+            { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Advance wapas dein ya khate me rehne dein. Reserve IMEI aur piece wapas stock me.' },
+          ]}
+          shortcuts={[['P', 'payment'], ['C', 'bikri'], ['R', 'tayyar'], ['D', 'tareekh'], ['S', 'slip'], ['W', 'WhatsApp'], ['X', 'cancel'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
+  );
+}
+
+function Line({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
+  return (
+    <div className={cn('flex justify-between gap-3', strong && 'border-t border-slate-100 pt-1.5 text-base font-bold text-slate-900')}>
+      <dt className={strong ? '' : 'text-slate-500'}>{k}</dt><dd className="tabular-nums">{v}</dd>
     </div>
   );
 }
 
-function RowLine({ label, value, highlight, bold, big }: any) {
-  const colors: Record<string, string> = {
-    emerald: 'text-emerald-300',
-    amber: 'text-amber-300',
-    orange: 'text-orange-300',
-    rose: 'text-rose-300',
-  };
-  const color = highlight ? colors[highlight] : 'text-white';
+function Banner({ tone, icon: I, text, action }: { tone: 'rose' | 'amber' | 'slate'; icon: typeof AlarmClock; text: string; action?: ReactNode }) {
+  const cls = { rose: 'bg-rose-50 text-rose-900 ring-rose-200', amber: 'bg-amber-50 text-amber-900 ring-amber-200', slate: 'bg-slate-100 text-slate-800 ring-slate-200' }[tone];
   return (
-    <div className={`flex justify-between ${big ? 'text-lg' : 'text-sm'}`}>
-      <span className={bold ? 'font-extrabold text-white/90' : 'text-white/70'}>{label}</span>
-      <span className={`${bold ? 'font-extrabold' : 'font-bold'} tabular-nums ${color}`}>{value}</span>
-    </div>
-  );
-}
-
-function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="px-1.5 py-0.5 rounded bg-white/15 border border-white/25 text-white font-mono font-bold shadow-sm text-[0.625rem]">
-      {children}
-    </kbd>
-  );
-}
-
-function BookingDetailTeacher({ onClose, status }: { onClose: () => void; status: BookingStatus }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
-          <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Booking Detail — Guide
-          </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-2">
-              🎯 Current Status: {statusConfig[status].label}
-            </div>
-            <div className="text-xs font-bold text-slate-700 dark:text-ink-200">
-              {statusConfig[status].hint}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-2">
-              🎬 3 Main Actions
-            </div>
-            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
-              <ActionRow icon="💰" label="Add Payment">
-                Customer aur paisa de raha hai? Add karo — balance kam ho jayega
-              </ActionRow>
-              <ActionRow icon="🛒" label="Convert to Sale">
-                Customer aa gaya, item de diya — sale bana do. Stock adjust ho jayega, receipt milegi
-              </ActionRow>
-              <ActionRow icon="❌" label="Cancel">
-                Customer ne mana kar diya — refund option ke sath cancel karo. Items wapis inventory me
-              </ActionRow>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-2">
-              ⌨️ Shortcuts
-            </div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-ink-200">
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-ink-800 border font-mono font-bold text-[0.625rem]">P</kbd> — Pay</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-ink-800 border font-mono font-bold text-[0.625rem]">C</kbd> — Convert</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-ink-800 border font-mono font-bold text-[0.625rem]">X</kbd> — Cancel</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-ink-800 border font-mono font-bold text-[0.625rem]">G</kbd> — Guide</div>
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-xs font-semibold text-slate-700 dark:text-ink-200">
-            💡 <strong>Pro tip:</strong> WhatsApp button se seedha customer ko booking ki details aur balance
-            reminder bhej sakte ho — auto-formatted message!
-          </div>
-
-          <Button
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 font-extrabold shadow-lg shadow-blue-500/40 h-12"
-            onClick={onClose}
-          >
-            <CheckCircle2 className="h-4 w-4" /> Samajh Gaya!
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ActionRow({ icon, label, children }: { icon: string; label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-2">
-      <span className="text-base shrink-0">{icon}</span>
-      <div>
-        <strong className="text-slate-900 dark:text-ink-white">{label}:</strong> {children}
-      </div>
+    <div className={cn('flex flex-wrap items-center gap-3 rounded-2xl px-4 py-2.5 text-[0.8125rem] ring-1', cls)}>
+      <I className="h-4 w-4 shrink-0" /><span className="min-w-0 flex-1">{text}</span>{action && <span className="flex gap-3">{action}</span>}
     </div>
   );
 }

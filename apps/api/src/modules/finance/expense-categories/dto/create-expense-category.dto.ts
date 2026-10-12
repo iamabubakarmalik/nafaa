@@ -20,3 +20,10 @@ export class CreateExpenseCategoryDto {
   @MaxLength(40)
   icon?: string;
 }
+
+/** Rename or recolour; send only what changed. An empty icon removes it. */
+export class UpdateExpenseCategoryDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @IsNotEmpty() @MaxLength(80) name?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) color?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) icon?: string;
+}

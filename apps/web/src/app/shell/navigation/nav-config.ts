@@ -69,7 +69,7 @@ export const posNavGroups: NavGroup[] = [
     items: [
       { to: '/pos', label: 'POS counter', icon: ShoppingCart, permission: P.POS_USE, hot: true, needsShop: true, keywords: 'sale checkout till bill' },
       { to: '/sales', label: 'Sales history', icon: Receipt, permission: P.SALES_VIEW, keywords: 'bills invoices' },
-      { to: '/bookings', label: 'Bookings', icon: BookmarkPlus, permission: P.SALES_VIEW, keywords: 'advance reserve' },
+      { to: '/bookings', label: 'Bookings', icon: BookmarkPlus, permission: P.SERVICE_BOOKINGS_VIEW, keywords: 'advance reserve' },
       { to: '/returns', label: 'Returns', icon: RotateCcw, permission: P.RETURNS_VIEW, keywords: 'refund wapsi' },
       { to: '/quick-keys', label: 'Quick keys', icon: Zap, permission: P.PRODUCTS_VIEW, keywords: 'pos shortcut buttons fast' },
       { to: '/cash-register', label: 'Cash register', icon: Wallet, permission: P.CASH_REGISTER_VIEW, needsShop: true, keywords: 'till drawer' },

@@ -16,4 +16,9 @@ export class CancelBookingDto {
   @IsOptional()
   @IsEnum(PaymentMethod)
   refundMethod?: PaymentMethod;
+
+  @ApiPropertyOptional({ description: 'Owner PIN, when refunds need it (Settings)' })
+  @IsOptional()
+  @IsString()
+  managerPin?: string;
 }
