@@ -17,7 +17,7 @@ import DeliveriesPage from './pages/DeliveriesPage';
 import ApplianceSerialsPage from './pages/ApplianceSerialsPage';
 import ApplianceWarrantyClaimsPage from './pages/ApplianceWarrantyClaimsPage';
 import AppliancesReportsPage from './pages/AppliancesReportsPage';
-import AppliancesLowStockPage from './pages/AppliancesLowStockPage';
+import LowStockPage from '@modules/inventory/low-stock/pages/LowStockPage';
 import AppliancesStockReportPage from './pages/AppliancesStockReportPage';
 import AppliancesProfitReportPage from './pages/AppliancesProfitReportPage';
 
@@ -93,7 +93,7 @@ export const AppliancesPack: IndustryPack = {
     { path: '/appliances/warranty-claims', element: ApplianceWarrantyClaimsPage },
 
     { path: '/appliances/reports', element: AppliancesReportsPage },
-    { path: '/appliances/low-stock', element: AppliancesLowStockPage },
+    { path: '/appliances/low-stock', element: LowStockPage },
     { path: '/appliances/stock-report', element: AppliancesStockReportPage },
     { path: '/appliances/profit-report', element: AppliancesProfitReportPage },
   ],

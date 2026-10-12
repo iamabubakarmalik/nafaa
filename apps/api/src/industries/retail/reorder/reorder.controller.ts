@@ -19,8 +19,8 @@ export class ReorderController {
   }
 
   @Get()
-  list(@GetUser() user: AuthenticatedUser, @Query('status') status?: string) {
-    return this.service.listWithProducts(user, status || 'PENDING');
+  list(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query('status') status?: string) {
+    return this.service.listWithProducts(user, shop, status || 'PENDING');
   }
 
   @Patch(':id/status')

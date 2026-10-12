@@ -122,7 +122,7 @@ import ExpensesPage from '@modules/finance/expenses/pages/ExpensesPage';
 // ─── Inventory ─────────────────────────────────────────────────
 import StockMovementsPage from '@modules/inventory/stock-movements/pages/StockMovementsPage';
 import StockAdjustmentsPage from '@modules/inventory/stock-adjustments/pages/StockAdjustmentsPage';
-import LowStockGate from '@modules/inventory/low-stock/pages/LowStockGate';
+import LowStockPage from '@modules/inventory/low-stock/pages/LowStockPage';
 import TransfersPage from '@modules/inventory/transfers/pages/TransfersPage';
 
 // ─── Reports ───────────────────────────────────────────────────
@@ -176,13 +176,12 @@ import CarpetReportsPage from '@industries/carpet/pages/CarpetReportsPage';
 import CarpetBulkImportPage from '@industries/carpet/pages/CarpetBulkImportPage';
 
 // ─── Retail Industry ───────────────────────────────────────────
-import CombosPage from '@industries/retail/pages/CombosPage';
-import ComboFormPage from '@industries/retail/pages/ComboFormPage';
+import CombosPage from '@modules/inventory/combos/pages/CombosPage';
+import ComboFormPage from '@modules/inventory/combos/pages/ComboFormPage';
 import DamagePage from '@modules/inventory/damage/pages/DamagePage';
-import ProductUnitsPage from '@industries/retail/pages/ProductUnitsPage';
+import ProductUnitsPage from '@modules/inventory/product-units/pages/ProductUnitsPage';
 import QuickKeysPage from '@modules/pos/quick-keys/QuickKeysPage';
 import BulkImportPage from '@industries/retail/pages/BulkImportPage';
-import ReorderPage from '@industries/retail/pages/ReorderPage';
 
 // ─── Restaurant Industry ───────────────────────────────────────
 import RestaurantDashboard from '@industries/restaurant/dashboard/RestaurantDashboard';
@@ -672,7 +671,7 @@ export default function App() {
                   {/* ── Inventory ──────────────────────────────── */}
                   <Route path="/stock-movements" element={secure(PERMISSIONS.STOCK_MOVEMENTS_VIEW, <StockMovementsPage />)} />
                   <Route path="/stock-adjustments" element={secure(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, <StockAdjustmentsPage />)} />
-                  <Route path="/low-stock" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <LowStockGate />)} />
+                  <Route path="/low-stock" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <LowStockPage />)} />
                   <Route path="/transfers" element={secure(PERMISSIONS.STOCK_TRANSFERS_MANAGE, <TransfersPage />)} />
 
                   {/* ── Reports ────────────────────────────────── */}
@@ -791,16 +790,19 @@ export default function App() {
                   <Route path="/carpet-bulk-import" element={<CarpetBulkImportPage />} />
 
                   {/* Retail */}
-                  <Route path="/retail/combos/new" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ComboFormPage />)} />
-                  <Route path="/retail/combos/:id/edit" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ComboFormPage />)} />
-                  <Route path="/retail/combos" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CombosPage />)} />
+                  <Route path="/combos/new" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ComboFormPage />)} />
+                  <Route path="/combos/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ComboFormPage />)} />
+                  <Route path="/combos" element={secure(PERMISSIONS.PRODUCTS_VIEW, <CombosPage />)} />
+                  <Route path="/retail/combos/*" element={<Navigate to="/combos" replace />} />
+                  <Route path="/retail/combos" element={<Navigate to="/combos" replace />} />
                   <Route path="/damage" element={secure(PERMISSIONS.PRODUCTS_VIEW, <DamagePage />)} />
                   <Route path="/retail/damage" element={<Navigate to="/damage" replace />} />
-                  <Route path="/retail/product-units" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductUnitsPage />)} />
+                  <Route path="/product-units" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductUnitsPage />)} />
+                  <Route path="/retail/product-units" element={<Navigate to="/product-units" replace />} />
                   <Route path="/quick-keys" element={secure(PERMISSIONS.PRODUCTS_VIEW, <QuickKeysPage />)} />
                   <Route path="/retail/quick-keys" element={<Navigate to="/quick-keys" replace />} />
                   <Route path="/retail/bulk-import" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BulkImportPage />)} />
-                  <Route path="/retail/reorders" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ReorderPage />)} />
+                  <Route path="/retail/reorders" element={<Navigate to="/low-stock" replace />} />
                   <Route path="/retail/barcode-labels" element={secure(PERMISSIONS.PRODUCTS_VIEW, <BarcodeLabelsPage />)} />
 
                   {/* Restaurant */}

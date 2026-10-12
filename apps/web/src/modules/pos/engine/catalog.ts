@@ -61,7 +61,9 @@ export function useComboBundles(): PosBundle[] {
     queryFn: () => combosApi.list({ status: 'ACTIVE' }).catch(() => [] as ProductCombo[]),
     staleTime: 60_000,
   });
-  return useMemo(() => (data as ProductCombo[]).map((c) => ({
+  // Only combos on sale now; parts go to checkout in base units, so a
+  // "1 dozen" part takes 12 pieces off stock at the per-piece price.
+  return useMemo(() => (data as ProductCombo[]).filter((c) => c.sellable !== false).map((c) => ({
     id: c.id,
     name: c.name,
     price: Number(c.comboPrice),
@@ -71,6 +73,9 @@ export function useComboBundles(): PosBundle[] {
     featured: c.isFeatured,
     savings: Number(c.savingsAmount || 0),
     savingsPct: Number(c.savingsPercentage || 0),
-    items: c.items.map((i) => ({ productId: i.productId, variantId: i.variantId ?? null, quantity: Number(i.quantity), originalPrice: Number(i.originalPrice) || 0 })),
+    items: c.items.map((i) => {
+      const rate = Number(i.unit?.conversionRate) || 1;
+      return { productId: i.productId, variantId: i.variantId ?? null, quantity: Number(i.quantity) * rate, originalPrice: (Number(i.originalPrice) || 0) / rate };
+    }),
   })), [data]);
 }

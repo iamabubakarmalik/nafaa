@@ -1,546 +1,383 @@
-import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+/**
+ * Low stock and reorder for every industry: what is out, low, running out
+ * soon or near expiry in each branch, how many days the rest lasts at the
+ * recent selling rate, and what to order from whom. Lines turn into purchase
+ * orders (grouped by supplier), WhatsApp messages or a printed reorder
+ * sheet. Industries add their own warnings and tabs through config.
+ *
+ * Keys: / search · R reorder list · A analytics · G guide.
+ */
+
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
-  AlertTriangle, Package, ShoppingBag, ArrowRight, Search, X,
-  RefreshCw, Edit3, Filter, Layers, Smartphone, TrendingDown,
-  FileSpreadsheet, FileText, Hash, XCircle, CheckCircle2, BarChart3,
-  MessageCircle, Send, Copy, Zap, ChevronDown, Info,
+  AlertTriangle, ArrowDownWideNarrow, BarChart3, Check, Clock, Download, EyeOff, GraduationCap, Layers, ListChecks, ListFilter,
+  MessageCircle, MousePointerClick, PackageCheck, PackagePlus, RefreshCw, Search, ShoppingCart, SlidersHorizontal, Truck, X,
 } from 'lucide-react';
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
-  PieChart, Pie, Cell,
-} from 'recharts';
-import { stockReportApi } from '@modules/inventory/stock-report/api/stock-report.api';
-import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { toast } from 'sonner';
-import { useIndustryStockPresets } from '@industries/_shared/presets';
-import { useAuthStore } from '@core/stores/auth.store';
+  Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton, type FilterOption,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print';
+import { PrivacyToggle } from '@core/security/HiddenValue';
+import { useAnyPermission, usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { waLink } from '@core/lib/whatsapp/templates';
+import { cn } from '@core/lib/cn';
+import { useAuthStore, useIsAllShops, useShopParam } from '@core/stores/auth.store';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { StockModal } from '@modules/inventory/products/list/components/StockModal';
+import { LOW_KEY, lowStockApi, type LowRow, type LowSettings, type LowSort, type LowStatusFilter } from '../api';
+import { useLowStockConfig } from '../config';
+import { LINE_GRID, LineRow } from '../components/LineRow';
+import { LowStockAnalytics } from '../components/LowStockAnalytics';
+import { OrderModal } from '../components/OrderModal';
+import { ReorderView } from '../components/ReorderView';
+import { SettingsModal } from '../components/SettingsModal';
+import { DEFAULT_SETTINGS, STATUS, groupBySupplier, itemMessage, openWhatsApp, qty, type OrderGroup } from '../components/meta';
+import { alertsCsv, alertsDoc } from '../components/print';
+import { useOrderHandoff } from '../components/useOrderHandoff';
 
-const formatQty = (qty: number) => qty.toFixed(qty % 1 === 0 ? 0 : 2);
+const SETTINGS_KEY = 'nafaa-low-stock-settings';
+const SORTS: Array<FilterOption<LowSort>> = [
+  { value: 'urgency', label: 'Sab se zaroori pehle', hint: 'Khatam, phir kam, phir jaldi khatam' },
+  { value: 'lost', label: 'Zyada ruki bikri pehle', hint: 'Jo khatam hai aur bikta tha' },
+  { value: 'daysLeft', label: 'Kam din ka maal pehle' },
+  { value: 'value', label: 'Bara order pehle' },
+  { value: 'stock', label: 'Kam stock pehle' },
+  { value: 'name', label: 'Naam (A–Z)' },
+];
 
-type Filter = 'all' | 'critical' | 'warning';
-type IndustryFilter = 'all' | 'STANDARD' | 'CARPET' | 'MOBILE' | 'WEIGHT_BASED';
-
-const industryConfig: Record<string, { label: string; icon: any; color: string; bg: string }> = {
-  STANDARD: { label: 'Standard', icon: Package, color: '#64748b', bg: 'bg-slate-100 text-slate-700' },
-  CARPET: { label: 'Carpet', icon: Layers, color: '#10b981', bg: 'bg-emerald-100 text-emerald-700' },
-  MOBILE: { label: 'Mobile', icon: Smartphone, color: '#3b82f6', bg: 'bg-blue-100 text-blue-700' },
-  WEIGHT_BASED: { label: 'Weight', icon: Hash, color: '#f59e0b', bg: 'bg-amber-100 text-amber-700' },
-};
+function loadSettings(base: LowSettings): LowSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    return raw ? { ...base, ...JSON.parse(raw) } : base;
+  } catch { return base; }
+}
 
 export default function LowStockPage() {
-  const industryStock = useIndustryStockPresets();
-  const tenant = useAuthStore((s) => s.tenant);
+  const config = useLowStockConfig();
+  const qc = useQueryClient();
+  const shopParam = useShopParam();
+  const isAll = useIsAllShops();
+  const tenantName = useAuthStore((s) => s.tenant?.name ?? '');
+  const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
+  const { sales: money, cost, costHidden } = useMasked();
+  const can = {
+    order: usePermission(PERMISSIONS.PURCHASES_CREATE),
+    alert: usePermission(PERMISSIONS.PRODUCTS_EDIT),
+    stock: useAnyPermission(useMemo(() => [PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, PERMISSIONS.PRODUCTS_EDIT], [])),
+  };
+  const handoff = useOrderHandoff();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
 
+  const defaults = useMemo(() => ({ ...DEFAULT_SETTINGS, ...config.defaults }), [config.defaults]);
+  const [settings, setSettings] = useState<LowSettings>(() => loadSettings(defaults));
+  const [status, setStatus] = useState<LowStatusFilter>('all');
+  const [categoryId, setCategoryId] = useState<string>();
+  const [supplierId, setSupplierId] = useState<string>();
+  const [group, setGroup] = useState<string>();
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<Filter>('all');
-  const [industryFilter, setIndustryFilter] = useState<IndustryFilter>('all');
-  const [reminderProduct, setReminderProduct] = useState<any>(null);
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<LowSort>('urgency');
+  const [page, setPage] = useState(1);
+  const [tab, setTab] = useState<string>('alerts');
+  const [selected, setSelected] = useState<Map<string, LowRow>>(new Map());
+  const [stockRow, setStockRow] = useState<LowRow | null>(null);
+  const [orderGroups, setOrderGroups] = useState<OrderGroup[] | null>(null);
+  const [editSettings, setEditSettings] = useState(false);
+  const [qtyEdits, setQtyEdits] = useState<Record<string, number>>({});
+  const [removed, setRemoved] = useState<Set<string>>(new Set());
+  const [exporting, setExporting] = useState(false);
 
-  const { data, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['low-stock-report'],
-    queryFn: () => stockReportApi.generate({ stockStatus: 'all', isActive: true }),
+  useEffect(() => { const t = setTimeout(() => setQuery(search.trim()), 250); return () => clearTimeout(t); }, [search]);
+  useEffect(() => { setPage(1); }, [status, categoryId, supplierId, group, query, sort, settings, shopParam]);
+
+  const filters = { ...settings, categoryId, supplierId, group, search: query || undefined };
+  const listQ = useQuery({
+    queryKey: [LOW_KEY, 'list', shopParam, filters, status, sort, page],
+    queryFn: () => lowStockApi.list({ ...filters, status, sort, page, limit: 30 }),
+    placeholderData: (prev) => prev,
+  });
+  const reorderQ = useQuery({
+    queryKey: [LOW_KEY, 'reorder', shopParam, filters],
+    queryFn: () => lowStockApi.list({ ...filters, view: 'reorder', limit: 500 }),
+    enabled: tab === 'reorder',
+  });
+  const analyticsQ = useQuery({
+    queryKey: [LOW_KEY, 'analytics', shopParam, filters],
+    queryFn: () => lowStockApi.analytics(filters),
+    enabled: tab === 'analytics',
+  });
+  const data = listQ.data;
+  const counts = data?.counts;
+  const totals = data?.totals;
+  const showShop = isAll && (data?.facets.shops.length ?? 0) > 1;
+  const shopLabel = `${tenantName}${shopName && !isAll ? ` · ${shopName}` : ''}`;
+
+  const refresh = () => qc.invalidateQueries({ queryKey: [LOW_KEY] });
+  const alertM = useMutation({
+    mutationFn: ({ r, alert }: { r: LowRow; alert: number }) => lowStockApi.setAlert(r.productId, alert, r.shopId),
+    onSuccess: () => { toast.success('Alert level badal gaya'); void refresh(); },
+    onError: (e: { response?: { data?: { message?: string } } }) => toast.error(e?.response?.data?.message ?? 'Alert level nahi badla'),
+  });
+  const ignoreM = useMutation({
+    mutationFn: ({ rows, ignore }: { rows: LowRow[]; ignore: boolean }) => Promise.all(rows.map((r) => lowStockApi.ignore(r.productId, ignore, r.shopId))),
+    onSuccess: (_d, v) => {
+      toast.success(v.ignore ? `${v.rows.length} line chhup gayi — stock theek hone par khud hat jayengi` : 'Line wapas aa gayi');
+      setSelected(new Map());
+      void refresh();
+    },
+    onError: () => toast.error('Nahi ho saka'),
   });
 
-  const lowStockRows = useMemo(() => {
-    if (!data?.rows) return [];
-    return data.rows.filter(
-      (r) => r.stockStatus === 'LOW_STOCK' || r.stockStatus === 'OUT_OF_STOCK'
-    );
-  }, [data]);
+  const saveSettings = (v: LowSettings) => {
+    setSettings(v);
+    try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(v)); } catch { /* storage blocked */ }
+    setEditSettings(false);
+  };
+  const clear = () => { setStatus('all'); setCategoryId(undefined); setSupplierId(undefined); setGroup(undefined); setSearch(''); };
+  const filtered = status !== 'all' || !!categoryId || !!supplierId || !!group || !!query;
 
-  const filtered = useMemo(() => {
-    let result = [...lowStockRows];
-    const q = search.toLowerCase().trim();
-    if (q) {
-      result = result.filter((p) =>
-        p.productName.toLowerCase().includes(q) ||
-        (p.sku || '').toLowerCase().includes(q) ||
-        (p.barcode || '').toLowerCase().includes(q) ||
-        (p.category || '').toLowerCase().includes(q) ||
-        (p.brand || '').toLowerCase().includes(q)
-      );
-    }
-    if (filter === 'critical') result = result.filter((p) => p.stockStatus === 'OUT_OF_STOCK');
-    else if (filter === 'warning') result = result.filter((p) => p.stockStatus === 'LOW_STOCK');
-    if (industryFilter !== 'all') result = result.filter((p) => p.industryType === industryFilter);
-    return result;
-  }, [lowStockRows, search, filter, industryFilter]);
+  const toggle = (r: LowRow) => setSelected((m) => { const n = new Map(m); if (n.has(r.key)) n.delete(r.key); else n.set(r.key, r); return n; });
+  const visible = data?.items ?? [];
+  const allVisible = visible.length > 0 && visible.every((r) => selected.has(r.key));
+  const selectVisible = () => setSelected((m) => {
+    const n = new Map(m);
+    if (allVisible) visible.forEach((r) => n.delete(r.key)); else visible.forEach((r) => n.set(r.key, r));
+    return n;
+  });
 
-  const stats = useMemo(() => {
-    const critical = lowStockRows.filter((p) => p.stockStatus === 'OUT_OF_STOCK').length;
-    const warning = lowStockRows.filter((p) => p.stockStatus === 'LOW_STOCK').length;
-    const totalRetailValue = lowStockRows.reduce((s, p) => s + p.retailValue, 0);
-    const totalCostValue = lowStockRows.reduce((s, p) => s + p.stockValue, 0);
-    const carpetCount = lowStockRows.filter((p) => p.industryType === 'CARPET').length;
-    const mobileCount = lowStockRows.filter((p) => p.industryType === 'MOBILE').length;
-    return { critical, warning, total: lowStockRows.length, totalRetailValue, totalCostValue, carpetCount, mobileCount };
-  }, [lowStockRows]);
-
-  const industryBreakdown = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const r of lowStockRows) map.set(r.industryType, (map.get(r.industryType) || 0) + 1);
-    return Array.from(map.entries()).map(([key, count]) => ({
-      name: industryConfig[key]?.label || key,
-      value: count,
-      color: industryConfig[key]?.color || '#64748b',
-    }));
-  }, [lowStockRows]);
-
-  const topLowChart = useMemo(() => {
-    return [...filtered].sort((a, b) => a.stock - b.stock).slice(0, 10).map((r) => ({
-      name: r.productName.length > 14 ? r.productName.slice(0, 14) + '…' : r.productName,
-      stock: r.stock, alert: r.lowStockAlert,
-    }));
-  }, [filtered]);
-
-  const sendSupplierReminder = (product: any, templateId?: string) => {
-    const template = industryStock.supplierReminders.find((r) => r.id === templateId)
-      || industryStock.supplierReminders[0];
-    if (!template) return toast.error('No template available');
-
-    const suggestedQty = Math.max(product.lowStockAlert * 3, 10);
-    const msg = template.template({
-      supplierName: 'sir',
-      productName: product.productName,
-      currentStock: formatQty(product.stock),
-      unit: product.unit,
-      quantityNeeded: `${suggestedQty} ${product.unit}`,
-      shopName: tenant?.name || undefined,
-    });
-
-    navigator.clipboard.writeText(msg);
-    toast.success(`${template.emoji} Reminder copied — paste in WhatsApp`);
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-    setReminderProduct(null);
+  const orderSelected = () => {
+    const rows = [...selected.values()].filter((r) => !r.made && r.suggestQty > 0);
+    if (!rows.length) { toast.error('Chuni hui lines me mangwane ke liye kuch nahi'); return; }
+    const groups = groupBySupplier(rows);
+    if (groups.length === 1) handoff(groups[0]); else setOrderGroups(groups);
+  };
+  const whatsAppSelected = () => {
+    const rows = [...selected.values()];
+    const text = [`${shopLabel} — list:`, '', ...rows.map((r, i) => `${i + 1}. ${r.name} — ${r.made ? 'banana' : 'mangwana'} ${qty(r.suggestQty || Math.max(r.alert - r.stock, 1))} ${r.unit}`)].join('\n');
+    const phones = new Set(rows.map((r) => r.supplier?.phone).filter(Boolean));
+    openWhatsApp(phones.size === 1 ? waLink([...phones][0], text) : null, text);
   };
 
-  const copyReminderOnly = (product: any, templateId: string) => {
-    const template = industryStock.supplierReminders.find((r) => r.id === templateId);
-    if (!template) return;
-    const suggestedQty = Math.max(product.lowStockAlert * 3, 10);
-    const msg = template.template({
-      productName: product.productName,
-      currentStock: formatQty(product.stock),
-      unit: product.unit,
-      quantityNeeded: `${suggestedQty} ${product.unit}`,
-      shopName: tenant?.name || undefined,
-    });
-    navigator.clipboard.writeText(msg);
-    toast.success('Reminder copied to clipboard');
+  const qtyOf = (r: LowRow) => qtyEdits[r.key] ?? r.suggestQty;
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const all = await lowStockApi.list({ ...filters, status, sort, limit: 500 });
+      if (!all.items.length) { toast.error('Is filter me kuch nahi'); return; }
+      alertsCsv(all.items, [`Low stock — ${shopLabel}`, `Bikri ${settings.days} din · order ${settings.targetDays} din ka`], !costHidden);
+      toast.success(`${all.items.length} lines CSV me`);
+    } catch { toast.error('Export nahi hua'); } finally { setExporting(false); }
   };
+  const filterText = [status !== 'all' && (status === 'ordered' ? 'Order me' : status === 'ignored' ? 'Chhupi hui' : STATUS[status].label), query && `"${query}"`].filter(Boolean).join(' · ');
+  const printDoc = async () => alertsDoc(await lowStockApi.list({ ...filters, status, sort, limit: 500 }), filterText, !costHidden);
 
-  const exportCSV = () => {
-    if (filtered.length === 0) return toast.error('No data');
-    const headers = ['Product', 'SKU', 'Category', 'Brand', 'Industry', 'Unit', 'Stock', 'Alert', 'Status', 'Sale Price', 'Retail Value'];
-    const rows = filtered.map((p) => [
-      p.productName, p.sku || '', p.category || '', p.brand || '',
-      p.industryType, p.unit, formatQty(p.stock), formatQty(p.lowStockAlert),
-      p.stockStatus === 'OUT_OF_STOCK' ? 'Out of Stock' : 'Low Stock',
-      p.salePrice.toFixed(2), p.retailValue.toFixed(2),
-    ]);
-    const csv = [headers, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `low-stock-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('CSV exported');
-  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      const k = e.key.toLowerCase();
+      if (e.key === '/') { e.preventDefault(); setTab('alerts'); window.setTimeout(() => searchRef.current?.focus(), 0); }
+      else if (k === 'r') setTab((t) => (t === 'reorder' ? 'alerts' : 'reorder'));
+      else if (k === 'a') setTab((t) => (t === 'analytics' ? 'alerts' : 'analytics'));
+      else if (e.key === 'Escape' && selected.size) setSelected(new Map());
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selected.size]);
+
+  const statusOptions: Array<FilterOption<LowStatusFilter>> = [
+    { value: 'all', label: 'Sab', icon: ListChecks, color: '#475569' },
+    ...(['out', 'low', 'soon', 'expiry'] as const).map((k) => ({ value: k, label: STATUS[k].label, icon: STATUS[k].icon, color: STATUS[k].color, hint: `${counts?.[k] ?? 0}` })),
+    ...(config.statuses ?? []).map((k) => ({ value: k, label: STATUS[k].label, icon: STATUS[k].icon, color: STATUS[k].color, hint: `${counts?.[k] ?? 0}` })),
+    { value: 'ordered', label: 'Order me', icon: Truck, color: '#0284c7', hint: `${counts?.ordered ?? 0} — supplier se aana baqi` },
+    { value: 'ignored', label: 'Chhupi hui', icon: EyeOff, color: '#94a3b8', hint: `${counts?.ignored ?? 0}` },
+  ];
+  const kpi = (k: 'out' | 'low' | 'soon' | 'expiry', hint: string) => (
+    <KpiCard key={k} icon={STATUS[k].icon} color={STATUS[k].color} label={STATUS[k].label} value={String(counts?.[k] ?? 0)}
+      hint={status === k ? 'Filter laga · dobara dabayein' : hint} active={status === k}
+      onClick={() => { setTab('alerts'); setStatus((s) => (s === k ? 'all' : k)); }} />
+  );
+  const Banner = config.Banner;
+  const ExtraTab = config.extraTab?.Component;
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-amber-700 text-white p-6 sm:p-8 shadow-2xl print:hidden">
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-amber-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-rose-400/15 blur-3xl" />
-        <div className="relative flex items-center justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-xs font-extrabold">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-300" />
-              Critical Stock Alerts
-              {industryStock.industryId && (
-                <>
-                  <span className="text-white/40">•</span>
-                  <span>{industryStock.industryEmoji} {industryStock.industryName}</span>
-                </>
-              )}
-            </div>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Low Stock Alerts</h2>
-            <p className="mt-2 text-sm text-white/80">
-              {industryStock.industryId
-                ? `${industryStock.industryName} smart reorder — ${industryStock.supplierReminders.length} supplier reminder templates`
-                : 'Industry-aware tracking with WhatsApp supplier reminders'}
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button onClick={() => refetch()} disabled={isRefetching}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2.5 text-sm font-bold transition disabled:opacity-50 backdrop-blur">
-              <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-            <button onClick={() => window.print()}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold transition backdrop-blur border border-white/20">
-              <FileText className="h-4 w-4" /> PDF
-            </button>
-            <button onClick={exportCSV}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/15 hover:bg-white/25 px-4 py-2.5 text-sm font-bold transition backdrop-blur border border-white/20">
-              <FileSpreadsheet className="h-4 w-4" /> CSV
-            </button>
-            <Link to="/purchases">
-              <Button className="bg-white text-slate-900 hover:bg-slate-100">
-                <ShoppingBag className="h-4 w-4" /> New Purchase
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Low stock aur reorder"
+        chip={<><AlertTriangle />{counts ? `${counts.all} cheezein` : '…'}</>}
+        busy={listQ.isFetching && !listQ.isLoading}
+        meta={`${config.label} · ${isAll ? 'Sab branches' : shopName ?? tenantName}`}
+        loading={listQ.isLoading}
+        actions={<>
+          <PrivacyToggle compact />
+          <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={!data?.items.length} /></span>
+          <button type="button" onClick={() => setEditSettings(true)} title="Hisaab ki settings" aria-label="Hisaab ki settings" className={heroIconButton}><SlidersHorizontal className="h-4 w-4" /></button>
+          <button type="button" onClick={() => void refresh()} title="Taaza karein" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', listQ.isFetching && 'animate-spin')} /></button>
+          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setTab('reorder')} title="Reorder list (R)" className={heroPrimaryButton}><ShoppingCart className="h-4 w-4" />Order banayein</button>
+        </>}
+        stats={totals ? [
+          { label: 'Order ka kharcha', value: cost(totals.orderValue), hint: `${totals.orderLines} cheezein · ${settings.targetDays} din ka maal` },
+          { label: 'Ruki hui bikri', value: money(totals.lostPerDay), hint: 'roz — khatam maal ki wajah se' },
+          { label: 'Expiry ka maal', value: cost(totals.expiryValue), hint: `${settings.expiryDays} din me` },
+          { label: 'Order me', value: String(counts?.ordered ?? 0), hint: 'cheezein supplier se aani hain' },
+        ] : [{ label: 'Order ka kharcha', value: '' }, { label: 'Ruki hui bikri', value: '' }, { label: 'Expiry ka maal', value: '' }, { label: 'Order me', value: '' }]}
+      />
 
-      <div className="hidden print:block">
-        <div className="text-center border-b-2 border-slate-700 pb-3 mb-4">
-          <h1 className="text-2xl font-extrabold">{data?.tenantName || 'My Store'}</h1>
-          <p className="text-sm text-slate-600">
-            {industryStock.industryEmoji} {industryStock.industryName} Low Stock Alert Report
-          </p>
-          <p className="text-xs text-slate-500 mt-1">Generated: {new Date().toLocaleString('en-PK')}</p>
-        </div>
-      </div>
-
-      {industryStock.restockRules.length > 0 && (
-        <section className="rounded-3xl bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 border-2 border-amber-300 p-5 shadow-sm print:hidden">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md">
-              <Info className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-amber-900">
-                {industryStock.industryEmoji} {industryStock.industryName} Restock Priority Rules
-              </h3>
-              <p className="text-[0.6875rem] text-amber-800 font-bold">
-                {industryStock.restockRules.length} urgency levels for your industry
-              </p>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            {industryStock.restockRules.map((rule) => (
-              <div key={rule.label} className="rounded-xl bg-white border-2 p-3" style={{ borderColor: `${rule.color}40` }}>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{rule.emoji}</span>
-                  <div className="min-w-0">
-                    <div className="text-xs font-extrabold" style={{ color: rule.color }}>{rule.label}</div>
-                    <div className="text-[0.625rem] text-slate-600 font-semibold line-clamp-2">{rule.description}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Out of Stock" value={String(stats.critical)} sub="Stock = 0 (urgent)" icon={XCircle} color="rose" isAlert={stats.critical > 0} />
-        <StatCard label="Low Stock" value={String(stats.warning)} sub="Below threshold" icon={AlertTriangle} color="amber" />
-        <StatCard label="Carpet Affected" value={String(stats.carpetCount)} sub={`Mobile: ${stats.mobileCount}`} icon={Layers} color="emerald" />
-        <StatCard label="Lost Revenue Potential" value={formatPKR(stats.totalRetailValue)} sub={`Cost: ${formatPKR(stats.totalCostValue)}`} icon={TrendingDown} color="violet" isText />
-      </section>
-
-      {stats.total > 0 && (
-        <section className="grid lg:grid-cols-[1.5fr_1fr] gap-6 print:hidden">
-          <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Top 10 Critical Items</h3>
-                <p className="text-xs text-slate-500">Lowest stock vs alert threshold</p>
-              </div>
-              <BarChart3 className="h-5 w-5 text-amber-500" />
-            </div>
-            {topLowChart.length > 0 ? (
-              <div className="h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topLowChart}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis dataKey="name" stroke="#64748b" fontSize={10} angle={-15} textAnchor="end" height={70} />
-                    <YAxis stroke="#64748b" fontSize={11} />
-                    <Tooltip contentStyle={{ borderRadius: 12, border: '2px solid #e2e8f0' }} />
-                    <Bar dataKey="stock" name="Current Stock" fill="#ef4444" radius={[6, 6, 0, 0]} />
-                    <Bar dataKey="alert" name="Alert Level" fill="#f59e0b" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (<EmptyChart />)}
-          </div>
-
-          <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">By Industry Type</h3>
-                <p className="text-xs text-slate-500">Distribution breakdown</p>
-              </div>
-              <Filter className="h-5 w-5 text-violet-500" />
-            </div>
-            {industryBreakdown.length > 0 ? (
-              <div className="h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={industryBreakdown} cx="50%" cy="45%" outerRadius={90} innerRadius={45}
-                      dataKey="value" label={(entry: any) => `${entry.name} (${entry.value})`} labelLine={false}>
-                      {industryBreakdown.map((entry, idx) => (<Cell key={`cell-${idx}`} fill={entry.color} />))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: 12 }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (<EmptyChart />)}
-          </div>
-        </section>
-      )}
-
-      <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4 space-y-3 print:hidden">
-        <div className="flex gap-2 flex-wrap">
-          <div className="flex-1 min-w-[240px] relative">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500"
-              placeholder="Search by name, SKU, barcode..." value={search} onChange={(e) => setSearch(e.target.value)} />
-            {search && (<button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4 text-slate-400" /></button>)}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex gap-1 flex-wrap items-center">
-            <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold mr-2">Status:</span>
-            {[
-              { v: 'all' as Filter, l: 'All', c: 'bg-slate-900', count: stats.total },
-              { v: 'critical' as Filter, l: 'Out of Stock', c: 'bg-rose-600', count: stats.critical },
-              { v: 'warning' as Filter, l: 'Low', c: 'bg-amber-600', count: stats.warning },
-            ].map((opt) => (
-              <button key={opt.v} onClick={() => setFilter(opt.v)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center gap-1.5 ${
-                  filter === opt.v ? `${opt.c} text-white shadow-sm` : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}>
-                {opt.l}
-                <span className={`px-1.5 rounded-full text-[0.6875rem] ${filter === opt.v ? 'bg-white/20' : 'bg-slate-200'}`}>{opt.count}</span>
-              </button>
-            ))}
-          </div>
-
-          <div className="flex gap-1 flex-wrap items-center">
-            <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold mr-2">Industry:</span>
-            <button onClick={() => setIndustryFilter('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                industryFilter === 'all' ? 'bg-violet-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}>All</button>
-            {Object.entries(industryConfig).map(([key, cfg]) => {
-              const Icon = cfg.icon;
-              const active = industryFilter === key;
-              return (
-                <button key={key} onClick={() => setIndustryFilter(key as IndustryFilter)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition inline-flex items-center gap-1 ${
-                    active ? cfg.bg + ' shadow-sm border-2 border-current' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}>
-                  <Icon className="h-3 w-3" />
-                  {cfg.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-          <div>
-            <h3 className="text-xl font-bold text-slate-900">Products Needing Restock</h3>
-            <p className="text-sm text-slate-500">{filtered.length} of {stats.total} alerts</p>
-          </div>
-        </div>
-
-        {isLoading ? (
-          <div className="p-6 space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => (<div key={i} className="h-16 rounded-xl bg-slate-100 animate-pulse" />))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-100 to-green-200 flex items-center justify-center">
-              <CheckCircle2 className="h-9 w-9 text-emerald-700" />
-            </div>
-            <h4 className="mt-5 text-xl font-bold text-slate-900">
-              {search || filter !== 'all' || industryFilter !== 'all' ? 'No matches' : 'Sab products ka stock theek hai 🎉'}
-            </h4>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-slate-700 border-b-2 border-slate-200">
-                <tr>
-                  <th className="text-left px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Product</th>
-                  <th className="text-left px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Category / Brand</th>
-                  <th className="text-center px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Industry</th>
-                  <th className="text-right px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Current</th>
-                  <th className="text-right px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Alert</th>
-                  <th className="text-center px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider">Status</th>
-                  <th className="text-right px-4 py-3 font-extrabold text-[0.6875rem] uppercase tracking-wider print:hidden">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filtered.map((p) => {
-                  const isCritical = p.stockStatus === 'OUT_OF_STOCK';
-                  const indCfg = industryConfig[p.industryType];
-                  const IndIcon = indCfg?.icon || Package;
-                  return (
-                    <tr key={p.productId} className={isCritical ? 'bg-rose-50/40 hover:bg-rose-50/60' : 'bg-amber-50/40 hover:bg-amber-50/60'}>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="h-10 w-10 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 print:hidden">
-                            {p.primaryImage ? (<img src={p.primaryImage} alt="" className="h-full w-full object-cover" />)
-                              : (<Package className="h-4 w-4 text-slate-400" />)}
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-900 line-clamp-1">{p.productName}</div>
-                            <div className="text-[0.6875rem] text-slate-500 font-mono">{p.sku || p.barcode || '—'}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-xs">
-                        {p.category && (
-                          <div className="font-bold text-slate-700 flex items-center gap-1">
-                            {p.categoryColor && (<span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.categoryColor }} />)}
-                            {p.category}
-                          </div>
-                        )}
-                        {p.brand && (<div className="text-[0.6875rem] font-bold text-violet-700 mt-0.5">{p.brand}</div>)}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold ${indCfg?.bg}`}>
-                          <IndIcon className="h-2.5 w-2.5" />
-                          {indCfg?.label?.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className={`font-extrabold text-lg ${isCritical ? 'text-rose-700' : 'text-amber-700'}`}>{formatQty(p.stock)}</div>
-                        <div className="text-[0.6875rem] text-slate-500 font-bold uppercase">{p.unit}</div>
-                      </td>
-                      <td className="px-4 py-3 text-right text-slate-700 font-bold">{formatQty(p.lowStockAlert)} {p.unit}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
-                          isCritical ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
-                        }`}>
-                          {isCritical ? <XCircle className="h-2.5 w-2.5" /> : <AlertTriangle className="h-2.5 w-2.5" />}
-                          {isCritical ? 'OUT' : 'LOW'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right print:hidden">
-                        <div className="flex justify-end gap-1">
-                          <div className="relative">
-                            <button
-                              onClick={() => setReminderProduct(reminderProduct?.productId === p.productId ? null : p)}
-                              className="inline-flex items-center gap-1 px-2 h-8 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold transition"
-                              title="Send supplier reminder"
-                            >
-                              <MessageCircle className="h-3 w-3" />
-                              <ChevronDown className="h-2.5 w-2.5" />
-                            </button>
-                            {reminderProduct?.productId === p.productId && industryStock.supplierReminders.length > 0 && (
-                              <div className="absolute right-0 top-full mt-1 w-72 bg-white border-2 border-green-200 rounded-2xl shadow-2xl z-20 overflow-hidden">
-                                <div className="px-3 py-2 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100">
-                                  <div className="text-xs font-extrabold text-green-900">
-                                    {industryStock.industryEmoji} {industryStock.industryName} Templates
-                                  </div>
-                                </div>
-                                <div className="max-h-64 overflow-y-auto p-1 space-y-1">
-                                  {industryStock.supplierReminders.map((r) => (
-                                    <div key={r.id} className="rounded-lg border border-slate-200 p-2 hover:bg-slate-50">
-                                      <div className="flex items-center justify-between gap-1">
-                                        <div className="min-w-0 flex-1">
-                                          <div className="flex items-center gap-1">
-                                            <span className="text-sm">{r.emoji}</span>
-                                            <span className="text-xs font-extrabold text-slate-900">{r.label}</span>
-                                          </div>
-                                        </div>
-                                        <div className="flex gap-1 shrink-0">
-                                          <button
-                                            onClick={() => copyReminderOnly(p, r.id)}
-                                            className="h-6 w-6 rounded bg-slate-100 hover:bg-slate-200 flex items-center justify-center"
-                                            title="Copy"
-                                          >
-                                            <Copy className="h-3 w-3 text-slate-600" />
-                                          </button>
-                                          <button
-                                            onClick={() => sendSupplierReminder(p, r.id)}
-                                            className="h-6 w-6 rounded bg-green-600 hover:bg-green-700 text-white flex items-center justify-center"
-                                            title="Send"
-                                          >
-                                            <Send className="h-3 w-3" />
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                          <Link to={`/products/${p.productId}/edit`}>
-                            <button className="h-8 w-8 rounded-lg bg-slate-100 hover:bg-blue-100 hover:text-blue-700 flex items-center justify-center transition" title="Edit">
-                              <Edit3 className="h-3.5 w-3.5" />
-                            </button>
-                          </Link>
-                          <Link to="/purchases">
-                            <button className="inline-flex items-center gap-1 px-2 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
-                              Restock
-                              <ArrowRight className="h-3 w-3" />
-                            </button>
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+      <KpiRow>
+        {!counts || !totals ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
+          <>
+            {kpi('out', totals.lostPerDay > 0 ? `roz ${money(totals.lostPerDay)} ki bikri ruki` : 'dabayein')}
+            {kpi('low', 'alert level se neeche')}
+            {kpi('soon', `${settings.soonDays} din ya kam ka maal`)}
+            {kpi('expiry', `${settings.expiryDays} din me expiry`)}
+            <KpiCard icon={ShoppingCart} color="#2563eb" label="Reorder" value={cost(totals.orderValue)}
+              hint={`${totals.orderLines} cheezein${totals.noSupplier ? ` · ${totals.noSupplier} baghair supplier` : ''}`} onClick={() => setTab('reorder')} active={tab === 'reorder'} />
+          </>
         )}
-      </section>
+      </KpiRow>
 
-      <style>{`
-        @media print {
-          @page { size: A4 landscape; margin: 1cm; }
-          body { background: white !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-          .print\\:hidden { display: none !important; }
-          table { font-size: 10px; }
-        }
-      `}</style>
-    </div>
-  );
-}
+      {Banner && data && <Suspense fallback={null}><Banner data={data} setStatus={(s) => { setTab('alerts'); setStatus(s); }} openTab={setTab} /></Suspense>}
 
-function StatCard({ label, value, sub, icon: Icon, color, isAlert, isText }: any) {
-  const colors: Record<string, string> = {
-    rose: 'from-rose-500 to-rose-700 shadow-rose-500/30',
-    amber: 'from-amber-500 to-amber-700 shadow-amber-500/30',
-    emerald: 'from-emerald-500 to-emerald-700 shadow-emerald-500/30',
-    violet: 'from-violet-500 to-purple-600 shadow-violet-500/30',
-  };
-  return (
-    <div className={`rounded-2xl border-2 p-5 shadow-sm hover:shadow-md transition ${
-      isAlert ? 'bg-gradient-to-br from-rose-50 to-pink-50 border-rose-300' : 'bg-white border-slate-200'
-    }`}>
-      <div className="flex items-center justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className={`mt-2 font-extrabold text-slate-900 tabular-nums truncate ${isText ? 'text-xl' : 'text-2xl'}`}>{value}</div>
-          <div className="text-xs text-slate-600 font-semibold mt-1">{sub}</div>
+      <FilterBar
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Naam, SKU, barcode ya supplier…" label="Low stock dhoondein" />}
+        chips={filtered ? <>
+          {status !== 'all' && <FilterChip onRemove={() => setStatus('all')}>{statusOptions.find((o) => o.value === status)?.label}</FilterChip>}
+          {categoryId && <FilterChip onRemove={() => setCategoryId(undefined)}>{data?.facets.categories.find((c) => c.id === categoryId)?.name ?? 'Category'}</FilterChip>}
+          {supplierId && <FilterChip onRemove={() => setSupplierId(undefined)}>{data?.facets.suppliers.find((c) => c.id === supplierId)?.name ?? 'Supplier'}</FilterChip>}
+          {group && <FilterChip onRemove={() => setGroup(undefined)}>{config.groups?.label(group) ?? group}</FilterChip>}
+          {query && <FilterChip onRemove={() => setSearch('')}>"{query}"</FilterChip>}
+        </> : undefined}
+        onClear={clear}>
+        <FilterMenu icon={ListFilter} label="Halat" value={status} active={status !== 'all'} options={statusOptions} onChange={(v) => { setTab('alerts'); setStatus(v); }} width="w-72" />
+        {(data?.facets.categories.length ?? 0) > 0 && (
+          <FilterMenu icon={Layers} label="Category" value={categoryId ?? 'all'} active={!!categoryId} width="w-72"
+            options={[{ value: 'all', label: 'Sab category' }, ...data!.facets.categories.map((c) => ({ value: c.id, label: c.name ?? '', hint: `${c.count} cheezein`, color: c.color ?? undefined }))]}
+            onChange={(v) => setCategoryId(v === 'all' ? undefined : v)} />
+        )}
+        {(data?.facets.suppliers.length ?? 0) > 0 && (
+          <FilterMenu icon={Truck} label="Supplier" value={supplierId ?? 'all'} active={!!supplierId} width="w-72"
+            options={[{ value: 'all', label: 'Sab supplier' }, ...data!.facets.suppliers.map((c) => ({ value: c.id, label: c.name ?? '', hint: `${c.count} cheezein${costHidden ? '' : ` · ${cost(c.value)}`}` }))]}
+            onChange={(v) => setSupplierId(v === 'all' ? undefined : v)} />
+        )}
+        {config.groups && (data?.facets.groups.length ?? 0) > 0 && (
+          <FilterMenu icon={ListChecks} label={config.groups.title} value={group ?? 'all'} active={!!group} width="w-64"
+            options={[{ value: 'all', label: 'Sab' }, ...data!.facets.groups.map((g) => ({ value: g.id, label: config.groups!.label(g.id), hint: `${g.count}` }))]}
+            onChange={(v) => setGroup(v === 'all' ? undefined : v)} />
+        )}
+        <FilterMenu icon={ArrowDownWideNarrow} label="Tarteeb" value={sort} options={SORTS} onChange={setSort} align="right" width="w-64" />
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>R</Kbd> reorder · <Kbd>A</Kbd> analytics · <Kbd>/</Kbd> dhoondein</>}
+        tabs={[
+          { id: 'alerts', label: 'Alerts', icon: AlertTriangle, count: data?.total ?? null },
+          { id: 'reorder', label: 'Reorder list', icon: ShoppingCart, count: totals?.orderLines ?? null },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          ...(config.extraTab ? [{ id: config.extraTab.id, label: config.extraTab.label, icon: config.extraTab.icon }] : []),
+        ]} />
+
+      {tab === 'analytics' ? (
+        <LowStockAnalytics data={analyticsQ.data} loading={analyticsQ.isLoading} money={money} cost={cost} costHidden={costHidden} />
+      ) : tab === 'reorder' ? (
+        <ReorderView rows={reorderQ.data?.items ?? []} loading={reorderQ.isLoading} qtyOf={qtyOf}
+          setQty={(key, v) => setQtyEdits((m) => ({ ...m, [key]: v }))}
+          removed={removed} toggleRemoved={(key) => setRemoved((s) => { const n = new Set(s); if (n.has(key)) n.delete(key); else n.add(key); return n; })}
+          cost={cost} costHidden={costHidden} showShop={showShop} shop={shopLabel} canOrder={can.order} onOrder={(g) => handoff(g, qtyOf)} />
+      ) : ExtraTab && tab === config.extraTab?.id ? (
+        <Suspense fallback={<Skeleton className="h-64 rounded-3xl" />}><ExtraTab /></Suspense>
+      ) : listQ.isLoading ? (
+        <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
+      ) : listQ.error && !data ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <p className="font-semibold text-slate-900">List nahi aa saki</p>
+          <p className="mt-1 text-[0.875rem] text-slate-500">{(listQ.error as Error).message}</p>
+          <div className="mt-4"><Button onClick={() => void listQ.refetch()}>Dobara koshish</Button></div>
         </div>
-        <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0 ml-2`}>
-          <Icon className="h-6 w-6" />
+      ) : !visible.length ? (
+        <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg"><PackageCheck className="h-7 w-7" /></span>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">{filtered ? 'Is filter me kuch nahi' : 'Sab stock theek hai'}</h3>
+          <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{filtered ? 'Filter badal kar dekhein ya hata dein.' : 'Kuch khatam, kam ya expiry ke qareeb nahi. Alert level product par ya yahan line par badal sakte hain.'}</p>
+          {filtered && <div className="mt-4"><Button variant="secondary" onClick={clear}>Filter hatayein</Button></div>}
         </div>
-      </div>
-    </div>
-  );
-}
+      ) : (
+        <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          <div className={cn('hidden items-center gap-x-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 lg:grid', LINE_GRID)}>
+            <button type="button" onClick={selectVisible} aria-label="Sab chunein"
+              className={cn('flex h-6 w-6 items-center justify-center rounded-md border-2', allVisible ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 text-transparent')}><Check className="h-3.5 w-3.5" strokeWidth={3} /></button>
+            <span>Cheez</span><span>Stock</span><span>Bikri · kitne din</span><span>Kya karna hai</span><span>Supplier</span><span />
+          </div>
+          <ul className="divide-y divide-slate-100">
+            {visible.map((r) => (
+              <LineRow key={r.key} r={r} selected={selected.has(r.key)} onToggle={() => toggle(r)} money={money} cost={cost} showShop={showShop}
+                groupLabel={config.groups?.label} deviceLink={config.deviceLink}
+                actions={{
+                  onOrder: can.order ? () => handoff({ key: r.key, shopId: r.shopId, shopName: r.shopName, supplier: r.supplier, rows: [r] }) : undefined,
+                  onStock: can.stock ? () => (isAll ? toast.error(`Stock ek branch me daalte hain — upar se ${r.shopName} chunein`) : setStockRow(r)) : undefined,
+                  onWhatsApp: () => openWhatsApp(waLink(r.supplier?.phone, itemMessage(r, shopLabel)), itemMessage(r, shopLabel)),
+                  onAlert: can.alert ? async (alert) => { await alertM.mutateAsync({ r, alert }); } : undefined,
+                  onIgnore: (ignore) => ignoreM.mutate({ rows: [r], ignore }),
+                }} />
+            ))}
+          </ul>
+        </section>
+      )}
 
-function EmptyChart() {
-  return (<div className="h-[280px] flex items-center justify-center text-sm text-slate-500">No data</div>);
+      {tab === 'alerts' && data && data.pages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
+          <span className="text-sm text-slate-600">Safha {page} / {data.pages}</span>
+          <Button variant="secondary" size="sm" disabled={page >= data.pages} onClick={() => setPage((x) => x + 1)}>Agla</Button>
+        </div>
+      )}
+
+      {selected.size > 0 && tab === 'alerts' && (
+        <div className="sticky bottom-4 z-30 mx-auto flex w-fit max-w-full flex-wrap items-center gap-2 rounded-2xl bg-slate-900 px-3 py-2 text-white shadow-2xl">
+          <span className="px-1 text-[0.8125rem] font-semibold">{selected.size} chuni</span>
+          {can.order && <Button size="sm" leftIcon={<ShoppingCart className="h-3.5 w-3.5" />} onClick={orderSelected}>Purchase order banayein</Button>}
+          <Button size="sm" variant="inverse" leftIcon={<MessageCircle className="h-3.5 w-3.5" />} onClick={whatsAppSelected}>WhatsApp list</Button>
+          <Button size="sm" variant="inverse" leftIcon={<EyeOff className="h-3.5 w-3.5" />} onClick={() => ignoreM.mutate({ rows: [...selected.values()], ignore: status !== 'ignored' })}>
+            {status === 'ignored' ? 'Wapas dikhayein' : 'Chhupayein'}
+          </Button>
+          <button type="button" onClick={() => setSelected(new Map())} aria-label="Chunna khatam" className="flex h-8 w-8 items-center justify-center rounded-lg text-white/70 hover:bg-white/10"><X className="h-4 w-4" /></button>
+        </div>
+      )}
+
+      {stockRow && (
+        <StockModal item={{ id: stockRow.productId, name: stockRow.name, unit: stockRow.unit, stock: stockRow.stock, price: stockRow.price }} money={money}
+          onClose={() => setStockRow(null)} onSaved={() => void refresh()} />
+      )}
+      {orderGroups && <OrderModal groups={orderGroups} shop={shopLabel} showShop={showShop} cost={cost} onClose={() => setOrderGroups(null)} onOrder={(g) => { setOrderGroups(null); handoff(g); }} />}
+      {editSettings && <SettingsModal value={settings} defaults={defaults} onSave={saveSettings} onClose={() => setEditSettings(false)} />}
+
+      {guide.isOpen && (
+        <PageGuide title="Low stock aur reorder — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: AlertTriangle, color: '#e11d48', title: 'Kya khatam ho raha hai', text: 'Upar ke dabbe: Khatam, Kam, Jaldi khatam, Expiry. Dabayein to sirf wohi lines dikhti hain. Sab se zaroori line sab se upar hai.' },
+            { icon: Clock, color: '#ea580c', title: 'Kitne din ka maal', text: `Har line par roz ki bikri (pichhle ${settings.days} din ki ausat) aur bacha maal kitne din chalega. Khatam maal par andaza ke roz kitni bikri ruk rahi hai.` },
+            { icon: ShoppingCart, color: '#2563eb', title: 'Order banayein', text: '"Reorder list" me har supplier ka alag card hai — miqdar badlein, phir "Order banayein". Kharidari ka order khul jata hai, sab cheezein pehle se bhari hui.' },
+            { icon: MousePointerClick, color: '#16a34a', title: 'Ek saath kaam', text: 'Lines chunein, phir neeche kaali patti: Purchase order (supplier war), WhatsApp list ya Chhupayein.' },
+            { icon: MessageCircle, color: '#059669', title: 'Supplier ko WhatsApp', text: 'Har line par hara button supplier ko tayyar paighaam bhejta hai. Supplier ka number na ho to WhatsApp khud chunne deta hai.' },
+            { icon: PackagePlus, color: '#7c3aed', title: 'Alert level aur stock', text: '"Alert" par click kar ke wahin had badlein (sirf is branch ki). "…" me stock daalein ya line chhupayein jab tak stock theek na ho.' },
+            ...(config.guide ?? []),
+          ]}
+          tips={[
+            `Order itna banta hai ke maal ${settings.targetDays} din chale; jo pehle se order me hai woh ghata diya jata hai. Settings (slider button) se din badlein.`,
+            'Supplier aur rate pichhli kharidari se aata hai. Jo kabhi nahi khareeda, us ke order me supplier khud chunein.',
+            'Sab branches par har branch ki line alag hai — order usi branch ka banta hai.',
+            ...(config.tips ?? []),
+          ]}
+          shortcuts={[['/', 'dhoondein'], ['R', 'reorder list'], ['A', 'analytics'], ['G', 'guide'], ['Esc', 'chunna khatam']]}
+          footer={<span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Search className="h-3.5 w-3.5" />Naam, SKU, barcode ya supplier se dhoondein</span>}
+        />
+      )}
+    </PageShell>
+  );
 }

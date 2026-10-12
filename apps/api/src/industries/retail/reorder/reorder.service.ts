@@ -1,153 +1,76 @@
+/**
+ * Saved reorder suggestions (the older Smart Reorder list). The numbers come
+ * from the shared low-stock service, so they are per branch, follow the
+ * shop's business days and only read this tenant's purchases.
+ */
+
 import { Injectable } from '@nestjs/common';
-import { subDays } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
+import { LowStockService } from '../../../modules/inventory/low-stock/low-stock.service';
 
 @Injectable()
 export class ReorderService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly lowStock: LowStockService,
+  ) {}
 
-  /**
-   * Analyze sales history and generate reorder suggestions
-   * Formula: If daysOfStock < 7 days AND product actively sold, suggest reorder
-   */
+  /** Replaces the pending suggestions of the branches in scope with fresh ones. */
   async generateSuggestions(user: AuthenticatedUser, scope: ShopScope) {
-    const thirtyDaysAgo = subDays(new Date(), 30);
+    const rows = (await this.lowStock.rows(user, scope, this.lowStock.settings()))
+      .filter((r) => r.suggestQty > 0 && !r.made && !r.ignored);
+    const shopIds = scope.shopId
+      ? [scope.shopId]
+      : (await this.prisma.shop.findMany({ where: { tenantId: user.tenantId }, select: { id: true } })).map((s) => s.id);
 
-    // Get sales per product in last 30 days
-    const salesData = await this.prisma.saleItem.groupBy({
-      by: ['productId'],
-      where: {
-        sale: {
+    await this.prisma.$transaction([
+      this.prisma.reorderSuggestion.deleteMany({
+        where: { tenantId: user.tenantId, status: 'PENDING', OR: [{ shopId: { in: shopIds } }, { shopId: null }] },
+      }),
+      this.prisma.reorderSuggestion.createMany({
+        data: rows.map((r) => ({
           tenantId: user.tenantId,
-          // Reorder advice is per branch: a shop restocks what *it* sells.
-          ...scope.where,
-          status: 'COMPLETED',
-          soldAt: { gte: thirtyDaysAgo },
-        },
-      },
-      _sum: { quantity: true },
-    });
-
-    const productSales = new Map(
-      salesData.map((s) => [s.productId, (s._sum.quantity ?? 0) / 30]),
-    );
-
-    // Get all active products
-    const products = await this.prisma.product.findMany({
-      where: {
-        tenantId: user.tenantId,
-        isActive: true,
-      },
-    });
-
-    // Get last purchase for each product (via PurchaseItem relation)
-    const lastPurchaseMap = new Map<string, { costPrice: number; supplierId: string | null }>();
-    try {
-      const productIds = products.map((p) => p.id);
-      if (productIds.length > 0) {
-        const purchaseItems = await this.prisma.purchaseItem.findMany({
-          where: { productId: { in: productIds } },
-          orderBy: { purchase: { createdAt: 'desc' } },
-          include: {
-            purchase: { select: { supplierId: true, createdAt: true } },
-          },
-        });
-        // Take latest per product
-        for (const pi of purchaseItems) {
-          if (pi.productId && !lastPurchaseMap.has(pi.productId)) {
-            lastPurchaseMap.set(pi.productId, {
-              // Per base unit, whatever unit it was bought in.
-              costPrice: (pi.costPrice ?? 0) / (pi.conversionRate || 1),
-              supplierId: pi.purchase?.supplierId ?? null,
-            });
-          }
-        }
-      }
-    } catch {
-      // If PurchaseItem model doesn't exist, silently skip
-    }
-
-    // Clear old pending suggestions
-    await this.prisma.reorderSuggestion.deleteMany({
-      where: {
-        tenantId: user.tenantId,
-        status: 'PENDING',
-      },
-    });
-
-    const suggestions: any[] = [];
-
-    for (const product of products) {
-      const avgDailySales = productSales.get(product.id) ?? 0;
-      const daysOfStock = avgDailySales > 0 ? product.stock / avgDailySales : 999;
-
-      // Suggest reorder if:
-      // - Product has active sales AND less than 14 days of stock
-      // - OR stock is below low stock alert
-      const needsReorder =
-        (avgDailySales > 0 && daysOfStock < 14) ||
-        product.stock <= product.lowStockAlert;
-
-      if (needsReorder) {
-        const suggestedQuantity = Math.max(
-          Math.ceil(avgDailySales * 30), // 30 days of stock
-          product.lowStockAlert * 2,
-          10,
-        );
-
-        const lastPurchase = lastPurchaseMap.get(product.id);
-
-        suggestions.push({
-          tenantId: user.tenantId,
-          productId: product.id,
-          currentStock: product.stock,
-          reorderPoint: product.lowStockAlert,
-          suggestedQuantity,
-          avgDailySales,
-          daysOfStockLeft: daysOfStock,
-          lastPurchasePrice: lastPurchase?.costPrice ?? product.costPrice,
-          preferredSupplierId: lastPurchase?.supplierId ?? null,
+          shopId: r.shopId,
+          productId: r.productId,
+          currentStock: r.stock,
+          reorderPoint: r.alert,
+          suggestedQuantity: r.suggestQty,
+          avgDailySales: r.perDay,
+          daysOfStockLeft: r.daysLeft ?? (r.stock <= 0 ? 0 : 999),
+          lastPurchasePrice: r.lastCost,
+          preferredSupplierId: r.supplier?.id ?? null,
           status: 'PENDING',
-        });
-      }
-    }
-
-    if (suggestions.length > 0) {
-      await this.prisma.reorderSuggestion.createMany({ data: suggestions });
-    }
-
-    return { generated: suggestions.length };
+        })),
+      }),
+    ]);
+    return { generated: rows.length };
   }
 
-  async list(user: AuthenticatedUser, status = 'PENDING') {
+  async list(user: AuthenticatedUser, scope: ShopScope, status = 'PENDING') {
     return this.prisma.reorderSuggestion.findMany({
       where: {
         tenantId: user.tenantId,
+        ...scope.whereLoose,
         ...(status !== 'all' && { status }),
       },
       orderBy: [{ daysOfStockLeft: 'asc' }, { createdAt: 'desc' }],
     });
   }
 
-  async listWithProducts(user: AuthenticatedUser, status = 'PENDING') {
-    const suggestions = await this.list(user, status);
+  async listWithProducts(user: AuthenticatedUser, scope: ShopScope, status = 'PENDING') {
+    const suggestions = await this.list(user, scope, status);
     const productIds = suggestions.map((s) => s.productId);
-    const supplierIds = suggestions
-      .map((s) => s.preferredSupplierId)
-      .filter(Boolean) as string[];
+    const supplierIds = suggestions.map((s) => s.preferredSupplierId).filter(Boolean) as string[];
 
     const [products, suppliers] = await Promise.all([
       this.prisma.product.findMany({
-        where: { id: { in: productIds } },
-        include: {
-          images: { where: { isPrimary: true }, take: 1 },
-          category: true,
-        },
+        where: { tenantId: user.tenantId, id: { in: productIds } },
+        include: { images: { where: { isPrimary: true }, take: 1 }, category: true },
       }),
       supplierIds.length
-        ? this.prisma.supplier.findMany({ where: { id: { in: supplierIds } } })
+        ? this.prisma.supplier.findMany({ where: { tenantId: user.tenantId, id: { in: supplierIds } } })
         : Promise.resolve([]),
     ]);
 

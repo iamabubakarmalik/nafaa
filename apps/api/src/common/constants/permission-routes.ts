@@ -84,6 +84,7 @@ export const ROUTE_RULES: RouteRule[] = [
      ijazat par chalte hain. */
   { match: /(^|\/)products(\/|$)/, GET: P.PRODUCTS_VIEW, POST: P.PRODUCTS_CREATE, PATCH: P.PRODUCTS_EDIT, PUT: P.PRODUCTS_EDIT, DELETE: P.PRODUCTS_DELETE },
   { match: /(^|\/)product-units(\/|$)/, GET: P.PRODUCTS_VIEW, write: P.PRODUCTS_EDIT },
+  { match: /(^|\/)combos(\/|$)/, GET: P.PRODUCTS_VIEW, write: P.PRODUCTS_EDIT, DELETE: P.PRODUCTS_DELETE },
   { match: /(^|\/)categories(\/|$)/, GET: P.CATEGORIES_VIEW, write: P.PRODUCTS_EDIT },
   { match: /(^|\/)brands(\/|$)/, GET: P.BRANDS_VIEW, write: P.PRODUCTS_EDIT },
   { match: /(^|\/)tags(\/|$)/, GET: P.TAGS_VIEW, write: P.PRODUCTS_EDIT },

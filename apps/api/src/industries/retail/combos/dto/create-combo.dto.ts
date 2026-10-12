@@ -1,12 +1,16 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ComboStatus } from '@prisma/client';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
-  ArrayMinSize, IsArray, IsBoolean, IsDateString, IsEnum, IsNumber,
-  IsOptional, IsString, Min, ValidateNested,
+  ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsDateString, IsEnum, IsInt, IsNumber,
+  IsOptional, IsString, Matches, MaxLength, Min, MinLength, ValidateNested,
 } from 'class-validator';
 
-class ComboItemDto {
+const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
+/** Blank strings clear the field instead of saving "". */
+const trimOrNull = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() || null : value);
+
+export class ComboItemDto {
   @ApiProperty()
   @IsString()
   productId!: string;
@@ -14,24 +18,25 @@ class ComboItemDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  variantId?: string;
+  variantId?: string | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Pack unit of the part (dozen, carton); base unit when empty' })
   @IsOptional()
   @IsString()
-  unitId?: string;
+  unitId?: string | null;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'Quantity in the chosen unit' })
   @IsNumber()
-  @Min(0.01)
+  @Min(0.001)
   quantity!: number;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  @MaxLength(40)
   unitName?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Normal price of one unit of this part; the current price when empty' })
   @IsOptional()
   @IsNumber()
   @Min(0)
@@ -40,38 +45,53 @@ class ComboItemDto {
 
 export class CreateComboDto {
   @ApiProperty()
+  @Transform(trim)
   @IsString()
+  @MinLength(2)
+  @MaxLength(120)
   name!: string;
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(trimOrNull)
   @IsString()
-  slug?: string;
+  @MaxLength(140)
+  slug?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(trimOrNull)
   @IsString()
-  sku?: string;
+  @MaxLength(60)
+  sku?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(trimOrNull)
   @IsString()
-  barcode?: string;
+  @MaxLength(60)
+  @Matches(/^\S+$/, { message: 'Barcode me khali jagah nahi ho sakti' })
+  barcode?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(trimOrNull)
   @IsString()
-  description?: string;
+  @MaxLength(2000)
+  description?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(trimOrNull)
   @IsString()
-  imageUrl?: string;
+  @MaxLength(1000)
+  imageUrl?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(trimOrNull)
   @IsString()
-  categoryId?: string;
+  categoryId?: string | null;
 
   @ApiProperty()
   @IsNumber()
@@ -86,22 +106,24 @@ export class CreateComboDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsDateString()
-  validFrom?: string;
+  validFrom?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsDateString()
-  validTo?: string;
+  validTo?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsNumber()
-  maxPurchasePerCustomer?: number;
+  @IsInt()
+  @Min(1)
+  maxPurchasePerCustomer?: number | null;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Upper limit on how many can be sold; parts stock limits it anyway' })
   @IsOptional()
-  @IsNumber()
-  stockAvailable?: number;
+  @IsInt()
+  @Min(0)
+  stockAvailable?: number | null;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -110,13 +132,34 @@ export class CreateComboDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsInt()
+  @Min(0)
+  sortOrder?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Transform(trimOrNull)
   @IsString()
-  tagLine?: string;
+  @MaxLength(60)
+  tagLine?: string | null;
 
   @ApiProperty({ type: [ComboItemDto] })
   @IsArray()
-  @ArrayMinSize(2)
+  @ArrayMinSize(1)
+  @ArrayMaxSize(50)
   @ValidateNested({ each: true })
   @Type(() => ComboItemDto)
   items!: ComboItemDto[];
+}
+
+export class ComboRangeDto {
+  @ApiPropertyOptional({ description: 'First business day, YYYY-MM-DD' })
+  @IsOptional()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  from?: string;
+
+  @ApiPropertyOptional({ description: 'Last business day, YYYY-MM-DD' })
+  @IsOptional()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  to?: string;
 }

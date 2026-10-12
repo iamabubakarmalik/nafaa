@@ -38,6 +38,7 @@ import { ProductBatchesModule } from './modules/inventory/product-batches/produc
 import { StockMovementsModule } from './modules/inventory/stock-movements/stock-movements.module';
 import { StockAdjustmentsModule } from './modules/inventory/stock-adjustments/stock-adjustments.module';
 import { TransfersModule } from './modules/inventory/transfers/transfers.module';
+import { LowStockModule } from './modules/inventory/low-stock/low-stock.module';
 import { BarcodeLabelsModule } from './modules/inventory/barcode-labels/barcode-labels.module';
 
 import { CustomersModule } from './modules/customers/customers/customers.module';
@@ -193,6 +194,7 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     StockMovementsModule,
     StockAdjustmentsModule,
     TransfersModule,
+    LowStockModule,
     BarcodeLabelsModule,
     ExpensesModule,
     ExpenseCategoriesModule,

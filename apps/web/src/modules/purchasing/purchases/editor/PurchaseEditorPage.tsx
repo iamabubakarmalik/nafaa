@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, Boxes, CalendarClock, ChevronDown, ClipboardList, PackagePlus, Plus, Save, ScanLine, Search, Trash2, Truck, UserPlus, Wheat, X,
@@ -35,6 +35,13 @@ export interface PurchaseEditorConfig {
   /** Small badge next to a product line, e.g. electronics "Serial". */
   lineBadge?: (productId: string) => ReactNode;
   productWizardPath?: string;
+}
+
+/** Lines handed over by another page (low stock "Order banayein") through navigation state. */
+export interface PurchasePrefill {
+  supplierId?: string;
+  supplierName?: string;
+  lines: Array<{ productId?: string; ingredientId?: string; qty: number }>;
 }
 
 const money = (n: number) => formatPKR(n);
@@ -73,6 +80,25 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
     const hit = suppliers.find((x) => x.id === preset);
     if (hit) setBill((b) => ({ ...b, supplierId: hit.id, supplierName: hit.name }));
   }, [preset, suppliers]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Opened with lines from another page: start a fresh bill with them, once.
+  const location = useLocation();
+  const prefill = (location.state as { prefill?: PurchasePrefill } | null)?.prefill;
+  useEffect(() => {
+    if (!prefill || loading) return;
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+    if (lines.length && !confirm('Pehle se adhoora bill hai. Usay hata kar naya order banayein?')) return;
+    d.reset();
+    setBill((b) => ({ ...b, mode: 'order', supplierId: prefill.supplierId ?? '', supplierName: prefill.supplierName ?? '' }));
+    const skipped: string[] = [];
+    for (const l of prefill.lines) {
+      const s = sources.find((x) => x.key === (l.productId ? `p:${l.productId}` : `i:${l.ingredientId}`));
+      if (!s) continue;
+      if (s.hasVariants) { skipped.push(s.name); continue; }
+      d.add(s, s.units[0], undefined, l.qty > 0 ? l.qty : 1);
+    }
+    if (skipped.length) toast.info(`Qismon wali cheezein khud jorein: ${skipped.join(', ')}`);
+  }, [prefill, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const results = useMemo(() => searchSources(sources, query), [sources, query]);
   const low = useMemo(() => sources.filter((s) => s.lowAt > 0 && s.stock <= s.lowAt).sort((a, b) => a.stock - b.stock).slice(0, 14), [sources]);

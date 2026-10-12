@@ -102,6 +102,8 @@ export const posNavGroups: NavGroup[] = [
       { to: '/products', label: 'Products', icon: Package, permission: P.PRODUCTS_VIEW, keywords: 'items stock' },
       { to: '/catalog', label: 'Catalog', icon: Eye, permission: P.PRODUCTS_VIEW },
       { to: '/low-stock', label: 'Low stock', icon: AlertTriangle, permission: P.LOW_STOCK_VIEW, keywords: 'reorder khatam' },
+      { to: '/combos', label: 'Combos', icon: Gift, permission: P.PRODUCTS_VIEW, keywords: 'bundle deal offer package' },
+      { to: '/product-units', label: 'Multi-units', icon: Layers, permission: P.PRODUCTS_VIEW, keywords: 'pack box carton dozen unit' },
       { to: '/damage', label: 'Kharab maal', icon: PackageX, permission: P.PRODUCTS_VIEW, keywords: 'damage wastage expiry toota report approve' },
       { to: '/stock-adjustments', label: 'Adjustments', icon: ClipboardCheck, permission: P.STOCK_ADJUSTMENTS_MANAGE, needsShop: true, keywords: 'count correction' },
       { to: '/transfers', label: 'Transfers', icon: ArrowRightLeft, permission: P.STOCK_TRANSFERS_MANAGE, keywords: 'branch move' },

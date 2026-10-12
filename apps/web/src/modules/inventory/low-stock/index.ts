@@ -1,3 +1,3 @@
 // Barrel for low-stock
 export {};
-export { default as LowStockGate } from './pages/LowStockGate';
+export { default as LowStockPage } from './pages/LowStockPage';

@@ -1,13 +1,8 @@
-import { LayoutDashboard, Sparkles, Layers, Download, RefreshCw } from 'lucide-react';
 import type { IndustryPack } from '@industries/_shared/types/industry-pack';
 
 import RetailDashboard from './dashboard/RetailDashboard';
 import RetailPos from './pos/RetailPos';
-import CombosPage from './pages/CombosPage';
-import ComboFormPage from './pages/ComboFormPage';
-import ProductUnitsPage from './pages/ProductUnitsPage';
 import BulkImportPage from './pages/BulkImportPage';
-import ReorderPage from './pages/ReorderPage';
 import BarcodeLabelsPage from '@modules/inventory/barcodes/pages/BarcodeLabelsPage';
 import RetailProductEditor from './products/RetailProductEditor';
 import RetailProductDetail from './products/RetailProductDetail';
@@ -45,20 +40,7 @@ export const RetailPack: IndustryPack = {
     );
   },
 
-  navGroups: [
-    {
-      label: 'Retail Extras',
-      icon: Sparkles,
-      emoji: '🛒',
-      color: '#0ea5e9',
-      order: 20,
-      items: [
-        { to: '/retail/combos',       label: 'Combos',           icon: Sparkles },
-        { to: '/retail/product-units',label: 'Multi-Units',      icon: Layers },
-        { to: '/retail/reorders',     label: 'Smart Reorder',    icon: RefreshCw, badge: 'AI' },
-      ],
-    },
-  ],
+  navGroups: [],
 
   routes: [
     // POS (route rahe, sidebar sirf core POS wale link se open ho)
@@ -74,14 +56,9 @@ export const RetailPack: IndustryPack = {
     { path: '/retail/dashboard',  element: RetailDashboard },
 
     // Combos
-    { path: '/retail/combos/new',       element: ComboFormPage },
-    { path: '/retail/combos/:id/edit',  element: ComboFormPage },
-    { path: '/retail/combos',           element: CombosPage },
 
     // Retail features
-    { path: '/retail/product-units',  element: ProductUnitsPage },
     { path: '/retail/bulk-import',    element: BulkImportPage },
-    { path: '/retail/reorders',       element: ReorderPage },
     { path: '/retail/barcode-labels', element: BarcodeLabelsPage },
   ],
 
@@ -101,10 +78,4 @@ export const RetailPack: IndustryPack = {
       { value: 'meter',  label: 'Meter',        hint: '📏', group: 'Length' },
     ],
   },
-
-  featureFlags: [
-    { key: 'retailCombos',    label: 'Combo Products',      defaultEnabled: true },
-    { key: 'retailMultiUnit', label: 'Multi-Unit Pricing',  defaultEnabled: true },
-    { key: 'retailReorder',   label: 'Smart Reorder',       defaultEnabled: false },
-  ],
 };

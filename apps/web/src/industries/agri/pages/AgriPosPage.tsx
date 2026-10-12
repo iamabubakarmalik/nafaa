@@ -527,7 +527,7 @@ export default function AgriPosPage() {
     for (const item of combo.items) {
       const product = products.find((p) => p.id === item.productId);
       if (!product) continue;
-      const needed = Number(item.quantity) * qty;
+      const needed = Number(item.quantity) * (Number(item.unit?.conversionRate) || 1) * qty;
       if (stockOf(product) < needed) { toast.error(`${product.name} — stock sirf ${stockOf(product)}, chahiye ${needed}`); return; }
     }
     setCart((prev) => {
@@ -538,7 +538,7 @@ export default function AgriPosPage() {
       }
       toast.success(`🎁 ${combo.name}`, { duration: 900 });
       return [...prev, {
-        id: posLineId(), type: 'combo' as const, comboId: combo.id, name: combo.name, image: combo.imageUrl,
+        id: posLineId(), type: 'combo' as const, comboId: combo.id, name: combo.name, image: combo.imageUrl ?? undefined,
         unitName: 'combo', unitLabel: 'COMBO', emoji: '🎁',
         unitPrice: Number(combo.comboPrice), basePrice: Number(combo.comboPrice),
         quantity: qty, baseQuantity: qty, conversionRate: 1, baseUnit: 'combo', baseStock: 9999,
@@ -772,11 +772,13 @@ export default function AgriPosPage() {
           const origTotal = l.comboItems.reduce((s: number, it: any) => s + Number(it.quantity || 0) * (Number(it.originalPrice) || 0), 0);
           const factor = origTotal > 0 ? l.unitPrice / origTotal : 1;
           l.comboItems.forEach((ci: any) => {
-            const orig = Number(ci.originalPrice) || 0;
+            // A pack part (1 dozen) leaves stock in base units at the base-unit price.
+            const rate = Number(ci.unit?.conversionRate) || 1;
+            const orig = (Number(ci.originalPrice) || 0) / rate;
             const disc = orig * factor;
             items.push({
               productId: ci.productId, variantId: ci.variantId,
-              quantity: Number(ci.quantity) * l.quantity,
+              quantity: Number(ci.quantity) * rate * l.quantity,
               priceOverride: isFinite(disc) && disc > 0 ? disc : orig,
               note: `Combo ka hissa: ${l.name}`,
             });
