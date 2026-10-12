@@ -7,12 +7,16 @@ import {
   CancelPurchaseDto, CreatePurchaseDto, ListPurchasesDto, ReceivePurchaseDto, ReturnPurchaseDto,
 } from './dto/create-purchase.dto';
 import { PurchasesService } from './purchases.service';
+import { PurchaseAnalyticsService } from './purchase-analytics.service';
 
 @ApiTags('Purchases')
 @ApiBearerAuth()
 @Controller('purchases')
 export class PurchasesController {
-  constructor(private readonly purchasesService: PurchasesService) {}
+  constructor(
+    private readonly purchasesService: PurchasesService,
+    private readonly analyticsService: PurchaseAnalyticsService,
+  ) {}
 
   @Post()
   create(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Body() dto: CreatePurchaseDto) {
@@ -29,6 +33,11 @@ export class PurchasesController {
   @Get('list')
   list(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query() q: ListPurchasesDto) {
     return this.purchasesService.list(user, shop, q);
+  }
+
+  @Get('analytics')
+  analytics(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query('from') from?: string, @Query('to') to?: string) {
+    return this.analyticsService.analytics(user, shop, from, to);
   }
 
   @Get('summary')

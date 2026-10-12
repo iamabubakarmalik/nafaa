@@ -245,6 +245,21 @@ export interface PurchaseSummary {
   }>;
 }
 
+export interface PurchaseAnalytics {
+  range: { from: string; to: string; byMonth: boolean };
+  totals: { value: number; paid: number; credit: number; returned: number; bills: number; avgBill: number; suppliers: number; items: number; prevValue: number; prevBills: number; growth: number };
+  trend: Array<{ key: string; label: string; value: number; paid: number; bills: number }>;
+  weekday: Array<{ day: number; value: number; bills: number }>;
+  suppliers: Array<{ id: string; name: string; value: number; paid: number; bills: number; share: number }>;
+  categories: Array<{ name: string; color: string | null; value: number }>;
+  items: Array<{ name: string; unit: string; value: number; qty: number; bills: number; avgCost: number; raw: boolean }>;
+  costRises: Array<{ name: string; unit: string; first: number; last: number; change: number }>;
+  payments: Array<{ method: string; value: number; bills: number }>;
+  units: Array<{ unit: string; lines: number; value: number }>;
+  returns: { count: number; total: number };
+  openOrders: { count: number; value: number; late: number; list: Array<{ id: string; number: string; supplier: string; value: number; expectedAt: string | null; late: boolean }> };
+}
+
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const purchasesApi = {
@@ -259,6 +274,9 @@ export const purchasesApi = {
 
   summary: () =>
     apiClient.get<{ data: PurchaseSummary }>('/purchases/summary').then(unwrap),
+
+  analytics: (range?: { from: string; to: string } | null) =>
+    apiClient.get<{ data: PurchaseAnalytics }>('/purchases/analytics', { params: range ?? undefined }).then(unwrap),
 
   page: (q: PurchaseListQuery) =>
     apiClient.get<{ data: PurchaseList }>('/purchases/list', { params: q }).then(unwrap),

@@ -151,4 +151,12 @@ export interface ReceiptDoc {
   previousDue?: number;
   /** Industry message above the shop's own footer. */
   footerNote?: string;
+  /** Quantities only, no rates or money (e.g. an order sent to a supplier). */
+  hidePrices?: boolean;
+  /** Heading of the party card on A4 ("Bill to", "Supplier"). */
+  partyLabel?: string;
+  /** Captions under the two A4 signature lines. */
+  signLabels?: [string, string];
+  /** Extra boxes on A4 / sections on thermal, e.g. a supplier's bank details. */
+  boxes?: Array<{ title: string; lines: string[] }>;
 }

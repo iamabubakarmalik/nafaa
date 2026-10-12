@@ -9,15 +9,14 @@ import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Ban, BookOpen, GraduationCap, MessageCircle, PackageCheck, Phone, RotateCcw, Wheat } from 'lucide-react';
+import { ArrowLeft, Ban, BookOpen, GraduationCap, MessageCircle, PackageCheck, Phone, Printer, RotateCcw, Wheat } from 'lucide-react';
 import { Button, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
-import { PrintButton } from '@core/print';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
-import { purchaseDoc } from '../../print';
+import { PurchasePrintModal } from '../components/PurchasePrintModal';
 import { getReceiptSetup } from '@core/receipt/setup';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
@@ -45,6 +44,7 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
   const canEdit = usePermission(PERMISSIONS.PURCHASES_CREATE);
   const [modal, setModal] = useState<'receive' | 'return' | 'cancel' | null>(null);
   const guide = usePageGuide();
+  const [printing, setPrinting] = useState(false);
   const q = useQuery({ queryKey: ['purchase', id], queryFn: () => purchasesApi.getOne(id!), enabled: !!id });
   const p = q.data;
 
@@ -83,7 +83,7 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
           <p className="text-[0.8125rem] text-slate-500">{day(p.purchasedAt)}{p.shop?.name ? ` · ${p.shop.name}` : ''}{p.createdBy?.fullName ? ` · ${p.createdBy.fullName}` : ''}</p>
         </div>
         <Button variant="ghost" onClick={guide.open} aria-label="Guide (G)" leftIcon={<GraduationCap className="h-4 w-4" />}><span className="hidden sm:inline">Guide</span></Button>
-        <PrintButton doc={() => purchaseDoc(p)} />
+        <Button variant="secondary" onClick={() => setPrinting(true)} leftIcon={<Printer className="h-4 w-4" />}>Print / invoice</Button>
         {open && <Button variant="secondary" onClick={whatsapp} leftIcon={<MessageCircle className="h-4 w-4 text-emerald-600" />}>Order bhejein</Button>}
         {canEdit && open && <Button onClick={() => setModal('receive')} leftIcon={<PackageCheck className="h-4 w-4" />}>Maal aaya</Button>}
       </div>
@@ -193,10 +193,11 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
             { icon: Ban, color: '#dc2626', title: 'Cancel', text: 'Ghalat bill ho to cancel karein — aaya hua maal stock se nikal jayega aur khata ulat jayega. Wapsi ho chuki ho to cancel nahi, baqi maal wapas karein.' },
             { icon: BookOpen, color: '#2563eb', title: 'Supplier ka khata', text: 'Supplier par click karein — wahan adaigi darj karein aur poora khata dekhein.' },
           ]}
-          tips={['Print se A4, PDF ya thermal par bill nikalta hai; order ho to "Order bhejein" se WhatsApp par seedha supplier ko.', 'Har line par likha hai kis unit me aaya aur stock me kitna gaya (misaal: 4 carton = 48 pcs).']}
+          tips={['"Print / invoice" me chunein: bill, order ya maal wusooli; A4 ya thermal; rates chhupayein, supplier ka bank, hamare accounts, dastkhat — saath preview.', 'Har line par likha hai kis unit me aaya aur stock me kitna gaya (misaal: 4 carton = 48 pcs).']}
           shortcuts={[['G', 'guide']]}
         />
       )}
+      {printing && <PurchasePrintModal p={p} onClose={() => setPrinting(false)} />}
       {modal === 'receive' && <ReceiveModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}
       {modal === 'return' && <ReturnModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}
       {modal === 'cancel' && <CancelModal p={p} onClose={() => setModal(null)} onDone={() => { setModal(null); refresh(); }} />}

@@ -11,7 +11,11 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, Banknote, BookOpen, ClipboardList, GraduationCap, Landmark, MessageCircle, Pencil, Phone, ShoppingCart, Trash2, TrendingDown, TrendingUp,
 } from 'lucide-react';
-import { Avatar, Button, DateRangeMenu, Modal, Tabs, resolveRange, type DateRangeValue } from '@/design-system/components';
+import { Avatar, Button, Card as DsCard, DateRangeMenu, Modal, Tabs, resolveRange, type DateRangeValue } from '@/design-system/components';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { axisMoney } from '@modules/dashboard/engine/parts';
+import { PAYMENT_COLORS, PAYMENT_LABELS, useChartTheme } from '@modules/dashboard/engine/useChartTheme';
+import type { SupplierDetail } from '../api/suppliers.api';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { useBusinessDayStart } from '@core/lib/business-day';
@@ -26,7 +30,7 @@ import { suppliersApi } from '../api/suppliers.api';
 import { entryDelta, ledgerMeta, supplierLedgerApi } from '../api/supplier-ledger.api';
 import { SupplierMoneyModal, type MoneyKind } from '../components/SupplierMoneyModal';
 
-type Tab = 'khata' | 'bills' | 'rates' | 'info';
+type Tab = 'khata' | 'bills' | 'rates' | 'analytics' | 'info';
 const day = (v?: string | null) => (v ? new Date(v).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
 
 export default function SupplierDetailPage() {
@@ -84,11 +88,12 @@ export default function SupplierDetailPage() {
       </div>
 
       <Tabs value={tab} onChange={setTab} label="Supplier"
-        items={[{ value: 'khata', label: 'Khata' }, { value: 'bills', label: 'Kharidari', count: s._count.purchases }, { value: 'rates', label: 'Rates' }, { value: 'info', label: 'Tafseel' }]} />
+        items={[{ value: 'khata', label: 'Khata' }, { value: 'bills', label: 'Kharidari', count: s._count.purchases }, { value: 'rates', label: 'Rates' }, { value: 'analytics', label: 'Analytics' }, { value: 'info', label: 'Tafseel' }]} />
 
       {tab === 'khata' && <Khata supplierId={s.id} name={s.name} canEdit={canEdit} />}
       {tab === 'bills' && <Bills supplierId={s.id} />}
       {tab === 'rates' && <Rates history={s.priceHistory} />}
+      {tab === 'analytics' && <Analytics s={s} />}
       {tab === 'info' && (
         <div className="grid gap-3 md:grid-cols-2">
           <Card title="Rabta">
@@ -270,5 +275,79 @@ function DeleteModal({ id, name, onClose, onDone }: { id: string; name: string; 
       footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={mut.isPending} onClick={() => mut.mutate()}>Mitayein</Button></>}>
       <p className="text-sm text-slate-600">Yeh wapas nahi hota.</p>
     </Modal>
+  );
+}
+
+function Analytics({ s }: { s: SupplierDetail }) {
+  const theme = useChartTheme();
+  const tip = theme.tooltip;
+  const top = (s.topProducts ?? []) as Array<{ productId: string; product?: { name: string; unit: string }; quantity: number; total: number; orderCount: number }>;
+  return (
+    <div className="space-y-4">
+      <DsCard className="rounded-2xl" title="12 mahine — kharidari aur adaigi">
+        <div className="h-[260px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={s.months12} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
+              <CartesianGrid stroke={theme.grid} vertical={false} />
+              <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
+              <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
+              <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n]} {...tip} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Bar dataKey="total" name="Kharidari" fill={theme.primary} radius={[6, 6, 0, 0]} />
+              <Bar dataKey="paid" name="Diye" fill={theme.profit} radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </DsCard>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <DsCard className="rounded-2xl lg:col-span-2" title="Pichle 30 din">
+          <div className="h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={s.trend30Days} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
+                <defs><linearGradient id="sup-30" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={theme.primary} stopOpacity={0.3} /><stop offset="100%" stopColor={theme.primary} stopOpacity={0} /></linearGradient></defs>
+                <CartesianGrid stroke={theme.grid} vertical={false} />
+                <XAxis dataKey="date" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={16} tickFormatter={(v: string) => v.slice(5)} />
+                <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
+                <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Kharidari']} {...tip} />
+                <Area type="monotone" dataKey="total" stroke={theme.primary} strokeWidth={2.25} fill="url(#sup-30)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </DsCard>
+        <DsCard className="rounded-2xl" title="Adaigi kaise ki">
+          {!s.paymentBreakdown.length ? <p className="py-10 text-center text-sm text-slate-500">Abhi koi adaigi nahi</p> : (
+            <>
+              <div className="h-[150px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={s.paymentBreakdown} dataKey="total" nameKey="paymentMethod" innerRadius={42} outerRadius={64} paddingAngle={2} stroke="none">
+                      {s.paymentBreakdown.map((p) => <Cell key={p.paymentMethod} fill={PAYMENT_COLORS[p.paymentMethod] ?? '#64748b'} />)}
+                    </Pie>
+                    <Tooltip formatter={(v, n) => [formatPKR(Number(v)), PAYMENT_LABELS[String(n)] ?? n]} {...tip} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className="mt-2 space-y-1 text-[0.8125rem]">
+                {s.paymentBreakdown.map((p) => (
+                  <li key={p.paymentMethod} className="flex justify-between"><span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full" style={{ background: PAYMENT_COLORS[p.paymentMethod] ?? '#64748b' }} />{PAYMENT_LABELS[p.paymentMethod] ?? p.paymentMethod}</span><span className="tabular-nums">{formatPKR(p.total)}</span></li>
+                ))}
+              </ul>
+            </>
+          )}
+        </DsCard>
+      </div>
+      <DsCard className="rounded-2xl" title="Is supplier se sab se zyada liya">
+        {!top.length ? <p className="py-10 text-center text-sm text-slate-500">Abhi koi kharidari nahi</p> : (
+          <ul className="divide-y divide-slate-100">
+            {top.map((t) => (
+              <li key={t.productId} className="flex justify-between gap-2 py-2 text-sm">
+                <span className="min-w-0"><span className="block truncate font-medium text-slate-900">{t.product?.name ?? '—'}</span><span className="text-[0.75rem] text-slate-500">{Number(t.quantity.toFixed(2))} {t.product?.unit ?? ''} · {t.orderCount} bill</span></span>
+                <span className="shrink-0 font-semibold tabular-nums">{formatPKR(t.total)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </DsCard>
+    </div>
   );
 }

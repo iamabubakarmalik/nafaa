@@ -12,7 +12,7 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import { purchasesListDoc } from '../../print';
 import {
-  Button, DateRangeMenu, FilterMenu, PageHero, heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
+  Button, DateRangeMenu, FilterMenu, PageHero, Tabs, heroButton, heroIconButton, heroPrimaryButton, resolveRange, type DateRangeValue,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -20,6 +20,7 @@ import { useBusinessDayStart } from '@core/lib/business-day';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { suppliersApi } from '../../suppliers/api/suppliers.api';
+import { PurchaseAnalytics } from '../components/PurchaseAnalytics';
 import { purchasesApi, type PurchaseListQuery, type PurchaseListRow, type PurchaseStatus } from '../api/purchases.api';
 
 export const STATUS: Record<PurchaseStatus, { label: string; tone: string }> = {
@@ -41,6 +42,7 @@ export default function PurchasesListPage() {
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [tab, setTab] = useState<'bills' | 'analytics'>('bills');
   const [showInsights, setShowInsights] = useState(() => { try { return localStorage.getItem('purchases-insights') !== '0'; } catch { return true; } });
   useEffect(() => { try { localStorage.setItem('purchases-insights', showInsights ? '1' : '0'); } catch { /* storage blocked */ } }, [showInsights]);
 
@@ -91,6 +93,17 @@ export default function PurchasesListPage() {
         ] : undefined}
       />
 
+      <Tabs label="Kharidari" value={tab} onChange={setTab} items={[{ value: 'bills', label: 'Bills', count: data?.total }, { value: 'analytics', label: 'Analytics' }]} />
+
+      {tab === 'analytics' ? (
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
+            <span className="text-[0.8125rem] text-slate-500">Saare charts isi muddat ke hain; pichli itni hi muddat se muqabla</span>
+          </div>
+          <PurchaseAnalytics range={period} money={money} />
+        </>
+      ) : (<>
       {s && showInsights && <Insights s={s} money={money} onClose={() => setShowInsights(false)} />}
       {s && !showInsights && (
         <button type="button" onClick={() => setShowInsights(true)} className="text-[0.8125rem] font-medium text-brand-700 hover:underline">Hafte ka graph aur top suppliers dikhayein</button>
@@ -136,6 +149,8 @@ export default function PurchasesListPage() {
         </ul>
       )}
 
+      </>)}
+
       {guide.isOpen && (
         <PageGuide title="Kharidari — aasaan tareeqa" onClose={guide.close}
           steps={[
@@ -156,7 +171,7 @@ export default function PurchasesListPage() {
         />
       )}
 
-      {data && data.pages > 1 && (
+      {tab === 'bills' && data && data.pages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage((x) => x - 1)}>Pichla</Button>
           <span className="text-sm text-slate-600">Safha {page} / {data.pages}</span>

@@ -11,7 +11,7 @@ import { ArrowDownWideNarrow, Banknote, BookOpen, Filter, GraduationCap, MapPin,
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import { suppliersDoc } from '../../print';
-import { Avatar, Button, FilterMenu, PageHero, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import { Avatar, Button, FilterMenu, PageHero, Tabs, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { usePermission } from '@core/hooks/usePermission';
@@ -19,6 +19,7 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { suppliersApi, type Supplier } from '../api/suppliers.api';
 import { SupplierMoneyModal } from '../components/SupplierMoneyModal';
+import { SupplierAnalytics } from '../components/SupplierAnalytics';
 
 type Dues = 'all' | 'due' | 'clear';
 type Status = 'all' | 'active' | 'inactive';
@@ -39,6 +40,7 @@ export default function SuppliersListPage() {
   const [page, setPage] = useState(1);
   const [paying, setPaying] = useState<Supplier | null>(null);
   const guide = usePageGuide();
+  const [tab, setTab] = useState<'list' | 'analytics'>('list');
 
   useEffect(() => { const t = setTimeout(() => setQ(search.trim()), 250); return () => clearTimeout(t); }, [search]);
   useEffect(() => { setPage(1); }, [q, dues, status, city, sort]);
@@ -84,6 +86,9 @@ export default function SuppliersListPage() {
         ] : undefined}
       />
 
+      <Tabs label="Suppliers" value={tab} onChange={setTab} items={[{ value: 'list', label: 'Suppliers', count: meta?.total }, { value: 'analytics', label: 'Analytics' }]} />
+
+      {tab === 'analytics' ? <SupplierAnalytics /> : (<>
       {!!s?.dueAging?.some((b) => b.amount > 0) && (
         <div className="grid gap-2 sm:grid-cols-4">
           {s.dueAging!.map((b) => (
@@ -163,6 +168,8 @@ export default function SuppliersListPage() {
           <Button variant="secondary" size="sm" disabled={page >= meta.totalPages} onClick={() => setPage((p) => p + 1)}>Agla</Button>
         </div>
       )}
+
+      </>)}
 
       {guide.isOpen && (
         <PageGuide title="Suppliers — aasaan tareeqa" onClose={guide.close}
