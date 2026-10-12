@@ -40,6 +40,8 @@ const LEDGER_META: Record<LedgerType, { label: string; chip: string; icon: any }
   ADJUSTMENT:       { label: 'Udhaar chadhaya', chip: 'bg-orange-100 text-orange-700', icon: Plus },
   PAYMENT_RECEIVED: { label: 'Wasooli',         chip: 'bg-emerald-100 text-emerald-700', icon: ArrowDownLeft },
   OPENING_BALANCE:  { label: 'Purana khata',    chip: 'bg-violet-100 text-violet-700', icon: BookOpen },
+  REFUND:           { label: 'Maal wapas',      chip: 'bg-sky-100 text-sky-700',       icon: ArrowDownLeft },
+  LOYALTY_REDEEMED: { label: 'Points istemal',  chip: 'bg-violet-100 text-violet-700', icon: ArrowDownLeft },
 };
 
 export default function ElectronicsKhataPage() {

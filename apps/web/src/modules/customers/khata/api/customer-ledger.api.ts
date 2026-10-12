@@ -4,7 +4,9 @@ export type LedgerType =
   | 'SALE_CREDIT'
   | 'PAYMENT_RECEIVED'
   | 'ADJUSTMENT'
-  | 'OPENING_BALANCE';
+  | 'OPENING_BALANCE'
+  | 'REFUND'
+  | 'LOYALTY_REDEEMED';
 
 /** Kis branch ne ye entry lagayi */
 export interface LedgerShop {

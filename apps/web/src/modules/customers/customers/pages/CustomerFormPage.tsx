@@ -7,6 +7,7 @@ import {
   CalendarDays, Wallet, Sparkles, Keyboard, Star, Cake, CopyX,
   MessageCircle, Eye, BookOpen, ShoppingBag, Plus, Building2, Info,
 } from 'lucide-react';
+import { directoryApi } from '@modules/customers/directory/api';
 import { customersApi, type UpsertCustomerPayload } from '@modules/customers/customers/api/customers.api';
 import { Button } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
@@ -171,7 +172,8 @@ export default function CustomerFormPage() {
 
   const { data: phoneDupes } = useQuery({
     queryKey: ['customer-phone-dupe', phoneNormalized],
-    queryFn: () => customersApi.list({ search: phoneNormalized, page: 1, limit: 5 }),
+    // The directory matches any phone format (0300-…, +92…), unlike a plain text search.
+    queryFn: () => directoryApi.list({ search: phoneNormalized, status: 'all', type: 'all', activity: 'all', sort: 'recent', scope: 'all' }, 1, 5),
     enabled: canCheckPhone,
     staleTime: 15_000,
   });
@@ -265,8 +267,9 @@ export default function CustomerFormPage() {
     mutationFn: async () => {
       const cleanForm: any = { ...form };
       const stringFields = ['phone', 'email', 'cnic', 'address', 'city', 'area', 'notes', 'avatarUrl', 'dateOfBirth'];
+      // On edit an empty string clears the field; on create it is simply left out.
       stringFields.forEach((k) => {
-        if (cleanForm[k] === '' || cleanForm[k] === null) cleanForm[k] = undefined;
+        if (cleanForm[k] === '' || cleanForm[k] === null) cleanForm[k] = isEdit ? '' : undefined;
       });
       if (cleanForm.name) cleanForm.name = String(cleanForm.name).trim();
       return isEdit ? customersApi.update(id!, cleanForm) : customersApi.create(cleanForm);
@@ -275,13 +278,13 @@ export default function CustomerFormPage() {
 
   const removeMutation = useMutation({
     mutationFn: () => customersApi.remove(id!),
-    onSuccess: () => {
-      toast.success('Customer delete ho gaya');
+    onSuccess: (r: { message?: string; softDeleted?: boolean }) => {
+      toast.success(r?.message ?? 'Ho gaya');
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       queryClient.invalidateQueries({ queryKey: ['customers-stats'] });
       navigate('/customers');
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete fail — sales history ho sakti hai'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi hua'),
   });
 
   /** @param andNew true ho to save ke baad form khali karke agla customer likhne ke liye tayyar */
@@ -292,7 +295,7 @@ export default function CustomerFormPage() {
       toast.error(errors.name || 'Form mein ghalati hai — red fields theek karo');
       return;
     }
-    if (duplicatePhoneCustomer && !isEdit) {
+    if (duplicatePhoneCustomer) {
       toast.error(`Ye number pehle se "${duplicatePhoneCustomer.name}" ka hai!`);
       return;
     }
@@ -952,7 +955,7 @@ function DeleteConfirmModal({ name, balance, loading, onClose, onConfirm }: any)
             </div>
           )}
           <p className="mt-2 text-xs text-slate-500 dark:text-ink-400 font-semibold">
-            Ye action undo nahi ho sakta. Sales history mehfooz rahegi — sirf customer record hatega.
+            Jis customer ki bikri ya khata hai woh mitega nahi, sirf band hoga — purane bill aur khata salamat rahenge. Bina history wala customer poori tarah mit jayega.
           </p>
           <div className="mt-4 flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>

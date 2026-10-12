@@ -95,9 +95,9 @@ import GlobalImeiInventoryPage from '@industries/mobile/pages/GlobalImeiInventor
 import UsedPhonesPage from '@industries/mobile/pages/UsedPhonesPage';
 
 // ─── Customers ─────────────────────────────────────────────────
-import CustomersListPage from '@modules/customers/customers/pages/CustomersListPage';
+import { CustomersPage as CustomerDirectoryPage } from '@modules/customers/directory/CustomersPage';
 import CustomerFormPage from '@modules/customers/customers/pages/CustomerFormPage';
-import CustomerDetailPage from '@modules/customers/customers/pages/CustomerDetailPage';
+import { CustomerProfilePage } from '@modules/customers/directory/CustomerProfilePage';
 
 // ─── Sales & POS ───────────────────────────────────────────────
 import BookingsListPage from '@modules/bookings/pages/BookingsListPage';
@@ -140,8 +140,7 @@ import ShopsOverviewPage from '@modules/organization/shops/pages/ShopsOverviewPa
 import ActivityLogPage from '@modules/reports/activity-log/pages/ActivityLogPage';
 import ExportsPage from '@modules/reports/exports/pages/ExportsPage';
 import BackupPage from '@modules/backup/pages/BackupPage';
-import KhataPage from '@modules/customers/khata/pages/KhataPage';
-import KhataGate from '@modules/customers/khata/pages/KhataGate';
+import { KhataBookPage } from '@modules/customers/directory/KhataBookPage';
 import CashRegisterPage from '@modules/finance/cash-register/pages/CashRegisterPage';
 import MoneyPage from '@modules/finance/money/pages/MoneyPage';
 
@@ -642,8 +641,8 @@ export default function App() {
                   {/* ── Customers ──────────────────────────────── */}
                   <Route path="/customers/new" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
                   <Route path="/customers/:id/edit" element={secure(PERMISSIONS.CUSTOMERS_EDIT, <CustomerFormPage />)} />
-                  <Route path="/customers/:id" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomerDetailPage />)} />
-                  <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersListPage />)} />
+                  <Route path="/customers/:id" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomerProfilePage />)} />
+                  <Route path="/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomerDirectoryPage />)} />
 
                   {/* ── Sales / POS ────────────────────────────── */}
                   <Route path="/pos" element={secure(PERMISSIONS.POS_USE, <PosGate />)} />
@@ -655,7 +654,7 @@ export default function App() {
                   <Route path="/discounts" element={secure(PERMISSIONS.DISCOUNTS_VIEW, <DiscountsPage />)} />
                   <Route path="/loyalty" element={secure(PERMISSIONS.LOYALTY_VIEW, <LoyaltyPage />)} />
                   <Route path="/profit-report" element={secure(PERMISSIONS.PROFIT_REPORT_VIEW, <ProfitReportGate />)} />
-                  <Route path="/khata" element={secure(PERMISSIONS.KHATA_VIEW, <KhataPage />)} />
+                  <Route path="/khata" element={secure(PERMISSIONS.KHATA_VIEW, <KhataBookPage />)} />
                   <Route path="/cash-register" element={secure(PERMISSIONS.CASH_REGISTER_VIEW, <CashRegisterPage />)} />
                   {/* Dukaan ka Hisab — cash, maal, lena, dena sab ek jagah */}
                   <Route path="/money" element={secure(PERMISSIONS.REPORTS_VIEW, <MoneyPage />)} />

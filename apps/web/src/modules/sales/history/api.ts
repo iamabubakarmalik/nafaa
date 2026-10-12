@@ -14,6 +14,7 @@ export interface HistoryFilters {
   status: HistoryStatus;
   source?: string;
   staffId?: string;
+  customerId?: string;
   search?: string;
   sort: HistorySort;
 }
@@ -70,7 +71,7 @@ export interface HistoryAnalytics {
 
 const params = (f: HistoryFilters, page?: number, limit?: number) => ({
   from: f.from, to: f.to, method: f.method, status: f.status === 'all' ? undefined : f.status,
-  source: f.source, staffId: f.staffId, search: f.search?.trim() || undefined, sort: f.sort, page, limit,
+  source: f.source, staffId: f.staffId, customerId: f.customerId, search: f.search?.trim() || undefined, sort: f.sort, page, limit,
 });
 
 export const salesHistoryApi = {

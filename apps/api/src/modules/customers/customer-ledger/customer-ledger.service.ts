@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
+import { startOfBusinessMonthTz, tzParts } from '../../../common/helpers/business-time.helper';
 import {
   AddUdhaarDto,
   CreatePaymentDto,
@@ -206,9 +207,9 @@ export class CustomerLedgerService {
   async summary(user: AuthenticatedUser, scope: ShopScope) {
     const tenantId = user.tenantId;
     const shopWhere = scope.where;
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
+    // Business-time month start; the server clock is UTC, five hours behind Pakistan.
+    const today = tzParts(new Date());
+    const monthStart = startOfBusinessMonthTz(today.year, today.month);
 
     const [debtors, agg, advanceAgg, monthLedgers, recent] = await Promise.all([
       this.debtors(tenantId, scope),
