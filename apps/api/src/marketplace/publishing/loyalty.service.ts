@@ -265,59 +265,47 @@ export class LoyaltyService {
     };
   }
 
-  async awardPoints(customerId: string, points: number, reason: string) {
-    if (points < 1) throw new BadRequestException('Points must be positive');
-    const customer = await this.prisma.marketplaceCustomer.findUnique({ where: { id: customerId } });
-    if (!customer) throw new NotFoundException('Customer not found');
-
-    const newBalance = customer.loyaltyPoints + points;
-
-    await this.prisma.$transaction([
-      this.prisma.marketplaceCustomer.update({
-        where: { id: customerId },
-        data: { loyaltyPoints: newBalance },
-      }),
-      this.prisma.customerWalletTxn.create({
-        data: {
-          customerId,
-          type: 'CREDIT',
-          amount: points,
-          balanceAfter: newBalance,
-          reason,
-          referenceType: 'LOYALTY_AWARD',
-        },
-      }),
-    ]);
-
-    return { success: true, newBalance };
+  /** A shop may only touch the points of shoppers who ordered from one of its branches. */
+  private async assertOwnCustomer(tenantId: string, customerId: string) {
+    const shops = await this.prisma.shop.findMany({ where: { tenantId }, select: { id: true } });
+    const orders = await this.prisma.marketplaceOrder.count({ where: { customerId, shopId: { in: shops.map((s) => s.id) } } });
+    if (!orders) throw new NotFoundException('Customer not found');
   }
 
-  async redeemPoints(customerId: string, points: number, orderId?: string) {
-    const customer = await this.prisma.marketplaceCustomer.findUnique({ where: { id: customerId } });
-    if (!customer) throw new NotFoundException();
-    if (customer.loyaltyPoints < points) {
-      throw new BadRequestException('Insufficient points');
-    }
-
-    const newBalance = customer.loyaltyPoints - points;
-    await this.prisma.$transaction([
-      this.prisma.marketplaceCustomer.update({
+  async awardPoints(tenantId: string, customerId: string, points: number, reason: string) {
+    if (!Number.isInteger(points) || points < 1) throw new BadRequestException('Points must be a positive whole number');
+    await this.assertOwnCustomer(tenantId, customerId);
+    return this.prisma.$transaction(async (tx) => {
+      const { loyaltyPoints: newBalance } = await tx.marketplaceCustomer.update({
         where: { id: customerId },
-        data: { loyaltyPoints: newBalance },
-      }),
-      this.prisma.customerWalletTxn.create({
-        data: {
-          customerId,
-          type: 'DEBIT',
-          amount: points,
-          balanceAfter: newBalance,
-          reason: `Points redeemed${orderId ? ` for order ${orderId}` : ''}`,
-          referenceId: orderId,
-          referenceType: 'LOYALTY_REDEEM',
-        },
-      }),
-    ]);
+        data: { loyaltyPoints: { increment: points } },
+        select: { loyaltyPoints: true },
+      });
+      await tx.customerWalletTxn.create({
+        data: { customerId, type: 'CREDIT', amount: points, balanceAfter: newBalance, reason: String(reason ?? '').slice(0, 200), referenceType: 'LOYALTY_AWARD' },
+      });
+      return { success: true, newBalance };
+    });
+  }
 
-    return { success: true, newBalance };
+  async redeemPoints(tenantId: string, customerId: string, points: number, orderId?: string) {
+    if (!Number.isInteger(points) || points < 1) throw new BadRequestException('Points must be a positive whole number');
+    await this.assertOwnCustomer(tenantId, customerId);
+    return this.prisma.$transaction(async (tx) => {
+      // Check and deduct in one statement so two redemptions cannot overspend.
+      const done = await tx.marketplaceCustomer.updateMany({
+        where: { id: customerId, loyaltyPoints: { gte: points } },
+        data: { loyaltyPoints: { decrement: points } },
+      });
+      if (!done.count) throw new BadRequestException('Insufficient points');
+      const { loyaltyPoints: newBalance } = await tx.marketplaceCustomer.findUniqueOrThrow({ where: { id: customerId }, select: { loyaltyPoints: true } });
+      await tx.customerWalletTxn.create({
+        data: {
+          customerId, type: 'DEBIT', amount: points, balanceAfter: newBalance,
+          reason: `Points redeemed${orderId ? ` for order ${orderId}` : ''}`, referenceId: orderId, referenceType: 'LOYALTY_REDEEM',
+        },
+      });
+      return { success: true, newBalance };
+    });
   }
 }

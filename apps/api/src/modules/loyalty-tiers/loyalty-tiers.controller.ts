@@ -7,23 +7,24 @@ import { CustomerAuthGuard } from '../../marketplace/_shared/guards/customer-aut
 import { GetCustomer } from '../../marketplace/_shared/decorators/get-customer.decorator';
 import { AuthenticatedCustomer } from '../../marketplace/auth/interfaces/customer-jwt.interface';
 import { LoyaltyTiersService } from './loyalty-tiers.service';
+import { SuperAdminGuard } from '../../admin/common/super-admin.guard';
 
 @ApiTags('Loyalty Tiers')
 @Controller('loyalty-tiers')
 export class LoyaltyTiersController {
   constructor(private readonly svc: LoyaltyTiersService) {}
 
-  // ADMIN
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
+  // ADMIN — tiers and their customers are platform-wide, so platform admin only.
+  @UseGuards(JwtAuthGuard, SuperAdminGuard) @ApiBearerAuth()
   @Post('seed') seed() { return this.svc.seedDefaultConfigs(); }
 
   @UseGuards(JwtAuthGuard) @ApiBearerAuth()
   @Get('configs') configs() { return this.svc.getAllConfigs(); }
 
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, SuperAdminGuard) @ApiBearerAuth()
   @Patch('configs/:level') update(@Param('level') level: LoyaltyTierLevel, @Body() body: any) { return this.svc.updateConfig(level, body); }
 
-  @UseGuards(JwtAuthGuard) @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, SuperAdminGuard) @ApiBearerAuth()
   @Get('customers')
   listCustomers(@Query('tier') tier?: LoyaltyTierLevel, @Query('limit') limit?: string, @Query('offset') offset?: string) {
     return this.svc.listByTier(tier, +(limit ?? 50), +(offset ?? 0));

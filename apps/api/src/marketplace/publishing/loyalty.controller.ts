@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { LoyaltyTierLevel } from '@prisma/client';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
+import { SuperAdminGuard } from '../../admin/common/super-admin.guard';
 import { LoyaltyService } from './loyalty.service';
 
 @ApiTags('Marketplace Loyalty')
@@ -23,7 +24,9 @@ export class LoyaltyController {
     return this.svc.overview(tenantId, shopId);
   }
 
+  /** Tiers are shared by the whole marketplace, so only a platform admin may change them. */
   @Patch('tiers/:level')
+  @UseGuards(SuperAdminGuard)
   updateTier(@Param('level') level: LoyaltyTierLevel, @Body() data: any) {
     return this.svc.updateTier(level, data);
   }
@@ -40,12 +43,12 @@ export class LoyaltyController {
   }
 
   @Post('award-points')
-  award(@Body() body: { customerId: string; points: number; reason: string }) {
-    return this.svc.awardPoints(body.customerId, body.points, body.reason);
+  award(@Req() req: Request, @Body() body: { customerId: string; points: number; reason: string }) {
+    return this.svc.awardPoints(this.ctx(req).tenantId, body.customerId, Number(body.points), body.reason);
   }
 
   @Post('redeem-points')
-  redeem(@Body() body: { customerId: string; points: number; orderId?: string }) {
-    return this.svc.redeemPoints(body.customerId, body.points, body.orderId);
+  redeem(@Req() req: Request, @Body() body: { customerId: string; points: number; orderId?: string }) {
+    return this.svc.redeemPoints(this.ctx(req).tenantId, body.customerId, Number(body.points), body.orderId);
   }
 }
