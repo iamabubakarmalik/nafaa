@@ -9,6 +9,7 @@ import { MarkAttendanceDto } from './dto/mark-attendance.dto';
 import { CreateLeaveDto } from './dto/create-leave.dto';
 import { ProcessSalaryDto } from './dto/process-salary.dto';
 import { startOfDay, endOfDay, differenceInMinutes, differenceInDays } from 'date-fns';
+import { monthDates } from '../../hr/payroll/payroll.helper';
 
 @Injectable()
 export class StaffService {
@@ -252,6 +253,10 @@ export class StaffService {
   }
 
   async rejectLeave(user: AuthenticatedUser, id: string, reason?: string) {
+    const leave = await this.prisma.staffLeave.findFirst({
+      where: { id, tenantId: user.tenantId },
+    });
+    if (!leave) throw new NotFoundException('Leave not found');
     return this.prisma.staffLeave.update({
       where: { id },
       data: { status: 'REJECTED', rejectedReason: reason },
@@ -264,6 +269,17 @@ export class StaffService {
       where: { id: dto.staffId, tenantId: user.tenantId },
     });
     if (!staff) throw new NotFoundException('Staff not found');
+
+    // One salary per staff member per month, the same rule as the payroll page.
+    const { first, next } = monthDates(dto.periodStart.slice(0, 7));
+    const existing = await this.prisma.salaryPayment.findFirst({
+      where: {
+        tenantId: user.tenantId, staffId: staff.id, paymentNumber: { startsWith: 'PAY-' },
+        status: { not: 'CANCELLED' }, periodStart: { gte: first, lt: next },
+      },
+      select: { paymentNumber: true },
+    });
+    if (existing) throw new ConflictException(`Is mahine ki tankhwah pehle se bani hai (${existing.paymentNumber})`);
 
     const start = startOfDay(new Date(dto.periodStart));
     const end = endOfDay(new Date(dto.periodEnd));

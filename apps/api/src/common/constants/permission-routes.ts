@@ -104,7 +104,20 @@ export const ROUTE_RULES: RouteRule[] = [
 
   /* ── Hisab ── */
   { match: /(^|\/)dashboard(\/|$)/, GET: P.DASHBOARD_VIEW },
+  { match: /(^|\/)day-book(\/|$)/, GET: P.DASHBOARD_VIEW },
+  /* The P&L shows profit, so it needs the profit permission, not the general reports one. */
+  { match: /^reports\/pnl(\/|$)/, GET: P.PROFIT_REPORT_VIEW },
   { match: /(^|\/)profit(-|\/)/, GET: P.PROFIT_REPORT_VIEW },
+  /* Daily summary: reading is a report; sending it now is a settings action. */
+  { match: /^reports\/daily-summary(\/|$)/, GET: P.REPORTS_VIEW, write: P.SETTINGS_EDIT },
+  /* Customers report lives under reports, not customers. It needs report access
+     AND customers.view; the controller's @RequirePermissions asks for both (a list
+     here would mean either one). */
+  { match: /(^|\/)reports\/customer-insights(\/|$)/, GET: P.REPORTS_VIEW },
+  /* Staff & counters report: report access AND staff.view, both required by the controller. */
+  { match: /^reports\/staff(\/|$)/, GET: P.REPORTS_VIEW },
+  /* Audit report shows staff mistakes, logins and PIN use: same right as the activity log. */
+  { match: /^reports\/audit(\/|$)/, GET: P.ACTIVITY_VIEW },
   { match: /(^|\/)reports(\/|$)/, GET: P.REPORTS_VIEW },
   { match: /(^|\/)accounting(\/|$)/, GET: P.REPORTS_VIEW, write: P.SETTINGS_EDIT },
   { match: /(^|\/)expenses(\/|$)/, GET: P.EXPENSES_VIEW, write: P.EXPENSES_CREATE },
@@ -116,6 +129,8 @@ export const ROUTE_RULES: RouteRule[] = [
      `summary` aur `detail` ke andar service khud chaant deti hai:
      jis ke paas sirf `commission.own` hai, usay apni hi line milti
      hai. Is liye yahan par sab se halki ijazat chalti hai. */
+  /* The POS "sold by" picker: names of enrolled sellers only, needed at the counter. */
+  { match: /^commission\/sellers$/, GET: [P.POS_USE, P.COMMISSION_OWN, P.COMMISSION_VIEW, P.COMMISSION_MANAGE] },
   { match: /^commission\/(rules|enroll|pay|people)(\/|$)/, GET: P.COMMISSION_MANAGE, write: P.COMMISSION_MANAGE },
   { match: /(^|\/)commission(\/|$)/, GET: [P.COMMISSION_OWN, P.COMMISSION_VIEW, P.COMMISSION_MANAGE], write: P.COMMISSION_MANAGE },
   { match: /(^|\/)team(\/|$)/, GET: P.TEAM_VIEW, write: P.TEAM_MANAGE },
@@ -164,6 +179,8 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /^settings\/counter(\/|$)/ },
   // Bill printing: every staff member prints receipts.
   { match: /^settings\/receipt(\/|$)/ },
+  // Report display preferences: every report page reads them; nothing secret.
+  { match: /^settings\/report-prefs(\/|$)/ },
   { match: /^settings\/security\/(set-pin|remove-pin|reset-pin|locked-routes)(\/|$)/, GET: P.SETTINGS_MANAGE, write: P.SETTINGS_MANAGE },
 
   /* ── Nizam ── */

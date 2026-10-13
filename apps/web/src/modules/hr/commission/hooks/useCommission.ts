@@ -1,126 +1,89 @@
-import { useCallback, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { commissionApi } from '../api/commission.api';
-
-/** "2026-10" — aaj ka mahina */
-export const thisPeriod = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-};
-
-/** "2026-10" → "October 2026" */
-export const periodLabel = (p: string) => {
-  const [y, m] = (p ?? '').split('-').map(Number);
-  if (!y || !m) return p;
-  return new Date(y, m - 1, 1).toLocaleDateString('en-PK', { month: 'long', year: 'numeric' });
-};
-
-/** Pichhle 12 mahine — chunne ke liye */
-export const recentPeriods = (n = 12) => {
-  const out: string[] = [];
-  const d = new Date();
-  for (let i = 0; i < n; i++) {
-    out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
-    d.setMonth(d.getMonth() - 1);
-  }
-  return out;
-};
-
 /**
- * Commission ka saara kaam ek hook me — har industry ke safhe se
- * pukara ja sakta hai.
- *
- * Hisab server par banta hai, yahan sirf dikhaya jata hai. Koi
- * cheez badalne par sab queries dobara chal jati hain, taake
- * number kabhi purana na rahe.
+ * Commission data and actions for one month: the summary, rules and people
+ * (managers only), and the writes. Every write refreshes all commission
+ * queries so no figure is left stale.
  */
-export function useCommission(period: string = thisPeriod()) {
+
+import { useCallback } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { businessDayKey, useBusinessDayStart } from '@core/lib/business-day';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { usePermission } from '@core/hooks/usePermission';
+import { commissionApi, type RulePayload } from '../api/commission.api';
+import { COMMISSION_KEY, apiError } from '../components/meta';
+
+/** The current business month, "2026-10". */
+export function useThisPeriod() {
+  const startHour = useBusinessDayStart();
+  return businessDayKey(new Date(), startHour).slice(0, 7);
+}
+
+export function useCommission(period: string) {
   const qc = useQueryClient();
-  const [busy, setBusy] = useState(false);
+  const canManage = usePermission(PERMISSIONS.COMMISSION_MANAGE);
 
   const summaryQ = useQuery({
-    queryKey: ['commission-summary', period],
+    queryKey: [COMMISSION_KEY, 'summary', period],
     queryFn: () => commissionApi.summary(period),
+    placeholderData: (p) => p,
   });
-  const rulesQ = useQuery({
-    queryKey: ['commission-rules'],
-    queryFn: () => commissionApi.listRules(),
-  });
-  const peopleQ = useQuery({
-    queryKey: ['commission-people'],
-    queryFn: () => commissionApi.people(),
-  });
+  const rulesQ = useQuery({ queryKey: [COMMISSION_KEY, 'rules'], queryFn: commissionApi.listRules, enabled: canManage, staleTime: 60_000 });
+  const peopleQ = useQuery({ queryKey: [COMMISSION_KEY, 'people'], queryFn: commissionApi.people, enabled: canManage, staleTime: 60_000 });
 
-  const refreshAll = useCallback(() => {
-    qc.invalidateQueries({ queryKey: ['commission-summary'] });
-    qc.invalidateQueries({ queryKey: ['commission-rules'] });
-    qc.invalidateQueries({ queryKey: ['commission-people'] });
+  const refresh = useCallback(() => {
+    qc.invalidateQueries({ queryKey: [COMMISSION_KEY] });
+    qc.invalidateQueries({ queryKey: ['commission-sellers'] });
   }, [qc]);
 
-  /** Har call ek jaise chalti hai: busy lagao, karo, refresh karo, ghalti par batao */
-  const run = useCallback(async <T,>(fn: () => Promise<T>, okMsg?: string) => {
-    setBusy(true);
-    try {
-      const out = await fn();
-      refreshAll();
-      if (okMsg) toast.success(okMsg);
-      return out;
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Kaam nahi hua');
-      return null;
-    } finally {
-      setBusy(false);
-    }
-  }, [refreshAll]);
+  const done = (msg: string) => { toast.success(msg); refresh(); };
+  const failed = (fallback: string) => (e: unknown) => toast.error(apiError(e, fallback));
 
-  const s = summaryQ.data;
+  const saveRule = useMutation({
+    mutationFn: ({ id, data }: { id?: string; data: RulePayload }) => (id ? commissionApi.updateRule(id, data) : commissionApi.createRule(data)),
+    onSuccess: (_d, { id }) => done(id ? 'Rule badal gaya' : 'Rule ban gaya'),
+    onError: failed('Rule save nahi hua'),
+  });
+  const removeRule = useMutation({
+    mutationFn: (id: string) => commissionApi.removeRule(id),
+    onSuccess: () => done('Rule hata diya'),
+    onError: failed('Rule nahi hata'),
+  });
+  const enroll = useMutation({
+    mutationFn: (a: { userId: string; on: boolean; staffId?: string | null }) =>
+      commissionApi.enroll({ userId: a.userId, isActive: a.on, staffId: a.staffId ?? undefined }),
+    onSuccess: (_d, a) => done(a.on ? 'Commission chaalu ho gayi' : 'Commission band kar di'),
+    onError: failed('Nahi hua'),
+  });
+  const pay = useMutation({
+    mutationFn: (a: { userId: string; amount: number; expectedPaid: number; note?: string }) => commissionApi.pay({ ...a, period }),
+    onSuccess: () => done('Adaigi likh di'),
+    onError: failed('Adaigi nahi likhi gayi'),
+  });
+  const undoPay = useMutation({
+    mutationFn: (userId: string) => commissionApi.undoPay(userId, period),
+    onSuccess: () => done('Adaigi wapas le li'),
+    onError: failed('Nahi hua'),
+  });
 
   return {
-    period,
-    rows: s?.rows ?? [],
-    total: s?.total ?? 0,
-    paidTotal: s?.paidTotal ?? 0,
-    pendingTotal: s?.pendingTotal ?? 0,
-    enabledCount: s?.enabledCount ?? 0,
-    notEnrolled: s?.notEnrolled ?? [],
-    partialReturnCount: s?.partialReturnCount ?? 0,
-    orphanBills: s?.orphanBills ?? 0,
-    orphanSale: s?.orphanSale ?? 0,
-    reassignedBills: s?.reassignedBills ?? 0,
-    baseTotal: s?.baseTotal ?? 0,
-    payTotal: s?.payTotal ?? 0,
-    timezone: s?.timezone,
-    dayStartHour: s?.dayStartHour ?? 0,
-    scope: s?.scope ?? 'all',
-    onlyMine: s?.scope === 'own',
-
+    summaryQ,
+    summary: summaryQ.data,
     rules: rulesQ.data ?? [],
     people: peopleQ.data?.people ?? [],
     withoutLogin: peopleQ.data?.withoutLogin ?? [],
-
-    isLoading: summaryQ.isLoading || rulesQ.isLoading,
-    isError: summaryQ.isError,
-    busy,
-    refetch: refreshAll,
-
-    addRule: (data: any) => run(() => commissionApi.createRule(data), 'Rule ban gaya'),
-    updateRule: (id: string, data: any) => run(() => commissionApi.updateRule(id, data), 'Rule badal gaya'),
-    removeRule: (id: string) => run(() => commissionApi.removeRule(id), 'Rule hata diya'),
-    setEnabled: (userId: string, on: boolean, staffId?: string | null) =>
-      run(() => commissionApi.enroll({ userId, isActive: on, staffId: staffId ?? undefined }),
-        on ? 'Commission chaalu ho gayi' : 'Commission band kar di'),
-    markPaid: (userId: string, amount: number, note?: string) =>
-      run(() => commissionApi.pay({ userId, period, amount, note }), 'Adaigi likh di'),
-    undoPaid: (userId: string) =>
-      run(() => commissionApi.undoPay(userId, period), 'Adaigi wapas le li'),
+    peopleLoading: peopleQ.isLoading,
+    rulesLoading: rulesQ.isLoading,
+    canManage,
+    refresh,
+    saveRule, removeRule, enroll, pay, undoPay,
+    busy: saveRule.isPending || removeRule.isPending || enroll.isPending || pay.isPending || undoPay.isPending,
   };
 }
 
-/** Ek bande ka poora khata — detail safhe ke liye */
 export function useCommissionDetail(userId: string | null, period: string) {
   return useQuery({
-    queryKey: ['commission-detail', userId, period],
+    queryKey: [COMMISSION_KEY, 'detail', userId, period],
     queryFn: () => commissionApi.detail(userId!, period),
     enabled: !!userId,
   });

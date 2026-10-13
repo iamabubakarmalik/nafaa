@@ -5,11 +5,11 @@
  */
 
 import { ShieldAlert } from 'lucide-react';
-import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { useReportMasked } from '@modules/reports/prefs';
 import type { StockBannerProps } from '../../config';
 
 export function AgriBanner({ list, setStatus }: StockBannerProps) {
-  const { cost, sales: money } = useMasked();
+  const { cost, sales: money } = useReportMasked();
   const b = list.totals.blocked;
   const soon = list.counts.blocked - b.count;
   if (!list.counts.blocked) return null;

@@ -8,6 +8,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { UpdateReceiptConfigDto } from './dto/update-receipt-config.dto';
+import { UpdateReportsConfigDto } from './dto/update-reports-config.dto';
 import {
   LockedRoutesDto, PinPrefsDto, RemovePinDto, ResetPinDto, SetPinDto, VerifyPinDto,
 } from './dto/verify-pin.dto';
@@ -56,6 +57,23 @@ export class SettingsController {
   @Patch('receipt-config')
   updateReceiptConfig(@GetUser() u: AuthenticatedUser, @Body() dto: UpdateReceiptConfigDto) {
     return this.svc.core.updateReceiptConfig(u, dto);
+  }
+
+  // ═══ REPORTS ═══
+  @Get('reports-config') @ApiOperation({ summary: 'Report defaults, staff figures and daily summary settings' })
+  getReportsConfig(@GetUser() u: AuthenticatedUser) {
+    return this.svc.core.getReportsConfig(u);
+  }
+
+  @Patch('reports-config') @ApiOperation({ summary: 'Update report settings (partial)' })
+  updateReportsConfig(@GetUser() u: AuthenticatedUser, @Body() dto: UpdateReportsConfigDto) {
+    return this.svc.core.updateReportsConfig(u, dto);
+  }
+
+  /** Every report page reads this: default period and comparison, round-off, figures hidden from this user. */
+  @Get('report-prefs') @ApiOperation({ summary: 'Report display preferences for the current user' })
+  reportPrefs(@GetUser() u: AuthenticatedUser) {
+    return this.svc.core.reportPrefs(u);
   }
 
   // ═══ SECURITY / PIN ═══

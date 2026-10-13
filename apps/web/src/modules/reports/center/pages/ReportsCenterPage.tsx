@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import {
   Button, DateRangeMenu, FilterBar, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, Skeleton, ViewTabs,
-  heroButton, heroIconButton, resolveRange, type DateRangeValue, type ViewTab,
+  heroButton, heroIconButton, resolveRange, type ViewTab,
 } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
@@ -41,6 +41,7 @@ import { TaxSection } from '../components/TaxSection';
 import { ReturnsSection } from '../components/ReturnsSection';
 import { IndustrySection } from '../components/IndustrySection';
 import { downloadCsv, sectionDoc } from '../print';
+import { useReportCompare, useReportRange } from '../../prefs';
 
 const COMPARE_KEY = 'nafaa-reports-compare';
 const BASE_TABS: Array<{ id: Exclude<SectionId, 'industry'>; label: string; icon: LucideIcon }> = [
@@ -53,10 +54,6 @@ const BASE_TABS: Array<{ id: Exclude<SectionId, 'industry'>; label: string; icon
   { id: 'tax', label: 'Tax', icon: Landmark },
   { id: 'returns', label: 'Wapsi', icon: RotateCcw },
 ];
-
-function readCompare() {
-  try { return localStorage.getItem(COMPARE_KEY) !== 'off'; } catch { return true; }
-}
 
 function useSection<K extends SectionId>(id: K, period: Period, shop: string | undefined, enabled: boolean, industry?: string) {
   return useQuery({
@@ -78,9 +75,9 @@ export default function ReportsCenterPage() {
   const tenantName = useAuthStore((s) => s.tenant?.name ?? '');
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const guide = usePageGuide();
-  const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
+  const [range, setRange] = useReportRange('month');
   const [tab, setTab] = useState<SectionId>('sales');
-  const [compare, setCompare] = useState(readCompare);
+  const [compare, toggleCompare] = useReportCompare(COMPARE_KEY);
 
   const period: Period = useMemo(() => {
     const r = resolveRange(range, startHour);
@@ -100,11 +97,6 @@ export default function ReportsCenterPage() {
   const active = useSection(tab, period, shopParam, tab !== 'sales' && tab !== 'profit', config.industry?.kind);
   const current = tab === 'sales' ? sales : tab === 'profit' ? profit : active;
   const tabLabel = tabs.find((t) => t.id === tab)?.label as string;
-
-  const toggleCompare = () => setCompare((v) => {
-    try { localStorage.setItem(COMPARE_KEY, v ? 'off' : 'on'); } catch { /* storage blocked */ }
-    return !v;
-  });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

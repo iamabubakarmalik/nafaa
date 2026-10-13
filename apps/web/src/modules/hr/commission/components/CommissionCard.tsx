@@ -1,188 +1,99 @@
+/**
+ * Dashboard widget: this month's commission (earned, paid, due) and the top
+ * earners, with a link to the full page. Shows a short set-up note when no
+ * rule exists or nobody is enrolled yet.
+ */
+
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { HandCoins, ArrowRight, Trophy, Target, AlertTriangle, Users } from 'lucide-react';
+import { AlertTriangle, ArrowRight, HandCoins, Target, Trophy, Users } from 'lucide-react';
+import { Skeleton } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
-import { useCommission, periodLabel } from '../hooks/useCommission';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { commissionApi } from '../api/commission.api';
+import { useThisPeriod } from '../hooks/useCommission';
+import { COMMISSION_KEY, periodLabel, signed } from './meta';
 
-/* ═════════════════════════════════════════════════════════════
-   COMMISSION CARD — kisi bhi industry ke dashboard par
-   ─────────────────────────────────────────────────────────────
-   Ek line me daal dein:
+const TO = '/staff/commission';
 
-       <CommissionCard tone="pink" />
-
-   Bas. Bikri, team aur rules ye khud le aata hai. Jahan commission
-   set hi nahi, wahan apne aap ek halka sa "set kar lein" wala
-   khana dikhata hai — safha khali nahi lagta.
-
-   Safha Staff section me global hai (`/staff/commission`), is liye
-   `to` dene ki zaroorat nahi — chhorein to wohi chalta hai.
-   ═════════════════════════════════════════════════════════════ */
-
-const TONES: Record<string, { grad: string; text: string; ring: string }> = {
-  pink:    { grad: 'from-pink-500 to-fuchsia-700',   text: 'text-pink-700 dark:text-pink-400',   ring: 'hover:border-pink-300 dark:hover:border-pink-500/50' },
-  sky:     { grad: 'from-sky-500 to-cyan-700',       text: 'text-sky-700 dark:text-sky-400',     ring: 'hover:border-sky-300 dark:hover:border-sky-500/50' },
-  emerald: { grad: 'from-emerald-500 to-teal-700',   text: 'text-emerald-700 dark:text-emerald-400', ring: 'hover:border-emerald-300 dark:hover:border-emerald-500/50' },
-  blue:    { grad: 'from-blue-500 to-cyan-700',      text: 'text-blue-700 dark:text-blue-400',   ring: 'hover:border-blue-300 dark:hover:border-blue-500/50' },
-  violet:  { grad: 'from-violet-500 to-purple-700',  text: 'text-violet-700 dark:text-violet-400', ring: 'hover:border-violet-300 dark:hover:border-violet-500/50' },
-};
-
-const DEFAULT_TO = '/staff/commission';
-
-export function CommissionCard({
-  to = DEFAULT_TO, tone = 'emerald', hideAmounts = false, max = 4,
-}: {
-  /** Poore safhe ka raasta — chhorein to Staff wala global safha */
-  to?: string;
-  tone?: keyof typeof TONES | string;
-  hideAmounts?: boolean;
-  max?: number;
-}) {
-  const c = useCommission();
-  const t = TONES[tone] ?? TONES.emerald;
-  const money = (v: number) => (hideAmounts ? '••••' : formatPKR(v));
+export function CommissionCard({ hideAmounts = false, max = 4 }: { hideAmounts?: boolean; max?: number }) {
+  const period = useThisPeriod();
+  const q = useQuery({ queryKey: [COMMISSION_KEY, 'summary', period], queryFn: () => commissionApi.summary(period), retry: false });
+  const canManage = usePermission(PERMISSIONS.COMMISSION_MANAGE);
+  const s = q.data;
+  const money = (v: number) => (hideAmounts ? '••••' : signed(v));
+  const live = (s?.rows ?? []).filter((r) => r.enrolled);
 
   return (
-    <section className={`rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden transition ${t.ring}`}>
-      <header className="px-4 sm:px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
-        <span className={`h-10 w-10 rounded-2xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shadow-lg shrink-0`}>
-          <HandCoins className="h-5 w-5" />
-        </span>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-ink-white truncate">
-            Bandon ki commission
-          </h3>
-          <p className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 truncate">
-            {periodLabel(c.period)}
-            {c.rules.length > 0 && ` · ${c.rules.filter((r) => r.isActive).length} rule chaalu`}
-          </p>
+    <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80">
+      <header className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"><HandCoins className="h-4 w-4" /></span>
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-sm font-semibold text-slate-900">Staff commission</h3>
+          <p className="truncate text-[0.75rem] text-slate-500">{periodLabel(period)}{s?.ruleCount ? ` · ${s.ruleCount} rule chaalu` : ''}</p>
         </div>
-        <Link to={to} className={`text-xs font-black inline-flex items-center gap-1 hover:underline shrink-0 ${t.text}`}>
-          Poora <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
+        <Link to={TO} className="inline-flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">Poora <ArrowRight className="h-3.5 w-3.5" /></Link>
       </header>
 
-      {c.rules.length === 0 ? (
-        <div className="px-4 sm:px-5 py-6 text-center">
-          <p className="text-sm font-black text-slate-700 dark:text-ink-200">
-            Commission set nahi hai
-          </p>
-          <p className="mt-1 text-[0.75rem] font-bold text-slate-500 dark:text-ink-400 max-w-sm mx-auto">
-            Agar aap apne bandon ko bikri par hissa dete hain, to ek dafa rule bana
-            dein — phir har mahine ka hisab khud banta rahega.
-          </p>
-          <Link to={to}
-            className={`mt-3 inline-flex h-10 px-4 rounded-xl bg-gradient-to-r ${t.grad} text-white text-xs font-black items-center gap-1.5 transition`}>
-            <Target className="h-4 w-4" /> Rule banayein
-          </Link>
+      {q.isError ? (
+        <p className="px-4 py-6 text-center text-[0.8125rem] text-slate-500">Commission load nahi hui</p>
+      ) : !s ? (
+        <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-11 rounded-xl" />)}</div>
+      ) : !s.ruleCount && s.scope === 'all' ? (
+        <Setup icon={Target} title="Commission set nahi hai" text="Bandon ko bikri par hissa dete hain? Ek rule bana dein — phir har mahine ka hisab khud banega." cta={canManage ? 'Rule banayein' : undefined} />
+      ) : !s.enabledCount ? (
+        <Setup icon={Users} title="Kisi bande par chaalu nahi" text="Har bande ko alag se chaalu karna parta hai — tabhi us ki commission banti hai." cta={canManage ? 'Bande chunein' : undefined} />
+      ) : (<>
+        <div className="grid grid-cols-3 gap-2 border-b border-slate-100 px-4 py-3">
+          <Mini label="Banti hai" value={money(s.total)} tone="text-brand-700" />
+          <Mini label="Ada hui" value={hideAmounts ? '••••' : formatPKR(s.paidTotal)} />
+          <Mini label="Dena baqi" value={hideAmounts ? '••••' : formatPKR(s.pendingTotal)} tone={s.pendingTotal > 0 ? 'text-amber-700' : undefined} />
         </div>
-      ) : c.isLoading ? (
-        <div className="p-4 space-y-2">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="h-12 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
-          ))}
-        </div>
-      ) : c.enabledCount === 0 ? (
-        <div className="px-4 sm:px-5 py-6 text-center">
-          <p className="text-sm font-black text-slate-700 dark:text-ink-200">
-            Rule to bana hai, magar kisi bande par chaalu nahi
-          </p>
-          <p className="mt-1 text-[0.75rem] font-bold text-slate-500 dark:text-ink-400 max-w-sm mx-auto">
-            Har bande ko alag se chaalu karna parta hai — tabhi uski commission banti hai.
-          </p>
-          <Link to={to}
-            className={`mt-3 inline-flex h-10 px-4 rounded-xl bg-gradient-to-r ${t.grad} text-white text-xs font-black items-center gap-1.5 transition`}>
-            <Users className="h-4 w-4" /> Bande chunein
-          </Link>
-        </div>
-      ) : c.enabledCount === 0 ? (
-        <div className="px-4 sm:px-5 py-6 text-center">
-          <p className="text-sm font-black text-slate-700 dark:text-ink-200">
-            Rule to bana hai, magar kisi bande par chaalu nahi
-          </p>
-          <p className="mt-1 text-[0.75rem] font-bold text-slate-500 dark:text-ink-400 max-w-sm mx-auto">
-            Har bande ko alag se chaalu karna parta hai — tabhi uski commission banti hai.
-          </p>
-          <Link to={to}
-            className={`mt-3 inline-flex h-10 px-4 rounded-xl bg-gradient-to-r ${t.grad} text-white text-xs font-black items-center gap-1.5 transition`}>
-            <Users className="h-4 w-4" /> Bande chunein
-          </Link>
-        </div>
-      ) : c.rows.length === 0 ? (
-        <div className="px-4 sm:px-5 py-8 text-center">
-          <p className="text-sm font-black text-slate-500 dark:text-ink-400">
-            Is mahine kisi ki bikri nahi
-          </p>
-        </div>
-      ) : (
-        <>
-          <div className="px-4 sm:px-5 py-3 grid grid-cols-3 gap-2 border-b-2 border-slate-100 dark:border-ink-800">
-            <Mini label="Kul banti hai" value={money(c.total)} tone={t.text} />
-            <Mini label="Ada ho gayi" value={money(c.paidTotal)} tone="text-slate-600 dark:text-ink-300" />
-            <Mini label="Dena baqi" value={money(c.pendingTotal)}
-              tone={c.pendingTotal > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-slate-600 dark:text-ink-300'} />
-          </div>
-
-          <div className="divide-y divide-slate-100 dark:divide-ink-800">
-            {c.rows.filter((r) => r.enrolled).slice(0, max).map((r, i) => (
-              <div key={r.userId} className="px-4 sm:px-5 py-2.5 flex items-center gap-2.5">
-                <span className={`h-8 w-8 rounded-xl text-white text-xs font-black flex items-center justify-center shrink-0 ${
-                  i === 0 && r.earned > 0
-                    ? 'bg-gradient-to-br from-amber-400 to-orange-600'
-                    : 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
-                }`}>
-                  {i === 0 && r.earned > 0 ? <Trophy className="h-3.5 w-3.5" /> : i + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{r.name}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
-                    {r.bills} bill · {money(r.sale)}
-                    {r.blockedByMin && ` · hadd se ${money(r.blockedByMin.short)} kam`}
-                  </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className={`text-sm font-black tabular-nums ${r.earned > 0 ? t.text : 'text-slate-400'}`}>
-                    {money(r.earned)}
-                  </div>
-                  {r.paid && <div className="text-[0.625rem] font-black text-emerald-600">Ada ho gayi</div>}
-                </div>
+        <ul className="divide-y divide-slate-100">
+          {live.slice(0, max).map((r, i) => (
+            <li key={r.userId} className="flex items-center gap-2.5 px-4 py-2.5">
+              <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold', i === 0 && r.earned > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500')}>
+                {i === 0 && r.earned > 0 ? <Trophy className="h-3.5 w-3.5" /> : i + 1}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-slate-900">{r.name}</p>
+                <p className="truncate text-[0.6875rem] text-slate-500">{r.bills} bill · {hideAmounts ? '••••' : formatPKR(r.sale)}</p>
               </div>
-            ))}
-          </div>
-
-          {c.notEnrolled.length > 0 && (
-            <div className="px-4 sm:px-5 py-2 border-t border-slate-100 dark:border-ink-800">
-              <Link to={to} className="text-[0.6875rem] font-black text-slate-500 dark:text-ink-400 hover:underline">
-                {c.notEnrolled.length} aur bandon ki bikri hai magar commission chaalu nahi →
-              </Link>
-            </div>
-          )}
-          {c.notEnrolled.length > 0 && (
-            <div className="px-4 sm:px-5 py-2 border-t border-slate-100 dark:border-ink-800">
-              <Link to={to} className="text-[0.6875rem] font-black text-slate-500 dark:text-ink-400 hover:underline">
-                {c.notEnrolled.length} aur bandon ki bikri hai magar commission chaalu nahi →
-              </Link>
-            </div>
-          )}
-          {c.orphanBills > 0 && (
-            <div className="px-4 sm:px-5 py-2.5 bg-amber-50 dark:bg-amber-500/10 border-t-2 border-amber-200 dark:border-amber-500/30 flex items-start gap-2">
-              <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
-              <p className="text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
-                {c.orphanBills} bill par kisi bande ka naam nahi ({money(c.orphanSale)}) — in ki
-                commission kisi ko nahi mil rahi
-              </p>
-            </div>
-          )}
-        </>
-      )}
+              <div className="shrink-0 text-right">
+                <p className="text-sm font-semibold tabular-nums text-slate-900">{money(r.earned)}</p>
+                {r.paid && <p className="text-[0.625rem] font-medium text-emerald-600">Ada ho gayi</p>}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {s.orphanBills > 0 && (
+          <p className="flex items-start gap-2 border-t border-amber-200 bg-amber-50 px-4 py-2 text-[0.6875rem] text-amber-900">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{s.orphanBills} bill par kisi bande ka naam nahi — in ki commission kisi ko nahi milti
+          </p>
+        )}
+      </>)}
     </section>
   );
 }
 
-function Mini({ label, value, tone }: { label: string; value: string; tone: string }) {
+function Setup({ icon: I, title, text, cta }: { icon: typeof Target; title: string; text: string; cta?: string }) {
+  return (
+    <div className="px-4 py-6 text-center">
+      <I className="mx-auto h-8 w-8 text-slate-300" />
+      <p className="mt-2 text-sm font-semibold text-slate-800">{title}</p>
+      <p className="mx-auto mt-1 max-w-sm text-[0.75rem] text-slate-500">{text}</p>
+      {cta && <Link to={TO} className="mt-3 inline-flex h-9 items-center rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white hover:bg-brand-700">{cta}</Link>}
+    </div>
+  );
+}
+
+function Mini({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
     <div className="min-w-0">
-      <div className="text-[0.625rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 truncate">{label}</div>
-      <div className={`text-sm sm:text-base font-black tabular-nums truncate ${tone}`}>{value}</div>
+      <p className="truncate text-[0.6875rem] text-slate-500">{label}</p>
+      <p className={cn('truncate text-sm font-bold tabular-nums text-slate-900', tone)}>{value}</p>
     </div>
   );
 }

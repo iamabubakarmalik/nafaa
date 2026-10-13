@@ -13,7 +13,7 @@ import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
-import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { useReportMasked } from '@modules/reports/prefs';
 import { ageText } from '../meta';
 
 export interface DeviceUnit {
@@ -43,7 +43,7 @@ const SHOW = 150;
 
 export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loading: boolean; error?: unknown }) {
   const theme = useChartTheme();
-  const { cost, sales: money, costHidden } = useMasked();
+  const { cost, sales: money, costHidden } = useReportMasked();
   const [bucket, setBucket] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [more, setMore] = useState(false);

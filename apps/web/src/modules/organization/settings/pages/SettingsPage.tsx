@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  AlertTriangle, Bell, Building2, CreditCard, Database, Eye, Globe, KeyRound, MessageCircle,
+  AlertTriangle, BarChart3, Bell, Building2, CreditCard, Database, Eye, Globe, KeyRound, MessageCircle,
   Package, Percent, Plug, Receipt, Search, Settings as SettingsIcon, Shield, ShoppingBag, Store, X,
 } from 'lucide-react';
 import { PageHero, PageShell } from '@/design-system/components';
@@ -31,9 +31,10 @@ import { SecuritySection } from '../sections/SecuritySection';
 import { IntegrationsSection } from '../sections/IntegrationsSection';
 import { BackupSection } from '../sections/BackupSection';
 import { DangerZoneSection } from '../sections/DangerZoneSection';
+import { ReportsSection } from '../sections/ReportsSection';
 
 type TabId =
-  | 'business' | 'config' | 'localization' | 'tax' | 'receipt' | 'pos'
+  | 'business' | 'config' | 'localization' | 'tax' | 'reports' | 'receipt' | 'pos'
   | 'inventory' | 'customer' | 'notifications' | 'whatsapp' | 'security'
   | 'integrations' | 'backup' | 'danger';
 type Group = 'shop' | 'counter' | 'customers' | 'system';
@@ -54,6 +55,7 @@ const TABS: TabDef[] = [
   { id: 'config', label: 'Karobar ki qisam', desc: 'Business type aur features', icon: Building2, group: 'shop' },
   { id: 'localization', label: 'Zubaan aur waqt', desc: 'Currency, time zone, din ka aaghaz', icon: Globe, group: 'shop' },
   { id: 'tax', label: 'Tax', desc: 'GST, tax number, hisaab', icon: Percent, group: 'shop' },
+  { id: 'reports', label: 'Reports', desc: 'Rozana closing report, hafta', icon: BarChart3, group: 'shop' },
   { id: 'pos', label: 'Counter ke usool', desc: 'Payment, chhoot, PIN', icon: ShoppingBag, group: 'counter' },
   { id: 'receipt', label: 'Raseed (bill)', desc: 'Design, kaghaz, apni likhai, live preview', icon: Receipt, group: 'counter' },
   { id: 'inventory', label: 'Stock', desc: 'Kam stock, minus stock', icon: Package, group: 'counter' },
@@ -77,6 +79,10 @@ const INDEX: Array<{ tab: TabId; find: string; words?: string }> = [
   { tab: 'localization', find: 'Din kab shuru hota hai', words: 'business day raat' }, { tab: 'localization', find: 'Preferred Language', words: 'urdu english zubaan' },
   { tab: 'tax', find: 'Enable Tax on Sales', words: 'gst sales tax' }, { tab: 'tax', find: 'Tax Rate', words: 'gst percent' },
   { tab: 'tax', find: 'Tax Number / NTN', words: 'ntn strn' },
+  { tab: 'reports', find: 'Rozana closing report', words: 'daily summary din ka hisaab report notification' },
+  { tab: 'reports', find: 'Hafta kis din', words: 'week start monday hafta' },
+  { tab: 'reports', find: 'Kis ko milti hai', words: 'manager report recipients' },
+  { tab: 'reports', find: 'Preview aur abhi bhejein', words: 'whatsapp send now report bhejo' },
   { tab: 'pos', find: 'Pehle se chuna payment', words: 'cash card default payment' },
   { tab: 'pos', find: 'Har bill par customer zaroori', words: 'walk in customer' },
   { tab: 'pos', find: 'Haath se chhoot', words: 'discount' }, { tab: 'pos', find: 'Zyada se zyada chhoot', words: 'discount max limit had' },
@@ -286,6 +292,8 @@ export default function SettingsPage() {
               {active === 'config' && <BusinessConfigSection />}
               {active === 'localization' && <LocalizationSection settings={settings} />}
               {active === 'tax' && <TaxSection settings={settings} />}
+              {active === 'reports' && <ReportsSection settings={settings}
+                onOpenLocalization={() => open('localization', 'Din kab shuru hota hai')} onOpenNotifications={() => open('notifications')} />}
               {active === 'receipt' && <ReceiptSection settings={settings} />}
               {active === 'pos' && <POSSection settings={settings} onOpenSecurity={() => open('security', 'Malik ka PIN')} />}
               {active === 'inventory' && <InventorySection settings={settings} />}

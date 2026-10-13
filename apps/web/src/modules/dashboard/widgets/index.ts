@@ -41,7 +41,7 @@ const bind = <P extends object>(C: ComponentType<P>, props: P): ComponentType =>
 };
 
 function CommissionWidget() {
-  return createElement(CommissionCard, { tone: 'emerald', hideAmounts: useCostHidden() });
+  return createElement(CommissionCard, { hideAmounts: useCostHidden() });
 }
 
 export const commonWidgets = {

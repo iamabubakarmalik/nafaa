@@ -6,7 +6,7 @@ import {
   Wallet, Info, Trash2, Volume2, VolumeX, Sparkles, Search,
   Package, UserPlus, ArrowLeftRight, Receipt, AlertCircle, Crown,
   RefreshCw, Inbox, ArrowRight, Calendar, Clock, X, GraduationCap,
-  Printer, CheckSquare, Square, Zap,
+  Printer, CheckSquare, Square, Zap, MessageCircle,
 } from 'lucide-react';
 import { notificationsApi, type NotificationType, type Notification } from '@modules/notifications/api/notifications.api';
 import { useNotificationSound } from '@core/hooks/useNotificationSound';
@@ -629,6 +629,12 @@ export default function NotificationsPage() {
                                       <span className="text-[0.6875rem] text-brand-700 dark:text-brand-300 font-extrabold inline-flex items-center gap-0.5 group-hover:gap-1 transition-all">
                                         View <ArrowRight className="h-2.5 w-2.5" />
                                       </span>
+                                    )}
+                                    {typeof n.metadata?.whatsappUrl === 'string' && n.metadata.whatsappUrl.startsWith('https://wa.me/') && (
+                                      <a href={n.metadata.whatsappUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}
+                                        className="text-[0.6875rem] font-extrabold px-2 py-0.5 rounded-md inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/20 dark:text-emerald-300">
+                                        <MessageCircle className="h-2.5 w-2.5" /> WhatsApp par bhejein
+                                      </a>
                                     )}
                                   </div>
                                 </div>

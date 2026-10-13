@@ -1,10 +1,14 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
 import { UpdateReceiptConfigDto } from '../dto/update-receipt-config.dto';
+import { UpdateReportsConfigDto } from '../dto/update-reports-config.dto';
 import { UpdateSettingsDto } from '../dto/update-settings.dto';
 import { DEFAULT_SETTINGS } from '../constants/settings.constants';
 import { TenantTimezoneService } from '../../../../common/helpers/tenant-timezone.service';
+import {
+  forgetReportsConfig, hiddenFiguresFor, isOwnerRole, normalizeReportsConfig, readReportsConfig,
+} from '../../../../common/helpers/reports-config.helper';
 
 const RECEIPT_DEFAULTS = {
   paper: '80', style: 'modern', font: 'normal', accent: '#0f766e', watermark: 'both',
@@ -235,6 +239,56 @@ export class SettingsCoreService {
         taxLabel: s?.taxLabel ?? null,
         logoUrl: s?.logoUrl ?? null,
       },
+    };
+  }
+
+  /** Settings → Reports, with defaults filled in. */
+  async getReportsConfig(user: AuthenticatedUser) {
+    const s = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { reportsConfig: true } });
+    return normalizeReportsConfig(s?.reportsConfig);
+  }
+
+  /**
+   * Saves part of Settings → Reports. Which figures staff may see in reports
+   * is the owner's call, so only the owner can change `staffFigures`.
+   */
+  async updateReportsConfig(user: AuthenticatedUser, dto: UpdateReportsConfigDto) {
+    const current = await this.getReportsConfig(user);
+    if (dto.staffFigures && !isOwnerRole(user.role)) {
+      const same = dto.staffFigures.length === current.staffFigures.length && dto.staffFigures.every((f) => current.staffFigures.includes(f as never));
+      if (!same) throw new ForbiddenException('Staff ko kaun se figures dikhein, ye sirf malik badal sakta hai');
+    }
+    let recipientIds = dto.summary?.recipientIds !== undefined ? dto.summary.recipientIds : current.summary.recipientIds;
+    if (recipientIds) {
+      // Keep only people of this shop.
+      const users = await this.prisma.user.findMany({ where: { tenantId: user.tenantId, id: { in: recipientIds } }, select: { id: true } });
+      const known = new Set(users.map((u) => u.id));
+      recipientIds = recipientIds.filter((id) => known.has(id));
+    }
+    const next = normalizeReportsConfig({
+      ...current,
+      ...dto,
+      summary: { ...current.summary, ...(dto.summary ?? {}), recipientIds },
+    });
+    const json = JSON.parse(JSON.stringify(next));
+    await this.prisma.tenantSettings.upsert({
+      where: { tenantId: user.tenantId },
+      create: { tenantId: user.tenantId, reportsConfig: json },
+      update: { reportsConfig: json },
+    });
+    forgetReportsConfig(user.tenantId);
+    return next;
+  }
+
+  /** What report pages need for the current user: default period and comparison, round-off, hidden figures. */
+  async reportPrefs(user: AuthenticatedUser) {
+    const c = await readReportsConfig(this.prisma, user.tenantId);
+    return {
+      fiscalYearStartMonth: c.fiscalYearStartMonth,
+      defaultPeriod: c.defaultPeriod,
+      compareDefault: c.compareDefault,
+      roundOff: c.roundOff,
+      hidden: hiddenFiguresFor(user.role, c),
     };
   }
 }

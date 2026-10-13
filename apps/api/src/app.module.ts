@@ -63,6 +63,12 @@ import { ProfitReportModule } from './modules/finance/profit-report/profit-repor
 
 import { ReportsModule } from './modules/reports/reports/reports.module';
 import { StockReportModule } from './modules/reports/stock-report/stock-report.module';
+import { PnlModule } from './modules/reports/pnl/pnl.module';
+import { DayBookModule } from './modules/reports/day-book/day-book.module';
+import { CustomersReportModule } from './modules/reports/customers-report/customers-report.module';
+import { StaffReportModule } from './modules/reports/staff-report/staff-report.module';
+import { DailySummaryModule } from './modules/reports/daily-summary/daily-summary.module';
+import { AuditModule } from './modules/reports/audit/audit.module';
 import { ExportsModule } from './modules/reports/exports/exports.module';
 import { ActivityLogModule } from './modules/reports/activity-log/activity-log.module';
 
@@ -71,6 +77,9 @@ import { ShopsModule } from './modules/organization/shops/shops.module';
 import { TeamModule } from './modules/organization/team/team.module';
 import { StaffModule } from './modules/organization/staff/staff.module';
 import { CommissionModule } from './modules/hr/commission/commission.module';
+import { PayrollModule } from './modules/hr/payroll/payroll.module';
+import { PeopleModule } from './modules/hr/people/people.module';
+import { StaffAttendanceModule } from './modules/hr/attendance/attendance.module';
 
 import { SearchModule } from './modules/pos/search/search.module';
 import { BackupModule } from './modules/backup/backup.module';
@@ -201,10 +210,19 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     SettingsModule,
     ReportsModule,
     StockReportModule,
+    PnlModule,
+    DayBookModule,
+    CustomersReportModule,
+    StaffReportModule,
+    DailySummaryModule,
+    AuditModule,
     ProfitReportModule,
     TeamModule,
     StaffModule,
     CommissionModule,
+    PayrollModule,
+    PeopleModule,
+    StaffAttendanceModule,
     ShopsModule,
     CashRegisterModule,
     MoneyModule,

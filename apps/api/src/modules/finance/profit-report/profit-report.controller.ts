@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
@@ -11,9 +11,11 @@ import {
 } from './profit-report.service';
 import { ProfitAnalysisService } from './profit-analysis.service';
 import { ProfitItemsDto, ProfitRangeDto, ProfitUnitsDto } from './dto/profit-analysis.dto';
+import { ReportFiguresInterceptor } from '../../../common/interceptors/report-figures.interceptor';
 
 @ApiTags('Profit Report')
 @ApiBearerAuth()
+@UseInterceptors(ReportFiguresInterceptor)
 @Controller('profit-report')
 export class ProfitReportController {
   constructor(

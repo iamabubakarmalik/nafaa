@@ -1,898 +1,389 @@
-import { useMemo, useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+/**
+ * Staff commission for a business month: what each person earned from their
+ * own sales (returns taken off in the month they came back), what is paid
+ * and what is still due; a leaderboard; rules and who commission is on for;
+ * the payout record; and twelve months of analytics. A person with only
+ * `commission.own` sees just their own figures.
+ *
+ * Keys: N new rule · / search · [ ] month · 1-6 tabs · G guide.
+ */
+
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  HandCoins, Plus, X, Trophy, Target, Gauge, CheckCircle2, Undo2,
-  Download, Printer, GraduationCap, RefreshCw, AlertTriangle, Users,
-  Receipt, Wallet, ChevronDown, Info, Pencil, CalendarRange, UserCheck,
-  UserX, Link2, Package, Layers, TrendingUp, Eye, UserPlus,
-} from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  AlertTriangle, ArrowDownWideNarrow, BarChart3, CalendarDays, CheckCircle2, ChevronRight, Clock, Download, Filter, Gauge, GraduationCap,
+  HandCoins, Info, ListChecks, Plus, Printer, Store, Target, TrendingDown, TrendingUp, Trophy, UserCheck, Users, Wallet,
+} from 'lucide-react';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print';
+import {
+  Avatar, Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  heroButton, heroIconButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
-import { Button } from '@/design-system/components';
-import { useAuthStore } from '@core/stores/auth.store';
-import { useCostHidden, PrivacyToggle } from '@/core/security/HiddenValue';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useIsAllShops } from '@core/stores/auth.store';
+import { useCostHidden } from '@core/security/HiddenValue';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
-import { staffApi } from '@modules/organization/staff/api/staff.api';
-import { useCommission, periodLabel, recentPeriods, thisPeriod } from '../hooks/useCommission';
-import { CommissionRuleModal } from '../components/CommissionRuleModal';
+import { shopsApi } from '@modules/organization/shops/api/shops.api';
+import type { CommissionDetail, CommissionPerson, CommissionRow, CommissionRule } from '../api/commission.api';
+import { CommissionAnalytics } from '../components/CommissionAnalytics';
 import { CommissionDetailDrawer } from '../components/CommissionDetailDrawer';
-import { BASIS_META, type CommissionRule, type CommissionRow } from '../api/commission.api';
+import { CommissionRuleModal } from '../components/CommissionRuleModal';
+import { Leaderboard } from '../components/Leaderboard';
+import { PayModal } from '../components/PayModal';
+import { PayoutsTab } from '../components/PayoutsTab';
+import { RulesTab, toPayload } from '../components/RulesTab';
+import { TeamTab } from '../components/TeamTab';
+import { PAY, downloadCsv, periodLabel, recentPeriods, shiftPeriod, signed } from '../components/meta';
+import { monthDoc } from '../components/print';
+import { useCommission, useThisPeriod } from '../hooks/useCommission';
 
-/* ═════════════════════════════════════════════════════════════
-   COMMISSION — har industry ka ek hi safha
-   ─────────────────────────────────────────────────────────────
-   Staff → Commission. Is me retail, bakery, mobile ya kisi aur
-   ki koi khaas baat nahi — sirf bikri, bande aur rules. Rang
-   `tone` se aata hai, baqi sab ek jaisa.
-   ═════════════════════════════════════════════════════════════ */
+type Tab = 'hisab' | 'board' | 'rules' | 'team' | 'payouts' | 'analytics';
+type Status = '' | 'due' | 'paid' | 'minus' | 'off';
+type Sort = 'earned' | 'sale' | 'due' | 'name';
 
-const TONES: Record<string, { hero: string; grad: string; text: string }> = {
-  pink:    { hero: 'from-slate-950 via-pink-900 to-fuchsia-700',  grad: 'from-pink-600 to-fuchsia-700',  text: 'text-pink-700 dark:text-pink-400' },
-  sky:     { hero: 'from-slate-950 via-sky-900 to-cyan-700',      grad: 'from-sky-600 to-cyan-700',      text: 'text-sky-700 dark:text-sky-400' },
-  emerald: { hero: 'from-slate-950 via-emerald-900 to-teal-700',  grad: 'from-emerald-600 to-teal-700',  text: 'text-emerald-700 dark:text-emerald-400' },
-  blue:    { hero: 'from-slate-950 via-blue-900 to-cyan-700',     grad: 'from-blue-600 to-cyan-700',     text: 'text-blue-700 dark:text-blue-400' },
-  violet:  { hero: 'from-slate-950 via-violet-900 to-purple-700', grad: 'from-violet-600 to-purple-700', text: 'text-violet-700 dark:text-violet-400' },
-};
+const STATUS_LABEL: Record<Exclude<Status, ''>, string> = { due: 'Dena baqi', paid: 'Ada ho gayi', minus: 'Minus / zyada ada', off: 'Commission band' };
+const SORT_LABEL: Record<Sort, string> = { earned: 'Commission zyada pehle', sale: 'Bikri zyada pehle', due: 'Baqi zyada pehle', name: 'Naam se' };
 
-export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
-  const t = TONES[tone] ?? TONES.violet;
-  const tenant = useAuthStore((s) => s.tenant);
-  const hideAmounts = useCostHidden();
-  const money = (v: number) => (hideAmounts ? '••••' : formatPKR(v));
+export default function CommissionPage() {
+  const thisPeriod = useThisPeriod();
+  const allShops = useIsAllShops();
+  const costHidden = useCostHidden();
+  const guide = usePageGuide();
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  const [period, setPeriod] = useState(thisPeriod());
-  const [showPeriods, setShowPeriods] = useState(false);
-  const [ruleModal, setRuleModal] = useState<{ rule?: CommissionRule | null } | null>(null);
-  const [payTarget, setPayTarget] = useState<CommissionRow | null>(null);
-  const [detailUser, setDetailUser] = useState<CommissionRow | null>(null);
-  const [showTeacher, setShowTeacher] = useState(false);
-  const [linking, setLinking] = useState<string | null>(null);
+  const [period, setPeriod] = useState(thisPeriod);
+  const [tab, setTab] = useState<Tab>('hisab');
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState<Status>('');
+  const [sort, setSort] = useState<Sort>('earned');
+  const [shopId, setShopId] = useState('');
+  const [open, setOpen] = useState<{ userId: string; name: string } | null>(null);
+  const [paying, setPaying] = useState<CommissionRow | null>(null);
+  const [ruleForm, setRuleForm] = useState<{ rule?: CommissionRule } | null>(null);
 
   const c = useCommission(period);
+  const s = c.summary;
+  const own = s?.scope === 'own';
+  const manage = c.canManage && !own;
 
-  /* App user ka HR record bana dein.
-     Login aur HR record Nafaa me do alag cheezein hain: login se bikri
-     us ke naam lagti hai, HR record se tankhwah aur attendance chalti
-     hai. Team me banda daalne par sirf login banta hai — is liye yahan
-     se ek click me doosra bhi bana dete hain, warna "tankhwah +
-     commission" ka jor adhoora rehta hai. */
-  const makeStaff = async (userId: string, name: string) => {
-    setLinking(userId);
-    try {
-      await staffApi.linkUser(userId);
-      toast.success(`${name} ka HR record ban gaya — ab tankhwah bhi daal sakte hain`);
-      c.refetch();
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'HR record nahi bana');
-    } finally {
-      setLinking(null);
-    }
-  };
-  const { data: categories = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list });
+  const catsQ = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list, staleTime: 5 * 60_000, enabled: manage });
+  const shopsQ = useQuery({ queryKey: ['shops'], queryFn: shopsApi.list, staleTime: 5 * 60_000, enabled: allShops && !own });
+  const shops = (shopsQ.data ?? []).filter((x) => x.isActive);
+  const categories = (catsQ.data ?? []) as Array<{ id: string; name: string }>;
+  useEffect(() => { if (!allShops) setShopId(''); }, [allShops]);
+  useEffect(() => { if (own && ['rules', 'team', 'board'].includes(tab)) setTab('hisab'); }, [own, tab]);
 
-  const exportCsv = () => {
-    if (c.rows.length === 0) return toast.error('Koi hisab nahi');
-    const head = ['Banda', 'Designation', 'Chaalu', 'Bill', 'Bikri', 'Munafa', 'Commission', 'Bonus', 'Haalat', 'Ada hua'];
-    const body = c.rows.map((r) => [
-      r.name, r.staff?.designation ?? '', r.enrolled ? 'Haan' : 'Nahi', r.bills,
-      r.sale.toFixed(2), r.profit.toFixed(2), r.earned.toFixed(2), r.bonus.toFixed(2),
-      r.paid ? 'Ada ho gayi' : 'Baqi',
-      r.paidAt ? new Date(r.paidAt).toLocaleDateString('en-PK') : '',
-    ]);
-    const summary = [
-      [`Commission — ${tenant?.name ?? 'Nafaa'}`],
-      [`${periodLabel(period)}  •  ${new Date().toLocaleString('en-PK')}`],
-      [`Kul ${c.total.toFixed(2)}  •  Ada ${c.paidTotal.toFixed(2)}  •  Baqi ${c.pendingTotal.toFixed(2)}`],
-      [''],
-    ];
-    const csv = [...summary, head, ...body]
-      .map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `commission-${period}.csv`;
-    a.click(); URL.revokeObjectURL(url);
-    toast.success(`${c.rows.length} bandon ka hisab export ho gaya`);
+  const inShop = (r: CommissionRow) => !shopId || r.shopId === shopId || !!r.shops?.some((x) => x.shopId === shopId);
+  const needle = search.trim().toLowerCase();
+  const rows = useMemo(() => {
+    const list = (s?.rows ?? []).filter((r) => inShop(r) && (!needle || r.name.toLowerCase().includes(needle)
+      || (r.staff?.designation ?? '').toLowerCase().includes(needle) || (r.staff?.staffNumber ?? '').toLowerCase().includes(needle)))
+      .filter((r) => !status
+        || (status === 'due' && r.enrolled && r.due > 0)
+        || (status === 'paid' && (r.payStatus === 'full' || r.payStatus === 'over'))
+        || (status === 'minus' && (r.earned < 0 || r.payStatus === 'over'))
+        || (status === 'off' && !r.enrolled));
+    const by: Record<Sort, (a: CommissionRow, b: CommissionRow) => number> = {
+      earned: (a, b) => Number(b.enrolled) - Number(a.enrolled) || b.earned - a.earned || b.sale - a.sale,
+      sale: (a, b) => b.sale - a.sale,
+      due: (a, b) => b.due - a.due || b.earned - a.earned,
+      name: (a, b) => a.name.localeCompare(b.name),
+    };
+    return [...list].sort(by[sort]);
+  }, [s, shopId, needle, status, sort]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const people = c.people.filter((p) => !shopId || p.shopId === shopId);
+  const withoutLogin = c.withoutLogin.filter((p) => !shopId || p.shopId === shopId);
+  const filtered = !!needle || !!status || !!shopId;
+  const clear = () => { setSearch(''); setStatus(''); setShopId(''); };
+  const live = rows.filter((r) => r.enrolled);
+  const totals = {
+    earned: live.reduce((a, r) => a + r.earned, 0),
+    paid: rows.reduce((a, r) => a + (r.paidAmount ?? 0), 0),
+    due: rows.reduce((a, r) => a + r.due, 0),
   };
+  const change = s && s.previousTotal ? Math.round(((s.total - s.previousTotal) / Math.abs(s.previousTotal)) * 100) : null;
+  const leader = [...live].sort((a, b) => b.sale - a.sale)[0];
+  const filterText = [shopId && shops.find((x) => x.id === shopId)?.name, status && STATUS_LABEL[status], needle && `"${needle}"`].filter(Boolean).join(' · ');
+
+  const periods = useMemo(() => recentPeriods(thisPeriod, 24), [thisPeriod]);
+  const step = (by: number) => setPeriod((p) => { const n = shiftPeriod(p, by); return n > thisPeriod ? p : n; });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (ruleModal) return setRuleModal(null);
-        if (detailUser) return setDetailUser(null);
-        if (payTarget) return setPayTarget(null);
-        if (showTeacher) return setShowTeacher(false);
-        if (showPeriods) return setShowPeriods(false);
-        return;
-      }
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
-      const k = e.key.toLowerCase();
-      if (k === 'g') setShowTeacher(true);
-      if (k === 'n') { e.preventDefault(); setRuleModal({}); }
-      if (k === 'p') { e.preventDefault(); window.print(); }
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen() || open) return;
+      if ((e.key === 'n' || e.key === 'N') && manage) { e.preventDefault(); setRuleForm({}); }
+      if (e.key === '/') { e.preventDefault(); setTab('hisab'); window.setTimeout(() => searchRef.current?.focus(), 0); }
+      if (e.key === '[') step(-1);
+      if (e.key === ']') step(1);
+      const tabs: Tab[] = own ? ['hisab', 'payouts', 'analytics'] : ['hisab', 'board', 'rules', 'team', 'payouts', 'analytics'];
+      const i = Number(e.key) - 1;
+      if (i >= 0 && i < tabs.length) setTab(tabs[i]);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [ruleModal, detailUser, payTarget, showTeacher, showPeriods]);
+  }, [manage, own, open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const exportCsv = () => {
+    if (!rows.length) return toast.error('Koi hisab nahi');
+    downloadCsv(`commission-${period}.csv`, [
+      [`Commission — ${periodLabel(period)}`], [''],
+      ['Banda', 'Kaam', 'Chaalu', 'Bill', 'Bikri', 'Wapsi', 'Asal bikri', 'Commission', 'Bonus', 'Ada', 'Baqi', 'Haal'],
+      ...rows.map((r) => [
+        r.name, r.staff?.designation ?? '', r.enrolled ? 'Haan' : 'Nahi', r.bills, r.grossSale.toFixed(2), r.returnSale.toFixed(2), r.sale.toFixed(2),
+        r.earned, r.bonus, (r.paidAmount ?? 0).toFixed(2), r.due.toFixed(2), PAY[r.payStatus].label,
+      ]),
+    ]);
+  };
+
+  const togglePerson = (p: CommissionPerson, on: boolean) => {
+    if (!on && !window.confirm(`${p.name} par commission band karein?\n\nIs ki commission har us mahine me 0 dikhegi jo abhi ada nahi hua.`)) return;
+    c.enroll.mutate({ userId: p.userId!, on, staffId: p.staff?.id });
+  };
+  const undo = (r: { userId: string; name: string; paidAmount?: number | null }) => {
+    if (window.confirm(`${r.name} ki ${periodLabel(period)} ki adaigi (${formatPKR(r.paidAmount ?? 0)}) wapas lein?\n\nYe sirf record hatata hai — paise khud wapas lene honge.`)) c.undoPay.mutate(r.userId);
+  };
+
+  const tabs = own
+    ? [
+      { id: 'hisab' as const, label: 'Mera hisab', icon: ListChecks },
+      { id: 'payouts' as const, label: 'Adaigi', icon: Wallet },
+      { id: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
+    ]
+    : [
+      { id: 'hisab' as const, label: 'Hisab', icon: ListChecks, count: rows.length || null },
+      { id: 'board' as const, label: 'Leaderboard', icon: Trophy },
+      ...(manage ? [
+        { id: 'rules' as const, label: 'Rules', icon: Gauge, count: c.rules.filter((r) => r.isActive).length || null },
+        { id: 'team' as const, label: 'Team', icon: UserCheck, count: s?.enabledCount || null },
+      ] : []),
+      { id: 'payouts' as const, label: 'Adaigi', icon: Wallet },
+      { id: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
+    ];
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-10">
-      {showTeacher && <Teacher tone={t} onClose={() => setShowTeacher(false)} />}
+    <PageShell>
+      <PageHero
+        title="Commission"
+        chip={<><HandCoins /> {periodLabel(period)}</>}
+        meta={own ? 'Aap ki apni bikri par commission' : 'Bandon ki bikri par unka hissa — asli bikri se, wapsi nikaal kar'}
+        busy={c.summaryQ.isFetching && !c.summaryQ.isLoading}
+        loading={c.summaryQ.isLoading}
+        actions={<>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800">
+            <PrintButton doc={() => monthDoc(s!, rows, filterText)} disabled={!s || !rows.length || tab !== 'hisab'} />
+          </span>
+          <button type="button" onClick={exportCsv} className={heroButton} disabled={!rows.length}><Download className="h-4 w-4" /> CSV</button>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {manage && <button type="button" onClick={() => setRuleForm({})} title="Naya rule (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya rule</button>}
+        </>}
+        stats={s ? [
+          { label: own ? 'Meri commission' : 'Kul commission', value: signed(totals.earned), hint: own ? undefined : `${live.length} bande` },
+          { label: 'Ada hui', value: formatPKR(totals.paid) },
+          { label: 'Dena baqi', value: formatPKR(totals.due) },
+          ...(!own && s.payTotal ? [{ label: 'Tankhwah + commission', value: formatPKR(s.payTotal), hint: 'mahine ka bojh' }] : []),
+        ] : [{ label: 'Kul commission', value: '—' }]}
+      />
 
-      {ruleModal && (
-        <CommissionRuleModal
-          rule={ruleModal.rule}
-          people={c.people as any[]}
-          categories={categories as any[]}
-          saving={c.busy}
-          onClose={() => setRuleModal(null)}
-          onSave={async (data) => {
-            const ok = ruleModal.rule
-              ? await c.updateRule(ruleModal.rule.id, data)
-              : await c.addRule(data);
-            if (ok) setRuleModal(null);
-          }}
-          onDelete={ruleModal.rule ? async () => {
-            await c.removeRule(ruleModal.rule!.id);
-            setRuleModal(null);
-          } : undefined}
+      <KpiRow cols={5}>
+        {!s ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={change != null && change < 0 ? TrendingDown : TrendingUp} color="#7c3aed" label="Pichle mahine se"
+            value={change == null ? '—' : `${change > 0 ? '+' : ''}${change}%`} hint={`${periodLabel(shiftPeriod(period, -1), true)}: ${formatPKR(s.previousTotal)}`}
+            onClick={() => step(-1)} />
+          <KpiCard icon={Clock} color="#d97706" label="Dena baqi" value={formatPKR(totals.due)}
+            hint={`${rows.filter((r) => r.enrolled && r.due > 0).length} bandon ka`} onClick={() => { setTab('hisab'); setStatus('due'); }} active={tab === 'hisab' && status === 'due'} />
+          <KpiCard icon={CheckCircle2} color="#16a34a" label="Ada hui" value={formatPKR(totals.paid)}
+            hint={`${rows.filter((r) => r.payStatus === 'full' || r.payStatus === 'over').length} poori ada`} onClick={() => { setTab('hisab'); setStatus('paid'); }} active={tab === 'hisab' && status === 'paid'} />
+          <KpiCard icon={Wallet} color="#0891b2" label="Asal bikri" value={formatPKR(live.reduce((a, r) => a + r.sale, 0))}
+            hint={s.returnTotal ? `Wapsi ${formatPKR(s.returnTotal)} nikaal kar` : 'Chaalu bandon ki'} />
+          {own ? (
+            <KpiCard icon={Target} color="#db2777" label="Target" value={rows[0]?.targets[0] ? `${Math.round(rows[0].targets[0].pct)}%` : '—'}
+              hint={rows[0]?.targets[0] ? `${formatPKR(rows[0].targets[0].amount)} me se` : 'Koi target nahi'} />
+          ) : (
+            <KpiCard icon={Trophy} color="#f59e0b" label="Sab se zyada bikri" value={leader?.name ?? '—'}
+              hint={leader ? `${formatPKR(leader.sale)} · ${leader.bills} bill` : 'Abhi koi nahi'} onClick={leader ? () => setTab('board') : undefined} active={tab === 'board'} />
+          )}
+        </>}
+      </KpiRow>
+
+      <FilterBar
+        search={['hisab', 'payouts', 'team'].includes(tab)
+          ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Bande ka naam, kaam ya staff #…" label="Dhoondein" />
+          : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tab === 'analytics' ? `${periodLabel(shiftPeriod(period, -11), true)} se ${periodLabel(period, true)} tak` : 'Mahina badal kar dekhein'}</p>}
+        chips={filtered ? <>
+          {shopId && <FilterChip onRemove={() => setShopId('')}>{shops.find((x) => x.id === shopId)?.name ?? 'Branch'}</FilterChip>}
+          {status && <FilterChip onRemove={() => setStatus('')}>{STATUS_LABEL[status]}</FilterChip>}
+          {needle && <FilterChip onRemove={() => setSearch('')}>"{needle}"</FilterChip>}
+        </> : undefined}
+        onClear={clear}>
+        <FilterMenu icon={CalendarDays} label={periodLabel(period)} value={period} active={period !== thisPeriod} onChange={setPeriod} width="w-56"
+          options={periods.map((p) => ({ value: p, label: periodLabel(p), hint: p === thisPeriod ? 'Chal raha hai' : undefined }))} />
+        {!own && allShops && shops.length > 1 && (
+          <FilterMenu icon={Store} label="Branch" value={shopId} active={!!shopId} onChange={setShopId}
+            options={[{ value: '', label: 'Sab branches' }, ...shops.map((x) => ({ value: x.id, label: x.name }))]} />
+        )}
+        {!own && tab === 'hisab' && <>
+          <FilterMenu icon={Filter} label="Haal" value={status} active={!!status} onChange={setStatus} align="right"
+            options={[{ value: '' as Status, label: 'Sab' }, ...(Object.keys(STATUS_LABEL) as Array<Exclude<Status, ''>>).map((k) => ({ value: k as Status, label: STATUS_LABEL[k] }))]} />
+          <FilterMenu icon={ArrowDownWideNarrow} label={SORT_LABEL[sort]} value={sort} onChange={setSort} align="right"
+            options={(Object.keys(SORT_LABEL) as Sort[]).map((k) => ({ value: k, label: SORT_LABEL[k] }))} />
+        </>}
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={setTab} tabs={tabs}
+        hint={<>{manage && <><Kbd>N</Kbd> rule · </>}<Kbd>[</Kbd><Kbd>]</Kbd> mahina · <Kbd>1</Kbd>-<Kbd>{tabs.length}</Kbd> tabs</>} />
+
+      {tab === 'hisab' && <>
+        {own && <Note icon={Info} tone="sky">Ye aap ka apna hisab hai. Rate ya adaigi par sawal ho to dukaan ke malik se baat karein. Kisi line par click karein to poori tafseel khulti hai.</Note>}
+        {!own && s && <Warnings s={s} withoutLogin={withoutLogin.length} manage={manage} onTeam={() => setTab('team')} onOff={() => setStatus('off')} />}
+        {s && !s.ruleCount && manage && (
+          <Note icon={Gauge} tone="amber">Abhi koi chaalu rule nahi, is liye kisi ki commission nahi ban rahi. <button type="button" className="font-semibold underline" onClick={() => setRuleForm({})}>Rule banayein</button></Note>
+        )}
+        <HisabList rows={rows} loading={c.summaryQ.isLoading} failed={c.summaryQ.isError && !s} retry={() => c.summaryQ.refetch()}
+          filtered={filtered} clear={clear} manage={manage} busy={c.busy}
+          onOpen={(r) => setOpen({ userId: r.userId, name: r.name })} onPay={setPaying} onUndo={undo} />
+      </>}
+      {tab === 'board' && <Leaderboard rows={rows} onOpen={(r) => setOpen({ userId: r.userId, name: r.name })} />}
+      {tab === 'rules' && manage && (
+        <RulesTab rules={c.rules} loading={c.rulesLoading} categories={categories} busy={c.busy}
+          onNew={() => setRuleForm({})} onEdit={(rule) => setRuleForm({ rule })}
+          onToggle={(r) => c.saveRule.mutate({ id: r.id, data: toPayload(r, { isActive: !r.isActive }) })} />
+      )}
+      {tab === 'team' && manage && (
+        <TeamTab people={people.filter((p) => !needle || p.name.toLowerCase().includes(needle))} withoutLogin={withoutLogin}
+          rows={s?.rows ?? []} loading={c.peopleLoading} busy={c.busy} onToggle={togglePerson} />
+      )}
+      {tab === 'payouts' && <PayoutsTab period={period} search={search} />}
+      {tab === 'analytics' && <CommissionAnalytics period={period} onPerson={(userId, name) => setOpen({ userId, name })} />}
+
+      {open && (
+        <CommissionDetailDrawer userId={open.userId} name={open.name} period={period} canManage={manage} costHidden={costHidden} busy={c.busy}
+          onClose={() => setOpen(null)} onPay={(d: CommissionDetail) => setPaying(d)} onUndo={(d) => undo(d)} />
+      )}
+      {paying && (
+        <PayModal row={paying} period={period} saving={c.pay.isPending} onClose={() => setPaying(null)}
+          onPay={(a) => c.pay.mutate({ userId: paying.userId, ...a }, { onSuccess: () => setPaying(null) })} />
+      )}
+      {ruleForm && (
+        <CommissionRuleModal rule={ruleForm.rule} people={c.people} categories={categories} saving={c.saveRule.isPending || c.removeRule.isPending}
+          onClose={() => setRuleForm(null)}
+          onSave={(data) => c.saveRule.mutate({ id: ruleForm.rule?.id, data }, { onSuccess: () => setRuleForm(null) })}
+          onDelete={ruleForm.rule ? () => c.removeRule.mutate(ruleForm.rule!.id, { onSuccess: () => setRuleForm(null) }) : undefined} />
+      )}
+
+      {guide.isOpen && (
+        <PageGuide title="Commission — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: Gauge, color: '#7c3aed', title: 'Rule banayein', text: 'Kis par (bikri, munafa ya har bill) aur kitna (percent ya fixed). Category, kam se kam bikri aur target bonus bhi laga sakte hain.' },
+            { icon: UserCheck, color: '#16a34a', title: 'Bande chaalu karein', text: 'Team tab me har bande ka switch. Sirf chaalu bandon ki commission banti hai aur wohi POS par "bikri kis ke naam" me aate hain.' },
+            { icon: ListChecks, color: '#0891b2', title: 'Hisab khud banta hai', text: 'Har bill se: chhoot ke baad maal ki qeemat. Void bill nahi gine jate. Wapas aaya maal us mahine me katta hai jis me wapas aaya.' },
+            { icon: HandCoins, color: '#d97706', title: 'Adaigi likhein', text: '"Ada karein" se poori ya kuch raqam likhein. Double click se dobara nahi likhti. Ghalti ho to drawer se "Adaigi wapas".' },
+            { icon: Printer, color: '#db2777', title: 'Statement aur slip', text: 'Kisi bande par click karein: Statement (A4/PDF) me poori tafseel, Slip (thermal/A4) dastkhat ke saath bande ko dene ke liye.' },
+            { icon: BarChart3, color: '#2563eb', title: 'Leaderboard aur analytics', text: 'Kaun sab se aage hai, target kitna poora, aur 12 mahine me commission aur adaigi.' },
+          ]}
+          tips={[
+            'Slab chahiye? Do rule banayein: "2% bikri par" aur "1% aur — kam se kam bikri 2 lakh". Dono jur jate hain.',
+            'Jis bande ka apna rule hai, us par "sab ke liye" wale rule nahi lagte.',
+            'Rule badalne se wo mahine bhi badalte hain jo abhi ada nahi hue. Ada ki hui raqam nahi badalti.',
+            'Commission tankhwah ke saath deni ho to Payroll khud yahan "ada" likh deta hai. Yahan pehle ada likhi ho to Payroll use dobara nahi jorta.',
+            'Apni commission dekhne ke liye "Apni commission" ki ijazat kaafi hai; doosron ki dekhne ke liye "Sab ki commission".',
+          ]}
+          shortcuts={[['N', 'naya rule'], ['/', 'dhoondein'], ['[ ]', 'pichla / agla mahina'], ['1-6', 'tabs'], ['G', 'guide']]}
         />
       )}
-
-      {detailUser && (
-        <CommissionDetailDrawer row={detailUser} period={period} tone={t}
-          shopName={tenant?.name} hideAmounts={hideAmounts}
-          onClose={() => setDetailUser(null)} />
-      )}
-
-      {payTarget && (
-        <PayModal row={payTarget} period={period} money={money} saving={c.busy}
-          onClose={() => setPayTarget(null)}
-          onConfirm={async (note: string) => {
-            await c.markPaid(payTarget.userId, payTarget.earned, note);
-            setPayTarget(null);
-          }} />
-      )}
-
-      {/* ═══ PRINT HEADER ═══ */}
-      <div className="hidden print:block mb-4">
-        <h1 className="text-xl font-black">{tenant?.name ?? 'Dukaan'} — Commission</h1>
-        <p className="text-xs text-slate-600">
-          {periodLabel(period)} • {new Date().toLocaleString('en-PK', { dateStyle: 'full' })}
-        </p>
-        <p className="text-xs text-slate-600 mt-1">
-          Kul {formatPKR(c.total)} • Ada {formatPKR(c.paidTotal)} • Baqi {formatPKR(c.pendingTotal)}
-        </p>
-      </div>
-
-      {/* ═══ HERO ═══ */}
-      <section className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${t.hero} text-white p-5 sm:p-6 shadow-2xl print:hidden`}>
-        <div className="absolute -top-24 -right-20 h-72 w-72 rounded-full bg-white/15 blur-3xl pointer-events-none" />
-        <div className="relative flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
-              <HandCoins className="h-3.5 w-3.5 text-amber-300" /> Staff · Commission
-            </div>
-            <h1 className="mt-2.5 text-2xl sm:text-3xl font-black">💰 Commission</h1>
-            <p className="mt-1 text-xs sm:text-sm font-bold text-white/85">
-              {periodLabel(period)} · <strong>{c.enabledCount}</strong> bande chaalu ·{' '}
-              <strong className="text-emerald-200">{money(c.total)}</strong> banti hai
-              {c.pendingTotal > 0 && <> · <span className="text-amber-200">{money(c.pendingTotal)} dena baqi</span></>}
-            </p>
-          </div>
-
-          <div className="flex gap-2 flex-wrap items-center shrink-0">
-            <PrivacyToggle compact />
-            <PeriodPicker period={period} open={showPeriods} tone={t}
-              onToggle={() => setShowPeriods((v) => !v)}
-              onPick={(p: string) => { setPeriod(p); setShowPeriods(false); }}
-              onClose={() => setShowPeriods(false)} />
-            <button onClick={() => setShowTeacher(true)} title="Sikhein (G)"
-              className="h-11 px-3 rounded-xl bg-amber-400/90 hover:bg-amber-400 text-slate-900 text-xs font-black inline-flex items-center gap-1.5 shadow-lg transition">
-              <GraduationCap className="h-4 w-4" /> <span className="hidden sm:inline">Sikhein</span>
-            </button>
-            <button onClick={() => c.refetch()} title="Taaza" className={heroBtn}>
-              <RefreshCw className={`h-4 w-4 ${c.busy ? 'animate-spin' : ''}`} />
-            </button>
-            <button onClick={exportCsv} title="CSV" className={heroBtn}><Download className="h-4 w-4" /></button>
-            <button onClick={() => window.print()} title="Print (P)" className={heroBtn}><Printer className="h-4 w-4" /></button>
-            {!c.onlyMine && (
-              <button onClick={() => setRuleModal({})}
-                className="h-11 px-4 rounded-xl bg-white text-slate-900 hover:bg-slate-100 text-xs font-black inline-flex items-center gap-1.5 shadow-2xl transition active:scale-[0.97]">
-                <Plus className="h-4 w-4" /> Naya rule
-              </button>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ KPI ═══ */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 print:hidden">
-        <Kpi icon={HandCoins} label="Kul banti hai" value={money(c.total)} sub={periodLabel(period)} tone={t.grad} />
-        <Kpi icon={CheckCircle2} label="Ada ho gayi" value={money(c.paidTotal)}
-          sub={`${c.rows.filter((r) => r.paid).length} bandon ko`} tone="from-emerald-500 to-green-600" />
-        <Kpi icon={Wallet} label="Dena baqi" value={money(c.pendingTotal)}
-          sub={`${c.rows.filter((r) => !r.paid && r.earned > 0).length} bandon ka`} tone="from-amber-500 to-orange-600" />
-        <Kpi icon={Users} label="Chaalu bande" value={c.enabledCount}
-          sub={c.notEnrolled.length > 0 ? `${c.notEnrolled.length} abhi shamil nahi` : 'Jin ki bikri hai, sab shamil'}
-          tone="from-sky-500 to-blue-600" />
-      </section>
-
-      {/* ═══ TANKHWAH + COMMISSION ═══
-          Banda ye nahi poochta ke "meri commission kitni bani" — wo
-          poochta hai ke "is mahine mujhe kitna milega". Is liye pakki
-          tankhwah aur commission ek hi jagah jor kar dikhate hain. */}
-      {c.baseTotal > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 print:hidden">
-          <div className="flex items-center gap-2.5 mb-3">
-            <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shrink-0`}>
-              <Wallet className="h-4 w-4" />
-            </span>
-            <div className="min-w-0">
-              <h2 className="text-sm font-black text-slate-900 dark:text-ink-white">Is mahine kul kitna dena hai</h2>
-              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-                Pakki tankhwah Staff ke record se, commission bikri se — dono jor kar
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <PayCell label="Pakki tankhwah" value={money(c.baseTotal)} sub="Staff record se" />
-            <PayCell label="+ Commission" value={money(c.total)} sub="Is mahine ki bikri par" tone={t.text} />
-            <PayCell label="= Kul" value={money(c.payTotal)} sub={`${c.enabledCount} bandon ka`} big />
-          </div>
-          <p className="mt-2 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-            Tankhwah yahan se ada nahi hoti — wo Payroll se hoti hai. Yahan sirf poora
-            naqsha hai, taake pata rahe ke mahine ka kul bojh kitna hai.
-          </p>
-        </section>
-      )}
-
-      {/* ═══ APNI COMMISSION WALA KHANA ═══
-          Jis ke paas sirf `commission.own` hai, usay rules aur baqi
-          bandon ki kamai nahi dikhti — wo us ka maamla nahi. */}
-      {c.onlyMine && (
-        <section className="rounded-2xl bg-sky-50 dark:bg-sky-500/10 border-2 border-sky-200 dark:border-sky-500/30 p-3 flex items-start gap-2.5 print:hidden">
-          <Info className="h-4 w-4 text-sky-600 shrink-0 mt-0.5" />
-          <p className="text-[0.75rem] font-bold text-sky-900 dark:text-sky-200">
-            Ye aap ka apna hisab hai. Rate ya adaigi par sawal ho to dukaan ke malik se baat karein.
-          </p>
-        </section>
-      )}
-
-      {/* ═══ KHABARDAAR ═══ */}
-      {!c.onlyMine && (c.orphanBills > 0 || c.notEnrolled.length > 0 || c.withoutLogin.length > 0 || c.reassignedBills > 0) && (
-        <section className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 space-y-1.5 print:hidden">
-          {c.notEnrolled.length > 0 && (
-            <Warn icon={UserCheck}>
-              <strong>{c.notEnrolled.length} bandon</strong> ki bikri hui hai magar commission chaalu nahi
-              ({c.notEnrolled.map((r) => r.name).slice(0, 3).join(', ')}
-              {c.notEnrolled.length > 3 && ` +${c.notEnrolled.length - 3}`}) — neeche switch se shamil karein.
-            </Warn>
-          )}
-          {c.withoutLogin.length > 0 && (
-            <Warn icon={UserX}>
-              <strong>{c.withoutLogin.length} employee</strong> aise hain jin ka apna login nahi
-              ({c.withoutLogin.map((p) => p.name).slice(0, 3).join(', ')}
-              {c.withoutLogin.length > 3 && ` +${c.withoutLogin.length - 3}`}) — un ki bikri kisi ke
-              naam darj nahi hoti, is liye commission ban hi nahi sakti.
-            </Warn>
-          )}
-          {c.reassignedBills > 0 && (
-            <Warn icon={UserCheck}>
-              <strong>{c.reassignedBills} bill</strong> aise hain jinka cashier koi aur tha magar
-              bikri kisi aur ke naam lagi — POS par "bikri kis ke naam" chuna gaya tha. Commission
-              usi ko gayi hai.
-            </Warn>
-          )}
-          {c.orphanBills > 0 && (
-            <Warn icon={AlertTriangle}>
-              <strong>{c.orphanBills} bill</strong> par kisi bande ka naam darj nahi ({money(c.orphanSale)}) —
-              in ki commission kisi ko nahi mil rahi.
-            </Warn>
-          )}
-        </section>
-      )}
-
-      {/* ═══ KIS PAR CHAALU ═══ */}
-      {!c.onlyMine && (
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:hidden">
-        <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2.5 flex-wrap">
-          <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shrink-0`}>
-            <UserCheck className="h-4 w-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-sm font-black text-slate-900 dark:text-ink-white">Kis par commission chaalu hai</h2>
-            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-              Har bande ko alag se chaalu karna parta hai — jis ka switch band hai uski commission nahi banti
-            </p>
-          </div>
-          <span className={`px-2.5 py-1 rounded-xl text-[0.6875rem] font-black ${t.text} bg-slate-100 dark:bg-ink-800`}>
-            {c.enabledCount}/{c.people.length} chaalu
-          </span>
-        </header>
-
-        {c.people.length === 0 && c.withoutLogin.length === 0 ? (
-          <Empty icon={Users} title="Abhi koi banda nahi"
-            sub="Team me log daalein — har bande ka apna login hoga, tabhi pata chalega kis ne becha" />
-        ) : (
-          <div className="p-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {c.people.map((p) => (
-              <PersonCard key={p.userId!} p={p} tone={t} money={money}
-                row={c.rows.find((r) => r.userId === p.userId)}
-                busy={c.busy || linking === p.userId}
-                onToggle={() => c.setEnabled(p.userId!, !p.enrolled, p.staff?.id)}
-                onMakeStaff={() => makeStaff(p.userId!, p.name)} />
-            ))}
-            {c.withoutLogin.map((p, i) => (
-              <div key={`nl-${i}`}
-                className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/60 p-3">
-                <div className="flex items-start gap-2.5">
-                  <span className="h-10 w-10 rounded-2xl bg-slate-300 dark:bg-ink-600 text-white text-sm font-black flex items-center justify-center shrink-0">
-                    {(p.name || '?').charAt(0).toUpperCase()}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{p.name}</div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
-                      {p.staff?.designation ?? 'Employee'}
-                      {p.staff?.staffNumber && ` · ${p.staff.staffNumber}`}
-                    </div>
-                  </div>
-                </div>
-                <p className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
-                  Is ka apna login nahi — bikri is ke naam darj hi nahi hoti. Team me is ka login
-                  banayein (wohi email ya phone), to ye apne aap yahan aa jayega.
-                </p>
-                <a href="/team"
-                  className="mt-2 inline-flex h-9 px-3 rounded-xl bg-slate-900 dark:bg-ink-700 text-white text-[0.6875rem] font-black items-center gap-1.5 transition">
-                  <Link2 className="h-3.5 w-3.5" /> Login banayein
-                </a>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      )}
-
-      {/* ═══ RULES ═══ */}
-      {!c.onlyMine && (
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:hidden">
-        <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2.5 flex-wrap">
-          <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shrink-0`}>
-            <Gauge className="h-4 w-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-sm font-black text-slate-900 dark:text-ink-white">Rules</h2>
-            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-              Kisi bande ka apna rule ho to us par wohi chalta hai, "sab wala" nahi
-            </p>
-          </div>
-          <Button size="sm" onClick={() => setRuleModal({})} className={`bg-gradient-to-r ${t.grad}`}>
-            <Plus className="h-3.5 w-3.5" /> Naya <kbd className="hidden sm:inline text-[0.625rem] opacity-70 ml-1">N</kbd>
-          </Button>
-        </header>
-
-        {c.rules.length === 0 ? (
-          <Empty icon={HandCoins} title="Abhi koi rule nahi"
-            sub="Ek rule bana dein — phir har mahine ka hisab khud banta rahega aur kisi ko ginti nahi karni paregi" />
-        ) : (
-          <div className="p-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {c.rules.map((r) => {
-              const m = BASIS_META[r.basis];
-              const who = r.userId ? (r.user?.fullName ?? 'Nikala hua banda') : 'Sab bande';
-              const val = r.valueType === 'PERCENT' ? `${r.value}%` : formatPKR(r.value);
-              return (
-                <div key={r.id}
-                  className={`rounded-2xl border-2 p-3 transition ${
-                    r.isActive
-                      ? 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800'
-                      : 'border-slate-200 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/60 opacity-60'
-                  }`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">
-                        {r.name || `${m.emoji} ${m.label}`}
-                      </div>
-                      <div className={`text-sm font-black ${t.text}`}>
-                        {m.emoji} {m.label} — {val}
-                        {r.valueType === 'FIXED' && r.basis !== 'PER_BILL' && (
-                          <span className="text-[0.6875rem] font-bold text-slate-400"> / cheez</span>
-                        )}
-                      </div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate inline-flex items-center gap-1">
-                        <Users className="h-2.5 w-2.5" /> {who}
-                      </div>
-                    </div>
-                    <button onClick={() => setRuleModal({ rule: r })} title="Badlein"
-                      className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300 flex items-center justify-center shrink-0 transition">
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {r.categoryIds?.length > 0 && <Tag>{r.categoryIds.length} category</Tag>}
-                    {r.minMonthlySale ? <Tag>Hadd {formatPKR(r.minMonthlySale)}</Tag> : null}
-                    {r.targetAmount ? <Tag tone="amber">🎯 {formatPKR(r.targetAmount)} → {formatPKR(r.targetBonus ?? 0)}</Tag> : null}
-                  </div>
-
-                  {r.note && <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">{r.note}</p>}
-
-                  <button onClick={() => c.updateRule(r.id, { ...r, isActive: !r.isActive })} disabled={c.busy}
-                    className={`mt-2 w-full h-9 rounded-xl text-[0.6875rem] font-black disabled:opacity-50 transition ${
-                      r.isActive
-                        ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                        : 'bg-slate-100 dark:bg-ink-800 text-slate-500'
-                    }`}>
-                    {r.isActive ? '✓ Chaalu hai' : 'Band hai — chalayein'}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      )}
-
-      {/* ═══ BANDON KA HISAB ═══ */}
-      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
-        <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2.5">
-          <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shrink-0`}>
-            <Users className="h-4 w-4" />
-          </span>
-          <div className="min-w-0">
-            <h2 className="text-sm font-black text-slate-900 dark:text-ink-white">{periodLabel(period)} ka hisab</h2>
-            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-              Kisi line par dabayein — poora khata khul jayega
-            </p>
-          </div>
-        </header>
-
-        {c.isLoading ? (
-          <div className="p-4 space-y-2">
-            {[0, 1, 2, 3].map((i) => <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-          </div>
-        ) : c.rows.length === 0 ? (
-          <Empty icon={Receipt} title="Is mahine koi bikri nahi" />
-        ) : (
-          <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
-            {c.rows.map((r, i) => (
-              <RowCard key={r.userId} r={r} i={i} tone={t} money={money} busy={c.busy}
-                onOpen={() => setDetailUser(r)}
-                onPay={() => setPayTarget(r)}
-                canManage={!c.onlyMine}
-                onEnable={() => c.setEnabled(r.userId, true, r.staff?.id)}
-                onUndo={() => c.undoPaid(r.userId)} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <style>{`
-        @media print {
-          @page { size: A4 portrait; margin: 12mm; }
-          html, body { background: white !important; color: #0f172a !important; print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; }
-          .print\\:hidden { display: none !important; }
-          .print\\:block { display: block !important; }
-          section, div { box-shadow: none !important; }
-          [class*="fixed"] { display: none !important; }
-          [data-sonner-toaster] { display: none !important; }
-        }
-      `}</style>
-    </div>
+    </PageShell>
   );
 }
 
-const heroBtn = 'h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-black inline-flex items-center gap-1.5 backdrop-blur transition';
-
-/* ════════════════ CHHOTE HISSE ════════════════ */
-
-/**
- * Mahina chunne wali list.
- *
- * Ye portal se `document.body` par lagti hai. Pehle hero ke andar
- * thi, aur hero ka apna `overflow-hidden` aur upar ki patti is ko
- * kaat deti thi — list aadhi chhup jati thi. Portal is se bahar
- * nikal deta hai, aur jagah button ke hisab se nap kar milti hai.
- */
-function PeriodPicker({ period, open, tone, onToggle, onPick, onClose }: any) {
-  const [btn, setBtn] = useState<HTMLButtonElement | null>(null);
-  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
-
-  useEffect(() => {
-    if (!open || !btn) return;
-    const place = () => {
-      const r = btn.getBoundingClientRect();
-      setPos({ top: r.bottom + 8, right: Math.max(8, window.innerWidth - r.right) });
-    };
-    place();
-    window.addEventListener('resize', place);
-    window.addEventListener('scroll', place, true);
-    return () => {
-      window.removeEventListener('resize', place);
-      window.removeEventListener('scroll', place, true);
-    };
-  }, [open, btn]);
-
+function Note({ icon: I, tone, children }: { icon: typeof Info; tone: 'sky' | 'amber'; children: ReactNode }) {
   return (
-    <>
-      <button ref={setBtn} onClick={onToggle} className={heroBtn}>
-        <CalendarRange className="h-4 w-4" /> {periodLabel(period)}
-        <ChevronDown className={`h-3 w-3 transition ${open ? 'rotate-180' : ''}`} />
-      </button>
-      {open && pos && createPortal(
-        <>
-          <div className="fixed inset-0 z-[90]" onClick={onClose} />
-          <div style={{ top: pos.top, right: pos.right }}
-            className="fixed z-[91] w-56 max-h-80 overflow-y-auto rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-2">
-            <div className="px-2 py-1 text-[0.6875rem] font-black uppercase tracking-widest text-slate-400">
-              Mahina chunein
-            </div>
-            {recentPeriods().map((p) => (
-              <button key={p} onClick={() => onPick(p)}
-                className={`w-full h-10 px-3 rounded-xl text-left text-xs font-black transition ${
-                  p === period
-                    ? `bg-gradient-to-r ${tone.grad} text-white`
-                    : 'text-slate-700 dark:text-ink-200 hover:bg-slate-100 dark:hover:bg-ink-800'
-                }`}>{periodLabel(p)}</button>
-            ))}
-          </div>
-        </>,
-        document.body,
-      )}
-    </>
-  );
-}
-
-function Kpi({ icon: Icon, label, value, sub, tone }: any) {
-  return (
-    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4 shadow-sm">
-      <div className="flex items-center gap-2 mb-1.5">
-        <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shrink-0`}>
-          <Icon className="h-4 w-4" />
-        </span>
-        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 truncate">{label}</span>
-      </div>
-      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-none truncate">
-        {typeof value === 'number' ? value.toLocaleString() : value}
-      </p>
-      {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
-    </div>
-  );
-}
-
-function PayCell({ label, value, sub, tone, big }: any) {
-  return (
-    <div className={`rounded-2xl border-2 p-3 ${
-      big
-        ? 'border-slate-900 dark:border-ink-white bg-slate-50 dark:bg-ink-800'
-        : 'border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60'
-    }`}>
-      <div className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 truncate">{label}</div>
-      <div className={`font-black tabular-nums truncate ${big ? 'text-xl sm:text-2xl text-slate-900 dark:text-ink-white' : `text-lg ${tone ?? 'text-slate-700 dark:text-ink-200'}`}`}>
-        {value}
-      </div>
-      <div className="text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</div>
-    </div>
-  );
-}
-
-function Warn({ icon: Icon, children }: any) {
-  return (
-    <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200 flex items-start gap-2">
-      <Icon className="h-3.5 w-3.5 shrink-0 mt-0.5" />
-      <span>{children}</span>
+    <p className={cn('flex items-start gap-2 rounded-2xl px-4 py-2.5 text-[0.8125rem] ring-1', tone === 'sky' ? 'bg-sky-50 text-sky-900 ring-sky-200' : 'bg-amber-50 text-amber-900 ring-amber-200')}>
+      <I className="mt-0.5 h-4 w-4 shrink-0" /><span>{children}</span>
     </p>
   );
 }
 
-function Tag({ children, tone }: any) {
+function Warnings({ s, withoutLogin, manage, onTeam, onOff }: {
+  s: NonNullable<ReturnType<typeof useCommission>['summary']>; withoutLogin: number; manage: boolean; onTeam: () => void; onOff: () => void;
+}) {
+  const items: ReactNode[] = [];
+  if (s.notEnrolled.length) items.push(<><b>{s.notEnrolled.length} bandon</b> ki bikri hai magar commission chaalu nahi ({s.notEnrolled.slice(0, 3).map((r) => r.name).join(', ')}{s.notEnrolled.length > 3 ? '…' : ''}). <button type="button" className="font-semibold underline" onClick={manage ? onTeam : onOff}>Dekhein</button></>);
+  if (s.orphanBills) items.push(<><b>{s.orphanBills} bill</b> par kisi bande ka naam nahi ({formatPKR(s.orphanSale)}) — in ki commission kisi ko nahi milti.</>);
+  if (withoutLogin && manage) items.push(<><b>{withoutLogin} employee</b> ka apna login nahi — un ki bikri darj nahi hoti. <button type="button" className="font-semibold underline" onClick={onTeam}>Team</button></>);
+  if (s.overpaidTotal > 0) items.push(<>Kuch bandon ko banti se <b>{formatPKR(s.overpaidTotal)}</b> zyada ada hua hai (baad me bill void hua ya rule badla).</>);
+  if (s.noCostLines) items.push(<>{s.noCostLines} bikri lines par cost nahi thi — munafa wale rule me aaj ki cost lagi.</>);
+  if (!items.length) return null;
   return (
-    <span className={`px-1.5 py-0.5 rounded-md text-[0.625rem] font-black ${
-      tone === 'amber'
-        ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-        : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
-    }`}>{children}</span>
-  );
-}
-
-function Empty({ icon: Icon, title, sub }: any) {
-  return (
-    <div className="p-8 text-center">
-      <Icon className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-      <p className="text-sm font-black text-slate-700 dark:text-ink-200">{title}</p>
-      {sub && <p className="mt-1 text-[0.75rem] font-bold text-slate-500 dark:text-ink-400 max-w-md mx-auto">{sub}</p>}
+    <div className="space-y-1.5 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
+      {items.map((x, i) => <p key={i} className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span>{x}</span></p>)}
     </div>
   );
 }
 
-/* ── Ek bande ka switch wala khana ── */
-function PersonCard({ p, tone, money, row, busy, onToggle, onMakeStaff }: any) {
-  const on = p.enrolled;
-  const st = p.staff;
-  /* HR record kehta hai commission wala banda hai magar yahan band hai */
-  const hrSays = st?.salaryType === 'COMMISSION' || st?.salaryType === 'HYBRID';
-
+function HisabList({ rows, loading, failed, retry, filtered, clear, manage, busy, onOpen, onPay, onUndo }: {
+  rows: CommissionRow[]; loading: boolean; failed: boolean; retry: () => void; filtered: boolean; clear: () => void;
+  manage: boolean; busy: boolean; onOpen: (r: CommissionRow) => void; onPay: (r: CommissionRow) => void; onUndo: (r: CommissionRow) => void;
+}) {
+  if (loading) return <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>;
+  if (failed) {
+    return (
+      <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+        <p className="font-semibold text-slate-900">Hisab load nahi hua</p>
+        <Button className="mt-3" variant="secondary" onClick={retry}>Dobara koshish</Button>
+      </div>
+    );
+  }
+  if (!rows.length) {
+    return (
+      <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+        <Users className="mx-auto h-10 w-10 text-slate-300" />
+        <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi banda nahi' : 'Is mahine koi hisab nahi'}</p>
+        <p className="mt-1 text-sm text-slate-500">Jin par commission chaalu hai ya jinhon ne bikri ki, woh yahan aate hain.</p>
+        {filtered && <Button className="mt-3" variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+      </div>
+    );
+  }
   return (
-    <div className={`rounded-2xl border-2 p-3 transition ${
-      on
-        ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-500/10'
-        : hrSays
-          ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50/40 dark:bg-amber-500/5'
-          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800'
-    }`}>
-      <div className="flex items-start gap-2.5">
-        <span className={`h-10 w-10 rounded-2xl text-white text-sm font-black flex items-center justify-center shrink-0 overflow-hidden ${
-          on ? 'bg-gradient-to-br from-emerald-500 to-teal-700' : 'bg-slate-300 dark:bg-ink-600'
-        }`}>
-          {st?.avatarUrl
-            ? <img src={st.avatarUrl} alt="" className="h-full w-full object-cover" />
-            : (p.name || '?').charAt(0).toUpperCase()}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{p.name}</div>
-          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
-            {st?.designation ?? p.role ?? '—'}
-            {st?.staffNumber && ` · ${st.staffNumber}`}
-          </div>
-        </div>
-        <button onClick={onToggle} disabled={busy}
-          role="switch" aria-checked={on} aria-label={`${p.name} ki commission`}
-          className={`relative h-6 w-11 rounded-full shrink-0 disabled:opacity-50 transition ${
-            on ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-ink-600'
-          }`}>
-          <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
-            on ? 'left-[22px]' : 'left-0.5'
-          }`} />
-        </button>
-      </div>
-
-      {row && row.bills > 0 && (
-        <p className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
-          Is mahine {row.bills} bill · {money(row.sale)}
-          {on && row.earned > 0 && <span className={`ml-1 font-black ${tone.text}`}>→ {money(row.earned)}</span>}
-        </p>
-      )}
-
-      {!on && hrSays && (
-        <p className="mt-1.5 text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300">
-          ⚠️ Staff record me is ki tankhwah <strong>{st?.salaryType === 'HYBRID' ? 'hybrid' : 'commission'}</strong> wali
-          likhi hai, magar yahan band hai — shamil karna reh gaya?
-        </p>
-      )}
-      {!on && !hrSays && row && row.bills > 0 && (
-        <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-          Band hai — is ki bikri par koi commission nahi ban rahi
-        </p>
-      )}
-      {!st && (
-        <div className="mt-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/30 p-2">
-          <p className="text-[0.6875rem] font-bold text-sky-900 dark:text-sky-200">
-            Is ka sirf <strong>login</strong> hai, HR record nahi — is liye tankhwah nahi dikhti.
-          </p>
-          <button onClick={onMakeStaff} disabled={busy}
-            className="mt-1.5 h-9 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 disabled:opacity-50 transition">
-            <UserPlus className="h-3.5 w-3.5" /> HR record bana dein
-          </button>
-        </div>
-      )}
-      {st?.linkedByGuess && (
-        <p className="mt-1.5 text-[0.6875rem] font-bold text-sky-600 dark:text-sky-400">
-          HR record email/phone se mila — chaalu karte hi pakka jur jayega
-        </p>
-      )}
-    </div>
-  );
-}
-
-/* ── Hisab ki ek line ── */
-function RowCard({ r, i, tone, money, busy, canManage = true, onOpen, onPay, onEnable, onUndo }: any) {
-  const rate = r.sale > 0 ? (r.earned / r.sale) * 100 : 0;
-  return (
-    <div className={`px-4 sm:px-5 py-3.5 flex items-center gap-3 transition ${
-      !r.enrolled ? 'opacity-60' : r.paid ? 'bg-emerald-50/40 dark:bg-emerald-500/5' : ''
-    }`}>
-      <span className={`h-10 w-10 rounded-2xl text-white text-sm font-black flex items-center justify-center shrink-0 ${
-        !r.enrolled ? 'bg-slate-300 dark:bg-ink-600'
-          : i === 0 && r.earned > 0
-            ? 'bg-gradient-to-br from-amber-400 to-orange-600'
-            : `bg-gradient-to-br ${tone.grad}`
-      }`}>
-        {i === 0 && r.earned > 0 && r.enrolled ? <Trophy className="h-4 w-4" /> : i + 1}
-      </span>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{r.name}</span>
-          {r.staff?.designation && (
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-[0.625rem] font-black text-slate-500 dark:text-ink-400">
-              {r.staff.designation}
-            </span>
-          )}
-          {r.paid && <span className="px-1.5 py-0.5 rounded-md bg-emerald-600 text-white text-[0.625rem] font-black">Ada ho gayi</span>}
-          {r.bonus > 0 && <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-black">🎯 Target</span>}
-          {!r.enrolled && (
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-ink-700 text-[0.625rem] font-black text-slate-600 dark:text-ink-300">
-              Band
-            </span>
-          )}
-        </div>
-        <div className="mt-0.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
-          {r.bills} bill · bikri {money(r.sale)} · munafa {money(r.profit)}
-          {r.blockedByMin && ` · hadd se ${money(r.blockedByMin.short)} kam`}
-        </div>
-        {r.enrolled && r.baseSalary > 0 && (
-          <div className="mt-0.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300 truncate">
-            Tankhwah {money(r.baseSalary)} + commission {money(r.earned)} ={' '}
-            <strong className="text-slate-900 dark:text-ink-white">{money(r.totalPay)}</strong>
-          </div>
-        )}
-        {r.targetPct !== undefined && r.targetPct < 100 && (
-          <div className="mt-1.5 flex items-center gap-2">
-            <div className="h-1.5 flex-1 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden max-w-[160px]">
-              <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-600"
-                style={{ width: `${Math.min(r.targetPct, 100)}%` }} />
-            </div>
-            <span className="text-[0.6875rem] font-black text-amber-600">{r.targetPct.toFixed(0)}% target</span>
-          </div>
-        )}
-      </div>
-
-      <div className="text-right shrink-0">
-        <div className={`text-lg sm:text-xl font-black tabular-nums ${
-          !r.enrolled ? 'text-slate-400' : r.earned > 0 ? tone.text : 'text-slate-400'
-        }`}>
-          {r.enrolled ? money(r.earned) : '—'}
-        </div>
-        {r.enrolled && r.earned > 0 && (
-          <div className="text-[0.6875rem] font-bold text-slate-400">bikri ka {rate.toFixed(1)}%</div>
-        )}
-      </div>
-
-      <div className="flex gap-1.5 shrink-0 print:hidden">
-        {!canManage ? (
-          <button onClick={onOpen} title="Poora khata"
-            className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
-            <Eye className="h-3.5 w-3.5" /> Tafseel
-          </button>
-        ) : !r.enrolled ? (
-          <button onClick={onEnable} disabled={busy}
-            className="h-10 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 disabled:opacity-50 transition">
-            <UserCheck className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Chaalu</span>
-          </button>
-        ) : (
-          <>
-            <button onClick={onOpen} title="Poora khata"
-              className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
-              <Eye className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Tafseel</span>
-            </button>
-            {r.paid ? (
-              <button onClick={onUndo} disabled={busy} title="Adaigi wapas lein"
-                className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center disabled:opacity-50 transition">
-                <Undo2 className="h-3.5 w-3.5" />
-              </button>
-            ) : (
-              <button onClick={onPay} disabled={busy || r.earned <= 0} title="Ada kar di"
-                className="h-10 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 disabled:opacity-40 transition">
-                <CheckCircle2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Ada</span>
-              </button>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ── Adaigi likhne ka khana ── */
-function PayModal({ row, period, money, saving, onClose, onConfirm }: any) {
-  const [note, setNote] = useState('');
-  return (
-    <div className="fixed inset-0 z-[80] bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 shadow-2xl overflow-hidden">
-        <div className="p-5 bg-gradient-to-br from-emerald-600 to-teal-700 text-white text-center">
-          <CheckCircle2 className="h-10 w-10 mx-auto mb-2" />
-          <h3 className="text-lg font-black">Commission ada kar di?</h3>
-          <p className="text-xs font-bold text-white/80 mt-0.5">{periodLabel(period)}</p>
-        </div>
-        <div className="p-5 space-y-3">
-          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 text-center">
-            <p className="text-sm font-black text-slate-900 dark:text-ink-white">{row.name}</p>
-            <p className="mt-1 text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
-              {money(row.earned)}
-            </p>
-            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5">
-              {row.bills} bill · {money(row.sale)} ki bikri par
-            </p>
-          </div>
-
-          <label className="block">
-            <span className="block mb-1 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500">
-              Note <span className="normal-case font-bold text-slate-400">(marzi)</span>
-            </span>
-            <input value={note} onChange={(e) => setNote(e.target.value)}
-              placeholder="Cash di, ya tankhwah ke sath…"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition" />
-          </label>
-
-          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-            Ye sirf nishani hai ke aap ne de di — paisa khud kahin se nahi katta. Kharcha alag se
-            darj karna ho to Expenses me likhein.
-          </p>
-
-          <div className="flex gap-2">
-            <button onClick={onClose}
-              className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-sm font-black transition">
-              Rehne dein
-            </button>
-            <Button onClick={() => onConfirm(note.trim())} loading={saving}
-              className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700">
-              Haan, likh dein
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Sikhein ── */
-function Teacher({ tone, onClose }: any) {
-  return (
-    <div className="fixed inset-0 z-[80] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
-        <header className="p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shrink-0 flex items-center justify-between gap-2">
-          <div>
-            <h3 className="text-lg font-black inline-flex items-center gap-2">
-              <GraduationCap className="h-5 w-5" /> Commission kaise chalti hai
-            </h3>
-            <p className="text-xs font-bold text-white/80 mt-0.5">Ek dafa set karein, phir khud chalta hai</p>
-          </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center shrink-0 transition">
-            <X className="h-4 w-4" />
-          </button>
-        </header>
-        <div className="flex-1 overflow-y-auto p-5 space-y-3">
-          {[
-            { i: Gauge, t: 'Pehle rule banayein', d: 'Do faisle alag hain. Pehla: kis par — bikri par, munafa par, ya har bill par. Doosra: kitna — percent me ya seedhi raqam me. "Bikri par 2.5%" aur "har cheez par Rs 20" dono isi se bante hain.' },
-            { i: TrendingUp, t: 'Munafa wala rule dukaan ke liye behtar', d: 'Bikri par commission do to banda chhoot de kar bhi khush rehta hai. Munafa par do to chhoot us ki apni jeb se jati hai — is liye wo rate par khara rehta hai.' },
-            { i: UserCheck, t: 'Har bande ko alag se chaalu karein', d: 'Rule bana dene se kisi ki commission shuru nahi hoti. Upar wale khane me us bande ka switch on karna parta hai. Jin ka band hai, un ki bikri dikhegi magar commission 0 rahegi.' },
-            { i: UserX, t: 'Employee aur login do alag cheezein', d: 'Staff me jo employee aap banate hain wo HR ka record hai. Bikri hamesha LOGIN ke naam lagti hai. Jis employee ka login nahi, us ki commission ban hi nahi sakti — safha aise logon ko alag se dikha deta hai. Login banate waqt wohi email ya phone dein, dono record khud jur jayenge.' },
-            { i: Eye, t: 'Tafseel me sab kuch hai', d: 'Kisi bande ke samne "Tafseel" dabayein — kaunsi cheez kitni bikin, kis par kitni commission bani, kis category se kitna aaya, aur poori bill ki list. Ginti dobara nahi karni parti.' },
-            { i: Undo2, t: 'Wapsi apne aap kat jati hai', d: 'Void bill ginti me nahi aate, aur jo maal wapas aaya us ki miqdar har line se khud kat jati hai. Is liye aadhi wapsi wale bill bhi bilkul theek gine jate hain.' },
-            { i: CheckCircle2, t: 'Ada kar dein to likh dein', d: 'Paisa dene ke baad "Ada" dabayein. Ye sirf nishani hai — paisa khud kahin se nahi katta. Kharcha darj karna ho to Expenses me alag se likhein.' },
-            { i: Layers, t: 'Har dukaan ke liye ek jaisa', d: 'Ye safha kirana, bakery, mobile, electronics — sab ke liye wohi hai. Rules server par mehfooz hote hain, is liye counter ki har machine par ek jaise milte hain.' },
-          ].map((x, n) => (
-            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
-              <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${tone.grad} text-white flex items-center justify-center shrink-0`}>
-                <x.i className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 dark:text-ink-white">{x.t}</p>
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5">{x.d}</p>
-              </div>
-            </div>
-          ))}
-          <div className="rounded-2xl bg-slate-900 dark:bg-ink-800 p-3">
-            <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
-            <div className="flex flex-wrap gap-2">
-              {[['N', 'Naya rule'], ['G', 'Ye safha'], ['P', 'Print'], ['Esc', 'Band']].map(([k, l]) => (
-                <span key={k} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/80">
-                  <kbd className="px-1.5 py-0.5 rounded bg-white/15 font-black">{k}</kbd> {l}
+    <ul className="divide-y divide-slate-100 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
+      {rows.map((r) => {
+        const st = PAY[r.payStatus];
+        return (
+          <li key={r.userId} className={cn(!r.enrolled && 'bg-slate-50/60')}>
+            <div className="flex items-center gap-3 px-3 py-3 sm:px-4">
+              <button type="button" onClick={() => onOpen(r)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                <Avatar name={r.name} size={40} />
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    <span className="truncate font-semibold text-slate-900">{r.name}</span>
+                    {!r.enrolled && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] text-slate-500 ring-1 ring-slate-200">Commission band</span>}
+                    {r.enrolled && <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', st.tone)}><st.icon className="h-3 w-3" />{st.label}</span>}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">
+                    {r.bills} bill · bikri {formatPKR(r.sale)}{r.returnSale ? ` (wapsi −${formatPKR(r.returnSale)})` : ''}
+                    {r.blockedByMin && !r.lines.length ? ` · hadd se ${formatPKR(r.blockedByMin.short)} kam` : ''}
+                    {r.targets[0] ? ` · target ${Math.round(r.targets[0].pct)}%` : ''}
+                  </span>
                 </span>
-              ))}
+              </button>
+              <div className="shrink-0 text-right">
+                <p className={cn('text-base font-bold tabular-nums', r.earned < 0 ? 'text-rose-700' : r.enrolled ? 'text-slate-900' : 'text-slate-400')}>{signed(r.earned)}</p>
+                <p className="text-[0.6875rem] tabular-nums text-slate-500">{r.due > 0 ? `Baqi ${formatPKR(r.due)}` : r.paidAmount != null ? `Ada ${formatPKR(r.paidAmount)}` : ' '}</p>
+              </div>
+              {manage && r.enrolled && r.due > 0 && !r.paidInSalary && (
+                <Button size="sm" onClick={() => onPay(r)} disabled={busy} leftIcon={<HandCoins className="h-4 w-4" />} className="hidden sm:inline-flex">Ada karein</Button>
+              )}
+              {manage && r.paidAmount != null && r.due <= 0 && !r.paidInSalary && (
+                <Button size="sm" variant="ghost" onClick={() => onUndo(r)} disabled={busy} className="hidden text-slate-500 sm:inline-flex">Wapas</Button>
+              )}
+              <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
             </div>
-          </div>
-        </div>
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0">
-          <Button onClick={onClose} className={`w-full bg-gradient-to-r ${tone.grad}`}>Samajh gaya</Button>
-        </footer>
-      </div>
-    </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

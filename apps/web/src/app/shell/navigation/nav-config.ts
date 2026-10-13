@@ -4,7 +4,7 @@ import {
   Globe, Hash, Layers, LayoutDashboard, Megaphone, MessageCircle, Navigation, Package, PackagePlus, Percent,
   Plug, Receipt, RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart,
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap, PackageX,
-  Landmark, Send, Printer, QrCode, Search, HandCoins, Palette,
+  Landmark, Send, Printer, QrCode, Search, HandCoins, Palette, Scale, ShieldAlert, UserCheck,
 } from 'lucide-react';
 import { PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
@@ -22,6 +22,8 @@ export type NavItem = {
   label: string;
   icon: any;
   permission?: PermissionKey;
+  /** A second permission the item also needs (both must be held). */
+  alsoNeeds?: PermissionKey;
   badge?: string;
   hot?: boolean;
   /** Live count instead of a static badge */
@@ -60,8 +62,12 @@ export const posNavGroups: NavGroup[] = [
       { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, keywords: 'home' },
       { to: '/day-report', label: 'Din ka hisaab', icon: FileText, permission: P.DASHBOARD_VIEW, keywords: 'daily report closing opening z report' },
       { to: '/reports', label: 'Reports', icon: BarChart3, permission: P.REPORTS_VIEW },
+      { to: '/profit-loss', label: 'Nafa nuqsan (P&L)', icon: Scale, permission: P.PROFIT_REPORT_VIEW, keywords: 'p&l profit loss nafa nuqsan munafa statement break even cash flow' },
       { to: '/profit-report', label: 'Profit by product', icon: TrendingUp, permission: P.PROFIT_REPORT_VIEW },
       { to: '/stock-report', label: 'Stock report', icon: Package, permission: P.REPORTS_VIEW },
+      { to: '/reports/staff', label: 'Staff aur counter', icon: UserCheck, permission: P.REPORTS_VIEW, alsoNeeds: P.STAFF_VIEW, keywords: 'cashier counter galla shift performance' },
+      { to: '/reports/customers', label: 'Customers report', icon: Users, permission: P.REPORTS_VIEW, alsoNeeds: P.CUSTOMERS_VIEW, keywords: 'rfm cohort udhaar loyalty repeat' },
+      { to: '/audit', label: 'Nigrani', icon: ShieldAlert, permission: P.ACTIVITY_VIEW, keywords: 'audit chori loss void refund drawer' },
     ],
   },
   {
@@ -168,8 +174,12 @@ export const allShopsNavGroups: NavGroup[] = [
     items: [
       { to: '/day-report', label: 'Din ka hisaab', icon: FileText, permission: P.DASHBOARD_VIEW, keywords: 'daily report closing opening z report' },
       { to: '/reports', label: 'Reports', icon: BarChart3, permission: P.REPORTS_VIEW },
+      { to: '/profit-loss', label: 'Nafa nuqsan (P&L)', icon: Scale, permission: P.PROFIT_REPORT_VIEW, keywords: 'p&l profit loss nafa nuqsan munafa statement break even cash flow' },
       { to: '/profit-report', label: 'Profit by product', icon: TrendingUp, permission: P.PROFIT_REPORT_VIEW },
       { to: '/stock-report', label: 'Stock report', icon: Package, permission: P.REPORTS_VIEW },
+      { to: '/reports/staff', label: 'Staff aur counter', icon: UserCheck, permission: P.REPORTS_VIEW, alsoNeeds: P.STAFF_VIEW, keywords: 'cashier counter galla shift performance' },
+      { to: '/reports/customers', label: 'Customers report', icon: Users, permission: P.REPORTS_VIEW, alsoNeeds: P.CUSTOMERS_VIEW, keywords: 'rfm cohort udhaar loyalty repeat' },
+      { to: '/audit', label: 'Nigrani', icon: ShieldAlert, permission: P.ACTIVITY_VIEW, keywords: 'audit chori loss void refund drawer' },
       { to: '/sales', label: 'Sales history', icon: Receipt, permission: P.SALES_VIEW },
       { to: '/returns', label: 'Returns', icon: RotateCcw, permission: P.RETURNS_VIEW },
       { to: '/stock-movements', label: 'Stock movements', icon: Activity, permission: P.STOCK_MOVEMENTS_VIEW },

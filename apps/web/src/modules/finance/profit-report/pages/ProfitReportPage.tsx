@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import {
   Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
-  heroButton, heroIconButton, resolveRange, type DateRangeValue,
+  heroButton, heroIconButton, resolveRange,
 } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
@@ -28,7 +28,7 @@ import { rangeLabel } from '@core/lib/dateRange';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { cn } from '@core/lib/cn';
 import { useAuthStore, useIsAllShops, useShopParam } from '@core/stores/auth.store';
-import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { useReportMasked, useReportRange } from '@modules/reports/prefs';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { teamApi } from '@modules/organization/team/api/team.api';
@@ -48,12 +48,12 @@ export default function ProfitReportPage() {
   const tenantName = useAuthStore((s) => s.tenant?.name ?? '');
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const startHour = useBusinessDayStart();
-  const { sales: money, cost, costHidden } = useMasked();
+  const { sales: money, cost, costHidden } = useReportMasked();
   const fmt: ProfitFmt = { money, cost, costHidden };
   const guide = usePageGuide();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
+  const [range, setRange] = useReportRange('month');
   const [categoryId, setCategoryId] = useState<string>();
   const [brandId, setBrandId] = useState<string>();
   const [staffId, setStaffId] = useState<string>();

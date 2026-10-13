@@ -25,13 +25,6 @@ export class TenantDigestsController {
     return this.digests.runLowStockDigest();
   }
 
-  @Post('daily-summary/run')
-  @ApiOperation({ summary: 'Manually trigger daily sales summary' })
-  triggerDailySummary(@GetUser() user: AuthenticatedUser) {
-    this.ensureAdmin(user);
-    return this.digests.runDailySummary();
-  }
-
   @Post('broadcast/send')
   @ApiOperation({ summary: 'Send admin broadcast email to tenants' })
   sendBroadcast(

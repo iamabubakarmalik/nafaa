@@ -143,11 +143,11 @@ import MoneyPage from '@modules/finance/money/pages/MoneyPage';
 
 // ─── Team & Staff ──────────────────────────────────────────────
 import TeamPage from '@modules/organization/team/pages/TeamPage';
-import StaffListPage from '@modules/organization/staff/pages/StaffListPage';
-import StaffFormPage from '@modules/organization/staff/pages/StaffFormPage';
-import StaffDetailPage from '@modules/organization/staff/pages/StaffDetailPage';
-import AttendancePage from '@modules/organization/staff/pages/AttendancePage';
-import SalaryProcessPage from '@modules/organization/staff/pages/SalaryProcessPage';
+import HrStaffPage from '@modules/hr/staff/pages/StaffPage';
+import HrStaffFormPage from '@modules/hr/staff/pages/StaffFormPage';
+import HrStaffProfilePage from '@modules/hr/staff/pages/StaffProfilePage';
+import HrAttendancePage from '@modules/hr/attendance/pages/AttendancePage';
+import PayrollPage from '@modules/hr/payroll/pages/PayrollPage';
 import CommissionPage from '@modules/hr/commission/pages/CommissionPage';
 
 // ─── Billing ───────────────────────────────────────────────────
@@ -293,7 +293,11 @@ import MemberDetailPage from '@industries/gym/pages/MemberDetailPage';
 
 // ─── Bakery Industry ───────────────────────────────────────────
 import BakeryDashboard from '@/industries/bakery/dashboard/BakeryDashboard';
-import DayReportPage from '@modules/dashboard/day-report/DayReportPage';
+import DayBookPage from '@modules/reports/day-book/DayBookPage';
+import ProfitLossPage from '@modules/reports/pnl/pages/ProfitLossPage';
+import { StaffReportPage } from '@modules/reports/staff-report';
+import { CustomersReportPage } from '@modules/reports/customers-report';
+import AuditPage from '@modules/reports/audit/pages/AuditPage';
 import CakeCustomizerPage from '@industries/bakery/pages/CakeCustomizerPage';
 import CakeOrdersPage from '@industries/bakery/pages/CakeOrdersPage';
 import CakeOrderDetailPage from '@industries/bakery/pages/CakeOrderDetailPage';
@@ -675,7 +679,11 @@ export default function App() {
 
                   {/* ── Reports ────────────────────────────────── */}
                   <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsCenterPage />)} />
-                  <Route path="/day-report" element={secure(PERMISSIONS.DASHBOARD_VIEW, <DayReportPage />)} />
+                  <Route path="/day-report" element={secure(PERMISSIONS.DASHBOARD_VIEW, <DayBookPage />)} />
+                  <Route path="/profit-loss" element={secure(PERMISSIONS.PROFIT_REPORT_VIEW, <ProfitLossPage />)} />
+                  <Route path="/reports/staff" element={secure(PERMISSIONS.REPORTS_VIEW, secure(PERMISSIONS.STAFF_VIEW, <StaffReportPage />))} />
+                  <Route path="/reports/customers" element={secure(PERMISSIONS.REPORTS_VIEW, secure(PERMISSIONS.CUSTOMERS_VIEW, <CustomersReportPage />))} />
+                  <Route path="/audit" element={secure(PERMISSIONS.ACTIVITY_VIEW, <AuditPage />)} />
                   <Route path="/stock-report" element={secure(PERMISSIONS.REPORTS_VIEW, <StockReportPage />)} />
 
                   {/* ── Settings & System ──────────────────────── */}
@@ -756,13 +764,13 @@ export default function App() {
 
                   {/* ── Team & Staff ───────────────────────────── */}
                   <Route path="/team" element={secure(PERMISSIONS.TEAM_VIEW, <TeamPage />)} />
-                  <Route path="/staff/new" element={secure(PERMISSIONS.STAFF_MANAGE, <StaffFormPage />)} />
-                  <Route path="/staff/attendance" element={secure(PERMISSIONS.STAFF_VIEW, <AttendancePage />)} />
-                  <Route path="/staff/salary/new" element={secure(PERMISSIONS.STAFF_MANAGE, <SalaryProcessPage />)} />
+                  <Route path="/staff/new" element={secure(PERMISSIONS.STAFF_MANAGE, <HrStaffFormPage />)} />
+                  <Route path="/staff/attendance" element={secure(PERMISSIONS.STAFF_VIEW, <HrAttendancePage />)} />
+                  <Route path="/staff/salary/new" element={secure(PERMISSIONS.STAFF_MANAGE, <PayrollPage />)} />
                   <Route path="/staff/commission" element={secure(PERMISSIONS.COMMISSION_OWN, <CommissionPage />)} />
-                  <Route path="/staff/:id/edit" element={secure(PERMISSIONS.STAFF_MANAGE, <StaffFormPage />)} />
-                  <Route path="/staff/:id" element={secure(PERMISSIONS.STAFF_VIEW, <StaffDetailPage />)} />
-                  <Route path="/staff" element={secure(PERMISSIONS.STAFF_VIEW, <StaffListPage />)} />
+                  <Route path="/staff/:id/edit" element={secure(PERMISSIONS.STAFF_MANAGE, <HrStaffFormPage />)} />
+                  <Route path="/staff/:id" element={secure(PERMISSIONS.STAFF_VIEW, <HrStaffProfilePage />)} />
+                  <Route path="/staff" element={secure(PERMISSIONS.STAFF_VIEW, <HrStaffPage />)} />
                   <Route path="/appointments" element={<AppointmentsPage />} />
 
                   {/* ── Billing ────────────────────────────────── */}

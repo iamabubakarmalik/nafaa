@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -9,10 +9,12 @@ import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { StockFilterDto, StockLedgerDto, StockListDto } from './dto/stock-report.dto';
 import { StockAnalysisService } from './stock-analysis.service';
 import { StockReportService } from './stock-report.service';
+import { ReportFiguresInterceptor } from '../../../common/interceptors/report-figures.interceptor';
 
 @ApiTags('Stock Report')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@UseInterceptors(ReportFiguresInterceptor)
 @Controller('reports/stock')
 export class StockReportController {
   constructor(

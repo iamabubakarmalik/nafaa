@@ -46,6 +46,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
           if (!isMarketplace && isSettingsPath(it.to)) return false;
           // Industry packs do not declare permissions on their nav items, so
           // the permission is derived from the route.
+          if (it.alsoNeeds && !hasPermission(role as never, permissions, it.alsoNeeds)) return false;
           const needs = it.permission ?? permissionForPath(it.to);
           return needs ? hasPermission(role as never, permissions, needs) : true;
         }),

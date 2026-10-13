@@ -5,12 +5,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { hashPassword } from '../../../common/utils/password.util';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { EmailService } from '../../email/email.service';
 import { CreateTeamMemberDto } from './dto/create-team-member.dto';
+import { InviteTeamMemberDto } from './dto/invite-team-member.dto';
 import { UpdatePermissionsDto } from './dto/update-permissions.dto';
+import { UpdateTeamMemberDto } from './dto/update-team-member.dto';
 import {
   ALL_PERMISSIONS,
   DEFAULT_ROLE_PERMISSIONS,
@@ -18,7 +21,10 @@ import {
 
 @Injectable()
 export class TeamService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly email: EmailService,
+  ) {}
 
   private requireOwner(user: AuthenticatedUser) {
     if (user.role !== UserRole.OWNER && user.role !== UserRole.SUPER_ADMIN) {
@@ -253,7 +259,7 @@ export class TeamService {
     return updated;
   }
 
-  async toggleActive(user: AuthenticatedUser, id: string) {
+  async toggleActive(user: AuthenticatedUser, id: string, isActive?: boolean) {
     this.requireOwner(user);
 
     const member = await this.prisma.user.findFirst({
@@ -263,10 +269,13 @@ export class TeamService {
     if (member.role === UserRole.OWNER) {
       throw new BadRequestException('Owner ko deactivate nahi kar sakte');
     }
+    if (isActive !== undefined && member.isActive === isActive) {
+      return { id: member.id, fullName: member.fullName, isActive: member.isActive };
+    }
 
     const updated = await this.prisma.user.update({
       where: { id },
-      data: { isActive: !member.isActive },
+      data: { isActive: isActive ?? !member.isActive },
       select: {
         id: true,
         fullName: true,
@@ -306,16 +315,24 @@ export class TeamService {
       throw new BadRequestException('Owner ko delete nahi kar sakte');
     }
 
-    // Check if user has any transactional history
-    const [saleCount, expenseCount, cashRegCount] = await Promise.all([
-      this.prisma.sale.count({ where: { createdById: id } }),
+    // Any record that ties this login to the books keeps it (deactivated, never deleted).
+    // Sales count both the cashier and the seller picked at the counter.
+    const [saleCount, expenseCount, cashRegCount, otherCount] = await Promise.all([
+      this.prisma.sale.count({ where: { OR: [{ createdById: id }, { soldById: id }] } }),
       this.prisma.expense.count({ where: { createdById: id } }),
       this.prisma.cashRegister.count({
         where: { OR: [{ openedById: id }, { closedById: id }] },
       }),
+      Promise.all([
+        this.prisma.saleReturn.count({ where: { createdById: id } }),
+        this.prisma.purchase.count({ where: { createdById: id } }),
+        this.prisma.stockAdjustment.count({ where: { createdById: id } }),
+        this.prisma.cashTransaction.count({ where: { createdById: id } }),
+        this.prisma.customerLedger.count({ where: { createdById: id } }),
+      ]).then((n) => n.reduce((a, b) => a + b, 0)),
     ]);
 
-    if (saleCount > 0 || expenseCount > 0 || cashRegCount > 0) {
+    if (saleCount > 0 || expenseCount > 0 || cashRegCount > 0 || otherCount > 0) {
       // Soft delete — deactivate + kill sessions
       const updated = await this.prisma.user.update({
         where: { id },
@@ -331,7 +348,7 @@ export class TeamService {
           entityType: 'TeamMember',
           entityId: id,
           description: `${user.email} soft-deleted (deactivated) ${member.fullName} — has history`,
-          metadata: { saleCount, expenseCount, cashRegCount },
+          metadata: { saleCount, expenseCount, cashRegCount, otherCount },
         },
       });
 
@@ -357,6 +374,211 @@ export class TeamService {
     return { message: 'Team member removed successfully', softDeleted: false };
   }
 
+  /** Role and branch rules shared by create, invite and update. */
+  private async checkRoleShop(user: AuthenticatedUser, role: UserRole, shopId: string | null | undefined) {
+    if (role === UserRole.OWNER || role === UserRole.SUPER_ADMIN) {
+      throw new BadRequestException('Owner role manually nahi bana sakte');
+    }
+    if ((role === UserRole.MANAGER || role === UserRole.CASHIER) && !shopId) {
+      throw new BadRequestException(`${role} ke liye shop select karna zaroori hai`);
+    }
+    if (!shopId) return null;
+    const shop = await this.prisma.shop.findFirst({ where: { id: shopId, tenantId: user.tenantId }, select: { id: true, name: true, isActive: true } });
+    if (!shop) throw new NotFoundException('Shop not found');
+    if (!shop.isActive) throw new BadRequestException('Yeh shop inactive hai');
+    return shop;
+  }
+
+  /** Next free EMP-0001 style number; counting rows breaks once numbers have gaps. */
+  private async nextStaffNumber(tx: Prisma.TransactionClient, tenantId: string) {
+    const rows = await tx.staff.findMany({ where: { tenantId }, select: { staffNumber: true } });
+    const max = rows.reduce((m, r) => Math.max(m, Number(/(\d+)$/.exec(r.staffNumber)?.[1] ?? 0)), 0);
+    return `EMP-${String(max + 1).padStart(4, '0')}`;
+  }
+
+  /**
+   * New login and its HR record in one transaction, so a person never ends up
+   * with a login but no salary/attendance record. A second click fails on the
+   * unique email instead of making a second login.
+   */
+  async invite(user: AuthenticatedUser, dto: InviteTeamMemberDto) {
+    this.requireOwner(user);
+    const shop = await this.checkRoleShop(user, dto.role, dto.shopId);
+    const email = dto.email.toLowerCase().trim();
+    const phone = dto.phone?.trim() || null;
+
+    const [emailTaken, phoneTaken] = await Promise.all([
+      this.prisma.user.findUnique({ where: { email }, select: { id: true } }),
+      phone ? this.prisma.user.findUnique({ where: { phone }, select: { id: true } }) : null,
+    ]);
+    if (emailTaken) throw new ConflictException('Yeh email pehle se kisi login par hai');
+    if (phoneTaken) throw new ConflictException('Yeh phone number pehle se kisi login par hai');
+
+    if (dto.staffId) {
+      const st = await this.prisma.staff.findFirst({ where: { id: dto.staffId, tenantId: user.tenantId }, select: { userId: true } });
+      if (!st) throw new NotFoundException('HR record nahi mila');
+      if (st.userId) throw new BadRequestException('Is HR record ka login pehle se bana hua hai');
+    }
+
+    const permissions = dto.permissions && dto.permissions.length > 0
+      ? this.sanitizePermissions(dto.permissions)
+      : DEFAULT_ROLE_PERMISSIONS[dto.role] ?? [];
+    const passwordHash = await hashPassword(dto.password);
+    const digits = (phone ?? '').replace(/[^0-9]/g, '').slice(-10);
+
+    let result: { member: { id: string; fullName: string; email: string; role: UserRole; shopId: string | null }; staffId: string; linked: 'existing' | 'matched' | 'new' };
+    try {
+      result = await this.prisma.$transaction(async (tx) => {
+        const member = await tx.user.create({
+          data: {
+            tenantId: user.tenantId, shopId: shop?.id ?? null, fullName: dto.fullName.trim(), email, phone,
+            passwordHash, role: dto.role, permissions, isActive: true,
+          },
+          select: { id: true, fullName: true, email: true, role: true, shopId: true },
+        });
+        const hr = {
+          ...(dto.designation ? { designation: dto.designation.trim() } : {}),
+          ...(dto.salaryType ? { salaryType: dto.salaryType } : {}),
+          ...(dto.baseSalary !== undefined ? { baseSalary: dto.baseSalary } : {}),
+        };
+        /* Link the given record, else one that matches by email or phone, else a new one. */
+        const match = dto.staffId
+          ? { id: dto.staffId }
+          : await tx.staff.findFirst({
+            where: {
+              tenantId: user.tenantId, userId: null,
+              OR: [{ email: { equals: email, mode: 'insensitive' } }, ...(digits.length >= 10 ? [{ phone: { endsWith: digits } }] : [])],
+            },
+            select: { id: true },
+          });
+        if (match) {
+          await tx.staff.update({ where: { id: match.id }, data: { userId: member.id, ...hr } });
+          await this.log(tx, user, 'CREATE', member.id, `${user.email} added ${member.role}: ${member.fullName}${shop ? ` (${shop.name})` : ''}`, { role: member.role, permissions, shopId: member.shopId, staffId: match.id });
+          return { member, staffId: match.id, linked: dto.staffId ? 'existing' as const : 'matched' as const };
+        }
+        const created = await tx.staff.create({
+          data: {
+            tenantId: user.tenantId, userId: member.id, staffNumber: await this.nextStaffNumber(tx, user.tenantId),
+            fullName: member.fullName, phone: phone ?? '—', email, shopId: shop?.id ?? null,
+            designation: dto.designation?.trim() || prettyRole(dto.role),
+            joinDate: dto.joinDate ? new Date(dto.joinDate) : new Date(),
+            salaryType: dto.salaryType ?? 'MONTHLY', baseSalary: dto.baseSalary ?? 0, status: 'ACTIVE',
+          },
+          select: { id: true },
+        });
+        await this.log(tx, user, 'CREATE', member.id, `${user.email} added ${member.role}: ${member.fullName}${shop ? ` (${shop.name})` : ''}`, { role: member.role, permissions, shopId: member.shopId, staffId: created.id });
+        return { member, staffId: created.id, linked: 'new' as const };
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        throw new ConflictException('Yeh email ya phone pehle se registered hai');
+      }
+      throw e;
+    }
+
+    let emailSent = false;
+    if (dto.sendEmail) {
+      const tenant = await this.prisma.tenant.findUnique({ where: { id: user.tenantId }, select: { name: true } });
+      const owner = await this.prisma.user.findUnique({ where: { id: user.id }, select: { fullName: true } });
+      const appUrl = process.env.APP_URL || 'http://localhost:5173';
+      emailSent = await this.email.send({
+        tenantId: user.tenantId, templateSlug: 'team-member-invited', toEmail: email, toName: result.member.fullName,
+        variables: {
+          name: result.member.fullName, ownerName: owner?.fullName ?? '', shopName: tenant?.name ?? '', email,
+          tempPassword: dto.password, role: result.member.role, loginUrl: `${appUrl}/login`, appUrl,
+        },
+      }).then(() => true, () => false);
+    }
+
+    return { ...result.member, staffId: result.staffId, linked: result.linked, emailSent };
+  }
+
+  /** Name, email, phone, role and branch of a login. Permissions are not touched. */
+  async update(user: AuthenticatedUser, id: string, dto: UpdateTeamMemberDto) {
+    this.requireOwner(user);
+    const member = await this.prisma.user.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!member) throw new NotFoundException('Team member not found');
+    const isOwner = member.role === UserRole.OWNER || member.role === UserRole.SUPER_ADMIN;
+    if (isOwner && ((dto.role && dto.role !== member.role) || dto.shopId !== undefined)) {
+      throw new BadRequestException('Owner ka role aur branch yahan nahi badalte');
+    }
+
+    const data: Prisma.UserUpdateInput = {};
+    if (dto.fullName?.trim()) data.fullName = dto.fullName.trim();
+    if (dto.email && dto.email.toLowerCase().trim() !== member.email) {
+      const email = dto.email.toLowerCase().trim();
+      const taken = await this.prisma.user.findFirst({ where: { email, id: { not: id } }, select: { id: true } });
+      if (taken) throw new ConflictException('Yeh email pehle se kisi login par hai');
+      data.email = email;
+    }
+    if (dto.phone !== undefined) {
+      const phone = dto.phone.trim() || null;
+      if (phone && phone !== member.phone) {
+        const taken = await this.prisma.user.findFirst({ where: { phone, id: { not: id } }, select: { id: true } });
+        if (taken) throw new ConflictException('Yeh phone number pehle se kisi login par hai');
+      }
+      data.phone = phone;
+    }
+    if (!isOwner) {
+      const role = dto.role ?? member.role;
+      const shopId = dto.shopId !== undefined ? dto.shopId : member.shopId;
+      const shop = await this.checkRoleShop(user, role, shopId);
+      if (dto.role) data.role = role;
+      if (dto.shopId !== undefined) data.assignedShop = shop ? { connect: { id: shop.id } } : { disconnect: true };
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id }, data,
+      select: { id: true, fullName: true, email: true, phone: true, role: true, shopId: true, isActive: true, permissions: true, assignedShop: { select: { id: true, name: true, isMain: true } } },
+    });
+
+    /* A new role or branch changes what the app shows; sign them in again so it takes effect now. */
+    if (updated.role !== member.role || updated.shopId !== member.shopId) {
+      await this.prisma.session.deleteMany({ where: { userId: id } });
+    }
+    await this.log(this.prisma, user, 'UPDATE', id, `${user.email} updated login of ${updated.fullName}`, {
+      changed: Object.keys(data), role: { from: member.role, to: updated.role }, shopId: { from: member.shopId, to: updated.shopId },
+    });
+    return updated;
+  }
+
+  /** Owner sets a new password for a member; every device is signed out. */
+  async resetPassword(user: AuthenticatedUser, id: string, password: string) {
+    this.requireOwner(user);
+    const member = await this.prisma.user.findFirst({ where: { id, tenantId: user.tenantId } });
+    if (!member) throw new NotFoundException('Team member not found');
+    if (member.role === UserRole.OWNER || member.role === UserRole.SUPER_ADMIN) {
+      throw new BadRequestException('Owner apna password Profile se badalta hai');
+    }
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        passwordHash: await hashPassword(password), passwordResetToken: null, passwordResetExpires: null,
+        ...(member.authProvider === 'GOOGLE' ? { authProvider: 'HYBRID' as const } : {}),
+      },
+    });
+    const { count } = await this.prisma.session.deleteMany({ where: { userId: id } });
+    await this.log(this.prisma, user, 'UPDATE', id, `${user.email} reset the password of ${member.fullName}`, { sessionsClosed: count });
+    return { ok: true, sessionsClosed: count };
+  }
+
+  /** Sign a member out of one device, or of all devices when `sessionId` is not given. */
+  async signOut(user: AuthenticatedUser, id: string, sessionId?: string) {
+    this.requireOwner(user);
+    const member = await this.prisma.user.findFirst({ where: { id, tenantId: user.tenantId }, select: { id: true, fullName: true } });
+    if (!member) throw new NotFoundException('Team member not found');
+    if (member.id === user.id) throw new BadRequestException('Apne devices Profile → Security se band karein');
+    const { count } = await this.prisma.session.deleteMany({ where: { userId: id, ...(sessionId ? { id: sessionId } : {}) } });
+    await this.log(this.prisma, user, 'UPDATE', id, `${user.email} signed ${member.fullName} out of ${sessionId ? 'one device' : 'all devices'}`, { count });
+    return { ok: true, sessionsClosed: count };
+  }
+
+  private log(db: Pick<Prisma.TransactionClient, 'activityLog'>, user: AuthenticatedUser, action: string, entityId: string, description: string, metadata?: Prisma.InputJsonValue) {
+    return db.activityLog.create({
+      data: { tenantId: user.tenantId, userId: user.id, action, entityType: 'TeamMember', entityId, description, metadata },
+    });
+  }
+
   getCatalog(user: AuthenticatedUser) {
     this.requireOwner(user);
     return {
@@ -364,4 +586,9 @@ export class TeamService {
       defaultsByRole: DEFAULT_ROLE_PERMISSIONS,
     };
   }
+}
+
+/** OWNER → "Owner", CASHIER → "Cashier" for the HR record's job title. */
+function prettyRole(role: string) {
+  return role.split('_').map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
 }

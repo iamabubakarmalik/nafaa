@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  AlertCircle, AlertTriangle, ArrowLeftRight, Bell, BellOff, CheckCheck, Crown, DollarSign, Info,
+  AlertCircle, AlertTriangle, ArrowLeftRight, Bell, BellOff, CheckCheck, Crown, DollarSign, Info, MessageCircle,
   Package, Receipt, Settings as SettingsIcon, ShoppingCart, Trash2, UserPlus, Volume2, VolumeX, Wallet,
   type LucideIcon,
 } from 'lucide-react';
@@ -246,6 +246,12 @@ export default function NotificationBell() {
                             <div className="mt-1 flex items-center gap-2 text-[0.6875rem] text-slate-400">
                               <span>{formatTime(n.createdAt)}</span>
                               {urgent && <span className="rounded bg-rose-50 px-1.5 py-0.5 font-semibold text-rose-700">Urgent</span>}
+                              {typeof n.metadata?.whatsappUrl === 'string' && n.metadata.whatsappUrl.startsWith('https://wa.me/') && (
+                                <a href={n.metadata.whatsappUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 font-semibold text-emerald-700 hover:bg-emerald-100">
+                                  <MessageCircle className="h-3 w-3" /> WhatsApp par bhejein
+                                </a>
+                              )}
                             </div>
                           </div>
                           <button

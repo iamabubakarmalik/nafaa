@@ -1,413 +1,322 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  X, Package, Receipt, Layers, Printer, Download, TrendingUp,
-  Undo2, ExternalLink, Trophy, Gauge,
-} from 'lucide-react';
-import { toast } from 'sonner';
+/**
+ * One person's commission statement in a side panel: how each rule worked
+ * out (with returns taken back), targets, the rules that apply, goods by
+ * product and category, the bills, the returns and the last six months.
+ * Prints as an A4 statement or a signed slip, and records payments.
+ */
+
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { HandCoins, Printer, ReceiptText, RotateCcw, Target, Undo2, X } from 'lucide-react';
+import { Avatar, Button, IconButton, Segmented, Skeleton } from '@/design-system/components';
+import { PrintButton } from '@core/print';
+import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
-import { useCommissionDetail, periodLabel } from '../hooks/useCommission';
-import type { CommissionRow } from '../api/commission.api';
+import { axisMoney } from '@modules/dashboard/engine/parts';
+import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
+import type { CommissionDetail } from '../api/commission.api';
+import { useCommissionDetail } from '../hooks/useCommission';
+import { PAY, day, dayTime, periodLabel, qtyText, rateText, signed } from './meta';
+import { lineBase, returnText, statementDoc } from './print';
+import { StatementPrintModal } from './StatementPrintModal';
 
-/* ═════════════════════════════════════════════════════════════
-   EK BANDE KA POORA KHATA
-   ─────────────────────────────────────────────────────────────
-   Safhe par kul raqam dikh jati hai, magar asal sawal hamesha
-   agla hota hai: "ye paisa aaya kahan se?"
+type Tab = 'hisab' | 'goods' | 'bills' | 'returns' | 'months';
 
-   Teen nazariye, teen tab:
-     📦 CHEEZ    — kaunsa maal kitna bika aur us par kitni bani
-     🗂️ CATEGORY — kis khandaan se kitna aaya
-     🧾 BILL     — ek ek bill, aur us par click karke asli receipt
-
-   Har cheez ke samne miqdar, rate, munafa aur commission — chaar
-   number. Is se dukaan-daar khud dekh leta hai ke kaunsi cheez
-   bechne par bande ko faida hai, aur kahan wo sirf waqt laga raha.
-   ═════════════════════════════════════════════════════════════ */
-
-type Tab = 'product' | 'category' | 'bill';
-
-export function CommissionDetailDrawer({
-  row, period, tone, shopName, hideAmounts, onClose,
-}: {
-  row: CommissionRow;
+export function CommissionDetailDrawer({ userId, name, period, canManage, costHidden, busy, onPay, onUndo, onClose }: {
+  userId: string;
+  name: string;
   period: string;
-  tone: { grad: string; text: string };
-  shopName?: string;
-  hideAmounts?: boolean;
+  canManage: boolean;
+  costHidden: boolean;
+  busy: boolean;
+  onPay: (d: CommissionDetail) => void;
+  onUndo: (d: CommissionDetail) => void;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<Tab>('product');
-  const { data, isLoading, isError } = useCommissionDetail(row.userId, period);
-  const money = (v: number) => (hideAmounts ? '••••' : formatPKR(v));
-  const qty = (v: number) => Number(v || 0).toFixed(Number(v || 0) % 1 === 0 ? 0 : 2);
+  const q = useCommissionDetail(userId, period);
+  const d = q.data;
+  const [tab, setTab] = useState<Tab>('hisab');
+  const [slip, setSlip] = useState(false);
+  const showCost = !costHidden && d?.profit != null;
 
-  const exportCsv = () => {
-    if (!data) return;
-    const head = ['Cheez', 'Category', 'Miqdar', 'Unit', 'Wapas aaya', 'Bikri', 'Lagat', 'Munafa', 'Commission'];
-    const body = (data.byProduct ?? []).map((p) => [
-      p.name, p.categoryName ?? '', p.qty, p.unit, p.returned,
-      p.sale.toFixed(2), p.cost.toFixed(2), p.profit.toFixed(2), p.commission.toFixed(2),
-    ]);
-    const summary = [
-      [`${row.name} — commission ki tafseel`],
-      [`${shopName ?? ''}  •  ${periodLabel(period)}`],
-      [`${row.bills} bill  •  bikri ${row.sale.toFixed(2)}  •  commission ${row.earned.toFixed(2)}`],
-      [''],
-    ];
-    const csv = [...summary, head, ...body]
-      .map((r) => r.map((x) => `"${String(x).replace(/"/g, '""')}"`).join(',')).join('\n');
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `commission-${row.name.replace(/\s+/g, '-')}-${period}.csv`;
-    a.click(); URL.revokeObjectURL(url);
-    toast.success('Tafseel export ho gayi');
-  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !slip) onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose, slip]);
 
-  const TABS: Array<{ v: Tab; l: string; i: any; n?: number }> = [
-    { v: 'product', l: 'Cheez ke hisab se', i: Package, n: data?.byProduct?.length },
-    { v: 'category', l: 'Category', i: Layers, n: data?.byCategory?.length },
-    { v: 'bill', l: 'Bill', i: Receipt, n: data?.billList?.length },
-  ];
-
-  return (
-    <div className="fixed inset-0 z-[75] bg-slate-950/70 backdrop-blur-sm flex justify-end" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-3xl h-full bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
-
-        {/* ── Upar ── */}
-        <header className={`p-5 bg-gradient-to-br ${tone.grad} text-white shrink-0`}>
-          <div className="flex items-start justify-between gap-3">
+  return createPortal(
+    <div className="fixed inset-0 z-[90] flex justify-end">
+      <div className="absolute inset-0 bg-slate-950/40" onClick={onClose} aria-hidden />
+      <aside role="dialog" aria-modal="true" data-drawer aria-label={name}
+        className="relative flex h-full w-full max-w-2xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-200">
+        <header className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <Avatar name={name} size={44} />
             <div className="min-w-0">
-              <div className="text-[0.6875rem] font-black uppercase tracking-widest text-white/75">
-                {periodLabel(period)} · poora khata
-              </div>
-              <h2 className="mt-1 text-xl sm:text-2xl font-black truncate">{row.name}</h2>
-              <p className="text-xs font-bold text-white/85 mt-0.5">
-                {row.staff?.designation ?? 'Banda'}
-                {row.staff?.staffNumber && ` · ${row.staff.staffNumber}`}
+              <h2 className="truncate text-lg font-bold text-slate-900">{name}</h2>
+              <p className="truncate text-[0.8125rem] text-slate-500">
+                {periodLabel(period)}{d?.staff?.designation ? ` · ${d.staff.designation}` : ''}{d && !d.enrolled ? ' · commission chaalu nahi' : ''}
               </p>
             </div>
-            <div className="flex gap-2 shrink-0">
-              <button onClick={exportCsv} title="CSV" disabled={!data}
-                className="h-10 w-10 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 flex items-center justify-center backdrop-blur disabled:opacity-40 transition">
-                <Download className="h-4 w-4" />
-              </button>
-              <button onClick={() => data && printDetail(data, row, period, shopName)} title="Print" disabled={!data}
-                className="h-10 w-10 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 flex items-center justify-center backdrop-blur disabled:opacity-40 transition">
-                <Printer className="h-4 w-4" />
-              </button>
-              <button onClick={onClose}
-                className="h-10 w-10 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center transition">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
           </div>
-
-          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <HeroStat label="Bill" value={String(row.bills)} />
-            <HeroStat label="Bikri" value={money(row.sale)} />
-            <HeroStat label="Munafa" value={money(row.profit)} />
-            <HeroStat label="Commission" value={money(row.earned)} big />
-          </div>
-
-          {/* Pakki tankhwah bhi ho to poora jor — banda yehi poochta hai */}
-          {row.baseSalary > 0 && (
-            <div className="mt-2 rounded-2xl bg-white/15 backdrop-blur border border-white/20 px-3 py-2 flex items-center gap-2 flex-wrap">
-              <span className="text-[0.6875rem] font-black uppercase tracking-widest text-white/75">Is mahine kul</span>
-              <span className="text-xs font-bold text-white/85">
-                tankhwah {money(row.baseSalary)} + commission {money(row.earned)} =
-              </span>
-              <span className="text-lg font-black tabular-nums">{money(row.totalPay)}</span>
-            </div>
-          )}
+          <IconButton label="Band karein" onClick={onClose}><X className="h-5 w-5" /></IconButton>
         </header>
 
-        {/* ── Hisab kaise bana ── */}
-        <div className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 shrink-0">
-          <p className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 mb-2 inline-flex items-center gap-1.5">
-            <Gauge className="h-3 w-3" /> Hisab kaise bana
-          </p>
-          {row.lines.length === 0 ? (
-            <p className="text-[0.75rem] font-bold text-slate-500 dark:text-ink-400">
-              {row.blockedByMin
-                ? `Hadd ${money(row.blockedByMin.need)} hai aur abhi ${money(row.blockedByMin.short)} kam hai — commission nahi bani.`
-                : 'Is bande par koi chaalu rule lagu nahi hota.'}
-            </p>
-          ) : (
-            <div className="space-y-1.5">
-              {row.lines.map((l, i) => (
-                <div key={i} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 px-3 py-2">
-                  <div className="min-w-0">
-                    <div className="text-[0.75rem] font-black text-slate-800 dark:text-ink-100 truncate">{l.label}</div>
-                    {l.rate > 0 && (
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 tabular-nums">
-                        {l.valueType === 'PERCENT'
-                          ? `${money(l.base)} ka ${l.rate}%`
-                          : `${qty(l.base)} × ${formatPKR(l.rate)}`}
-                      </div>
-                    )}
-                  </div>
-                  <div className={`text-sm font-black tabular-nums shrink-0 ${tone.text}`}>{money(l.amount)}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {!d ? (
+          <div className="space-y-3 p-5">
+            {q.isError
+              ? <div className="py-14 text-center"><p className="font-semibold text-slate-900">Hisab load nahi hua</p><Button className="mt-3" variant="secondary" onClick={() => q.refetch()}>Dobara koshish</Button></div>
+              : Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}
+          </div>
+        ) : (<>
+          <div className="grid grid-cols-3 gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
+            <Fig label="Commission" value={signed(d.earned)} tone="text-brand-700" />
+            <Fig label={d.paidAmount != null ? `Ada · ${day(d.paidAt)}` : 'Ada'} value={d.paidAmount != null ? formatPKR(d.paidAmount) : '—'} />
+            <Fig label="Baqi" value={formatPKR(d.due)} tone={d.due > 0 ? 'text-amber-700' : undefined} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-4 py-2.5 sm:px-5">
+            <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', PAY[d.payStatus].tone)}>
+              {(() => { const I = PAY[d.payStatus].icon; return <I className="h-3 w-3" />; })()}{PAY[d.payStatus].label}
+            </span>
+            <span className="flex-1" />
+            <PrintButton size="sm" label="Statement" doc={() => statementDoc(d, showCost)} />
+            <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => setSlip(true)}>Slip</Button>
+            {d.paidInSalary && <span className="text-[0.75rem] text-slate-500">Tankhwah ke saath ada hui</span>}
+            {canManage && d.paidAmount != null && !d.paidInSalary && (
+              <Button size="sm" variant="ghost" leftIcon={<Undo2 className="h-4 w-4" />} disabled={busy} onClick={() => onUndo(d)}>Adaigi wapas</Button>
+            )}
+            {canManage && d.enrolled && d.due > 0 && !d.paidInSalary && (
+              <Button size="sm" leftIcon={<HandCoins className="h-4 w-4" />} disabled={busy} onClick={() => onPay(d)}>Ada karein</Button>
+            )}
+          </div>
 
-        {/* ── Tabs ── */}
-        <div className="px-4 sm:px-5 pt-3 shrink-0 flex gap-1.5 overflow-x-auto">
-          {TABS.map((x) => (
-            <button key={x.v} onClick={() => setTab(x.v)}
-              className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 shrink-0 transition ${
-                tab === x.v
-                  ? `border-transparent bg-gradient-to-r ${tone.grad} text-white shadow`
-                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-slate-400'
-              }`}>
-              <x.i className="h-3.5 w-3.5" /> {x.l}
-              {x.n !== undefined && (
-                <span className={`px-1.5 rounded-md text-[0.625rem] ${tab === x.v ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-700'}`}>
-                  {x.n}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+          <div className="border-b border-slate-100 px-4 py-2 sm:px-5">
+            <Segmented label="Hissa" value={tab} onChange={(v) => setTab(v as Tab)} className="max-w-full overflow-x-auto"
+              items={[
+                { value: 'hisab', label: 'Hisab' }, { value: 'goods', label: 'Cheezein' }, { value: 'bills', label: `Bill (${d.billCount})` },
+                { value: 'returns', label: `Wapsi (${d.returnList.length})` }, { value: 'months', label: 'Mahine' },
+              ]} />
+          </div>
 
-        {/* ── Tafseel ── */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5">
-          {isLoading ? (
-            <div className="space-y-2">
-              {[0, 1, 2, 3, 4].map((i) => <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
-            </div>
-          ) : isError || !data ? (
-            <div className="py-12 text-center">
-              <p className="text-sm font-black text-slate-500">Tafseel nahi aa saki</p>
-            </div>
-          ) : tab === 'product' ? (
-            data.byProduct.length === 0 ? <Empty text="Is mahine kuch nahi bika" /> : (
-              <div className="space-y-1.5">
-                {data.byProduct.map((p, i) => {
-                  const max = data.byProduct[0]?.commission || 1;
-                  return (
-                    <div key={p.productId}
-                      className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            {i === 0 && p.commission > 0 && <Trophy className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
-                            <span className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{p.name}</span>
-                          </div>
-                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
-                            {p.categoryName ?? 'Bina category'} · {p.bills} bill par
-                          </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <div className={`text-sm font-black tabular-nums ${tone.text}`}>{money(p.commission)}</div>
-                          <div className="text-[0.625rem] font-bold text-slate-400">commission</div>
-                        </div>
-                      </div>
-
-                      <div className="mt-2 grid grid-cols-4 gap-2">
-                        <Cell label="Miqdar" value={`${qty(p.qty)} ${p.unit}`} />
-                        <Cell label="Bikri" value={money(p.sale)} />
-                        <Cell label="Rate" value={p.qty > 0 ? money(p.sale / p.qty) : '—'} />
-                        <Cell label="Munafa" value={money(p.profit)}
-                          tone={p.profit < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'} />
-                      </div>
-
-                      {p.returned > 0 && (
-                        <p className="mt-1.5 text-[0.6875rem] font-black text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">
-                          <Undo2 className="h-2.5 w-2.5" /> {qty(p.returned)} {p.unit} wapas aaya — commission me shamil nahi
-                        </p>
-                      )}
-
-                      <div className="mt-2 h-1.5 rounded-full bg-slate-100 dark:bg-ink-700 overflow-hidden">
-                        <div className={`h-full rounded-full bg-gradient-to-r ${tone.grad}`}
-                          style={{ width: `${Math.max((p.commission / max) * 100, 1)}%` }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )
-          ) : tab === 'category' ? (
-            data.byCategory.length === 0 ? <Empty text="Koi category nahi" /> : (
-              <div className="space-y-2">
-                {data.byCategory.map((cat, i) => {
-                  const max = data.byCategory[0]?.commission || 1;
-                  return (
-                    <div key={cat.categoryId ?? `none-${i}`}
-                      className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0">
-                          <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{cat.name}</div>
-                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-                            {cat.items} cheezein · {qty(cat.qty)} miqdar · {money(cat.sale)}
-                          </div>
-                        </div>
-                        <div className={`text-base font-black tabular-nums shrink-0 ${tone.text}`}>
-                          {money(cat.commission)}
-                        </div>
-                      </div>
-                      <div className="mt-2 h-2 rounded-full bg-slate-100 dark:bg-ink-700 overflow-hidden">
-                        <div className={`h-full rounded-full bg-gradient-to-r ${tone.grad}`}
-                          style={{ width: `${Math.max((cat.commission / max) * 100, 1)}%` }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )
-          ) : (
-            data.billList.length === 0 ? <Empty text="Koi bill nahi" /> : (
-              <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 overflow-hidden">
-                <div className="divide-y divide-slate-100 dark:divide-ink-800">
-                  {data.billList.map((b) => (
-                    <Link key={b.id} to={`/sales/${b.id}/receipt`} target="_blank"
-                      className="px-3 py-2.5 flex items-center gap-3 bg-white dark:bg-ink-800 hover:bg-slate-50 dark:hover:bg-ink-700/50 transition">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-[0.75rem] font-black text-slate-900 dark:text-ink-white">{b.saleNumber}</span>
-                          {b.status === 'PARTIALLY_RETURNED' && (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-[0.625rem] font-black text-amber-700 dark:text-amber-300">
-                              Kuch wapsi
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
-                          {new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(b.soldAt))}
-                          {' · '}{b.customer ?? 'Walk-in'}{' · '}{b.items} cheezein
-                          {b.discount > 0 && ` · ${money(b.discount)} chhoot`}
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-[0.8125rem] font-black text-slate-900 dark:text-ink-white tabular-nums">{money(b.total)}</div>
-                        <div className="text-[0.625rem] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                          munafa {money(b.profit)}
-                        </div>
-                      </div>
-                      <ExternalLink className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                    </Link>
-                  ))}
-                </div>
-                {data.billList.length >= 200 && (
-                  <p className="px-3 py-2 bg-slate-50 dark:bg-ink-900 text-[0.6875rem] font-bold text-slate-500 text-center">
-                    Pehle 200 bill — poori list ke liye Bikri ka safha dekhein
-                  </p>
-                )}
-              </div>
-            )
-          )}
-        </div>
-      </div>
-    </div>
+          <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-5">
+            {tab === 'hisab' && <Working d={d} showCost={showCost} />}
+            {tab === 'goods' && <Goods d={d} />}
+            {tab === 'bills' && <Bills d={d} showCost={showCost} />}
+            {tab === 'returns' && <Returns d={d} />}
+            {tab === 'months' && <Months d={d} />}
+          </div>
+        </>)}
+      </aside>
+      {slip && d && <StatementPrintModal d={d} onClose={() => setSlip(false)} />}
+    </div>,
+    document.body,
   );
 }
 
-function HeroStat({ label, value, big }: any) {
-  return (
-    <div className={`rounded-2xl bg-white/15 backdrop-blur border border-white/20 p-2.5 ${big ? 'ring-2 ring-white/40' : ''}`}>
-      <div className="text-[0.625rem] font-black uppercase tracking-widest text-white/75">{label}</div>
-      <div className={`font-black tabular-nums truncate ${big ? 'text-lg' : 'text-sm'}`}>{value}</div>
-    </div>
-  );
-}
-
-function Cell({ label, value, tone }: any) {
+function Fig({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
     <div className="min-w-0">
-      <div className="text-[0.625rem] font-black uppercase tracking-wide text-slate-400 truncate">{label}</div>
-      <div className={`text-[0.75rem] font-black tabular-nums truncate ${tone ?? 'text-slate-800 dark:text-ink-100'}`}>
-        {value}
-      </div>
+      <p className="truncate text-[0.6875rem] text-slate-500">{label}</p>
+      <p className={cn('truncate text-lg font-bold tabular-nums text-slate-900', tone)}>{value}</p>
     </div>
   );
+}
+
+function Working({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
+  return (<>
+    <section className="rounded-2xl ring-1 ring-slate-200">
+      <dl className="divide-y divide-slate-100 text-sm">
+        <Row k="Bikri (chhoot ke baad)" v={formatPKR(d.grossSale)} hint={`${d.bills} bill${d.reassigned ? ` · ${d.reassigned} counter par kisi aur ne banaye` : ''}`} />
+        {d.returnSale > 0 && <Row k="Is mahine wapas aaya maal" v={`−${formatPKR(d.returnSale)}`} hint="Wapsi us mahine me katti hai jis me maal wapas aaya" tone="text-rose-700" />}
+        <Row k="Asal bikri" v={formatPKR(d.sale)} strong />
+        {showCost && <Row k="Munafa" v={formatPKR(d.profit ?? 0)} hint={d.noCost ? `${d.noCost} line par cost nahi thi — aaj ki cost lagi` : undefined} />}
+      </dl>
+    </section>
+
+    <section>
+      <h3 className="mb-2 text-[0.8125rem] font-semibold text-slate-700">Commission kaise bani</h3>
+      {!d.enrolled ? (
+        <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 ring-1 ring-slate-200">Is bande par commission chaalu nahi — Team tab se chaalu karein.</p>
+      ) : !d.lines.length ? (
+        <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 ring-1 ring-slate-200">
+          {d.blockedByMin ? `Abhi ${formatPKR(d.blockedByMin.short)} aur bikri chahiye — tab commission shuru hogi (hadd ${formatPKR(d.blockedByMin.need)})` : 'Is mahine koi commission nahi bani'}
+        </p>
+      ) : (
+        <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
+          {d.lines.map((l, i) => (
+            <li key={`${l.ruleId}-${i}`} className="flex items-start justify-between gap-3 px-4 py-2.5">
+              <div className="min-w-0">
+                <p className="font-medium text-slate-900">{l.label}</p>
+                <p className="text-[0.75rem] text-slate-500">{lineBase(l)}{l.returnAmount ? ` · ${returnText(l)}: −${formatPKR(l.returnAmount)}` : ''}</p>
+              </div>
+              <p className={cn('shrink-0 font-semibold tabular-nums', l.amount < 0 ? 'text-rose-700' : 'text-slate-900')}>{signed(l.amount)}</p>
+            </li>
+          ))}
+          <li className="flex justify-between bg-slate-50 px-4 py-2.5 font-bold text-slate-900"><span>Kul</span><span className="tabular-nums">{signed(d.earned)}</span></li>
+        </ul>
+      )}
+      {d.earned < 0 && <p className="mt-2 text-xs text-rose-700">Is mahine wapsi bikri se zyada thi, is liye commission minus me hai. Agle mahine ki adaigi me hisab kar lein.</p>}
+      {d.blockedByMin && d.lines.length > 0 && <p className="mt-2 text-xs text-slate-500">Agla slab: {formatPKR(d.blockedByMin.short)} aur bikri par (hadd {formatPKR(d.blockedByMin.need)})</p>}
+    </section>
+
+    {d.targets.length > 0 && (
+      <section className="space-y-2">
+        <h3 className="text-[0.8125rem] font-semibold text-slate-700">Target</h3>
+        {d.targets.map((t) => (
+          <div key={t.ruleId} className="rounded-2xl px-4 py-3 ring-1 ring-slate-200">
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <span className="inline-flex items-center gap-1.5 text-slate-700"><Target className="h-4 w-4 text-brand-600" />{formatPKR(t.amount)} → bonus {formatPKR(t.bonus)}</span>
+              <span className={cn('font-semibold tabular-nums', t.reached ? 'text-emerald-700' : 'text-slate-900')}>{Math.round(t.pct)}%</span>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', t.reached ? 'bg-emerald-500' : 'bg-brand-500')} style={{ width: `${Math.min(100, t.pct)}%` }} /></div>
+            {!t.reached && <p className="mt-1 text-[0.6875rem] text-slate-500">{formatPKR(Math.max(0, t.amount - d.sale))} aur bikri chahiye</p>}
+          </div>
+        ))}
+      </section>
+    )}
+
+    <section>
+      <h3 className="mb-2 text-[0.8125rem] font-semibold text-slate-700">Is bande par kaunse rule lagte hain</h3>
+      {!d.rules.length ? <p className="text-sm text-slate-500">Koi chaalu rule nahi.</p> : (
+        <ul className="space-y-1.5">
+          {d.rules.map((r) => (
+            <li key={r.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] ring-1 ring-slate-200">
+              <span className="font-medium text-slate-900">{r.label}</span>
+              <span className="text-slate-600">{rateText(r)}</span>
+              <span className="text-[0.6875rem] text-slate-500">{r.own ? 'sirf is ka' : 'sab ke liye'}{r.categoryIds.length ? ` · ${r.categoryIds.length} category` : ''}{r.minMonthlySale ? ` · hadd ${formatPKR(r.minMonthlySale)}` : ''}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {d.rules.some((r) => r.own) && <p className="mt-1.5 text-[0.6875rem] text-slate-500">Is bande ka apna rule hai, is liye "sab ke liye" wale rule is par nahi lagte.</p>}
+      <p className="mt-1.5 text-[0.6875rem] text-slate-500">Bikri yaani chhoot ke baad maal ki qeemat; service charge shamil nahi. Void bill shamil nahi.</p>
+    </section>
+  </>);
+}
+
+function Row({ k, v, hint, strong, tone }: { k: string; v: string; hint?: string; strong?: boolean; tone?: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3 px-4 py-2.5">
+      <div className="min-w-0"><dt className={cn('text-slate-700', strong && 'font-semibold text-slate-900')}>{k}</dt>{hint && <p className="text-[0.6875rem] text-slate-500">{hint}</p>}</div>
+      <dd className={cn('shrink-0 tabular-nums', strong ? 'font-bold text-slate-900' : 'text-slate-900', tone)}>{v}</dd>
+    </div>
+  );
+}
+
+function Goods({ d }: { d: CommissionDetail }) {
+  const [view, setView] = useState<'product' | 'category'>('product');
+  if (!d.byProduct.length) return <Empty text="Is mahine koi cheez nahi biki" />;
+  return (<>
+    <Segmented label="Kis tarah" value={view} onChange={(v) => setView(v as 'product' | 'category')} items={[{ value: 'product', label: 'Cheez' }, { value: 'category', label: 'Category' }]} />
+    <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-200">
+      <table className="w-full min-w-[32rem] text-[0.8125rem]">
+        <thead><tr className="border-b border-slate-100 text-left text-[0.75rem] text-slate-500">
+          <th className="px-3 py-2 font-medium">{view === 'product' ? 'Cheez' : 'Category'}</th>
+          <th className="px-3 py-2 text-right font-medium">Miqdar</th>
+          <th className="px-3 py-2 text-right font-medium">Bikri</th>
+          <th className="px-3 py-2 text-right font-medium">Wapas</th>
+          <th className="px-3 py-2 text-right font-medium">Commission</th>
+        </tr></thead>
+        <tbody className="divide-y divide-slate-50">
+          {view === 'product' ? d.byProduct.map((p) => (
+            <tr key={p.productId}>
+              <td className="max-w-[14rem] px-3 py-2"><p className="truncate font-medium text-slate-900">{p.name}</p><p className="truncate text-[0.6875rem] text-slate-500">{p.categoryName ?? 'Bina category'}</p></td>
+              <td className="px-3 py-2 text-right tabular-nums">{qtyText(p.qty)} {p.unit}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{formatPKR(p.sale)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-rose-700">{p.returnedSale ? `−${formatPKR(p.returnedSale)}` : '—'}</td>
+              <td className="px-3 py-2 text-right font-semibold tabular-nums">{signed(p.commission)}</td>
+            </tr>
+          )) : d.byCategory.map((c) => (
+            <tr key={c.categoryId ?? 'none'}>
+              <td className="px-3 py-2 font-medium text-slate-900">{c.name} <span className="text-[0.6875rem] font-normal text-slate-500">{c.items} cheezein</span></td>
+              <td className="px-3 py-2 text-right tabular-nums">{qtyText(c.qty)}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{formatPKR(c.sale)}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-rose-700">{c.returnedSale ? `−${formatPKR(c.returnedSale)}` : '—'}</td>
+              <td className="px-3 py-2 text-right font-semibold tabular-nums">{signed(c.commission)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p className="text-[0.6875rem] text-slate-500">Har bill aur target wali raqam kisi ek cheez par nahi lagti, is liye yahan shamil nahi.</p>
+  </>);
+}
+
+function Bills({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
+  if (!d.billList.length) return <Empty text="Is mahine koi bill nahi" />;
+  return (<>
+    <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
+      {d.billList.map((b) => (
+        <li key={b.id} className="flex items-center gap-3 px-3 py-2.5 text-[0.8125rem]">
+          <ReceiptText className="h-4 w-4 shrink-0 text-slate-400" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-medium text-slate-900"><span className="font-mono">{b.saleNumber}</span>{b.customer ? ` · ${b.customer}` : ''}</p>
+            <p className="truncate text-[0.6875rem] text-slate-500">
+              {dayTime(b.soldAt)}{b.shop ? ` · ${b.shop}` : ''}{b.cashier ? ` · bill ${b.cashier} ne banaya` : ''}
+              {b.status === 'PARTIALLY_RETURNED' ? ' · kuch wapas' : b.status === 'FULLY_RETURNED' ? ' · poora wapas' : ''}
+            </p>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="font-semibold tabular-nums text-slate-900">{formatPKR(b.goods)}</p>
+            {showCost && b.profit != null && <p className="text-[0.6875rem] tabular-nums text-slate-500">munafa {formatPKR(b.profit)}</p>}
+          </div>
+        </li>
+      ))}
+    </ul>
+    {d.billCount > d.billList.length && <p className="text-center text-[0.75rem] text-slate-500">Pehle {d.billList.length} bill dikhaye — kul {d.billCount}</p>}
+  </>);
+}
+
+function Returns({ d }: { d: CommissionDetail }) {
+  if (!d.returnList.length) return <Empty text="Is mahine is bande ke beche maal ki koi wapsi nahi" />;
+  return (
+    <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
+      {d.returnList.map((r) => (
+        <li key={r.id} className="flex items-center gap-3 px-3 py-2.5 text-[0.8125rem]">
+          <RotateCcw className="h-4 w-4 shrink-0 text-rose-500" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-medium text-slate-900"><span className="font-mono">{r.returnNumber}</span> · bill {r.saleNumber}</p>
+            <p className="truncate text-[0.6875rem] text-slate-500">Wapas {dayTime(r.returnedAt)} · becha tha {day(r.soldAt)} · {r.items} cheezein</p>
+          </div>
+          <p className="shrink-0 font-semibold tabular-nums text-rose-700">−{formatPKR(r.value)}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function Months({ d }: { d: CommissionDetail }) {
+  const theme = useChartTheme();
+  const data = d.history.map((h) => ({ ...h, label: periodLabel(h.period, true), paidN: h.paid ?? 0 }));
+  return (<>
+    <div className="h-[200px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
+          <CartesianGrid stroke={theme.grid} vertical={false} />
+          <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
+          <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
+          <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'earned' ? 'Commission' : 'Ada']} {...theme.tooltip} />
+          <Bar dataKey="earned" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={28} />
+          <Bar dataKey="paidN" fill={theme.profit} radius={[4, 4, 0, 0]} maxBarSize={28} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+    <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
+      {[...d.history].reverse().map((h) => (
+        <li key={h.period} className="flex items-center justify-between gap-3 px-3 py-2 text-[0.8125rem]">
+          <div><p className="font-medium text-slate-900">{periodLabel(h.period)}</p><p className="text-[0.6875rem] text-slate-500">{h.bills} bill · {formatPKR(h.sale)}</p></div>
+          <div className="text-right">
+            <p className="font-semibold tabular-nums">{signed(h.earned)}</p>
+            <p className={cn('text-[0.6875rem]', h.payStatus === 'over' ? 'text-rose-700' : 'text-slate-500')}>{h.paid != null ? `Ada ${formatPKR(h.paid)}` : PAY[h.payStatus].label}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </>);
 }
 
 function Empty({ text }: { text: string }) {
-  return (
-    <div className="py-16 text-center">
-      <TrendingUp className="h-10 w-10 text-slate-200 dark:text-ink-700 mx-auto mb-2" />
-      <p className="text-sm font-black text-slate-400">{text}</p>
-    </div>
-  );
-}
-
-/** Poori tafseel ki parchi — alag window me, taake safha na chhape */
-function printDetail(data: any, row: CommissionRow, period: string, shopName?: string) {
-  const rs = (v: number) => 'Rs ' + Number(v || 0).toLocaleString('en-PK', { maximumFractionDigits: 0 });
-  const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (ch) => (
-    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch] as string));
-
-  const prodRows = (data.byProduct ?? []).map((p: any) => `
-    <tr>
-      <td>${esc(p.name)}<div class="s">${esc(p.categoryName ?? '')}</div></td>
-      <td class="r">${Number(p.qty).toFixed(Number(p.qty) % 1 === 0 ? 0 : 2)} ${esc(p.unit)}</td>
-      <td class="r">${rs(p.sale)}</td>
-      <td class="r">${rs(p.profit)}</td>
-      <td class="r b">${rs(p.commission)}</td>
-    </tr>`).join('');
-
-  const lineRows = (row.lines ?? []).map((l) => `
-    <tr><td>${esc(l.label)}</td>
-      <td class="r">${l.rate > 0 ? (l.valueType === 'PERCENT' ? `${rs(l.base)} ka ${l.rate}%` : `${l.base} × ${rs(l.rate)}`) : '—'}</td>
-      <td class="r b">${rs(l.amount)}</td></tr>`).join('');
-
-  const html = `<!doctype html><html><head><meta charset="utf-8">
-<title>Commission — ${esc(row.name)}</title><style>
-  body { font-family: system-ui,-apple-system,'Segoe UI',sans-serif; color:#0f172a; padding:26px; max-width:820px; margin:0 auto; }
-  h1 { font-size:20px; margin:0; } h2 { font-size:13px; margin:18px 0 6px; text-transform:uppercase; letter-spacing:.06em; color:#64748b; }
-  .sub { font-size:12px; color:#64748b; margin-top:2px; }
-  .grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:14px; }
-  .box { border:2px solid #e2e8f0; border-radius:12px; padding:10px; }
-  .k { font-size:9px; text-transform:uppercase; letter-spacing:.06em; color:#64748b; font-weight:800; }
-  .v { font-size:16px; font-weight:800; }
-  table { width:100%; border-collapse:collapse; font-size:12px; }
-  th,td { padding:6px 4px; border-bottom:1px solid #e2e8f0; text-align:left; vertical-align:top; }
-  th { font-size:9px; text-transform:uppercase; color:#64748b; letter-spacing:.05em; }
-  .r { text-align:right; } .b { font-weight:800; }
-  .s { font-size:9px; color:#94a3b8; }
-  .total { display:flex; justify-content:space-between; align-items:baseline; margin-top:12px; padding-top:10px; border-top:2px solid #0f172a; }
-  .total .v { font-size:22px; }
-  .sign { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:40px; font-size:11px; color:#64748b; }
-  .sign div { border-top:1px solid #94a3b8; padding-top:6px; }
-  @media print { body { padding:0; } @page { margin:12mm; } }
-</style></head><body>
-  <h1>${esc(shopName ?? 'Dukaan')} — Commission ki tafseel</h1>
-  <div class="sub">${esc(row.name)}${row.staff?.designation ? ` · ${esc(row.staff.designation)}` : ''} · ${esc(periodLabel(period))}</div>
-
-  <div class="grid">
-    <div class="box"><div class="k">Bill</div><div class="v">${row.bills}</div></div>
-    <div class="box"><div class="k">Bikri</div><div class="v">${rs(row.sale)}</div></div>
-    <div class="box"><div class="k">Munafa</div><div class="v">${rs(row.profit)}</div></div>
-    <div class="box"><div class="k">Commission</div><div class="v">${rs(row.earned)}</div></div>
-  </div>
-  ${row.baseSalary > 0 ? `
-  <div class="grid" style="grid-template-columns:repeat(3,1fr)">
-    <div class="box"><div class="k">Pakki tankhwah</div><div class="v">${rs(row.baseSalary)}</div></div>
-    <div class="box"><div class="k">+ Commission</div><div class="v">${rs(row.earned)}</div></div>
-    <div class="box" style="border-color:#0f172a"><div class="k">= Is mahine kul</div><div class="v">${rs(row.totalPay)}</div></div>
-  </div>` : ''}
-
-  <h2>Hisab kaise bana</h2>
-  <table><thead><tr><th>Tafseel</th><th class="r">Hisab</th><th class="r">Raqam</th></tr></thead>
-    <tbody>${lineRows || '<tr><td colspan="3">Koi rule lagu nahi hua</td></tr>'}</tbody></table>
-  <div class="total"><span class="k">Kul commission</span><span class="v">${rs(row.earned)}</span></div>
-
-  <h2>Kaunsi cheez se kitna</h2>
-  <table><thead><tr><th>Cheez</th><th class="r">Miqdar</th><th class="r">Bikri</th><th class="r">Munafa</th><th class="r">Commission</th></tr></thead>
-    <tbody>${prodRows || '<tr><td colspan="5">Kuch nahi bika</td></tr>'}</tbody></table>
-
-  <div class="sign"><div>Dene wale ke dastkhat</div><div>Lene wale ke dastkhat</div></div>
-</body></html>`;
-
-  const w = window.open('', '_blank', 'width=860,height=940');
-  if (!w) { toast.error('Browser ne nayi window rok di — popup chalne dein'); return; }
-  w.document.write(html);
-  w.document.close();
-  w.focus();
-  setTimeout(() => w.print(), 350);
+  return <p className="rounded-2xl bg-slate-50 px-4 py-10 text-center text-sm text-slate-500 ring-1 ring-slate-200">{text}</p>;
 }

@@ -2234,6 +2234,9 @@ model TenantSettings {
   receiptConfig Json? // (already exists — keep)
   /// Barcode label design shared by every counter.
   labelConfig   Json?
+  /// Settings → Reports: fiscal year, default period and comparison, round-off,
+  /// figures staff may see, daily summary channels/recipients/lines.
+  reportsConfig Json?
 
   // ===== 5. POS SETTINGS =====
   defaultPaymentMethod   String  @default("CASH")
@@ -2280,6 +2283,8 @@ model TenantSettings {
   notifyNewSale         Boolean @default(false)
   notifyDailySummary    Boolean @default(true)
   dailySummaryTime      String  @default("21:00")
+  /// Business day (YYYY-MM-DD) of the last automatic daily summary; one per day.
+  dailySummarySentDay   String?
   notifyNewCustomer     Boolean @default(false)
 
   // ===== 9. SECURITY =====

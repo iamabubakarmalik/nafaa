@@ -4,7 +4,7 @@
  * header.
  */
 
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
@@ -14,10 +14,12 @@ import { PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { ReportsCenterService } from './reports-center.service';
 import { ReportsIndustryService } from './reports-industry.service';
 import { ReportQueryDto } from './dto/report-query.dto';
+import { ReportFiguresInterceptor } from '../../../common/interceptors/report-figures.interceptor';
 
 @ApiTags('Reports')
 @ApiBearerAuth()
 @RequirePermissions(PERMISSIONS.REPORTS_VIEW)
+@UseInterceptors(ReportFiguresInterceptor)
 @Controller('reports/center')
 export class ReportsCenterController {
   constructor(

@@ -7,7 +7,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useShopParam } from '@core/stores/auth.store';
-import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { useReportMasked } from '@modules/reports/prefs';
 import { mobileReportsApi } from '@industries/mobile/api/mobile-reports.api';
 import { PTA_STATUS_LABELS } from '@industries/mobile/api/imei.api';
 import { electronicsAnalyticsApi } from '@industries/electronics/api/analytics.api';
@@ -20,7 +20,7 @@ const WARRANTY_SOON = 60;
 /** Phones: new by IMEI, used by their buy-back record, with PTA status. */
 export function MobileDevices() {
   const shop = useShopParam();
-  const { cost } = useMasked();
+  const { cost } = useReportMasked();
   const q = useQuery({ queryKey: ['stock-report-phones', shop], queryFn: () => mobileReportsApi.stockAging(shop) });
   const pta = useQuery({ queryKey: ['stock-report-pta'], queryFn: () => mobileReportsApi.ptaBreakdown(), retry: false });
   const data = useMemo<DeviceReport | undefined>(() => {

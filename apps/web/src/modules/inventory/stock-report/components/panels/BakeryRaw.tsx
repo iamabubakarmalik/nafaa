@@ -10,12 +10,12 @@ import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, Search, Snowflake, Wheat } from 'lucide-react';
 import { KpiCard, KpiRow, Skeleton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
-import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { useReportMasked } from '@modules/reports/prefs';
 import { ingredientsApi } from '@industries/bakery/api/ingredients.api';
 import { ageText, dateText, qty } from '../meta';
 
 export function BakeryRaw() {
-  const { cost } = useMasked();
+  const { cost } = useReportMasked();
   const [search, setSearch] = useState('');
   const q = useQuery({ queryKey: ['stock-report-ingredients'], queryFn: () => ingredientsApi.list({}) });
 

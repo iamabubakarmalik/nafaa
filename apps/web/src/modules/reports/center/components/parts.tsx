@@ -11,7 +11,7 @@ import {
 import { ArrowDownRight, ArrowUpRight, Minus, type LucideIcon } from 'lucide-react';
 import { Card } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
-import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { useReportMasked } from '../../prefs';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { Fmt } from '../api';
@@ -24,7 +24,7 @@ const dateText = (v: string) => new Date(v).toLocaleDateString('en-PK', { day: '
 
 /** Formats a value by kind, with the privacy lock on money and cost. */
 export function useFmt() {
-  const { sales, cost, costHidden, salesHidden } = useMasked();
+  const { sales, cost, costHidden, salesHidden } = useReportMasked();
   const fmt = (v: number | string | null | undefined, kind: Fmt): string => {
     if (v == null || v === '') return '—';
     if (kind === 'text') return String(v);

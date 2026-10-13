@@ -1,12 +1,14 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import { ReportsService } from './reports.service';
+import { ReportFiguresInterceptor } from '../../../common/interceptors/report-figures.interceptor';
 
 @ApiTags('Reports')
 @ApiBearerAuth()
+@UseInterceptors(ReportFiguresInterceptor)
 @Controller('reports')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}

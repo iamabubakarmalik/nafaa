@@ -1056,6 +1056,15 @@ export class SalesService {
       });
       if (claim.count === 0) throw new BadRequestException('Sale already voided');
 
+      // Record who cancelled the bill and why; reports read this instead of guessing from the seller.
+      await tx.activityLog.create({
+        data: {
+          tenantId: user.tenantId, userId: user.id, action: 'SALE_VOIDED', entityType: 'Sale', entityId: id,
+          description: `Bill ${sale.saleNumber} void kiya${reason?.trim() ? ` — ${reason.trim()}` : ''}`,
+          metadata: { saleNumber: sale.saleNumber, total: sale.total, shopId: sale.shopId, reason: reason?.trim() || null, pinApproved: !!rules?.requirePinForVoid },
+        },
+      });
+
       // Online order se bani sale thi → order bhi cancel, warna wo "Deliver"
       // aur "COD baqi" me ginta rehta jabke bill hai hi nahi.
       await tx.channelOrder.updateMany({

@@ -30,19 +30,15 @@ export function PosSellerPicker({
 }) {
   const me = useAuthStore((s) => s.user);
 
-  /* `people` har jagah cache hoti hai, is liye POS khulte hi
-     dobara nahi mangwayi jati */
+  /* Names of enrolled sellers only; the counter needs no other commission data. */
   const { data } = useQuery({
-    queryKey: ['commission-people'],
-    queryFn: () => commissionApi.people(),
+    queryKey: ['commission-sellers'],
+    queryFn: () => commissionApi.sellers(),
     staleTime: 10 * 60_000,
     retry: false,
   });
 
-  const sellers = useMemo(
-    () => (data?.people ?? []).filter((p) => p.enrolled && p.userId),
-    [data],
-  );
+  const sellers = useMemo(() => data ?? [], [data]);
 
   /* Commission kisi par chaalu nahi — khana dikhane ka koi faida nahi.
      Isi tarah agar akela banda main khud hoon: dropdown me ek hi naam
@@ -64,7 +60,7 @@ export function PosSellerPicker({
         <select value={current} onChange={(e) => onChange(e.target.value || undefined)} aria-label="Bikri kis ke naam"
           className="min-w-0 flex-1 cursor-pointer appearance-none truncate bg-transparent font-medium text-slate-900 outline-none">
           {me?.id && <option value={me.id}>{meSeller?.name ?? me.fullName ?? 'Main'} (main)</option>}
-          {sellers.filter((p) => p.userId !== me?.id).map((p) => <option key={p.userId!} value={p.userId!}>{p.name}</option>)}
+          {sellers.filter((p) => p.userId !== me?.id).map((p) => <option key={p.userId} value={p.userId}>{p.name}</option>)}
         </select>
         <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />
       </label>
@@ -98,9 +94,7 @@ export function PosSellerPicker({
           {sellers
             .filter((p) => p.userId !== me?.id)
             .map((p) => (
-              <option key={p.userId!} value={p.userId!}>
-                {p.name}{p.staff?.designation ? ` — ${p.staff.designation}` : ''}
-              </option>
+              <option key={p.userId} value={p.userId}>{p.name}</option>
             ))}
         </select>
         <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />

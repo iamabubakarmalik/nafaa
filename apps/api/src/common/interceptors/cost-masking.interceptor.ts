@@ -47,11 +47,12 @@ const MASKED_KEYS = new Set([
  */
 const MAX_DEPTH = 12;
 
-function strip(value: unknown, depth = 0): unknown {
+/** Removes cost and profit keys from a response body. */
+export function stripCostKeys(value: unknown, depth = 0): unknown {
   if (depth > MAX_DEPTH || value === null || typeof value !== 'object') return value;
 
   if (Array.isArray(value)) {
-    return value.map((v) => strip(v, depth + 1));
+    return value.map((v) => stripCostKeys(v, depth + 1));
   }
 
   /* Date, Buffer waghera ko haath nahi lagate */
@@ -60,7 +61,7 @@ function strip(value: unknown, depth = 0): unknown {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
     if (MASKED_KEYS.has(k.toLowerCase())) continue;
-    out[k] = strip(v, depth + 1);
+    out[k] = stripCostKeys(v, depth + 1);
   }
   return out;
 }
@@ -78,6 +79,6 @@ export class CostMaskingInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    return next.handle().pipe(map((body) => strip(body)));
+    return next.handle().pipe(map((body) => stripCostKeys(body)));
   }
 }

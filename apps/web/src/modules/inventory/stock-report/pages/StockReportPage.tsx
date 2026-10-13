@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import {
   Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
-  heroButton, heroIconButton, resolveRange, type DateRangeValue, type FilterOption,
+  heroButton, heroIconButton, resolveRange, type FilterOption,
 } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
@@ -28,7 +28,7 @@ import { rangeLabel } from '@core/lib/dateRange';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { cn } from '@core/lib/cn';
 import { useAuthStore, useIsAllShops, useShopParam } from '@core/stores/auth.store';
-import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { useReportMasked, useReportRange } from '@modules/reports/prefs';
 import {
   STOCK_KEY, stockAnalysisApi, type LedgerSort, type StockLine, type StockQuery, type StockSort, type StockStatusFilter,
 } from '../api/stock-report.api';
@@ -70,11 +70,11 @@ export default function StockReportPage() {
   const startHour = useBusinessDayStart();
   const tenantName = useAuthStore((s) => s.tenant?.name ?? '');
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
-  const { sales: money, cost, costHidden } = useMasked();
+  const { sales: money, cost, costHidden } = useReportMasked();
   const guide = usePageGuide();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [range, setRange] = useState<DateRangeValue>({ preset: 'month', custom: { from: '', to: '' } });
+  const [range, setRange] = useReportRange('month');
   const [status, setStatus] = useState<StockStatusFilter>('all');
   const [categoryId, setCategoryId] = useState<string>();
   const [brandId, setBrandId] = useState<string>();
