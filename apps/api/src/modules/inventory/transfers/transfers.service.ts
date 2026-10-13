@@ -2,7 +2,9 @@
  * Stock transfers between branches. Sending takes stock out of the source
  * at once (it is "on the way"); receiving puts what actually arrived into
  * the destination, so a short delivery is recorded; cancelling puts it back
- * at the source. Staff tied to a branch can send only from it and receive
+ * at the source. Whatever was sent but did not arrive is booked at the
+ * receiving branch as a LOSS (movement and adjustment at the transfer's
+ * cost), so it shows in write-offs. Staff tied to a branch can send only from it and receive
  * only into it. Status changes are claimed atomically, so two clicks never
  * receive the same transfer twice.
  */
@@ -20,6 +22,7 @@ import { CancelTransferDto, CreateTransferDto, ListTransfersDto, ReceiveTransfer
 
 const CARPET_UNITS = new Set(['sqft', 'sqm', 'sqyd']);
 const r2 = (n: number) => Math.round(n * 100) / 100;
+const r4 = (n: number) => Math.round(n * 10_000) / 10_000;
 const HOUR = 3_600_000;
 
 const ITEM_INCLUDE = {
@@ -261,27 +264,51 @@ export class TransfersService {
               reference: transfer.transferNumber, note: qty > 0 ? `${transfer.toShop.name} me wusool (${from} se)` : 'Raste me gum', createdById: user.id,
             },
           });
+          const after = await this.syncShopStockForCarpet(tx, user.tenantId, transfer.toShopId, item.productId, variantId);
           if (qty > 0) {
-            const after = await this.syncShopStockForCarpet(tx, user.tenantId, transfer.toShopId, item.productId, variantId);
             await tx.stockMovement.create({
               data: {
                 tenantId: user.tenantId, shopId: transfer.toShopId, productId: item.productId, variantId, type: 'TRANSFER_IN', quantity: qty,
                 balanceAfter: after, reference: transfer.transferNumber, note: `Roll ${item.carpetRoll.rollNumber} — ${from} se`, createdById: user.id, unitCost: item.unitCost,
               },
             });
+          } else if (item.quantity > 0) {
+            // Roll lost on the way: book it in and straight out as a loss, so the
+            // branch ledger nets to zero and the value reaches write-offs.
+            const note = `Roll ${item.carpetRoll.rollNumber} — ${from} se bheja, raste me gum`;
+            await tx.stockMovement.createMany({
+              data: [
+                { tenantId: user.tenantId, shopId: transfer.toShopId, productId: item.productId, variantId, type: 'TRANSFER_IN', quantity: item.quantity, balanceAfter: after, reference: transfer.transferNumber, note, createdById: user.id, unitCost: item.unitCost },
+                { tenantId: user.tenantId, shopId: transfer.toShopId, productId: item.productId, variantId, type: 'LOSS', quantity: -item.quantity, balanceAfter: after, reference: transfer.transferNumber, note, createdById: user.id, unitCost: item.unitCost },
+              ],
+            });
+            await this.bookTransitLoss(tx, user, transfer, { productId: item.productId, variantId, carpetRollId: item.carpetRollId, quantity: item.quantity, unitCost: item.unitCost, label: note });
           }
           continue;
         }
 
         if (item.imeiId) await tx.productImei.update({ where: { id: item.imeiId }, data: qty > 0 ? { status: 'IN_STOCK', shopId: transfer.toShopId } : { status: 'LOST' } });
         if (item.serialId) await tx.electronicsSerialTracking.update({ where: { id: item.serialId }, data: qty > 0 ? { status: 'IN_STOCK', shopId: transfer.toShopId } : { status: 'LOST' } });
-        if (qty > 0) {
+        // What was sent comes in; any shortfall then goes out as a LOSS, so the
+        // branch ledger adds up and the missing value reaches write-offs.
+        const lost = r4(item.quantity - qty);
+        if (item.quantity > 0) {
           await applyStockDelta({
-            tx, tenantId: user.tenantId, shopId: transfer.toShopId, productId: item.productId, variantId: item.variantId, delta: qty,
+            tx, tenantId: user.tenantId, shopId: transfer.toShopId, productId: item.productId, variantId: item.variantId, delta: item.quantity,
             movementType: 'TRANSFER_IN', reference: transfer.transferNumber,
-            note: qty < item.quantity ? `${from} se — ${item.quantity} bheje, ${qty} aaye` : `${from} se aaya`,
+            note: lost > 0 ? `${from} se — ${item.quantity} bheje, ${qty} aaye` : `${from} se aaya`,
             userId: user.id, unitCost: item.unitCost,
           });
+        }
+        if (lost > 0) {
+          const label = item.product?.name ?? 'Item';
+          await applyStockDelta({
+            tx, tenantId: user.tenantId, shopId: transfer.toShopId, productId: item.productId, variantId: item.variantId, delta: -lost,
+            movementType: 'LOSS', reference: transfer.transferNumber,
+            note: `Transfer me kam aaya — ${from} se ${item.quantity} bheje, ${qty} aaye`,
+            label, userId: user.id, unitCost: item.unitCost,
+          });
+          await this.bookTransitLoss(tx, user, transfer, { productId: item.productId, variantId: item.variantId, imeiId: item.imeiId, quantity: lost, unitCost: item.unitCost, label });
         }
       }
       return { short: r2(short) };
@@ -294,6 +321,23 @@ export class TransfersService {
       });
     }
     return this.findOne(user, id);
+  }
+
+  /**
+   * Loss row for goods that never arrived, booked at the receiving branch on
+   * the transfer's cost, so write-offs and the P&L carry it.
+   */
+  private bookTransitLoss(tx: Tx, user: AuthenticatedUser, transfer: { toShopId: string; transferNumber: string; fromShop: { name: string } }, l: {
+    productId: string; variantId?: string | null; carpetRollId?: string | null; imeiId?: string | null; quantity: number; unitCost: number; label: string;
+  }) {
+    return tx.stockAdjustment.create({
+      data: {
+        tenantId: user.tenantId, shopId: transfer.toShopId, productId: l.productId, variantId: l.variantId ?? null,
+        carpetRollId: l.carpetRollId ?? null, imeiId: l.imeiId ?? null, createdById: user.id, type: 'LOSS',
+        quantity: l.quantity, reason: 'Transfer me kam aaya', note: `${transfer.transferNumber} · ${transfer.fromShop.name} se — ${l.label}`,
+        unitCost: l.unitCost, value: r2(l.quantity * l.unitCost), groupRef: transfer.transferNumber,
+      },
+    });
   }
 
   /* ───────────────────────── cancel ───────────────────────── */

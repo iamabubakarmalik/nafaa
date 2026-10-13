@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GamingTopupProvider } from '@prisma/client';
+import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateTopupDto {
@@ -24,7 +25,7 @@ export class BulkCreateTopupDto {
   @ApiProperty() @IsNumber() denominationValue!: number;
   @ApiProperty() @IsNumber() costPrice!: number;
   @ApiProperty() @IsNumber() sellingPrice!: number;
-  @ApiProperty({ type: [Object] }) @IsArray() cards!: Array<{ cardCode: string; cardPin?: string; cardSerial?: string }>;
+  @ApiProperty({ type: [Object] }) @IsArray() @Type(() => Object) cards!: Array<{ cardCode: string; cardPin?: string; cardSerial?: string }>;
   @ApiPropertyOptional() @IsOptional() @IsString() expiryDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() supplierRef?: string;
 }

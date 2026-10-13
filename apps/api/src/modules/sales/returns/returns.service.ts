@@ -15,14 +15,14 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { FbrService } from '../../../integrations/fbr/fbr.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
-import { ShopScope, applyStockDelta, assertShopAccess } from '../../../common/shop-scope';
+import { ShopScope, applyStockDelta, assertShopAccess, isServiceProduct } from '../../../common/shop-scope';
 import { CreateReturnDto } from './dto/create-return.dto';
 import { PIN_NEEDS, requireManagerPin } from '../../../common/helpers/manager-pin.helper';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { ReturnsRecordsService } from './returns-records.service';
-import { PIN_APPROVAL_ACTION, r2, r3 } from './returns.helpers';
+import { PIN_APPROVAL_ACTION, r2, r3, tidyCustomerBalance } from './returns.helpers';
+import { hasCarpetNote, productsSoldWithoutStock, productsThatTookStock } from '../sales/carpet-line.helper';
 
-const CARPET_UNITS = new Set(['sqft', 'sqm', 'sqyd']);
 const EPS = 0.001;
 /** The same request again within this time returns the first return instead of a second one. */
 const REPEAT_WINDOW_MS = 20_000;
@@ -249,10 +249,16 @@ export class ReturnsService {
       seen.add(it.saleItemId);
       const si = itemMap.get(it.saleItemId);
       if (!si) throw new NotFoundException('Yeh cheez is bill ki nahi');
-      if (!si.productId || !si.product) {
+      if (si.usedPhoneId) {
         throw new BadRequestException('Purane (used) phone ki return Used phones ke page se karein');
       }
     }
+
+    // Products whose sale took no shelf stock (carpet audit rows, and older
+    // bills that treated any sqft product that way): no stock comes back.
+    const noStockTaken = await productsSoldWithoutStock(this.prisma, tenantId, sale.saleNumber);
+    // Service lines (fees, labour) that took nothing off the shelf get nothing back either.
+    const tookStock = await productsThatTookStock(this.prisma, tenantId, sale.saleNumber);
 
     const rates = refundRates(sale);
     const returnNumber = `RET-${Date.now().toString().slice(-8)}`;
@@ -283,18 +289,24 @@ export class ReturnsService {
         const si = itemMap.get(it.saleItemId)!;
         const f = fresh.get(si.id)!;
         const remaining = f.quantity - f.returnedQty;
+        // Lines with no product (services, fees, room nights, game time) are
+        // refunded and taken off the khata; there is nothing to restock.
+        const service = !si.productId || !si.product;
+        const name = si.product?.name ?? si.note ?? 'Service';
         if (it.quantity > remaining + EPS) {
           throw new BadRequestException(
-            `${si.product!.name}: sirf ${r3(Math.max(0, remaining))} ${si.product!.unit} wapas ho sakta hai`,
+            `${name}: sirf ${r3(Math.max(0, remaining))} ${si.product?.unit ?? ''} wapas ho sakta hai`.trim(),
           );
         }
         const unit = rates.unit.get(si.id) ?? si.price;
-        const isCarpet = CARPET_UNITS.has(si.product!.unit);
+        const isCarpet = !service && hasCarpetNote(si.note);
         const restock = it.restock !== false;
         return {
           saleItemId: si.id,
-          productId: si.productId!,
-          productName: si.product!.name,
+          productId: si.productId,
+          service,
+          stockNotTaken: !service && !isCarpet && (noStockTaken.has(si.productId!) || (isServiceProduct(si.product) && !tookStock.has(si.productId!))),
+          productName: name,
           variantId: si.variantLink?.variantId ?? null,
           quantity: it.quantity,
           refundPrice: r2(unit),
@@ -322,6 +334,11 @@ export class ReturnsService {
         for (const l of lines) { l.total = r2(l.total * k); l.refundPrice = r2(l.refundPrice * k); }
       }
 
+      // Return rows need a product; lines without one are listed in the notes.
+      const serviceLines = lines.filter((l) => l.service);
+      const serviceText = serviceLines.map((l) => `${l.productName} × ${r3(l.quantity)}`).join(', ');
+      const notes = [dto.notes?.trim(), serviceText ? `Service wapas: ${serviceText}` : ''].filter(Boolean).join('\n') || null;
+
       const created = await tx.saleReturn.create({
         data: {
           tenantId,
@@ -331,13 +348,13 @@ export class ReturnsService {
           createdById: user.id,
           returnNumber,
           reason: dto.reason?.trim() || null,
-          notes: dto.notes?.trim() || null,
+          notes,
           refundAmount,
           refundMethod: dto.refundMethod,
           items: {
-            create: lines.map((l) => ({
+            create: lines.filter((l) => !l.service).map((l) => ({
               saleItemId: l.saleItemId,
-              productId: l.productId,
+              productId: l.productId!,
               quantity: l.quantity,
               refundPrice: l.refundPrice,
               total: l.total,
@@ -354,6 +371,16 @@ export class ReturnsService {
           where: { id: item.saleItemId },
           data: { returnedQty: { increment: item.quantity } },
         });
+
+        // ─── NO PRODUCT — money only ──────────────────────────
+        if (item.service || !item.productId) continue;
+
+        // ─── SALE TOOK NO SHELF STOCK — audit only ────────────
+        if (item.stockNotTaken) {
+          await this.carpetAudit(tx, user, shopId, { ...item, productId: item.productId }, returnNumber,
+            'Wapsi — is bill par shelf stock kam nahi hua tha, is liye stock nahi barha', !item.restock);
+          continue;
+        }
 
         // ─── CARPET PATH ─────────────────────────────────────
         if (item.isCarpet && item.carpetInfo?.isRollCut && item.createCutPiece) {
@@ -408,14 +435,14 @@ export class ReturnsService {
           createdCutPieces.push(piece.pieceCode);
 
           await this.syncShopStockForCarpet(tx, tenantId, shopId, item.productId, item.variantId);
-          await this.carpetAudit(tx, user, shopId, item, returnNumber,
+          await this.carpetAudit(tx, user, shopId, { ...item, productId: item.productId }, returnNumber,
             `Carpet return → cut piece ${pieceCode}${item.isDamaged ? ' (DAMAGED)' : ''}`, item.isDamaged);
           continue;
         }
 
         // ─── CARPET BUT NO CUT PIECE — audit only ─────────────
         if (item.isCarpet && !item.createCutPiece) {
-          await this.carpetAudit(tx, user, shopId, item, returnNumber, 'Carpet return (no cut piece created — manual adjustment)', true);
+          await this.carpetAudit(tx, user, shopId, { ...item, productId: item.productId }, returnNumber, 'Carpet return (no cut piece created — manual adjustment)', true);
           continue;
         }
 
@@ -482,11 +509,12 @@ export class ReturnsService {
         if (customer) {
           khataAmount = r2(Math.min(refundAmount, owedOnBill, Math.max(0, customer.balance)));
           if (khataAmount > 0) {
-            const { balance: newBalance } = await tx.customer.update({
+            const { balance: raw } = await tx.customer.update({
               where: { id: customer.id },
               data: { balance: { decrement: khataAmount } },
               select: { balance: true },
             });
+            const newBalance = await tidyCustomerBalance(tx, customer.id, raw);
             await tx.customerLedger.create({
               data: {
                 tenantId,

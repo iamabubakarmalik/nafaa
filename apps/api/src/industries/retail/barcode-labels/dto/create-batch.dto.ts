@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class BarcodeLabelItemDto {
@@ -68,5 +69,6 @@ export class CreateBarcodeBatchDto {
 
   @ApiProperty({ type: [BarcodeLabelItemDto] })
   @IsArray()
+  @Type(() => BarcodeLabelItemDto)
   items!: BarcodeLabelItemDto[];
 }

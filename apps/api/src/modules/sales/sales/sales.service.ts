@@ -1,13 +1,18 @@
 import { addCartNeed, claimShopStock } from './stock-claim.helper';
+import { priceCutTotal } from './price-cut.helper';
+import { tidyCustomerBalance } from '../returns/returns.helpers';
+import {
+  CARPET_SALE_NOTE, hasCarpetNote, isCarpetBusiness, isCarpetLine, productsSoldWithoutStock, productsThatTookStock,
+} from './carpet-line.helper';
 import {
   BadRequestException, Injectable, NotFoundException,
 } from '@nestjs/common';
-import { startOfDay, startOfMonth } from 'date-fns';
+import { addMonths, startOfDay, startOfMonth } from 'date-fns';
 import { SaleSource, TenantSettings } from '@prisma/client';
 import { PIN_NEEDS, requireManagerPin } from '../../../common/helpers/manager-pin.helper';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
-import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
+import { ShopScope, isServiceProduct, resolveWriteShopId } from '../../../common/shop-scope';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { DiscountsService } from '../discounts/discounts.service';
 import { hasPermission, PERMISSIONS } from '../../../common/constants/permissions.constants';
@@ -41,6 +46,8 @@ export class SalesService {
     scope: ShopScope,
     dto: CreateSaleDto,
     origin?: SaleOrigin,
+    /** `counter`: the request came from a till (POST /sales), not an industry flow. */
+    opts: { counter?: boolean } = {},
   ) {
     // A sale happens at exactly one counter. The body may name the branch
     // (offline queue replays carry it); otherwise use the one being viewed.
@@ -159,6 +166,17 @@ export class SalesService {
       if (serialDupCheck.has(id)) throw new BadRequestException('Ek hi serial cart me do dafa hai');
       serialDupCheck.add(id);
     }
+    // Warranty months of the serial products, for the unit's warranty dates.
+    const serialProductIds = [...new Set(serials.map((sr) => sr.productId))];
+    const warrantyMonthsByProduct = new Map(
+      (serialProductIds.length
+        ? await this.prisma.electronicsProductProfile.findMany({
+            where: { tenantId: user.tenantId, productId: { in: serialProductIds } },
+            select: { productId: true, warrantyMonths: true },
+          })
+        : []
+      ).map((p) => [p.productId, Number(p.warrantyMonths) || 0]),
+    );
 
     // ─── Validate used phones ───────────────────────────────────
     const usedPhones = usedPhoneIds.length
@@ -191,17 +209,18 @@ export class SalesService {
     const serialMap = new Map(serials.map((sr) => [sr.id, sr]));
 
     // ─── Detect carpet items ─────────────────────────────────
-    const carpetUnits = new Set(['sqft', 'sqm', 'sqyd']);
+    // Only roll cuts, cut pieces and area-unit goods in a carpet shop skip
+    // shelf stock; tiles and other sqft goods elsewhere are normal stock.
+    const tenantRow = await this.prisma.tenant.findUnique({
+      where: { id: user.tenantId },
+      select: { businessType: true },
+    });
+    const carpetShop = isCarpetBusiness(tenantRow?.businessType);
     const carpetItemIndices = new Set<number>();
     dto.items.forEach((item, idx) => {
       if (!item.productId) return;
       const product = productMap.get(item.productId);
-      const note = item.note || '';
-      const isCarpetSale =
-        note.startsWith('Cut from ') ||
-        note.startsWith('Cut piece ') ||
-        (product && carpetUnits.has(product.unit));
-      if (isCarpetSale) carpetItemIndices.add(idx);
+      if (isCarpetLine(item.note, product?.unit, carpetShop)) carpetItemIndices.add(idx);
     });
 
     // ─── IMEI + used-phone items: skip ShopStock check ────────
@@ -286,12 +305,14 @@ export class SalesService {
         );
       }
 
-      // ─── Stock check (skip for carpet + IMEI + used phone) ──
+      // ─── Stock check (skip for carpet + IMEI + used phone + services) ──
       const isCarpetItem = carpetItemIndices.has(idx);
       const isImeiItem = imeiItemIndices.has(idx);
+      // Fees and services (clinic fee, labour) hold no stock.
+      const isServiceItem = !!product && isServiceProduct(product);
       let shopStock = null;
 
-      if (!isCarpetItem && !isImeiItem && !isUsedPhoneItem) {
+      if (!isCarpetItem && !isImeiItem && !isUsedPhoneItem && !isServiceItem) {
         const stockKey = `${item.productId}:${item.variantId ?? 'null'}`;
         shopStock = stockMap.get(stockKey);
 
@@ -326,6 +347,7 @@ export class SalesService {
         serialId: item.serialId ?? null,
         shopStockId: shopStock?.id ?? null,
         isCarpetItem,
+        isServiceItem,
         isImeiItem,
         isUsedPhoneItem,
         quantity,
@@ -409,8 +431,23 @@ export class SalesService {
     }
     // Online orders were settled on the platform; the counter rules do not apply.
     if (!origin && settings) {
+      // A price typed below the shop's own prices counts toward the discount
+      // limit too. Only counter requests: industry flows post their agreed rates.
+      const priceCut = opts.counter
+        ? await priceCutTotal(this.prisma, user.tenantId, dto.items.flatMap((item, idx) => {
+            if (item.priceOverride == null || !item.productId || item.imeiId || hasCarpetNote(item.note)) return [];
+            const product = productMap.get(item.productId)!;
+            const variant = item.variantId ? variantMap.get(item.variantId) : undefined;
+            return [{
+              productId: item.productId, variantId: item.variantId ?? null,
+              quantity: normalizedItems[idx].quantity, price: Number(item.priceOverride), note: item.note,
+              productPrice: Number(product.price) || 0, productWholesale: product.wholesalePrice,
+              variantPrice: variant?.price ?? null, variantWholesale: variant?.wholesalePrice ?? null,
+            }];
+          }))
+        : 0;
       await this.enforceCounterRules(user, settings, dto, {
-        manualDiscount: (dto.discount ?? 0) + totalLineDiscount, subtotal, creditAmount,
+        manualDiscount: (dto.discount ?? 0) + totalLineDiscount, priceCut, subtotal, creditAmount,
       });
     }
 
@@ -597,16 +634,27 @@ export class SalesService {
               quantity: -item.quantity,
               balanceAfter: 0,
               reference: sale.saleNumber,
-              note: `Carpet sale at ${shop.name}${item.note ? ` • ${item.note}` : ''}`,
+              note: `${CARPET_SALE_NOTE}${shop.name}${item.note ? ` • ${item.note}` : ''}`,
             },
           });
           continue;
         }
 
+        // Services and fees: nothing on the shelf to take out.
+        if (item.isServiceItem) continue;
+
         // ─── Electronics serial: us unit ko SOLD mark karo ──────
         // Stock aam tareeqe se neeche ghatta hai — serial sirf ye
         // batata hai ke kaunsa asli unit gaya (warranty ke liye zaroori).
         if (item.serialId) {
+          // Customer warranty starts on the day of sale for the product's
+          // months, unless the unit already carries its own end date.
+          const unit = serialMap.get(item.serialId);
+          const months = warrantyMonthsByProduct.get(item.productId!) ?? 0;
+          const soldAt = new Date();
+          const warranty = unit && !unit.warrantyEndDate && months > 0
+            ? { warrantyStartDate: soldAt, warrantyEndDate: addMonths(soldAt, months), warrantyStatus: 'ACTIVE' as const }
+            : {};
           await tx.electronicsSerialTracking.update({
             where: { id: item.serialId },
             data: {
@@ -614,9 +662,10 @@ export class SalesService {
               saleId: sale.id,
               saleItemId: saleItem.id,
               soldPrice: item.price,
-              soldAt: new Date(),
+              soldAt,
               soldToCustomerId: dto.customerId ?? null,
               invoiceNumber: sale.saleNumber,
+              ...warranty,
             },
           });
         }
@@ -663,11 +712,12 @@ export class SalesService {
       if (creditAmount > 0 && customer) {
         // Increment, not read-then-write: two counters selling to the same
         // customer at once must both land on the balance.
-        const { balance: newBalance } = await tx.customer.update({
+        const { balance: raw } = await tx.customer.update({
           where: { id: customer.id },
           data: { balance: { increment: creditAmount } },
           select: { balance: true },
         });
+        const newBalance = await tidyCustomerBalance(tx, customer.id, raw);
         await tx.customerLedger.create({
           data: {
             tenantId: user.tenantId,
@@ -1005,20 +1055,28 @@ export class SalesService {
     user: AuthenticatedUser,
     s: TenantSettings,
     dto: CreateSaleDto,
-    bill: { manualDiscount: number; subtotal: number; creditAmount: number },
+    bill: { manualDiscount: number; priceCut?: number; subtotal: number; creditAmount: number },
   ) {
     if (s.requireCustomerForSale && !dto.customerId) {
       throw new BadRequestException('Har bill par customer chunna zaroori hai (Settings)');
     }
-    if (bill.manualDiscount > 0) {
-      if (!s.allowDiscount) throw new BadRequestException('Is dukaan me haath se discount band hai (Settings)');
+    // The on/off switch covers the discount field and line discounts; a lowered
+    // price is held to the same limit and PIN, measured on the shop's prices.
+    const priceCut = Math.max(0, bill.priceCut ?? 0);
+    if (bill.manualDiscount > 0 && !s.allowDiscount) {
+      throw new BadRequestException('Is dukaan me haath se discount band hai (Settings)');
+    }
+    const given = bill.manualDiscount + priceCut;
+    if (given > 0.005) {
       // Staff the owner trusted with "Had se zyada chhoot" skip the limit and its PIN.
       const trusted = hasPermission(user.role, user.permissions, PERMISSIONS.POS_DISCOUNT_OVERRIDE);
-      const percent = bill.subtotal > 0 ? (bill.manualDiscount / bill.subtotal) * 100 : 100;
+      const base = bill.subtotal + priceCut;
+      const percent = base > 0 ? (given / base) * 100 : 100;
+      const what = bill.manualDiscount > 0 ? 'Discount' : 'Kam price';
       if (!trusted && percent > s.maxDiscountPercent + 0.01) {
-        await requireManagerPin(this.prisma, user, dto.managerPin, `${s.maxDiscountPercent}% se zyada chhoot`, true, PIN_NEEDS.discount);
+        await requireManagerPin(this.prisma, user, dto.managerPin, `${s.maxDiscountPercent}% se zyada discount`, true, PIN_NEEDS.discount);
       } else if (!trusted && s.requirePinForDiscount) {
-        await requireManagerPin(this.prisma, user, dto.managerPin, 'Chhoot', false, PIN_NEEDS.discount);
+        await requireManagerPin(this.prisma, user, dto.managerPin, what, false, PIN_NEEDS.discount);
       }
     }
     if (bill.creditAmount > 0) {
@@ -1046,6 +1104,10 @@ export class SalesService {
     });
     if (!sale) throw new NotFoundException('Sale not found');
     if (sale.status === 'VOIDED') throw new BadRequestException('Sale already voided');
+    // Part of this bill has come back already; voiding would give that part back twice.
+    if (sale.status === 'PARTIALLY_RETURNED' || sale.status === 'FULLY_RETURNED') {
+      throw new BadRequestException('Is bill ki return ho chuki hai — void nahi ho sakta. Baqi maal ki return karein.');
+    }
     const rules = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { requirePinForVoid: true } });
     if (rules?.requirePinForVoid) await requireManagerPin(this.prisma, user, managerPin, 'Bill cancel', false, PIN_NEEDS.void);
     if (!sale.shopId) throw new BadRequestException('Sale has no shop linked — cannot void safely');
@@ -1111,11 +1173,50 @@ export class SalesService {
         }
       }
 
+      // ─── Serial units go back on the shelf ────────────────────
+      // Electronics units are cleared outright. Warranty dates are cleared
+      // only when they were set by this sale (start = day of sale).
+      const soldSerials = await tx.electronicsSerialTracking.findMany({
+        where: { tenantId: user.tenantId, saleId: id },
+        select: { id: true, soldAt: true, warrantyStartDate: true },
+      });
+      for (const sr of soldSerials) {
+        const setBySale = !!sr.soldAt && !!sr.warrantyStartDate && sr.soldAt.getTime() === sr.warrantyStartDate.getTime();
+        await tx.electronicsSerialTracking.update({
+          where: { id: sr.id },
+          data: {
+            status: 'IN_STOCK', saleId: null, saleItemId: null, soldAt: null, soldPrice: null,
+            soldToCustomerId: null, invoiceNumber: null,
+            ...(setBySale ? { warrantyStartDate: null, warrantyEndDate: null, warrantyStatus: 'NO_WARRANTY' as const } : {}),
+          },
+        });
+      }
+      // Appliance units carry the bill id only; their warranty runs from the sale.
+      await tx.applianceSerialTracking.updateMany({
+        where: { tenantId: user.tenantId, saleId: id, status: 'SOLD' },
+        data: {
+          status: 'IN_STOCK', saleId: null, invoiceNumber: null, soldAt: null, soldPrice: null,
+          soldToCustomerId: null, customerName: null, customerPhone: null, deliveryAddress: null,
+          warrantyStartDate: null, warrantyEndDate: null, compressorWarrantyEndDate: null, motorWarrantyEndDate: null,
+        },
+      });
+
+      // Lines whose sale took no shelf stock (carpet audit rows, and older
+      // bills that treated every sqft product that way) get no stock back.
+      const noStockTaken = await productsSoldWithoutStock(tx, user.tenantId, sale.saleNumber);
+      // Services and fees took nothing off the shelf, so nothing goes back.
+      const tookStock = await productsThatTookStock(tx, user.tenantId, sale.saleNumber);
+      const lineProducts = await tx.product.findMany({
+        where: { id: { in: sale.items.map((i) => i.productId).filter((x): x is string => !!x) } },
+        select: { id: true, productType: true, unit: true },
+      });
+      const serviceIds = new Set(lineProducts.filter((p) => isServiceProduct(p)).map((p) => p.id));
+
       for (const item of sale.items) {
         if ((item as any).usedPhoneId) continue; // already handled above
 
         const itemNote = (item as any).note || '';
-        const isCarpetItem = itemNote.startsWith('Cut from ') || itemNote.startsWith('Cut piece ');
+        const isCarpetItem = hasCarpetNote(itemNote) || (!!item.productId && noStockTaken.has(item.productId));
         const isImeiItem = itemNote.startsWith('IMEI:');
 
         if (!item.productId) continue; // safety guard
@@ -1135,6 +1236,8 @@ export class SalesService {
           });
           continue;
         }
+
+        if (serviceIds.has(item.productId) && !tookStock.has(item.productId)) continue;
 
         const variantId = item.variantLink?.variantId ?? null;
 
@@ -1242,11 +1345,12 @@ export class SalesService {
           // The balance never goes below zero on a void; the ledger records the
           // change that actually happened so its sum always equals the balance.
           const removed = Math.min(sale.creditAmount, Math.max(customer.balance, 0));
-          const { balance: newBalance } = await tx.customer.update({
+          const { balance: raw } = await tx.customer.update({
             where: { id: sale.customerId },
             data: { balance: { decrement: removed } },
             select: { balance: true },
           });
+          const newBalance = await tidyCustomerBalance(tx, sale.customerId, raw);
           await tx.customerLedger.create({
             data: {
               tenantId: user.tenantId,

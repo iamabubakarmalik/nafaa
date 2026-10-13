@@ -26,7 +26,7 @@ import { stockAdjustmentsApi, type AdjustmentQuery, type AdjustmentType, type St
 import { AdjustmentAnalytics } from '../components/AdjustmentAnalytics';
 import { AdjustmentForm } from '../components/AdjustmentForm';
 import { StockCountPanel } from '../components/StockCountPanel';
-import { ADJ_KEY, TYPES, TYPE_ORDER, when } from '../components/meta';
+import { ADJ_KEY, TYPES, TYPE_ORDER, isOpeningType, when } from '../components/meta';
 import { adjustmentsDoc, itemLabel, qtyLabel } from '../components/print';
 
 type TypeFilter = 'all' | AdjustmentType;
@@ -100,10 +100,10 @@ export default function StockAdjustmentsPage() {
       />
 
       {/* Value per type; a card toggles its type filter */}
-      <KpiRow cols={4}>
-        {!t ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : TYPE_ORDER.map((k) => (
+      <KpiRow cols={5}>
+        {!t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : TYPE_ORDER.map((k) => (
           <KpiCard key={k} icon={TYPES[k].icon} color={TYPES[k].color} label={TYPES[k].label}
-            value={money(k === 'ADJUSTMENT_IN' ? t.inValue : k === 'ADJUSTMENT_OUT' ? t.outValue : k === 'DAMAGE' ? t.damageValue : t.lossValue)}
+            value={money(k === 'OPENING_BALANCE' ? t.openingValue ?? 0 : k === 'ADJUSTMENT_IN' ? t.inValue : k === 'ADJUSTMENT_OUT' ? t.outValue : k === 'DAMAGE' ? t.damageValue : t.lossValue)}
             hint={type === k ? 'Filter laga · dobara dabayein' : 'dabayein'} onClick={() => toggleType(k)} active={type === k} />
         ))}
       </KpiRow>
@@ -198,7 +198,7 @@ function Group({ rows, money }: { rows: StockAdjustment[]; money: (n: number) =>
   const head = rows[0];
   const many = rows.length > 1;
   const count = head.groupRef?.startsWith('CNT');
-  const net = rows.reduce((s, a) => s + TYPES[a.type].sign * a.value, 0);
+  const net = rows.reduce((s, a) => s + (isOpeningType(a.type) ? 0 : TYPES[a.type].sign * a.value), 0);
   const by = [when(head.createdAt), head.shop?.name, head.createdBy?.fullName].filter(Boolean).join(' · ');
   return (
     <li className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">

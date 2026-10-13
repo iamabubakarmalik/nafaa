@@ -41,6 +41,8 @@ interface Line {
   id: string; name: string; variant: string | null; unit: string; sold: number; already: number; remaining: number;
   /** Refund for one unit after line and bill discounts. */
   unitRefund: number; units: string[]; note: string | null; isCarpet: boolean;
+  /** No product behind the line (service, fee): money only, nothing goes to stock. */
+  service: boolean;
 }
 
 function readLines(sale: any): Line[] {
@@ -51,13 +53,14 @@ function readLines(sale: any): Line[] {
   const lineDiscount = items.reduce((s, it) => s + Math.max(0, gross(it) - net(it)), 0);
   const billDiscount = Math.max(0, Number(sale.discount ?? 0) - lineDiscount);
   const factor = lines > 0 ? Math.min(1, Math.max(0, (lines - billDiscount) / lines)) : 1;
-  return items.filter((it) => it.productId !== null || it.product).map((it) => {
+  // Used phones go back through their own page; service lines (no product) are refunded only.
+  return items.filter((it) => !it.usedPhoneId).map((it) => {
     const sold = Number(it.quantity ?? 0);
     const already = Number(it.returnedQty ?? 0);
     const unit = it.product?.unit ?? it.unit ?? 'pcs';
     return {
       id: it.id,
-      name: it.product?.name ?? it.name ?? it.productName ?? 'Cheez',
+      name: it.product?.name ?? it.name ?? it.productName ?? it.note ?? 'Service',
       variant: it.variant ?? it.variantLink?.variant?.name ?? null,
       unit,
       sold,
@@ -67,6 +70,7 @@ function readLines(sale: any): Line[] {
       units: [...(it.imeis ?? []).map((i: any) => i.imei1), ...(it.serials ?? []).map((s: any) => s.serialNumber)].filter(Boolean),
       note: it.note ?? null,
       isCarpet: CARPET_UNITS.has(unit),
+      service: !it.productId && !it.product,
     };
   });
 }
@@ -117,7 +121,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
         return {
           saleItemId: l.id,
           quantity: qty[l.id],
-          ...(onShelf(l) ? {} : { restock: false }),
+          ...(onShelf(l) || l.service ? {} : { restock: false }),
           ...(c ? {
             createCutPiece: c.createCutPiece, isDamaged: c.isDamaged, cutPieceCondition: c.cutPieceCondition,
             cutPieceWidthFt: c.cutPieceWidthFt || undefined, cutPieceLengthFt: c.cutPieceLengthFt || undefined, cutPieceNotes: c.cutPieceNotes || undefined,
@@ -214,7 +218,9 @@ export function ReturnModal({ sale, onClose, onDone }: {
                       </div>
                       {v > 0 && (
                         <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-12">
-                          {rollCut ? (
+                          {l.service ? (
+                            <span className="text-[0.75rem] text-slate-500">Sirf paise wapas — stock me kuch nahi jata</span>
+                          ) : rollCut ? (
                             <button type="button" onClick={() => setCarpetFor(l)}
                               className="inline-flex h-7 items-center gap-1.5 rounded-full bg-white px-2.5 text-[0.75rem] font-medium text-emerald-800 ring-1 ring-emerald-200 hover:bg-emerald-50">
                               <Scissors className="h-3.5 w-3.5" />

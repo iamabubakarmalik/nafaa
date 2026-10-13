@@ -4,7 +4,8 @@ import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ProductVariantsService } from './product-variants.service';
-import { UpsertVariantDto } from './dto/upsert-variant.dto';
+import { BulkVariantsDto, UpsertVariantDto } from './dto/upsert-variant.dto';
+import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 
 @ApiTags('Product Variants')
 @ApiBearerAuth()
@@ -23,17 +24,19 @@ export class ProductVariantsController {
     @GetUser() user: AuthenticatedUser,
     @Param('productId') productId: string,
     @Body() dto: UpsertVariantDto,
+    @CurrentShop() scope: ShopScope,
   ) {
-    return this.service.create(user, productId, dto);
+    return this.service.create(user, productId, dto, scope);
   }
 
   @Post('bulk')
   bulkCreate(
     @GetUser() user: AuthenticatedUser,
     @Param('productId') productId: string,
-    @Body() body: { variants: UpsertVariantDto[] },
+    @Body() body: BulkVariantsDto,
+    @CurrentShop() scope: ShopScope,
   ) {
-    return this.service.bulkCreate(user, productId, body.variants);
+    return this.service.bulkCreate(user, productId, body.variants, scope, body.shopId);
   }
 
   @Patch(':id')
@@ -42,8 +45,9 @@ export class ProductVariantsController {
     @Param('productId') productId: string,
     @Param('id') id: string,
     @Body() dto: UpsertVariantDto,
+    @CurrentShop() scope: ShopScope,
   ) {
-    return this.service.update(user, productId, id, dto);
+    return this.service.update(user, productId, id, dto, scope);
   }
 
   @Delete(':id')

@@ -67,7 +67,7 @@ export class CashRegisterService {
       tenantId, ...(register.shopId ? { shopId: register.shopId } : {}), status: { not: 'VOIDED' }, soldAt: window,
     };
 
-    const [drawer, allSales, byMethod] = await Promise.all([
+    const [drawer, allSales, byMethod, cashRefunds] = await Promise.all([
       computeLiveCash(db, tenantId, register, until),
       db.sale.aggregate({
         where: saleWhere,
@@ -80,6 +80,7 @@ export class CashRegisterService {
         _sum: { total: true, paidAmount: true, changeAmount: true },
         _count: { _all: true },
       }),
+      this.cashRefundCounts(db, tenantId, register, window),
     ]);
 
     const collected = n(allSales._sum.paidAmount) - n(allSales._sum.changeAmount);
@@ -88,6 +89,11 @@ export class CashRegisterService {
 
     return {
       ...drawer,
+      /** Returns that paid cash out of the drawer; ones that only cleared udhaar are counted apart. */
+      returnCount: cashRefunds.drawer,
+      khataReturnCount: cashRefunds.khataOnly,
+      /** Expected cash below zero: more was written as paid from the drawer than it held. */
+      negative: drawer.expected < -0.005,
 
       /** Money that did not come into the drawer: card, wallet, credit. */
       allSalesTotal: n(allSales._sum.total),
@@ -110,6 +116,60 @@ export class CashRegisterService {
     };
   }
 
+  /**
+   * Cash refunds of the shift split by where the money went: some or all of
+   * it out of the drawer, or only off the customer's udhaar. Same rows as the
+   * drawer's `returns` figure in live-cash.helper.
+   */
+  private async cashRefundCounts(db: Db, tenantId: string, register: CashWindow, window: Prisma.DateTimeFilter) {
+    const rows = await db.saleReturn.findMany({
+      where: {
+        tenantId, refundMethod: 'CASH', refundAmount: { gt: 0 }, returnedAt: window,
+        ...(register.shopId && { OR: [{ shopId: register.shopId }, { shopId: null, sale: { shopId: register.shopId } }] }),
+      },
+      select: { returnNumber: true, refundAmount: true },
+    });
+    if (!rows.length) return { drawer: 0, khataOnly: 0 };
+    const khata = await db.customerLedger.groupBy({
+      by: ['reference'],
+      where: { tenantId, type: 'REFUND', reference: { in: rows.map((r) => r.returnNumber) } },
+      _sum: { amount: true },
+    });
+    // Khata refunds are negative amounts (udhaar taken off).
+    const offKhata = new Map(khata.map((k) => [k.reference ?? '', -n(k._sum.amount)]));
+    const drawer = rows.filter((r) => n(r.refundAmount) - (offKhata.get(r.returnNumber) ?? 0) > 0.005).length;
+    return { drawer, khataOnly: rows.length - drawer };
+  }
+
+  /**
+   * Whether paying `amount` in cash now would take the drawer below zero.
+   * Screens that pay cash out (purchase, expense, cash out) call it to warn
+   * before saving; nothing is blocked.
+   */
+  async payoutCheck(user: AuthenticatedUser, scope: ShopScope, amount: number, registerId?: string) {
+    const register = await this.prisma.cashRegister.findFirst({
+      where: { tenantId: user.tenantId, status: 'OPEN', ...scope.where, ...(registerId && { id: registerId }) },
+      orderBy: { openedAt: 'desc' },
+    });
+    if (!register) return { registerOpen: false, expected: null, after: null, short: false, message: null };
+    const live = await computeLiveCash(this.prisma, user.tenantId, register);
+    const pay = Math.max(0, n(amount));
+    const after = round2(live.expected - pay);
+    const short = after < -0.005;
+    return {
+      registerOpen: true,
+      registerId: register.id,
+      expected: live.expected,
+      after,
+      short,
+      message: !short
+        ? null
+        : live.expected > 0
+          ? `Drawer me hisaab se sirf Rs ${live.expected.toLocaleString('en-PK')} hain — Rs ${pay.toLocaleString('en-PK')} dene ke baad Rs ${Math.abs(after).toLocaleString('en-PK')} minus ho jayega. Cash kahin aur se diya hai to payment method badlein.`
+          : `Drawer ka hisaab pehle hi Rs ${Math.abs(live.expected).toLocaleString('en-PK')} minus hai — yeh payment bhi drawer se likhi to Rs ${Math.abs(after).toLocaleString('en-PK')} minus ho jayega. Cash kahin aur se diya hai to payment method badlein.`,
+    };
+  }
+
   /** The open till: the given one, or the newest open one in scope. */
   private async findOpen(user: AuthenticatedUser, scope: ShopScope, registerId?: string) {
     const register = await this.prisma.cashRegister.findFirst({
@@ -117,7 +177,14 @@ export class CashRegisterService {
       orderBy: { openedAt: 'desc' },
     });
     if (!register) {
-      throw new BadRequestException(registerId ? 'Ye register band ho chuka hai' : 'Koi register open nahi hai');
+      if (!registerId) throw new BadRequestException('Koi register open nahi hai');
+      const found = await this.prisma.cashRegister.findFirst({
+        where: { id: registerId, tenantId: user.tenantId },
+        select: { status: true },
+      });
+      if (!found) throw new NotFoundException('Register nahi mila');
+      if (found.status !== 'OPEN') throw new BadRequestException('Ye register band ho chuka hai');
+      throw new BadRequestException('Ye register is branch ka nahi hai — upar se sahi branch chunein');
     }
     if (register.shopId) assertShopAccess(user, register.shopId, 'Register ka kaam');
     return register;
@@ -314,10 +381,10 @@ export class CashRegisterService {
           reason: 'Register closed',
           note:
             `Difference: ${difference} | opening ${cash.openingBalance}` +
-            ` + bikri ${cash.cashSales} + booking ${cash.bookingReceived} + khata ${cash.khataReceived}` +
+            ` + sale ${cash.cashSales} + booking ${cash.bookingReceived} + khata ${cash.khataReceived}` +
             ` + daala ${cash.cashIn}` +
-            ` − nikala ${cash.cashOut} − kharch ${cash.expenses}` +
-            ` − wapsi ${cash.returns} − booking wapsi ${cash.bookingRefunds} − kharidari ${cash.purchases}` +
+            ` − nikala ${cash.cashOut} − expense ${cash.expenses}` +
+            ` − return ${cash.returns} − booking return ${cash.bookingRefunds} − purchase ${cash.purchases}` +
             ` − supplier ${cash.supplierPaid}`,
           reference: JSON.stringify(snapshot),
         },

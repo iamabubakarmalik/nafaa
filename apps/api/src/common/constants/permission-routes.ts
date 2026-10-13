@@ -71,6 +71,8 @@ export const ROUTE_RULES: RouteRule[] = [
 
   /* ── Bikri aur counter ── */
   { match: /(^|\/)pos(\/|$)/, GET: P.POS_USE, write: P.POS_USE },
+  /* Cancelling a bill always needs the void permission, whatever the PIN setting. */
+  { match: /(^|\/)sales\/[^/]+\/void$/, POST: P.SALES_VOID },
   { match: /(^|\/)sales(\/|$)/, GET: P.SALES_VIEW, write: P.POS_USE, DELETE: P.SALES_VOID },
   { match: /(^|\/)returns(\/|$)/, GET: P.RETURNS_VIEW, write: P.RETURNS_CREATE },
   { match: /(^|\/)cash-register(\/|$)/, GET: P.CASH_REGISTER_VIEW, write: P.CASH_REGISTER_OPEN },

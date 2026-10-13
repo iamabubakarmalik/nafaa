@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
-  IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min,
+  IsArray, IsBoolean, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min,
 } from 'class-validator';
 
 export class UpsertVariantDto {
@@ -61,17 +62,24 @@ export class UpsertVariantDto {
   @Min(0)
   wholesalePrice?: number;
 
+  /** Opening stock, booked as an OPENING_BALANCE movement in one branch. */
   @ApiPropertyOptional()
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   @Min(0)
   stock?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   @Min(0)
   lowStockAlert?: number;
+
+  /** Branch that receives the opening stock; the active branch when left out. */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  shopId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -87,4 +95,21 @@ export class UpsertVariantDto {
   @IsOptional()
   @IsInt()
   sortOrder?: number;
+}
+
+/**
+ * Body of POST /products/:id/variants/bulk. Lines are not validated one by
+ * one (older clients send extra fields); `@Type` keeps them as objects under
+ * the global implicit conversion.
+ */
+export class BulkVariantsDto {
+  @ApiProperty({ type: [UpsertVariantDto] })
+  @IsArray()
+  @Type(() => UpsertVariantDto)
+  variants!: UpsertVariantDto[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  shopId?: string;
 }

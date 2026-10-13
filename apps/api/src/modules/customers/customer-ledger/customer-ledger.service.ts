@@ -221,7 +221,7 @@ export class CustomerLedgerService {
       this.advance(tenantId, scope),
       this.prisma.customerLedger.findMany({
         where: { tenantId, ...shopWhere, createdAt: { gte: monthStart } },
-        select: { type: true, amount: true },
+        select: { type: true, amount: true, reference: true },
       }),
       this.prisma.customerLedger.findMany({
         where: { tenantId, ...shopWhere },
@@ -235,12 +235,32 @@ export class CustomerLedgerService {
       }),
     ]);
 
+    // Month totals by kind: udhaar given (credit bills and udhaar added by
+    // hand) and money collected. Opening balances, returns, voids and the
+    // system rows that use up an advance on a bill are kept apart.
+    const adjustRefs = [...new Set(monthLedgers
+      .filter((l) => l.type === 'ADJUSTMENT' && l.amount > 0 && l.reference)
+      .map((l) => l.reference as string))];
+    // System adjustments carry the bill number they belong to; udhaar added by hand does not.
+    const billRefs = adjustRefs.length
+      ? new Set((await this.prisma.sale.findMany({
+        where: { tenantId, saleNumber: { in: adjustRefs } },
+        select: { saleNumber: true },
+      })).map((x) => x.saleNumber))
+      : new Set<string>();
     let monthUdhaar = 0;
     let monthWasooli = 0;
+    let monthOpening = 0;
+    let monthReduced = 0;
     for (const l of monthLedgers) {
-      if (l.amount > 0) monthUdhaar += l.amount;
-      else monthWasooli += Math.abs(l.amount);
+      const amount = Number(l.amount) || 0;
+      if (l.type === 'SALE_CREDIT' && amount > 0) monthUdhaar += amount;
+      else if (l.type === 'ADJUSTMENT' && amount > 0 && !(l.reference && billRefs.has(l.reference))) monthUdhaar += amount;
+      else if (l.type === 'PAYMENT_RECEIVED' && amount < 0) monthWasooli += -amount;
+      else if (l.type === 'OPENING_BALANCE') monthOpening += amount;
+      else if (amount < 0) monthReduced += -amount;
     }
+    const r2 = (v: number) => Math.round(v * 100) / 100;
 
     // Kitne din se koi wasooli nahi hui — sab se purane pehle
     const now = Date.now();
@@ -264,7 +284,14 @@ export class CustomerLedgerService {
       customersWithCredit: debtors.length,
       /** Jin customers ne advance de rakha hai */
       advance: advanceAgg,
-      thisMonth: { udhaar: monthUdhaar, wasooli: monthWasooli },
+      thisMonth: {
+        udhaar: r2(monthUdhaar),
+        wasooli: r2(monthWasooli),
+        /** Old khata brought in this month. */
+        opening: r2(monthOpening),
+        /** Taken off by returns, voids and waivers (not money received). */
+        reduced: r2(monthReduced),
+      },
       overLimitCount: overLimit.length,
       staleCount: stale.length,
       /** 30+ din se khamosh — inhe yaad dilana chahiye */

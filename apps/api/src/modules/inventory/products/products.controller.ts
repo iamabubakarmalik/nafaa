@@ -13,7 +13,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProductsDto } from './dto/query-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { ShopIdParam } from '../../../common/shop-scope';
+import { CurrentShop, ShopIdParam, ShopScope, notServiceProductSql } from '../../../common/shop-scope';
 import { freshInStoreEan } from '../barcode-labels/barcode.helper';
 import { AssignBarcodesDto } from '../barcode-labels/dto/label-config.dto';
 
@@ -30,8 +30,8 @@ export class ProductsController {
   ) {}
 
   @Post()
-  create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateProductDto) {
-    return this.productsService.create(user, dto);
+  create(@GetUser() user: AuthenticatedUser, @Body() dto: CreateProductDto, @CurrentShop() scope: ShopScope) {
+    return this.productsService.create(user, dto, scope);
   }
 
   @Get()
@@ -79,12 +79,15 @@ export class ProductsController {
       // Compare against each row's own alert level, the same rule the
       // tenant-wide branch below uses. A flat `stock <= 10` called a 12-pack
       // healthy and a single spare tyre a crisis.
+      // Services (fees, labour) hold no stock and are left out.
       const rows = await this.prisma.$queryRaw<{ id: string }[]>`
-        SELECT id FROM "ShopStock"
-        WHERE "tenantId" = ${user.tenantId}
-          AND "shopId" = ${shopId}
-          AND "isActive" = true
-          AND stock <= "lowStockAlert"
+        SELECT s.id FROM "ShopStock" s
+        JOIN "Product" p ON p.id = s."productId"
+        WHERE s."tenantId" = ${user.tenantId}
+          AND s."shopId" = ${shopId}
+          AND s."isActive" = true
+          AND s.stock <= s."lowStockAlert"
+          AND ${notServiceProductSql('p')}
       `.then((r) => r.map((x) => x.id));
 
       const lowRows = await this.prisma.shopStock.findMany({
@@ -120,10 +123,11 @@ export class ProductsController {
     // Global low stock (tenant-wide)
     return this.prisma.$queryRaw<any[]>`
       SELECT id, name, sku, barcode, unit, stock, "lowStockAlert", price, "costPrice"
-      FROM "Product"
+      FROM "Product" p
       WHERE "tenantId" = ${user.tenantId}
         AND "isActive" = true
         AND stock <= "lowStockAlert"
+        AND ${notServiceProductSql('p')}
       ORDER BY stock ASC
       LIMIT 100
     `;
@@ -268,8 +272,9 @@ export class ProductsController {
     @GetUser() user: AuthenticatedUser,
     @Param('id') id: string,
     @Body() dto: UpdateProductDto,
+    @CurrentShop() scope: ShopScope,
   ) {
-    return this.productsService.update(user, id, dto);
+    return this.productsService.update(user, id, dto, scope);
   }
 
   @Patch(':id/toggle-featured')
@@ -294,8 +299,9 @@ export class ProductsController {
   bulkImportApply(
     @GetUser() user: AuthenticatedUser,
     @Body() body: { rows: any[] },
+    @CurrentShop() scope: ShopScope,
   ) {
-    return this.productsService.bulkImportApply(user, body.rows || []);
+    return this.productsService.bulkImportApply(user, body.rows || [], scope);
   }
 
   @Get('bulk-import/reference-data')

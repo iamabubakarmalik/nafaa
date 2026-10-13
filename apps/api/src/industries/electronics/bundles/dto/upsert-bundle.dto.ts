@@ -1,11 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpsertBundleDto {
   @ApiProperty() @IsString() name!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() imageUrl?: string;
-  @ApiProperty() @IsArray() items!: Array<{ productId: string; quantity: number; unitPrice: number }>;
+  @ApiProperty() @IsArray() @Type(() => Object) items!: Array<{ productId: string; quantity: number; unitPrice: number }>;
   @ApiProperty() @IsNumber() originalPrice!: number;
   @ApiProperty() @IsNumber() bundlePrice!: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
@@ -24,7 +25,7 @@ export class PatchBundleDto {
   @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() imageUrl?: string;
-  @ApiPropertyOptional() @IsOptional() @IsArray() items?: Array<{ productId: string; quantity: number; unitPrice: number }>;
+  @ApiPropertyOptional() @IsOptional() @IsArray() @Type(() => Object) items?: Array<{ productId: string; quantity: number; unitPrice: number }>;
   @ApiPropertyOptional() @IsOptional() @IsNumber() originalPrice?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() bundlePrice?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;

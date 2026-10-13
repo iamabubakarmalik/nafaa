@@ -104,7 +104,7 @@ async function main() {
     const a = await analysis.overview(user, scope, { from, to });
     rows.push({
       source: 'Profit report', net: a.totals.revenue, grossProfit: a.totals.profit, expenses: a.net.expenses, writeOffs: a.net.writeOffCost, netProfit: a.net.netProfit,
-      note: 'line revenue: leaves out service charges',
+      note: 'includes bill service charges',
     });
 
     const p = await pnl.report(user, scope, { from, to, staff: 'false' });

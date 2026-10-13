@@ -6,6 +6,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { getCachedSettings } from './offlineSettings';
 import { nextOfflineSaleNumber } from './offlineDevice';
 import { fiscalizeSale } from '@integrations/tax-authority/taxAuthority.api';
+import { askManagerPin } from '@core/security/ManagerPin';
 
 type SaleItemInput = CreateSalePayload['items'][number] & {
   usedPhoneId?: string;
@@ -67,17 +68,21 @@ async function buildItemSnapshots(
       imeiNumber = m?.imei1 ?? undefined;
     }
 
-    const unitPrice =
+    let variantName: string | undefined;
+    let variant: any;
+    if (it.variantId && p?.variants) {
+      variant = (p.variants as any[]).find((x: any) => x.id === it.variantId);
+      if (variant) variantName = variant.name;
+    }
+
+    // Same order as the server: typed price, else wholesale, else variant or product price.
+    const listPrice = Number(variant?.price ?? p?.price ?? 0);
+    const unitPrice = Number(
       it.priceOverride ??
-      (it.useWholesale ? (p?.wholesalePrice ?? p?.price ?? 0) : (p?.price ?? 0));
+      (it.useWholesale ? (variant?.wholesalePrice ?? p?.wholesalePrice ?? listPrice) : listPrice),
+    ) || 0;
     const qty = Number(it.quantity) || 0;
     const lineTotal = unitPrice * qty - (it.lineDiscount || 0);
-
-    let variantName: string | undefined;
-    if (it.variantId && p?.variants) {
-      const v = (p.variants as any[]).find((x: any) => x.id === it.variantId);
-      if (v) variantName = v.name;
-    }
 
     snapshots.push({
       productId: productId ?? null,
@@ -102,22 +107,31 @@ async function buildItemSnapshots(
   return snapshots;
 }
 
+/**
+ * Sends the sale; when the server answers that the owner's PIN is needed
+ * (discount or lowered price over the limit, credit limit), asks for it once
+ * and sends again. Pages that already sent a PIN get the error as before.
+ */
+async function createWithPin(payload: CreateSalePayload): Promise<Sale> {
+  try {
+    return await salesApi.create(payload);
+  } catch (e) {
+    const res = (e as { response?: { status?: number; data?: { message?: string | string[] } } })?.response;
+    const message = Array.isArray(res?.data?.message) ? res?.data?.message.join(', ') : (res?.data?.message ?? '');
+    if (res?.status !== 403 || !/PIN chahiye/.test(message) || payload.managerPin) throw e;
+    const pin = await askManagerPin(message.replace(/ ke liye malik ya manager ka PIN chahiye$/, ''), /udhaar|credit/i.test(message) ? 'credit' : 'discount');
+    if (!pin) throw e;
+    return salesApi.create({ ...payload, managerPin: pin });
+  }
+}
+
 export const offlineSalesApi = {
   /** `counter` carries the code and points amounts worked out at the counter, for the offline total. */
   create: async (payload: CreateSalePayload, counter: { codeDiscount?: number; loyaltyDiscount?: number } = {}): Promise<Sale | PendingSale> => {
-    // Compute totals
-    const subtotal = payload.items.reduce(
-      (sum, it) => sum + (it.priceOverride ?? 0) * it.quantity,
-      0,
-    );
-    const lineDiscount = payload.items.reduce((s, it) => s + (it.lineDiscount || 0), 0);
-    const svcTotal = (payload.serviceCharges || []).reduce((s, c) => s + Number(c.amount || 0), 0);
-    const total = Math.max(subtotal - lineDiscount - (payload.discount || 0) - (counter.codeDiscount || 0) - (counter.loyaltyDiscount || 0) + svcTotal, 0);
-
     // ─── ONLINE ATTEMPT ───
     if (navigator.onLine) {
       try {
-        const sale = await salesApi.create(payload);
+        const sale = await createWithPin(payload);
         // Update local stock cache (skip used phones — own lifecycle)
         for (const raw of payload.items) {
           const it = raw as SaleItemInput;
@@ -145,6 +159,15 @@ export const offlineSalesApi = {
     const saleNumber = nextOfflineSaleNumber();
     const itemsSnapshot = await buildItemSnapshots(payload.items);
 
+    // Totals the way the server works them out: each line at its own price
+    // (catalog price when none was typed), less discounts, plus the charges
+    // the shop keeps (a rider's own pass-through charge is left out).
+    const subtotal = itemsSnapshot.reduce((sum, it) => sum + it.unitPrice * it.quantity, 0);
+    const lineDiscount = payload.items.reduce((s, it) => s + (Number(it.lineDiscount) || 0), 0);
+    const charges: Array<{ amount?: number; passThrough?: boolean }> = Array.isArray(payload.serviceCharges) ? (payload.serviceCharges as any[]) : [];
+    const svcTotal = charges.filter((c) => !c?.passThrough).reduce((s, c) => s + Number(c?.amount || 0), 0);
+    const total = Math.max(subtotal - lineDiscount - (payload.discount || 0) - (counter.codeDiscount || 0) - (counter.loyaltyDiscount || 0) + svcTotal, 0);
+
     const customer = payload.customerId ? await db.customers.get(payload.customerId) : null;
     const settings = await getCachedSettings();
     const authState = useAuthStore.getState();
@@ -171,10 +194,7 @@ export const offlineSalesApi = {
       codeDiscount: counter.codeDiscount,
       loyaltyDiscount: counter.loyaltyDiscount,
       serviceCharges: svcTotal || undefined,
-      serviceChargesBreakdown:
-        payload.serviceCharges && payload.serviceCharges.length > 0
-          ? (payload.serviceCharges as any[])
-          : null,
+      serviceChargesBreakdown: charges.length > 0 ? (charges as any[]) : null,
       receivedByName: payload.receivedByName,
       receivedByPhone: payload.receivedByPhone,
       receivedByCnic: payload.receivedByCnic,

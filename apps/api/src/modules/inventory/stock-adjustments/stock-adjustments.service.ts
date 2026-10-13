@@ -19,7 +19,10 @@ import {
 } from './dto/create-adjustment.dto';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
-const isIn = (t: string) => t === 'ADJUSTMENT_IN';
+/** Types that add stock. */
+const isIn = (t: string) => t === 'ADJUSTMENT_IN' || t === 'OPENING_BALANCE';
+/** Opening stock adds stock but is neither a gain nor a loss. */
+const isOpening = (t: string) => t === 'OPENING_BALANCE';
 const DAY = 86_400_000;
 
 @Injectable()
@@ -323,6 +326,8 @@ export class StockAdjustmentsService {
       totals: {
         count: total,
         inValue: r2(v('ADJUSTMENT_IN')), outValue: r2(v('ADJUSTMENT_OUT')), damageValue: r2(v('DAMAGE')), lossValue: r2(v('LOSS')),
+        openingValue: r2(v('OPENING_BALANCE')),
+        // Opening stock is left out: it is not a gain or a loss.
         net: r2(v('ADJUSTMENT_IN') - v('ADJUSTMENT_OUT') - v('DAMAGE') - v('LOSS')),
       },
     };
@@ -355,6 +360,7 @@ export class StockAdjustmentsService {
       const p = tzParts(r.createdAt, tz);
       const k = `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
       const d = byDay.get(k) ?? { key: k, in: 0, out: 0 };
+      if (isOpening(r.type)) continue;
       if (isIn(r.type)) d.in += r.value; else d.out += r.value;
       byDay.set(k, d);
     }
@@ -368,8 +374,9 @@ export class StockAdjustmentsService {
     return {
       totals: {
         count: rows.length,
-        gained: r2(rows.filter((r) => isIn(r.type)).reduce((s, r) => s + r.value, 0)),
+        gained: r2(rows.filter((r) => isIn(r.type) && !isOpening(r.type)).reduce((s, r) => s + r.value, 0)),
         lost: r2(losses.reduce((s, r) => s + r.value, 0)),
+        opening: r2(rows.filter((r) => isOpening(r.type)).reduce((s, r) => s + r.value, 0)),
       },
       byType: group((r) => r.type),
       byReason: group((r) => r.reason || '—').sort((a, b) => a.value - b.value).slice(0, 10),

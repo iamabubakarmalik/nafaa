@@ -17,8 +17,12 @@ import {
   Min,
 } from 'class-validator';
 
-/** Only these change stock by hand; sales, purchases and transfers have their own flows. */
-export const ADJUSTMENT_TYPES = ['ADJUSTMENT_IN', 'ADJUSTMENT_OUT', 'DAMAGE', 'LOSS'] as const;
+/**
+ * Only these change stock by hand; sales, purchases and transfers have their
+ * own flows. OPENING_BALANCE is first stock or goods made in the shop: it adds
+ * stock but is not "found stock", so it stays out of write-offs and profit.
+ */
+export const ADJUSTMENT_TYPES = ['ADJUSTMENT_IN', 'ADJUSTMENT_OUT', 'DAMAGE', 'LOSS', 'OPENING_BALANCE'] as const;
 export type AdjustmentType = (typeof ADJUSTMENT_TYPES)[number];
 
 export class CreateAdjustmentDto {
@@ -59,7 +63,7 @@ export class CreateAdjustmentDto {
   imeiId?: string;
 
   @ApiProperty({
-    enum: ['ADJUSTMENT_IN', 'ADJUSTMENT_OUT', 'DAMAGE', 'LOSS'],
+    enum: ADJUSTMENT_TYPES,
     description: 'Type of adjustment',
   })
   @IsIn(ADJUSTMENT_TYPES)

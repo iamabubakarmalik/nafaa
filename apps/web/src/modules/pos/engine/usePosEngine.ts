@@ -606,10 +606,13 @@ export function usePosEngine(config: PosIndustryConfig) {
   const pinReason = (credit: number): string | null | false => {
     // Hand discount only; codes and points follow their own rules.
     const manual = discountAmount;
+    // A price lowered by hand counts toward the same limit (the server checks it too).
+    const priceCut = cart.reduce((s, l) => s + Math.max(0, (Number(l.basePrice) || 0) - (Number(l.unitPrice) || 0)) * (Number(l.quantity) || 0), 0);
     // Staff trusted with "Had se zyada chhoot" skip the limit and its PIN; credit rules below still apply.
     if (manual > 0 && !rules.allowDiscount) { toast.error('Is dukaan me haath se discount band hai (Settings)'); return false; }
-    if (manual > 0 && !rules.discountTrusted) {
-      const pct = subtotal > 0 ? (manual / subtotal) * 100 : 100;
+    if (manual + priceCut > 0.005 && !rules.discountTrusted) {
+      const base = subtotal + priceCut;
+      const pct = base > 0 ? ((manual + priceCut) / base) * 100 : 100;
       if (pct > rules.maxDiscountPercent + 0.01) {
         if (!rules.hasPin) { toast.error(`Discount ${rules.maxDiscountPercent}% se zyada nahi ho sakti (Settings)`); return false; }
         return `${rules.maxDiscountPercent}% se zyada discount`;

@@ -359,10 +359,7 @@ export class DashboardService {
 
     // Calculations
     const totalProducts = products.length;
-    const lowStockCount = products.filter((p) => p.stock <= p.lowStockAlert).length;
-    const outOfStockCount = products.filter((p) => p.stock === 0).length;
-    const inventoryValueAtCost = products.reduce((s, p) => s + p.costPrice * p.stock, 0);
-    const inventoryValueAtPrice = products.reduce((s, p) => s + p.price * p.stock, 0);
+    const { lowStockCount, outOfStockCount, inventoryValueAtCost, inventoryValueAtPrice } = await this.stockStats(tenantId, shopId, products);
 
     // Sales net of returns on the bill's own day; profit and net profit by business-math.helper.
     const salesToday = salesTodayAgg.net;
@@ -546,6 +543,64 @@ export class DashboardService {
       })),
       currentRegister,
     };
+  }
+
+  /**
+   * Low / out-of-stock counts and stock value from branch stock (ShopStock),
+   * one entry per branch and product as on the Low stock page: a product
+   * empty in one branch counts there even if another branch has plenty.
+   * Variants add up; the alert and branch prices come from the base row.
+   * A single-branch shop falls back to Product.stock for a product with no
+   * branch row (older imports), as the Low stock page does.
+   */
+  private async stockStats(
+    tenantId: string,
+    shopId: string | undefined,
+    products: Array<{ id: string; stock: number; lowStockAlert: number; costPrice: number; price: number }>,
+  ) {
+    const activeShops = await this.prisma.shop.findMany({ where: { tenantId, isActive: true }, select: { id: true } });
+    const shopIds = shopId ? [shopId] : activeShops.map((x) => x.id);
+    const rows = shopIds.length
+      ? await this.prisma.shopStock.findMany({
+        where: { tenantId, shopId: { in: shopIds }, product: { isActive: true } },
+        select: { shopId: true, productId: true, variantId: true, stock: true, lowStockAlert: true, shopCostPrice: true, shopPrice: true },
+      })
+      : [];
+    const productBy = new Map(products.map((p) => [p.id, p]));
+    const branch = new Map<string, { productId: string; stock: number; alert: number | null; cost: number | null; price: number | null }>();
+    for (const r of rows) {
+      const k = `${r.shopId}:${r.productId}`;
+      const cur = branch.get(k) ?? { productId: r.productId, stock: 0, alert: null, cost: null, price: null };
+      cur.stock += Number(r.stock) || 0;
+      if (!r.variantId) { cur.alert = Number(r.lowStockAlert); cur.cost = r.shopCostPrice; cur.price = r.shopPrice; }
+      branch.set(k, cur);
+    }
+    if (activeShops.length === 1) {
+      const only = activeShops[0].id;
+      if (!shopId || shopId === only) {
+        for (const p of products) {
+          const k = `${only}:${p.id}`;
+          if (!branch.has(k)) branch.set(k, { productId: p.id, stock: Number(p.stock) || 0, alert: null, cost: null, price: null });
+        }
+      }
+    }
+
+    let lowStockCount = 0;
+    let outOfStockCount = 0;
+    let inventoryValueAtCost = 0;
+    let inventoryValueAtPrice = 0;
+    for (const b of branch.values()) {
+      const p = productBy.get(b.productId);
+      if (!p) continue;
+      const alert = b.alert ?? p.lowStockAlert;
+      if (b.stock <= 0) outOfStockCount++;
+      if (b.stock <= alert) lowStockCount++;
+      const qty = Math.max(0, b.stock);
+      inventoryValueAtCost += qty * (b.cost ?? p.costPrice);
+      inventoryValueAtPrice += qty * (b.price ?? p.price);
+    }
+    const r2 = (v: number) => Math.round(v * 100) / 100;
+    return { lowStockCount, outOfStockCount, inventoryValueAtCost: r2(inventoryValueAtCost), inventoryValueAtPrice: r2(inventoryValueAtPrice) };
   }
 
   /** Five best sellers of the month by what they earned after discounts and returns. */

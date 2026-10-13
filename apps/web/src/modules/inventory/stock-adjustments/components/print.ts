@@ -42,6 +42,7 @@ export function adjustmentsDoc(list: AdjustmentList, period: string, filter: str
         kind: 'rows',
         title: 'Khulasa',
         rows: [
+          ...(t.openingValue ? [{ label: `${TYPES.OPENING_BALANCE.label} (farq me nahi)`, value: `+${formatPKR(t.openingValue)}` }] : []),
           { label: TYPES.ADJUSTMENT_IN.label, value: `+${formatPKR(t.inValue)}` },
           { label: TYPES.ADJUSTMENT_OUT.label, value: `−${formatPKR(t.outValue)}` },
           { label: TYPES.DAMAGE.label, value: `−${formatPKR(t.damageValue)}` },

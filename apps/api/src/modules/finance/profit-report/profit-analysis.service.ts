@@ -10,6 +10,10 @@
  *
  * Returns are counted against the sale they came from, so a period's
  * figures follow its own bills. Voided bills are left out.
+ *
+ * Totals, trend and net profit also carry the bills' service charges and
+ * bill-level cost (bill-charges.ts) unless the report is narrowed to a
+ * category or brand; product rows and shares stay on line figures.
  */
 
 import { Injectable } from '@nestjs/common';
@@ -24,6 +28,7 @@ import {
   LINE_COST_JOINS, LINE_NET, LINE_NO_COST, LINE_REFUND, LINE_UNIT_COST, billMathCte, liveSaleSql, netProfit, paidExpenseWhere, writeOffs,
 } from '../../../common/helpers/business-math.helper';
 import type { ProfitItemsDto, ProfitRangeDto, ProfitUnitsDto } from './dto/profit-analysis.dto';
+import { BillChargeRow, billChargeRows, sumBillCharges } from './bill-charges';
 
 const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
 /** Keys removed for users without `cost.view`. */
@@ -196,21 +201,41 @@ export class ProfitAnalysisService {
     return hasPermission(user.role, user.permissions, PERMISSIONS.COST_VIEW);
   }
 
+  /** Live bills of the range (alias `s`), narrowed to one staff member when asked. */
+  private saleWhere(ctx: Ctx, range: Range): Prisma.Sql {
+    const { tenantId, shopId, q } = ctx;
+    return Prisma.sql`${liveSaleSql({ tenantId, shopId }, range)}
+      ${q.staffId ? Prisma.sql`AND COALESCE(s."soldById", s."createdById") = ${q.staffId}` : Prisma.empty}`;
+  }
+
+  /** Business day of a bill as "YYYY-MM-DD" (alias `s`). */
+  private dayKey(ctx: Ctx): Prisma.Sql {
+    return Prisma.sql`to_char(((s."soldAt" AT TIME ZONE 'UTC') AT TIME ZONE ${ctx.tz}) - make_interval(hours => ${ctx.h}::int), 'YYYY-MM-DD')`;
+  }
+
+  /**
+   * Service charges and bill-level cost by business day. Left out when the
+   * report is narrowed to a category or brand, since they belong to no product.
+   */
+  private async charges(ctx: Ctx, range: Range): Promise<BillChargeRow[]> {
+    if (ctx.q.categoryId || ctx.q.brandId) return [];
+    return billChargeRows(this.prisma, this.saleWhere(ctx, range), this.dayKey(ctx));
+  }
+
   /**
    * Sale lines of the period as CTE `x`: one row per line with its share of
    * the bill discount, its refunds and its unit cost, by the shared rules in
    * business-math.helper.
    */
   private lines(ctx: Ctx, range: Range): Prisma.Sql {
-    const { tenantId, shopId, tz, h, q } = ctx;
-    const where = Prisma.sql`${liveSaleSql({ tenantId, shopId }, range)}
-      ${q.staffId ? Prisma.sql`AND COALESCE(s."soldById", s."createdById") = ${q.staffId}` : Prisma.empty}`;
+    const { q } = ctx;
+    const where = this.saleWhere(ctx, range);
     return Prisma.sql`
       WITH ${billMathCte(where)},
       x AS (
         SELECT si.id, si."saleId", s."saleNumber", s."soldAt",
                COALESCE(s."soldById", s."createdById") AS staff,
-               to_char(((s."soldAt" AT TIME ZONE 'UTC') AT TIME ZONE ${tz}) - make_interval(hours => ${h}::int), 'YYYY-MM-DD') AS day,
+               ${this.dayKey(ctx)} AS day,
                si."productId", bm_sv."variantId", si."usedPhoneId", bm_p."categoryId", bm_p."brandId",
                si.quantity AS qty, LEAST(si."returnedQty", si.quantity) AS rqty,
                si.price * si.quantity AS gross,
@@ -342,10 +367,17 @@ export class ProfitAnalysisService {
     const seeCost = this.canSeeCost(user);
     const total = pick(cur, 'total')[0] ?? { ...blank() };
     const prevTotal = pick(prev, 'total')[0] ?? { ...blank() };
+    // Line figures; product, category, brand and staff shares are taken from these.
     const t = figures(total);
     const pt = figures(prevTotal);
+    const [chargeRows, prevChargeRows] = await Promise.all([this.charges(ctx, ctx.cur.range), this.charges(ctx, ctx.prev.range)]);
+    const charges = sumBillCharges(chargeRows);
+    const prevCharges = sumBillCharges(prevChargeRows);
+    // Bill totals: lines plus service charges, matching every other report.
+    const all = withCharges(t, charges);
+    const prevAll = withCharges(pt, prevCharges);
 
-    const [net, prevNet] = await Promise.all([this.netFigures(ctx, ctx.cur.range, t.profit), this.netFigures(ctx, ctx.prev.range, pt.profit)]);
+    const [net, prevNet] = await Promise.all([this.netFigures(ctx, ctx.cur.range, all.profit), this.netFigures(ctx, ctx.prev.range, prevAll.profit)]);
 
     // Category, brand and staff come from SQL; supplier is added up from products.
     const catPrev = new Map(pick(prev, 'category').map((r) => [r.categoryId ?? '', figures(r)]));
@@ -413,6 +445,13 @@ export class ProfitAnalysisService {
       add(buckets.get(bk) ?? buckets.set(bk, blank()).get(bk)!, r);
       add(weekday[new Date(`${r.day}T12:00:00Z`).getUTCDay()], r);
     }
+    for (const c of chargeRows) {
+      if (!c.k) continue;
+      const bk = byMonth ? c.k.slice(0, 7) : c.k;
+      const extra = { ...blank(), net: Number(c.revenue) || 0, cost: Number(c.cost) || 0 };
+      add(buckets.get(bk) ?? buckets.set(bk, blank()).get(bk)!, extra);
+      add(weekday[new Date(`${c.k}T12:00:00Z`).getUTCDay()], extra);
+    }
     const trend = [...buckets.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([key, m]) => {
       const f = figures(m);
       return { key, revenue: f.revenue, profit: f.profit, cost: f.cost, discount: f.discount, refund: f.refund, bills: f.bills, margin: f.margin };
@@ -428,8 +467,8 @@ export class ProfitAnalysisService {
     const result = {
       range: { from: ctx.cur.from, to: ctx.cur.to, days: ctx.cur.days, prevFrom: ctx.prev.from, prevTo: ctx.prev.to, byMonth },
       filtered: !!(q.categoryId || q.brandId || q.staffId),
-      totals: { ...t, products: rows.length },
-      prev: { ...pt, products: pick(prev, 'product').length },
+      totals: { ...all, products: rows.length, lineRevenue: t.revenue, lineProfit: t.profit, charges },
+      prev: { ...prevAll, products: pick(prev, 'product').length, charges: prevCharges },
       costBasis: {
         lines: total.lines,
         savedLines: total.lines - total.fallbackLines - total.noCostLines,
@@ -614,6 +653,14 @@ export class ProfitAnalysisService {
     };
     return this.canSeeCost(user) ? result : stripCost(result);
   }
+}
+
+/** Line figures with the bill's service charges and bill-level cost added. */
+function withCharges(f: Figures, c: { revenue: number; cost: number }): Figures {
+  const revenue = r2(f.revenue + c.revenue);
+  const cost = r2(f.cost + c.cost);
+  const profit = r2(revenue - cost);
+  return { ...f, revenue, cost, profit, margin: revenue > 0 ? r2((profit / revenue) * 100) : 0 };
 }
 
 function emptyFigures(): Figures {

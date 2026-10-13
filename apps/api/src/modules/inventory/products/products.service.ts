@@ -4,6 +4,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { NOT_SERVICE_PRODUCT, ShopScope, applyStockDelta, resolveWriteShopId, roundStock } from '../../../common/shop-scope';
 import { CreateProductDto } from './dto/create-product.dto';
 import { QueryProductsDto } from './dto/query-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -22,7 +23,7 @@ export class ProductsService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(user: AuthenticatedUser, dto: CreateProductDto) {
+  async create(user: AuthenticatedUser, dto: CreateProductDto, scope?: ShopScope) {
     const defaults = dto.lowStockAlert === undefined
       ? await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { defaultLowStockAlert: true } })
       : null;
@@ -57,6 +58,12 @@ export class ProductsService {
     const slug = toSlug(dto.name) + '-' + Math.random().toString(36).slice(2, 6);
 
     const { tagIds, imageUrls } = dto;
+    const opening = roundStock(Number(dto.stock ?? 0));
+    // The branch that receives the opening stock: the one in the request,
+    // else the branch being viewed, else the main shop.
+    const stockShopId = opening > 0
+      ? await resolveWriteShopId(this.prisma, user.tenantId, scope ?? new ShopScope(null, true), dto.shopId)
+      : null;
 
     // Create product + ShopStock in single transaction
     const product = await this.prisma.$transaction(async (tx) => {
@@ -76,8 +83,10 @@ export class ProductsService {
           costPrice: dto.costPrice ?? 0,
           wholesalePrice: dto.wholesalePrice,
           taxRate: dto.taxRate ?? 0,
-          stock: dto.stock ?? 0,
+          // Set by the opening-stock movement below.
+          stock: 0,
           lowStockAlert: dto.lowStockAlert ?? defaults?.defaultLowStockAlert ?? 5,
+          productType: dto.productType ?? undefined,
           weight: dto.weight,
           weightUnit: dto.weightUnit,
           dimensions: dto.dimensions,
@@ -108,13 +117,15 @@ export class ProductsService {
         });
       }
 
-      // ⭐ AUTO-CREATE ShopStock for every active shop
-      await this.ensureShopStockForAllShopsTx(
-        tx,
-        user.tenantId,
-        created.id,
-        dto.stock ?? 0,
-      );
+      // A zero row in every active branch, then the opening stock as a
+      // movement in one branch so the stock ledger starts from it.
+      await this.ensureShopStockForAllShopsTx(tx, user.tenantId, created.id);
+      if (stockShopId) {
+        await applyStockDelta({
+          tx, tenantId: user.tenantId, shopId: stockShopId, productId: created.id, delta: opening,
+          movementType: 'OPENING_BALANCE', reference: 'OPENING', note: `Opening stock: ${created.name}`, userId: user.id,
+        });
+      }
 
       return created;
     });
@@ -204,6 +215,8 @@ export class ProductsService {
     }
 
     if (query.stockStatus && query.stockStatus !== 'all') {
+      // Services hold no stock, so they are never "out" or "low".
+      if (query.stockStatus === 'out' || query.stockStatus === 'low') where.AND = [NOT_SERVICE_PRODUCT];
       if (branchStock) {
         // Filter on the branch's numbers, in the query, so pagination counts
         // stay honest. A product with no row here simply has no stock here.
@@ -312,7 +325,7 @@ export class ProductsService {
     return product;
   }
 
-  async update(user: AuthenticatedUser, id: string, dto: UpdateProductDto) {
+  async update(user: AuthenticatedUser, id: string, dto: UpdateProductDto, scope?: ShopScope) {
     const existing = await this.findOne(user, id);
 
     if (dto.sku && dto.sku !== existing.sku) {
@@ -333,52 +346,33 @@ export class ProductsService {
     const productData: any = { ...dto };
     delete productData.tagIds;
     delete productData.imageUrls;
+    delete productData.shopId;
+    // Stock changes only through movements (purchase, sale, adjustment). A
+    // stock number on an edit form may be stale, so it is never written here.
+    delete productData.stock;
 
     await this.prisma.product.update({
       where: { id },
       data: productData,
     });
 
-    // ⭐ ShopStock sync — stock edit hua to main shop ki ShopStock mein
-    //    delta increment/decrement (warna POS pe purana/0 stock dikhta hai)
-    if (dto.stock !== undefined && Number(dto.stock) !== (existing.stock ?? 0)) {
-      const delta = Number(dto.stock) - (existing.stock ?? 0);
-      try {
-        const mainShop =
-          (await this.prisma.shop.findFirst({
-            where: { tenantId: user.tenantId, isActive: true, isMain: true },
-            select: { id: true },
-          })) ??
-          (await this.prisma.shop.findFirst({
-            where: { tenantId: user.tenantId, isActive: true },
-            orderBy: { createdAt: 'asc' },
-            select: { id: true },
-          }));
-        if (mainShop) {
-          const row = await this.prisma.shopStock.findFirst({
-            where: { shopId: mainShop.id, productId: id, variantId: null },
-          });
-          if (row) {
-            await this.prisma.shopStock.update({
-              where: { id: row.id },
-              data: { stock: { increment: delta } },
-            });
-          } else {
-            await this.prisma.shopStock.create({
-              data: {
-                tenantId: user.tenantId,
-                shopId: mainShop.id,
-                productId: id,
-                variantId: null,
-                stock: Math.max(0, Number(dto.stock)),
-                isActive: true,
-              },
-            });
-          }
-          this.logger.log(`ShopStock sync on update: product=${id} delta=${delta}`);
-        }
-      } catch (e: any) {
-        this.logger.warn(`ShopStock sync on update failed: ${e?.message}`);
+    // The one exception: a product that has never held stock and has no stock
+    // history may get its opening stock here (wizards that create first and
+    // add the count after). Anything else is ignored.
+    let stockIgnored = false;
+    const wanted = dto.stock === undefined || dto.stock === null ? null : roundStock(Number(dto.stock));
+    if (wanted !== null && wanted !== roundStock(Number(existing.stock ?? 0))) {
+      const history = await this.prisma.stockMovement.count({ where: { tenantId: user.tenantId, productId: id } });
+      const fresh = history === 0 && Number(existing.stock ?? 0) === 0 && !existing.hasVariants && wanted > 0;
+      if (fresh) {
+        const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope ?? new ShopScope(null, true), dto.shopId);
+        await this.prisma.$transaction((tx) => applyStockDelta({
+          tx, tenantId: user.tenantId, shopId, productId: id, delta: wanted,
+          movementType: 'OPENING_BALANCE', reference: 'OPENING', note: `Opening stock: ${existing.name}`, userId: user.id,
+        }));
+      } else {
+        stockIgnored = true;
+        this.logger.log(`Stock on product update ignored: product=${id} sent=${wanted} current=${existing.stock}`);
       }
     }
 
@@ -392,7 +386,10 @@ export class ProductsService {
       }
     }
 
-    return this.findOne(user, id);
+    const updated = await this.findOne(user, id);
+    return stockIgnored
+      ? { ...updated, stockIgnored: true, stockMessage: 'Stock yahan se nahi badalta — Stock Adjustment ya Purchase se badlein' }
+      : updated;
   }
 
   /**
@@ -668,7 +665,7 @@ export class ProductsService {
       const [products, shops] = await Promise.all([
         this.prisma.product.findMany({
           where: { tenantId },
-          select: { id: true, stock: true },
+          select: { id: true, stock: true, lowStockAlert: true, hasVariants: true },
         }),
         this.prisma.shop.findMany({
           where: { tenantId, isActive: true },
@@ -678,29 +675,46 @@ export class ProductsService {
       if (!products.length || !shops.length) return 0;
 
       const mainShop = shops.find((s) => s.isMain) ?? shops[0];
-      const stockOf = new Map(products.map((p) => [p.id, p.stock ?? 0]));
 
       const existing = await this.prisma.shopStock.findMany({
         where: { productId: { in: products.map((p) => p.id) } },
-        select: { id: true, productId: true, shopId: true, stock: true },
+        select: { id: true, productId: true, shopId: true, variantId: true, stock: true },
       });
-      const byKey = new Map(existing.map((r) => [`${r.productId}:${r.shopId}`, r]));
+      const byKey = new Map(existing.filter((r) => r.variantId === null).map((r) => [`${r.productId}:${r.shopId}`, r]));
+      const rowSum = new Map<string, { rows: number; sum: number }>();
+      for (const r of existing) {
+        const t = rowSum.get(r.productId) ?? { rows: 0, sum: 0 };
+        t.rows += 1; t.sum += Number(r.stock) || 0;
+        rowSum.set(r.productId, t);
+      }
+      // Products with any stock history are left as they are: their branch
+      // rows, not the cached total, are the truth.
+      const moved = new Set(
+        (await this.prisma.stockMovement.groupBy({ by: ['productId'], where: { tenantId } })).map((m) => m.productId),
+      );
 
       let healed = 0;
+      const openings: Array<{ productId: string; qty: number }> = [];
 
-      // (a) Missing rows — main shop gets product.stock, others 0
+      // (a) Missing rows. The cached stock goes to the main shop only for a
+      // product that has no branch rows at all; otherwise it would be counted twice.
       const toCreate: any[] = [];
       for (const p of products) {
+        const t = rowSum.get(p.id);
+        const legacy = !t && !p.hasVariants && Number(p.stock) > 0 && !moved.has(p.id);
         for (const shop of shops) {
           if (!byKey.has(`${p.id}:${shop.id}`)) {
+            const stock = legacy && shop.id === mainShop.id ? Number(p.stock) : 0;
             toCreate.push({
               tenantId,
               shopId: shop.id,
               productId: p.id,
               variantId: null,
-              stock: shop.id === mainShop.id ? (p.stock ?? 0) : 0,
+              stock,
+              lowStockAlert: Number(p.lowStockAlert ?? 5),
               isActive: true,
             });
+            if (stock > 0) openings.push({ productId: p.id, qty: stock });
           }
         }
       }
@@ -716,25 +730,39 @@ export class ProductsService {
         }
       }
 
-      // (b) ZERO-REPAIR — main shop row 0 hai lekin product.stock > 0
-      for (const r of existing) {
-        if (r.shopId !== mainShop.id) continue;
-        const pStock = stockOf.get(r.productId) ?? 0;
-        if ((r.stock ?? 0) === 0 && pStock > 0) {
-          try {
-            await this.prisma.shopStock.update({
-              where: { id: r.id },
-              data: { stock: pStock },
-            });
+      // (b) Old imports: branch rows exist but all hold 0 while the cached
+      // stock says otherwise, and nothing was ever bought, sold or adjusted.
+      for (const p of products) {
+        const t = rowSum.get(p.id);
+        if (!t || t.sum !== 0 || p.hasVariants || moved.has(p.id) || !(Number(p.stock) > 0)) continue;
+        const row = byKey.get(`${p.id}:${mainShop.id}`);
+        if (!row) continue;
+        try {
+          const done = await this.prisma.shopStock.updateMany({
+            where: { id: row.id, stock: 0 },
+            data: { stock: Number(p.stock) },
+          });
+          if (done.count) {
             healed++;
-          } catch (e: any) {
-            this.logger.warn(`heal repair failed: ${e?.message}`);
+            openings.push({ productId: p.id, qty: Number(p.stock) });
           }
+        } catch (e: any) {
+          this.logger.warn(`heal repair failed: ${e?.message}`);
         }
       }
 
+      // Record what was placed so the stock ledger starts from it.
+      if (openings.length) {
+        await this.prisma.stockMovement.createMany({
+          data: openings.map((o) => ({
+            tenantId, shopId: mainShop.id, productId: o.productId, type: 'OPENING_BALANCE' as const,
+            quantity: o.qty, balanceAfter: o.qty, reference: 'OPENING', note: 'Purana stock (branch row bani)',
+          })),
+        }).catch((e: any) => this.logger.warn(`heal opening movements failed: ${e?.message}`));
+      }
+
       if (healed > 0) {
-        this.logger.log(`✅ ShopStock self-heal: ${healed} rows fixed`);
+        this.logger.log(`ShopStock self-heal: ${healed} rows fixed`);
       }
       return healed;
     } catch (e: any) {
@@ -982,7 +1010,7 @@ export class ProductsService {
                 price: finalPrice,
                 costPrice: finalCost,
                 wholesalePrice: p.wholesalePrice ?? null,
-                stock: finalStock,
+                stock: 0,
                 lowStockAlert: 5,
                 barcode,
                 description: p.description,
@@ -1020,6 +1048,7 @@ export class ProductsService {
               created.id,
               finalStock,
               resolvedShopId,
+              user.id,
             );
 
             existingNames.add(p.name.toLowerCase().trim());
@@ -1219,8 +1248,11 @@ export class ProductsService {
   // BULK IMPORT — Apply
   // ═══════════════════════════════════════════════════════════
 
-  async bulkImportApply(user: AuthenticatedUser, rows: any[]) {
+  async bulkImportApply(user: AuthenticatedUser, rows: any[], scope?: ShopScope) {
     const results: any[] = [];
+    const stockShopId = rows.some((r) => Number(r?.stock) > 0)
+      ? await resolveWriteShopId(this.prisma, user.tenantId, scope ?? new ShopScope(null, true))
+      : null;
     let newCategoriesCreated = 0;
     let newBrandsCreated = 0;
     let newTagsCreated = 0;
@@ -1330,7 +1362,7 @@ export class ProductsService {
               costPrice: Number(row.costPrice ?? 0),
               wholesalePrice: row.wholesalePrice ? Number(row.wholesalePrice) : null,
               taxRate: Number(row.taxRate ?? 0),
-              stock: Number(row.stock ?? 0),
+              stock: 0,
               lowStockAlert: Number(row.lowStockAlert ?? 5),
               weight: row.weight ? Number(row.weight) : null,
               weightUnit: row.weightUnit || null,
@@ -1380,13 +1412,15 @@ export class ProductsService {
             });
           }
 
-          // Auto-create ShopStock
-          await this.ensureShopStockForAllShopsTx(
-            tx,
-            user.tenantId,
-            created.id,
-            Number(row.stock ?? 0),
-          );
+          // Zero rows in every branch, then the opening stock as a movement.
+          await this.ensureShopStockForAllShopsTx(tx, user.tenantId, created.id);
+          const opening = roundStock(Number(row.stock ?? 0));
+          if (opening > 0 && stockShopId) {
+            await applyStockDelta({
+              tx, tenantId: user.tenantId, shopId: stockShopId, productId: created.id, delta: opening,
+              movementType: 'OPENING_BALANCE', reference: 'OPENING', note: `Opening stock (import): ${created.name}`, userId: user.id,
+            });
+          }
 
           return { product: created, variantCount };
         });
@@ -1431,12 +1465,8 @@ export class ProductsService {
   // ═══════════════════════════════════════════════════════════
 
   /**
-   * TX version — used inside a transaction (create, bulk-import)
-   */
-  /**
-   * TX version — target shop ko stock deta hai, baaki shops ko 0 se initialize karta hai.
-   * targetShopId null ho to fallback: isMain shop, warna pehli active shop.
-   * Agar ShopStock row pehle se hai to target shop ka stock INCREMENT hota hai.
+   * Quick Setup: a zero row in every active branch, then the opening stock as
+   * an OPENING_BALANCE movement in `targetShopId` (main shop when null).
    */
   private async ensureShopStockForShopsTx(
     tx: any,
@@ -1444,219 +1474,73 @@ export class ProductsService {
     productId: string,
     initialStock: number,
     targetShopId: string | null,
+    userId?: string,
   ): Promise<void> {
-    const shops = await tx.shop.findMany({
-      where: { tenantId, isActive: true },
-      select: { id: true, isMain: true },
+    const shops = await this.ensureShopStockForAllShopsTx(tx, tenantId, productId);
+    if (!shops.length || !(initialStock > 0)) return;
+    const stockShopId = targetShopId ?? (shops.find((s) => s.isMain) ?? shops[0]).id;
+    await applyStockDelta({
+      tx, tenantId, shopId: stockShopId, productId, delta: initialStock,
+      movementType: 'OPENING_BALANCE', reference: 'OPENING', note: 'Quick Setup opening stock', userId: userId ?? null,
     });
-    if (shops.length === 0) return;
-
-    // Decide which shop actually receives the stock
-    let stockShopId = targetShopId;
-    if (!stockShopId) {
-      const main = shops.find((s: any) => s.isMain);
-      stockShopId = main?.id ?? shops[0].id;
-    }
-
-    for (const shop of shops) {
-      const stockForThisShop = shop.id === stockShopId ? initialStock : 0;
-      try {
-        await tx.shopStock.upsert({
-          where: {
-            shopId_productId_variantId: {
-              shopId: shop.id,
-              productId,
-              variantId: null as any,
-            },
-          },
-          create: {
-            tenantId,
-            shopId: shop.id,
-            productId,
-            variantId: null,
-            stock: stockForThisShop,
-            isActive: true,
-          },
-          update:
-            shop.id === stockShopId && initialStock > 0
-              ? { stock: { increment: initialStock } }
-              : {},
-        });
-      } catch {
-        // Fallback for schemas without compound unique
-        try {
-          const existing = await tx.shopStock.findFirst({
-            where: { shopId: shop.id, productId, variantId: null },
-          });
-          if (!existing) {
-            await tx.shopStock.create({
-              data: {
-                tenantId,
-                shopId: shop.id,
-                productId,
-                variantId: null,
-                stock: stockForThisShop,
-                isActive: true,
-              },
-            });
-          } else if (shop.id === stockShopId && initialStock > 0) {
-            await tx.shopStock.update({
-              where: { id: existing.id },
-              data: { stock: { increment: initialStock } },
-            });
-          }
-        } catch (err: any) {
-          this.logger.warn(
-            `ShopStock upsert failed for shop=${shop.id} product=${productId}: ${err?.message}`,
-          );
-        }
-      }
-    }
-
-    // Best-effort opening stock movement for audit (optional)
-    if (initialStock > 0 && stockShopId) {
-      try {
-        const sm = (tx as any).stockMovement;
-        if (sm && typeof sm.create === 'function') {
-          await sm.create({
-            data: {
-              tenantId,
-              shopId: stockShopId,
-              productId,
-              type: 'OPENING',
-              quantity: initialStock,
-              reason: 'Quick Setup opening stock',
-            },
-          });
-        }
-      } catch {
-        // stockMovement schema may differ — silently ignore
-      }
-    }
   }
 
+  /**
+   * A zero ShopStock row (no variant) in every active branch that lacks one,
+   * carrying the product's own low-stock alert. Existing rows are left alone.
+   * Stock itself is added only through `applyStockDelta`.
+   */
   private async ensureShopStockForAllShopsTx(
     tx: any,
     tenantId: string,
     productId: string,
-    initialStock = 0,
-  ): Promise<void> {
-    const shops = await tx.shop.findMany({
-      where: { tenantId, isActive: true },
-      select: { id: true, isMain: true },
+  ): Promise<Array<{ id: string; isMain: boolean }>> {
+    const [shops, product] = await Promise.all([
+      tx.shop.findMany({ where: { tenantId, isActive: true }, select: { id: true, isMain: true } }),
+      tx.product.findUnique({ where: { id: productId }, select: { lowStockAlert: true } }),
+    ]);
+    if (shops.length === 0) return shops;
+
+    const have = await tx.shopStock.findMany({
+      where: { productId, variantId: null, shopId: { in: shops.map((s: any) => s.id) } },
+      select: { shopId: true },
     });
-
-    if (shops.length === 0) return;
-
-    for (const shop of shops) {
-      try {
-        await tx.shopStock.upsert({
-          where: {
-            shopId_productId_variantId: {
-              shopId: shop.id,
-              productId,
-              variantId: null as any,
-            },
-          },
-          create: {
-            tenantId,
-            shopId: shop.id,
-            productId,
-            variantId: null,
-            // Only main shop gets the initial stock
-            stock: shop.isMain ? initialStock : 0,
-            isActive: true,
-          },
-          update: {},
-        });
-      } catch (e) {
-        // Fallback for schemas without compound unique
-        try {
-          const existing = await tx.shopStock.findFirst({
-            where: {
-              shopId: shop.id,
-              productId,
-              variantId: null,
-            },
-          });
-          if (!existing) {
-            await tx.shopStock.create({
-              data: {
-                tenantId,
-                shopId: shop.id,
-                productId,
-                variantId: null,
-                stock: shop.isMain ? initialStock : 0,
-                isActive: true,
-              },
-            });
-          }
-        } catch (err) {
-          this.logger.warn(`ShopStock upsert failed for shop=${shop.id} product=${productId}`);
-        }
-      }
+    const has = new Set(have.map((r: any) => r.shopId));
+    const missing = shops.filter((s: any) => !has.has(s.id));
+    if (missing.length) {
+      await tx.shopStock.createMany({
+        data: missing.map((shop: any) => ({
+          tenantId, shopId: shop.id, productId, variantId: null, stock: 0, isActive: true,
+          lowStockAlert: Number(product?.lowStockAlert ?? 5),
+        })),
+        skipDuplicates: true,
+      });
     }
+    return shops;
   }
 
   /**
-   * Non-tx version — used from controllers/backfill
+   * Backfill for one product: a zero row in every active branch that lacks
+   * one. A product with no branch rows at all (old bulk import) gets its
+   * cached stock in the main shop, recorded as an OPENING_BALANCE movement.
    */
-  private async ensureShopStockForAllShops(
-    tenantId: string,
-    productId: string,
-    initialStock = 0,
-  ): Promise<void> {
-    const shops = await this.prisma.shop.findMany({
-      where: { tenantId, isActive: true },
-      select: { id: true, isMain: true },
-    });
-
-    if (shops.length === 0) return;
-
-    for (const shop of shops) {
-      try {
-        await this.prisma.shopStock.upsert({
-          where: {
-            shopId_productId_variantId: {
-              shopId: shop.id,
-              productId,
-              variantId: null as any,
-            },
-          },
-          create: {
-            tenantId,
-            shopId: shop.id,
-            productId,
-            variantId: null,
-            stock: shop.isMain ? initialStock : 0,
-            isActive: true,
-          },
-          update: {},
+  private async ensureShopStockForAllShops(tenantId: string, productId: string): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({
+        where: { id: productId },
+        select: { stock: true, hasVariants: true },
+      });
+      const anyRow = await tx.shopStock.count({ where: { productId } });
+      const shops = await this.ensureShopStockForAllShopsTx(tx, tenantId, productId);
+      const qty = roundStock(Number(product?.stock ?? 0));
+      if (anyRow === 0 && shops.length && !product?.hasVariants && qty > 0) {
+        const main = shops.find((s) => s.isMain) ?? shops[0];
+        await applyStockDelta({
+          tx, tenantId, shopId: main.id, productId, delta: qty,
+          movementType: 'OPENING_BALANCE', reference: 'OPENING', note: 'Purana stock (branch row bani)',
         });
-      } catch {
-        try {
-          const existing = await this.prisma.shopStock.findFirst({
-            where: {
-              shopId: shop.id,
-              productId,
-              variantId: null,
-            },
-          });
-          if (!existing) {
-            await this.prisma.shopStock.create({
-              data: {
-                tenantId,
-                shopId: shop.id,
-                productId,
-                variantId: null,
-                stock: shop.isMain ? initialStock : 0,
-                isActive: true,
-              },
-            });
-          }
-        } catch {}
       }
-    }
+    });
   }
 
   /**
@@ -1677,11 +1561,7 @@ export class ProductsService {
     ]);
 
     for (const product of products) {
-      await this.ensureShopStockForAllShops(
-        user.tenantId,
-        product.id,
-        product.stock ?? 0,
-      );
+      await this.ensureShopStockForAllShops(user.tenantId, product.id);
     }
 
     return {

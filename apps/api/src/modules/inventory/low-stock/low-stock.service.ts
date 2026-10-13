@@ -43,6 +43,8 @@ export interface LowStockRow {
   flags: LowStatus[];
   /** Net units sold (plus recipe use) per business day. */
   perDay: number;
+  /** Business days the daily average is spread over. */
+  historyDays: number;
   sold: number;
   daysLeft: number | null;
   /** Stock level an order should reach. */
@@ -73,6 +75,8 @@ const DEFAULTS: LowStockSettings = { days: 30, targetDays: 30, soonDays: 7, expi
 /** Agri categories that need a government registration to be sold. */
 const REGULATED = new Set(['SEEDS', 'FERTILIZER', 'PESTICIDE', 'HERBICIDE', 'FUNGICIDE', 'INSECTICIDE', 'GROWTH_HORMONE', 'VETERINARY_MEDICINE']);
 const REG_SOON_DAYS = 60;
+/** Shortest history the daily average is spread over, so one busy day does not drive a big order. */
+const MIN_HISTORY_DAYS = 7;
 const RANK: Record<LowStatus, number> = { out: 0, low: 1, soon: 2, expiry: 3, registration: 4, season: 5 };
 
 const n = (v: unknown) => Number(v ?? 0) || 0;
@@ -267,7 +271,9 @@ export class LowStockService {
         const alert = agriLevel != null ? n(agriLevel) : b?.alert ?? n(p.lowStockAlert);
         const alertFrom: LowStockRow['alertFrom'] = agriLevel != null ? 'agri' : b?.alert != null ? 'branch' : 'product';
 
-        const days = Math.max(1, Math.min(windowDays, (now.getTime() - p.createdAt.getTime()) / DAY));
+        // A new product's first day of sales is not a trend: the daily average is
+        // taken over at least MIN_HISTORY_DAYS (or the whole window when shorter).
+        const days = Math.max(Math.min(MIN_HISTORY_DAYS, windowDays), Math.min(windowDays, (now.getTime() - p.createdAt.getTime()) / DAY));
         const used = (sale?.qty ?? 0) + (sh.id === homeId ? recipe.get(p.id) ?? 0 : 0);
         const perDay = Math.max(0, used) / days;
         const daysLeft = perDay > 0 ? Math.max(0, stock) / perDay : null;
@@ -310,7 +316,7 @@ export class LowStockService {
           name: p.name, sku: p.sku, barcode: p.barcode, unit: p.unit, image: null, category: p.category,
           price, cost, stock: round(stock, 3), alert, alertFrom,
           status: flags.reduce((a, f) => (RANK[f] < RANK[a] ? f : a)), flags,
-          perDay: round(perDay, 3), sold: round(used, 3), daysLeft: daysLeft === null ? null : round(daysLeft, 1),
+          perDay: round(perDay, 3), historyDays: round(days, 1), sold: round(used, 3), daysLeft: daysLeft === null ? null : round(daysLeft, 1),
           target: round(target, 2), suggestQty: 0, onOrder: 0,
           supplier: null, lastCost: cost, lastPurchasedAt: null, orderValue: 0,
           outDays: outDays === null ? null : Math.round(outDays), lostPerDay: round(lostPerDay), lostSales: round(lostPerDay * (outDays ?? 0)),

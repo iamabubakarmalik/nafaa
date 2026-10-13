@@ -8,6 +8,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
+import { isServiceProduct } from '../../../common/shop-scope';
 import { extensionFacets, itemExtensions, loadExtensions, matchesExtensions, type ExtensionQuery } from './catalog-extensions';
 
 export type CatalogStock = 'all' | 'in' | 'low' | 'out' | 'dead' | 'expiring';
@@ -48,9 +49,11 @@ interface Row {
   sold: number; revenue: number; lastSoldAt: Date | null; expiry: Date | null; expiringQty: number;
 }
 
-const isOut = (r: Row) => r.stock <= 0;
-const isLow = (r: Row) => r.stock > 0 && r.stock <= r.lowStockAlert;
-const isDead = (r: Row) => r.stock > 0 && r.sold <= 0;
+/** Services (fees, labour) hold no stock: never out, low or dead, and no stock value. */
+const isSvc = (r: Row) => isServiceProduct(r);
+const isOut = (r: Row) => !isSvc(r) && r.stock <= 0;
+const isLow = (r: Row) => !isSvc(r) && r.stock > 0 && r.stock <= r.lowStockAlert;
+const isDead = (r: Row) => !isSvc(r) && r.stock > 0 && r.sold <= 0;
 const isExpiring = (r: Row) => r.expiringQty > 0;
 
 @Injectable()
@@ -228,8 +231,9 @@ export class ProductCatalogService {
         category: d?.category ?? null, brand: d?.brand ?? null, image: d?.images[0]?.url ?? null,
         variants: d?.variants ?? [], counts: { variants: d?._count.variants ?? 0, batches: d?._count.batches ?? 0, imeis: d?._count.productImeis ?? 0 },
         status: isOut(r) ? 'out' : isLow(r) ? 'low' : 'in',
+        isService: isSvc(r),
         sold30: r.sold, revenue30: r.revenue, lastSoldAt: r.lastSoldAt,
-        daysLeft: perDay > 0 && r.stock > 0 ? Math.round(r.stock / perDay) : null,
+        daysLeft: !isSvc(r) && perDay > 0 && r.stock > 0 ? Math.round(r.stock / perDay) : null,
         expiry: r.expiry, expiringQty: r.expiringQty,
         ...itemExtensions(ext, r.id),
       };
@@ -249,7 +253,7 @@ export class ProductCatalogService {
     const tagName = new Map(tagRows.map((t) => [t.id, t]));
 
     const live = rows.filter((r) => r.isActive);
-    const positive = (r: Row) => Math.max(0, r.stock);
+    const positive = (r: Row) => (isSvc(r) ? 0 : Math.max(0, r.stock));
     return {
       page, limit, count: filtered.length, hasMore: page * limit < filtered.length,
       items,
@@ -276,7 +280,7 @@ export class ProductCatalogService {
       stats: {
         products: live.length,
         inactive: rows.length - live.length,
-        inStock: live.filter((r) => r.stock > 0).length,
+        inStock: live.filter((r) => r.stock > 0 && !isSvc(r)).length,
         low: live.filter(isLow).length,
         out: live.filter(isOut).length,
         dead: live.filter(isDead).length,
@@ -305,7 +309,7 @@ export class ProductCatalogService {
       this.prisma.product.count({ where: { tenantId, isActive: true, images: { none: {} } } }),
     ]);
     const live = rows.filter((r) => r.isActive);
-    const units = (r: Row) => Math.max(0, r.stock);
+    const units = (r: Row) => (isSvc(r) ? 0 : Math.max(0, r.stock));
     const perDay = (r: Row) => r.sold / WINDOW_DAYS;
 
     const catName = new Map(categories.map((c) => [c.id, c]));
@@ -338,7 +342,7 @@ export class ProductCatalogService {
       windowDays: WINDOW_DAYS,
       categories: [...cats.values()].sort((a, b) => b.costValue - a.costValue),
       health: {
-        in: live.filter((r) => r.stock > 0 && !isLow(r)).length, low: live.filter(isLow).length, out: live.filter(isOut).length,
+        in: live.filter((r) => r.stock > 0 && !isLow(r) && !isSvc(r)).length, low: live.filter(isLow).length, out: live.filter(isOut).length,
         dead: live.filter(isDead).length, expiring: live.filter(isExpiring).length,
       },
       margins,
@@ -348,7 +352,7 @@ export class ProductCatalogService {
         .map((r) => ({ ...brief(r), sold: r.sold, revenue: r.revenue, daysLeft: r.stock > 0 ? Math.round(r.stock / perDay(r)) : 0 })),
       deadStock: live.filter(isDead).sort((a, b) => units(b) * b.costPrice - units(a) * a.costPrice).slice(0, 10)
         .map((r) => ({ ...brief(r), costValue: units(r) * r.costPrice, lastSoldAt: r.lastSoldAt })),
-      runningOut: live.filter((r) => r.sold > 0 && r.stock > 0 && r.stock / perDay(r) <= 7).sort((a, b) => a.stock / perDay(a) - b.stock / perDay(b)).slice(0, 10)
+      runningOut: live.filter((r) => !isSvc(r) && r.sold > 0 && r.stock > 0 && r.stock / perDay(r) <= 7).sort((a, b) => a.stock / perDay(a) - b.stock / perDay(b)).slice(0, 10)
         .map((r) => ({ ...brief(r), daysLeft: Math.max(0, Math.round(r.stock / perDay(r))), perDay: perDay(r) })),
       expiring: live.filter((r) => r.expiry).sort((a, b) => a.expiry!.getTime() - b.expiry!.getTime()).slice(0, 10)
         .map((r) => ({ ...brief(r), expiry: r.expiry, expiringQty: r.expiringQty })),

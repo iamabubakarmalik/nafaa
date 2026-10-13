@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpsertSettingDto {
   @ApiProperty()
@@ -29,5 +30,7 @@ export class UpsertSettingDto {
 
 export class BulkSettingsDto {
   @ApiProperty({ type: [UpsertSettingDto] })
+  @IsArray()
+  @Type(() => UpsertSettingDto)
   settings!: UpsertSettingDto[];
 }

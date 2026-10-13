@@ -164,27 +164,59 @@ export class BusinessPulseService {
       }),
 
       // Godown me kitne ka maal para hai
-      this.prisma.product.findMany({
-        where: { tenantId: user.tenantId, isActive: true },
-        select: { stock: true, costPrice: true, price: true },
-      }),
+      // For one branch, that branch's own stock and prices (ShopStock).
+      shopId
+        ? this.prisma.shopStock.findMany({
+          where: { tenantId: user.tenantId, shopId, product: { isActive: true } },
+          select: { stock: true, shopCostPrice: true, shopPrice: true, product: { select: { costPrice: true, price: true } } },
+        }).then((rows) => rows.map((r) => ({
+          stock: r.stock, costPrice: r.shopCostPrice ?? r.product.costPrice, price: r.shopPrice ?? r.product.price,
+        })))
+        : this.prisma.product.findMany({
+          where: { tenantId: user.tenantId, isActive: true },
+          select: { stock: true, costPrice: true, price: true },
+        }),
       // 60 din se na bikne wala maal — phansa hua paisa
-      this.prisma.$queryRaw<Array<{ value: number; count: number }>>`
-        SELECT
-          COALESCE(SUM(p.stock * p."costPrice"), 0)::float as value,
-          COUNT(*)::int as count
-        FROM "Product" p
-        WHERE p."tenantId" = ${user.tenantId}
-          AND p."isActive" = true
-          AND p.stock > 0
-          AND NOT EXISTS (
-            SELECT 1 FROM "SaleItem" si
-            JOIN "Sale" s ON s.id = si."saleId"
-            WHERE si."productId" = p.id
-              AND s.status <> 'VOIDED'
-              AND s."soldAt" >= ${subDaysTz(todayStart, 60, tz)}
-          )
-      `,
+      shopId
+        ? this.prisma.$queryRaw<Array<{ value: number; count: number }>>`
+          SELECT
+            COALESCE(SUM(b.stock * COALESCE(b.cost, p."costPrice")), 0)::float as value,
+            COUNT(*)::int as count
+          FROM (
+            SELECT ss."productId", SUM(ss.stock) AS stock,
+              MAX(ss."shopCostPrice") FILTER (WHERE ss."variantId" IS NULL) AS cost
+            FROM "ShopStock" ss
+            WHERE ss."tenantId" = ${user.tenantId} AND ss."shopId" = ${shopId}
+            GROUP BY ss."productId"
+          ) b
+          JOIN "Product" p ON p.id = b."productId"
+          WHERE p."isActive" = true
+            AND b.stock > 0
+            AND NOT EXISTS (
+              SELECT 1 FROM "SaleItem" si
+              JOIN "Sale" s ON s.id = si."saleId"
+              WHERE si."productId" = p.id
+                AND s."shopId" = ${shopId}
+                AND s.status <> 'VOIDED'
+                AND s."soldAt" >= ${subDaysTz(todayStart, 60, tz)}
+            )
+        `
+        : this.prisma.$queryRaw<Array<{ value: number; count: number }>>`
+          SELECT
+            COALESCE(SUM(p.stock * p."costPrice"), 0)::float as value,
+            COUNT(*)::int as count
+          FROM "Product" p
+          WHERE p."tenantId" = ${user.tenantId}
+            AND p."isActive" = true
+            AND p.stock > 0
+            AND NOT EXISTS (
+              SELECT 1 FROM "SaleItem" si
+              JOIN "Sale" s ON s.id = si."saleId"
+              WHERE si."productId" = p.id
+                AND s.status <> 'VOIDED'
+                AND s."soldAt" >= ${subDaysTz(todayStart, 60, tz)}
+            )
+        `,
 
       // Logon se lena
       this.prisma.customer.aggregate({

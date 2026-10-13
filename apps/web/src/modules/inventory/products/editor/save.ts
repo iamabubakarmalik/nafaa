@@ -43,7 +43,9 @@ function productPayload(core: CoreDraft, isEdit: boolean) {
     weight: core.weight ?? undefined,
     productType: core.productType ?? undefined,
     tagIds: core.tagIds,
-    ...(isEdit ? {} : { stock: openingStock(core), imageUrls: core.images.map((i) => i.url) }),
+    // With variants the opening stock is booked per variant; the product's
+    // own row starts at 0 so the total is not counted twice.
+    ...(isEdit ? {} : { stock: core.variants.length ? 0 : openingStock(core), imageUrls: core.images.map((i) => i.url) }),
   };
 }
 

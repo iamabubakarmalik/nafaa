@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { FloristDeliveryTimeSlot, FloristOrderStatus, FloristOrderType } from '@prisma/client';
+import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsEmail, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateFloristOrderDto {
@@ -25,7 +26,7 @@ export class CreateFloristOrderDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isAnonymous?: boolean;
 
   // Items
-  @ApiProperty() @IsArray() items!: Array<{
+  @ApiProperty() @IsArray() @Type(() => Object) items!: Array<{
     productId: string;
     productName: string;
     quantity: number;

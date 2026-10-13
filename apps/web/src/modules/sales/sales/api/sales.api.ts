@@ -65,6 +65,9 @@ export interface CreateSalePayload {
   receivedByPhone?: string;
   receivedByCnic?: string;
 
+  /** Owner's or a manager's PIN, when the counter rules ask for it. */
+  managerPin?: string;
+
   items: CreateSaleItem[];
 }
 

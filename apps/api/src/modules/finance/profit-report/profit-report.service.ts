@@ -8,6 +8,7 @@ import {
 } from '../../../common/helpers/business-math.helper';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
+import { billChargeRows, sumBillCharges } from './bill-charges';
 
 export type ProfitPeriod = 'today' | 'week' | 'month' | 'quarter' | 'year' | 'all';
 export type ProfitSortBy = 'profit' | 'margin' | 'revenue' | 'quantity';
@@ -193,15 +194,25 @@ export class ProfitReportService {
     return result;
   }
 
+  /** Service charges and bill-level cost; none when narrowed to a category or brand. */
+  private async billCharges(user: AuthenticatedUser, scope: ShopScope, filters?: ProfitFilters) {
+    if (filters?.categoryId || filters?.brandId) return sumBillCharges([]);
+    const range = await this.getDateRange(user.tenantId, filters);
+    const where = Prisma.sql`${liveSaleSql({ tenantId: user.tenantId, shopId: scope.shopId }, { gte: range.gte })}
+      ${range.lte ? Prisma.sql`AND s."soldAt" <= ${range.lte}` : Prisma.empty}`;
+    return sumBillCharges(await billChargeRows(this.prisma, where));
+  }
+
   async summary(
     user: AuthenticatedUser,
     scope: ShopScope,
     filters?: ProfitFilters,
   ) {
     const products = await this.byProduct(user, scope, filters);
+    const charges = await this.billCharges(user, scope, filters);
 
-    const totalRevenue = products.reduce((s, p) => s + p.revenue, 0);
-    const totalCost = products.reduce((s, p) => s + p.cost, 0);
+    const totalRevenue = products.reduce((s, p) => s + p.revenue, 0) + charges.revenue;
+    const totalCost = products.reduce((s, p) => s + p.cost, 0) + charges.cost;
     const totalProfit = totalRevenue - totalCost;
     const overallMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
     const totalQtySold = products.reduce((s, p) => s + p.quantitySold, 0);
@@ -267,6 +278,9 @@ export class ProfitReportService {
       totalQtySold: Number(totalQtySold.toFixed(2)),
       totalOrders,
       totalReturns: Number(totalReturns.toFixed(2)),
+      // Service charges and bill-level cost; already inside the totals above.
+      serviceCharges: charges.revenue,
+      serviceChargesCost: charges.cost,
 
       // Industry counts
       carpetCount: carpetProducts.length,

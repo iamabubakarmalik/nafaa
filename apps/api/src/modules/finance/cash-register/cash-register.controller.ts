@@ -36,6 +36,17 @@ export class CashRegisterController {
     return this.service.listOpen(user, shop);
   }
 
+  /** Warns before a cash payout that would take the drawer below zero. */
+  @Get('payout-check')
+  payoutCheck(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() shop: ShopScope,
+    @Query('amount') amount?: string,
+    @Query('registerId') registerId?: string,
+  ) {
+    return this.service.payoutCheck(user, shop, Number(amount) || 0, registerId || undefined);
+  }
+
   @Post('open')
   open(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Body() dto: OpenRegisterDto) {
     return this.service.open(user, shop, dto);

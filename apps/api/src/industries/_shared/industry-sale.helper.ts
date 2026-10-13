@@ -7,7 +7,9 @@
  * product-less lines (same pattern as mobile repair delivery), so it shows
  * in the day book, cash register, profit and every sales report. Money
  * taken before the bill is final is held on the customer's khata as an
- * advance and is used up when the bill is posted.
+ * advance and is used up when the bill is posted: the unpaid part of the
+ * bill goes on the khata as one SALE_CREDIT and the advance (a negative
+ * balance) cancels against it.
  */
 
 import { BadRequestException, NotFoundException } from '@nestjs/common';
@@ -193,35 +195,23 @@ export async function postIndustrySale(db: Db, user: AuthenticatedUser, input: I
 
   if (customer) {
     if (creditAmount > 0) {
-      // An advance already on the khata (negative balance) pays this part first.
+      // One SALE_CREDIT for the whole unpaid part, as a POS udhaar bill writes,
+      // so the day book's credit equals the khata given. An advance already on
+      // the khata (negative balance) cancels against it inside the balance.
       const advanceHeld = Math.max(-Number(customer.balance), 0);
       const fromAdvance = r2(Math.min(advanceHeld, creditAmount));
-      const newCredit = r2(creditAmount - fromAdvance);
-      let balance = Number(customer.balance);
-      if (fromAdvance > 0) {
-        balance = (await db.customer.update({
-          where: { id: customer.id }, data: { balance: { increment: fromAdvance } }, select: { balance: true },
-        })).balance;
-        await db.customerLedger.create({
-          data: {
-            tenantId: user.tenantId, shopId, customerId: customer.id, createdById: user.id,
-            type: 'ADJUSTMENT', amount: fromAdvance, balanceAfter: balance, reference: sale.saleNumber,
-            note: `Advance bill me laga: ${input.sourceRef} → ${sale.saleNumber}`,
-          },
-        });
-      }
-      if (newCredit > 0) {
-        balance = (await db.customer.update({
-          where: { id: customer.id }, data: { balance: { increment: newCredit } }, select: { balance: true },
-        })).balance;
-        await db.customerLedger.create({
-          data: {
-            tenantId: user.tenantId, shopId, customerId: customer.id, createdById: user.id,
-            type: 'SALE_CREDIT', amount: newCredit, balanceAfter: balance, reference: sale.saleNumber,
-            note: `Udhaar: ${input.sourceRef} (${sale.saleNumber})`,
-          },
-        });
-      }
+      const { balance } = await db.customer.update({
+        where: { id: customer.id }, data: { balance: { increment: creditAmount } }, select: { balance: true },
+      });
+      await db.customerLedger.create({
+        data: {
+          tenantId: user.tenantId, shopId, customerId: customer.id, createdById: user.id,
+          type: 'SALE_CREDIT', amount: creditAmount, balanceAfter: balance, reference: sale.saleNumber,
+          note: fromAdvance > 0
+            ? `Udhaar: ${input.sourceRef} (${sale.saleNumber}) — Rs ${fromAdvance} advance se adjust`
+            : `Udhaar: ${input.sourceRef} (${sale.saleNumber})`,
+        },
+      });
     }
     await db.customer.update({ where: { id: customer.id }, data: { totalSpent: { increment: total } } });
   }

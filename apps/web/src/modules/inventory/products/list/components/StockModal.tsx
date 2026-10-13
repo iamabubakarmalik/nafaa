@@ -1,6 +1,8 @@
 /**
  * Add, remove or set stock for one product. Saved as a stock adjustment, so
  * it lands on the active branch and appears in the stock history with a reason.
+ * First stock and goods made in the shop are saved as opening stock, which is
+ * not counted as Profit; only "zyada nikla" counts as found stock.
  */
 
 import { useState } from 'react';
@@ -18,10 +20,12 @@ export type StockTarget = Pick<CatalogItem, 'id' | 'name' | 'unit' | 'stock' | '
 type Mode = 'add' | 'remove' | 'set';
 const WEIGHED = /^(kg|g|gram|lb|litre|liter|l|ml|meter|m|ft|sqft|yard)$/i;
 const REASONS: Record<Mode, string[]> = {
-  add: ['Naya maal aaya', 'Banaya gaya', 'Wapas aaya'],
+  add: ['Pehla stock', 'Dukaan me banaya', 'Ginti me zyada nikla', 'Wapas aaya'],
   remove: ['Kharab / waste', 'Apne istemal mein', 'Ginti mein kam'],
   set: ['Ginti ki — asal stock'],
 };
+/** Reasons that add stock without it being a gain. */
+const OPENING_REASONS = new Set(['Pehla stock', 'Dukaan me banaya']);
 
 export function StockModal({ item, chips, onClose, onSaved, money }: {
   item: StockTarget;
@@ -41,7 +45,9 @@ export function StockModal({ item, chips, onClose, onSaved, money }: {
 
   const save = useMutation({
     mutationFn: () => stockAdjustmentsApi.create({
-      productId: item.id, type: delta >= 0 ? 'ADJUSTMENT_IN' : 'ADJUSTMENT_OUT', quantity: Math.abs(delta), reason,
+      productId: item.id,
+      type: delta < 0 ? 'ADJUSTMENT_OUT' : mode === 'add' && OPENING_REASONS.has(reason) ? 'OPENING_BALANCE' : 'ADJUSTMENT_IN',
+      quantity: Math.abs(delta), reason,
     }),
     onSuccess: () => { toast.success(`${item.name}: stock ab ${fmt(next)} ${item.unit}`); onSaved(); onClose(); },
     onError: (e: { response?: { data?: { message?: string } }; message?: string }) => toast.error(e?.response?.data?.message || e.message || 'Stock save nahi hua'),
@@ -92,6 +98,7 @@ export function StockModal({ item, chips, onClose, onSaved, money }: {
             <p>Bechne ki qeemat {money(Math.max(0, next) * item.price)}</p>
           </div>
         </div>
+        {mode === 'add' && <p className="text-[0.75rem] text-slate-500">Supplier se khareeda maal? Purchase me darj karein, taake Cost aur supplier ka hisaab bane.</p>}
         {next < 0 && <p className="text-[0.75rem] font-medium text-rose-700">Stock zero se neeche ja raha hai — ginti dobara dekh lein.</p>}
       </div>
     </Modal>

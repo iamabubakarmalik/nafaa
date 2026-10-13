@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GemstoneType, JewelryCategory, JewelryMetalType, JewelryPurity, JewelryStyle } from '@prisma/client';
+import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpsertJewelryProductDto {
@@ -90,7 +91,7 @@ export class UpsertJewelryProductDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isBridalCollection?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFestivalSpecial?: boolean;
 
-  @ApiPropertyOptional({ type: [Object] }) @IsOptional() @IsArray() gemstones?: {
+  @ApiPropertyOptional({ type: [Object] }) @IsOptional() @IsArray() @Type(() => Object) gemstones?: {
     type: GemstoneType;
     count?: number;
     caret: number;

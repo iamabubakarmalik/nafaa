@@ -24,7 +24,7 @@ export class SalesController {
     @CurrentShop() shop: ShopScope,
     @Body() dto: CreateSaleDto,
   ) {
-    return this.salesService.create(user, shop, dto);
+    return this.salesService.create(user, shop, dto, undefined, { counter: true });
   }
 
   @Get()

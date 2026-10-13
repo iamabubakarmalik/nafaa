@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { BookBinding, BookCategory, BookCondition } from '@prisma/client';
+import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpsertBookDto {
@@ -45,5 +46,5 @@ export class UpsertBookDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isRentable?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsNumber() rentalPricePerWeek?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() rentalDeposit?: number;
-  @ApiPropertyOptional({ type: [Object] }) @IsOptional() @IsArray() authors?: { authorId: string; role?: string; displayOrder?: number }[];
+  @ApiPropertyOptional({ type: [Object] }) @IsOptional() @IsArray() @Type(() => Object) authors?: { authorId: string; role?: string; displayOrder?: number }[];
 }

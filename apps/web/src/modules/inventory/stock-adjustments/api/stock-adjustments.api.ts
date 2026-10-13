@@ -7,7 +7,7 @@
 import { apiClient } from '@core/api/client';
 import type { ShopStamp } from '@core/lib/shopScope';
 
-export type AdjustmentType = 'ADJUSTMENT_IN' | 'ADJUSTMENT_OUT' | 'DAMAGE' | 'LOSS';
+export type AdjustmentType = 'ADJUSTMENT_IN' | 'ADJUSTMENT_OUT' | 'DAMAGE' | 'LOSS' | 'OPENING_BALANCE';
 export type RollAction = 'ADJUST_LENGTH' | 'MARK_DAMAGED' | 'MARK_LOST' | 'RESTORE';
 
 export interface StockAdjustment {
@@ -52,14 +52,15 @@ export interface AdjustmentList {
   total: number;
   page: number;
   pages: number;
-  totals: { count: number; inValue: number; outValue: number; damageValue: number; lossValue: number; net: number };
+  /** `net` leaves out opening stock; `openingValue` is shown on its own. */
+  totals: { count: number; inValue: number; outValue: number; damageValue: number; lossValue: number; openingValue?: number; net: number };
 }
 
 /** One bucket of a breakdown; value and qty are signed (in +, out −). */
 interface AdjustmentBucket { key: string; count: number; value: number; qty: number }
 
 interface AdjustmentAnalytics {
-  totals: { count: number; gained: number; lost: number };
+  totals: { count: number; gained: number; lost: number; opening?: number };
   byType: AdjustmentBucket[];
   byReason: AdjustmentBucket[];
   byPerson: AdjustmentBucket[];

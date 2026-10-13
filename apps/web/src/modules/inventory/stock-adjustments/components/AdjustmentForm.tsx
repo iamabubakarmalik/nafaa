@@ -372,7 +372,8 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, e
 
       {(mode !== 'roll' || l.rollAction === 'ADJUST_LENGTH') && (
         <div className="mt-3">
-          <TypePicker value={l.type} onChange={(t) => onChange({ type: t, imeiId: '', serialId: '' })} />
+          <TypePicker value={l.type} onChange={(t) => onChange({ type: t, imeiId: '', serialId: '' })}
+            types={mode === 'imei' || mode === 'roll' ? TYPE_ORDER.filter((t) => t !== 'OPENING_BALANCE') : TYPE_ORDER} />
           <p className="mt-1 text-[0.6875rem] text-slate-500">
             {mode === 'imei' && l.type === 'ADJUSTMENT_IN' ? 'Kharab ya gum device theek ho kar wapas aaya — dobara bikne ke liye stock me.' : TYPE_HINT[l.type]}
           </p>
@@ -503,16 +504,17 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, e
 }
 
 const TYPE_HINT: Record<AdjustmentType, string> = {
-  ADJUSTMENT_IN: 'Shelf par zyada maal nikla, ya kahin se wapas aaya — stock barhega.',
+  OPENING_BALANCE: 'Dukaan ka pehla stock ya dukaan me banaya maal — stock barhega, Profit me nahi gina jayega. Supplier se khareeda maal Purchase me darj karein.',
+  ADJUSTMENT_IN: 'Shelf par zyada maal nikla, ya kahin se wapas aaya — stock barhega aur Profit me jud jayega. Pehla stock ho to "Opening" chunein.',
   ADJUSTMENT_OUT: 'Maal kam hai ya apne kaam me liya — stock kam hoga.',
   DAMAGE: 'Toota, expiry ya kharab maal — stock kam hoga aur nuqsan me likha jayega.',
   LOSS: 'Chori ya gum — stock kam hoga aur nuqsan me likha jayega.',
 };
 
-function TypePicker({ value, onChange }: { value: AdjustmentType; onChange: (t: AdjustmentType) => void }) {
+function TypePicker({ value, onChange, types = TYPE_ORDER }: { value: AdjustmentType; onChange: (t: AdjustmentType) => void; types?: AdjustmentType[] }) {
   return (
-    <div role="radiogroup" aria-label="Kya hua" className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-      {TYPE_ORDER.map((t) => {
+    <div role="radiogroup" aria-label="Kya hua" className={cn('grid grid-cols-2 gap-1.5', types.length > 4 ? 'sm:grid-cols-5' : 'sm:grid-cols-4')}>
+      {types.map((t) => {
         const m = TYPES[t];
         const on = value === t;
         return (

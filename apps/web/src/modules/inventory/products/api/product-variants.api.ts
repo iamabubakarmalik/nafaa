@@ -33,11 +33,20 @@ export interface UpsertVariantPayload {
   price: number;
   costPrice?: number;
   wholesalePrice?: number;
+  /** Opening stock, used only when the variant is created. */
   stock?: number;
   lowStockAlert?: number;
   imageUrl?: string;
   isActive?: boolean;
   sortOrder?: number;
+  /** Branch that receives the opening stock; the active branch when left out. */
+  shopId?: string;
+}
+
+/** The server sets these when a stock number on an edit was not applied. */
+export interface VariantUpdateResult extends ProductVariant {
+  stockIgnored?: boolean;
+  stockMessage?: string;
 }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
@@ -51,13 +60,15 @@ export const productVariantsApi = {
     apiClient
       .post<{ data: ProductVariant }>(`/products/${productId}/variants`, payload)
       .then(unwrap),
+  /** Creates several variants; resolves to the created variants (the server wraps them in `{ created, items }`). */
   bulkCreate: (productId: string, variants: UpsertVariantPayload[]) =>
     apiClient
-      .post<{ data: any }>(`/products/${productId}/variants/bulk`, { variants })
-      .then(unwrap),
+      .post<{ data: { created: number; items: ProductVariant[] } | ProductVariant[] }>(`/products/${productId}/variants/bulk`, { variants })
+      .then(unwrap)
+      .then((d): ProductVariant[] => (Array.isArray(d) ? d : Array.isArray(d?.items) ? d.items : [])),
   update: (productId: string, id: string, payload: UpsertVariantPayload) =>
     apiClient
-      .patch<{ data: ProductVariant }>(`/products/${productId}/variants/${id}`, payload)
+      .patch<{ data: VariantUpdateResult }>(`/products/${productId}/variants/${id}`, payload)
       .then(unwrap),
   remove: (productId: string, id: string) =>
     apiClient
