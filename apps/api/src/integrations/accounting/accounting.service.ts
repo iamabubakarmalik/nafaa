@@ -205,10 +205,13 @@ export class AccountingService {
     const [sales, returns, collections, expenses] = await Promise.all([
       this.prisma.sale.findMany({
         where: { tenantId, soldAt: { gte: start, lt: end }, status: { not: 'VOIDED' } },
-        select: { subtotal: true, discount: true, total: true, creditAmount: true, paymentMethod: true, costOfGoods: true },
+        select: {
+          subtotal: true, discount: true, total: true, creditAmount: true, paymentMethod: true, costOfGoods: true,
+          payments: { select: { method: true, amount: true } },
+        },
       }),
       this.prisma.saleReturn.findMany({ where: { tenantId, returnedAt: { gte: start, lt: end } }, select: { refundAmount: true, refundMethod: true } }),
-      this.prisma.customerLedger.findMany({ where: { tenantId, type: 'PAYMENT_RECEIVED', createdAt: { gte: start, lt: end } }, select: { amount: true } }),
+      this.prisma.customerLedger.findMany({ where: { tenantId, type: 'PAYMENT_RECEIVED', createdAt: { gte: start, lt: end } }, select: { amount: true, paymentMethod: true } }),
       includeExpenses
         ? this.prisma.expense.findMany({
             where: { tenantId, expenseDate: { gte: start, lt: end }, status: 'PAID' as any },
@@ -217,9 +220,9 @@ export class AccountingService {
         : Promise.resolve([]),
     ]);
     return {
-      sales: sales.map((x) => ({ ...x, paymentMethod: String(x.paymentMethod) })),
+      sales: sales.map((x) => ({ ...x, paymentMethod: String(x.paymentMethod), payments: x.payments.map((p) => ({ method: String(p.method), amount: p.amount })) })),
       returns: returns.map((x) => ({ refundAmount: x.refundAmount, refundMethod: String(x.refundMethod) })),
-      collections: collections.map((c) => ({ amount: Math.abs(Number(c.amount)) })),
+      collections: collections.map((c) => ({ amount: Math.abs(Number(c.amount)), method: c.paymentMethod })),
       expenses: (expenses as any[]).map((e) => ({ amount: Number(e.amount), paymentMethod: String(e.paymentMethod), categoryId: e.categoryId ?? null, categoryName: e.category?.name ?? null })),
     };
   }

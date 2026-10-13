@@ -456,6 +456,7 @@ export class EmiService {
           balanceAfter: newCustomerBalance,
           reference: plan.planNumber,
           note: `EMI installment ${installment.installmentNumber}/${plan.installmentCount}`,
+          paymentMethod: dto.paymentMethod ?? 'CASH',
         },
       });
 

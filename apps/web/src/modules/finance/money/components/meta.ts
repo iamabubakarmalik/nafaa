@@ -45,6 +45,7 @@ export const KIND_IDS = Object.keys(KINDS) as MoneyAccountKind[];
 /** Lines of an account statement: automatic sources and manual entries. */
 export const STATEMENT_KINDS: Record<AutoSource | MoneyEntryType, { label: string; icon: LucideIcon; color: string }> = {
   SALE: { label: 'Sale', icon: ShoppingCart, color: '#16a34a' },
+  KHATA: { label: 'Khata wasooli', icon: BookOpen, color: '#0891b2' },
   BOOKING: { label: 'Booking', icon: CalendarCheck, color: '#0d9488' },
   BOOKING_REFUND: { label: 'Booking return', icon: Undo2, color: '#f97316' },
   REFUND: { label: 'Return', icon: Undo2, color: '#f97316' },

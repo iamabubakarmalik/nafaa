@@ -8,6 +8,8 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
 import { runKhataAction } from '../offlineKhataActions';
 
 export type KhataAction = 'payment' | 'udhaar' | 'opening';
@@ -27,12 +29,13 @@ export function KhataActionModal({ action, customer, money, onClose, onDone }: {
 }) {
   const [amount, setAmount] = useState(action === 'payment' && customer.balance > 0 ? String(Math.round(customer.balance)) : '');
   const [note, setNote] = useState('');
+  const [method, setMethod] = useState<PaymentMethod>('CASH');
   const n = Number(amount) || 0;
   const after = action === 'payment' ? customer.balance - n : customer.balance + n;
   const tooMuch = action === 'payment' && n > customer.balance + 0.009;
   const t = TITLES[action];
   const save = useMutation({
-    mutationFn: () => runKhataAction(action, customer.id, n, note || undefined),
+    mutationFn: () => runKhataAction(action, customer.id, n, note || undefined, action === 'payment' ? method : undefined),
     onSuccess: (queued) => {
       toast.success(`${customer.name}: ${t.title} — ${money(n)}${queued ? ' (internet aate hi server par jayega)' : ''}`);
       onDone(); onClose();
@@ -57,7 +60,26 @@ export function KhataActionModal({ action, customer, money, onClose, onDone }: {
         <div className="flex flex-wrap gap-1.5">
           {quick.map((q) => <button key={q} type="button" onClick={() => setAmount(String(q))} className="h-8 rounded-lg bg-slate-100 px-2.5 text-[0.8125rem] font-semibold text-slate-700 hover:bg-slate-200">{q === Math.round(customer.balance) && action === 'payment' ? `Poora ${q.toLocaleString('en-PK')}` : q.toLocaleString('en-PK')}</button>)}
         </div>
-        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={action === 'payment' ? 'Note (jaise: JazzCash se aaye)' : 'Note (kis cheez ka)'}
+        {action === 'payment' && (
+          <div>
+            <p className="mb-1.5 text-[0.75rem] font-semibold text-slate-500">Kaise mile</p>
+            <div role="radiogroup" aria-label="Payment method" className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+              {POS_PAYMENT_METHODS.map((m) => {
+                const on = method === m.id;
+                return (
+                  <button key={m.id} type="button" role="radio" aria-checked={on} onClick={() => setMethod(m.id)}
+                    className={cn('flex h-9 items-center justify-center gap-1 rounded-lg border text-[0.75rem] font-semibold transition',
+                      on ? 'border-transparent text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300')}
+                    style={on ? { backgroundColor: m.color } : undefined}>
+                    <m.icon className="h-3.5 w-3.5" /> {m.label}
+                  </button>
+                );
+              })}
+            </div>
+            {method !== 'CASH' && <p className="mt-1.5 text-[0.75rem] text-slate-500">Ye paisa galle (drawer) me nahi, {POS_PAYMENT_METHODS.find((m) => m.id === method)?.label} ke account me jayega.</p>}
+          </div>
+        )}
+        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder={action === 'payment' ? 'Note (jaise: transaction ID)' : 'Note (kis cheez ka)'}
           className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-[0.875rem] outline-none focus:border-brand-500" />
         <div className={cn('grid grid-cols-2 gap-2 rounded-2xl p-3 text-center', tooMuch ? 'bg-rose-50' : 'bg-slate-50')}>
           <div><p className="text-[0.6875rem] text-slate-500">Abhi</p><p className="font-bold tabular-nums">{money(customer.balance)}</p></div>

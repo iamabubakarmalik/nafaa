@@ -10,6 +10,7 @@ export { VariantPicker } from './VariantPicker';
 export { PosReceiverField, emptyReceiver, type PosReceiverValue } from './PosReceiverField';
 export { PosSettingsModal } from './PosSettingsModal';
 export { PosCheckoutModal } from './PosCheckoutModal';
+export { splitReceiptLines, type PosTradeIn } from './PosSplitTender';
 export { PosDiscountModal } from './PosDiscountModal';
 export { PosPerks } from './PosPerks';
 export { PosUnitPickerModal } from './PosUnitPickerModal';

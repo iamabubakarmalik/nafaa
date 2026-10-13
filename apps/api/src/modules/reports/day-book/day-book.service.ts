@@ -195,7 +195,7 @@ export class DayBookService {
           AND: [...loose, { OR: [{ type: 'SALE_CREDIT' }, { type: 'PAYMENT_RECEIVED', ...NOT_BOOKING_LINE }] }],
         },
         select: {
-          id: true, type: true, amount: true, reference: true, createdAt: true,
+          id: true, type: true, amount: true, reference: true, createdAt: true, paymentMethod: true,
           customer: { select: { id: true, name: true, phone: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -364,7 +364,7 @@ export class DayBookService {
       if (isGiven) { given += amount; givenCount += 1; } else { collected += amount; collectedCount += 1; }
       return {
         id: k.id, kind: isGiven ? 'given' as const : 'collected' as const, amount: r2(amount), reference: k.reference,
-        at: k.createdAt, customerId: k.customer.id, customer: k.customer.name, phone: k.customer.phone,
+        method: isGiven ? null : k.paymentMethod ?? 'CASH', at: k.createdAt, customerId: k.customer.id, customer: k.customer.name, phone: k.customer.phone,
       };
     });
 
@@ -603,13 +603,19 @@ export class DayBookService {
     returns: Array<{ shopId: string | null; refundAmount: number; sale: { shopId: string | null } }>,
   ) {
     const range = { gte: day.from, lt: day.to };
-    const [shops, sales, expenses] = await Promise.all([
+    const [shops, sales, cashRows, expenses] = await Promise.all([
       this.prisma.shop.findMany({ where: { tenantId }, select: { id: true, name: true, isActive: true }, orderBy: [{ isMain: 'desc' }, { name: 'asc' }] }),
       this.prisma.sale.groupBy({
-        by: ['shopId', 'paymentMethod'],
+        by: ['shopId'],
         where: { tenantId, status: { not: 'VOIDED' }, soldAt: range },
-        _sum: { total: true, paidAmount: true, changeAmount: true },
+        _sum: { total: true },
         _count: { _all: true },
+      }),
+      // Cash parts of the day's bills (the card part of a split bill is not cash).
+      this.prisma.salePayment.groupBy({
+        by: ['shopId'],
+        where: { tenantId, method: 'CASH', sale: { tenantId, status: { not: 'VOIDED' }, soldAt: range } },
+        _sum: { amount: true },
       }),
       this.prisma.expense.groupBy({
         by: ['shopId'],
@@ -620,7 +626,7 @@ export class DayBookService {
     return shops.map((s) => {
       const mine = sales.filter((x) => x.shopId === s.id);
       const billed = mine.reduce((a, x) => a + n(x._sum.total), 0);
-      const cash = mine.filter((x) => x.paymentMethod === 'CASH').reduce((a, x) => a + n(x._sum.paidAmount) - n(x._sum.changeAmount), 0);
+      const cash = n(cashRows.find((x) => x.shopId === s.id)?._sum.amount);
       const back = returns.filter((r) => (r.shopId ?? r.sale.shopId) === s.id).reduce((a, r) => a + r.refundAmount, 0);
       const regs = registers.map((r, i) => ({ r, d: drawers[i] })).filter((x) => x.r.shopId === s.id);
       const closedRegs = regs.filter((x) => x.d.status === 'CLOSED');

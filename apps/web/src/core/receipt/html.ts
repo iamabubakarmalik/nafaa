@@ -182,8 +182,9 @@ function totalRows(doc: ReceiptDoc): ReceiptRowDoc[] {
 
 function paidRows(doc: ReceiptDoc): ReceiptRowDoc[] {
   const due = dueOf(doc);
+  const parts = doc.payments?.length ? doc.payments.map((p) => ({ label: p.label, value: money(p.amount) })) : [{ label: doc.paymentLabel, value: money(doc.paid) }];
   return [
-    { label: doc.paymentLabel, value: money(doc.paid) },
+    ...parts,
     ...(doc.paid > doc.total ? [{ label: 'Wapis (change)', value: money(doc.paid - doc.total), bold: true }] : []),
     ...((doc.riderDelivery ?? 0) > 0 ? [{ label: 'Rider ko dein (delivery)', value: money(doc.riderDelivery!) }, { label: 'Customer dega kul', value: money(doc.total + doc.riderDelivery!), bold: true }] : []),
     ...(due > 0 ? [{ label: 'Udhaar (baqi)', value: money(due), bold: true }] : []),

@@ -190,6 +190,7 @@ export class ExportsService {
       select: {
         saleNumber: true, soldAt: true, status: true, subtotal: true, discount: true, total: true, paidAmount: true,
         creditAmount: true, refundedAmount: true, costOfGoods: true, paymentMethod: true, source: true,
+        payments: { select: { method: true, amount: true } },
         customer: { select: { name: true, phone: true } },
         createdBy: { select: { fullName: true } },
         shop: { select: { name: true } },
@@ -219,7 +220,9 @@ export class ExportsService {
       saleNumber: s.saleNumber, soldAt: this.stamp(s.soldAt, ctx.clock), shop: s.shop?.name ?? '',
       customer: s.customer?.name || 'Walk-in', phone: s.customer?.phone ?? '', items: s._count.items,
       subtotal: s.subtotal, discount: s.discount, total: s.total, paid: s.paidAmount, credit: s.creditAmount,
-      refunded: s.refundedAmount, cost: s.costOfGoods, method: s.paymentMethod, source: s.source, status: s.status,
+      refunded: s.refundedAmount, cost: s.costOfGoods, source: s.source, status: s.status,
+      // A split bill lists each part, e.g. "CASH 2000 + CARD 1500".
+      method: s.payments.length > 1 ? s.payments.map((p) => `${p.method} ${p.amount}`).join(' + ') : s.paymentMethod,
       cashier: s.createdBy?.fullName ?? '',
     }));
     return { columns, rows };

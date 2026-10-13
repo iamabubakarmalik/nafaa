@@ -123,22 +123,23 @@ export class ReportsService {
   }
 
   // ─── 4. Payment Methods ────────────────────────────────────
+  /** Money taken per method, from the bills' payment rows (a split bill counts under each of its methods). */
   async paymentMethods(user: AuthenticatedUser, scope: ShopScope) {
-    const result = await this.prisma.sale.groupBy({
-      by: ['paymentMethod'],
-      where: { tenantId: user.tenantId, ...scope.where, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } },
-      _sum: { total: true, paidAmount: true },
+    const result = await this.prisma.salePayment.groupBy({
+      by: ['method'],
+      where: { tenantId: user.tenantId, sale: { tenantId: user.tenantId, ...scope.where, status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] } } },
+      _sum: { amount: true },
       _count: { _all: true },
     });
 
-    const grandTotal = result.reduce((s, r) => s + (r._sum.total ?? 0), 0);
+    const grandTotal = result.reduce((s, r) => s + (r._sum.amount ?? 0), 0);
     return result
       .map((r) => ({
-        paymentMethod: r.paymentMethod,
-        total: r._sum.total ?? 0,
-        paid: r._sum.paidAmount ?? 0,
+        paymentMethod: r.method,
+        total: r._sum.amount ?? 0,
+        paid: r._sum.amount ?? 0,
         count: r._count._all,
-        percent: grandTotal > 0 ? ((r._sum.total ?? 0) / grandTotal) * 100 : 0,
+        percent: grandTotal > 0 ? ((r._sum.amount ?? 0) / grandTotal) * 100 : 0,
       }))
       .sort((a, b) => b.total - a.total);
   }

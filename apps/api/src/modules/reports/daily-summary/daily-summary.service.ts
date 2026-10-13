@@ -252,11 +252,13 @@ export class DailySummaryService {
         _sum: { total: true },
         _count: { _all: true },
       }),
-      // A bill made from a booking carries the booking payments, which are counted when received.
-      this.prisma.sale.groupBy({
-        by: ['paymentMethod'],
-        where: { ...sold, bookingId: null },
-        _sum: { paidAmount: true, changeAmount: true },
+      // Payment rows of the day's bills (cash net of change; trade-in is goods,
+      // not money). A bill made from a booking carries the booking payments,
+      // which are counted when received.
+      this.prisma.salePayment.groupBy({
+        by: ['method'],
+        where: { tenantId, method: { not: 'TRADE_IN' }, sale: { ...sold, bookingId: null } },
+        _sum: { amount: true },
       }),
       this.prisma.bookingPayment.groupBy({
         by: ['paymentMethod', 'type'],
@@ -316,10 +318,10 @@ export class DailySummaryService {
     const net = gross - returnTotal;
     const bills = salesAgg._count._all;
 
-    // ── Money in by method: bills (paid − change) plus booking payments ──
+    // ── Money in by method: bill payment rows plus booking payments ──
     const byMethod = new Map<string, number>();
     for (const m of saleMethods) {
-      byMethod.set(m.paymentMethod, (byMethod.get(m.paymentMethod) ?? 0) + n(m._sum.paidAmount) - n(m._sum.changeAmount));
+      byMethod.set(m.method, (byMethod.get(m.method) ?? 0) + n(m._sum.amount));
     }
     for (const b of bookingMethods) {
       const sign = b.type === 'REFUND' ? -1 : 1;

@@ -247,7 +247,7 @@ export class BulkOrdersService {
       });
       const shopId = await resolveShopId(tx, user, o.shopId);
       await khataPayment(tx, user, {
-        customerId, shopId, amount, reference: o.orderNumber,
+        customerId, shopId, amount, reference: o.orderNumber, method: paymentMethod,
         note: `Bulk order ${o.orderNumber} ki raqam`,
       });
 

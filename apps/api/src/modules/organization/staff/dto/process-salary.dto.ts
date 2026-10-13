@@ -1,8 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
-import {
-  IsDateString, IsEnum, IsNumber, IsOptional, IsString, Min,
-} from 'class-validator';
+import { IsDateString, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
 
 export class ProcessSalaryDto {
   @ApiProperty()
@@ -55,7 +54,7 @@ export class ProcessSalaryDto {
 
   @ApiPropertyOptional({ enum: PaymentMethod })
   @IsOptional()
-  @IsEnum(PaymentMethod)
+  @IsIn(MONEY_METHODS)
   paymentMethod?: PaymentMethod;
 
   @ApiPropertyOptional()

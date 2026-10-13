@@ -1,6 +1,6 @@
 import { apiClient } from '@core/api/client';
 import { db, type PendingSale, type PendingSaleItemSnapshot, localId } from './db';
-import { salesApi, type CreateSalePayload, type Sale } from '@modules/sales/sales/api/sales.api';
+import { salesApi, type CreateSalePayload, type Sale, type TenderMethod } from '@modules/sales/sales/api/sales.api';
 import { offlineProductsApi } from './offlineProducts';
 import { useAuthStore } from '@core/stores/auth.store';
 import { getCachedSettings } from './offlineSettings';
@@ -188,6 +188,7 @@ export const offlineSalesApi = {
       customerId: payload.customerId,
       paymentMethod: payload.paymentMethod as any,
       paidAmount,
+      payments: payload.payments,
       discount: payload.discount || 0,
       discountCode: payload.discountCode,
       loyaltyPointsToUse: payload.loyaltyPointsToUse,
@@ -311,6 +312,20 @@ export const offlineSalesApi = {
  * PendingSale → Sale-shape for receipt page rendering.
  * Used-phone items render with brand/model/code like online receipts.
  */
+/** Queued parts as the server stores them: change comes off the cash, last cash part first. */
+function offlineParts(parts: PendingSale['payments'], change: number): Sale['payments'] {
+  if (!parts?.length) return undefined;
+  let back = Math.max(change, 0);
+  const out = parts.map((p) => ({ ...p, method: p.method as TenderMethod }));
+  for (let i = out.length - 1; i >= 0 && back > 0; i--) {
+    if (out[i].method !== 'CASH') continue;
+    const cut = Math.min(out[i].amount, back);
+    out[i] = { ...out[i], amount: out[i].amount - cut };
+    back -= cut;
+  }
+  return out.filter((p) => p.amount > 0);
+}
+
 export function pendingSaleToSale(p: PendingSale): Partial<Sale> {
   const items = p.itemsSnapshot.map((it, idx) => ({
     id: `${p.id}_item_${idx}`,
@@ -372,6 +387,7 @@ export function pendingSaleToSale(p: PendingSale): Partial<Sale> {
     total: p.total,
     paidAmount: p.paidAmount,
     changeAmount: p.changeAmount,
+    payments: offlineParts(p.payments, p.changeAmount),
     creditAmount: p.creditAmount,
     costOfGoods: p.costOfGoods,
     serviceCharges: p.serviceCharges,

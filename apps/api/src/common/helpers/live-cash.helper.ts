@@ -4,9 +4,10 @@
  * the figures always agree.
  *
  *   expected = opening float
- *            + cash sales           paid − change on cash bills (booking bills excluded)
+ *            + cash sales           cash payment rows of bills, net of change (booking bills excluded);
+ *                                   the card or wallet part of a split bill is not drawer cash
  *            + booking payments     cash advance and later payments, on the day received
- *            + khata collections    customer payments (no method stored; counted as cash)
+ *            + khata collections    customer payments by cash (older rows with no method count as cash)
  *            + cash in              manual entries on this register
  *            − cash out             manual entries on this register
  *            − cash refunds         returns paid back in cash (minus any part that only cleared udhaar)
@@ -60,7 +61,7 @@ const n = (v: unknown) => Number(v ?? 0) || 0;
 const r2 = (v: number) => Math.round(v * 100) / 100;
 
 /** Khata lines written by bookings; their cash is counted from the booking payment. */
-const NOT_BOOKING_LINE: Prisma.CustomerLedgerWhereInput = {
+export const NOT_BOOKING_LINE: Prisma.CustomerLedgerWhereInput = {
   OR: [
     { reference: null },
     { note: null },
@@ -80,7 +81,8 @@ export async function computeLiveCash(db: Db, tenantId: string, register: CashWi
     ...(register.shopId && { OR: [{ shopId: register.shopId }, { shopId: null, sale: { shopId: register.shopId } }] }),
   };
   const khataWhere: Prisma.CustomerLedgerWhereInput = {
-    tenantId, type: 'PAYMENT_RECEIVED', createdAt: window, AND: [...loose, NOT_BOOKING_LINE],
+    tenantId, type: 'PAYMENT_RECEIVED', createdAt: window,
+    AND: [...loose, NOT_BOOKING_LINE, { OR: [{ paymentMethod: 'CASH' }, { paymentMethod: null }] }],
   };
   const bookingWhere = (refund: boolean): Prisma.BookingPaymentWhereInput => ({
     booking: { tenantId, ...shop },
@@ -93,9 +95,9 @@ export async function computeLiveCash(db: Db, tenantId: string, register: CashWi
     sales, bookingIn, bookingOut, khataNeg, khataPos, manual,
     returns, expenses, purchases, suppliers,
   ] = await Promise.all([
-    db.sale.aggregate({
-      where: { tenantId, ...shop, status: { not: 'VOIDED' }, paymentMethod: 'CASH', bookingId: null, paidAmount: { gt: 0 }, soldAt: window },
-      _sum: { paidAmount: true, changeAmount: true },
+    db.salePayment.aggregate({
+      where: { tenantId, method: 'CASH', sale: { tenantId, ...shop, status: { not: 'VOIDED' }, bookingId: null, soldAt: window } },
+      _sum: { amount: true },
       _count: { _all: true },
     }),
     db.bookingPayment.aggregate({ where: bookingWhere(false), _sum: { amount: true }, _count: { _all: true } }),
@@ -148,7 +150,7 @@ export async function computeLiveCash(db: Db, tenantId: string, register: CashWi
   const manualOf = (type: 'CASH_IN' | 'CASH_OUT') => manual.find((m) => m.type === type);
   const out = {
     openingBalance: n(register.openingBalance),
-    cashSales: r2(n(sales._sum.paidAmount) - n(sales._sum.changeAmount)),
+    cashSales: r2(n(sales._sum.amount)),
     cashSalesCount: sales._count._all,
     bookingReceived: r2(n(bookingIn._sum.amount)),
     bookingReceivedCount: bookingIn._count._all,

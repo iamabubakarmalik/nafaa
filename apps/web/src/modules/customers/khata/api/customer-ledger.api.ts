@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 
 export type LedgerType =
   | 'SALE_CREDIT'
@@ -97,6 +98,8 @@ export interface LedgerDetail {
 
 export interface ReceivePaymentPayload {
   amount: number;
+  /** How the customer paid; cash when left out. Card, bank and wallets go to their own account, not the drawer. */
+  paymentMethod?: PaymentMethod;
   reference?: string;
   note?: string;
 }

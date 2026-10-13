@@ -67,25 +67,31 @@ export class CashRegisterService {
       tenantId, ...(register.shopId ? { shopId: register.shopId } : {}), status: { not: 'VOIDED' }, soldAt: window,
     };
 
-    const [drawer, allSales, byMethod, cashRefunds] = await Promise.all([
+    const [drawer, allSales, byMethod, paidBy, cashRefunds] = await Promise.all([
       computeLiveCash(db, tenantId, register, until),
       db.sale.aggregate({
         where: saleWhere,
-        _sum: { total: true, paidAmount: true, changeAmount: true, creditAmount: true },
+        _sum: { total: true, creditAmount: true },
         _count: { _all: true },
       }),
       db.sale.groupBy({
         by: ['paymentMethod'],
         where: saleWhere,
-        _sum: { total: true, paidAmount: true, changeAmount: true },
+        _sum: { total: true },
         _count: { _all: true },
+      }),
+      // Money by method from the payment rows, cash net of change. Trade-in is goods, not money.
+      db.salePayment.groupBy({
+        by: ['method'],
+        where: { tenantId, method: { not: 'TRADE_IN' }, sale: saleWhere },
+        _sum: { amount: true },
       }),
       this.cashRefundCounts(db, tenantId, register, window),
     ]);
 
-    const collected = n(allSales._sum.paidAmount) - n(allSales._sum.changeAmount);
-    const cashCollected = byMethod.find((m) => m.paymentMethod === 'CASH');
-    const cashTaken = n(cashCollected?._sum.paidAmount) - n(cashCollected?._sum.changeAmount);
+    const collected = paidBy.reduce((x, m) => x + n(m._sum.amount), 0);
+    const cashTaken = n(paidBy.find((m) => m.method === 'CASH')?._sum.amount);
+    const methodKeys = [...new Set([...byMethod.map((m) => m.paymentMethod as string), ...paidBy.map((m) => m.method as string)])];
 
     return {
       ...drawer,
@@ -101,13 +107,17 @@ export class CashRegisterService {
       creditGiven: n(allSales._sum.creditAmount),
       billCount: allSales._count._all ?? 0,
       nonCashCollected: round2(collected - cashTaken),
-      byMethod: byMethod
-        .map((m) => ({
-          method: m.paymentMethod,
-          total: n(m._sum.total),
-          paid: round2(n(m._sum.paidAmount) - n(m._sum.changeAmount)),
-          count: m._count._all ?? 0,
-        }))
+      // Bills and their total by the bill's main method; paid by payment rows.
+      byMethod: methodKeys
+        .map((method) => {
+          const b = byMethod.find((m) => m.paymentMethod === method);
+          return {
+            method,
+            total: n(b?._sum.total),
+            paid: round2(n(paidBy.find((m) => m.method === method)?._sum.amount)),
+            count: b?._count._all ?? 0,
+          };
+        })
         .sort((a, b) => b.total - a.total),
 
       openedAt: register.openedAt,

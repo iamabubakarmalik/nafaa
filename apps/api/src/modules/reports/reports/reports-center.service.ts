@@ -79,6 +79,26 @@ export class ReportsCenterService {
       WHERE ${where}
       GROUP BY 1`;
 
+    // Payment methods: a split bill's sale and cost are shared out by its
+    // payment rows; a bill with no rows (full udhaar) goes to its main method.
+    const byMethod = this.prisma.$queryRaw<Group[]>`
+      WITH ${bm}, parts AS (
+        SELECT sp."saleId", sp.method::text AS method, SUM(sp.amount) AS amount
+        FROM "SalePayment" sp JOIN "Sale" s ON s.id = sp."saleId"
+        WHERE ${where}
+        GROUP BY 1, 2
+      ), shares AS (
+        SELECT s.id, COALESCE(p.method, s."paymentMethod"::text) AS method,
+          COALESCE(p.amount / NULLIF(SUM(p.amount) OVER (PARTITION BY s.id), 0), 1) AS k,
+          CASE WHEN p.method = 'TRADE_IN' THEN 0 ELSE COALESCE(p.amount, 0) END AS money
+        FROM "Sale" s LEFT JOIN parts p ON p."saleId" = s.id
+        WHERE ${where}
+      )
+      SELECT sh.method AS id, COUNT(DISTINCT s.id)::int AS bills, SUM(s.total * sh.k)::float AS gross,
+        SUM(s."refundedAmount" * sh.k)::float AS refunds, SUM(bm.cost * sh.k)::float AS cost, SUM(sh.money)::float AS cashin
+      FROM shares sh JOIN "Sale" s ON s.id = sh.id JOIN bm ON bm.id = s.id
+      GROUP BY 1`;
+
     const [totals, prev, grid, payments, staff, channels, shops, voided, items, customers, first] = await Promise.all([
       this.saleTotals(user, scope, r),
       r.prev ? this.saleTotals(user, scope, r.prev) : Promise.resolve(null),
@@ -89,7 +109,7 @@ export class ReportsCenterService {
         FROM "Sale" s JOIN bm ON bm.id = s.id
         WHERE ${where}
         GROUP BY 1, 2`,
-      groupBy(Prisma.sql`s."paymentMethod"::text`),
+      byMethod,
       groupBy(Prisma.sql`COALESCE(s."soldById", s."createdById")`),
       groupBy(Prisma.sql`s.source::text`),
       scope.isAll ? groupBy(Prisma.sql`s."shopId"`) : Promise.resolve([] as Group[]),

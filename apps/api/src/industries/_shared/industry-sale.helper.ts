@@ -15,12 +15,13 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PaymentMethod, Prisma } from '@prisma/client';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
+import { MONEY_METHODS, saveSalePayments } from '../../common/helpers/sale-payments.helper';
 
 type Db = Prisma.TransactionClient;
 
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
 
-const METHODS = new Set<string>(Object.values(PaymentMethod));
+const METHODS = new Set<string>(MONEY_METHODS);
 
 /** Maps loose method names from industry screens onto the sale enum. */
 export function toPaymentMethod(method?: string | null): PaymentMethod {
@@ -98,11 +99,15 @@ export async function ensureCustomer(
   return created.id;
 }
 
-/** Money received before the final bill: kept on khata as the customer's advance. */
+/**
+ * Money received before the final bill: kept on khata as the customer's
+ * advance. `method` decides where the money lands (drawer for cash, the
+ * bank or wallet account otherwise); left out, it is cash.
+ */
 export async function recordKhataPayment(
   db: Db,
   user: AuthenticatedUser,
-  input: { customerId: string; shopId: string; amount: number; reference: string; note: string },
+  input: { customerId: string; shopId: string; amount: number; reference: string; note: string; method?: string | null },
 ) {
   const amount = r2(input.amount);
   if (amount <= 0) throw new BadRequestException('Amount sahi likhein');
@@ -122,6 +127,7 @@ export async function recordKhataPayment(
       balanceAfter: balance,
       reference: input.reference,
       note: input.note,
+      paymentMethod: toPaymentMethod(input.method),
     },
   });
 }
@@ -192,6 +198,9 @@ export async function postIndustrySale(db: Db, user: AuthenticatedUser, input: I
     },
     include: { items: true },
   });
+  if (paidAmount - changeAmount > 0) {
+    await saveSalePayments(db, sale, [{ method: sale.paymentMethod, amount: paidAmount - changeAmount }]);
+  }
 
   if (customer) {
     if (creditAmount > 0) {

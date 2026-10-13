@@ -71,7 +71,7 @@ export class TeamOrdersService {
         const shopId = await resolveIndustryShopId(tx, user, scope?.shopId);
         const customerId = await this.teamCustomer(tx, user, dto, shopId);
         await recordKhataPayment(tx, user, {
-          customerId, shopId, amount: advancePaid, reference: orderNumber, note: `Team order advance ${orderNumber}`,
+          customerId, shopId, amount: advancePaid, reference: orderNumber, note: `Team order advance ${orderNumber}`, method: dto.paymentMethod,
         });
       }
       return tx.sportsTeamOrder.create({
@@ -305,7 +305,7 @@ export class TeamOrdersService {
       const shopId = await resolveIndustryShopId(tx, user, scope?.shopId);
       const customerId = await this.teamCustomer(tx, user, o, shopId);
       await recordKhataPayment(tx, user, {
-        customerId, shopId, amount: dto.amount, reference: o.orderNumber, note: `Team order advance ${o.orderNumber}`,
+        customerId, shopId, amount: dto.amount, reference: o.orderNumber, note: `Team order advance ${o.orderNumber}`, method: dto.paymentMethod,
       });
       const newAdvance = r2(Number(o.advancePaid || 0) + dto.amount);
       return tx.sportsTeamOrder.update({

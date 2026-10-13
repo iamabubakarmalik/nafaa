@@ -413,6 +413,7 @@ export class WorkshopJobsService {
         customerId,
         shopId,
         amount,
+        method: dto.paymentMethod,
         reference: job.status === 'DELIVERED' ? jobSaleNumber(job.jobNumber) : job.jobNumber,
         note: job.status === 'DELIVERED'
           ? `Workshop job ${job.jobNumber} ki wusooli${dto.reference ? ` (${dto.reference})` : ''}`

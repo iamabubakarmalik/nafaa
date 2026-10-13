@@ -213,6 +213,30 @@ export class UsedPhonesService {
     });
   }
 
+  /**
+   * Phones taken in as an exchange (type Exchange) that no live bill has used
+   * as a trade-in yet. The POS offers these as a TRADE_IN payment.
+   */
+  async openTradeIns(user: AuthenticatedUser) {
+    const used = await this.prisma.salePayment.findMany({
+      where: { tenantId: user.tenantId, method: 'TRADE_IN', reference: { not: null }, sale: { status: { not: 'VOIDED' } } },
+      select: { reference: true },
+    });
+    const taken = used.map((u) => u.reference!).filter(Boolean);
+    return this.prisma.usedPhone.findMany({
+      where: {
+        tenantId: user.tenantId, source: 'EXCHANGE', status: { not: 'DISCARDED' }, buybackPrice: { gt: 0 },
+        ...(taken.length && { usedPhoneCode: { notIn: taken } }),
+      },
+      select: {
+        id: true, usedPhoneCode: true, brand: true, model: true, storage: true, color: true,
+        buybackPrice: true, fromCustomerName: true, fromCustomerId: true, receivedAt: true,
+      },
+      orderBy: { receivedAt: 'desc' },
+      take: 50,
+    });
+  }
+
   // ════════════════════════════════════════════════════════
   // LIST + DETAIL
   // ════════════════════════════════════════════════════════

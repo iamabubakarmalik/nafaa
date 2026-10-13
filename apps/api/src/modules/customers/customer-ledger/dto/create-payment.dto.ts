@@ -1,11 +1,21 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { PaymentMethod } from '@prisma/client';
+import { Transform } from 'class-transformer';
+import { IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
 
 export class CreatePaymentDto {
   @ApiProperty({ example: 1000 })
   @IsNumber()
   @Min(0.01)
   amount!: number;
+
+  /** How the customer paid. Cash goes to the drawer, the rest to its bank or wallet account. */
+  @ApiPropertyOptional({ enum: MONEY_METHODS, default: 'CASH' })
+  @IsOptional()
+  @Transform(({ value }) => (value === 'BANK' ? 'BANK_TRANSFER' : value))
+  @IsIn(MONEY_METHODS)
+  paymentMethod?: PaymentMethod;
 
   @ApiPropertyOptional()
   @IsOptional()

@@ -29,9 +29,11 @@ export interface AccountMapping {
 }
 
 export interface DayData {
-  sales: { subtotal: number; discount: number; total: number; creditAmount: number; paymentMethod: string; costOfGoods: number }[];
+  /** `payments`: the bill's payment rows; without them the paid part goes to `paymentMethod`. */
+  sales: { subtotal: number; discount: number; total: number; creditAmount: number; paymentMethod: string; costOfGoods: number; payments?: { method: string; amount: number }[] }[];
   returns: { refundAmount: number; refundMethod: string }[];
-  collections: { amount: number }[];
+  /** `method`: how the khata payment came in; older rows have none. */
+  collections: { amount: number; method?: string | null }[];
   expenses: { amount: number; paymentMethod: string; categoryId: string | null; categoryName: string | null }[];
 }
 
@@ -70,11 +72,19 @@ export function buildDailyJournal(day: DayData, map: AccountMapping, opts: { inc
 
   // ── Sale ──
   const byMethod = new Map<PayMethod, number>();
-  let credit = 0, discount = 0, gross = 0, cogs = 0;
+  let credit = 0, discount = 0, gross = 0, cogs = 0, tradeIn = 0;
   for (const s of day.sales) {
     const total = r2(s.total);
     const cr = Math.min(total, Math.max(0, r2(s.creditAmount)));
-    byMethod.set(asMethod(s.paymentMethod), (byMethod.get(asMethod(s.paymentMethod)) ?? 0) + (total - cr));
+    if (s.payments?.length) {
+      // Each part to its own account; goods taken in on a trade-in are stock.
+      for (const p of s.payments) {
+        if (p.method === 'TRADE_IN') tradeIn += r2(p.amount);
+        else byMethod.set(asMethod(p.method), (byMethod.get(asMethod(p.method)) ?? 0) + r2(p.amount));
+      }
+    } else {
+      byMethod.set(asMethod(s.paymentMethod), (byMethod.get(asMethod(s.paymentMethod)) ?? 0) + (total - cr));
+    }
     credit += cr;
     discount += Math.max(0, r2(s.discount));
     // Sale = total + discount (subtotal me farq ho to bhi balanced rahe)
@@ -82,6 +92,7 @@ export function buildDailyJournal(day: DayData, map: AccountMapping, opts: { inc
     cogs += Math.max(0, r2(s.costOfGoods));
   }
   for (const [m, amt] of byMethod) push(`method:${m}`, `${METHOD_LABEL[m]} ka account`, 'debit', amt, `POS sale — ${METHOD_LABEL[m]}`);
+  push('inventory', 'Inventory account', 'debit', tradeIn, 'POS sale — trade-in maal');
   push('receivable', 'Udhaar (receivable) account', 'debit', credit, 'POS sale — udhaar');
   push('discounts', 'Discount account', 'debit', discount, 'POS discount');
   push('sales', 'Sale (income) account', 'credit', gross, `POS sale — ${day.sales.length} bill`);
@@ -100,7 +111,12 @@ export function buildDailyJournal(day: DayData, map: AccountMapping, opts: { inc
   // ── Udhaar wapsi ──
   const collections = day.collections.reduce((s, c) => s + Math.max(0, r2(c.amount)), 0);
   const cm = map.collectionMethod ?? 'CASH';
-  push(`method:${cm}`, `${METHOD_LABEL[cm]} ka account`, 'debit', collections, 'Udhaar wapsi');
+  const collectedBy = new Map<PayMethod, number>();
+  for (const c of day.collections) {
+    const m = c.method ? asMethod(c.method) : cm;
+    collectedBy.set(m, (collectedBy.get(m) ?? 0) + Math.max(0, r2(c.amount)));
+  }
+  for (const [m, amt] of collectedBy) push(`method:${m}`, `${METHOD_LABEL[m]} ka account`, 'debit', amt, 'Udhaar wapsi');
   push('receivable', 'Udhaar (receivable) account', 'credit', collections, 'Udhaar wapsi');
 
   // ── COGS (optional) ──

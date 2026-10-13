@@ -488,10 +488,21 @@ export class StaffReportService {
       this.prisma.$queryRaw<Array<{ wd: number; h: number; bills: number }>>`
         SELECT EXTRACT(DOW FROM ${biz})::int AS wd, EXTRACT(HOUR FROM ${loc})::int AS h, COUNT(*)::int AS bills
         FROM "Sale" s WHERE ${mine} GROUP BY 1, 2`,
+      // Bills, sale and credit by the bill's main method; money collected by
+      // payment rows, so the card part of a cash + card bill shows under Card.
       this.prisma.$queryRaw<Array<{ method: string; bills: number; net: number; collected: number; credit: number }>>`
-        SELECT s."paymentMethod"::text AS method, COUNT(*)::int AS bills, COALESCE(SUM(${BILL_NET}), 0)::float AS net,
-          COALESCE(SUM(${BILL_CASH_IN}), 0)::float AS collected, COALESCE(SUM(s."creditAmount"), 0)::float AS credit
-        FROM "Sale" s WHERE ${mine} GROUP BY 1 ORDER BY 3 DESC`,
+        WITH b AS (
+          SELECT s."paymentMethod"::text AS method, COUNT(*)::int AS bills, SUM(${BILL_NET})::float AS net,
+            SUM(s."creditAmount")::float AS credit
+          FROM "Sale" s WHERE ${mine} GROUP BY 1
+        ), p AS (
+          SELECT sp.method::text AS method, SUM(sp.amount)::float AS collected
+          FROM "SalePayment" sp JOIN "Sale" s ON s.id = sp."saleId"
+          WHERE ${mine} AND sp.method <> 'TRADE_IN' GROUP BY 1
+        )
+        SELECT COALESCE(b.method, p.method) AS method, COALESCE(b.bills, 0)::int AS bills, COALESCE(b.net, 0)::float AS net,
+          COALESCE(p.collected, 0)::float AS collected, COALESCE(b.credit, 0)::float AS credit
+        FROM b FULL JOIN p ON p.method = b.method ORDER BY 3 DESC`,
       this.prisma.$queryRaw<Array<{ id: string; name: string; unit: string; qty: number; net: number; bills: number }>>`
         WITH ${billMathCte(mine)}
         SELECT p.id, p.name, p.unit, SUM(${KEPT_QTY})::float AS qty,

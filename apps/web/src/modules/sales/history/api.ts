@@ -1,7 +1,7 @@
 /** Sales history API: filtered pages of bills, totals and analytics. */
 
 import { apiClient } from '@core/api/client';
-import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import type { PaymentMethod, SalePaymentPart, TenderMethod } from '@modules/sales/sales/api/sales.api';
 
 export type HistoryStatus = 'all' | 'active' | 'credit' | 'returned' | 'voided';
 export type HistorySort = 'new' | 'old' | 'high' | 'low';
@@ -27,7 +27,9 @@ export interface HistoryItem {
 export interface HistorySale {
   id: string; saleNumber: string; soldAt: string; status: 'COMPLETED' | 'PARTIALLY_RETURNED' | 'FULLY_RETURNED' | 'VOIDED';
   source: string; sourceRef: string | null; subtotal: number; discount: number; total: number; paidAmount: number;
-  creditAmount: number; changeAmount: number; refundedAmount: number; paymentMethod: PaymentMethod; costOfGoods: number;
+  creditAmount: number; changeAmount: number; refundedAmount: number; paymentMethod: TenderMethod; costOfGoods: number;
+  /** Parts of a split payment (cash parts net of change). */
+  payments?: SalePaymentPart[];
   receivedByName: string | null; staff: string | null;
   customer: { id: string; name: string; phone: string | null } | null;
   shop: { id: string; name: string } | null;
@@ -53,7 +55,7 @@ export interface HistoryAnalytics {
   trend: Array<{ key: string; sales: number; profit: number; bills: number }>;
   hours: Array<{ hour: number; sales: number; bills: number }>;
   weekdays: Array<{ day: number; sales: number; bills: number }>;
-  payments: Array<{ method: PaymentMethod; total: number; collected: number; bills: number }>;
+  payments: Array<{ method: TenderMethod; total: number; collected: number; bills: number }>;
   sources: Array<{ source: string; total: number; bills: number }>;
   topProducts: Array<{ productId: string; name: string; unit: string; qty: number; revenue: number; lines: number }>;
   topCustomers: Array<{ customerId: string; name: string; phone: string | null; balance: number; total: number; credit: number; bills: number }>;

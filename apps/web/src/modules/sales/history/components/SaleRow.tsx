@@ -145,7 +145,9 @@ export function SaleRow({ sale, money, onOpen, onReturn, waLink, extra }: {
         <div className="relative pointer-events-none">
           <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.75rem] font-semibold" style={{ backgroundColor: `${color}14`, color }}>
             <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
-            {PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod}
+            {(sale.payments?.length ?? 0) > 1
+              ? [...new Set(sale.payments!.map((p) => PAYMENT_LABELS[p.method] ?? p.method))].join(' + ')
+              : PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod}
           </span>
         </div>
         <div className="relative truncate text-[0.8125rem] text-slate-600 pointer-events-none">{sale.staff ?? '—'}</div>

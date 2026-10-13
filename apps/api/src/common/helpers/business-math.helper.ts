@@ -34,9 +34,11 @@
  *   Net profit      gross profit − expenses − write-offs. The P&L statement
  *                   also shows staff pay and kept booking advances as lines of
  *                   their own.
- *   Cash in         paidAmount − changeAmount. Drawer views also leave out
- *                   bills made from a booking (that money was counted when the
- *                   booking was paid).
+ *   Cash in         the bill's SalePayment rows (cash net of change), so it
+ *                   equals paidAmount − changeAmount less any trade-in, which
+ *                   is goods, not money. Splits by method read the rows too.
+ *                   Drawer views also leave out bills made from a booking
+ *                   (that money was counted when the booking was paid).
  *   Returns dating  Sales and profit views (Reports centre, Profit report,
  *                   P&L, Staff, Customers, dashboards) count a return against
  *                   the day of its bill, so a period's figures follow its own
@@ -73,8 +75,8 @@ const r2 = (v: number) => Math.round(v * 100) / 100;
 /** Net sales of one bill. */
 export const BILL_NET = Prisma.sql`(s.total - s."refundedAmount")`;
 
-/** Money taken on one bill. */
-export const BILL_CASH_IN = Prisma.sql`(s."paidAmount" - s."changeAmount")`;
+/** Money taken on one bill: its payment rows without trade-in. */
+export const BILL_CASH_IN = Prisma.sql`(SELECT COALESCE(SUM(sp.amount), 0) FROM "SalePayment" sp WHERE sp."saleId" = s.id AND sp.method <> 'TRADE_IN')`;
 
 /** Prisma filter for live bills. */
 export const LIVE_BILL = { not: 'VOIDED' as const };

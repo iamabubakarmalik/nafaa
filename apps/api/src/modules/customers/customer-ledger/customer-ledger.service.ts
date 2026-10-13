@@ -119,6 +119,7 @@ export class CustomerLedgerService {
           balanceAfter: updated.balance,
           reference: dto.reference,
           note: dto.note || 'Payment received',
+          paymentMethod: dto.paymentMethod ?? 'CASH',
         },
       });
 

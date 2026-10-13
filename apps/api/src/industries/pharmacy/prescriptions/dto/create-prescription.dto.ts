@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod, PrescriptionType, RefillFrequency } from '@prisma/client';
 import { Transform, Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
 
 class PrescriptionItemDto {
   @ApiPropertyOptional() @IsOptional() @IsString() productId?: string;
@@ -80,7 +81,7 @@ export class DispenseDto {
   @ApiPropertyOptional({ enum: PaymentMethod })
   @IsOptional()
   @Transform(({ value }) => (value === 'BANK' ? 'BANK_TRANSFER' : value))
-  @IsEnum(PaymentMethod)
+  @IsIn(MONEY_METHODS)
   paymentMethod?: PaymentMethod;
 
   @ApiPropertyOptional({ description: 'Paid now; missing = paid in full' })

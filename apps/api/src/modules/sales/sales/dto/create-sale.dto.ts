@@ -1,10 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
 import {
-  ArrayMinSize, IsArray, IsBoolean, IsEnum, IsInt, IsNumber,
+  ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber,
   IsOptional, IsString, MaxLength, Min, ValidateNested,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
+import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
+
+/** BANK is the short form some screens send. */
+const bankAlias = ({ value }: { value: unknown }) => (value === 'BANK' ? 'BANK_TRANSFER' : value);
 
 class CreateSaleItemDto {
   @ApiPropertyOptional({
@@ -83,6 +87,31 @@ class CreateSaleItemDto {
   internalNote?: string;
 }
 
+/** One part of a split payment: what the customer handed over by this method. */
+export class SalePaymentPartDto {
+  @ApiProperty({ enum: PaymentMethod, example: 'CASH' })
+  @Transform(bankAlias)
+  @IsEnum(PaymentMethod)
+  method!: PaymentMethod;
+
+  @ApiProperty({ example: 2000, description: 'Cash may be more than the bill; the change comes off the cash.' })
+  @IsNumber()
+  @Min(0.01)
+  amount!: number;
+
+  @ApiPropertyOptional({ description: 'Card slip, wallet transaction id, or the used phone code of a trade-in' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  reference?: string;
+
+  @ApiPropertyOptional({ description: 'What was taken in on a trade-in' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  note?: string;
+}
+
 class ServiceChargeItemDto {
   @ApiProperty({
     example: 'GLUE',
@@ -154,15 +183,27 @@ export class CreateSaleDto {
   @IsString()
   soldById?: string;
 
-  @ApiProperty({ enum: PaymentMethod, example: 'CASH' })
-  @Transform(({ value }) => (value === 'BANK' ? 'BANK_TRANSFER' : value))
-  @IsEnum(PaymentMethod)
+  @ApiProperty({ enum: MONEY_METHODS, example: 'CASH' })
+  @Transform(bankAlias)
+  @IsIn(MONEY_METHODS)
   paymentMethod!: PaymentMethod;
 
-  @ApiProperty({ example: 5000 })
+  @ApiProperty({ example: 5000, description: 'Ignored when `payments` is sent; the parts add up to it.' })
   @IsNumber()
   @Min(0)
   paidAmount!: number;
+
+  /**
+   * Split payment: one part per method (cash + card …). Left out, the bill is
+   * paid by `paymentMethod` alone, as before.
+   */
+  @ApiPropertyOptional({ type: [SalePaymentPartDto] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @ValidateNested({ each: true })
+  @Type(() => SalePaymentPartDto)
+  payments?: SalePaymentPartDto[];
 
   @ApiPropertyOptional({ example: 0 })
   @IsOptional()

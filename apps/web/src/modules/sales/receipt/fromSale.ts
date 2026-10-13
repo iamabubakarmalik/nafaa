@@ -10,8 +10,28 @@ import { formatPKR } from '@core/lib/format';
 
 export const PAYMENT_LABELS: Record<string, string> = {
   CASH: 'Cash', CARD: 'Card', JAZZCASH: 'JazzCash', EASYPAISA: 'EasyPaisa', BANK_TRANSFER: 'Bank', RAAST: 'Raast',
-  CREDIT: 'Udhaar', CHEQUE: 'Cheque', MIXED: 'Mixed', OTHER: 'Other',
+  CREDIT: 'Udhaar', CHEQUE: 'Cheque', MIXED: 'Mixed', OTHER: 'Other', TRADE_IN: 'Trade-in',
 };
+
+/**
+ * Receipt lines of a split payment, or nothing for a bill paid one way.
+ * Stored cash parts are net of change; the receipt shows what was handed
+ * over, so the change goes back on the first cash part.
+ */
+export function paymentParts(
+  parts: Array<{ method: string; amount: number; note?: string | null }> | undefined,
+  change: number,
+): { lines?: Array<{ label: string; amount: number }>; label?: string } {
+  if (!parts?.length || (parts.length === 1 && parts[0].method !== 'TRADE_IN')) return {};
+  let back = Math.max(change, 0);
+  const lines = parts.map((p) => {
+    const extra = p.method === 'CASH' ? back : 0;
+    if (extra) back = 0;
+    const name = PAYMENT_LABELS[p.method] ?? p.method;
+    return { label: p.method === 'TRADE_IN' && p.note ? `${name} (${p.note})` : name, amount: n(p.amount) + extra };
+  });
+  return { lines, label: `Paid (${[...new Set(parts.map((p) => PAYMENT_LABELS[p.method] ?? p.method))].join(' + ')})` };
+}
 
 const PTA: Record<string, string> = { APPROVED: 'PTA approved', NON_PTA: 'Non-PTA', PATCH: 'PTA patched', PENDING: 'PTA pending' };
 const n = (v: unknown) => Number(v ?? 0) || 0;
@@ -89,6 +109,7 @@ export function saleToReceipt(sale: any): ReceiptDoc {
 
   const credit = n(sale.creditAmount);
   const balance = n(sale.customer?.balance);
+  const split = paymentParts(sale.payments, n(sale.changeAmount));
   const offline = String(sale.id ?? '').startsWith('local_sale') || String(sale.saleNumber ?? '').startsWith('OFFLINE');
 
   return {
@@ -112,7 +133,8 @@ export function saleToReceipt(sale: any): ReceiptDoc {
     extraRows,
     total,
     paid: n(sale.paidAmount),
-    paymentLabel: `Paid (${PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod ?? 'Cash'})`,
+    paymentLabel: split.label ?? `Paid (${PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod ?? 'Cash'})`,
+    payments: split.lines,
     // The customer's khata before this bill, as far as today's balance tells.
     previousDue: sale.customer ? Math.max(balance - credit, 0) : 0,
   };
@@ -133,7 +155,7 @@ export function receiptText(doc: ReceiptDoc, shopName: string, accounts: PayAcco
     '',
     doc.discount > 0 ? `Discount: −${formatPKR(doc.discount)}` : '',
     `*Total: ${formatPKR(doc.total)}*`,
-    `${doc.paymentLabel}: ${formatPKR(doc.paid)}`,
+    ...(doc.payments?.length ? doc.payments.map((p) => `${p.label}: ${formatPKR(p.amount)}`) : [`${doc.paymentLabel}: ${formatPKR(doc.paid)}`]),
     due > 0 ? `Udhaar: ${formatPKR(due)}` : '',
     ...pay,
     '',

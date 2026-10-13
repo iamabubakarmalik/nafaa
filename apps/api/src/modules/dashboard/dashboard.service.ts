@@ -342,15 +342,11 @@ export class DashboardService {
         },
         select: { soldAt: true, total: true, refundedAmount: true },
       }),
-      this.prisma.sale.groupBy({
-        by: ['paymentMethod'],
-        where: {
-          tenantId,
-          status: LIVE_BILL,
-          soldAt: { gte: monthStart },
-          ...shopFilter,
-        },
-        _sum: { total: true, refundedAmount: true },
+      // How this month's bills were paid, from their payment rows.
+      this.prisma.salePayment.groupBy({
+        by: ['method'],
+        where: { tenantId, sale: { tenantId, status: LIVE_BILL, soldAt: { gte: monthStart }, ...shopFilter } },
+        _sum: { amount: true },
         _count: { _all: true },
       }),
       writeOffs(this.prisma, math, { gte: todayStart }),
@@ -537,8 +533,8 @@ export class DashboardService {
         shop: s.shop ? { id: s.shop.id, name: s.shop.name } : null,
       })),
       paymentBreakdown: paymentMethodAgg.map((p) => ({
-        method: p.paymentMethod,
-        total: (p._sum.total ?? 0) - (p._sum.refundedAmount ?? 0),
+        method: p.method,
+        total: p._sum.amount ?? 0,
         count: p._count._all,
       })),
       currentRegister,

@@ -1,10 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
-import {
-  ArrayMinSize, IsArray, IsBoolean, IsDateString, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, Max,
-  MaxLength, Min, ValidateNested,
-} from 'class-validator';
+import { ArrayMinSize, IsArray, IsBoolean, IsDateString, IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
 
 // ─── Carpet roll payload (per-roll details) ────────────────
 class PurchaseRollDto {
@@ -113,7 +111,7 @@ export class CreatePurchaseDto {
   @ApiProperty() @IsString() supplierId!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() shopId?: string;
 
-  @ApiProperty({ enum: PaymentMethod, example: 'CASH' }) @IsEnum(PaymentMethod) paymentMethod!: PaymentMethod;
+  @ApiProperty({ enum: PaymentMethod, example: 'CASH' }) @IsIn(MONEY_METHODS) paymentMethod!: PaymentMethod;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) discount?: number;
   @ApiPropertyOptional({ description: 'Freight, loading and other costs' }) @IsOptional() @IsNumber() @Min(0) otherCharges?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) taxAmount?: number;
@@ -143,7 +141,7 @@ class LineQtyDto {
 export class ReceivePurchaseDto {
   @ApiProperty({ type: [LineQtyDto] }) @IsArray() @ArrayMinSize(1) @ValidateNested({ each: true }) @Type(() => LineQtyDto) items!: LineQtyDto[];
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) paidAmount?: number;
-  @ApiPropertyOptional({ enum: PaymentMethod }) @IsOptional() @IsEnum(PaymentMethod) paymentMethod?: PaymentMethod;
+  @ApiPropertyOptional({ enum: PaymentMethod }) @IsOptional() @IsIn(MONEY_METHODS) paymentMethod?: PaymentMethod;
   @ApiPropertyOptional({ description: 'Close the order; the rest will not come' }) @IsOptional() @IsBoolean() close?: boolean;
 }
 

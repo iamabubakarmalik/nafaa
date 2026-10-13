@@ -10,7 +10,9 @@
  * payment method (bank transfer, card, JazzCash, Easypaisa). Cash belongs to
  * the drawer (live-cash.helper), so a safe moves only by manual entries.
  *
- *   in   SALE            paid − change on bills of the method (booking bills excluded)
+ *   in   SALE            payment rows of the method on bills (booking bills excluded);
+ *                        a split bill sends each part to its own account
+ *        KHATA           khata collections paid by the method (booking lines excluded)
  *        BOOKING         booking advances and later payments of the method
  *   out  BOOKING_REFUND  cancelled booking advances returned by the method
  *        REFUND          returns paid back by the method, payout only (the part
@@ -20,7 +22,8 @@
  *        SUPPLIER        later supplier payments made by the method
  *        EXPENSE         paid expenses of the method
  *
- * Khata collections store no method; they are drawer cash and never land here.
+ * Khata collections without a method (older rows) are drawer cash and never
+ * land here. TRADE_IN is goods, not money: no account takes it.
  *
  * Manual entries: DEPOSIT and TRANSFER_IN add, WITHDRAW and TRANSFER_OUT
  * subtract, ADJUSTMENT carries its own sign.
@@ -31,13 +34,14 @@
  */
 
 import { MoneyEntryType, PaymentMethod, Prisma } from '@prisma/client';
+import { NOT_BOOKING_LINE } from './live-cash.helper';
 
 type Db = Prisma.TransactionClient;
 
-export const AUTO_SOURCES = ['SALE', 'BOOKING', 'BOOKING_REFUND', 'REFUND', 'PURCHASE', 'SUPPLIER', 'EXPENSE'] as const;
+export const AUTO_SOURCES = ['SALE', 'KHATA', 'BOOKING', 'BOOKING_REFUND', 'REFUND', 'PURCHASE', 'SUPPLIER', 'EXPENSE'] as const;
 export type AutoSource = (typeof AUTO_SOURCES)[number];
 export const AUTO_DIRECTION: Record<AutoSource, 'in' | 'out'> = {
-  SALE: 'in', BOOKING: 'in', BOOKING_REFUND: 'out', REFUND: 'out', PURCHASE: 'out', SUPPLIER: 'out', EXPENSE: 'out',
+  SALE: 'in', KHATA: 'in', BOOKING: 'in', BOOKING_REFUND: 'out', REFUND: 'out', PURCHASE: 'out', SUPPLIER: 'out', EXPENSE: 'out',
 };
 
 /** Fields of an account the balance depends on. */
@@ -96,7 +100,7 @@ async function ownDefaults(db: Db, tenantId: string, method: PaymentMethod): Pro
 
 /** The automatic rows an account receives, or null when it receives none. */
 export async function autoScopeOf(db: Db, a: BalanceAccount): Promise<AutoScope | null> {
-  if (!a.isDefault || !a.isActive || !a.method || a.method === 'CASH') return null;
+  if (!a.isDefault || !a.isActive || !a.method || a.method === 'CASH' || a.method === 'TRADE_IN') return null;
   return {
     tenantId: a.tenantId,
     method: a.method,
@@ -155,9 +159,13 @@ export function autoWhere(s: AutoScope, w: { gte: Date; lt?: Date }) {
   });
   return {
     sale: {
-      tenantId: s.tenantId, AND: [b as Prisma.SaleWhereInput], status: { not: 'VOIDED' }, paymentMethod: s.method,
-      bookingId: null, paidAmount: { gt: 0 }, soldAt: w,
-    } satisfies Prisma.SaleWhereInput,
+      tenantId: s.tenantId, method: s.method,
+      sale: { tenantId: s.tenantId, AND: [b as Prisma.SaleWhereInput], status: { not: 'VOIDED' }, bookingId: null, soldAt: w },
+    } satisfies Prisma.SalePaymentWhereInput,
+    khata: {
+      tenantId: s.tenantId, type: 'PAYMENT_RECEIVED', paymentMethod: s.method, createdAt: w,
+      AND: [b as Prisma.CustomerLedgerWhereInput, NOT_BOOKING_LINE],
+    } satisfies Prisma.CustomerLedgerWhereInput,
     booking: booking(false),
     bookingRefund: booking(true),
     refund: {
@@ -181,7 +189,7 @@ export function autoWhere(s: AutoScope, w: { gte: Date; lt?: Date }) {
 export async function accountFlows(db: Db, a: BalanceAccount, w: Window = {}, scope?: AutoScope | null): Promise<AccountFlows> {
   const win = clampWindow(a, w);
   const s = scope === undefined ? await autoScopeOf(db, a) : scope;
-  const auto: Record<AutoSource, number> = { SALE: 0, BOOKING: 0, BOOKING_REFUND: 0, REFUND: 0, PURCHASE: 0, SUPPLIER: 0, EXPENSE: 0 };
+  const auto: Record<AutoSource, number> = { SALE: 0, KHATA: 0, BOOKING: 0, BOOKING_REFUND: 0, REFUND: 0, PURCHASE: 0, SUPPLIER: 0, EXPENSE: 0 };
 
   const entryWhere: Prisma.MoneyAccountEntryWhereInput = { tenantId: a.tenantId, accountId: a.id, entryDate: win };
   const [byType, adjustNeg] = await Promise.all([
@@ -191,8 +199,10 @@ export async function accountFlows(db: Db, a: BalanceAccount, w: Window = {}, sc
 
   if (s) {
     const q = autoWhere(s, win);
-    const [sale, bookingIn, bookingOut, refund, purchase, supplier, expense] = await Promise.all([
-      db.sale.aggregate({ where: q.sale, _sum: { paidAmount: true, changeAmount: true } }),
+    const [sale, khata, bookingIn, bookingOut, refund, purchase, supplier, expense] = await Promise.all([
+      db.salePayment.aggregate({ where: q.sale, _sum: { amount: true } }),
+      // Collections are stored as negative amounts.
+      db.customerLedger.aggregate({ where: q.khata, _sum: { amount: true } }),
       db.bookingPayment.aggregate({ where: q.booking, _sum: { amount: true } }),
       db.bookingPayment.aggregate({ where: q.bookingRefund, _sum: { amount: true } }),
       db.saleReturn.aggregate({ where: q.refund, _sum: { refundAmount: true }, _count: { _all: true } }),
@@ -200,7 +210,8 @@ export async function accountFlows(db: Db, a: BalanceAccount, w: Window = {}, sc
       db.supplierLedger.aggregate({ where: q.supplier, _sum: { amount: true } }),
       db.expense.aggregate({ where: q.expense, _sum: { amount: true } }),
     ]);
-    auto.SALE = r2(n(sale._sum.paidAmount) - n(sale._sum.changeAmount));
+    auto.SALE = r2(n(sale._sum.amount));
+    auto.KHATA = r2(-n(khata._sum.amount));
     auto.BOOKING = r2(n(bookingIn._sum.amount));
     auto.BOOKING_REFUND = r2(n(bookingOut._sum.amount));
     const returnNumbers = refund._count._all

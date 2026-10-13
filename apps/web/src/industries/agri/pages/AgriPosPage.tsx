@@ -13,7 +13,7 @@ import { useAuthStore, useShopParam } from '@core/stores/auth.store';
 import { offlineProductsApi as productsApi } from '@core/lib/offline/offlineProducts';
 import { offlineCustomersApi as customersApi } from '@core/lib/offline/offlineCustomers';
 import { offlineSalesApi } from '@core/lib/offline/offlineSales';
-import { type PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import { type PaymentMethod, type SalePaymentPart } from '@modules/sales/sales/api/sales.api';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { printReceiptDirect, type ReceiptPayload } from '@modules/pos/lib/thermalReceipt';
@@ -26,7 +26,7 @@ import {
   PosSettingsModal, PosCheckoutModal, PosUnitPickerModal, PosWeighModal,
   PosDiscountModal, PosCartPanel, PosTeacher, PosViewTab, PosComboTile,
   PosQuickKeyTile, PosEmptyState, PosSuccessModal, PosCustomerAddModal,
-  PosHoldCartsModal,
+  PosHoldCartsModal, splitReceiptLines,
 } from '@modules/pos/components';
 import { emptyReceiver, type PosReceiverValue } from '@modules/pos/components/PosReceiverField';
 import {
@@ -764,7 +764,7 @@ export default function AgriPosPage() {
 
   /* ═══ CHECKOUT ═══ */
   const checkoutMutation = useMutation({
-    mutationFn: (data: { paymentMethod: PaymentMethod; paidAmount: number; depositExtra?: boolean; soldById?: string }) => {
+    mutationFn: (data: { paymentMethod: PaymentMethod; paidAmount: number; depositExtra?: boolean; soldById?: string; payments?: SalePaymentPart[] }) => {
       if (!currentShopId) throw new Error('Pehle dukaan chunein');
       const items: any[] = [];
       cart.forEach((l) => {
@@ -803,6 +803,7 @@ export default function AgriPosPage() {
            ka naam laga deta hai */
         soldById: data.soldById,
         paidAmount: data.paidAmount,
+        ...(data.payments && { payments: data.payments }),
         discount: discountAmount,
         serviceCharges: deliveryServiceCharge(delivery),
         receivedByName: receiver.name.trim() || undefined,
@@ -829,6 +830,7 @@ export default function AgriPosPage() {
         deliveryAddress: delivery.on ? (delivery.address || undefined) : undefined,
         paid: vars.paidAmount,
         paymentLabel: `Paid (${payLabel})`,
+        payments: splitReceiptLines(vars.payments),
       };
 
       setLastSale({ id: sale.id, number: sale.saleNumber, change, total, deposited: vars.depositExtra === true, printPayload });
@@ -958,7 +960,7 @@ export default function AgriPosPage() {
           customerId={customerId || undefined}
           receiver={receiver}
           onReceiverChange={setReceiver}
-          onConfirm={(d) => checkoutMutation.mutate({ paymentMethod: d.paymentMethod, paidAmount: d.paidAmount, depositExtra: d.depositExtra, soldById })}
+          onConfirm={(d) => checkoutMutation.mutate({ paymentMethod: d.paymentMethod, paidAmount: d.paidAmount, depositExtra: d.depositExtra, soldById, payments: d.payments })}
           onClose={() => setShowCheckout(false)}
         />
       )}

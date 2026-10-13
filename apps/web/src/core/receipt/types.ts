@@ -148,6 +148,12 @@ export interface ReceiptDoc {
   total: number;
   paid: number;
   paymentLabel: string;
+  /**
+   * Each part of a split payment ("Cash", "Card", "Trade-in"), adding up to
+   * `paid`. Printed instead of the single payment line when there is more
+   * than one part or a trade-in.
+   */
+  payments?: Array<{ label: string; amount: number }>;
   previousDue?: number;
   /** Industry message above the shop's own footer. */
   footerNote?: string;

@@ -122,7 +122,7 @@ export interface DrawerMovePayload {
 
 export type MoneyAccountKind = 'CASH' | 'BANK' | 'WALLET';
 export type MoneyEntryType = 'DEPOSIT' | 'WITHDRAW' | 'TRANSFER_IN' | 'TRANSFER_OUT' | 'ADJUSTMENT';
-export type AutoSource = 'SALE' | 'BOOKING' | 'BOOKING_REFUND' | 'REFUND' | 'PURCHASE' | 'SUPPLIER' | 'EXPENSE';
+export type AutoSource = 'SALE' | 'KHATA' | 'BOOKING' | 'BOOKING_REFUND' | 'REFUND' | 'PURCHASE' | 'SUPPLIER' | 'EXPENSE';
 
 /** A safe, bank account or mobile wallet with its live balance. */
 export interface MoneyAccountRow {

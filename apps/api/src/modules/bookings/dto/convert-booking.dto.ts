@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
-import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { MONEY_METHODS } from '../../../common/helpers/sale-payments.helper';
 
 export class ConvertBookingDto {
   @ApiPropertyOptional({ description: 'Additional payment collected at pickup' })
@@ -11,7 +12,7 @@ export class ConvertBookingDto {
 
   @ApiPropertyOptional({ enum: PaymentMethod })
   @IsOptional()
-  @IsEnum(PaymentMethod)
+  @IsIn(MONEY_METHODS)
   paymentMethod?: PaymentMethod;
 
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;

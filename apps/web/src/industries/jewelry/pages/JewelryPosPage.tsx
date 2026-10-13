@@ -214,7 +214,7 @@ export default function JewelryPosPage() {
   const checkoutMutation = useMutation({
     mutationFn: () => {
       if (!currentShopId) throw new Error('Shop required');
-      // Counter rules (big discount or old-gold value, credit limit) may ask for an owner or manager PIN.
+      // Counter rules (big discount, credit limit) may ask for an owner or manager PIN. Old gold is a trade-in payment, not a discount.
       return withManagerPin('Is bill ki approval', (managerPin) => jewelrySalesApi.create({
         customerId: customerId || undefined,
         customerName: customerName || selectedCustomer?.name || 'Walk-in',

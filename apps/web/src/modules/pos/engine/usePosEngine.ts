@@ -22,7 +22,7 @@ import { discountsApi } from '@modules/sales/discounts/api/discounts.api';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { productUnitsApi } from '@modules/inventory/products/api/product-units.api';
 import { productVariantsApi, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
-import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import type { PaymentMethod, SalePaymentPart } from '@modules/sales/sales/api/sales.api';
 import type { VoiceCommand, VoiceFeedback } from '@core/components/voice/VoiceSaleButton';
 import { matchScore } from '@core/components/voice/voiceMatch';
 import { quickKeysApi, type QuickKey } from '../api/quick-keys.api';
@@ -41,6 +41,7 @@ import {
 import { printReceiptDirect, toReceiptDoc, type ReceiptPayload } from '../lib/thermalReceipt';
 import { getReceiptSetup } from '@core/receipt/setup';
 import { receiptText } from '@modules/sales/receipt/fromSale';
+import { splitReceiptLines } from '../components/PosSplitTender';
 import { askManagerPin } from '@core/security/ManagerPin';
 import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem } from './types';
 
@@ -573,7 +574,7 @@ export function usePosEngine(config: PosIndustryConfig) {
   }, [findVoice, unitsFor, pushLine, cart.length, customerId, clearCart, rules.allowDiscount]);
 
   /* ── Checkout ── */
-  const receiptFor = useCallback((sale: { saleNumber?: string }, paid: number, method: PaymentMethod, credit: number): ReceiptPayload => ({
+  const receiptFor = useCallback((sale: { saleNumber?: string }, paid: number, method: PaymentMethod, credit: number, parts?: SalePaymentPart[]): ReceiptPayload => ({
     saleNumber: sale.saleNumber || 'N/A',
     date: new Date(),
     shopName: tenant?.name || 'Shop',
@@ -595,6 +596,8 @@ export function usePosEngine(config: PosIndustryConfig) {
     paid,
     paymentLabel: credit > 0 ? `Paid (${POS_PAYMENT_METHODS.find((m) => m.id === method)?.label ?? method}) · Udhaar ${formatPKR(credit)}`
       : `Paid (${POS_PAYMENT_METHODS.find((m) => m.id === method)?.label ?? method})`,
+    // Split bills print each part as handed over (cash before change).
+    payments: splitReceiptLines(parts),
     cashierName: user?.fullName,
     footerNote: config.receiptFooter,
   }), [tenant, user, selectedCustomer, receiver, cart, subtotal, discountAmount, codeDiscount, loyaltyDiscount, total, deliveryFee, delivery, config.receiptFooter]);
@@ -674,6 +677,7 @@ export function usePosEngine(config: PosIndustryConfig) {
         paymentMethod: d.paymentMethod,
         soldById,
         paidAmount,
+        ...(d.payments && { payments: d.payments }),
         discount: discountAmount,
         discountCode: promo?.code,
         loyaltyPointsToUse: pointsUsed || undefined,
@@ -688,6 +692,7 @@ export function usePosEngine(config: PosIndustryConfig) {
         try {
           await customerLedgerApi.receivePayment(customerId, {
             amount: Number((d.paidAmount - total).toFixed(2)),
+            paymentMethod: d.paymentMethod,
             reference: (sale as { saleNumber?: string }).saleNumber,
             note: `Bill ${(sale as { saleNumber?: string }).saleNumber ?? ''} par zyada diya — advance`,
           });
@@ -702,7 +707,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       const s = sale as { id: string; saleNumber: string };
       const credit = Math.max(total - paidAmount, 0);
       const change = Math.max(d.paidAmount - total, 0);
-      const printPayload = receiptFor(s, paidAmount, d.paymentMethod, credit);
+      const printPayload = receiptFor(s, paidAmount, d.paymentMethod, credit, d.payments);
       setLastSale({ id: s.id, number: s.saleNumber, change, total, deposited, credit, printPayload, customerPhone: selectedCustomer?.phone });
       setCheckout(null);
       clearCart();

@@ -10,7 +10,7 @@
  */
 
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { BookingStatus, CustomerLedgerType, Prisma } from '@prisma/client';
+import { BookingStatus, CustomerLedgerType, PaymentMethod, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
@@ -23,6 +23,7 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { AddBookingPaymentDto } from './dto/add-payment.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { ConvertBookingDto } from './dto/convert-booking.dto';
+import { saveSalePayments } from '../../common/helpers/sale-payments.helper';
 import { ListBookingsDto } from './dto/list-bookings.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 
@@ -72,7 +73,7 @@ export class BookingsService {
   /** Changes the customer's khata by `amount` (positive = they owe more) and records the line. */
   private async ledger(
     tx: Tx, user: AuthenticatedUser, b: { customerId: string; shopId: string | null },
-    type: CustomerLedgerType, amount: number, reference: string, note: string,
+    type: CustomerLedgerType, amount: number, reference: string, note: string, paymentMethod?: PaymentMethod,
   ) {
     const { balance } = await tx.customer.update({
       where: { id: b.customerId }, data: { balance: { increment: amount } }, select: { balance: true },
@@ -80,7 +81,7 @@ export class BookingsService {
     await tx.customerLedger.create({
       data: {
         tenantId: user.tenantId, shopId: b.shopId, customerId: b.customerId, createdById: user.id,
-        type, amount, balanceAfter: balance, reference, note,
+        type, amount, balanceAfter: balance, reference, note, paymentMethod,
       },
     });
   }
@@ -615,7 +616,7 @@ export class BookingsService {
                 notes: 'Booking ke waqt advance',
               },
             });
-            await this.ledger(tx, user, booking, 'PAYMENT_RECEIVED', -initialAdvance, bookingNumber, `Booking advance: ${bookingNumber}`);
+            await this.ledger(tx, user, booking, 'PAYMENT_RECEIVED', -initialAdvance, bookingNumber, `Booking advance: ${bookingNumber}`, dto.paymentMethod ?? 'CASH');
           }
           return booking;
         });
@@ -695,7 +696,7 @@ export class BookingsService {
           createdById: user.id,
         },
       });
-      await this.ledger(tx, user, booking, 'PAYMENT_RECEIVED', -amount, booking.bookingNumber, `Booking payment: ${booking.bookingNumber}`);
+      await this.ledger(tx, user, booking, 'PAYMENT_RECEIVED', -amount, booking.bookingNumber, `Booking payment: ${booking.bookingNumber}`, dto.paymentMethod ?? 'CASH');
     });
     return this.findOne(user, id);
   }
@@ -815,6 +816,9 @@ export class BookingsService {
           bookingId: booking.id,
         },
       });
+      // Booking bills keep their row like any bill; drawer and accounts skip
+      // them because each booking payment was counted when it came in.
+      await saveSalePayments(tx, sale, totalPaidNow > 0 ? [{ method: paymentMethod, amount: totalPaidNow }] : []);
 
       // Stock out of the booking's branch, the same way the counter does it.
       for (const it of booking.items) {

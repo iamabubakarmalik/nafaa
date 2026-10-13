@@ -35,6 +35,9 @@ enum PaymentMethod {
   BANK_TRANSFER
   JAZZCASH
   EASYPAISA
+  /// Goods taken toward a bill (old gold, a used phone). Counts as paid on the
+  /// bill only; it is never drawer cash or bank money.
+  TRADE_IN
 }
 
 // Sale kahan se aayi — counter par ya kisi online channel se.
@@ -400,6 +403,7 @@ model Tenant {
   cashTransactions    CashTransaction[]
   moneyAccounts       MoneyAccount[]
   moneyAccountEntries MoneyAccountEntry[]
+  salePayments        SalePayment[]
   activityLogs        ActivityLog[]
   notifications       Notification[]
   transfers           StockTransfer[]
@@ -657,6 +661,7 @@ model Shop {
   saleReturns      SaleReturn[]
   moneyAccounts    MoneyAccount[]
   moneyEntries     MoneyAccountEntry[]
+  salePayments     SalePayment[]
 
   // ── Marketplace relations ──
   marketplaceProfile  ShopMarketplaceProfile?
@@ -1195,6 +1200,8 @@ model CustomerLedger {
   balanceAfter Float
   reference    String?
   note         String?
+  /// How a collection was paid. Null on older rows, which count as cash.
+  paymentMethod PaymentMethod?
   createdAt    DateTime           @default(now())
 
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1326,6 +1333,8 @@ model Sale {
   soldBy          User?         @relation("UserSoldSales", fields: [soldById], references: [id], onDelete: SetNull)
   discountCodeRef DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
   items           SaleItem[]
+  /// One row per method used to pay the bill (split tender, trade-in).
+  payments        SalePayment[]
   returns         SaleReturn[]
   booking         Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
   repairTicket    RepairTicket? @relation("RepairTicketSale")
@@ -1340,6 +1349,31 @@ model Sale {
   @@index([soldById])
   @@index([customerId, receivedByName])
   @@index([tenantId, source, soldAt])
+}
+
+/// One part of a bill's payment. A bill paid by one method has one row; a
+/// split bill has one row per method. Cash rows hold what was kept, net of
+/// the change handed back. The rows add up to paidAmount − changeAmount.
+/// TRADE_IN rows are goods taken toward the bill: paid, but not money.
+model SalePayment {
+  id        String        @id @default(uuid())
+  tenantId  String
+  saleId    String
+  shopId    String?
+  method    PaymentMethod
+  amount    Float
+  /// Card slip, wallet transaction id or used phone code.
+  reference String?
+  /// What was taken in on a trade-in, e.g. "Purana sona 10g 21K".
+  note      String?
+  createdAt DateTime      @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sale   Sale   @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  shop   Shop?  @relation(fields: [shopId], references: [id], onDelete: SetNull)
+
+  @@index([saleId])
+  @@index([tenantId, method])
 }
 
 model SaleItem {

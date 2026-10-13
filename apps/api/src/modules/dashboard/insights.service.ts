@@ -66,7 +66,10 @@ export class InsightsService {
         orderBy: { _sum: { total: 'desc' } },
         take: 20,
       }),
-      this.prisma.sale.findMany({ where: saleWhere, select: { soldAt: true, total: true, refundedAmount: true, paymentMethod: true, paidAmount: true, changeAmount: true, creditAmount: true } }),
+      this.prisma.sale.findMany({
+        where: saleWhere,
+        select: { soldAt: true, total: true, refundedAmount: true, creditAmount: true, payments: { select: { method: true, amount: true } } },
+      }),
     ]);
 
     const categories = catRows
@@ -114,14 +117,18 @@ export class InsightsService {
       const f = dayFigures.get(date);
       return { date, sales: f?.net ?? 0, profit: f?.grossProfit ?? 0, bills: f?.bills ?? 0 };
     });
-    // Money in by payment method (credit kept apart as udhaar).
+    // Money in by payment method from each bill's payment rows (credit kept
+    // apart as udhaar; trade-in is goods, not money).
     const payMap = new Map<string, { method: string; collected: number; bills: number }>();
     let credit = 0;
     for (const s of saleTimes) {
-      const p = payMap.get(s.paymentMethod) ?? { method: s.paymentMethod, collected: 0, bills: 0 };
-      p.collected += s.paidAmount - s.changeAmount;
-      p.bills += 1;
-      payMap.set(s.paymentMethod, p);
+      for (const row of s.payments) {
+        if (row.method === 'TRADE_IN') continue;
+        const p = payMap.get(row.method) ?? { method: row.method, collected: 0, bills: 0 };
+        p.collected += row.amount;
+        p.bills += 1;
+        payMap.set(row.method, p);
+      }
       credit += s.creditAmount;
     }
     const payments = [...payMap.values()].sort((a, b) => b.collected - a.collected);

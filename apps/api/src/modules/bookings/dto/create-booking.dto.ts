@@ -1,10 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
-import {
-  ArrayMinSize, IsArray, IsBoolean, IsDateString, IsEnum, IsNumber,
-  IsOptional, IsString, Min, ValidateNested,
-} from 'class-validator';
+import { ArrayMinSize, IsArray, IsBoolean, IsDateString, IsIn, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { MONEY_METHODS } from '../../../common/helpers/sale-payments.helper';
 
 class BookingItemDto {
   @ApiProperty()
@@ -108,7 +106,7 @@ export class CreateBookingDto {
 
   @ApiPropertyOptional({ enum: PaymentMethod, example: 'CASH' })
   @IsOptional()
-  @IsEnum(PaymentMethod)
+  @IsIn(MONEY_METHODS)
   paymentMethod?: PaymentMethod;
 
   @ApiPropertyOptional({ description: 'Initial advance paid at time of booking' })

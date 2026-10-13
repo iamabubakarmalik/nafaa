@@ -8,6 +8,7 @@ import { db } from '@core/lib/offline/db';
 import { LEDGER_CACHE_KEY } from '@core/lib/offline/offlineKhata';
 import { queueGenericMutation } from '@core/lib/offline/syncEngine';
 import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.api';
+import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import type { KhataAction } from './components/KhataActionModal';
 
 const isNetFail = (e: unknown) => {
@@ -18,10 +19,10 @@ const isNetFail = (e: unknown) => {
 const ENDPOINT: Record<KhataAction, string> = { payment: 'payment', udhaar: 'udhaar', opening: 'opening-balance' };
 
 /** Runs the action online, or queues it and updates the saved data offline. Returns true when queued. */
-export async function runKhataAction(action: KhataAction, customerId: string, amount: number, note?: string): Promise<boolean> {
-  const payload = action === 'opening' ? { balance: amount, note } : { amount, note };
+export async function runKhataAction(action: KhataAction, customerId: string, amount: number, note?: string, method?: PaymentMethod): Promise<boolean> {
+  const payload = action === 'opening' ? { balance: amount, note } : action === 'payment' ? { amount, note, paymentMethod: method } : { amount, note };
   try {
-    if (action === 'payment') await customerLedgerApi.receivePayment(customerId, payload as { amount: number; note?: string });
+    if (action === 'payment') await customerLedgerApi.receivePayment(customerId, payload as { amount: number; note?: string; paymentMethod?: PaymentMethod });
     else if (action === 'udhaar') await customerLedgerApi.addUdhaar(customerId, payload as { amount: number; note?: string });
     else await customerLedgerApi.setOpeningBalance(customerId, payload as { balance: number; note?: string });
     return false;

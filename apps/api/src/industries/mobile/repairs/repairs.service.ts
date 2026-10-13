@@ -43,13 +43,14 @@ export class RepairsService {
     user: AuthenticatedUser,
     ticket: { id: string; ticketNumber: string; shopId: string | null; customerId: string | null; customerName: string; customerPhone: string },
     amount: number,
+    method?: string | null,
   ) {
     const shopId = await resolveIndustryShopId(tx, user, ticket.shopId);
     const customerId = await ensureCustomer(tx, user, {
       customerId: ticket.customerId, name: ticket.customerName, phone: ticket.customerPhone, shopId,
     });
     await recordKhataPayment(tx, user, {
-      customerId, shopId, amount, reference: ticket.ticketNumber, note: `Repair advance ${ticket.ticketNumber}`,
+      customerId, shopId, amount, reference: ticket.ticketNumber, note: `Repair advance ${ticket.ticketNumber}`, method,
     });
     if (customerId !== ticket.customerId || shopId !== ticket.shopId) {
       await tx.repairTicket.update({ where: { id: ticket.id }, data: { customerId, shopId } });
@@ -752,7 +753,7 @@ export class RepairsService {
           createdById: user.id,
         },
       });
-      await this.takeAdvance(tx, user, ticket, dto.amount);
+      await this.takeAdvance(tx, user, ticket, dto.amount, dto.paymentMethod);
 
       await tx.repairTicket.update({
         where: { id: ticketId },

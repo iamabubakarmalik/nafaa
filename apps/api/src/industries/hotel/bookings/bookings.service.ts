@@ -162,7 +162,7 @@ export class BookingsService {
      // Advance is the guest's money until checkout, so it is held on khata.
      if (advancePaid > 0 && customerId) {
        await recordKhataPayment(tx, user, {
-         customerId, shopId, amount: advancePaid, reference: bookingNumber,
+         customerId, shopId, amount: advancePaid, reference: bookingNumber, method: dto.paymentMethod,
          note: `Hotel advance: ${bookingNumber}`,
        });
      }

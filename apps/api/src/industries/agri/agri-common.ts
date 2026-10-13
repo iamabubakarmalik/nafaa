@@ -12,6 +12,7 @@ import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.int
 import {
   addDaysTz, dateKeyTz, endOfDayTz, startOfDayTz, tzParts, weekdayInTz, zonedToUtc,
 } from '../../common/helpers/business-time.helper';
+import { toPaymentMethod } from '../_shared/industry-sale.helper';
 
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -151,7 +152,7 @@ export async function ensureKhataCustomer(
 export async function khataPayment(
   db: Db,
   user: AuthenticatedUser,
-  input: { customerId: string; shopId: string; amount: number; reference: string; note: string },
+  input: { customerId: string; shopId: string; amount: number; reference: string; note: string; method?: string | null },
 ) {
   const amount = r2(input.amount);
   if (amount <= 0) throw new BadRequestException('Amount sahi likhein');
@@ -171,6 +172,7 @@ export async function khataPayment(
       balanceAfter: balance,
       reference: input.reference,
       note: input.note,
+      paymentMethod: toPaymentMethod(input.method),
     },
   });
 }

@@ -182,7 +182,7 @@ export class WeddingContractsService {
       const shopId = await resolveIndustryShopId(tx, user, scope.shopId);
       const customerId = await this.customerFor(tx, user, c, shopId);
       await recordKhataPayment(tx, user, {
-        customerId, shopId, amount, reference: c.contractNumber,
+        customerId, shopId, amount, reference: c.contractNumber, method: dto.paymentMethod,
         note: `Shaadi payment: ${c.brideName} & ${c.groomName} (${c.contractNumber})`,
       });
       return tx.floristWeddingContract.update({

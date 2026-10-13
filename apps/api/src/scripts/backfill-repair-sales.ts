@@ -21,6 +21,7 @@
  */
 
 import { PrismaClient, Prisma } from '@prisma/client';
+import { saveSalePayments } from '../common/helpers/sale-payments.helper';
 
 const prisma = new PrismaClient();
 const APPLY = process.argv.includes('--apply');
@@ -140,6 +141,8 @@ async function main() {
           },
         },
       });
+
+      await saveSalePayments(tx, madeSale, paidAmount > 0 ? [{ method: 'CASH', amount: paidAmount }] : []);
 
       if (creditAmount > 0 && ticket.customerId) {
         const customer = await tx.customer.findUnique({ where: { id: ticket.customerId } });

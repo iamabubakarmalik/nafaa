@@ -300,6 +300,7 @@ export class TailoringService {
         customerId,
         shopId,
         amount: dto.amount,
+        method: dto.paymentMethod,
         reference: order.orderNumber,
         note: `Silai advance ${order.orderNumber}`,
       });

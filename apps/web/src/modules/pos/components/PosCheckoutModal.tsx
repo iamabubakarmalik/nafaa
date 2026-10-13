@@ -2,20 +2,23 @@
  * Checkout: full payment, part payment with the rest on credit, or full
  * credit. The cashier can type what the customer handed over to see the
  * change; extra money can be kept as an advance in the customer's khata.
+ * Split payment takes the bill by several methods (cash + card …, or a
+ * trade-in phone where the shop offers it).
  *
  * Keys: Enter confirm · F1/F3/F4/F5/F7 payment method · F6 full credit.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, Calculator, Check, Delete, User, Wallet } from 'lucide-react';
+import { AlertTriangle, BookOpen, Calculator, Check, Delete, Split, User, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { Modal } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
-import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import type { PaymentMethod, SalePaymentPart } from '@modules/sales/sales/api/sales.api';
 import { PayQrPanel } from '@core/payments/PayQrPanel';
 import { POS_PAYMENT_METHODS, type PosCheckoutMode } from '../lib/posCart';
 import type { PosReceiverValue } from './PosReceiverField';
+import { PosSplitTender, splitParts, splitSummary, type PosTradeIn, type SplitRow } from './PosSplitTender';
 
 export interface PosCheckoutResult {
   paymentMethod: PaymentMethod;
@@ -24,6 +27,8 @@ export interface PosCheckoutResult {
   isCredit: boolean;
   /** Keep the extra (paid − total) in the customer's khata instead of giving change. */
   depositExtra: boolean;
+  /** Split payment: what was handed over by each method (adds up to paidAmount). */
+  payments?: SalePaymentPart[];
 }
 
 const MODES: Array<{ id: PosCheckoutMode; label: string; hint: string; icon: typeof Wallet }> = [
@@ -44,7 +49,7 @@ const NOTES = [
 
 export function PosCheckoutModal({
   total, itemCount, loading, customerName, customerBalance = 0, hasCustomer,
-  initMode, initAmount, initMethod = 'CASH', receiver, allowCredit = true, onConfirm, onClose,
+  initMode, initAmount, initMethod = 'CASH', receiver, allowCredit = true, tradeIns, onConfirm, onClose,
 }: {
   total: number;
   itemCount: number;
@@ -60,6 +65,8 @@ export function PosCheckoutModal({
   receiver?: PosReceiverValue;
   /** Settings can switch credit off; then the bill must be paid in full. */
   allowCredit?: boolean;
+  /** Open trade-in phones (mobile shops); offered as a part of a split payment. */
+  tradeIns?: PosTradeIn[];
   onReceiverChange?: (v: PosReceiverValue) => void;
   onConfirm: (d: PosCheckoutResult) => void;
   onClose: () => void;
@@ -69,14 +76,29 @@ export function PosCheckoutModal({
   /** What the customer handed over; empty in full mode means exactly the total. */
   const [tendered, setTendered] = useState(initAmount ? String(initAmount) : '');
   const [deposit, setDeposit] = useState(false);
+  const [split, setSplit] = useState(false);
+  const [rows, setRows] = useState<SplitRow[]>([]);
+  const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const splitting = split && mode !== 'credit';
+  const sum = splitSummary(rows, total);
   const entered = Number(tendered) || 0;
-  const paid = mode === 'credit' ? 0 : mode === 'full' ? Math.max(entered, total) : entered;
+  const paid = mode === 'credit' ? 0 : splitting ? sum.paid : mode === 'full' ? Math.max(entered, total) : entered;
   const change = Math.max(paid - total, 0);
   const credit = Math.max(total - paid, 0);
   const isCredit = credit > 0;
-  const blocked = isCredit && (!hasCustomer || !allowCredit);
+  // A split in full mode must cover the bill; what is left is asked for, not put on credit.
+  const short = splitting && mode === 'full' && credit > 0.005;
+  const blocked = isCredit && !short && (!hasCustomer || !allowCredit);
+
+  const startSplit = () => {
+    const first = Math.min(entered || total, total);
+    setRows([{ method: method, amount: String(Number(first.toFixed(2))) }, { method: method === 'CASH' ? 'CARD' : 'CASH', amount: first < total ? String(Number((total - first).toFixed(2))) : '' }]);
+    setActive(1);
+    setDeposit(false);
+    setSplit(true);
+  };
 
   const choose = (m: PosCheckoutMode) => {
     setMode(m);
@@ -86,21 +108,32 @@ export function PosCheckoutModal({
 
   const submit = useCallback(() => {
     if (loading) return;
+    if (splitting) {
+      if (sum.problem) { toast.error(sum.problem); return; }
+      if (mode === 'full' && sum.remaining > 0.005) { toast.error(`${formatPKR(sum.remaining)} baqi hai — aur payment daalein ya "Kuch paisa" chunein`); return; }
+    }
     if (blocked) { toast.error(allowCredit ? 'Udhaar ke liye pehle customer chunein' : 'Is dukaan me udhaar band hai — poora paisa lein'); return; }
-    if (mode === 'partial' && entered <= 0) { toast.error('Kitna paisa mila, likhein'); inputRef.current?.focus(); return; }
+    if (mode === 'partial' && paid <= 0) { toast.error('Kitna paisa mila, likhein'); inputRef.current?.focus(); return; }
+    if (splitting) {
+      const payments = splitParts(rows);
+      // The largest money part stands for the bill.
+      const main = payments.filter((p) => p.method !== 'TRADE_IN').sort((a, b) => b.amount - a.amount)[0]?.method as PaymentMethod | undefined;
+      onConfirm({ paymentMethod: main ?? 'CASH', paidAmount: paid, isCredit, depositExtra: false, payments });
+      return;
+    }
     onConfirm({ paymentMethod: method, paidAmount: paid, isCredit, depositExtra: deposit && change > 0 && !!hasCustomer });
-  }, [loading, blocked, mode, entered, onConfirm, method, paid, isCredit, deposit, change, hasCustomer]);
+  }, [loading, splitting, sum.problem, sum.remaining, mode, blocked, allowCredit, paid, rows, onConfirm, isCredit, method, deposit, change, hasCustomer]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); submit(); return; }
       const m = POS_PAYMENT_METHODS.find((x) => x.key === e.key);
-      if (m) { e.preventDefault(); setMethod(m.id); if (mode === 'credit') setMode('full'); return; }
+      if (m && !splitting) { e.preventDefault(); setMethod(m.id); if (mode === 'credit') setMode('full'); return; }
       if (e.key === 'F6') { e.preventDefault(); if (hasCustomer && allowCredit) choose('credit'); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [submit, hasCustomer, mode]);
+  }, [submit, hasCustomer, mode, splitting]);
 
   const press = (k: string) => {
     if (mode === 'credit') setMode('full');
@@ -110,6 +143,7 @@ export function PosCheckoutModal({
   const roundUp = Math.ceil(total / 100) * 100;
 
   const action = loading ? 'Save ho raha hai…'
+    : short ? `${formatPKR(credit)} baqi — aur payment daalein`
     : mode === 'credit' ? `Udhaar mein daalein · ${formatPKR(total)}`
       : isCredit ? `${formatPKR(paid)} mile · ${formatPKR(credit)} udhaar`
         : change > 0 ? `Bill complete · ${formatPKR(change)} wapas` : `Bill complete · ${formatPKR(total)}`;
@@ -173,7 +207,19 @@ export function PosCheckoutModal({
 
           {mode !== 'credit' && (
             <section>
-              <h3 className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Payment</h3>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h3 className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Payment</h3>
+                <button type="button" onClick={() => (splitting ? setSplit(false) : startSplit())}
+                  className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.75rem] font-semibold transition',
+                    splitting ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>
+                  <Split className="h-3.5 w-3.5" /> {splitting ? 'Ek tareeqa' : tradeIns ? 'Split / Trade-in' : 'Split payment'}
+                </button>
+              </div>
+              {splitting ? (
+                <p className="rounded-xl bg-brand-50 px-3 py-2 text-[0.75rem] text-brand-900">
+                  Bill do ya zyada tareeqon se — jaise kuch Cash aur baqi Card. Change sirf Cash se milti hai.
+                </p>
+              ) : (
               <div role="radiogroup" aria-label="Payment method" className="grid grid-cols-3 gap-2">
                 {POS_PAYMENT_METHODS.map((m) => {
                   const on = method === m.id;
@@ -192,10 +238,11 @@ export function PosCheckoutModal({
                   );
                 })}
               </div>
+              )}
             </section>
           )}
 
-          {mode !== 'credit' && method !== 'CASH' && method !== 'CARD' && paid > 0 && (
+          {mode !== 'credit' && !splitting && method !== 'CASH' && method !== 'CARD' && paid > 0 && (
             <PayQrPanel method={method} amount={Math.min(paid, total)} />
           )}
 
@@ -222,7 +269,7 @@ export function PosCheckoutModal({
                 </div>
               )}
             </dl>
-            {change > 0 && hasCustomer && (
+            {change > 0 && hasCustomer && !splitting && (
               <label className="flex cursor-pointer items-center gap-2 border-t border-slate-100 px-4 py-2.5 text-[0.8125rem] text-slate-700">
                 <input type="checkbox" checked={deposit} onChange={(e) => setDeposit(e.target.checked)} className="h-4 w-4 accent-[rgb(var(--brand-600))]" />
                 Wapas dene ki jagah {customerName ?? 'customer'} ke khate mein jama karein
@@ -231,7 +278,9 @@ export function PosCheckoutModal({
           </section>
         </div>
 
-        {mode !== 'credit' ? (
+        {splitting ? (
+          <PosSplitTender total={total} rows={rows} onRows={setRows} active={active} onActive={setActive} tradeIns={tradeIns} />
+        ) : mode !== 'credit' ? (
           <div className="space-y-3">
             <div className="rounded-2xl bg-slate-900 px-4 py-3 text-right shadow-inner">
               <div className="text-[0.6875rem] font-medium uppercase tracking-wide text-slate-400">

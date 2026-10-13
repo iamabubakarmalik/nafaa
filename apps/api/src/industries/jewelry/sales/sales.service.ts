@@ -114,6 +114,7 @@ export class SalesService {
     const exchangeGrams = Math.max(Number(dto.exchangeMetalGrams) || 0, 0);
 
     const subtotal = r2(enrichedItems.reduce((s, i) => s + i.itemTotal, 0));
+    // What the customer still pays after the old gold (kept on the jewelry bill).
     const total = r2(Math.max(subtotal + gstAmount + otherCharges - discount - exchangeValue, 0));
 
     const paidAmount = Math.max(Number(dto.paidAmount) || 0, 0);
@@ -143,20 +144,23 @@ export class SalesService {
       ...(otherCharges > 0 ? [{ type: 'OTHER', label: 'Deegar charges', amount: otherCharges }] : []),
     ];
     const exchangePurityLabel = dto.exchangeMetalPurity ? ` ${KARAT_LABEL(dto.exchangeMetalPurity)}` : '';
-    const notes = [
-      exchangeValue > 0 ? `Purana sona${exchangeGrams ? ` ${exchangeGrams.toFixed(3)}g` : ''}${exchangePurityLabel}: Rs ${Math.round(exchangeValue).toLocaleString('en-PK')} minus` : '',
-      dto.customerNotes || '',
-    ].filter(Boolean).join(' · ');
+    const oldGold = `Purana sona${exchangeGrams ? ` ${exchangeGrams.toFixed(3)}g` : ''}${exchangePurityLabel}`;
 
+    // Old gold is part of the payment (TRADE_IN), not a discount: the bill
+    // keeps its full value, so profit is right and the discount rules stay out.
+    const payments = [
+      ...(paidAmount > 0 ? [{ method: paymentMethod, amount: paidAmount }] : []),
+      ...(exchangeValue > 0 ? [{ method: 'TRADE_IN' as const, amount: exchangeValue, note: oldGold }] : []),
+    ];
     const core: any = await this.coreSales.create(user, scope, {
       shopId: dto.shopId,
       customerId: dto.customerId,
       paymentMethod,
-      paidAmount,
-      // The old-gold value lowers the bill the same way a discount does.
-      discount: r2(discount + exchangeValue) || undefined,
+      paidAmount: r2(paidAmount + exchangeValue),
+      payments: payments.length ? payments : undefined,
+      discount: discount || undefined,
       managerPin: dto.managerPin,
-      note: notes || undefined,
+      note: dto.customerNotes || undefined,
       items: catalogLines.map((i) => ({
         productId: i.productId!,
         quantity: i.quantity,
@@ -164,7 +168,7 @@ export class SalesService {
         note: describe(i),
       })),
       serviceCharges: serviceCharges.length ? serviceCharges : undefined,
-    } as any);
+    } as any, undefined, { tradeInChecked: true });
 
     let jewelrySale;
     try {
@@ -191,8 +195,8 @@ export class SalesService {
           otherCharges,
           subtotal,
           discount,
-          total: Number(core.total ?? total),
-          paidAmount: Math.min(paidAmount, Number(core.total ?? total)),
+          total,
+          paidAmount: Math.min(paidAmount, total),
           paymentStatus: paidAmount >= total - 0.005 ? 'PAID' : paidAmount > 0 ? 'PARTIALLY_PAID' : 'UNPAID',
           paymentMethod,
           exchangeMetalGrams: exchangeGrams,

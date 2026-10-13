@@ -363,10 +363,17 @@ export class MoneyAccountsService {
 
     if (scope) {
       const q = autoWhere(scope, w);
-      const [sales, bookingIn, bookingOut, refunds, purchases, suppliers, expenses] = await Promise.all([
-        this.prisma.sale.findMany({
-          where: q.sale, orderBy: { soldAt: 'asc' }, take,
-          select: { id: true, saleNumber: true, paidAmount: true, changeAmount: true, soldAt: true, customer: { select: { name: true } }, soldBy: { select: { fullName: true } }, createdBy: { select: { fullName: true } } },
+      const [sales, khata, bookingIn, bookingOut, refunds, purchases, suppliers, expenses] = await Promise.all([
+        this.prisma.salePayment.findMany({
+          where: q.sale, orderBy: { sale: { soldAt: 'asc' } }, take,
+          select: {
+            id: true, amount: true, reference: true,
+            sale: { select: { saleNumber: true, soldAt: true, customer: { select: { name: true } }, soldBy: { select: { fullName: true } }, createdBy: { select: { fullName: true } } } },
+          },
+        }),
+        this.prisma.customerLedger.findMany({
+          where: q.khata, orderBy: { createdAt: 'asc' }, take,
+          select: { id: true, amount: true, createdAt: true, reference: true, note: true, customer: { select: { name: true } }, createdBy: { select: { fullName: true } } },
         }),
         this.prisma.bookingPayment.findMany({
           where: q.booking, orderBy: { paidAt: 'asc' }, take,
@@ -394,14 +401,18 @@ export class MoneyAccountsService {
         }),
       ]);
       const khataPart = await refundKhataParts(this.prisma, a.tenantId, refunds.map((r) => r.returnNumber));
-      const lists = [entries, sales, bookingIn, bookingOut, refunds, purchases, suppliers, expenses];
+      const lists = [entries, sales, khata, bookingIn, bookingOut, refunds, purchases, suppliers, expenses];
       if (lists.some((l) => l.length > STATEMENT_LIMIT)) {
         throw new BadRequestException('Is period me entries bahut zyada hain — period chhoti karein');
       }
       out.push(
         ...sales.map((r) => line('SALE', {
-          id: `SALE:${r.id}`, at: r.soldAt, amount: n(r.paidAmount) - n(r.changeAmount), reference: r.saleNumber,
-          party: r.customer?.name ?? null, note: null, by: r.soldBy?.fullName ?? r.createdBy?.fullName ?? null,
+          id: `SALE:${r.id}`, at: r.sale.soldAt, amount: n(r.amount), reference: r.sale.saleNumber,
+          party: r.sale.customer?.name ?? null, note: r.reference, by: r.sale.soldBy?.fullName ?? r.sale.createdBy?.fullName ?? null,
+        })),
+        ...khata.map((r) => line('KHATA', {
+          id: `KHATA:${r.id}`, at: r.createdAt, amount: -n(r.amount), reference: r.reference,
+          party: r.customer?.name ?? null, note: r.note, by: r.createdBy?.fullName ?? null,
         })),
         ...bookingIn.map((r) => line('BOOKING', {
           id: `BOOKING:${r.id}`, at: r.paidAt, amount: n(r.amount), reference: r.booking.bookingNumber,

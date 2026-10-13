@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
-import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsIn, IsOptional, IsString } from 'class-validator';
+import { MONEY_METHODS } from '../../../common/helpers/sale-payments.helper';
 
 export class CancelBookingDto {
   @ApiPropertyOptional() @IsOptional() @IsString() reason?: string;
@@ -14,7 +15,7 @@ export class CancelBookingDto {
     description: 'Method to use for refund (if refundAdvance = true)',
   })
   @IsOptional()
-  @IsEnum(PaymentMethod)
+  @IsIn(MONEY_METHODS)
   refundMethod?: PaymentMethod;
 
   @ApiPropertyOptional({ description: 'Owner PIN, when refunds need it (Settings)' })

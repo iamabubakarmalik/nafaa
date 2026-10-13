@@ -10,10 +10,16 @@ function setup() {
         .mockResolvedValueOnce(agg({ total: 12000 }, 10)),
       groupBy: jest.fn()
         .mockResolvedValueOnce([
-          { paymentMethod: 'CASH', ...agg({ total: 9760, paidAmount: 9760 }, 8) },
-          { paymentMethod: 'JAZZCASH', ...agg({ total: 4700, paidAmount: 4700 }, 4) },
+          { paymentMethod: 'CASH', ...agg({ total: 9760 }, 8) },
+          { paymentMethod: 'JAZZCASH', ...agg({ total: 4700 }, 4) },
         ])
         .mockResolvedValueOnce([{ soldById: 'u1', createdById: 'u2', ...agg({ total: 14460 }, 12) }]),
+    },
+    salePayment: {
+      groupBy: jest.fn().mockResolvedValue([
+        { method: 'CASH', _sum: { amount: 9760 } },
+        { method: 'JAZZCASH', _sum: { amount: 4700 } },
+      ]),
     },
     saleItem: {
       groupBy: jest.fn().mockResolvedValue([

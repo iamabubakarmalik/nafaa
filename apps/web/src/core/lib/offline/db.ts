@@ -190,6 +190,8 @@ export interface PendingSale {
   customerId?: string;
   paymentMethod: 'CASH' | 'JAZZCASH' | 'EASYPAISA' | 'BANK' | 'CREDIT' | 'OTHER' | 'CARD' | 'BANK_TRANSFER';
   paidAmount: number;
+  /** Split payment parts as sent to the server (cash before change). */
+  payments?: Array<{ method: string; amount: number; reference?: string | null; note?: string | null }>;
   discount: number;
   /** Discount code and points used on the bill, with their rupee amounts at the counter. */
   discountCode?: string;

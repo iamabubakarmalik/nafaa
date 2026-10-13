@@ -91,7 +91,7 @@ export function MoneyView({ d, m, q }: { d: DayBook; m: Money; q: string }) {
               {khata.map((k) => (
                 <li key={k.id}>
                   <Link to={`/customers/${k.customerId}`} className="flex items-center justify-between gap-2 py-2 hover:opacity-80">
-                    <span className="min-w-0"><span className="block truncate text-[0.8125rem] font-medium text-slate-800">{k.customer}</span><span className="text-[0.6875rem] text-slate-500">{clock(k.at)}{k.reference ? ` · ${k.reference}` : ''}</span></span>
+                    <span className="min-w-0"><span className="block truncate text-[0.8125rem] font-medium text-slate-800">{k.customer}</span><span className="text-[0.6875rem] text-slate-500">{clock(k.at)}{k.method ? ` · ${method(k.method)}` : ''}{k.reference ? ` · ${k.reference}` : ''}</span></span>
                     <span className="flex shrink-0 items-center gap-2">{k.kind === 'given' ? <Tag tone="amber">Udhaar</Tag> : <Tag tone="green">Wasool</Tag>}<span className="tabular-nums text-[0.8125rem] font-semibold text-slate-900">{m.sales(k.amount)}</span></span>
                   </Link>
                 </li>

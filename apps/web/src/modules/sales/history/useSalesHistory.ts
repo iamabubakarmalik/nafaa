@@ -52,7 +52,7 @@ export function useSalesHistory() {
     queryFn: async () => (await getPendingAsSales()).map((s): HistorySale => ({
       id: s.id, saleNumber: s.saleNumber, soldAt: s.soldAt, status: 'COMPLETED', source: 'POS', sourceRef: null,
       subtotal: s.subtotal, discount: s.discount, total: s.total, paidAmount: s.paidAmount, creditAmount: s.creditAmount,
-      changeAmount: s.changeAmount, refundedAmount: 0, paymentMethod: s.paymentMethod, costOfGoods: s.costOfGoods ?? 0,
+      changeAmount: s.changeAmount, refundedAmount: 0, paymentMethod: s.paymentMethod, payments: s.payments, costOfGoods: s.costOfGoods ?? 0,
       receivedByName: s.receivedByName ?? null, staff: s.createdBy?.fullName ?? null,
       customer: s.customer ? { id: s.customer.id, name: s.customer.name, phone: s.customer.phone ?? null } : null,
       shop: s.shop ? { id: s.shop.id, name: s.shop.name } : null,

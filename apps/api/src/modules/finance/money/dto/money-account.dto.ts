@@ -1,8 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MoneyAccountKind, PaymentMethod } from '@prisma/client';
-import {
-  IsBoolean, IsDateString, IsEnum, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Matches, Max, MaxLength, Min, NotEquals, ValidateIf,
-} from 'class-validator';
+import { IsBoolean, IsDateString, IsEnum, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Matches, Max, MaxLength, Min, NotEquals, ValidateIf } from 'class-validator';
+import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
 
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_AMOUNT = 1_000_000_000;
@@ -12,7 +11,7 @@ export class CreateMoneyAccountDto {
   @ApiProperty({ enum: MoneyAccountKind }) @IsEnum(MoneyAccountKind) kind!: MoneyAccountKind;
   /** Payment method whose money lands here automatically (default account only). */
   @ApiPropertyOptional({ enum: PaymentMethod, nullable: true })
-  @IsOptional() @ValidateIf((_, v) => v !== null) @IsEnum(PaymentMethod) method?: PaymentMethod | null;
+  @IsOptional() @ValidateIf((_, v) => v !== null) @IsIn(MONEY_METHODS) method?: PaymentMethod | null;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(60) bankName?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) accountTitle?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) accountNumber?: string;
@@ -29,7 +28,7 @@ export class UpdateMoneyAccountDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @IsNotEmpty() @MaxLength(60) name?: string;
   @ApiPropertyOptional({ enum: MoneyAccountKind }) @IsOptional() @IsEnum(MoneyAccountKind) kind?: MoneyAccountKind;
   @ApiPropertyOptional({ enum: PaymentMethod, nullable: true })
-  @IsOptional() @ValidateIf((_, v) => v !== null) @IsEnum(PaymentMethod) method?: PaymentMethod | null;
+  @IsOptional() @ValidateIf((_, v) => v !== null) @IsIn(MONEY_METHODS) method?: PaymentMethod | null;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(60) bankName?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) accountTitle?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) accountNumber?: string;

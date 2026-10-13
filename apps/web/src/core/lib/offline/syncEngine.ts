@@ -339,6 +339,7 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
       const body = {
         shopId: sale.shopId, customerId: sale.customerId,
         paymentMethod: sale.paymentMethod, paidAmount: sale.paidAmount,
+        ...(sale.payments?.length && { payments: sale.payments }),
         discount: sale.discount, serviceCharges: sale.serviceChargesBreakdown,
         // Le jane wale ka naam bhi saath — warna offline bill par naam
         // chhapta tha aur server ke khate me khali chala jata tha.

@@ -85,7 +85,8 @@ export function ReturnModal({ sale, onClose, onDone }: {
   const [shelf, setShelf] = useState<Record<string, boolean>>({});
   const [carpet, setCarpet] = useState<Record<string, CarpetReturnOptions>>({});
   const [carpetFor, setCarpetFor] = useState<Line | null>(null);
-  const [refundMethod, setRefundMethod] = useState<PaymentMethod>((sale.paymentMethod as PaymentMethod) ?? 'CASH');
+  // Trade-in is goods, not money: such a bill is refunded in cash unless changed.
+  const [refundMethod, setRefundMethod] = useState<PaymentMethod>(sale.paymentMethod && sale.paymentMethod !== 'TRADE_IN' ? (sale.paymentMethod as PaymentMethod) : 'CASH');
   const [reason, setReason] = useState('');
   const [notes, setNotes] = useState('');
   const [showNotes, setShowNotes] = useState(false);

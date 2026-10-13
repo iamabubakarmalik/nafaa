@@ -97,7 +97,11 @@ export function SaleDrawer({ sale, money, cost, costHidden, waLink, extra, onRet
               {sale.discount > 0 && <Row label="Subtotal" value={money(sale.subtotal)} />}
               {sale.discount > 0 && <Row label="Discount" value={`−${money(sale.discount)}`} tone="text-amber-700" />}
               <Row label="Kul" value={money(sale.total)} strong />
-              <Row label={`Mila · ${PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod}`} value={money(sale.paidAmount)} />
+              {(sale.payments?.length ?? 0) > 1 || sale.payments?.some((p) => p.method === 'TRADE_IN')
+                ? sale.payments!.map((p, i) => (
+                  <Row key={i} label={`Mila · ${PAYMENT_LABELS[p.method] ?? p.method}${p.note ? ` (${p.note})` : ''}`} value={money(p.amount)} />
+                ))
+                : <Row label={`Mila · ${PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod}`} value={money(sale.paidAmount)} />}
               {sale.changeAmount > 0 && <Row label="Return di" value={money(sale.changeAmount)} tone="text-success-700" />}
               {sale.creditAmount > 0 && <Row label="Udhaar" value={money(sale.creditAmount)} tone="text-amber-700" />}
               {sale.refundedAmount > 0 && <Row label="Wapas kiya" value={money(sale.refundedAmount)} tone="text-rose-700" />}

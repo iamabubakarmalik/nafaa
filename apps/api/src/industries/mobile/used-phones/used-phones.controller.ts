@@ -28,6 +28,12 @@ export class UsedPhonesController {
     return this.service.stats(user);
   }
 
+  /** Exchange phones not yet used as a trade-in on a bill, for the POS payment step. */
+  @Get('trade-ins/open')
+  openTradeIns(@GetUser() user: AuthenticatedUser) {
+    return this.service.openTradeIns(user);
+  }
+
   @Post('estimate')
   estimate(
     @Body() body: {

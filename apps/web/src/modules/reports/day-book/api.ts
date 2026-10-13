@@ -65,7 +65,7 @@ export interface DayBook {
   };
   khata: {
     given: number; givenCount: number; collected: number; collectedCount: number;
-    list: Array<{ id: string; kind: 'given' | 'collected'; amount: number; reference: string | null; at: string; customerId: string; customer: string; phone: string | null }>;
+    list: Array<{ id: string; kind: 'given' | 'collected'; amount: number; reference: string | null; method: string | null; at: string; customerId: string; customer: string; phone: string | null }>;
   };
   bookings: {
     advances: number; advanceCount: number; refunds: number; refundCount: number; converted: number;

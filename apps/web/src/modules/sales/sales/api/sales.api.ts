@@ -25,6 +25,23 @@ export type PaymentMethod =
   | 'JAZZCASH'
   | 'EASYPAISA';
 
+/** A payment method on a bill: money, or TRADE_IN for goods taken toward it (old gold, a used phone). */
+export type TenderMethod = PaymentMethod | 'TRADE_IN';
+
+/**
+ * One part of a bill's payment. When sending, the amount is what the customer
+ * handed over by that method (cash may be more than the bill; the change comes
+ * off the cash). When reading, cash parts are already net of change.
+ */
+export interface SalePaymentPart {
+  method: TenderMethod;
+  amount: number;
+  /** Card slip, wallet transaction id, or the used phone code of a trade-in. */
+  reference?: string | null;
+  /** What was taken in on a trade-in. */
+  note?: string | null;
+}
+
 export interface CreateSaleItem {
   /** Regular product ID. Omit ONLY when usedPhoneId is set. */
   productId?: string;
@@ -48,6 +65,8 @@ export interface CreateSalePayload {
   customerId?: string;
   paymentMethod: PaymentMethod;
   paidAmount: number;
+  /** Split payment (cash + card …). Left out, the bill is paid by `paymentMethod` alone. */
+  payments?: SalePaymentPart[];
   discount?: number;
   discountCode?: string;
   loyaltyPointsToUse?: number;
@@ -90,7 +109,10 @@ export interface Sale {
   costOfGoods: number;
   serviceCharges?: number;
   serviceChargesBreakdown?: ServiceChargeItem[] | null;
-  paymentMethod: PaymentMethod;
+  /** The bill's main method (its largest part). */
+  paymentMethod: TenderMethod;
+  /** Every part of the payment; older offline copies may not have it. */
+  payments?: SalePaymentPart[];
   soldAt: string;
   status?: 'COMPLETED' | 'PARTIALLY_RETURNED' | 'FULLY_RETURNED' | 'VOIDED';
   /** Maal le jane wala — purani sales par khali rehta hai */

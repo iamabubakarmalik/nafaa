@@ -1,16 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ExpenseStatus, PaymentMethod } from '@prisma/client';
-import {
-  IsDateString,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  MaxLength,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsDateString, IsEnum, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
+import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
 
 export class CreateExpenseDto {
   @ApiProperty({ example: 'Shop rent for May' })
@@ -37,7 +28,7 @@ export class CreateExpenseDto {
   categoryId?: string;
 
   @ApiProperty({ enum: PaymentMethod, example: 'CASH' })
-  @IsEnum(PaymentMethod)
+  @IsIn(MONEY_METHODS)
   paymentMethod!: PaymentMethod;
 
   @ApiPropertyOptional({
@@ -71,7 +62,7 @@ export class UpdateExpenseDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) description?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Max(1_000_000_000) amount?: number;
   @ApiPropertyOptional() @IsOptional() @IsString() categoryId?: string;
-  @ApiPropertyOptional({ enum: PaymentMethod }) @IsOptional() @IsEnum(PaymentMethod) paymentMethod?: PaymentMethod;
+  @ApiPropertyOptional({ enum: PaymentMethod }) @IsOptional() @IsIn(MONEY_METHODS) paymentMethod?: PaymentMethod;
   @ApiPropertyOptional() @IsOptional() @IsDateString() expenseDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() attachmentUrl?: string;
   @ApiPropertyOptional({ enum: ExpenseStatus }) @IsOptional() @IsEnum(ExpenseStatus) status?: ExpenseStatus;
@@ -81,6 +72,6 @@ export class UpdateExpenseDto {
 export class PayExpenseDto {
   @ApiPropertyOptional({ enum: PaymentMethod, description: 'How it was paid; keeps the saved method when left out' })
   @IsOptional()
-  @IsEnum(PaymentMethod)
+  @IsIn(MONEY_METHODS)
   paymentMethod?: PaymentMethod;
 }

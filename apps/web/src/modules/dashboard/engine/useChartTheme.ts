@@ -40,10 +40,10 @@ export function useChartTheme() {
 /** Payment method colors, fixed so "Cash" is always the same color everywhere. */
 export const PAYMENT_COLORS: Record<string, string> = {
   CASH: '#16a34a', CARD: '#2563eb', JAZZCASH: '#ea580c', EASYPAISA: '#22c55e',
-  BANK_TRANSFER: '#7c3aed', CREDIT: '#e11d48', ONLINE: '#0891b2',
+  BANK_TRANSFER: '#7c3aed', CREDIT: '#e11d48', ONLINE: '#0891b2', TRADE_IN: '#a16207',
 };
 
 export const PAYMENT_LABELS: Record<string, string> = {
   CASH: 'Cash', CARD: 'Card', JAZZCASH: 'JazzCash', EASYPAISA: 'Easypaisa',
-  BANK_TRANSFER: 'Bank transfer', CREDIT: 'Udhaar', ONLINE: 'Online',
+  BANK_TRANSFER: 'Bank transfer', CREDIT: 'Udhaar', ONLINE: 'Online', TRADE_IN: 'Trade-in',
 };

@@ -333,6 +333,7 @@ export class AppointmentsService {
         customerId,
         shopId,
         amount,
+        method: dto.paymentMethod,
         reference: apt.appointmentNumber,
         note: `${apt.saleId ? 'Salon baqi wasool' : 'Salon advance'}: ${apt.appointmentNumber}${dto.reference ? ` (${dto.reference})` : ''}`,
       });

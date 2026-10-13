@@ -57,7 +57,11 @@ export class SalesHistoryService {
 
   private where(user: AuthenticatedUser, shopId: string | undefined, q: SalesHistoryQuery, gte: Date | undefined, lt: Date): Prisma.SaleWhereInput {
     const w: Prisma.SaleWhereInput = { tenantId: user.tenantId, soldAt: { ...(gte && { gte }), lt }, ...(shopId && { shopId }) };
-    if (q.method && METHODS.includes(q.method)) w.paymentMethod = q.method as PaymentMethod;
+    // A split bill shows under each method it was paid by.
+    if (q.method && METHODS.includes(q.method)) {
+      const method = q.method as PaymentMethod;
+      w.AND = [{ OR: [{ paymentMethod: method }, { payments: { some: { method } } }] }];
+    }
     if (q.source && SOURCES.includes(q.source)) w.source = q.source as SaleSource;
     if (q.customerId) w.customerId = q.customerId;
     if (q.staffId) w.OR = [{ soldById: q.staffId }, { soldById: null, createdById: q.staffId }];
@@ -100,6 +104,7 @@ export class SalesHistoryService {
           id: true, saleNumber: true, soldAt: true, status: true, source: true, sourceRef: true,
           subtotal: true, discount: true, total: true, paidAmount: true, creditAmount: true, changeAmount: true,
           refundedAmount: true, paymentMethod: true, costOfGoods: true, receivedByName: true,
+          payments: { select: { method: true, amount: true } },
           customer: { select: { id: true, name: true, phone: true } },
           shop: { select: { id: true, name: true } },
           soldBy: { select: { id: true, fullName: true } },
@@ -156,9 +161,10 @@ export class SalesHistoryService {
     const where = this.where(user, shopId, q, r.gte, r.lt);
     const live: Prisma.SaleWhereInput = { AND: [where, { status: { in: [...LIVE] } }] };
 
-    const [sales, payments, sources, itemGroups, customerGroups, staffGroups, allItems, prev] = await Promise.all([
+    const [sales, payments, paidBy, sources, itemGroups, customerGroups, staffGroups, allItems, prev] = await Promise.all([
       this.prisma.sale.findMany({ where: live, select: { soldAt: true, total: true, costOfGoods: true, customerId: true, discount: true } }),
-      this.prisma.sale.groupBy({ by: ['paymentMethod'], where: live, _sum: { total: true, paidAmount: true }, _count: { _all: true } }),
+      this.prisma.sale.groupBy({ by: ['paymentMethod'], where: live, _sum: { total: true }, _count: { _all: true } }),
+      this.prisma.salePayment.groupBy({ by: ['method'], where: { tenantId: user.tenantId, method: { not: 'TRADE_IN' }, sale: live }, _sum: { amount: true } }),
       this.prisma.sale.groupBy({ by: ['source'], where: live, _sum: { total: true }, _count: { _all: true } }),
       this.prisma.saleItem.groupBy({
         by: ['productId'], where: { sale: live, productId: { not: null } },
@@ -255,7 +261,11 @@ export class SalesHistoryService {
       from: r.fromKey ?? first, to: r.toKey, grouping: monthly ? 'month' : 'day',
       trend: [...buckets.values()].sort((a, b) => a.key.localeCompare(b.key)),
       hours, weekdays,
-      payments: payments.map((p) => ({ method: p.paymentMethod, total: n(p._sum.total), collected: n(p._sum.paidAmount), bills: p._count._all })).sort((a, b) => b.total - a.total),
+      // Bills and sale by the main method; money collected by payment rows.
+      payments: [...new Set([...payments.map((p) => p.paymentMethod as string), ...paidBy.map((p) => p.method as string)])].map((method) => {
+        const b = payments.find((p) => p.paymentMethod === method);
+        return { method, total: n(b?._sum.total), collected: n(paidBy.find((p) => p.method === method)?._sum.amount), bills: b?._count._all ?? 0 };
+      }).sort((a, b) => b.total - a.total),
       sources: sources.map((s) => ({ source: s.source, total: n(s._sum.total), bills: s._count._all })).sort((a, b) => b.total - a.total),
       topProducts: itemGroups.map((g) => {
         const p = pMap.get(g.productId!);

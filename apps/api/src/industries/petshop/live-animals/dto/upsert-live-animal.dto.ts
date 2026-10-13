@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod, PetSaleStatus, PetSpeciesType } from '@prisma/client';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
 
 export class UpsertLiveAnimalDto {
   @ApiProperty({ enum: PetSpeciesType }) @IsEnum(PetSpeciesType) species!: PetSpeciesType;
@@ -44,7 +45,7 @@ export class SellAnimalDto {
   @ApiPropertyOptional() @IsOptional() @IsString() notes?: string;
   /** Bill already rung up at the POS for this animal; when missing a bill is made here. */
   @ApiPropertyOptional() @IsOptional() @IsString() saleId?: string;
-  @ApiPropertyOptional({ enum: PaymentMethod }) @IsOptional() @IsEnum(PaymentMethod) paymentMethod?: PaymentMethod;
+  @ApiPropertyOptional({ enum: PaymentMethod }) @IsOptional() @IsIn(MONEY_METHODS) paymentMethod?: PaymentMethod;
   /** Paid now; missing = paid in full. Anything less goes on the customer's khata. */
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) paidAmount?: number;
 }

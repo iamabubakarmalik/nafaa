@@ -180,7 +180,11 @@ export class DashboardListsService {
 
   private async recent(user: AuthenticatedUser, shopId: string | undefined, limit: number, method?: PaymentMethod) {
     const sales = await this.prisma.sale.findMany({
-      where: { tenantId: user.tenantId, status: LIVE_BILL, ...(shopId && { shopId }), ...(method && { paymentMethod: method }) },
+      // A split bill shows under each method it was paid by.
+      where: {
+        tenantId: user.tenantId, status: LIVE_BILL, ...(shopId && { shopId }),
+        ...(method && { OR: [{ paymentMethod: method }, { payments: { some: { method } } }] }),
+      },
       orderBy: { soldAt: 'desc' },
       take: limit,
       select: {

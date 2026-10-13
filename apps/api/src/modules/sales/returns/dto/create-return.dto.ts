@@ -1,10 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
-import {
-  ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsNotEmpty, IsNumber,
-  IsOptional, IsString, MaxLength, Min, ValidateNested,
-} from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
+import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
 
 class ReturnItemDto {
   @ApiProperty()
@@ -84,7 +82,7 @@ export class CreateReturnDto {
   reason?: string;
 
   @ApiProperty({ enum: PaymentMethod, example: 'CASH' })
-  @IsEnum(PaymentMethod)
+  @IsIn(MONEY_METHODS)
   refundMethod!: PaymentMethod;
 
   @ApiPropertyOptional()

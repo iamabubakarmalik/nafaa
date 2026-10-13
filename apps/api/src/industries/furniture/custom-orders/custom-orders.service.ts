@@ -170,6 +170,7 @@ export class CustomOrdersService {
         customerId,
         shopId,
         amount,
+        method: dto.paymentMethod,
         reference: billed ? orderSaleNumber(o.orderNumber) : o.orderNumber,
         note: billed
           ? `Furniture order ${o.orderNumber} ki wusooli${dto.reference ? ` (${dto.reference})` : ''}`

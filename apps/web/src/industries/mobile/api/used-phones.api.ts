@@ -217,6 +217,13 @@ export const usedPhonesApi = {
   stats: () =>
     apiClient.get('/used-phones/stats').then(unwrap) as Promise<UsedPhoneStats>,
 
+  /** Exchange phones not yet used as a trade-in on a bill. */
+  openTradeIns: () =>
+    apiClient.get('/used-phones/trade-ins/open').then(unwrap) as Promise<Array<{
+      id: string; usedPhoneCode: string; brand: string; model: string; storage: string | null; color: string | null;
+      buybackPrice: number; fromCustomerName: string | null; fromCustomerId: string | null; receivedAt: string;
+    }>>,
+
   estimate: (payload: ValuationPayload) =>
     apiClient.post('/used-phones/estimate', payload).then(unwrap) as Promise<ValuationResponse>,
 

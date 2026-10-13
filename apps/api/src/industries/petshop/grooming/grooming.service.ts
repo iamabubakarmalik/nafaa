@@ -321,7 +321,7 @@ export class GroomingService {
       const shopId = await resolveIndustryShopId(tx, user, scope.shopId);
       const customerId = await ensureCustomer(tx, user, { customerId: a.customerId, name: a.customerName, phone: a.customerPhone, shopId });
       await recordKhataPayment(tx, user, {
-        customerId, shopId, amount, reference: a.appointmentNumber, note: `Grooming advance: ${a.petName} (${a.appointmentNumber})`,
+        customerId, shopId, amount, reference: a.appointmentNumber, method: dto.paymentMethod, note: `Grooming advance: ${a.petName} (${a.appointmentNumber})`,
       });
       return tx.petGroomingAppointment.update({
         where: { id },

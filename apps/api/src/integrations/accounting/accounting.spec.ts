@@ -62,7 +62,7 @@ describe('Accounting sync', () => {
     store['accounting:t1'] = JSON.stringify({ provider: 'ZOHO', conn: encrypt(JSON.stringify(conn)), companyName: 'X', currency: 'PKR', connectedAt: '', mapping, includeCogs: false, includeExpenses: true, autoSync: true, history: [] });
     const prisma: any = {
       systemSetting: { findUnique: async (q: any) => (store[q.where.key] ? { value: store[q.where.key] } : null), upsert: async (q: any) => { store[q.where.key] = q.update.value; } },
-      sale: { findMany: async () => [{ subtotal: 1000, discount: 0, total: 1000, creditAmount: 0, paymentMethod: 'CASH', costOfGoods: 0 }] },
+      sale: { findMany: async () => [{ subtotal: 1000, discount: 0, total: 1000, creditAmount: 0, paymentMethod: 'CASH', costOfGoods: 0, payments: [{ method: 'CASH', amount: 1000 }] }] },
       saleReturn: { findMany: async () => [] },
       customerLedger: { findMany: async () => [] },
       expense: { findMany: async () => [] },

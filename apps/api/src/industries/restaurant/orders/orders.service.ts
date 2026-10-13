@@ -355,7 +355,7 @@ export class OrdersService {
 
     const shopId = order.shopId ?? await resolveWriteShopId(this.prisma, user.tenantId, scope);
     const customerId = order.customerId ?? opts.customerId;
-    const payments = [...order.payments.map((p) => ({ amount: p.amount, paymentMethod: p.paymentMethod })), ...newPayments];
+    const payments = [...order.payments.map((p) => ({ amount: p.amount, paymentMethod: p.paymentMethod, reference: p.reference })), ...newPayments];
     const paid = round2(payments.reduce((s, p) => s + p.amount, 0));
     if (paid < order.total - 0.01 && !customerId) {
       throw new BadRequestException('Udhaar ke liye customer chunein');
@@ -365,10 +365,15 @@ export class OrdersService {
     await this.recipes.refreshDishCosts(user.tenantId, [...new Set(order.items.map((i) => i.productId))]);
     const made = await this.makeDishes(user, shopId, order.orderNumber, order.items);
 
-    // The method that took the most money stands for the bill.
-    const byMethod = new Map<string, number>();
-    for (const p of payments) byMethod.set(p.paymentMethod, (byMethod.get(p.paymentMethod) ?? 0) + p.amount);
-    const method = [...byMethod.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'CASH';
+    // Each method is kept on the bill (cash + card on a split bill); the sale
+    // picks the largest as its main method.
+    const byMethod = new Map<PaymentMethod, { amount: number; reference?: string | null }>();
+    for (const p of payments.filter((x) => x.amount > 0)) {
+      const m = toSaleMethod(p.paymentMethod);
+      const row = byMethod.get(m) ?? { amount: 0, reference: p.reference };
+      byMethod.set(m, { amount: round2(row.amount + p.amount), reference: row.reference ?? p.reference });
+    }
+    const parts = [...byMethod.entries()].map(([method, r]) => ({ method, amount: r.amount, reference: r.reference ?? undefined }));
 
     const charges = [
       { type: 'SERVICE', label: 'Service charge', amount: order.serviceCharge },
@@ -383,8 +388,9 @@ export class OrdersService {
       sale = await this.sales.create(user, new ShopScope(shopId, false), {
         shopId,
         customerId,
-        paymentMethod: toSaleMethod(method),
+        paymentMethod: parts[0]?.method ?? 'CASH',
         paidAmount: paid,
+        payments: parts.length ? parts : undefined,
         discount: order.discount || undefined,
         allowCredit: paid < order.total - 0.01 ? true : undefined,
         managerPin: opts.managerPin,

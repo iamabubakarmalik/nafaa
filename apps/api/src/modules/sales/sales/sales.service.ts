@@ -10,6 +10,7 @@ import {
 import { addMonths, startOfDay, startOfMonth } from 'date-fns';
 import { SaleSource, TenantSettings } from '@prisma/client';
 import { PIN_NEEDS, requireManagerPin } from '../../../common/helpers/manager-pin.helper';
+import { PaymentPart, saveSalePayments, splitTender } from '../../../common/helpers/sale-payments.helper';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, isServiceProduct, resolveWriteShopId } from '../../../common/shop-scope';
@@ -46,8 +47,12 @@ export class SalesService {
     scope: ShopScope,
     dto: CreateSaleDto,
     origin?: SaleOrigin,
-    /** `counter`: the request came from a till (POST /sales), not an industry flow. */
-    opts: { counter?: boolean } = {},
+    /**
+     * `counter`: the request came from a till (POST /sales), not an industry flow.
+     * `tradeInChecked`: the caller already accounted for its trade-in parts
+     * (jewelry old gold), so they need no used phone behind them.
+     */
+    opts: { counter?: boolean; tradeInChecked?: boolean } = {},
   ) {
     // A sale happens at exactly one counter. The body may name the branch
     // (offline queue replays carry it); otherwise use the one being viewed.
@@ -422,9 +427,10 @@ export class SalesService {
     );
 
     const total = Math.max(subtotal - totalDiscount + serviceChargesTotal, 0);
-    const paidAmount = dto.paidAmount;
+    const tender = splitTender(total, { parts: dto.payments, method: dto.paymentMethod, paidAmount: dto.paidAmount });
+    if (!opts.tradeInChecked) await this.checkTradeIns(user.tenantId, tender.rows);
+    const { paidAmount, changeAmount } = tender;
     const creditAmount = Math.max(total - paidAmount, 0);
-    const changeAmount = Math.max(paidAmount - total, 0);
 
     if (creditAmount > 0 && !dto.customerId) {
       throw new BadRequestException('Udhaar sale ke liye customer select karna zaroori hai');
@@ -493,7 +499,7 @@ export class SalesService {
           paidAmount,
           changeAmount,
           creditAmount,
-          paymentMethod: dto.paymentMethod,
+          paymentMethod: tender.mainMethod,
           status: 'COMPLETED',
           serviceCharges: serviceChargesTotal,
           serviceChargesBreakdown:
@@ -536,6 +542,7 @@ export class SalesService {
           createdBy: { select: { id: true, fullName: true, email: true } },
         },
       });
+      await saveSalePayments(tx, sale, tender.rows);
 
       // ─── Process each item ──────────────────────────────────
       for (let idx = 0; idx < normalizedItems.length; idx++) {
@@ -771,7 +778,7 @@ export class SalesService {
         }
       }
 
-      return sale;
+      return { ...sale, payments: tender.rows };
     });
 
     // 🔔 Sale notification (async, non-blocking, fire-and-forget)
@@ -890,6 +897,7 @@ export class SalesService {
         customer: true,
         shop: true,
         createdBy: { select: { id: true, fullName: true, email: true } },
+        payments: { select: { method: true, amount: true, reference: true, note: true }, orderBy: { createdAt: 'asc' } },
         items: {
           include: {
             product: { include: { brand: true } },
@@ -1044,6 +1052,39 @@ export class SalesService {
       paymentBreakdown,
       shopBreakdown,
     };
+  }
+
+  /**
+   * A trade-in from the till must be a used phone taken in as an exchange
+   * (Used phones → Trade-in, type Exchange), worth at least the amount, and
+   * not already used on another live bill. Its code is kept as the reference.
+   */
+  private async checkTradeIns(tenantId: string, rows: PaymentPart[]) {
+    const seen = new Set<string>();
+    for (const row of rows) {
+      if (row.method !== 'TRADE_IN') continue;
+      const code = row.reference?.trim();
+      if (!code) throw new BadRequestException('Trade-in ke liye used phone chunein');
+      const phone = await this.prisma.usedPhone.findFirst({
+        where: { tenantId, OR: [{ usedPhoneCode: code }, { id: code }] },
+        select: { id: true, usedPhoneCode: true, brand: true, model: true, source: true, status: true, buybackPrice: true },
+      });
+      if (!phone || phone.source !== 'EXCHANGE' || phone.status === 'DISCARDED') {
+        throw new BadRequestException(`Trade-in phone ${code} nahi mila (Used phones me "Exchange" wala phone chahiye)`);
+      }
+      if (seen.has(phone.usedPhoneCode)) throw new BadRequestException(`${phone.usedPhoneCode} bill me do dafa hai`);
+      seen.add(phone.usedPhoneCode);
+      if (row.amount > Number(phone.buybackPrice) + 0.01) {
+        throw new BadRequestException(`${phone.usedPhoneCode} ki trade-in qeemat Rs ${phone.buybackPrice} hai — is se zyada nahi`);
+      }
+      const used = await this.prisma.salePayment.findFirst({
+        where: { tenantId, method: 'TRADE_IN', reference: phone.usedPhoneCode, sale: { status: { not: 'VOIDED' } } },
+        select: { sale: { select: { saleNumber: true } } },
+      });
+      if (used) throw new BadRequestException(`${phone.usedPhoneCode} pehle hi bill ${used.sale.saleNumber} me lag chuka hai`);
+      row.reference = phone.usedPhoneCode;
+      row.note = row.note || `${phone.brand} ${phone.model} (${phone.usedPhoneCode})`;
+    }
   }
 
   /**

@@ -44,12 +44,12 @@ export class DayReportService {
     const saleWhere = { tenantId, status: LIVE_BILL, soldAt: { gte: from, lt: to }, ...shop };
 
     const [
-      salesAgg, prevAgg, byMethod, itemGroups, expenses, refunds, registers,
+      salesAgg, prevAgg, byMethod, paidBy, itemGroups, expenses, refunds, registers,
       cashPurchases, supplierCash, sellers, cost,
     ] = await Promise.all([
       this.prisma.sale.aggregate({
         where: saleWhere,
-        _sum: { total: true, paidAmount: true, changeAmount: true, creditAmount: true, discount: true },
+        _sum: { total: true, creditAmount: true, discount: true },
         _count: { _all: true },
       }),
       this.prisma.sale.aggregate({
@@ -60,8 +60,14 @@ export class DayReportService {
       this.prisma.sale.groupBy({
         by: ['paymentMethod'],
         where: saleWhere,
-        _sum: { total: true, paidAmount: true, changeAmount: true },
+        _sum: { total: true },
         _count: { _all: true },
+      }),
+      // Money by method from the payment rows (trade-in is goods, not money).
+      this.prisma.salePayment.groupBy({
+        by: ['method'],
+        where: { tenantId, method: { not: 'TRADE_IN' }, sale: saleWhere },
+        _sum: { amount: true },
       }),
       this.prisma.saleItem.groupBy({
         by: ['productId'],
@@ -154,9 +160,15 @@ export class DayReportService {
     const categories = [...catMap.values()].sort((a, b) => b.revenue - a.revenue);
 
     // ── Money in ──
-    // Collected = paid at the counter less change given (credit is not collected yet).
-    const payments = byMethod
-      .map((r) => ({ method: r.paymentMethod, sales: n(r._sum.total), collected: n(r._sum.paidAmount) - n(r._sum.changeAmount), bills: r._count._all }))
+    // Sales and bills by the bill's main method; collected by payment rows,
+    // cash net of change (credit is not collected yet).
+    const methodKeys = [...new Set([...byMethod.map((r) => r.paymentMethod as string), ...paidBy.map((r) => r.method as string)])];
+    const payments = methodKeys
+      .map((method) => {
+        const b = byMethod.find((r) => r.paymentMethod === method);
+        const p = paidBy.find((r) => r.method === method);
+        return { method, sales: n(b?._sum.total), collected: n(p?._sum.amount), bills: b?._count._all ?? 0 };
+      })
       .sort((a, b) => b.collected - a.collected);
     const cashCollected = payments.filter((p) => p.method === 'CASH').reduce((x, p) => x + p.collected, 0);
     const onlineCollected = payments.filter((p) => p.method !== 'CASH').reduce((x, p) => x + p.collected, 0);
@@ -213,7 +225,7 @@ export class DayReportService {
         bills,
         average: bills > 0 ? total / bills : 0,
         discount: n(salesAgg._sum.discount),
-        collected: n(salesAgg._sum.paidAmount) - n(salesAgg._sum.changeAmount),
+        collected: payments.reduce((x, p) => x + p.collected, 0),
         credit: n(salesAgg._sum.creditAmount),
         itemsSold: items.reduce((x, i) => x + i.qty, 0),
         cogs,

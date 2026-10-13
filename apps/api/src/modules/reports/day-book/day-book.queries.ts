@@ -13,7 +13,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import {
-  BILL_CASH_IN, LINE_COST_JOINS, LINE_NET, LINE_UNIT_COST, RETURN_LINE_COST, billMathCte,
+  LINE_COST_JOINS, LINE_NET, LINE_UNIT_COST, RETURN_LINE_COST, billMathCte,
 } from '../../../common/helpers/business-math.helper';
 
 export interface Window {
@@ -218,22 +218,40 @@ export class DayBookQueries {
   }
 
   /**
-   * Bills per payment method. Cash taken is paid minus change. A bill made
+   * Bills per payment method. Bills, billed and credit go by the bill's main
+   * method; money collected goes by each payment row, so the card part of a
+   * cash + card bill shows under Card. Cash rows are already net of change.
+   * Trade-in is goods, not money, and is left out of collected. A bill made
    * from a booking carries the booking's earlier payments, which were
    * counted on the day they came in, so it adds nothing here.
    */
   methods(scope: Scope, w: Window) {
     return this.prisma.$queryRaw<MethodRow[]>`
-      SELECT s."paymentMethod"::text AS method,
-             COUNT(*)::int AS bills,
-             COALESCE(SUM(s.total), 0)::float8 AS billed,
-             COALESCE(SUM(${BILL_CASH_IN}) FILTER (WHERE s."bookingId" IS NULL), 0)::float8 AS collected,
-             COALESCE(SUM(s."creditAmount"), 0)::float8 AS credit,
-             COUNT(*) FILTER (WHERE s."bookingId" IS NOT NULL)::int AS booking_bills
-      FROM "Sale" s
-      WHERE s."tenantId" = ${scope.tenantId} AND s.status <> 'VOIDED'
-        AND s."soldAt" >= ${w.from} AND s."soldAt" < ${w.to} ${this.saleShop(scope)}
-      GROUP BY 1`;
+      WITH b AS (
+        SELECT s."paymentMethod"::text AS method,
+               COUNT(*)::int AS bills,
+               SUM(s.total)::float8 AS billed,
+               SUM(s."creditAmount")::float8 AS credit,
+               COUNT(*) FILTER (WHERE s."bookingId" IS NOT NULL)::int AS booking_bills
+        FROM "Sale" s
+        WHERE s."tenantId" = ${scope.tenantId} AND s.status <> 'VOIDED'
+          AND s."soldAt" >= ${w.from} AND s."soldAt" < ${w.to} ${this.saleShop(scope)}
+        GROUP BY 1
+      ), p AS (
+        SELECT sp.method::text AS method, SUM(sp.amount)::float8 AS collected
+        FROM "SalePayment" sp JOIN "Sale" s ON s.id = sp."saleId"
+        WHERE s."tenantId" = ${scope.tenantId} AND s.status <> 'VOIDED' AND s."bookingId" IS NULL
+          AND sp.method <> 'TRADE_IN'
+          AND s."soldAt" >= ${w.from} AND s."soldAt" < ${w.to} ${this.saleShop(scope)}
+        GROUP BY 1
+      )
+      SELECT COALESCE(b.method, p.method) AS method,
+             COALESCE(b.bills, 0)::int AS bills,
+             COALESCE(b.billed, 0)::float8 AS billed,
+             COALESCE(p.collected, 0)::float8 AS collected,
+             COALESCE(b.credit, 0)::float8 AS credit,
+             COALESCE(b.booking_bills, 0)::int AS booking_bills
+      FROM b FULL JOIN p ON p.method = b.method`;
   }
 
   /** Products from the list that are now at or under their alert level. */

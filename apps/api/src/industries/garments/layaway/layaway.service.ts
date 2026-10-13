@@ -71,7 +71,7 @@ export class LayawayService {
 
     if (deposit > 0) {
       await recordKhataPayment(this.prisma as any, user, {
-        customerId, shopId, amount: deposit, reference: planNumber, note: `Layaway deposit ${planNumber}`,
+        customerId, shopId, amount: deposit, reference: planNumber, note: `Layaway deposit ${planNumber}`, method: dto.paymentMethod,
       });
     }
 
@@ -149,7 +149,7 @@ export class LayawayService {
         customerId: plan.customerId, name: plan.customerName, phone: plan.customerPhone, shopId,
       });
       await recordKhataPayment(tx, user, {
-        customerId, shopId, amount, reference: plan.planNumber, note: `Layaway qist ${plan.planNumber}`,
+        customerId, shopId, amount, reference: plan.planNumber, note: `Layaway qist ${plan.planNumber}`, method: dto.paymentMethod,
       });
 
       const planPaid = r2(plan.paidAmount + amount);

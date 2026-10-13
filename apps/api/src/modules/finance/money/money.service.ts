@@ -6,8 +6,9 @@
  * figures always agree with Sales, Returns, Khata, Purchases, Suppliers,
  * Expenses and the cash register:
  *
- *   in   SALE      money taken on a bill (paid minus change)
- *        KHATA     customer credit collected (no method is stored; counted as cash)
+ *   in   SALE      payment rows of bills (a split bill gives one row per
+ *                  method; cash net of change; trade-in is goods, left out)
+ *        KHATA     customer credit collected, by its method (older rows: cash)
  *        CASH_IN   cash put into the drawer
  *   out  REFUND    money given back on a return
  *        PURCHASE  paid to a supplier on the purchase itself
@@ -42,7 +43,7 @@ const DIRECTION: Record<MoneySource, Dir> = {
   REFUND: 'out', PURCHASE: 'out', SUPPLIER: 'out', EXPENSE: 'out', CASH_OUT: 'out',
 };
 /** Sources with no payment method of their own; they belong to the cash account. */
-const CASH_ONLY: MoneySource[] = ['KHATA', 'CASH_IN', 'CASH_OUT'];
+const CASH_ONLY: MoneySource[] = ['CASH_IN', 'CASH_OUT'];
 /** Statements and the ledger merge sources page by page; this caps how deep one can go. */
 const MAX_DEPTH = 2000;
 const DAY = 86_400_000;
@@ -92,12 +93,14 @@ export class MoneyService {
     return shop.shopId ? { OR: [{ shopId: shop.shopId }, { shopId: null }] } : {};
   }
 
-  private saleWhere(c: Ctx): Prisma.SaleWhereInput {
+  private saleWhere(c: Ctx): Prisma.SalePaymentWhereInput {
     return {
-      tenantId: c.tenantId, ...c.shop.where, status: { not: 'VOIDED' }, paidAmount: { gt: 0 },
-      ...(c.range && { soldAt: c.range }),
-      ...(c.account && { paymentMethod: c.account }),
-      ...(c.search && { OR: [{ saleNumber: like(c.search) }, { customer: { name: like(c.search) } }, { customer: { phone: like(c.search) } }] }),
+      tenantId: c.tenantId, method: c.account ?? { not: 'TRADE_IN' },
+      sale: {
+        tenantId: c.tenantId, ...c.shop.where, status: { not: 'VOIDED' },
+        ...(c.range && { soldAt: c.range }),
+        ...(c.search && { OR: [{ saleNumber: like(c.search) }, { customer: { name: like(c.search) } }, { customer: { phone: like(c.search) } }] }),
+      },
     };
   }
 
@@ -112,10 +115,15 @@ export class MoneyService {
   }
 
   private khataWhere(c: Ctx): Prisma.CustomerLedgerWhereInput {
+    const and: Prisma.CustomerLedgerWhereInput[] = [];
+    // Older collections carry no method; they count as cash.
+    if (c.account === 'CASH') and.push({ OR: [{ paymentMethod: 'CASH' }, { paymentMethod: null }] });
+    else if (c.account) and.push({ paymentMethod: c.account });
+    if (c.search) and.push({ OR: [{ customer: { name: like(c.search) } }, { customer: { phone: like(c.search) } }, { reference: like(c.search) }, { note: like(c.search) }] });
     return {
       tenantId: c.tenantId, type: 'PAYMENT_RECEIVED', ...this.loose(c.shop),
       ...(c.range && { createdAt: c.range }),
-      ...(c.search && { AND: [{ OR: [{ customer: { name: like(c.search) } }, { customer: { phone: like(c.search) } }, { reference: like(c.search) }, { note: like(c.search) }] }] }),
+      ...(and.length && { AND: and }),
     };
   }
 
@@ -179,8 +187,8 @@ export class MoneyService {
     };
     switch (s) {
       case 'SALE':
-        for (const g of await this.prisma.sale.groupBy({ by: ['paymentMethod'], where: this.saleWhere(c), _sum: { paidAmount: true, changeAmount: true }, _count: { _all: true } }))
-          add(g.paymentMethod, n(g._sum.paidAmount) - n(g._sum.changeAmount), g._count._all);
+        for (const g of await this.prisma.salePayment.groupBy({ by: ['method'], where: this.saleWhere(c), _sum: { amount: true }, _count: { _all: true } }))
+          add(g.method, n(g._sum.amount), g._count._all);
         break;
       case 'REFUND':
         for (const g of await this.prisma.saleReturn.groupBy({ by: ['refundMethod'], where: this.refundWhere(c), _sum: { refundAmount: true }, _count: { _all: true } }))
@@ -199,9 +207,9 @@ export class MoneyService {
           add(g.paymentMethod, n(g._sum.amount), g._count._all);
         break;
       case 'KHATA': {
-        const a = await this.prisma.customerLedger.aggregate({ where: this.khataWhere(c), _sum: { amount: true }, _count: { _all: true } });
         // Collections are stored as negative amounts (they lower the balance).
-        if (a._count._all) add('CASH', Math.abs(n(a._sum.amount)), a._count._all);
+        for (const g of await this.prisma.customerLedger.groupBy({ by: ['paymentMethod'], where: this.khataWhere(c), _sum: { amount: true }, _count: { _all: true } }))
+          add(g.paymentMethod, Math.abs(n(g._sum.amount)), g._count._all);
         break;
       }
       case 'CASH_IN':
@@ -350,16 +358,21 @@ export class MoneyService {
     const e = (x: Omit<MoneyEntry, 'source' | 'direction'>): MoneyEntry => ({ ...x, source: s, direction: dir, amount: r2(x.amount) });
     switch (s) {
       case 'SALE':
-        return (await this.prisma.sale.findMany({
-          where: this.saleWhere(c), orderBy: { soldAt: 'desc' }, take,
+        return (await this.prisma.salePayment.findMany({
+          where: this.saleWhere(c), orderBy: { sale: { soldAt: 'desc' } }, take,
           select: {
-            id: true, saleNumber: true, paidAmount: true, changeAmount: true, paymentMethod: true, soldAt: true, shopId: true,
-            customer: { select: { name: true } }, soldBy: { select: { fullName: true } }, createdBy: { select: { fullName: true } },
+            id: true, method: true, amount: true, reference: true,
+            sale: {
+              select: {
+                id: true, saleNumber: true, soldAt: true, shopId: true,
+                customer: { select: { name: true } }, soldBy: { select: { fullName: true } }, createdBy: { select: { fullName: true } },
+              },
+            },
           },
         })).map((r) => e({
-          id: `SALE:${r.id}`, method: r.paymentMethod, amount: n(r.paidAmount) - n(r.changeAmount), at: r.soldAt,
-          reference: r.saleNumber, party: r.customer?.name ?? null, note: null, shopId: r.shopId,
-          by: r.soldBy?.fullName ?? r.createdBy?.fullName ?? null, linkId: r.id,
+          id: `SALE:${r.id}`, method: r.method, amount: n(r.amount), at: r.sale.soldAt,
+          reference: r.sale.saleNumber, party: r.sale.customer?.name ?? null, note: r.reference, shopId: r.sale.shopId,
+          by: r.sale.soldBy?.fullName ?? r.sale.createdBy?.fullName ?? null, linkId: r.sale.id,
         }));
       case 'REFUND':
         return (await this.prisma.saleReturn.findMany({
@@ -377,11 +390,11 @@ export class MoneyService {
         return (await this.prisma.customerLedger.findMany({
           where: this.khataWhere(c), orderBy: { createdAt: 'desc' }, take,
           select: {
-            id: true, amount: true, reference: true, note: true, createdAt: true, shopId: true, customerId: true,
+            id: true, amount: true, reference: true, note: true, createdAt: true, shopId: true, customerId: true, paymentMethod: true,
             customer: { select: { name: true } }, createdBy: { select: { fullName: true } },
           },
         })).map((r) => e({
-          id: `KHATA:${r.id}`, method: 'CASH', amount: Math.abs(n(r.amount)), at: r.createdAt,
+          id: `KHATA:${r.id}`, method: r.paymentMethod ?? 'CASH', amount: Math.abs(n(r.amount)), at: r.createdAt,
           reference: r.reference, party: r.customer.name, note: r.note, shopId: r.shopId, by: r.createdBy?.fullName ?? null, linkId: r.customerId,
         }));
       case 'CASH_IN':
@@ -502,8 +515,8 @@ export class MoneyService {
   private async points(c: Ctx, s: MoneySource): Promise<Array<{ at: Date; amount: number }>> {
     switch (s) {
       case 'SALE':
-        return (await this.prisma.sale.findMany({ where: this.saleWhere(c), select: { soldAt: true, paidAmount: true, changeAmount: true } }))
-          .map((r) => ({ at: r.soldAt, amount: n(r.paidAmount) - n(r.changeAmount) }));
+        return (await this.prisma.salePayment.findMany({ where: this.saleWhere(c), select: { amount: true, sale: { select: { soldAt: true } } } }))
+          .map((r) => ({ at: r.sale.soldAt, amount: n(r.amount) }));
       case 'REFUND':
         return (await this.prisma.saleReturn.findMany({ where: this.refundWhere(c), select: { returnedAt: true, refundAmount: true } }))
           .map((r) => ({ at: r.returnedAt, amount: n(r.refundAmount) }));
