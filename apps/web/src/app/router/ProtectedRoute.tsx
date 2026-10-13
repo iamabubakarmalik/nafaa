@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@core/stores/auth.store';
 import { authApi } from '@modules/auth/api/auth.api';
+import { rememberShopifyShop } from '@integrations/online-orders/lib/pendingShopify';
 
 /* ════════════════════════════════════════════════════════════
    PROTECTED ROUTE — OFFLINE-FIRST
@@ -14,6 +15,7 @@ export const ProtectedRoute = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const setUser = useAuthStore((s) => s.setUser);
   const logout = useAuthStore((s) => s.logout);
+  const location = useLocation();
   const hydratedRef = useRef(false);
 
   useEffect(() => {
@@ -48,7 +50,11 @@ export const ProtectedRoute = () => {
       });
   }, [isAuthenticated, setUser, logout]);
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    // Install from Shopify → come back to this store after login
+    if (location.pathname === '/shopify') rememberShopifyShop(new URLSearchParams(location.search).get('shop') ?? '');
+    return <Navigate to="/login" replace />;
+  }
   return <Outlet />;
 };
 

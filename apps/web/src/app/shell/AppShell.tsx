@@ -20,6 +20,7 @@ import { DesktopStatusBar } from '@modules/desktop/components/DesktopStatusBar';
 import { ErrorBoundary } from '@core/components/ErrorBoundary';
 import { PageLockGate } from '@core/security/PageLockGate';
 import { OnlineOrderAlert } from '@integrations/online-orders/components/OnlineOrderAlert';
+import { clearShopifyShop, pendingShopifyShop } from '@integrations/online-orders/lib/pendingShopify';
 import { cn } from '@core/lib/cn';
 import { useAppearance } from '@/design-system';
 import { isSettingsPath, LAST_APP_PATH_KEY } from './navigation/nav-config';
@@ -53,6 +54,14 @@ export default function AppShell() {
   }, [settingsMode, location.pathname, location.search]);
 
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
+
+  // Install started in Shopify before login → finish connecting that store
+  useEffect(() => {
+    const shop = pendingShopifyShop();
+    if (!shop) return;
+    clearShopifyShop();
+    if (location.pathname !== '/shopify') navigate(`/shopify?shop=${encodeURIComponent(shop)}`, { replace: true });
+  }, [location.pathname, navigate]);
 
   const handleLogout = async () => {
     if (!confirm('Log out of Nafaa?')) return;

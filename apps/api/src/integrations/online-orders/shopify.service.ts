@@ -23,6 +23,9 @@ import { mappingKey } from './mapping-key';
  * products dono taraf. App hatne par channel khud band.
  */
 
+/** State prefix for installs that start in Shopify (no Nafaa channel yet) */
+const SHOP_STATE = 'shop_';
+
 const WEBHOOK_TOPICS = ['ORDERS_CREATE', 'ORDERS_UPDATED', 'ORDERS_CANCELLED', 'ORDERS_PAID', 'APP_UNINSTALLED'] as const;
 
 @Injectable()
@@ -115,6 +118,30 @@ export class ShopifyService {
   }
 
   /**
+   * App URL. Shopify opens it with ?shop&hmac&timestamp when a merchant
+   * installs from the App Store or opens Nafaa from their admin.
+   * Not installed yet → straight to Shopify's grant screen (App Store
+   * review checks this). Already connected → Nafaa.
+   */
+  async install(query: Record<string, string>): Promise<string> {
+    const web = this.webOrigin();
+    if (!this.configured()) throw new BadRequestException('Shopify app ki keys server par nahi lagi');
+    if (!this.verifyQueryHmac(query)) throw new UnauthorizedException('Shopify ka signature match nahi hua');
+    const shop = this.normalizeShop(String(query.shop ?? ''));
+
+    const channels = await this.shopChannels(shop);
+    if (channels.some((i) => this.isConnected(i))) return this.appHome(web, shop);
+
+    const params = new URLSearchParams({
+      client_id: this.clientId(),
+      scope: SHOPIFY_SCOPES,
+      redirect_uri: this.redirectUri(),
+      state: this.signState(`${SHOP_STATE}${Buffer.from(shop).toString('base64url')}`, web),
+    });
+    return `https://${shop}/admin/oauth/authorize?${params.toString()}`;
+  }
+
+  /**
    * Shopify yahan wapas aata hai (popup ke andar). Jawab hamesha web ke
    * done-safhe par redirect hai — kamyabi ho ya na ho.
    */
@@ -123,8 +150,9 @@ export class ShopifyService {
     let channelId = '';
     try {
       const { id, origin } = this.verifyState(String(query.state ?? ''));
-      channelId = id;
       web = origin;
+      if (id.startsWith(SHOP_STATE)) return await this.installCallback(query, Buffer.from(id.slice(SHOP_STATE.length), 'base64url').toString(), web);
+      channelId = id;
       if (!this.verifyQueryHmac(query)) throw new UnauthorizedException('Shopify ka signature match nahi hua');
       const shop = this.normalizeShop(String(query.shop ?? ''));
       if (!query.code) throw new BadRequestException(query.error_description || 'Install cancel hua');
@@ -135,40 +163,72 @@ export class ShopifyService {
         throw new BadRequestException(`Ye install ${shop} ka hai, jabke Nafaa ${expected.replace('https://', '')} ka intezar kar raha tha`);
       }
 
-      // code → access token
-      const res = await fetch(`https://${shop}/admin/oauth/access_token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        // Shopify ab sirf "expiring offline token" maanta hai: 1 ghanta ka
-        // access token + 90 din ka refresh token (har refresh par naya).
-        body: JSON.stringify({ client_id: this.clientId(), client_secret: this.clientSecret(), code: query.code, expiring: 1 }),
-      });
-      const tok: any = await res.json().catch(() => null);
-      if (!res.ok || !tok?.access_token) throw new BadRequestException(tok?.error_description ?? 'Shopify se token nahi mila');
-
-      const cfg = readWebsiteConfig(integration.config);
-      await this.prisma.integration.update({
-        where: { id },
-        data: {
-          credentials: {
-            ...this.tokenFields(tok),
-            shopifyScopes: tok.scope ?? SHOPIFY_SCOPES,
-            shopifyShop: shop,
-            shopifyConnectedAt: new Date().toISOString(),
-          },
-          config: { ...cfg, platform: 'shopify', siteUrl: `https://${shop}`, shopifySecret: null } as any,
-          status: IntegrationStatus.CONNECTED,
-          isActive: true,
-        },
-      });
-
-      setTimeout(() => this.afterConnect(id).catch((e) => this.logger.warn(`Shopify setup fail: ${e?.message}`)), 300);
+      await this.saveToken(integration, shop, await this.exchangeCode(shop, query.code));
       return `${web}/connect/shopify/done?channel=${id}&success=1`;
     } catch (e: any) {
       this.logger.warn(`Shopify callback: ${e?.message}`);
       const msg = encodeURIComponent(String(e?.response?.message ?? e?.message ?? 'Masla hua').slice(0, 200));
       return `${web}/connect/shopify/done?channel=${channelId}&success=0&error=${msg}`;
     }
+  }
+
+  /**
+   * Install that started in Shopify. The code is exchanged right away so the
+   * install completes, but the token is not kept: any Nafaa account can create
+   * a pending channel with someone else's store name, so the store is only
+   * linked when the merchant logs in to their own Nafaa account and connects
+   * it. Shopify skips the grant screen that second time.
+   */
+  private async installCallback(query: Record<string, string>, expectedShop: string, web: string): Promise<string> {
+    if (!this.verifyQueryHmac(query)) throw new UnauthorizedException('Shopify ka signature match nahi hua');
+    const shop = this.normalizeShop(String(query.shop ?? ''));
+    if (shop !== expectedShop) throw new BadRequestException('Store ka naam match nahi hua');
+    if (!query.code) throw new BadRequestException(query.error_description || 'Install cancel hua');
+
+    await this.exchangeCode(shop, query.code);
+    return this.appHome(web, shop);
+  }
+
+  private appHome(web: string, shop: string) {
+    return `${web}/shopify?shop=${encodeURIComponent(shop)}`;
+  }
+
+  private async shopChannels(shop: string) {
+    return (await this.prisma.integration.findMany({ where: { type: 'SHOPIFY' } }))
+      .filter((i) => readWebsiteConfig(i.config).siteUrl === `https://${shop}`);
+  }
+
+  /** code → access token */
+  private async exchangeCode(shop: string, code: string) {
+    const res = await fetch(`https://${shop}/admin/oauth/access_token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      // Shopify ab sirf "expiring offline token" maanta hai: 1 ghanta ka
+      // access token + 90 din ka refresh token (har refresh par naya).
+      body: JSON.stringify({ client_id: this.clientId(), client_secret: this.clientSecret(), code, expiring: 1 }),
+    });
+    const tok: any = await res.json().catch(() => null);
+    if (!res.ok || !tok?.access_token) throw new BadRequestException(tok?.error_description ?? 'Shopify se token nahi mila');
+    return tok;
+  }
+
+  private async saveToken(integration: Integration, shop: string, tok: any) {
+    const cfg = readWebsiteConfig(integration.config);
+    await this.prisma.integration.update({
+      where: { id: integration.id },
+      data: {
+        credentials: {
+          ...this.tokenFields(tok),
+          shopifyScopes: tok.scope ?? SHOPIFY_SCOPES,
+          shopifyShop: shop,
+          shopifyConnectedAt: new Date().toISOString(),
+        },
+        config: { ...cfg, platform: 'shopify', siteUrl: `https://${shop}`, shopifySecret: null } as any,
+        status: IntegrationStatus.CONNECTED,
+        isActive: true,
+      },
+    });
+    setTimeout(() => this.afterConnect(integration.id).catch((e) => this.logger.warn(`Shopify setup fail: ${e?.message}`)), 300);
   }
 
   /** Webhooks, store ka naam, location, pehla stock sync */
@@ -269,8 +329,7 @@ export class ShopifyService {
     if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) throw new UnauthorizedException('signature ghalat');
 
     const shop = String(body?.shop_domain ?? '').toLowerCase();
-    const channels = (await this.prisma.integration.findMany({ where: { type: 'SHOPIFY' } }))
-      .filter((i) => readWebsiteConfig(i.config).siteUrl === `https://${shop}`);
+    const channels = await this.shopChannels(shop);
 
     for (const ch of channels) {
       if (topic === 'customers/redact') {
