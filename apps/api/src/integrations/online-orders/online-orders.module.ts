@@ -14,6 +14,7 @@ import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 import { ChannelCatalogService } from './channel-catalog.service';
 import { DataRetentionService } from './data-retention.service';
+import { PiiAccessLogService } from './pii-access-log.service';
 import { ShopifyPublicController } from './shopify-public.controller';
 import { CourierAccountsService } from './courier-accounts.service';
 import { StockPushService } from './stock-push.service';
@@ -58,7 +59,7 @@ import {
     FoodpandaPluginController,
     FoodpandaController,
   ],
-  providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService, FoodpandaService],
+  providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, PiiAccessLogService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService, FoodpandaService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}
