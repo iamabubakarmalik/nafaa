@@ -84,12 +84,7 @@ export class ShopsController {
   }
 
   @Delete(':id')
-  remove(
-    @GetUser() user: AuthenticatedUser,
-    @Param('id') id: string,
-    @Query('force') force?: string,
-  ) {
-    const isForce = force === 'true' || force === '1';
-    return this.shopsService.remove(user, id, isForce);
+  remove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.shopsService.remove(user, id);
   }
 }

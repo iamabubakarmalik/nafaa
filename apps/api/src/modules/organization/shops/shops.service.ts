@@ -362,11 +362,10 @@ export class ShopsService {
   }
 
   /**
-   * DELETE — with optional force flag for full cascade delete
-   * force=true → deletes EVERYTHING (sales, transfers, registers, etc.)
-   * force=false (default) → safety checks apply
+   * DELETE with safety checks. A branch that has sales or money history can
+   * only be switched off, never deleted: there is no path that wipes sales.
    */
-  async remove(user: AuthenticatedUser, id: string, force = false) {
+  async remove(user: AuthenticatedUser, id: string) {
     this.need(user, PERMISSIONS.SHOPS_MANAGE, 'Branches sambhalna');
 
     const shop = await this.prisma.shop.findFirst({
@@ -386,70 +385,6 @@ export class ShopsService {
       },
     });
     if (!shop) throw new NotFoundException('Shop not found');
-
-    // ═══ FORCE DELETE — bypass all safety checks ═══
-    if (force) {
-      await this.prisma.$transaction(async (tx) => {
-        // 1. Cancel all pending/in-transit transfers involving this shop
-        await tx.stockTransfer.updateMany({
-          where: {
-            tenantId: user.tenantId,
-            status: { in: ['PENDING', 'IN_TRANSIT'] },
-            OR: [{ fromShopId: id }, { toShopId: id }],
-          },
-          data: { status: 'CANCELLED' },
-        });
-
-        // 2. Close all open cash registers
-        await tx.cashRegister.updateMany({
-          where: { shopId: id, status: 'OPEN' },
-          data: { status: 'CLOSED', closedAt: new Date() },
-        });
-
-        // 3. Delete all sales (SaleItems cascade automatically via schema)
-        await tx.sale.deleteMany({ where: { tenantId: user.tenantId, shopId: id } });
-
-        // 4. Unlink users from this shop
-        await tx.user.updateMany({
-          where: { shopId: id },
-          data: { shopId: null },
-        });
-
-        // 5. Delete shop stocks
-        await tx.shopStock.deleteMany({ where: { shopId: id } });
-
-        // 6. Delete cash registers (now closed)
-        await tx.cashRegister.deleteMany({ where: { shopId: id } });
-
-        // 7. Delete stock transfers involving this shop
-        await tx.stockTransfer.deleteMany({
-          where: {
-            tenantId: user.tenantId,
-            OR: [{ fromShopId: id }, { toShopId: id }],
-          },
-        });
-
-        // 8. Finally delete the shop.
-        // Purchases, expenses, khata entries, stock movements and adjustments
-        // are ON DELETE SET NULL — the money trail survives as untagged
-        // history rather than disappearing with the branch.
-        await tx.shop.delete({ where: { id } });
-
-        await tx.activityLog.create({
-          data: {
-            tenantId: user.tenantId,
-            userId: user.id,
-            action: 'FORCE_DELETE',
-            entityType: 'Shop',
-            entityId: id,
-            description: `${user.email} FORCE DELETED shop "${shop.name}" (cascade)`,
-            metadata: { forced: true, hadSales: shop._count.sales },
-          },
-        });
-      });
-
-      return { message: `Shop "${shop.name}" force-deleted with all history`, forced: true };
-    }
 
     // Cannot delete main shop if it has sales
     if (shop.isMain) {
