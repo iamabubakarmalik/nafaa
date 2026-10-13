@@ -4,9 +4,9 @@
  * cost from the price saved on each line at the time of sale (today's
  * product or variant cost only when the line has none), and gross profit
  * by product, variant, category, brand, last supplier, staff and day.
- * Net profit takes off expenses and stock written off (damage, loss and
- * count corrections). Every figure has the previous period of the same
- * length beside it.
+ * Net profit takes off paid expenses and stock written off (damage, loss
+ * and count corrections). Every rule comes from business-math.helper.
+ * Every figure has the previous period of the same length beside it.
  *
  * Returns are counted against the sale they came from, so a period's
  * figures follow its own bills. Voided bills are left out.
@@ -20,10 +20,12 @@ import { ShopScope } from '../../../common/shop-scope';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { businessDayKey, safeDayStart, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
+import {
+  LINE_COST_JOINS, LINE_NET, LINE_NO_COST, LINE_REFUND, LINE_UNIT_COST, billMathCte, liveSaleSql, netProfit, paidExpenseWhere, writeOffs,
+} from '../../../common/helpers/business-math.helper';
 import type { ProfitItemsDto, ProfitRangeDto, ProfitUnitsDto } from './dto/profit-analysis.dto';
 
 const r2 = (n: number) => Math.round((Number(n) || 0) * 100) / 100;
-const WRITE_OFFS = ['DAMAGE', 'LOSS', 'ADJUSTMENT_OUT', 'ADJUSTMENT_IN'] as const;
 /** Keys removed for users without `cost.view`. */
 const COST_KEY = /cost|profit|margin/i;
 
@@ -196,45 +198,34 @@ export class ProfitAnalysisService {
 
   /**
    * Sale lines of the period as CTE `x`: one row per line with its share of
-   * the bill discount, its refunds and its unit cost.
+   * the bill discount, its refunds and its unit cost, by the shared rules in
+   * business-math.helper.
    */
   private lines(ctx: Ctx, range: Range): Prisma.Sql {
     const { tenantId, shopId, tz, h, q } = ctx;
+    const where = Prisma.sql`${liveSaleSql({ tenantId, shopId }, range)}
+      ${q.staffId ? Prisma.sql`AND COALESCE(s."soldById", s."createdById") = ${q.staffId}` : Prisma.empty}`;
     return Prisma.sql`
-      WITH s AS (
-        SELECT id, "saleNumber", "soldAt", subtotal, discount,
-               COALESCE("soldById", "createdById") AS staff,
-               to_char((("soldAt" AT TIME ZONE 'UTC') AT TIME ZONE ${tz}) - make_interval(hours => ${h}::int), 'YYYY-MM-DD') AS day
-        FROM "Sale"
-        WHERE "tenantId" = ${tenantId} AND status <> 'VOIDED'
-          AND "soldAt" >= ${range.gte} AND "soldAt" < ${range.lt}
-          ${shopId ? Prisma.sql`AND "shopId" = ${shopId}` : Prisma.empty}
-          ${q.staffId ? Prisma.sql`AND COALESCE("soldById", "createdById") = ${q.staffId}` : Prisma.empty}
-      ),
-      l AS (
-        SELECT si.id, si."saleId", si."productId", si."usedPhoneId", si.quantity, si."returnedQty", si.price, si.total, si."costPrice",
-               s."saleNumber", s."soldAt", s.staff, s.day,
-               CASE WHEN SUM(si.total) OVER (PARTITION BY si."saleId") > 0
-                    THEN LEAST(1, GREATEST(0, (s.subtotal - s.discount) / SUM(si.total) OVER (PARTITION BY si."saleId")))
-                    ELSE 1 END AS k
-        FROM "SaleItem" si JOIN s ON s.id = si."saleId"
-      ),
+      WITH ${billMathCte(where)},
       x AS (
-        SELECT l.id, l."saleId", l."saleNumber", l."soldAt", l.staff, l.day, l."productId", sv."variantId", l."usedPhoneId",
-               p."categoryId", p."brandId",
-               l.quantity AS qty, LEAST(l."returnedQty", l.quantity) AS rqty,
-               l.price * l.quantity AS gross,
-               l.total * l.k AS net,
-               COALESCE((SELECT SUM(ri.total) FROM "SaleReturnItem" ri WHERE ri."saleItemId" = l.id), 0) AS refund,
-               CASE WHEN l."costPrice" > 0 THEN l."costPrice" ELSE COALESCE(NULLIF(pv."costPrice", 0), p."costPrice", 0) END AS ucost,
-               (l."costPrice" <= 0) AS fallback
-        FROM l
-        LEFT JOIN "SaleItemVariant" sv ON sv."saleItemId" = l.id
-        LEFT JOIN "Product" p ON p.id = l."productId"
-        LEFT JOIN "ProductVariant" pv ON pv.id = sv."variantId"
-        WHERE TRUE
-          ${q.categoryId ? Prisma.sql`AND p."categoryId" = ${q.categoryId}` : Prisma.empty}
-          ${q.brandId ? Prisma.sql`AND p."brandId" = ${q.brandId}` : Prisma.empty}
+        SELECT si.id, si."saleId", s."saleNumber", s."soldAt",
+               COALESCE(s."soldById", s."createdById") AS staff,
+               to_char(((s."soldAt" AT TIME ZONE 'UTC') AT TIME ZONE ${tz}) - make_interval(hours => ${h}::int), 'YYYY-MM-DD') AS day,
+               si."productId", bm_sv."variantId", si."usedPhoneId", bm_p."categoryId", bm_p."brandId",
+               si.quantity AS qty, LEAST(si."returnedQty", si.quantity) AS rqty,
+               si.price * si.quantity AS gross,
+               ${LINE_NET} AS net,
+               ${LINE_REFUND} AS refund,
+               ${LINE_UNIT_COST} AS ucost,
+               (si."costPrice" <= 0 AND NOT bm.keeps) AS fallback,
+               ${LINE_NO_COST} AS nocost
+        FROM "SaleItem" si
+        JOIN "Sale" s ON s.id = si."saleId"
+        JOIN bm ON bm.id = s.id
+        ${LINE_COST_JOINS}
+        WHERE ${where}
+          ${q.categoryId ? Prisma.sql`AND bm_p."categoryId" = ${q.categoryId}` : Prisma.empty}
+          ${q.brandId ? Prisma.sql`AND bm_p."brandId" = ${q.brandId}` : Prisma.empty}
       )`;
   }
 
@@ -251,7 +242,7 @@ export class ProfitAnalysisService {
     COUNT(DISTINCT x."saleId")::int AS bills,
     (COUNT(*) FILTER (WHERE x.fallback AND x.ucost > 0))::int AS "fallbackLines",
     COALESCE(SUM(x.net) FILTER (WHERE x.fallback AND x.ucost > 0), 0)::float AS "fallbackNet",
-    (COUNT(*) FILTER (WHERE x.ucost <= 0))::int AS "noCostLines"`;
+    (COUNT(*) FILTER (WHERE x.nocost))::int AS "noCostLines"`;
 
   private grouped(ctx: Ctx, range: Range, sets: SetName[]) {
     return this.prisma.$queryRaw<RawGroup[]>`
@@ -467,21 +458,17 @@ export class ProfitAnalysisService {
 
   /** Expenses and stock written off in a range, and what is left of gross profit. */
   private async netFigures(ctx: Ctx, range: Range, grossProfit: number) {
-    const productWhere = ctx.q.categoryId || ctx.q.brandId
-      ? { product: { ...(ctx.q.categoryId && { categoryId: ctx.q.categoryId }), ...(ctx.q.brandId && { brandId: ctx.q.brandId }) } }
+    const scope = { tenantId: ctx.tenantId, shopId: ctx.shopId };
+    const { categoryId, brandId } = ctx.q;
+    const productWhere = categoryId || brandId
+      ? { product: { ...(categoryId && { categoryId }), ...(brandId && { brandId }) } }
       : {};
-    const [expenses, adjustments, topWriteOffs] = await Promise.all([
-      this.prisma.expense.groupBy({
-        by: ['categoryId'],
-        where: { tenantId: ctx.tenantId, ...(ctx.shopId && { shopId: ctx.shopId }), status: { not: 'CANCELLED' }, expenseDate: { gte: range.gte, lt: range.lt } },
-        _sum: { amount: true },
-      }),
-      this.prisma.stockAdjustment.groupBy({
-        by: ['type'],
-        where: { tenantId: ctx.tenantId, ...(ctx.shopId && { shopId: ctx.shopId }), type: { in: [...WRITE_OFFS] }, createdAt: { gte: range.gte, lt: range.lt }, ...productWhere },
-        _sum: { value: true },
-        _count: { _all: true },
-      }),
+    const productSql = categoryId || brandId
+      ? Prisma.sql`TRUE ${categoryId ? Prisma.sql`AND wp."categoryId" = ${categoryId}` : Prisma.empty} ${brandId ? Prisma.sql`AND wp."brandId" = ${brandId}` : Prisma.empty}`
+      : undefined;
+    const [expenses, w, topWriteOffs] = await Promise.all([
+      this.prisma.expense.groupBy({ by: ['categoryId'], where: paidExpenseWhere(scope, range), _sum: { amount: true } }),
+      writeOffs(this.prisma, scope, range, productSql),
       this.prisma.stockAdjustment.groupBy({
         by: ['productId'],
         where: { tenantId: ctx.tenantId, ...(ctx.shopId && { shopId: ctx.shopId }), type: { in: ['DAMAGE', 'LOSS'] }, createdAt: { gte: range.gte, lt: range.lt }, ...productWhere },
@@ -493,26 +480,24 @@ export class ProfitAnalysisService {
     const catIds = expenses.map((e) => e.categoryId).filter((x): x is string => !!x);
     const [cats, prods] = await Promise.all([
       catIds.length ? this.prisma.expenseCategory.findMany({ where: { id: { in: catIds } }, select: { id: true, name: true, color: true } }) : [],
-      topWriteOffs.length ? this.prisma.product.findMany({ where: { id: { in: topWriteOffs.map((w) => w.productId) } }, select: { id: true, name: true, unit: true } }) : [],
+      topWriteOffs.length ? this.prisma.product.findMany({ where: { id: { in: topWriteOffs.map((x) => x.productId) } }, select: { id: true, name: true, unit: true } }) : [],
     ]);
     const catBy = new Map(cats.map((c) => [c.id, c]));
     const prodBy = new Map(prods.map((p) => [p.id, p]));
-    const v = (type: string) => r2(adjustments.find((a) => a.type === type)?._sum.value ?? 0);
-    const n = (type: string) => adjustments.find((a) => a.type === type)?._count._all ?? 0;
     const expenseTotal = r2(expenses.reduce((s, e) => s + (e._sum.amount ?? 0), 0));
-    const writeOffCost = r2(v('DAMAGE') + v('LOSS') + v('ADJUSTMENT_OUT') - v('ADJUSTMENT_IN'));
     return {
       grossProfit: r2(grossProfit),
       expenses: expenseTotal,
       expenseCategories: expenses
         .map((e) => ({ id: e.categoryId ?? 'none', name: (e.categoryId && catBy.get(e.categoryId)?.name) || 'Bina category', color: (e.categoryId && catBy.get(e.categoryId)?.color) || null, amount: r2(e._sum.amount ?? 0) }))
         .sort((a, b) => b.amount - a.amount),
-      damageCost: v('DAMAGE'), damageCount: n('DAMAGE'),
-      lossCost: v('LOSS'), lossCount: n('LOSS'),
-      adjustOutCost: v('ADJUSTMENT_OUT'), adjustInCost: v('ADJUSTMENT_IN'),
-      writeOffCost,
-      topWriteOffs: topWriteOffs.map((w) => ({ productId: w.productId, name: prodBy.get(w.productId)?.name ?? 'Product', unit: prodBy.get(w.productId)?.unit ?? 'pcs', qty: r2(w._sum.quantity ?? 0), writeOffCost: r2(w._sum.value ?? 0) })),
-      netProfit: r2(grossProfit - expenseTotal - writeOffCost),
+      damageCost: w.damage, damageCount: w.damageCount,
+      returnDamageCost: w.returnDamage, returnDamageCount: w.returnDamageCount,
+      lossCost: w.loss, lossCount: w.lossCount,
+      adjustOutCost: w.countedShort, adjustInCost: w.found,
+      writeOffCost: w.net,
+      topWriteOffs: topWriteOffs.map((x) => ({ productId: x.productId, name: prodBy.get(x.productId)?.name ?? 'Product', unit: prodBy.get(x.productId)?.unit ?? 'pcs', qty: r2(x._sum.quantity ?? 0), writeOffCost: r2(x._sum.value ?? 0) })),
+      netProfit: netProfit(grossProfit, expenseTotal, w.net),
     };
   }
 

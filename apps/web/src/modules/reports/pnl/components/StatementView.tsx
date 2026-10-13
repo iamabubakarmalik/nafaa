@@ -214,7 +214,7 @@ function Categories({ report, fmt }: { report: PnlReport; fmt: Fmt }) {
   const top = report.categories.slice(0, 10);
   return (
     <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Layers className="h-4 w-4 text-brand-600" />Category war munafa</span>}
-      description="Item ki bikri (bill discount se pehle) minus wapsi">
+      description="Item ki bikri (bill discount ke baad) minus wapsi">
       {!top.length ? <div className="px-5 pb-5"><Empty text="Is muddat me koi bikri nahi" /></div> : (
         <div className="overflow-x-auto px-4 pb-4 sm:px-5">
           <table className="w-full min-w-[26rem] text-[0.8125rem]">

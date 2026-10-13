@@ -196,20 +196,48 @@ export interface CustomersResult {
 export interface BlockEntry { key: string; phone: string; name: string | null; reason: string | null; at: string }
 
 type Rated = { dispatched: number; delivered: number; returned: number; rtoRate: number; deliveryRate: number };
+/**
+ * Online sales for a period of business days. `value` counts every order
+ * received; `netValue` and every chart's `value` leave out cancelled,
+ * rejected and returned orders.
+ */
 export interface OnlineReport {
   range: { from: string; to: string };
   totals: {
-    orders: number; value: number; accepted: number; dispatched: number; delivered: number; deliveredValue: number; returned: number;
-    cancelled: number; pending: number; avgOrderValue: number; rtoRate: number; cancelRate: number; deliveryRate: number;
-    avgAcceptMinutes: number | null; avgDeliveryDays: number | null; customers: number; repeatCustomers: number;
+    orders: number; value: number; netOrders: number; netValue: number; accepted: number; dispatched: number; delivered: number;
+    deliveredValue: number; returned: number; returnedValue: number; cancelled: number; pending: number; avgOrderValue: number;
+    rtoRate: number; cancelRate: number; deliveryRate: number; avgAcceptMinutes: number | null; avgDeliveryDays: number | null;
+    customers: number; repeatCustomers: number;
   };
-  byDay: { day: string; orders: number; value: number; delivered: number }[];
+  previous: { from: string; to: string; orders: number; netValue: number; delivered: number; rtoRate: number };
+  payment: { cod: { orders: number; value: number; collected: number; pending: number }; prepaid: { orders: number; value: number } };
+  byStatus: Record<string, number>;
+  byDay: { day: string; orders: number; value: number; delivered: number; returned: number }[];
+  byHour: { hour: number; orders: number; value: number }[];
+  byWeekday: { day: number; orders: number; value: number }[];
   byChannel: ({ name: string; type: string; orders: number; value: number } & Rated)[];
   byCity: ({ city: string; orders: number; value: number } & Rated)[];
   riskyCities: ({ city: string; orders: number; value: number } & Rated)[];
   byCourier: ({ code: string; name: string } & Rated)[];
   topProducts: { name: string; qty: number; value: number }[];
+  topCustomers: { name: string; phone: string; city: string | null; orders: number; value: number }[];
+  biggest: { id: string; number: string; customerName: string; total: number } | null;
   codAging: { label: string; count: number; value: number }[];
+}
+
+export interface CodSettlement {
+  ref: string | null; day: string; count: number; value: number; couriers: string[];
+  orders: { id: string; number: string; customerName: string; courier: string; trackingNumber: string | null; total: number }[];
+}
+export interface CodReturn {
+  id: string; number: string; customerName: string; customerCity: string | null; courier: string; trackingNumber: string | null;
+  total: number; reason: string | null; returnedAt: string; daysOut: number | null;
+}
+export interface CodHistory {
+  range: { from: string; to: string };
+  totals: { settled: number; settledValue: number; returned: number; returnedValue: number };
+  settlements: CodSettlement[];
+  returns: CodReturn[];
 }
 
 export interface CodCourier {
@@ -262,11 +290,29 @@ export interface OnlineOrderDetail extends OnlineOrder {
   };
 }
 
+export interface OrderAlertRow {
+  id: string; externalOrderNumber?: string | null; externalOrderId: string; customerName: string; receivedAt: string; orderStatus: OnlineOrderStatus;
+}
+
 export interface OnlineOrdersList {
   items: OnlineOrder[];
   total: number;
   counts: Record<string, number>;
+  /** Status counts inside from/to; null when no dates were sent. */
+  rangeCounts: Record<string, number> | null;
   stats: { todayOrders: number; todayValue: number; codDueCount: number; codDueValue: number };
+  alerts: {
+    staleMinutes: number;
+    stalePending: { count: number; oldest: OrderAlertRow[] };
+    cancelRequests: { count: number; latest: OrderAlertRow[] };
+  };
+}
+
+export interface OrderListQuery {
+  status?: string; integrationId?: string; search?: string; payment?: 'COD_DUE'; limit?: number; offset?: number;
+  /** Business-day keys; both needed. */
+  from?: string; to?: string;
+  pay?: 'COD' | 'PAID';
 }
 
 export interface LiveOrders {
@@ -438,7 +484,7 @@ export interface ImportResult {
 }
 
 export const onlineOrdersApi = {
-  list: (params: { status?: string; integrationId?: string; search?: string; payment?: 'COD_DUE'; limit?: number; offset?: number }) =>
+  list: (params: OrderListQuery) =>
     apiClient.get('/online-orders', { params }).then((r) => unwrap<OnlineOrdersList>(r)),
 
   live: () => apiClient.get('/online-orders/live').then((r) => unwrap<LiveOrders>(r)),
@@ -494,6 +540,9 @@ export const onlineOrdersApi = {
     apiClient.post(`/online-orders/${id}/returned`, { reason }).then((r) => unwrap<OnlineOrder>(r)),
 
   codSummary: () => apiClient.get('/online-orders/cod-summary').then((r) => unwrap<CodSummary>(r)),
+
+  codHistory: (q: { from?: string; to?: string }) =>
+    apiClient.get('/online-orders/cod/history', { params: q }).then((r) => unwrap<CodHistory>(r)),
 
   settleCod: (orderIds: string[], reference?: string) =>
     apiClient.post('/online-orders/cod/settle', { orderIds, reference }).then((r) => unwrap<{ settled: number }>(r)),

@@ -1,9 +1,10 @@
 /**
  * Staff report: what each person sold and how they handled the counter for
  * a business-day period. A bill counts for its salesperson (`soldById`),
- * else for whoever rang it up. Sales are net of returns and leave voided
- * bills out. A void counts for whoever cancelled the bill (its SALE_VOIDED
- * log); older voids without a log count for the bill's person. Cost, profit
+ * else for whoever rang it up. Sales are net of returns on the bill's own
+ * day and leave voided bills out; cost follows business-math.helper. A
+ * void counts for whoever cancelled the bill (its SALE_VOIDED log); older
+ * voids without a log count for the bill's person. Cost, profit
  * and margin keys are stripped by the cost-masking interceptor for users
  * without cost access. Drawer money is left out when Settings → Reports
  * hides it from staff.
@@ -15,6 +16,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { businessDayKey } from '../../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { hiddenFigures } from '../../../common/helpers/reports-config.helper';
+import { BILL_CASH_IN, BILL_NET, KEPT_QTY, LINE_REVENUE, billMathCte } from '../../../common/helpers/business-math.helper';
 import { ShopScope } from '../../../common/shop-scope';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CommissionService } from '../../hr/commission/commission.service';
@@ -28,7 +30,7 @@ const PIN_FAILED = 'PIN_VERIFY_FAILED';
 const UNKNOWN = 'Bina naam';
 
 interface SalesRow {
-  id: string | null; bills: number; gross: number; refunds: number; cogs: number; rcost: number; subtotal: number;
+  id: string | null; bills: number; gross: number; refunds: number; cost: number; subtotal: number;
   discount: number; manual: number; discBills: number; credit: number; creditBills: number; collected: number;
   returnedBills: number; reassigned: number; qty: number; lines: number; customers: number; walkIns: number;
   days: number; slots: number; first: Date | null; last: Date | null; maxBill: number;
@@ -46,11 +48,10 @@ export class StaffReportService {
     private readonly commission: CommissionService,
   ) {}
 
-  /** Per-bill items, returned cost and line count for the bills in `where`. */
+  /** Per-bill items kept and line count for the bills in `where`. */
   private itemsCte(where: Prisma.Sql) {
     return Prisma.sql`it AS (
-      SELECT si."saleId", SUM(si.quantity - si."returnedQty") AS qty, COUNT(*) AS lines,
-        SUM(si."returnedQty" * si."costPrice") AS rcost
+      SELECT si."saleId", SUM(${KEPT_QTY}) AS qty, COUNT(*) AS lines
       FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId"
       WHERE ${where}
       GROUP BY si."saleId")`;
@@ -59,15 +60,15 @@ export class StaffReportService {
   private salesRows(where: Prisma.Sql, r: StaffRange) {
     const biz = bizTime(Prisma.sql`s."soldAt"`, r);
     return this.prisma.$queryRaw<SalesRow[]>`
-      WITH ${this.itemsCte(where)}
+      WITH ${billMathCte(where)}, ${this.itemsCte(where)}
       SELECT ${WHO} AS id, COUNT(*)::int AS bills,
         COALESCE(SUM(s.total), 0)::float AS gross, COALESCE(SUM(s."refundedAmount"), 0)::float AS refunds,
-        COALESCE(SUM(s."costOfGoods"), 0)::float AS cogs, COALESCE(SUM(it.rcost), 0)::float AS rcost,
+        COALESCE(SUM(bm.cost), 0)::float AS cost,
         COALESCE(SUM(s.subtotal), 0)::float AS subtotal, COALESCE(SUM(s.discount), 0)::float AS discount,
         COALESCE(SUM(GREATEST(s.discount - s."codeDiscount" - s."loyaltyDiscount", 0)), 0)::float AS manual,
         COUNT(*) FILTER (WHERE s.discount - s."codeDiscount" - s."loyaltyDiscount" > 0.009)::int AS "discBills",
         COALESCE(SUM(s."creditAmount"), 0)::float AS credit, COUNT(*) FILTER (WHERE s."creditAmount" > 0)::int AS "creditBills",
-        COALESCE(SUM(s."paidAmount" - s."changeAmount"), 0)::float AS collected,
+        COALESCE(SUM(${BILL_CASH_IN}), 0)::float AS collected,
         COUNT(*) FILTER (WHERE s."refundedAmount" > 0)::int AS "returnedBills",
         COUNT(*) FILTER (WHERE s."soldById" IS NOT NULL AND s."soldById" IS DISTINCT FROM s."createdById")::int AS reassigned,
         COALESCE(SUM(it.qty), 0)::float AS qty, COALESCE(SUM(it.lines), 0)::int AS lines,
@@ -75,7 +76,7 @@ export class StaffReportService {
         COUNT(DISTINCT to_char(${biz}, 'YYYY-MM-DD'))::int AS days,
         COUNT(DISTINCT to_char(${biz}, 'YYYY-MM-DD HH24'))::int AS slots,
         MIN(s."soldAt") AS first, MAX(s."soldAt") AS last, COALESCE(MAX(s.total), 0)::float AS "maxBill"
-      FROM "Sale" s LEFT JOIN it ON it."saleId" = s.id
+      FROM "Sale" s JOIN bm ON bm.id = s.id LEFT JOIN it ON it."saleId" = s.id
       WHERE ${where}
       GROUP BY 1`;
   }
@@ -192,7 +193,7 @@ export class StaffReportService {
       r.prev
         ? this.prisma.$queryRaw<Array<{ id: string | null; bills: number; net: number; discount: number; voided: number }>>`
             SELECT ${WHO} AS id, COUNT(*) FILTER (WHERE s.status::text <> 'VOIDED')::int AS bills,
-              COALESCE(SUM(s.total - s."refundedAmount") FILTER (WHERE s.status::text <> 'VOIDED'), 0)::float AS net,
+              COALESCE(SUM(${BILL_NET}) FILTER (WHERE s.status::text <> 'VOIDED'), 0)::float AS net,
               COALESCE(SUM(GREATEST(s.discount - s."codeDiscount" - s."loyaltyDiscount", 0)) FILTER (WHERE s.status::text <> 'VOIDED'), 0)::float AS discount,
               COUNT(*) FILTER (WHERE s.status::text = 'VOIDED')::int AS voided
             FROM "Sale" s
@@ -211,16 +212,16 @@ export class StaffReportService {
       this.attendance(user, r),
       this.prisma.$queryRaw<Array<{ key: string; id: string | null; bills: number; net: number }>>`
         SELECT to_char(${biz}, ${keyFmt}) AS key, ${WHO} AS id, COUNT(*)::int AS bills,
-          COALESCE(SUM(s.total - s."refundedAmount"), 0)::float AS net
+          COALESCE(SUM(${BILL_NET}), 0)::float AS net
         FROM "Sale" s WHERE ${where} GROUP BY 1, 2`,
       this.prisma.$queryRaw<Array<{ id: string | null; wd: number; h: number; bills: number; net: number }>>`
         SELECT ${WHO} AS id, EXTRACT(DOW FROM ${biz})::int AS wd, EXTRACT(HOUR FROM ${loc})::int AS h, COUNT(*)::int AS bills,
-          COALESCE(SUM(s.total - s."refundedAmount"), 0)::float AS net
+          COALESCE(SUM(${BILL_NET}), 0)::float AS net
         FROM "Sale" s WHERE ${where} GROUP BY 1, 2, 3`,
       scope.shopId
         ? Promise.resolve([] as Array<{ shopId: string | null; id: string | null; bills: number; net: number }>)
         : this.prisma.$queryRaw<Array<{ shopId: string | null; id: string | null; bills: number; net: number }>>`
-            SELECT s."shopId", ${WHO} AS id, COUNT(*)::int AS bills, COALESCE(SUM(s.total - s."refundedAmount"), 0)::float AS net
+            SELECT s."shopId", ${WHO} AS id, COUNT(*)::int AS bills, COALESCE(SUM(${BILL_NET}), 0)::float AS net
             FROM "Sale" s WHERE ${where} GROUP BY 1, 2`,
       this.prisma.user.findMany({
         where: { tenantId: user.tenantId, role: { not: 'SUPER_ADMIN' } },
@@ -263,7 +264,7 @@ export class StaffReportService {
       const bills = s?.bills ?? 0;
       const gross = num(s?.gross);
       const net = gross - num(s?.refunds);
-      const cost = num(s?.cogs) - num(s?.rcost);
+      const cost = num(s?.cost);
       const subtotal = num(s?.subtotal);
       const qty = num(s?.qty);
       const shiftHours = num(sh?.hours);
@@ -481,21 +482,22 @@ export class StaffReportService {
 
     const [trend, grid, payments, products, shifts, returns, voided, pinLog, attendanceDays, attendance, commission, first] = await Promise.all([
       this.prisma.$queryRaw<Array<{ key: string; bills: number; net: number; discount: number }>>`
-        SELECT to_char(${biz}, ${keyFmt}) AS key, COUNT(*)::int AS bills, COALESCE(SUM(s.total - s."refundedAmount"), 0)::float AS net,
+        SELECT to_char(${biz}, ${keyFmt}) AS key, COUNT(*)::int AS bills, COALESCE(SUM(${BILL_NET}), 0)::float AS net,
           COALESCE(SUM(GREATEST(s.discount - s."codeDiscount" - s."loyaltyDiscount", 0)), 0)::float AS discount
         FROM "Sale" s WHERE ${mine} GROUP BY 1`,
       this.prisma.$queryRaw<Array<{ wd: number; h: number; bills: number }>>`
         SELECT EXTRACT(DOW FROM ${biz})::int AS wd, EXTRACT(HOUR FROM ${loc})::int AS h, COUNT(*)::int AS bills
         FROM "Sale" s WHERE ${mine} GROUP BY 1, 2`,
       this.prisma.$queryRaw<Array<{ method: string; bills: number; net: number; collected: number; credit: number }>>`
-        SELECT s."paymentMethod"::text AS method, COUNT(*)::int AS bills, COALESCE(SUM(s.total - s."refundedAmount"), 0)::float AS net,
-          COALESCE(SUM(s."paidAmount" - s."changeAmount"), 0)::float AS collected, COALESCE(SUM(s."creditAmount"), 0)::float AS credit
+        SELECT s."paymentMethod"::text AS method, COUNT(*)::int AS bills, COALESCE(SUM(${BILL_NET}), 0)::float AS net,
+          COALESCE(SUM(${BILL_CASH_IN}), 0)::float AS collected, COALESCE(SUM(s."creditAmount"), 0)::float AS credit
         FROM "Sale" s WHERE ${mine} GROUP BY 1 ORDER BY 3 DESC`,
       this.prisma.$queryRaw<Array<{ id: string; name: string; unit: string; qty: number; net: number; bills: number }>>`
-        SELECT p.id, p.name, p.unit, SUM(si.quantity - si."returnedQty")::float AS qty,
-          SUM(CASE WHEN si.quantity > 0 THEN si.total * (si.quantity - si."returnedQty") / si.quantity ELSE 0 END)::float AS net,
+        WITH ${billMathCte(mine)}
+        SELECT p.id, p.name, p.unit, SUM(${KEPT_QTY})::float AS qty,
+          SUM(${LINE_REVENUE})::float AS net,
           COUNT(DISTINCT s.id)::int AS bills
-        FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" JOIN "Product" p ON p.id = si."productId"
+        FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" JOIN bm ON bm.id = s.id JOIN "Product" p ON p.id = si."productId"
         WHERE ${mine}
         GROUP BY 1, 2, 3 ORDER BY 5 DESC LIMIT 10`,
       drawerHidden ? Promise.resolve([]) : this.prisma.cashRegister.findMany({

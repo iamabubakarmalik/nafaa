@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import {
-  dateKeyTz, hourInTz, startOfDayTz, startOfMonthTz,
-  subDaysTz, subMonthsTz,
+  dateKeyTz, hourInTz, subDaysTz, subMonthsTz,
   startOfBusinessDayTz, startOfBusinessMonthTz, tzParts,
 } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { computeLiveCash } from '../../common/helpers/live-cash.helper';
+import { LIVE_BILL, netProfit, saleFigures, writeOffs } from '../../common/helpers/business-math.helper';
 
 /* ═════════════════════════════════════════════════════════════
    BUSINESS PULSE — har dukaan ke wohi sawal
@@ -27,8 +27,6 @@ import { computeLiveCash } from '../../common/helpers/live-cash.helper';
    yahan se leti hai.
    ═════════════════════════════════════════════════════════════ */
 
-/** Sirf mukammal sales ginti me — draft/cancel nahi. */
-const SOLD_STATUSES = ['COMPLETED', 'PARTIALLY_RETURNED'] as const;
 
 @Injectable()
 export class BusinessPulseService {
@@ -58,11 +56,7 @@ export class BusinessPulseService {
     const prev = tzParts(subMonthsTz(todayStart, 1, tz), tz);
     const lastMonthStart = startOfBusinessMonthTz(prev.year, prev.month, tz, dayStartHour);
 
-    const saleWhere = {
-      tenantId: user.tenantId,
-      status: { in: [...SOLD_STATUSES] },
-      ...(shopId && { shopId }),
-    };
+    const math = { tenantId: user.tenantId, shopId };
     // Purchase/Expense par shopId optional hai — sirf tab chaanein jab
     // shop chuni gayi ho, warna tenant ke poore aankre.
     const shopScope = shopId ? { shopId } : {};
@@ -83,17 +77,12 @@ export class BusinessPulseService {
       customerDue,
       openRegister,
       returnsMonth,
-      damageMonth,
+      lostMonth,
       recentPurchases,
+      lostToday,
     ] = await Promise.all([
-      this.prisma.sale.aggregate({
-        where: { ...saleWhere, soldAt: { gte: todayStart } },
-        _sum: { total: true, costOfGoods: true },
-      }),
-      this.prisma.sale.aggregate({
-        where: { ...saleWhere, soldAt: { gte: monthStart } },
-        _sum: { total: true, costOfGoods: true },
-      }),
+      saleFigures(this.prisma, math, { gte: todayStart }),
+      saleFigures(this.prisma, math, { gte: monthStart }),
 
       // Maal kitne ka aaya
       this.prisma.purchase.aggregate({
@@ -192,7 +181,7 @@ export class BusinessPulseService {
             SELECT 1 FROM "SaleItem" si
             JOIN "Sale" s ON s.id = si."saleId"
             WHERE si."productId" = p.id
-              AND s.status IN ('COMPLETED', 'PARTIALLY_RETURNED')
+              AND s.status <> 'VOIDED'
               AND s."soldAt" >= ${subDaysTz(todayStart, 60, tz)}
           )
       `,
@@ -214,15 +203,15 @@ export class BusinessPulseService {
       }),
 
       this.prisma.saleReturn.aggregate({
-        where: { tenantId: user.tenantId, returnedAt: { gte: monthStart } },
+        where: {
+          tenantId: user.tenantId, returnedAt: { gte: monthStart },
+          // A return belongs to the branch it was made at; older rows fall back to the bill's branch.
+          ...(shopId && { OR: [{ shopId }, { shopId: null, sale: { shopId } }] }),
+        },
         _sum: { refundAmount: true },
         _count: { _all: true },
       }),
-      this.prisma.damageLog.aggregate({
-        where: { tenantId: user.tenantId, createdAt: { gte: monthStart } },
-        _sum: { netLoss: true },
-        _count: { _all: true },
-      }),
+      writeOffs(this.prisma, math, { gte: monthStart }),
 
       this.prisma.purchase.findMany({
         where: { tenantId: user.tenantId, ...shopScope },
@@ -234,6 +223,7 @@ export class BusinessPulseService {
           supplier: { select: { id: true, name: true } },
         },
       }),
+      writeOffs(this.prisma, math, { gte: todayStart }),
     ]);
 
     // Expense categories ke naam alag query me — groupBy relation nahi laata
@@ -252,15 +242,14 @@ export class BusinessPulseService {
     const stockAtRetail = inventory.reduce((sum, p) => sum + p.price * p.stock, 0);
     const stockUnits = inventory.reduce((sum, p) => sum + p.stock, 0);
 
-    const revToday = salesToday._sum.total ?? 0;
-    const cogsToday = salesToday._sum.costOfGoods ?? 0;
+    // Sales net of returns on the bill's own day; profit by business-math.helper.
     const expToday = expensesToday._sum.amount ?? 0;
 
-    const revMonth = salesMonth._sum.total ?? 0;
-    const cogsMonth = salesMonth._sum.costOfGoods ?? 0;
+    const revMonth = salesMonth.net;
+    const cogsMonth = salesMonth.cost;
     const expMonth = expensesMonth._sum.amount ?? 0;
-    const grossMonth = revMonth - cogsMonth;
-    const netMonth = grossMonth - expMonth;
+    const grossMonth = salesMonth.grossProfit;
+    const netMonth = netProfit(grossMonth, expMonth, lostMonth.net);
 
     const dead = deadStock[0] ?? { value: 0, count: 0 };
 
@@ -269,8 +258,8 @@ export class BusinessPulseService {
       generatedAt: now.toISOString(),
 
       profit: {
-        todayGross: revToday - cogsToday,
-        todayNet: revToday - cogsToday - expToday,
+        todayGross: salesToday.grossProfit,
+        todayNet: netProfit(salesToday.grossProfit, expToday, lostToday.net),
         monthGross: grossMonth,
         monthNet: netMonth,
         monthMarginPct: revMonth > 0 ? (netMonth / revMonth) * 100 : 0,
@@ -340,8 +329,8 @@ export class BusinessPulseService {
       losses: {
         returnsMonth: returnsMonth._sum.refundAmount ?? 0,
         returnsCount: returnsMonth._count._all,
-        damageMonth: damageMonth._sum.netLoss ?? 0,
-        damageCount: damageMonth._count._all,
+        damageMonth: lostMonth.net,
+        damageCount: lostMonth.count,
       },
     };
   }
@@ -367,11 +356,11 @@ export class BusinessPulseService {
     const sales = await this.prisma.sale.findMany({
       where: {
         tenantId: user.tenantId,
-        status: { in: [...SOLD_STATUSES] },
+        status: LIVE_BILL,
         soldAt: { gte: rangeStart },
         ...(shopId && { shopId }),
       },
-      select: { total: true, soldAt: true },
+      select: { total: true, refundedAmount: true, soldAt: true },
     });
 
     const buckets: Record<number, { hour: number; total: number; count: number }> = {};
@@ -385,7 +374,7 @@ export class BusinessPulseService {
 
     for (const s of sales) {
       const hour = hourInTz(s.soldAt, tz);
-      buckets[hour].total += s.total;
+      buckets[hour].total += s.total - s.refundedAmount;
       buckets[hour].count += 1;
       activeDays.add(dateKeyTz(s.soldAt, tz));
     }

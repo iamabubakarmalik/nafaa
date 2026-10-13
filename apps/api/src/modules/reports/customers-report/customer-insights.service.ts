@@ -2,8 +2,9 @@
  * Customers report: who buys, how often and how much, for any business-day
  * period at the active branch or all branches. Covers new against returning
  * buyers, named against walk-in sales, top customers, visit rhythm, cities,
- * RFM segments and monthly retention cohorts. Sales count net of returns and
- * leave voided bills out; profit uses the cost recorded on each sale line.
+ * RFM segments and monthly retention cohorts. Sales count net of returns on
+ * the bill's own day and leave voided bills out; cost follows
+ * business-math.helper.
  */
 
 import { Injectable } from '@nestjs/common';
@@ -13,6 +14,7 @@ import { businessDayKey, zonedToUtc } from '../../../common/helpers/business-tim
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
 import { ShopScope } from '../../../common/shop-scope';
+import { BILL_NET, billMathCte } from '../../../common/helpers/business-math.helper';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CustomerCohortDto, CustomerPeriodDto, CustomerSegmentDto, SEGMENTS, type SegmentKey } from './dto/customers-report.dto';
 import { DAY, LIVE, bizTime, bucketKeys, bucketSql, liveSql, narrowScope, num, periodOf, r2, type Period } from './range';
@@ -63,16 +65,12 @@ export class CustomerInsightsService {
     const where = liveSql(tenantId, scope, w);
     const day = Prisma.sql`to_char(${bizTime(Prisma.sql`s."soldAt"`, p)}, 'YYYY-MM-DD')`;
     return this.prisma.$queryRaw<BuyerRow[]>`
-      WITH rc AS (
-        SELECT si."saleId", SUM(si."returnedQty" * si."costPrice") AS rcost
-        FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId"
-        WHERE ${where} AND s."customerId" IS NOT NULL AND si."returnedQty" > 0
-        GROUP BY si."saleId"),
+      WITH ${billMathCte(Prisma.sql`${where} AND s."customerId" IS NOT NULL`)},
       b AS (
         SELECT s."customerId" AS id, COUNT(*)::int AS bills, COUNT(DISTINCT ${day})::int AS visits,
-          SUM(s.total - s."refundedAmount")::float AS net, SUM(s."costOfGoods" - COALESCE(rc.rcost, 0))::float AS goods,
+          SUM(${BILL_NET})::float AS net, SUM(bm.cost)::float AS goods,
           SUM(s."creditAmount")::float AS credit, MIN(s."soldAt") AS "firstIn", MAX(s."soldAt") AS "lastIn"
-        FROM "Sale" s LEFT JOIN rc ON rc."saleId" = s.id
+        FROM "Sale" s JOIN bm ON bm.id = s.id
         WHERE ${where} AND s."customerId" IS NOT NULL
         GROUP BY 1),
       f AS (
@@ -86,7 +84,7 @@ export class CustomerInsightsService {
 
   private walkIn(tenantId: string, scope: ShopScope, w: { gte: Date | null; lt: Date }) {
     return this.prisma.$queryRaw<Array<{ bills: number; net: number }>>`
-      SELECT COUNT(*)::int AS bills, COALESCE(SUM(s.total - s."refundedAmount"), 0)::float AS net
+      SELECT COUNT(*)::int AS bills, COALESCE(SUM(${BILL_NET}), 0)::float AS net
       FROM "Sale" s WHERE ${liveSql(tenantId, scope, w)} AND s."customerId" IS NULL`.then((r) => r[0]);
   }
 
@@ -145,7 +143,7 @@ export class CustomerInsightsService {
       p.prev ? this.signups(tenantId, scope, p.prev) : Promise.resolve(0),
       this.prisma.$queryRaw<Trend[]>`
         WITH b AS (
-          SELECT ${key} AS key, s."customerId" AS id, COUNT(*)::int AS bills, SUM(s.total - s."refundedAmount")::float AS net
+          SELECT ${key} AS key, s."customerId" AS id, COUNT(*)::int AS bills, SUM(${BILL_NET})::float AS net
           FROM "Sale" s WHERE ${where}
           GROUP BY 1, 2),
         f AS (
@@ -165,8 +163,8 @@ export class CustomerInsightsService {
       scope.isAll
         ? this.prisma.$queryRaw<Branch[]>`
             SELECT s."shopId" AS id, COUNT(DISTINCT s."customerId")::int AS buyers,
-              COALESCE(SUM(s.total - s."refundedAmount") FILTER (WHERE s."customerId" IS NOT NULL), 0)::float AS named,
-              COALESCE(SUM(s.total - s."refundedAmount") FILTER (WHERE s."customerId" IS NULL), 0)::float AS "walkIn"
+              COALESCE(SUM(${BILL_NET}) FILTER (WHERE s."customerId" IS NOT NULL), 0)::float AS named,
+              COALESCE(SUM(${BILL_NET}) FILTER (WHERE s."customerId" IS NULL), 0)::float AS "walkIn"
             FROM "Sale" s WHERE ${where}
             GROUP BY 1`
         : Promise.resolve([] as Branch[]),
@@ -292,8 +290,8 @@ export class CustomerInsightsService {
         WITH a AS (
           SELECT s."customerId" AS id, MAX(s."soldAt") AS last, MIN(s."soldAt") AS first, COUNT(*)::int AS bills,
             COUNT(DISTINCT ${day}) FILTER (WHERE s."soldAt" >= ${yearAgo})::int AS visits,
-            COALESCE(SUM(s.total - s."refundedAmount") FILTER (WHERE s."soldAt" >= ${yearAgo}), 0)::float AS net,
-            SUM(s.total - s."refundedAmount")::float AS lifetime
+            COALESCE(SUM(${BILL_NET}) FILTER (WHERE s."soldAt" >= ${yearAgo}), 0)::float AS net,
+            SUM(${BILL_NET})::float AS lifetime
           FROM "Sale" s
           WHERE ${liveSql(tenantId, scope)} AND s."customerId" IS NOT NULL
           GROUP BY 1)
@@ -391,7 +389,7 @@ export class CustomerInsightsService {
         WHERE ${liveSql(tenantId, scope)} AND s."customerId" IS NOT NULL
         GROUP BY 1),
       a AS (
-        SELECT s."customerId" AS id, date_trunc('month', ${biz}) AS m, SUM(s.total - s."refundedAmount") AS net
+        SELECT s."customerId" AS id, date_trunc('month', ${biz}) AS m, SUM(${BILL_NET}) AS net
         FROM "Sale" s
         WHERE ${liveSql(tenantId, scope, { gte: startUtc, lt: new Date(Date.now() + DAY) })} AND s."customerId" IS NOT NULL
         GROUP BY 1, 2)

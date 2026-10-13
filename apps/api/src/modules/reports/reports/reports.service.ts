@@ -1,43 +1,45 @@
 import { Injectable } from '@nestjs/common';
-import { startOfDay, startOfMonth, subDays, format, subMonths, startOfYear } from 'date-fns';
+import { Prisma } from '@prisma/client';
+import { startOfDay, subDays, format } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
+import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
+import {
+  dateKeyTz, startOfBusinessDayTz, startOfBusinessMonthTz, subDaysTz, tzParts,
+} from '../../../common/helpers/business-time.helper';
+import {
+  LIVE_BILL, emptySaleFigures, liveSaleSql, paidExpenseSql, profitFigures, saleFiguresBy,
+} from '../../../common/helpers/business-math.helper';
 
 @Injectable()
 export class ReportsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tz: TenantTimezoneService,
+  ) {}
+
+  /** The last `days` business days in the shop's timezone, and a SQL key for the business day of a column. */
+  private async days(tenantId: string, days: number) {
+    const { tz, dayStartHour } = await this.tz.clock(tenantId);
+    const today = startOfBusinessDayTz(new Date(), tz, dayStartHour);
+    return {
+      start: subDaysTz(today, days - 1, tz),
+      keys: Array.from({ length: days }, (_, i) => dateKeyTz(subDaysTz(today, days - 1 - i, tz), tz)),
+      dayOf: (col: Prisma.Sql) => Prisma.sql`to_char(((${col} AT TIME ZONE 'UTC') AT TIME ZONE ${tz}) - make_interval(hours => ${dayStartHour}::int), 'YYYY-MM-DD')`,
+    };
+  }
 
   // ─── 1. Sales Trend (line/area chart) ──────────────────────
   async salesTrend(user: AuthenticatedUser, scope: ShopScope, days = 14) {
-    const start = startOfDay(subDays(new Date(), days - 1));
-    const sales = await this.prisma.sale.findMany({
-      where: {
-        tenantId: user.tenantId,
-        ...scope.where,
-        status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-        soldAt: { gte: start },
-      },
-      select: { soldAt: true, total: true, costOfGoods: true, paidAmount: true, creditAmount: true },
+    const w = await this.days(user.tenantId, days);
+    const byDay = await saleFiguresBy(
+      this.prisma, liveSaleSql({ tenantId: user.tenantId, shopId: scope.shopId }, { gte: w.start }), w.dayOf(Prisma.sql`s."soldAt"`),
+    );
+    return w.keys.map((date) => {
+      const f = byDay.get(date) ?? emptySaleFigures();
+      return { date, sales: f.net, profit: f.grossProfit, cost: f.cost, orders: f.bills, paid: f.cashIn, credit: f.credit };
     });
-
-    const buckets: Record<string, any> = {};
-    for (let i = 0; i < days; i++) {
-      const d = format(subDays(new Date(), days - 1 - i), 'yyyy-MM-dd');
-      buckets[d] = { date: d, sales: 0, profit: 0, cost: 0, orders: 0, paid: 0, credit: 0 };
-    }
-
-    for (const s of sales) {
-      const key = format(s.soldAt, 'yyyy-MM-dd');
-      if (!buckets[key]) continue;
-      buckets[key].sales += s.total;
-      buckets[key].cost += s.costOfGoods;
-      buckets[key].profit += s.total - s.costOfGoods;
-      buckets[key].orders += 1;
-      buckets[key].paid += s.paidAmount;
-      buckets[key].credit += s.creditAmount;
-    }
-    return Object.values(buckets);
   }
 
   // ─── 2. Top Products with Profit ───────────────────────────
@@ -327,62 +329,37 @@ export class ReportsService {
   }
 
   // ─── 10. Profit & Loss ─────────────────────────────────────
+  /** Same rules as the P&L page (business-math.helper); returns count against their bill's day. */
   async profitAndLoss(user: AuthenticatedUser, scope: ShopScope, days = 30) {
-    const start = startOfDay(subDays(new Date(), days - 1));
-    const [salesAgg, expensesAgg, returnsAgg, purchasesAgg] = await Promise.all([
-      this.prisma.sale.aggregate({
-        where: {
-          tenantId: user.tenantId,
-          ...scope.where,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-          soldAt: { gte: start },
-        },
-        _sum: { total: true, costOfGoods: true, paidAmount: true, creditAmount: true, discount: true },
-        _count: { _all: true },
-      }),
-      this.prisma.expense.aggregate({
-        where: { tenantId: user.tenantId, ...scope.where, status: 'PAID', expenseDate: { gte: start } },
-        _sum: { amount: true },
-      }),
-      this.prisma.saleReturn.aggregate({
-        where: { tenantId: user.tenantId, ...scope.where, returnedAt: { gte: start } },
-        _sum: { refundAmount: true },
-        _count: { _all: true },
-      }),
+    const { start } = await this.days(user.tenantId, days);
+    const math = { tenantId: user.tenantId, shopId: scope.shopId };
+    const [f, returnCount, purchasesAgg] = await Promise.all([
+      profitFigures(this.prisma, math, { gte: start }),
+      this.prisma.saleReturn.count({ where: { tenantId: user.tenantId, sale: { ...scope.where, status: LIVE_BILL, soldAt: { gte: start } } } }),
       this.prisma.purchase.aggregate({
         where: { tenantId: user.tenantId, ...scope.where, status: 'RECEIVED', purchasedAt: { gte: start } },
         _sum: { total: true },
         _count: { _all: true },
       }),
     ]);
-
-    const revenue = salesAgg._sum.total ?? 0;
-    const cogs = salesAgg._sum.costOfGoods ?? 0;
-    const expenses = expensesAgg._sum.amount ?? 0;
-    const returns = returnsAgg._sum.refundAmount ?? 0;
-    const discount = salesAgg._sum.discount ?? 0;
-    const netRevenue = revenue - returns;
-    const grossProfit = netRevenue - cogs;
-    const netProfit = grossProfit - expenses;
-    const grossMargin = netRevenue > 0 ? (grossProfit / netRevenue) * 100 : 0;
-    const netMargin = netRevenue > 0 ? (netProfit / netRevenue) * 100 : 0;
-
+    const t = f.sales;
     return {
       period: { days, startDate: start.toISOString() },
-      revenue,
-      returns,
-      netRevenue,
-      cogs,
-      grossProfit,
-      grossMargin,
-      expenses,
-      netProfit,
-      netMargin,
-      orderCount: salesAgg._count._all,
-      returnCount: returnsAgg._count._all,
-      paid: salesAgg._sum.paidAmount ?? 0,
-      credit: salesAgg._sum.creditAmount ?? 0,
-      discount,
+      revenue: t.gross,
+      returns: t.refunds,
+      netRevenue: t.net,
+      cogs: t.cost,
+      grossProfit: t.grossProfit,
+      grossMargin: t.net > 0 ? (t.grossProfit / t.net) * 100 : 0,
+      expenses: f.expenses,
+      writeOffs: f.writeOffs.net,
+      netProfit: f.netProfit,
+      netMargin: t.net > 0 ? (f.netProfit / t.net) * 100 : 0,
+      orderCount: t.bills,
+      returnCount,
+      paid: t.cashIn,
+      credit: t.credit,
+      discount: t.discount,
       purchases: purchasesAgg._sum.total ?? 0,
       purchaseCount: purchasesAgg._count._all,
     };
@@ -433,80 +410,39 @@ export class ReportsService {
 
   // ─── 12. NEW: Monthly Comparison (last 6 months) ───────────
   async monthlyComparison(user: AuthenticatedUser, scope: ShopScope) {
-    const buckets: Array<{ month: string; sales: number; profit: number; expenses: number; orders: number }> = [];
-
-    for (let i = 5; i >= 0; i--) {
-      const monthStart = startOfMonth(subMonths(new Date(), i));
-      const monthEnd = startOfMonth(subMonths(new Date(), i - 1));
-
-      const [salesAgg, expensesAgg] = await Promise.all([
-        this.prisma.sale.aggregate({
-          where: {
-            tenantId: user.tenantId,
-            ...scope.where,
-            status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-            soldAt: { gte: monthStart, lt: monthEnd },
-          },
-          _sum: { total: true, costOfGoods: true },
-          _count: { _all: true },
-        }),
-        this.prisma.expense.aggregate({
-          where: { tenantId: user.tenantId, ...scope.where, status: 'PAID', expenseDate: { gte: monthStart, lt: monthEnd } },
-          _sum: { amount: true },
-        }),
-      ]);
-
-      const revenue = salesAgg._sum.total ?? 0;
-      const cogs = salesAgg._sum.costOfGoods ?? 0;
-      buckets.push({
-        month: format(monthStart, 'MMM yy'),
-        sales: revenue,
-        profit: revenue - cogs - (expensesAgg._sum.amount ?? 0),
-        expenses: expensesAgg._sum.amount ?? 0,
-        orders: salesAgg._count._all,
-      });
-    }
-    return buckets;
+    const { tz, dayStartHour } = await this.tz.clock(user.tenantId);
+    const now = tzParts(new Date(), tz);
+    const math = { tenantId: user.tenantId, shopId: scope.shopId };
+    return Promise.all([5, 4, 3, 2, 1, 0].map(async (back) => {
+      const from = startOfBusinessMonthTz(now.year, now.month - back, tz, dayStartHour);
+      const to = startOfBusinessMonthTz(now.year, now.month - back + 1, tz, dayStartHour);
+      const f = await profitFigures(this.prisma, math, { gte: from, lt: to });
+      const label = new Date(Date.UTC(now.year, now.month - 1 - back, 1));
+      return {
+        month: format(label, 'MMM yy'),
+        sales: f.sales.net,
+        profit: f.netProfit,
+        expenses: f.expenses,
+        orders: f.sales.bills,
+      };
+    }));
   }
 
   // ─── 13. NEW: Sales vs Expenses (radar/composed) ───────────
   async salesVsExpenses(user: AuthenticatedUser, scope: ShopScope, days = 30) {
-    const start = startOfDay(subDays(new Date(), days - 1));
-    const buckets: Record<string, { date: string; sales: number; expenses: number; profit: number }> = {};
-
-    for (let i = 0; i < days; i++) {
-      const d = format(subDays(new Date(), days - 1 - i), 'yyyy-MM-dd');
-      buckets[d] = { date: d, sales: 0, expenses: 0, profit: 0 };
-    }
-
-    const [sales, expenses] = await Promise.all([
-      this.prisma.sale.findMany({
-        where: {
-          tenantId: user.tenantId,
-          ...scope.where,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-          soldAt: { gte: start },
-        },
-        select: { soldAt: true, total: true, costOfGoods: true },
-      }),
-      this.prisma.expense.findMany({
-        where: { tenantId: user.tenantId, ...scope.where, status: 'PAID', expenseDate: { gte: start } },
-        select: { expenseDate: true, amount: true },
-      }),
+    const w = await this.days(user.tenantId, days);
+    const math = { tenantId: user.tenantId, shopId: scope.shopId };
+    const [byDay, expenses] = await Promise.all([
+      saleFiguresBy(this.prisma, liveSaleSql(math, { gte: w.start }), w.dayOf(Prisma.sql`s."soldAt"`)),
+      this.prisma.$queryRaw<Array<{ day: string; amount: number }>>`
+        SELECT ${w.dayOf(Prisma.sql`e."expenseDate"`)} AS day, COALESCE(SUM(e.amount), 0)::float8 AS amount
+        FROM "Expense" e WHERE ${paidExpenseSql(math, { gte: w.start })} GROUP BY 1`,
     ]);
-
-    for (const s of sales) {
-      const key = format(s.soldAt, 'yyyy-MM-dd');
-      if (buckets[key]) {
-        buckets[key].sales += s.total;
-        buckets[key].profit += s.total - s.costOfGoods;
-      }
-    }
-    for (const e of expenses) {
-      const key = format(e.expenseDate, 'yyyy-MM-dd');
-      if (buckets[key]) buckets[key].expenses += e.amount;
-    }
-    return Object.values(buckets);
+    const spent = new Map(expenses.map((e) => [e.day, e.amount]));
+    return w.keys.map((date) => {
+      const f = byDay.get(date) ?? emptySaleFigures();
+      return { date, sales: f.net, expenses: spent.get(date) ?? 0, profit: f.grossProfit };
+    });
   }
 
   // ─── 14. NEW: Customer Acquisition Trend ──────────────────

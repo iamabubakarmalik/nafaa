@@ -85,12 +85,22 @@ export class OnlineOrdersController {
     @Query('payment') payment?: 'COD_DUE',
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('pay') pay?: string,
   ) {
     return this.svc.list(user, scope, {
-      status, integrationId, search, payment,
+      status, integrationId, search, payment, from, to,
+      pay: pay === 'COD' || pay === 'PAID' ? pay : undefined,
       limit: limit ? +limit : 50,
       offset: offset ? +offset : 0,
     });
+  }
+
+  @Get('cod/history')
+  @ApiOperation({ summary: 'COD settlements (by reference and day) and RTO parcels for a period of business days' })
+  codHistory(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Query('from') from?: string, @Query('to') to?: string) {
+    return this.tools.codHistory(user, scope, { from, to });
   }
 
   @Get('cod-summary')
@@ -540,8 +550,8 @@ export class CouriersController {
 
   @Get()
   @ApiOperation({ summary: 'Sab couriers — kaun jura hai, kaise jorna hai' })
-  list(@GetUser() user: AuthenticatedUser) {
-    return this.svc.list(user);
+  list(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope) {
+    return this.svc.list(user, scope);
   }
 
   @Post(':code/connect')

@@ -20,9 +20,8 @@ import { OrderExtras } from './OrderExtras';
 import { OrderBranchPicker } from './OrderBranchPicker';
 import { DarazOrderSection } from './daraz/Daraz';
 import { PaymentLinkSection } from './PaymentLinkSection';
+import { CancelOrderModal } from './orders/CancelOrderModal';
 import { cn } from '@core/lib/cn';
-
-const CANCEL_REASONS = ['Stock khatam', 'Customer ne mana kiya', 'Address/number ghalat', 'Fake order', 'Delivery nahi ho sakti'];
 
 export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClose: () => void }) {
   const qc = useQueryClient();
@@ -416,7 +415,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
         onConfirm={(m) => accept.mutate(m)}
       />
 
-      <CancelModal
+      <CancelOrderModal
         open={cancelOpen}
         hasBill={!!o.nafaaSaleId}
         loading={cancel.isPending}
@@ -476,46 +475,6 @@ function Step({ done, bad, at, label, icon }: { done: boolean; bad?: boolean; at
         {at && <div className="text-[0.6875rem] text-slate-500">{whenText(at)}</div>}
       </div>
     </li>
-  );
-}
-
-function CancelModal({ open, hasBill, loading, onClose, onConfirm }: {
-  open: boolean; hasBill: boolean; loading: boolean; onClose: () => void; onConfirm: (reason: string) => void;
-}) {
-  const [reason, setReason] = useState('');
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      size="sm"
-      title="Order cancel karein?"
-      description={hasBill ? 'Bill void ho jayega aur saara stock wapas inventory me aa jayega.' : 'Order cancel list me chala jayega.'}
-      footer={
-        <div className="flex w-full justify-end gap-2">
-          <Button variant="ghost" onClick={onClose}>Nahi</Button>
-          <Button variant="danger" loading={loading} disabled={!reason.trim()} onClick={() => onConfirm(reason.trim())}>Haan, cancel</Button>
-        </div>
-      }
-    >
-      <div className="flex flex-wrap gap-1.5">
-        {CANCEL_REASONS.map((r) => (
-          <button
-            key={r}
-            onClick={() => setReason(r)}
-            className={cn('rounded-lg border px-2.5 py-1.5 text-xs font-bold', reason === r
-              ? 'border-rose-400 bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300'
-              : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-ink-700 dark:text-ink-200')}
-          >{r}</button>
-        ))}
-      </div>
-      <textarea
-        value={reason}
-        onChange={(e) => setReason(e.target.value)}
-        placeholder="Wajah likhein…"
-        rows={2}
-        className="mt-3 w-full rounded-xl border-2 border-slate-200 bg-white p-3 text-sm outline-none focus:border-rose-400 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-white"
-      />
-    </Modal>
   );
 }
 

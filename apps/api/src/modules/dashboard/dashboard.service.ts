@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
-  dateKeyTz, endOfDayTz, hourInTz, startOfDayTz, startOfMonthTz,
-  subDaysTz, subMonthsTz,
-  startOfBusinessDayTz,
-  endOfBusinessDayTz,
-  startOfBusinessMonthTz,
-  tzParts
+  dateKeyTz, hourInTz, subDaysTz, subMonthsTz, startOfBusinessDayTz, startOfBusinessMonthTz, tzParts,
 } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { computeLiveCash } from '../../common/helpers/live-cash.helper';
+import {
+  LINE_REVENUE, LIVE_BILL, billMathCte, liveSaleSql, netProfit, paidExpenseWhere, saleFigures, saleFiguresBy, writeOffs,
+} from '../../common/helpers/business-math.helper';
 
 @Injectable()
 export class DashboardService {
@@ -38,8 +37,6 @@ export class DashboardService {
     const monthStart = startOfBusinessMonthTz(_m.year, _m.month, tz, dayStartHour);
     const _lm = tzParts(subMonthsTz(todayStart, 1, tz), tz);
     const lastMonthStart = startOfBusinessMonthTz(_lm.year, _lm.month, tz, dayStartHour);
-    const lastMonthEnd = new Date(monthStart.getTime() - 1);
-    const sevenDaysAgo = subDaysTz(todayStart, 6, tz);
     const thirtyDaysAgo = subDaysTz(todayStart, 29, tz);
 
     const tenant = await this.prisma.tenant.findUnique({
@@ -49,6 +46,10 @@ export class DashboardService {
 
     // Shop scope filter — applied to sales/registers/transfers
     const shopFilter = shopId ? { shopId } : {};
+    const math = { tenantId, shopId };
+    // A return belongs to the branch it was made at; older rows fall back to the bill's branch.
+    const returnShop = shopId ? { OR: [{ shopId }, { shopId: null, sale: { shopId } }] } : {};
+    const businessDay = Prisma.sql`to_char(((s."soldAt" AT TIME ZONE 'UTC') AT TIME ZONE ${tz}) - make_interval(hours => ${dayStartHour}::int), 'YYYY-MM-DD')`;
 
     let shopContext: any = null;
     if (shopId) {
@@ -84,8 +85,7 @@ export class DashboardService {
       purchasesMonthAgg,
       expensesTodayAgg,
       expensesMonthAgg,
-      last7DaysSales,
-      last30DaysSales,
+      dailySales,
       topProductsRaw,
       currentRegister,
       carpetRollsAgg,
@@ -102,6 +102,8 @@ export class DashboardService {
       pendingTransfers,
       salesTodayHourly,
       paymentMethodAgg,
+      lostToday,
+      lostMonth,
     ] = await Promise.all([
       // Products — global list (name, price, stock, image) — always tenant-level
       this.prisma.product.findMany({
@@ -159,30 +161,12 @@ export class DashboardService {
               images: { take: 1, select: { url: true } },
             },
           }),
-      this.prisma.sale.aggregate({
-        where: {
-          tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-          soldAt: { gte: todayStart },
-          ...shopFilter,
-        },
-        _sum: { total: true, costOfGoods: true, paidAmount: true, creditAmount: true },
-        _count: { _all: true },
-      }),
-      this.prisma.sale.aggregate({
-        where: {
-          tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-          soldAt: { gte: yesterdayStart, lte: yesterdayEnd },
-          ...shopFilter,
-        },
-        _sum: { total: true, costOfGoods: true },
-        _count: { _all: true },
-      }),
+      saleFigures(this.prisma, math, { gte: todayStart }),
+      saleFigures(this.prisma, math, { gte: yesterdayStart, lt: todayStart }),
       this.prisma.sale.count({
         where: {
           tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          status: LIVE_BILL,
           soldAt: { gte: todayStart },
           ...shopFilter,
         },
@@ -190,33 +174,17 @@ export class DashboardService {
       this.prisma.sale.count({
         where: {
           tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          status: LIVE_BILL,
           soldAt: { gte: yesterdayStart, lte: yesterdayEnd },
           ...shopFilter,
         },
       }),
-      this.prisma.sale.aggregate({
-        where: {
-          tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-          soldAt: { gte: monthStart },
-          ...shopFilter,
-        },
-        _sum: { total: true, costOfGoods: true },
-      }),
-      this.prisma.sale.aggregate({
-        where: {
-          tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-          soldAt: { gte: lastMonthStart, lte: lastMonthEnd },
-          ...shopFilter,
-        },
-        _sum: { total: true, costOfGoods: true },
-      }),
+      saleFigures(this.prisma, math, { gte: monthStart }),
+      saleFigures(this.prisma, math, { gte: lastMonthStart, lt: monthStart }),
       this.prisma.sale.count({
         where: {
           tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          status: LIVE_BILL,
           soldAt: { gte: monthStart },
           ...shopFilter,
         },
@@ -224,22 +192,22 @@ export class DashboardService {
       this.prisma.sale.count({
         where: {
           tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          status: LIVE_BILL,
           ...shopFilter,
         },
       }),
       this.prisma.sale.aggregate({
         where: {
           tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          status: LIVE_BILL,
           ...shopFilter,
         },
-        _sum: { total: true },
+        _sum: { total: true, refundedAmount: true },
       }),
       this.prisma.sale.findMany({
         where: {
           tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          status: LIVE_BILL,
           ...shopFilter,
         },
         orderBy: { soldAt: 'desc' },
@@ -268,47 +236,17 @@ export class DashboardService {
         _sum: { receivedValue: true },
       }),
       this.prisma.expense.aggregate({
-        where: { tenantId, status: 'PAID', expenseDate: { gte: todayStart } },
+        where: paidExpenseWhere(math, { gte: todayStart }),
         _sum: { amount: true },
         _count: { _all: true },
       }),
       this.prisma.expense.aggregate({
-        where: { tenantId, status: 'PAID', expenseDate: { gte: monthStart } },
+        where: paidExpenseWhere(math, { gte: monthStart }),
         _sum: { amount: true },
       }),
-      this.prisma.sale.findMany({
-        where: {
-          tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-          soldAt: { gte: sevenDaysAgo },
-          ...shopFilter,
-        },
-        select: { soldAt: true, total: true, costOfGoods: true },
-      }),
-      this.prisma.sale.findMany({
-        where: {
-          tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-          soldAt: { gte: thirtyDaysAgo },
-          ...shopFilter,
-        },
-        select: { soldAt: true, total: true, costOfGoods: true },
-      }),
-      this.prisma.saleItem.groupBy({
-        by: ['productId'],
-        where: {
-          sale: {
-            tenantId,
-            status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-            soldAt: { gte: monthStart },
-            ...shopFilter,
-          },
-        },
-        _sum: { quantity: true, total: true },
-        _count: { _all: true },
-        orderBy: { _sum: { total: 'desc' } },
-        take: 5,
-      }),
+      // One pass over 30 business days serves both trend charts.
+      saleFiguresBy(this.prisma, liveSaleSql(math, { gte: thirtyDaysAgo }), businessDay),
+      this.topProducts(math, monthStart),
       this.prisma.cashRegister.findFirst({
         where: {
           tenantId,
@@ -379,12 +317,12 @@ export class DashboardService {
         where: { tenantId, status: 'ACTIVE' },
       }),
       this.prisma.saleReturn.aggregate({
-        where: { tenantId, returnedAt: { gte: todayStart } },
+        where: { tenantId, returnedAt: { gte: todayStart }, ...returnShop },
         _sum: { refundAmount: true },
         _count: { _all: true },
       }),
       this.prisma.saleReturn.aggregate({
-        where: { tenantId, returnedAt: { gte: monthStart } },
+        where: { tenantId, returnedAt: { gte: monthStart }, ...returnShop },
         _sum: { refundAmount: true },
         _count: { _all: true },
       }),
@@ -398,23 +336,25 @@ export class DashboardService {
       this.prisma.sale.findMany({
         where: {
           tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          status: LIVE_BILL,
           soldAt: { gte: todayStart },
           ...shopFilter,
         },
-        select: { soldAt: true, total: true },
+        select: { soldAt: true, total: true, refundedAmount: true },
       }),
       this.prisma.sale.groupBy({
         by: ['paymentMethod'],
         where: {
           tenantId,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
+          status: LIVE_BILL,
           soldAt: { gte: monthStart },
           ...shopFilter,
         },
-        _sum: { total: true },
+        _sum: { total: true, refundedAmount: true },
         _count: { _all: true },
       }),
+      writeOffs(this.prisma, math, { gte: todayStart }),
+      writeOffs(this.prisma, math, { gte: monthStart }),
     ]);
 
     // Calculations
@@ -424,19 +364,20 @@ export class DashboardService {
     const inventoryValueAtCost = products.reduce((s, p) => s + p.costPrice * p.stock, 0);
     const inventoryValueAtPrice = products.reduce((s, p) => s + p.price * p.stock, 0);
 
-    const salesToday = salesTodayAgg._sum.total ?? 0;
-    const cogsToday = salesTodayAgg._sum.costOfGoods ?? 0;
+    // Sales net of returns on the bill's own day; profit and net profit by business-math.helper.
+    const salesToday = salesTodayAgg.net;
+    const cogsToday = salesTodayAgg.cost;
     const expensesToday = expensesTodayAgg._sum.amount ?? 0;
-    const grossProfitToday = salesToday - cogsToday;
-    const netProfitToday = grossProfitToday - expensesToday;
-    const salesYesterday = salesYesterdayAgg._sum.total ?? 0;
+    const grossProfitToday = salesTodayAgg.grossProfit;
+    const netProfitToday = netProfit(grossProfitToday, expensesToday, lostToday.net);
+    const salesYesterday = salesYesterdayAgg.net;
 
-    const salesMonth = salesMonthAgg._sum.total ?? 0;
-    const cogsMonth = salesMonthAgg._sum.costOfGoods ?? 0;
+    const salesMonth = salesMonthAgg.net;
+    const cogsMonth = salesMonthAgg.cost;
     const expensesMonth = expensesMonthAgg._sum.amount ?? 0;
-    const grossProfitMonth = salesMonth - cogsMonth;
-    const netProfitMonth = grossProfitMonth - expensesMonth;
-    const salesLastMonth = salesLastMonthAgg._sum.total ?? 0;
+    const grossProfitMonth = salesMonthAgg.grossProfit;
+    const netProfitMonth = netProfit(grossProfitMonth, expensesMonth, lostMonth.net);
+    const salesLastMonth = salesLastMonthAgg.net;
 
     const salesGrowthVsYesterday = salesYesterday > 0
       ? ((salesToday - salesYesterday) / salesYesterday) * 100
@@ -446,37 +387,21 @@ export class DashboardService {
       ? ((salesMonth - salesLastMonth) / salesLastMonth) * 100
       : salesMonth > 0 ? 100 : 0;
 
-    const todayCredit = salesTodayAgg._sum.creditAmount ?? 0;
-    const todayPaid = salesTodayAgg._sum.paidAmount ?? 0;
+    const todayCredit = salesTodayAgg.credit;
+    const todayPaid = salesTodayAgg.cashIn;
     const aovToday = ordersToday > 0 ? salesToday / ordersToday : 0;
     const aovMonth = ordersMonth > 0 ? salesMonth / ordersMonth : 0;
 
-    const trendBuckets: Record<string, { date: string; sales: number; profit: number; orders: number }> = {};
-    for (let i = 0; i < 7; i++) {
-      const d = dateKeyTz(subDaysTz(now, 6 - i, tz), tz);
-      trendBuckets[d] = { date: d, sales: 0, profit: 0, orders: 0 };
-    }
-    for (const s of last7DaysSales) {
-      const key = dateKeyTz(s.soldAt, tz);
-      if (!trendBuckets[key]) continue;
-      trendBuckets[key].sales += s.total;
-      trendBuckets[key].profit += s.total - s.costOfGoods;
-      trendBuckets[key].orders += 1;
-    }
-    const salesTrend7Days = Object.values(trendBuckets);
-
-    const trend30Buckets: Record<string, { date: string; sales: number; profit: number }> = {};
-    for (let i = 0; i < 30; i++) {
-      const d = dateKeyTz(subDaysTz(now, 29 - i, tz), tz);
-      trend30Buckets[d] = { date: d, sales: 0, profit: 0 };
-    }
-    for (const s of last30DaysSales) {
-      const key = dateKeyTz(s.soldAt, tz);
-      if (!trend30Buckets[key]) continue;
-      trend30Buckets[key].sales += s.total;
-      trend30Buckets[key].profit += s.total - s.costOfGoods;
-    }
-    const salesTrend30Days = Object.values(trend30Buckets);
+    // Business-day keys: the start of each business day, in the shop's calendar.
+    const dayKeys = (count: number) => Array.from({ length: count }, (_, i) => dateKeyTz(subDaysTz(todayStart, count - 1 - i, tz), tz));
+    const salesTrend7Days = dayKeys(7).map((date) => {
+      const f = dailySales.get(date);
+      return { date, sales: f?.net ?? 0, profit: f?.grossProfit ?? 0, orders: f?.bills ?? 0 };
+    });
+    const salesTrend30Days = dayKeys(30).map((date) => {
+      const f = dailySales.get(date);
+      return { date, sales: f?.net ?? 0, profit: f?.grossProfit ?? 0 };
+    });
 
     const hourlyBuckets: Record<number, { hour: number; sales: number; orders: number }> = {};
     for (let h = 0; h < 24; h++) hourlyBuckets[h] = { hour: h, sales: 0, orders: 0 };
@@ -484,12 +409,12 @@ export class DashboardService {
       // Dukaan ki ghari ka ghanta — `getHours()` server ke UTC par chalta
       // tha, to shaam 8 baje ka rush chart me dopahar 3 baje dikhta tha.
       const h = hourInTz(s.soldAt, tz);
-      hourlyBuckets[h].sales += s.total;
+      hourlyBuckets[h].sales += s.total - s.refundedAmount;
       hourlyBuckets[h].orders += 1;
     }
     const hourlySalesToday = Object.values(hourlyBuckets);
 
-    const topProductIds = topProductsRaw.map((t) => t.productId);
+    const topProductIds = topProductsRaw.map((t) => t.id);
     const topProductDetails = await this.prisma.product.findMany({
       where: { id: { in: topProductIds.filter((id): id is string => !!id) } },
       select: {
@@ -499,11 +424,11 @@ export class DashboardService {
     });
     const topProductMap = new Map(topProductDetails.map((p) => [p.id, p]));
     const topProducts = topProductsRaw.map((tp) => ({
-      productId: tp.productId,
-      product: tp.productId ? topProductMap.get(tp.productId) : undefined,
-      quantitySold: tp._sum.quantity ?? 0,
-      revenue: tp._sum.total ?? 0,
-      orderCount: tp._count._all,
+      productId: tp.id,
+      product: tp.id ? topProductMap.get(tp.id) : undefined,
+      quantitySold: tp.qty,
+      revenue: tp.revenue,
+      orderCount: tp.bills,
     }));
 
     const bt = (tenant?.businessType || '').toUpperCase();
@@ -543,7 +468,7 @@ export class DashboardService {
         salesMonth, ordersMonth, cogsMonth, grossProfitMonth, netProfitMonth, expensesMonth,
         purchasesMonth: purchasesMonthAgg._sum.receivedValue ?? 0,
         aovMonth, salesLastMonth, salesGrowthVsLastMonth,
-        totalOrders, totalRevenue: totalRevenue._sum.total ?? 0,
+        totalOrders, totalRevenue: (totalRevenue._sum.total ?? 0) - (totalRevenue._sum.refundedAmount ?? 0),
         totalProducts, lowStockCount, outOfStockCount, totalUsers,
         totalSuppliers, totalCustomers, totalCategories,
         totalUdhaar: udhaarAgg._sum.balance ?? 0,
@@ -616,10 +541,24 @@ export class DashboardService {
       })),
       paymentBreakdown: paymentMethodAgg.map((p) => ({
         method: p.paymentMethod,
-        total: p._sum.total ?? 0,
+        total: (p._sum.total ?? 0) - (p._sum.refundedAmount ?? 0),
         count: p._count._all,
       })),
       currentRegister,
     };
+  }
+
+  /** Five best sellers of the month by what they earned after discounts and returns. */
+  private topProducts(math: { tenantId: string; shopId?: string }, from: Date) {
+    const where = liveSaleSql(math, { gte: from });
+    return this.prisma.$queryRaw<Array<{ id: string | null; qty: number; revenue: number; bills: number }>>`
+      WITH ${billMathCte(where)}
+      SELECT si."productId" AS id, COALESCE(SUM(si.quantity), 0)::float8 AS qty,
+        COALESCE(SUM(${LINE_REVENUE}), 0)::float8 AS revenue, COUNT(*)::int AS bills
+      FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" JOIN bm ON bm.id = s.id
+      WHERE ${where}
+      GROUP BY 1
+      ORDER BY revenue DESC
+      LIMIT 5`;
   }
 }

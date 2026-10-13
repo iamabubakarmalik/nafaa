@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  BadgePercent, BookOpen, CalendarRange, Download, FileDown, GitCompareArrows, GraduationCap, HandCoins, Landmark, Lightbulb,
+  BadgePercent, BookOpen, Calculator, CalendarRange, Download, FileDown, GitCompareArrows, GraduationCap, HandCoins, Landmark, Lightbulb,
   Package, PiggyBank, Printer, Receipt, RefreshCw, RotateCcw, ShoppingCart, TrendingUp, Truck, Users, Wallet, type LucideIcon,
 } from 'lucide-react';
 import {
@@ -201,6 +201,7 @@ export default function ReportsCenterPage() {
             { icon: Users, color: '#d97706', title: 'Customers aur udhaar', text: 'Naye aur purane customer, sab se bare customer, udhaar diya aur wapas mila, aur kis ka udhaar kitna purana hai.' },
             { icon: ShoppingCart, color: '#ea580c', title: 'Kharidari aur kharche', text: 'Kis supplier se kitna maal aaya, kis ko kitna dena hai, aur kharche kis category me gaye.' },
             { icon: PiggyBank, color: '#059669', title: 'Munafa', text: 'Bikri se wapsi, lagat, kharche aur kharab maal nikaal kar asal munafa. Cheez war munafa "Cheez war munafa" link par.' },
+            { icon: Calculator, color: '#0f766e', title: 'Hisaab kaise', text: 'Asal bikri = bill − wapsi (void bill nahi gine jate). Lagat = bill bante waqt ki cost; cost na likhi ho to aaj ki cost. Kharche sirf jo ada ho chuke (pending nahi). Net munafa = munafa − kharche − kharab, gum ya ginti me kam maal. Wapsi us bill ke din me ginti hai jis ka maal tha. Reports, Munafa report, Nafa nuqsan aur Dashboard sab yahi hisaab lagate hain. Sirf "Wapsi" tab aur Din ka hisaab me wapsi us din dikhti hai jis din hui.' },
             { icon: BadgePercent, color: '#db2777', title: 'Tax aur wapsi', text: 'Tax authority ne kitne bill maane aur kitna tax bana; wapsi kis wajah se aur kis maal ki, aur void bill.' },
             ...(config.industry ? [config.industry.guide] : []),
             { icon: FileDown, color: '#475569', title: 'Print aur CSV', text: 'Upar Print se A4, PDF ya thermal slip; CSV se Excel file. Jo tab khula hai wohi report banti hai.' },

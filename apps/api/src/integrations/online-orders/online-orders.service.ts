@@ -19,6 +19,7 @@ import { OrderToolsService } from './order-tools.service';
 import { emitOrderAccepted } from './order-events';
 import { shopDue } from './shop-due';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
+import { periodRange } from '../../modules/inventory/taxonomy/taxonomy.helper';
 
 /**
  * Online order ka poora safar:
@@ -43,6 +44,10 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 const ACCEPTING = 'ACCEPTING';
 const LOCK_TTL_MS = 2 * 60_000;
 const FLOW: OrderStatus[] = ['CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+
+/** A new order waiting longer than this shows as late. */
+const STALE_PENDING_MS = 15 * 60_000;
+const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 const SOURCE_BY_TYPE: Record<string, SaleSource> = {
   CUSTOM_WEBSITE: 'WEBSITE',
@@ -174,6 +179,10 @@ export class OnlineOrdersService implements OnModuleInit {
   async list(user: AuthenticatedUser, scope: ShopScope, q: {
     status?: string; integrationId?: string; search?: string; limit?: number; offset?: number;
     payment?: 'COD_DUE';
+    /** Business days "YYYY-MM-DD"; both needed to narrow by received date. */
+    from?: string; to?: string;
+    /** COD = cash on delivery orders, PAID = money already received. */
+    pay?: 'COD' | 'PAID';
   }) {
     // Channel chuna ho to ginti (tabs, aaj, COD) bhi usi channel ki
     const base: Prisma.ChannelOrderWhereInput = {
@@ -181,6 +190,8 @@ export class OnlineOrdersService implements OnModuleInit {
       ...(q.integrationId && { integrationId: q.integrationId }),
     };
     const where: Prisma.ChannelOrderWhereInput = { ...base };
+    // Extra conditions go in AND so they never replace the branch scope's OR.
+    const and: Prisma.ChannelOrderWhereInput[] = [];
     if (q.status === 'ACTIVE') where.orderStatus = { in: ['CONFIRMED', 'PREPARING', 'READY', 'OUT_FOR_DELIVERY'] };
     else if (q.status === 'CLOSED') where.orderStatus = { in: CLOSED };
     else if (q.status) where.orderStatus = q.status;
@@ -189,24 +200,34 @@ export class OnlineOrdersService implements OnModuleInit {
       where.nafaaSaleId = { not: null };
       where.orderStatus = { notIn: CLOSED };
     }
+    if (q.pay === 'COD') and.push({ metadata: { path: ['cod'], equals: true } });
+    if (q.pay === 'PAID') and.push({ paymentStatus: 'PAID' });
+    const range = q.from && q.to && DAY_KEY.test(q.from) && DAY_KEY.test(q.to)
+      ? await periodRange(this.tzService, user.tenantId, q.from, q.to)
+      : null;
+    if (range) and.push({ receivedAt: range });
     if (q.search?.trim()) {
       const s = q.search.trim();
-      where.AND = [{
+      and.push({
         OR: [
-          { externalOrderNumber: { contains: s, mode: 'insensitive' } },
+          { externalOrderNumber: { contains: s.replace(/^#/, ''), mode: 'insensitive' } },
           { externalOrderId: { contains: s, mode: 'insensitive' } },
           { customerName: { contains: s, mode: 'insensitive' } },
           { customerPhone: { contains: s } },
           { trackingNumber: { contains: s, mode: 'insensitive' } },
         ],
-      }];
+      });
     }
+    if (and.length) where.AND = and;
 
     /* Dukaan ka apna karobari din — raat 12 baje band hone wali
        dukaan ke liye raat 1 baje ka order abhi "aaj" ka hai */
     const { tz, dayStartHour } = await this.tzService.clock(user.tenantId);
     const today = startOfBusinessDayTz(new Date(), tz, dayStartHour);
-    const [items, total, counts, todayAgg, codDue] = await Promise.all([
+    const notTest: Prisma.ChannelOrderWhereInput = { NOT: { metadata: { path: ['test'], equals: true } } };
+    const staleBefore = new Date(Date.now() - STALE_PENDING_MS);
+    const alertSelect = { id: true, externalOrderNumber: true, externalOrderId: true, customerName: true, receivedAt: true, orderStatus: true } as const;
+    const [items, total, counts, rangeCounts, todayAgg, codDue, stale, staleCount, cancelAsked, cancelAskedCount] = await Promise.all([
       this.prisma.channelOrder.findMany({
         where,
         orderBy: { receivedAt: 'desc' },
@@ -216,6 +237,9 @@ export class OnlineOrdersService implements OnModuleInit {
       }),
       this.prisma.channelOrder.count({ where }),
       this.prisma.channelOrder.groupBy({ by: ['orderStatus'], where: base, _count: { _all: true } }),
+      range
+        ? this.prisma.channelOrder.groupBy({ by: ['orderStatus'], where: { ...base, AND: [{ receivedAt: range }] }, _count: { _all: true } })
+        : Promise.resolve(null),
       this.prisma.channelOrder.aggregate({
         where: { ...base, receivedAt: { gte: today }, orderStatus: { notIn: CLOSED } },
         _count: { _all: true },
@@ -226,10 +250,32 @@ export class OnlineOrdersService implements OnModuleInit {
         select: { total: true, metadata: true },
         take: 5000,
       }).then((rows) => ({ _count: { _all: rows.length }, _sum: { total: rows.reduce((t, r) => t + shopDue(r), 0) } })),
+      this.prisma.channelOrder.findMany({
+        where: { ...base, orderStatus: 'PENDING', receivedAt: { lt: staleBefore }, AND: [notTest] },
+        orderBy: { receivedAt: 'asc' },
+        take: 4,
+        select: alertSelect,
+      }),
+      this.prisma.channelOrder.count({ where: { ...base, orderStatus: 'PENDING', receivedAt: { lt: staleBefore }, AND: [notTest] } }),
+      this.prisma.channelOrder.findMany({
+        where: { ...base, orderStatus: { notIn: ['CANCELLED', 'REJECTED', 'RETURNED'] }, AND: [{ metadata: { path: ['cancelRequested'], equals: true } }] },
+        orderBy: { receivedAt: 'desc' },
+        take: 4,
+        select: alertSelect,
+      }),
+      this.prisma.channelOrder.count({
+        where: { ...base, orderStatus: { notIn: ['CANCELLED', 'REJECTED', 'RETURNED'] }, AND: [{ metadata: { path: ['cancelRequested'], equals: true } }] },
+      }),
     ]);
 
     const statusCounts: Record<string, number> = {};
     counts.forEach((c) => { statusCounts[c.orderStatus] = c._count._all; });
+    const rangeStatusCounts: Record<string, number> | null = rangeCounts ? {} : null;
+    rangeCounts?.forEach((c) => { rangeStatusCounts![c.orderStatus] = c._count._all; });
+    const alertRow = (o: (typeof stale)[number]) => ({
+      ...o,
+      externalOrderNumber: o.externalOrderNumber ? String(o.externalOrderNumber).replace(/^#+/, '') : o.externalOrderNumber,
+    });
 
     const risks = await this.customerRisk(user.tenantId, items.map((o) => o.customerPhone)).catch(() => new Map<string, CustomerRisk>());
 
@@ -245,11 +291,18 @@ export class OnlineOrdersService implements OnModuleInit {
       }),
       total,
       counts: statusCounts,
+      /** Status counts inside from/to; null when no dates were given. */
+      rangeCounts: rangeStatusCounts,
       stats: {
         todayOrders: todayAgg._count._all,
         todayValue: Number(todayAgg._sum.total ?? 0),
         codDueCount: codDue._count._all,
         codDueValue: Number(codDue._sum.total ?? 0),
+      },
+      alerts: {
+        staleMinutes: STALE_PENDING_MS / 60_000,
+        stalePending: { count: staleCount, oldest: stale.map(alertRow) },
+        cancelRequests: { count: cancelAskedCount, latest: cancelAsked.map(alertRow) },
       },
     };
   }
@@ -847,11 +900,14 @@ export class OnlineOrdersService implements OnModuleInit {
     const rows = await this.prisma.channelOrder.findMany({
       where: {
         ...base,
-        OR: [
-          { paymentStatus: { not: 'PAID' }, orderStatus: { notIn: ['CANCELLED', 'REJECTED'] } },
-          { codSettledAt: { gte: month } },
-          { dispatchedAt: { gte: since } },
-        ],
+        // In AND so the branch scope's own OR stays in force.
+        AND: [{
+          OR: [
+            { paymentStatus: { not: 'PAID' }, orderStatus: { notIn: ['CANCELLED', 'REJECTED'] } },
+            { codSettledAt: { gte: month } },
+            { dispatchedAt: { gte: since } },
+          ],
+        }],
       },
       select: {
         id: true, externalOrderNumber: true, externalOrderId: true, customerName: true, customerCity: true, total: true,

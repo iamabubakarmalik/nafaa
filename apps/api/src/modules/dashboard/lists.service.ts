@@ -9,13 +9,14 @@
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PaymentMethod } from '@prisma/client';
+import { PaymentMethod, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { startOfBusinessDayTz, subDaysTz } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
-
-const SOLD = ['COMPLETED', 'PARTIALLY_RETURNED'] as const;
+import {
+  KEPT_QTY, LINE_COST, LINE_COST_JOINS, LINE_REVENUE, LIVE_BILL, billMathCte, liveSaleSql,
+} from '../../common/helpers/business-math.helper';
 const METHODS = Object.values(PaymentMethod) as string[];
 
 export interface ListQuery {
@@ -69,25 +70,17 @@ export class DashboardListsService {
 
   private async top(user: AuthenticatedUser, shopId: string | undefined, days: number, sort: 'qty' | 'revenue' | 'profit', limit: number, categoryId?: string) {
     const from = await this.since(user.tenantId, days);
-    const lines = await this.prisma.saleItem.findMany({
-      where: {
-        productId: { not: null },
-        sale: { tenantId: user.tenantId, status: { in: [...SOLD] }, soldAt: { gte: from }, ...(shopId && { shopId }) },
-        ...(categoryId && { product: { categoryId } }),
-      },
-      select: { productId: true, saleId: true, quantity: true, returnedQty: true, total: true, costPrice: true },
-    });
-
-    const map = new Map<string, { qty: number; revenue: number; cost: number; bills: Set<string> }>();
-    for (const l of lines) {
-      const row = map.get(l.productId!) ?? { qty: 0, revenue: 0, cost: 0, bills: new Set<string>() };
-      const qty = l.quantity - l.returnedQty;
-      row.qty += qty;
-      row.revenue += l.total;
-      row.cost += l.costPrice * qty;
-      row.bills.add(l.saleId);
-      map.set(l.productId!, row);
-    }
+    // Revenue after the bill discount and returns, cost of what was kept: business-math.helper.
+    const where = liveSaleSql({ tenantId: user.tenantId, shopId }, { gte: from });
+    const rows = await this.prisma.$queryRaw<Array<{ id: string; qty: number; revenue: number; cost: number; bills: number }>>`
+      WITH ${billMathCte(where)}
+      SELECT si."productId" AS id, COALESCE(SUM(${KEPT_QTY}), 0)::float8 AS qty, COALESCE(SUM(${LINE_REVENUE}), 0)::float8 AS revenue,
+        COALESCE(SUM(${LINE_COST}), 0)::float8 AS cost, COUNT(DISTINCT si."saleId")::int AS bills
+      FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" JOIN bm ON bm.id = s.id
+      ${LINE_COST_JOINS}
+      WHERE ${where} AND si."productId" IS NOT NULL ${categoryId ? Prisma.sql`AND bm_p."categoryId" = ${categoryId}` : Prisma.empty}
+      GROUP BY 1`;
+    const map = new Map(rows.map((r) => [r.id, r]));
     const key = { qty: (r: { qty: number }) => r.qty, revenue: (r: { revenue: number }) => r.revenue, profit: (r: { revenue: number; cost: number }) => r.revenue - r.cost }[sort];
     const ranked = [...map.entries()].sort((a, b) => key(b[1]) - key(a[1])).slice(0, limit);
     const products = await this.prisma.product.findMany({ where: { id: { in: ranked.map(([id]) => id) } }, select: productSelect });
@@ -99,7 +92,7 @@ export class DashboardListsService {
         const p = byId.get(id);
         return {
           id, name: p?.name ?? 'Product', unit: p?.unit ?? 'pcs', category: p?.category?.name ?? null,
-          image: p?.images[0]?.url ?? null, qty: r.qty, revenue: r.revenue, profit: r.revenue - r.cost, bills: r.bills.size,
+          image: p?.images[0]?.url ?? null, qty: r.qty, revenue: r.revenue, profit: r.revenue - r.cost, bills: r.bills,
         };
       }),
     };
@@ -107,7 +100,7 @@ export class DashboardListsService {
 
   private async slow(user: AuthenticatedUser, shopId: string | undefined, days: number, sort: 'value' | 'stock', limit: number, categoryId?: string) {
     const from = await this.since(user.tenantId, days);
-    const saleScope = { tenantId: user.tenantId, status: { in: [...SOLD] }, ...(shopId && { shopId }) };
+    const saleScope = { tenantId: user.tenantId, status: LIVE_BILL, ...(shopId && { shopId }) };
     const sold = await this.prisma.saleItem.findMany({
       where: { productId: { not: null }, sale: { ...saleScope, soldAt: { gte: from } } },
       select: { productId: true },
@@ -187,7 +180,7 @@ export class DashboardListsService {
 
   private async recent(user: AuthenticatedUser, shopId: string | undefined, limit: number, method?: PaymentMethod) {
     const sales = await this.prisma.sale.findMany({
-      where: { tenantId: user.tenantId, status: { in: [...SOLD] }, ...(shopId && { shopId }), ...(method && { paymentMethod: method }) },
+      where: { tenantId: user.tenantId, status: LIVE_BILL, ...(shopId && { shopId }), ...(method && { paymentMethod: method }) },
       orderBy: { soldAt: 'desc' },
       take: limit,
       select: {

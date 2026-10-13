@@ -3,11 +3,18 @@
  * day and its two comparison days, item lines net of the bill discount and
  * of returns, per-person figures and payment methods. Grouping happens in
  * the database so a busy day stays one round trip per figure.
+ *
+ * Cost, bill-discount share and cash follow business-math.helper. As a
+ * day-close view, the day's bills count at full value and returns count on
+ * the day they were made.
  */
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import {
+  BILL_CASH_IN, LINE_COST_JOINS, LINE_NET, LINE_UNIT_COST, RETURN_LINE_COST, billMathCte,
+} from '../../../common/helpers/business-math.helper';
 
 export interface Window {
   from: Date;
@@ -83,9 +90,6 @@ export interface LowRow {
   shop: string;
 }
 
-/** Bill-level discount spread over the lines in proportion to their value. */
-const NET_LINE = Prisma.sql`si.total * COALESCE(GREATEST(s.subtotal - s.discount, 0) / NULLIF(s.subtotal, 0), 1)`;
-
 @Injectable()
 export class DayBookQueries {
   constructor(private readonly prisma: PrismaService) {}
@@ -101,17 +105,23 @@ export class DayBookQueries {
       : Prisma.empty;
   }
 
+  /** Live bills of the window (alias `s`). */
+  private liveSales(scope: Scope, w: Window) {
+    return Prisma.sql`s."tenantId" = ${scope.tenantId} AND s.status <> 'VOIDED'
+      AND s."soldAt" >= ${w.from} AND s."soldAt" < ${w.to} ${this.saleShop(scope)}`;
+  }
+
   /** Bills, sales value, cost and returns for one window. */
   async totals(scope: Scope, w: Window): Promise<WindowTotals> {
+    const where = this.liveSales(scope, w);
     const rows = await this.prisma.$queryRaw<WindowTotals[]>`
-      WITH b AS (
+      WITH ${billMathCte(where)}, b AS (
         SELECT COUNT(*)::int AS bills,
                COALESCE(SUM(s.total), 0)::float8 AS billed,
-               COALESCE(SUM(s."costOfGoods"), 0)::float8 AS cogs,
+               COALESCE(SUM(bm."soldCost"), 0)::float8 AS cogs,
                COALESCE(SUM(s.discount), 0)::float8 AS discount
-        FROM "Sale" s
-        WHERE s."tenantId" = ${scope.tenantId} AND s.status <> 'VOIDED'
-          AND s."soldAt" >= ${w.from} AND s."soldAt" < ${w.to} ${this.saleShop(scope)}
+        FROM "Sale" s JOIN bm ON bm.id = s.id
+        WHERE ${where}
       ), q AS (
         SELECT COALESCE(SUM(si.quantity), 0)::float8 AS "soldQty"
         FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId"
@@ -122,12 +132,13 @@ export class DayBookQueries {
         FROM "SaleReturn" r JOIN "Sale" s ON s.id = r."saleId"
         WHERE r."tenantId" = ${scope.tenantId} AND r."returnedAt" >= ${w.from} AND r."returnedAt" < ${w.to} ${this.returnShop(scope)}
       ), rc AS (
-        SELECT COALESCE(SUM(ri.quantity * si."costPrice"), 0)::float8 AS "returnCost",
+        SELECT COALESCE(SUM(${RETURN_LINE_COST}), 0)::float8 AS "returnCost",
                COALESCE(SUM(ri.quantity), 0)::float8 AS "returnQty"
         FROM "SaleReturnItem" ri
         JOIN "SaleReturn" r ON r.id = ri."returnId"
         JOIN "SaleItem" si ON si.id = ri."saleItemId"
         JOIN "Sale" s ON s.id = r."saleId"
+        ${LINE_COST_JOINS}
         WHERE r."tenantId" = ${scope.tenantId} AND r."returnedAt" >= ${w.from} AND r."returnedAt" < ${w.to} ${this.returnShop(scope)}
       )
       SELECT * FROM b, q, r, rc`;
@@ -153,26 +164,28 @@ export class DayBookQueries {
 
   /** Every product sold or returned in the window, net of the bill discount. */
   items(scope: Scope, w: Window) {
+    const where = this.liveSales(scope, w);
     return this.prisma.$queryRaw<ItemRow[]>`
-      WITH sold AS (
+      WITH ${billMathCte(where)}, sold AS (
         SELECT si."productId" AS pid,
                SUM(si.quantity)::float8 AS qty,
-               SUM(${NET_LINE})::float8 AS revenue,
-               SUM(si."costPrice" * si.quantity)::float8 AS cost,
+               SUM(${LINE_NET})::float8 AS revenue,
+               SUM(si.quantity * ${LINE_UNIT_COST})::float8 AS cost,
                COUNT(DISTINCT s.id)::int AS bills
-        FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId"
-        WHERE s."tenantId" = ${scope.tenantId} AND s.status <> 'VOIDED'
-          AND s."soldAt" >= ${w.from} AND s."soldAt" < ${w.to} ${this.saleShop(scope)}
+        FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" JOIN bm ON bm.id = s.id
+        ${LINE_COST_JOINS}
+        WHERE ${where}
         GROUP BY si."productId"
       ), back AS (
         SELECT ri."productId" AS pid,
                SUM(ri.quantity)::float8 AS qty,
                SUM(ri.total)::float8 AS amount,
-               SUM(ri.quantity * si."costPrice")::float8 AS cost
+               SUM(${RETURN_LINE_COST})::float8 AS cost
         FROM "SaleReturnItem" ri
         JOIN "SaleReturn" r ON r.id = ri."returnId"
         JOIN "SaleItem" si ON si.id = ri."saleItemId"
         JOIN "Sale" s ON s.id = r."saleId"
+        ${LINE_COST_JOINS}
         WHERE r."tenantId" = ${scope.tenantId} AND r."returnedAt" >= ${w.from} AND r."returnedAt" < ${w.to} ${this.returnShop(scope)}
         GROUP BY ri."productId"
       )
@@ -191,14 +204,15 @@ export class DayBookQueries {
   /** Bills per seller (soldBy, else the person at the counter), voids included. */
   people(scope: Scope, w: Window) {
     return this.prisma.$queryRaw<PersonRow[]>`
+      WITH ${billMathCte(this.liveSales(scope, w))}
       SELECT COALESCE(s."soldById", s."createdById") AS uid,
              COUNT(*) FILTER (WHERE s.status <> 'VOIDED')::int AS bills,
              COUNT(*) FILTER (WHERE s.status = 'VOIDED')::int AS voids,
              COALESCE(SUM(s.total) FILTER (WHERE s.status <> 'VOIDED'), 0)::float8 AS total,
              COALESCE(SUM(s.discount) FILTER (WHERE s.status <> 'VOIDED'), 0)::float8 AS discount,
-             COALESCE(SUM(s."costOfGoods") FILTER (WHERE s.status <> 'VOIDED'), 0)::float8 AS cogs,
+             COALESCE(SUM(bm."soldCost"), 0)::float8 AS cogs,
              COALESCE(SUM(s."creditAmount") FILTER (WHERE s.status <> 'VOIDED'), 0)::float8 AS credit
-      FROM "Sale" s
+      FROM "Sale" s LEFT JOIN bm ON bm.id = s.id
       WHERE s."tenantId" = ${scope.tenantId} AND s."soldAt" >= ${w.from} AND s."soldAt" < ${w.to} ${this.saleShop(scope)}
       GROUP BY 1`;
   }
@@ -213,7 +227,7 @@ export class DayBookQueries {
       SELECT s."paymentMethod"::text AS method,
              COUNT(*)::int AS bills,
              COALESCE(SUM(s.total), 0)::float8 AS billed,
-             COALESCE(SUM(s."paidAmount" - s."changeAmount") FILTER (WHERE s."bookingId" IS NULL), 0)::float8 AS collected,
+             COALESCE(SUM(${BILL_CASH_IN}) FILTER (WHERE s."bookingId" IS NULL), 0)::float8 AS collected,
              COALESCE(SUM(s."creditAmount"), 0)::float8 AS credit,
              COUNT(*) FILTER (WHERE s."bookingId" IS NOT NULL)::int AS booking_bills
       FROM "Sale" s

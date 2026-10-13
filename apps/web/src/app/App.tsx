@@ -24,7 +24,7 @@ import AppearancePage from '@modules/appearance/pages/AppearancePage';
 import DeveloperPage from '@integrations/developer/DeveloperPage';
 import PayQrPage from '@core/payments/PayQrPage';
 import GooglePage from '@integrations/google/GooglePage';
-import TaxHubPage from '@integrations/tax-authority/TaxHubPage';
+import TaxPage from '@modules/tax/TaxPage';
 import FoodpandaPage from '@integrations/online-orders/pages/FoodpandaPage';
 import CustomerDisplayPage from '@core/hardware/CustomerDisplayPage';
 import {
@@ -715,10 +715,10 @@ export default function App() {
                   {/* Shopify admin → Apps → Nafaa yahan khulta hai */}
                   <Route path="/shopify" element={secure(PERMISSIONS.SETTINGS_VIEW, <ShopifyAppPage />)} />
                   {/* Tax ek jagah — purane FBR links yahin aate hain */}
-                  <Route path="/tax" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxHubPage />)} />
-                  <Route path="/tax/invoices" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxHubPage />)} />
-                  <Route path="/tax/reports" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxHubPage />)} />
-                  <Route path="/tax/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxHubPage />)} />
+                  <Route path="/tax" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxPage />)} />
+                  <Route path="/tax/invoices" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxPage />)} />
+                  <Route path="/tax/reports" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxPage />)} />
+                  <Route path="/tax/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <TaxPage />)} />
                   <Route path="/fbr" element={<Navigate to="/tax/settings" replace />} />
                   <Route path="/fbr/setup" element={<Navigate to="/tax/settings" replace />} />
                   <Route path="/fbr/wizard" element={<Navigate to="/tax/settings" replace />} />

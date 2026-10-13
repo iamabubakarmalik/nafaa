@@ -9,6 +9,7 @@ import { OnlineOrdersService } from './online-orders.service';
 import { WebsiteSetupService } from './website-setup.service';
 import { OrderAccepted, orderEvents } from './order-events';
 import { advancePaid } from './payment-links.service';
+import { shopDue } from './shop-due';
 import { COURIERS, courierName } from './couriers';
 import { COURIER_APIS, SettingField, courierApi } from './courier-api/registry';
 import { cityKey } from './courier-api/http';
@@ -76,9 +77,9 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
   // ACCOUNTS
   // ═══════════════════════════════════════════════════════════
 
-  async list(user: AuthenticatedUser) {
+  async list(user: AuthenticatedUser, scope: ShopScope) {
     const configs = await this.prisma.courierConfig.findMany({ where: { tenantId: user.tenantId } });
-    const stats = await this.statsByCourier(user.tenantId);
+    const stats = await this.statsByCourier(user.tenantId, scope);
     return COURIERS.filter((c) => c.code !== 'OTHER').map((c) => {
       const api = COURIER_APIS[c.code];
       const cfg = configs.find((x) => x.provider === c.code);
@@ -200,15 +201,18 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
           nafaaSaleId: { not: null },
           orderStatus: { in: ['CONFIRMED', 'PREPARING', 'READY'] },
           dispatchedAt: null,
-          OR: [{ courierBookedAt: null }, { courierStatus: 'CANCELLED' }],
         }
       : {
           tenantId: user.tenantId,
           ...(scope.whereLoose as any),
           courierCode: code,
-          OR: [{ courierBookedAt: { not: null } }, { trackingNumber: { not: null } }],
         };
-    const and: Prisma.ChannelOrderWhereInput[] = [];
+    // Kept in AND so they never replace the branch scope's own OR.
+    const and: Prisma.ChannelOrderWhereInput[] = [
+      f === 'to-book'
+        ? { OR: [{ courierBookedAt: null }, { courierStatus: 'CANCELLED' }] }
+        : { OR: [{ courierBookedAt: { not: null } }, { trackingNumber: { not: null } }] },
+    ];
     if (f === 'active') and.push({ orderStatus: { notIn: [...CLOSED, 'DELIVERED'] } });
     if (f === 'booked') and.push({ courierStatus: 'BOOKED' });
     if (f === 'attempted') and.push({ courierStatus: 'ATTEMPTED' });
@@ -226,7 +230,7 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
         { customerCity: { contains: term, mode: 'insensitive' } },
       ] });
     }
-    if (and.length) where.AND = and;
+    where.AND = and;
     const take = Math.min(Math.max(q.limit ?? 50, 1), 200);
     const [rows, total] = await Promise.all([
       this.prisma.channelOrder.findMany({
@@ -282,15 +286,16 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
   }
 
   /** Har courier ka hisaab: raste me, deliver, RTO %, courier ke paas paisa */
-  private async statsByCourier(tenantId: string) {
+  private async statsByCourier(tenantId: string, scope: ShopScope) {
     const since = new Date(Date.now() - 30 * 86_400_000);
     const rows = await this.prisma.channelOrder.findMany({
       where: {
         tenantId,
+        ...(scope.whereLoose as any),
         courierCode: { not: null },
-        OR: [{ dispatchedAt: { gte: since } }, { courierBookedAt: { gte: since } }, { orderStatus: { notIn: [...CLOSED, 'DELIVERED'] }, trackingNumber: { not: null } }, { paymentStatus: 'COLLECTED' }],
+        AND: [{ OR: [{ dispatchedAt: { gte: since } }, { courierBookedAt: { gte: since } }, { orderStatus: { notIn: [...CLOSED, 'DELIVERED'] }, trackingNumber: { not: null } }, { paymentStatus: 'COLLECTED' }] }],
       },
-      select: { courierCode: true, orderStatus: true, paymentStatus: true, courierStatus: true, courierBookedAt: true, dispatchedAt: true, total: true },
+      select: { courierCode: true, orderStatus: true, paymentStatus: true, courierStatus: true, courierBookedAt: true, dispatchedAt: true, total: true, metadata: true },
     });
     const out: Record<string, ReturnType<typeof emptyStats>> = {};
     for (const r of rows) {
@@ -305,10 +310,11 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
       if (recent && r.dispatchedAt) s.dispatched30++;
       if (recent && r.orderStatus === 'DELIVERED') s.delivered30++;
       if (recent && r.orderStatus === 'RETURNED') s.returned30++;
-      if (r.orderStatus === 'DELIVERED' && r.paymentStatus === 'COLLECTED') { s.codPending++; s.codPendingValue += Number(r.total); }
+      if (r.orderStatus === 'DELIVERED' && r.paymentStatus === 'COLLECTED') { s.codPending++; s.codPendingValue += shopDue(r); }
     }
-    // Portal par seedha book hue (kisi Nafaa order se nahi jure) — double na gino
-    const portal = await this.prisma.courierShipment.findMany({
+    // Portal par seedha book hue (kisi Nafaa order se nahi jure) — double na gino.
+    // These carry no branch, so a single-branch view leaves them out.
+    const portal = scope.shopId ? [] : await this.prisma.courierShipment.findMany({
       where: {
         tenantId,
         orderId: { startsWith: 'ext:' },

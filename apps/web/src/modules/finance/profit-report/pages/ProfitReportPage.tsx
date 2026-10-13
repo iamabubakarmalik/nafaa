@@ -13,7 +13,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, ArrowDownWideNarrow, BarChart3, CalendarDays, CalendarRange, Download, Flame, GraduationCap, Layers, ListChecks, ListFilter,
+  AlertTriangle, ArrowDownWideNarrow, BarChart3, Calculator, CalendarDays, CalendarRange, Download, Flame, GraduationCap, Layers, ListChecks, ListFilter,
   Package, Receipt, RefreshCw, RotateCcw, Scale, Search, Sparkles, Tag, Truck, UserRound, Wallet,
 } from 'lucide-react';
 import {
@@ -289,6 +289,7 @@ export default function ProfitReportPage() {
             { icon: CalendarRange, color: '#2563eb', title: 'Muddat chunein', text: '"Tareekh" se aaj, 7 din, is mahine ya apni tareekh. Har number ke saath pichhli utni hi muddat ka muqabla hai.' },
             { icon: Wallet, color: '#16a34a', title: 'Asal bikri aur munafa', text: 'Asal bikri = list rate − discount − wapsi. Munafa = asal bikri − maal ki lagat. Lagat wohi jo bill bante waqt us cheez ki thi.' },
             { icon: Scale, color: '#d97706', title: 'Net munafa', text: 'Gross munafa me se kharche aur kharab / gum maal (stock adjustment) nikaal kar asal bachat. "Din war" aur "Analytics" me poora hisaab.' },
+            { icon: Calculator, color: '#0f766e', title: 'Hisaab kaise', text: 'Asal bikri = bill − wapsi (void bill nahi gine jate). Lagat = bill bante waqt ki cost; cost na likhi ho to aaj ki cost. Kharche sirf jo ada ho chuke (pending nahi). Net munafa = munafa − kharche − kharab, gum ya ginti me kam maal. Wapsi us bill ke din me ginti hai jis ka maal tha. Reports, Munafa report, Nafa nuqsan aur Dashboard sab yahi hisaab lagate hain.' },
             { icon: Flame, color: '#e11d48', title: 'Nuqsan aur chhoot', text: 'Upar ke dabbe dabayein: Discount wali, Wapsi wali, Nuqsan wali cheezein. Sirf wohi list me aa jati hain.' },
             { icon: Layers, color: '#7c3aed', title: 'Kis cheez se kamai', text: 'Tabs: Category, Brand, Supplier, Staff, Din war. Category, brand ya staff par click karein to us ka filter lag jata hai.' },
             { icon: ListChecks, color: '#0891b2', title: 'Variant aur export', text: 'Jis cheez ke variant hon us ke teer par click karein — har size / rang ka munafa. CSV aur Print/PDF me poori list.' },

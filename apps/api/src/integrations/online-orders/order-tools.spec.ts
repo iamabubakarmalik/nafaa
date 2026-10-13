@@ -14,7 +14,8 @@ function svc(rows: any[], extra: any = {}) {
     systemSetting: { findUnique: async (q: any) => (store[q.where.key] ? { value: store[q.where.key] } : null), upsert: async (q: any) => { store[q.where.key] = q.create.value; } },
     user: { findUnique: async () => ({ fullName: 'Urwa', email: 'x' }) },
   };
-  return new OrderToolsService(prisma);
+  const tz: any = { clock: async () => ({ tz: 'Asia/Karachi', dayStartHour: 0 }) };
+  return new OrderToolsService(prisma, tz);
 }
 
 describe('OrderTools report', () => {

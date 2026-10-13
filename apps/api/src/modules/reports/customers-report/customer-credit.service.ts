@@ -11,6 +11,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { businessDayKey } from '../../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { ShopScope } from '../../../common/shop-scope';
+import { BILL_NET } from '../../../common/helpers/business-math.helper';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CustomerPeriodDto } from './dto/customers-report.dto';
 import { DAY, bucketKeys, bucketSql, liveSql, narrowScope, num, periodOf, r2, type Period } from './range';
@@ -142,7 +143,7 @@ export class CustomerCreditService {
         GROUP BY 1`,
       this.prisma.$queryRaw<Array<{ bills: number; credit: number; net: number }>>`
         SELECT COUNT(*) FILTER (WHERE s."creditAmount" > 0)::int AS bills, COALESCE(SUM(s."creditAmount"), 0)::float AS credit,
-          COALESCE(SUM(s.total - s."refundedAmount"), 0)::float AS net
+          COALESCE(SUM(${BILL_NET}), 0)::float AS net
         FROM "Sale" s WHERE ${liveSql(tenantId, scope, p)}`.then((r) => r[0]),
       p.gte ? Promise.resolve(null) : this.prisma.customerLedger.findFirst({ where: { tenantId, ...shopWhere }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } }),
     ]);
@@ -253,8 +254,8 @@ export class CustomerCreditService {
         GROUP BY 1`,
       this.prisma.$queryRaw<Array<{ value: number; bills: number; memberNet: number; net: number }>>`
         SELECT COALESCE(SUM(s."loyaltyDiscount"), 0)::float AS value, COUNT(*) FILTER (WHERE s."loyaltyUsed" > 0)::int AS bills,
-          COALESCE(SUM(s.total - s."refundedAmount") FILTER (WHERE s."loyaltyEarned" > 0 OR s."loyaltyUsed" > 0), 0)::float AS "memberNet",
-          COALESCE(SUM(s.total - s."refundedAmount"), 0)::float AS net
+          COALESCE(SUM(${BILL_NET}) FILTER (WHERE s."loyaltyEarned" > 0 OR s."loyaltyUsed" > 0), 0)::float AS "memberNet",
+          COALESCE(SUM(${BILL_NET}), 0)::float AS net
         FROM "Sale" s WHERE ${liveSql(tenantId, scope, p)}`.then((r) => r[0]),
       this.prisma.customer.findMany({
         where: { tenantId, isActive: true, loyaltyPoints: { gt: 0 } }, orderBy: { loyaltyPoints: 'desc' }, take: 25,

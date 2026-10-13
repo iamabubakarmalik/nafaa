@@ -16,8 +16,9 @@
  * firstDayOfWeek, currencySymbol, shopName, shopWhatsapp. `dailySummarySentDay`
  * records the last automatic send so a shop never gets two in one day.
  *
- * Numbers follow the shop's business day. Sales are net of returns made the
- * same day; voided bills are left out. Cash from sales is paid − change.
+ * Numbers follow the shop's business day. As a day-close view, sales are the
+ * day's bills less returns made the same day; voided bills are left out.
+ * Cost, expenses, write-offs and cash follow business-math.helper.
  */
 
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
@@ -29,6 +30,9 @@ import { ShopScope } from '../../../common/shop-scope';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { businessDayKey, safeDayStart, startOfBusinessDayTz, tzParts, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { computeLiveCash } from '../../../common/helpers/live-cash.helper';
+import {
+  KEPT_QTY, LINE_REVENUE, billMathCte, dayCloseCost, liveSaleSql, netProfit, writeOffs,
+} from '../../../common/helpers/business-math.helper';
 import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
 import {
   hiddenFiguresFor, normalizeReportsConfig, type ReportsConfig, type SummaryPart,
@@ -101,6 +105,7 @@ export interface DailySummary {
   };
   cogs: number;
   grossProfit: number;
+  /** Gross profit less the day's paid expenses and stock written off. */
   netProfit: number;
   expenses: { total: number; count: number; top: Array<{ name: string; amount: number }> };
   lowStock: { out: number; low: number };
@@ -194,6 +199,19 @@ export class DailySummaryService {
     };
   }
 
+  /** The day's five best sellers by what they earned after discounts and returns. */
+  private topItems(tenantId: string, shopId: string | null, from: Date, to: Date) {
+    const where = liveSaleSql({ tenantId, shopId }, { gte: from, lt: to });
+    return this.prisma.$queryRaw<Array<{ id: string | null; qty: number; revenue: number }>>`
+      WITH ${billMathCte(where)}
+      SELECT si."productId" AS id, COALESCE(SUM(${KEPT_QTY}), 0)::float8 AS qty, COALESCE(SUM(${LINE_REVENUE}), 0)::float8 AS revenue
+      FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" JOIN bm ON bm.id = s.id
+      WHERE ${where}
+      GROUP BY 1
+      ORDER BY revenue DESC
+      LIMIT 5`;
+  }
+
   private async netSales(tenantId: string, shopId: string | null, from: Date, to: Date): Promise<number> {
     const [s, r] = await Promise.all([
       this.prisma.sale.aggregate({
@@ -220,13 +238,13 @@ export class DailySummaryService {
     const monthStartKey = `${key.slice(0, 8)}01`;
 
     const [
-      salesAgg, voidAgg, saleMethods, bookingMethods, returns, returnedItems, expenseGroups, khata,
+      salesAgg, voidAgg, saleMethods, bookingMethods, returns, dayCost, expenseGroups, khata,
       itemGroups, sellerGroups, closedAgg, openRegisters, branchGroups, shopRow,
       previousDay, lastWeekSameDay, weekToDate, monthToDate,
     ] = await Promise.all([
       this.prisma.sale.aggregate({
         where: sold,
-        _sum: { total: true, discount: true, creditAmount: true, costOfGoods: true },
+        _sum: { total: true, discount: true, creditAmount: true },
         _count: { _all: true },
       }),
       this.prisma.sale.aggregate({
@@ -251,10 +269,7 @@ export class DailySummaryService {
         _sum: { refundAmount: true },
         _count: { _all: true },
       }),
-      this.prisma.saleReturnItem.findMany({
-        where: { return: returnWhere },
-        select: { quantity: true, saleItem: { select: { costPrice: true } } },
-      }),
+      dayCloseCost(this.prisma, { tenantId, shopId }, { gte: from, lt: to }),
       this.prisma.expense.groupBy({
         by: ['categoryId'],
         where: { tenantId, ...shop, status: 'PAID', expenseDate: { gte: from, lt: to } },
@@ -266,13 +281,7 @@ export class DailySummaryService {
         where: { tenantId, type: 'PAYMENT_RECEIVED', amount: { lt: 0 }, createdAt: { gte: from, lt: to }, AND: [...loose, NOT_BOOKING_LINE] },
         _sum: { amount: true },
       }),
-      this.prisma.saleItem.groupBy({
-        by: ['productId'],
-        where: { sale: sold },
-        _sum: { quantity: true, returnedQty: true, total: true },
-        orderBy: { _sum: { total: 'desc' } },
-        take: 5,
-      }),
+      this.topItems(tenantId, shopId, from, to),
       this.prisma.sale.groupBy({
         by: ['soldById', 'createdById'],
         where: sold,
@@ -323,18 +332,18 @@ export class DailySummaryService {
     const cashSales = methods.find((m) => m.method === 'CASH')?.amount ?? 0;
 
     // ── Profit: today's bills less the cost of goods that came back today ──
-    const cogs = n(salesAgg._sum.costOfGoods);
-    const returnedCost = returnedItems.reduce((a, r) => a + n(r.quantity) * n(r.saleItem.costPrice), 0);
+    const cogs = dayCost.sold;
+    const returnedCost = dayCost.returned;
     const grossProfit = net - (cogs - returnedCost);
 
     // ── Expenses ──
     const categoryIds = expenseGroups.map((g) => g.categoryId).filter((id): id is string => !!id);
-    const productIds = itemGroups.map((g) => g.productId).filter((id): id is string => !!id);
+    const productIds = itemGroups.map((g) => g.id).filter((id): id is string => !!id);
     const staffIds = new Set<string>();
     for (const s of sellerGroups) { const id = s.soldById ?? s.createdById; if (id) staffIds.add(id); }
     const branchIds = branchGroups.map((b) => b.shopId).filter((id): id is string => !!id);
 
-    const [categories, products, people, shops, lowRows, liveCash] = await Promise.all([
+    const [categories, products, people, shops, lowRows, liveCash, lost] = await Promise.all([
       categoryIds.length ? this.prisma.expenseCategory.findMany({ where: { id: { in: categoryIds } }, select: { id: true, name: true } }) : [],
       productIds.length ? this.prisma.product.findMany({ where: { id: { in: productIds } }, select: { id: true, name: true } }) : [],
       staffIds.size ? this.prisma.user.findMany({ where: { id: { in: [...staffIds] } }, select: { id: true, fullName: true } }) : [],
@@ -343,6 +352,7 @@ export class DailySummaryService {
       Promise.all(openRegisters.map((r) => computeLiveCash(this.prisma, tenantId, {
         id: r.id, shopId: r.shopId, openedAt: r.openedAt, openingBalance: n(r.openingBalance),
       }))),
+      writeOffs(this.prisma, { tenantId, shopId }, { gte: from, lt: to }),
     ]);
 
     const catName = new Map(categories.map((x) => [x.id, x.name]));
@@ -353,12 +363,9 @@ export class DailySummaryService {
       .slice(0, 3);
 
     const productName = new Map(products.map((p) => [p.id, p.name]));
-    const topItems = itemGroups.map((g) => {
-      const qty = n(g._sum.quantity);
-      const back = n(g._sum.returnedQty);
-      const kept = qty > 0 ? (qty - back) / qty : 0;
-      return { name: (g.productId && productName.get(g.productId)) || 'Doosra maal', qty: r2(qty - back), revenue: r2(n(g._sum.total) * kept) };
-    }).filter((x) => x.qty > 0);
+    const topItems = itemGroups
+      .map((g) => ({ name: (g.id && productName.get(g.id)) || 'Doosra maal', qty: r2(n(g.qty)), revenue: r2(n(g.revenue)) }))
+      .filter((x) => x.qty > 0);
     const itemsSold = await this.prisma.saleItem.aggregate({ where: { sale: sold }, _sum: { quantity: true, returnedQty: true } });
 
     const personName = new Map(people.map((p) => [p.id, p.fullName]));
@@ -421,7 +428,7 @@ export class DailySummaryService {
       },
       cogs: r2(cogs - returnedCost),
       grossProfit: r2(grossProfit),
-      netProfit: r2(grossProfit - expenseTotal),
+      netProfit: netProfit(grossProfit, expenseTotal, lost.net),
       expenses: { total: r2(expenseTotal), count: expenseGroups.reduce((a, g) => a + g._count._all, 0), top: expenseTop },
       lowStock: { out: live.filter((r) => r.status === 'out').length, low: live.filter((r) => r.status === 'low').length },
       topItems,
@@ -460,7 +467,7 @@ export class DailySummaryService {
       if (s.money.shortExcess) lines.push(`Galla band karte waqt farq: ${money(s.money.shortExcess)}`);
     }
     if (has('profit') && opts.withProfit) {
-      lines.push(`Munafa: ${money(s.grossProfit)}${s.expenses.total && has('expenses') ? ` | kharchon ke baad ${money(s.netProfit)}` : ''}`);
+      lines.push(`Munafa: ${money(s.grossProfit)}${s.netProfit !== s.grossProfit && has('expenses') ? ` | kharchon ke baad ${money(s.netProfit)}` : ''}`);
     }
     if (has('expenses') && s.expenses.total) lines.push(`Kharche: ${money(s.expenses.total)} (${s.expenses.count})`);
     if (has('khata') && (s.sales.credit || s.money.khataCollected)) {

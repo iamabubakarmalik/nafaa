@@ -1,9 +1,12 @@
 /**
  * Report centre: one endpoint per section (sales, items, customers,
  * purchases, expenses, profit, tax, returns) for any business-day period,
- * scoped to the tenant and branch. Sales count net of returns and leave
- * voided bills out; cost comes from the cost recorded on each sale line.
- * Every section also returns the previous period of the same length.
+ * scoped to the tenant and branch. Every sale, cost, expense and write-off
+ * figure follows common/helpers/business-math.helper: sales net of returns
+ * on the bill's own day, voided bills left out, cost from each sale line
+ * (today's cost when a line has none), PAID expenses only. The returns
+ * section counts returns on the day they were made. Every section also
+ * returns the previous period of the same length.
  */
 
 import { Injectable } from '@nestjs/common';
@@ -11,14 +14,17 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { businessDayKey } from '../../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
+import {
+  BILL_CASH_IN, BILL_NET, KEPT_QTY, LINE_COST, LINE_COST_JOINS, LINE_FALLBACK, LINE_NO_COST, LINE_REVENUE, RETURN_LINE_COST,
+  billMathCte, emptySaleFigures, foldWriteOffs, netProfit, paidExpenseSql, paidExpenseWhere, saleFiguresBy, writeOffRows,
+  type SaleFigures,
+} from '../../../common/helpers/business-math.helper';
 import { ShopScope } from '../../../common/shop-scope';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import {
   DAY, LIVE_SALE, bizTime, bucketKeys, localTime, num, r2, reportRange, saleSql, within,
   type ReportQuery, type ReportRange,
 } from './report-range';
-
-interface SaleTotalsRow { bills: number; gross: number; refunds: number; cogs: number; rcost: number; cashin: number; credit: number; discount: number; codeDiscount: number; loyaltyDiscount: number; service: number }
 
 const PURCHASE_ACTIVE = ['RECEIVED', 'PARTIAL'] as const;
 
@@ -33,32 +39,14 @@ export class ReportsCenterService {
     return reportRange(this.tz, user.tenantId, q);
   }
 
-  /** Cost of goods that came back, per sale, for the bills in `where`. */
-  private returnedCostCte(where: Prisma.Sql) {
-    return Prisma.sql`rc AS (
-      SELECT si."saleId", SUM(si."returnedQty" * si."costPrice") AS rcost
-      FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId"
-      WHERE ${where} AND si."returnedQty" > 0
-      GROUP BY si."saleId")`;
+  private async saleTotals(user: AuthenticatedUser, scope: ShopScope, r: { gte: Date | null; lt: Date }): Promise<SaleFigures> {
+    return (await saleFiguresBy(this.prisma, saleSql(user.tenantId, scope, r))).get('all') ?? emptySaleFigures();
   }
 
-  private async saleTotals(user: AuthenticatedUser, scope: ShopScope, r: { gte: Date | null; lt: Date }): Promise<SaleTotalsRow> {
-    const where = saleSql(user.tenantId, scope, r);
-    const [row] = await this.prisma.$queryRaw<SaleTotalsRow[]>`
-      WITH ${this.returnedCostCte(where)}
-      SELECT COUNT(*)::int AS bills, COALESCE(SUM(s.total), 0)::float AS gross, COALESCE(SUM(s."refundedAmount"), 0)::float AS refunds,
-        COALESCE(SUM(s."costOfGoods"), 0)::float AS cogs, COALESCE(SUM(rc.rcost), 0)::float AS rcost,
-        COALESCE(SUM(s."paidAmount" - s."changeAmount"), 0)::float AS cashin, COALESCE(SUM(s."creditAmount"), 0)::float AS credit,
-        COALESCE(SUM(s.discount), 0)::float AS discount, COALESCE(SUM(s."codeDiscount"), 0)::float AS "codeDiscount",
-        COALESCE(SUM(s."loyaltyDiscount"), 0)::float AS "loyaltyDiscount", COALESCE(SUM(s."serviceCharges"), 0)::float AS service
-      FROM "Sale" s LEFT JOIN rc ON rc."saleId" = s.id
-      WHERE ${where}`;
-    return row;
-  }
-
-  private static net(t: Pick<SaleTotalsRow, 'gross' | 'refunds' | 'cogs' | 'rcost'>) {
-    const net = t.gross - t.refunds;
-    const cost = t.cogs - t.rcost;
+  /** Net sales, cost and gross profit of grouped bill rows. */
+  private static net(t: { gross: number; refunds: number; cost: number }) {
+    const net = num(t.gross) - num(t.refunds);
+    const cost = num(t.cost);
     return { net: r2(net), cost: r2(cost), profit: r2(net - cost) };
   }
 
@@ -77,17 +65,17 @@ export class ReportsCenterService {
   async sales(user: AuthenticatedUser, scope: ShopScope, q: ReportQuery) {
     const r = await this.range(user, q);
     const where = saleSql(user.tenantId, scope, r);
-    const rc = this.returnedCostCte(where);
+    const bm = billMathCte(where);
     const biz = bizTime(Prisma.sql`s."soldAt"`, r);
     const loc = localTime(Prisma.sql`s."soldAt"`, r);
 
-    type Grid = { day: string; hour: number; bills: number; gross: number; refunds: number; cogs: number; rcost: number };
-    type Group = { id: string | null; bills: number; gross: number; refunds: number; cogs: number; rcost: number; cashin: number };
+    type Grid = { day: string; hour: number; bills: number; gross: number; refunds: number; cost: number };
+    type Group = { id: string | null; bills: number; gross: number; refunds: number; cost: number; cashin: number };
     const groupBy = (col: Prisma.Sql) => this.prisma.$queryRaw<Group[]>`
-      WITH ${rc}
+      WITH ${bm}
       SELECT ${col} AS id, COUNT(*)::int AS bills, SUM(s.total)::float AS gross, SUM(s."refundedAmount")::float AS refunds,
-        SUM(s."costOfGoods")::float AS cogs, COALESCE(SUM(rc.rcost), 0)::float AS rcost, SUM(s."paidAmount" - s."changeAmount")::float AS cashin
-      FROM "Sale" s LEFT JOIN rc ON rc."saleId" = s.id
+        SUM(bm.cost)::float AS cost, SUM(${BILL_CASH_IN})::float AS cashin
+      FROM "Sale" s JOIN bm ON bm.id = s.id
       WHERE ${where}
       GROUP BY 1`;
 
@@ -95,11 +83,10 @@ export class ReportsCenterService {
       this.saleTotals(user, scope, r),
       r.prev ? this.saleTotals(user, scope, r.prev) : Promise.resolve(null),
       this.prisma.$queryRaw<Grid[]>`
-        WITH ${rc}
+        WITH ${bm}
         SELECT to_char(${biz}, 'YYYY-MM-DD') AS day, EXTRACT(HOUR FROM ${loc})::int AS hour, COUNT(*)::int AS bills,
-          SUM(s.total)::float AS gross, SUM(s."refundedAmount")::float AS refunds, SUM(s."costOfGoods")::float AS cogs,
-          COALESCE(SUM(rc.rcost), 0)::float AS rcost
-        FROM "Sale" s LEFT JOIN rc ON rc."saleId" = s.id
+          SUM(s.total)::float AS gross, SUM(s."refundedAmount")::float AS refunds, SUM(bm.cost)::float AS cost
+        FROM "Sale" s JOIN bm ON bm.id = s.id
         WHERE ${where}
         GROUP BY 1, 2`,
       groupBy(Prisma.sql`s."paymentMethod"::text`),
@@ -109,7 +96,7 @@ export class ReportsCenterService {
       this.prisma.$queryRaw<Array<{ bills: number; value: number }>>`
         SELECT COUNT(*)::int AS bills, COALESCE(SUM(s.total), 0)::float AS value FROM "Sale" s WHERE ${saleSql(user.tenantId, scope, r, ['VOIDED'])}`,
       this.prisma.$queryRaw<Array<{ qty: number; lines: number }>>`
-        SELECT COALESCE(SUM(si.quantity - si."returnedQty"), 0)::float AS qty, COUNT(*)::int AS lines
+        SELECT COALESCE(SUM(${KEPT_QTY}), 0)::float AS qty, COUNT(*)::int AS lines
         FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" WHERE ${where}`,
       this.prisma.$queryRaw<Array<{ named: number; customers: number }>>`
         SELECT COUNT(*) FILTER (WHERE s."customerId" IS NOT NULL)::int AS named, COUNT(DISTINCT s."customerId")::int AS customers
@@ -153,13 +140,14 @@ export class ReportsCenterService {
       totals: {
         bills: totals.bills, gross: r2(totals.gross), refunds: r2(totals.refunds), net: t.net, cost: t.cost, profit: t.profit,
         margin: t.net > 0 ? r2((t.profit / t.net) * 100) : 0,
-        cashIn: r2(totals.cashin), credit: r2(totals.credit), discount: r2(totals.discount), service: r2(totals.service),
+        cashIn: totals.cashIn, credit: r2(totals.credit), discount: r2(totals.discount), service: r2(totals.service),
         average: totals.bills ? r2(t.net / totals.bills) : 0,
         qty: r2(num(items[0]?.qty)), lines: num(items[0]?.lines),
+        fallbackLines: totals.fallbackLines, noCostLines: totals.noCostLines,
         customers: num(customers[0]?.customers), walkInBills: totals.bills - num(customers[0]?.named),
         voidedBills: num(voided[0]?.bills), voidedValue: r2(num(voided[0]?.value)),
       },
-      previous: prev && p ? { bills: prev.bills, net: p.net, profit: p.profit, cashIn: r2(prev.cashin), credit: r2(prev.credit), average: prev.bills ? r2(p.net / prev.bills) : 0 } : null,
+      previous: prev && p ? { bills: prev.bills, net: p.net, profit: p.profit, cashIn: prev.cashIn, credit: prev.credit, average: prev.bills ? r2(p.net / prev.bills) : 0 } : null,
       trend: [...trend.values()].map((b) => ({ ...b, net: r2(b.net), profit: r2(b.profit) })),
       hours: hours.map((h) => ({ ...h, net: r2(h.net) })),
       weekdays: weekdays.map((w) => ({ ...w, net: r2(w.net) })),
@@ -176,7 +164,7 @@ export class ReportsCenterService {
   async items(user: AuthenticatedUser, scope: ShopScope, q: ReportQuery) {
     const r = await this.range(user, q);
     const where = saleSql(user.tenantId, scope, r);
-    type Line = { id: string; qty: number; revenue: number; cost: number; bills: number; nocost: number };
+    type Line = { id: string; qty: number; revenue: number; cost: number; bills: number; nocost: number; fallback: number };
     type Slow = { id: string; name: string; unit: string; stock: number; stockValue: number; lastSold: Date | null; count: number; totalValue: number };
 
     const stockJoin = scope.shopId
@@ -185,12 +173,15 @@ export class ReportsCenterService {
 
     const [lines, slow] = await Promise.all([
       this.prisma.$queryRaw<Line[]>`
-        SELECT si."productId" AS id, SUM(si.quantity - si."returnedQty")::float AS qty,
-          SUM(CASE WHEN si.quantity > 0 THEN si.total * (si.quantity - si."returnedQty") / si.quantity ELSE 0 END)::float AS revenue,
-          SUM((si.quantity - si."returnedQty") * si."costPrice")::float AS cost,
+        WITH ${billMathCte(where)}
+        SELECT si."productId" AS id, SUM(${KEPT_QTY})::float AS qty,
+          SUM(${LINE_REVENUE})::float AS revenue,
+          SUM(${LINE_COST})::float AS cost,
           COUNT(DISTINCT si."saleId")::int AS bills,
-          COUNT(*) FILTER (WHERE si."costPrice" = 0)::int AS nocost
-        FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId"
+          COUNT(*) FILTER (WHERE ${LINE_NO_COST})::int AS nocost,
+          COUNT(*) FILTER (WHERE ${LINE_FALLBACK})::int AS fallback
+        FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" JOIN bm ON bm.id = s.id
+        ${LINE_COST_JOINS}
         WHERE ${where} AND si."productId" IS NOT NULL
         GROUP BY si."productId"`,
       this.prisma.$queryRaw<Slow[]>`
@@ -259,6 +250,7 @@ export class ReportsCenterService {
         profit: r2(rows.reduce((s, x) => s + x.profit, 0)),
         qty: r2(rows.reduce((s, x) => s + x.qty, 0)),
         noCostLines: lines.reduce((s, l) => s + l.nocost, 0),
+        fallbackLines: lines.reduce((s, l) => s + l.fallback, 0),
         slowCount: num(slow[0]?.count),
         stockValue: r2(num(slow[0]?.totalValue)),
       },
@@ -285,7 +277,7 @@ export class ReportsCenterService {
     const [mixRows, top, totals, prevTotals, signups, recovered] = await Promise.all([
       this.prisma.$queryRaw<Mix[]>`
         WITH p AS (
-          SELECT s."customerId" AS id, COUNT(*)::int AS bills, SUM(s.total - s."refundedAmount") AS net
+          SELECT s."customerId" AS id, COUNT(*)::int AS bills, SUM(${BILL_NET}) AS net
           FROM "Sale" s WHERE ${where} AND s."customerId" IS NOT NULL GROUP BY 1),
         f AS (
           SELECT s."customerId" AS id, MIN(s."soldAt") AS first
@@ -294,7 +286,7 @@ export class ReportsCenterService {
             ${scope.shopId ? Prisma.sql`AND s."shopId" = ${scope.shopId}` : Prisma.empty}
             AND s."customerId" IN (SELECT id FROM p)
           GROUP BY 1),
-        w AS (SELECT COUNT(*)::int AS bills, COALESCE(SUM(s.total - s."refundedAmount"), 0)::float AS net FROM "Sale" s WHERE ${where} AND s."customerId" IS NULL)
+        w AS (SELECT COUNT(*)::int AS bills, COALESCE(SUM(${BILL_NET}), 0)::float AS net FROM "Sale" s WHERE ${where} AND s."customerId" IS NULL)
         SELECT COUNT(p.id)::int AS customers,
           COUNT(p.id) FILTER (WHERE f.first >= ${firstBefore})::int AS "newCount",
           COALESCE(SUM(p.net) FILTER (WHERE f.first >= ${firstBefore}), 0)::float AS "newValue",
@@ -305,7 +297,7 @@ export class ReportsCenterService {
           (SELECT net FROM w) AS walkin, (SELECT bills FROM w) AS "walkinBills"
         FROM p LEFT JOIN f ON f.id = p.id`,
       this.prisma.$queryRaw<Top[]>`
-        SELECT s."customerId" AS id, COUNT(*)::int AS bills, SUM(s.total - s."refundedAmount")::float AS net, MAX(s."soldAt") AS last
+        SELECT s."customerId" AS id, COUNT(*)::int AS bills, SUM(${BILL_NET})::float AS net, MAX(s."soldAt") AS last
         FROM "Sale" s WHERE ${where} AND s."customerId" IS NOT NULL
         GROUP BY 1 ORDER BY net DESC LIMIT 20`,
       this.saleTotals(user, scope, r),
@@ -445,18 +437,17 @@ export class ReportsCenterService {
 
   async expenses(user: AuthenticatedUser, scope: ShopScope, q: ReportQuery) {
     const r = await this.range(user, q);
-    const base: Prisma.ExpenseWhereInput = { tenantId: user.tenantId, ...scope.where, status: { not: 'CANCELLED' } };
-    const where: Prisma.ExpenseWhereInput = { ...base, expenseDate: within(r) };
-    const eSql = Prisma.sql`e."tenantId" = ${user.tenantId} AND e.status::text <> 'CANCELLED'
-      ${scope.shopId ? Prisma.sql`AND e."shopId" = ${scope.shopId}` : Prisma.empty}
-      ${r.gte ? Prisma.sql`AND e."expenseDate" >= ${r.gte}` : Prisma.empty} AND e."expenseDate" < ${r.lt}`;
+    // Paid expenses only; bills still to pay are shown apart as `pending`.
+    const mathScope = { tenantId: user.tenantId, shopId: scope.shopId };
+    const where = paidExpenseWhere(mathScope, r);
+    const eSql = paidExpenseSql(mathScope, r);
     const biz = bizTime(Prisma.sql`e."expenseDate"`, r);
 
-    const [agg, prev, byCat, byStatus, byMethod, biggest, trend, sales] = await Promise.all([
+    const [agg, prev, byCat, pending, byMethod, biggest, trend, sales] = await Promise.all([
       this.prisma.expense.aggregate({ where, _sum: { amount: true }, _count: { _all: true } }),
-      r.prev ? this.prisma.expense.aggregate({ where: { ...base, expenseDate: within(r.prev) }, _sum: { amount: true }, _count: { _all: true } }) : Promise.resolve(null),
+      r.prev ? this.prisma.expense.aggregate({ where: paidExpenseWhere(mathScope, r.prev), _sum: { amount: true }, _count: { _all: true } }) : Promise.resolve(null),
       this.prisma.expense.groupBy({ by: ['categoryId'], where, _sum: { amount: true }, _count: { _all: true } }),
-      this.prisma.expense.groupBy({ by: ['status'], where, _sum: { amount: true }, _count: { _all: true } }),
+      this.prisma.expense.aggregate({ where: { tenantId: user.tenantId, ...scope.where, status: 'PENDING', expenseDate: within(r) }, _sum: { amount: true }, _count: { _all: true } }),
       this.prisma.expense.groupBy({ by: ['paymentMethod'], where, _sum: { amount: true }, _count: { _all: true } }),
       this.prisma.expense.findMany({
         where, orderBy: { amount: 'desc' }, take: 15,
@@ -485,7 +476,7 @@ export class ReportsCenterService {
       ...this.meta(r, first),
       totals: {
         count: agg._count._all, amount: r2(total),
-        pending: r2(num(byStatus.find((s) => s.status === 'PENDING')?._sum.amount)),
+        pending: r2(num(pending._sum.amount)), pendingCount: pending._count._all,
         perDay: r2(total / Math.max(1, buckets.size * (r.monthly ? 30 : 1))),
         ofSales: net > 0 ? r2((total / net) * 100) : 0,
       },
@@ -506,56 +497,54 @@ export class ReportsCenterService {
   async profit(user: AuthenticatedUser, scope: ShopScope, q: ReportQuery) {
     const r = await this.range(user, q);
     const where = saleSql(user.tenantId, scope, r);
-    const eBase: Prisma.ExpenseWhereInput = { tenantId: user.tenantId, ...scope.where, status: { not: 'CANCELLED' } };
-    const damageWhere = (d: { gte: Date | null; lt: Date }): Prisma.DamageLogWhereInput => ({ tenantId: user.tenantId, ...scope.where, status: { in: ['APPROVED', 'WRITTEN_OFF'] }, createdAt: within(d) });
-    const eSql = Prisma.sql`e."tenantId" = ${user.tenantId} AND e.status::text <> 'CANCELLED'
-      ${scope.shopId ? Prisma.sql`AND e."shopId" = ${scope.shopId}` : Prisma.empty}
-      ${r.gte ? Prisma.sql`AND e."expenseDate" >= ${r.gte}` : Prisma.empty} AND e."expenseDate" < ${r.lt}`;
+    const mathScope = { tenantId: user.tenantId, shopId: scope.shopId };
+    const dayKey = (at: Prisma.Sql) => Prisma.sql`to_char(${bizTime(at, r)}, 'YYYY-MM-DD')`;
 
-    const [cur, prev, exp, prevExp, damage, prevDamage, saleDays, expDays, first] = await Promise.all([
+    const [cur, prev, exp, prevExp, losses, prevLosses, saleDays, expDays, first] = await Promise.all([
       this.saleTotals(user, scope, r),
       r.prev ? this.saleTotals(user, scope, r.prev) : Promise.resolve(null),
-      this.prisma.expense.aggregate({ where: { ...eBase, expenseDate: within(r) }, _sum: { amount: true } }),
-      r.prev ? this.prisma.expense.aggregate({ where: { ...eBase, expenseDate: within(r.prev) }, _sum: { amount: true } }) : Promise.resolve(null),
-      this.prisma.damageLog.aggregate({ where: damageWhere(r), _sum: { netLoss: true }, _count: { _all: true } }),
-      r.prev ? this.prisma.damageLog.aggregate({ where: damageWhere(r.prev), _sum: { netLoss: true } }) : Promise.resolve(null),
-      this.prisma.$queryRaw<Array<{ day: string; gross: number; refunds: number; cogs: number; rcost: number }>>`
-        WITH ${this.returnedCostCte(where)}
-        SELECT to_char(${bizTime(Prisma.sql`s."soldAt"`, r)}, 'YYYY-MM-DD') AS day, SUM(s.total)::float AS gross, SUM(s."refundedAmount")::float AS refunds,
-          SUM(s."costOfGoods")::float AS cogs, COALESCE(SUM(rc.rcost), 0)::float AS rcost
-        FROM "Sale" s LEFT JOIN rc ON rc."saleId" = s.id WHERE ${where} GROUP BY 1`,
+      this.prisma.expense.aggregate({ where: paidExpenseWhere(mathScope, r), _sum: { amount: true } }),
+      r.prev ? this.prisma.expense.aggregate({ where: paidExpenseWhere(mathScope, r.prev), _sum: { amount: true } }) : Promise.resolve(null),
+      writeOffRows(this.prisma, mathScope, r, { key: (at) => dayKey(at) }),
+      r.prev ? writeOffRows(this.prisma, mathScope, r.prev) : Promise.resolve([]),
+      saleFiguresBy(this.prisma, where, dayKey(Prisma.sql`s."soldAt"`)),
       this.prisma.$queryRaw<Array<{ day: string; amount: number }>>`
-        SELECT to_char(${bizTime(Prisma.sql`e."expenseDate"`, r)}, 'YYYY-MM-DD') AS day, SUM(e.amount)::float AS amount
-        FROM "Expense" e WHERE ${eSql} GROUP BY 1`,
+        SELECT ${dayKey(Prisma.sql`e."expenseDate"`)} AS day, SUM(e.amount)::float AS amount
+        FROM "Expense" e WHERE ${paidExpenseSql(mathScope, r)} GROUP BY 1`,
       this.firstSaleKey(user, scope, r),
     ]);
 
-    const rows = new Map(bucketKeys(r, first).map((k) => [k, { key: k, sales: 0, cost: 0, expenses: 0 }]));
+    const rows = new Map(bucketKeys(r, first).map((k) => [k, { key: k, sales: 0, cost: 0, expenses: 0, damage: 0 }]));
     const bucket = (day: string) => {
       const k = r.monthly ? day.slice(0, 7) : day;
-      const b = rows.get(k) ?? { key: k, sales: 0, cost: 0, expenses: 0 };
+      const b = rows.get(k) ?? { key: k, sales: 0, cost: 0, expenses: 0, damage: 0 };
       rows.set(k, b);
       return b;
     };
-    for (const d of saleDays) { const v = ReportsCenterService.net(d); const b = bucket(d.day); b.sales += v.net; b.cost += v.cost; }
+    for (const [day, f] of saleDays) { const b = bucket(day); b.sales += f.net; b.cost += f.cost; }
     for (const d of expDays) bucket(d.day).expenses += d.amount;
+    for (const w of losses) bucket(w.k).damage += foldWriteOffs([w]).net;
 
-    const summary = (t: SaleTotalsRow, expenses: number, loss: number) => {
-      const v = ReportsCenterService.net(t);
-      const netProfit = v.profit - expenses - loss;
+    const summary = (t: SaleFigures, expenses: number, loss: number) => {
+      const net = netProfit(t.grossProfit, expenses, loss);
       return {
-        sales: v.net, gross: r2(t.gross), refunds: r2(t.refunds), discount: r2(t.discount), cost: v.cost, grossProfit: v.profit,
-        margin: v.net > 0 ? r2((v.profit / v.net) * 100) : 0,
-        expenses: r2(expenses), damage: r2(loss), netProfit: r2(netProfit),
-        netMargin: v.net > 0 ? r2((netProfit / v.net) * 100) : 0,
+        sales: t.net, gross: t.gross, refunds: t.refunds, discount: t.discount, cost: t.cost, grossProfit: t.grossProfit,
+        margin: t.net > 0 ? r2((t.grossProfit / t.net) * 100) : 0,
+        expenses: r2(expenses), damage: r2(loss), netProfit: net,
+        netMargin: t.net > 0 ? r2((net / t.net) * 100) : 0,
       };
     };
+    const w = foldWriteOffs(losses);
     return {
       ...this.meta(r, first),
-      totals: { ...summary(cur, num(exp._sum.amount), num(damage._sum.netLoss)), damageCount: damage._count._all },
-      previous: prev ? summary(prev, num(prevExp?._sum.amount), num(prevDamage?._sum.netLoss)) : null,
+      totals: {
+        ...summary(cur, num(exp._sum.amount), w.net), damageCount: w.count,
+        fallbackLines: cur.fallbackLines, noCostLines: cur.noCostLines,
+      },
+      previous: prev ? summary(prev, num(prevExp?._sum.amount), foldWriteOffs(prevLosses).net) : null,
       rows: [...rows.values()].sort((a, b) => a.key.localeCompare(b.key)).map((b) => ({
-        key: b.key, sales: r2(b.sales), cost: r2(b.cost), grossProfit: r2(b.sales - b.cost), expenses: r2(b.expenses), netProfit: r2(b.sales - b.cost - b.expenses),
+        key: b.key, sales: r2(b.sales), cost: r2(b.cost), grossProfit: r2(b.sales - b.cost), expenses: r2(b.expenses),
+        damage: r2(b.damage), netProfit: r2(b.sales - b.cost - b.expenses - b.damage),
       })),
     };
   }
@@ -666,8 +655,9 @@ export class ReportsCenterService {
       }),
       this.saleTotals(user, scope, r),
       this.prisma.$queryRaw<Array<{ cost: number }>>`
-        SELECT COALESCE(SUM(ri.quantity * si."costPrice"), 0)::float AS cost
+        SELECT COALESCE(SUM(${RETURN_LINE_COST}), 0)::float AS cost
         FROM "SaleReturnItem" ri JOIN "SaleReturn" x ON x.id = ri."returnId" JOIN "SaleItem" si ON si.id = ri."saleItemId"
+        JOIN "Sale" s ON s.id = si."saleId" ${LINE_COST_JOINS}
         WHERE ${rSql}`,
     ]);
     const productIds = byProduct.map((p) => p.productId);

@@ -1,173 +1,175 @@
-import { useMemo, useState } from 'react';
+/**
+ * Online sales report for a period of business days: how much sold and
+ * against the previous period, by channel, city and courier with RTO rate,
+ * hours and weekdays, products, customers and how long COD sits with
+ * couriers. CSV of every order (owner and manager) and a printable summary.
+ *
+ * Keys: 1–5 tabs · G guide.
+ */
+
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, Download, MapPin, ShieldBan, Users } from 'lucide-react';
+import {
+  ArrowDownRight, ArrowUpRight, BarChart3, Clock, Download, Globe, GraduationCap, LayoutDashboard, MapPin, Package, PackageCheck, RotateCcw,
+  ShieldBan, ShoppingBag, Timer, Truck, Users, XCircle,
+} from 'lucide-react';
+import {
+  Button, DateRangeMenu, FilterBar, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, Skeleton, ViewTabs, heroButton, heroIconButton,
+  resolveRange,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { PrintButton } from '@core/print';
+import { PrivacyToggle } from '@core/security/HiddenValue';
+import { businessDayKey, useBusinessDayStart } from '@core/lib/business-day';
+import { rangeLabel } from '@core/lib/dateRange';
+import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { useMasked } from '@modules/dashboard/engine/useMasked';
+import { useReportRange } from '@modules/reports/prefs';
 import { apiErrorMessage, onlineOrdersApi } from '../api/online-orders.api';
-import { useSalesChannels } from '../hooks/useSalesChannels';
-import { rs } from '../lib/labels';
-import { Badge, Banner, Btn, Card, EmptyState, Page, Segmented, Stat, inputCls } from '../components/ui/kit';
-import { cn } from '@core/lib/cn';
+import { OnlineAnalytics, type AnalyticsSection } from '../components/analytics/OnlineAnalytics';
+import { channelMeta, useSalesChannels } from '../hooks/useSalesChannels';
+import { reportDoc } from '../lib/print';
 
-/* ═════════════════════════════════════════════════════════════
-   ONLINE REPORTS — kitna bika, kahan se, kaun sa shehar RTO karta
-   hai, kaun sa courier behtar, COD kitne din se atka.
-   ═════════════════════════════════════════════════════════════ */
+type Tab = 'summary' | 'channels' | 'couriers' | 'products' | 'aging';
 
-type Range = '7' | '30' | '90' | 'custom';
-const pkDay = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi' }).format(d);
+const TABS: Array<{ id: Tab; label: string; icon: typeof Globe; sections: AnalyticsSection[] }> = [
+  { id: 'summary', label: 'Khulasa', icon: LayoutDashboard, sections: ['pipeline', 'trend', 'payment', 'time'] },
+  { id: 'channels', label: 'Channel & shehar', icon: MapPin, sections: ['channels', 'cities'] },
+  { id: 'couriers', label: 'Courier & RTO', icon: Truck, sections: ['couriers', 'cities'] },
+  { id: 'products', label: 'Products & customers', icon: Package, sections: ['products', 'customers'] },
+  { id: 'aging', label: 'COD', icon: Clock, sections: ['payment', 'codAging'] },
+];
+
+const change = (now: number, before: number) => (before ? Math.round(((now - before) / before) * 100) : null);
 
 export default function OnlineReportsPage() {
-  const [range, setRange] = useState<Range>('30');
-  const [from, setFrom] = useState(pkDay(new Date(Date.now() - 29 * 86_400_000)));
-  const [to, setTo] = useState(pkDay(new Date()));
-  const [channel, setChannel] = useState('');
+  const startHour = useBusinessDayStart();
+  const { sales: money } = useMasked();
+  const guide = usePageGuide();
+  const [tab, setTab] = useState<Tab>('summary');
+  const [range, setRange] = useReportRange('month');
+  const [channelId, setChannelId] = useState('');
   const { data: channels } = useSalesChannels();
 
-  const q = useMemo(() => {
-    if (range === 'custom') return { from, to };
-    const days = Number(range);
-    return { from: pkDay(new Date(Date.now() - (days - 1) * 86_400_000)), to: pkDay(new Date()) };
-  }, [range, from, to]);
+  const today = businessDayKey(new Date(), startHour);
+  const period = resolveRange(range, startHour) ?? { from: today, to: today };
+  const periodText = rangeLabel(period.from, period.to);
+  const channelName = channels?.find((c) => c.id === channelId)?.displayName ?? 'Sab channels';
+  const q = { ...period, integrationId: channelId || undefined };
 
-  const { data, isLoading, error, isFetching } = useQuery({
-    queryKey: ['online-report', q, channel],
-    queryFn: () => onlineOrdersApi.report({ ...q, integrationId: channel || undefined }),
+  const { data, isLoading, isError, error, isFetching, refetch } = useQuery({
+    queryKey: ['online-report', period.from, period.to, channelId || undefined],
+    queryFn: () => onlineOrdersApi.report(q),
     placeholderData: (prev) => prev,
   });
   const exp = useMutation({
-    mutationFn: () => onlineOrdersApi.exportCsv({ ...q, integrationId: channel || undefined }),
+    mutationFn: () => onlineOrdersApi.exportCsv(q),
     onSuccess: () => toast.success('CSV download ho gayi — Excel me kholein'),
     onError: (e) => toast.error(apiErrorMessage(e, 'CSV nahi bani')),
   });
 
-  const maxDay = Math.max(1, ...(data?.byDay ?? []).map((d) => d.value));
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
+      if (/^[1-5]$/.test(e.key)) setTab(TABS[Number(e.key) - 1].id);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   const t = data?.totals;
+  const p = data?.previous;
+  const valueChange = t && p ? change(t.netValue, p.netValue) : null;
+  const ordersChange = t && p ? change(t.orders, p.orders) : null;
+  const vs = (n: number | null) => (n == null ? 'pichli muddat me kuch nahi' : `${n >= 0 ? '+' : ''}${n}% pichli muddat se`);
+  const acceptText = (m: number | null) => (m == null ? '—' : m < 60 ? `${m} min` : `${Math.round(m / 60)} ghante`);
 
   return (
-    <Page back={{ to: '/online-orders', label: 'Online orders' }} title="Online reports"
-      subtitle="Online sale ka poora hisaab — channel, shehar, courier, RTO aur COD."
-      actions={
-        <>
-          <Link to="/online-orders/customers"><Btn icon={<Users className="h-4 w-4" />}>Customers</Btn></Link>
-          <Link to="/online-store/blocklist"><Btn icon={<ShieldBan className="h-4 w-4" />}>Block list</Btn></Link>
-          <Btn loading={exp.isPending} onClick={() => exp.mutate()} icon={<Download className="h-4 w-4" />}>CSV (Excel)</Btn>
-        </>
-      }>
-      <div className="flex flex-wrap items-center gap-2">
-        <Segmented value={range} onChange={setRange} items={[
-          { value: '7', label: '7 din' }, { value: '30', label: '30 din' }, { value: '90', label: '90 din' }, { value: 'custom', label: 'Tareekh' },
-        ]} />
-        {range === 'custom' && (
-          <>
-            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className={cn(inputCls, 'w-auto')} />
-            <span className="text-slate-400">—</span>
-            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className={cn(inputCls, 'w-auto')} />
-          </>
-        )}
+    <PageShell>
+      <PageHero
+        title="Online reports"
+        chip={<><BarChart3 />{periodText}</>}
+        meta={`${channelName} · cancel aur wapas orders sale me nahi gine jate`}
+        busy={isFetching && !isLoading}
+        loading={isLoading}
+        actions={<>
+          <PrivacyToggle compact />
+          <button type="button" onClick={() => exp.mutate()} disabled={exp.isPending} className={heroButton} title="Har order ki line (malik / manager)">
+            <Download className="h-4 w-4" /> {exp.isPending ? 'Ban rahi…' : 'CSV (Excel)'}
+          </button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => reportDoc(data!, periodText, channelName)} disabled={!data} /></span>
+          <Link to="/online-orders/customers" className={heroButton}><Users className="h-4 w-4" /> <span className="hidden sm:inline">Customers</span></Link>
+          <Link to="/online-store/blocklist" title="Block list" className={heroIconButton}><ShieldBan className="h-4 w-4" /></Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={t ? [
+          { label: `Online sale · ${t.netOrders} order`, value: money(t.netValue), hint: vs(valueChange) },
+          { label: 'Orders aaye', value: String(t.orders), hint: vs(ordersChange) },
+          { label: 'Deliver', value: money(t.deliveredValue), hint: `${t.delivered} · ${t.deliveryRate}% bheje hue` },
+          { label: 'RTO (wapas)', value: `${t.rtoRate}%`, hint: `${t.returned} / ${t.dispatched}${p?.rtoRate != null ? ` · pehle ${p.rtoRate}%` : ''}` },
+        ] : [{ label: 'Online sale', value: '' }, { label: 'Orders', value: '' }, { label: 'Deliver', value: '' }, { label: 'RTO', value: '' }]}
+      />
+
+      <KpiRow>
+        {!t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
+          <KpiCard icon={(valueChange ?? 0) >= 0 ? ArrowUpRight : ArrowDownRight} color={(valueChange ?? 0) >= 0 ? '#16a34a' : '#e11d48'} label="Ausat order"
+            value={money(t.avgOrderValue)} hint={`${t.customers} customer · ${t.repeatCustomers} dobara`} />
+          <KpiCard icon={XCircle} color="#e11d48" label="Cancel / reject" value={`${t.cancelRate}%`} hint={`${t.cancelled} order`} />
+          <KpiCard icon={RotateCcw} color="#c026d3" label="Wapas aaya maal" value={money(t.returnedValue)} hint={`${t.returned} parcel`} onClick={() => setTab('couriers')} active={tab === 'couriers'} />
+          <KpiCard icon={Timer} color="#0284c7" label="Accept me waqt" value={acceptText(t.avgAcceptMinutes)} hint="Order aane se bill tak" />
+          <KpiCard icon={PackageCheck} color="#0d9488" label="Delivery me waqt" value={t.avgDeliveryDays == null ? '—' : `${t.avgDeliveryDays} din`}
+            hint={t.pending ? `${t.pending} naye abhi accept baqi` : 'Courier ko dene se deliver tak'} />
+        </>}
+      </KpiRow>
+
+      <FilterBar
+        search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">
+          Saare charts isi muddat ke hain · pichli muddat {p ? rangeLabel(p.from, p.to) : ''} se muqabla
+        </p>}>
+        <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
         {(channels?.length ?? 0) > 1 && (
-          <select value={channel} onChange={(e) => setChannel(e.target.value)} className={cn(inputCls, 'w-auto')}>
-            <option value="">Sab channels</option>
-            {channels!.map((c) => <option key={c.id} value={c.id}>{c.displayName}</option>)}
-          </select>
+          <FilterMenu icon={Globe} label="Channel" value={channelId} active={!!channelId} onChange={setChannelId} width="w-72" align="right"
+            options={[{ value: '', label: 'Sab channels' }, ...channels!.map((c) => ({ value: c.id, label: `${channelMeta(c.type).emoji} ${c.displayName}`, hint: channelMeta(c.type).label }))]} />
         )}
-        {isFetching && <span className="text-[0.75rem] text-slate-400">Taaza ho raha…</span>}
-      </div>
+      </FilterBar>
+
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>-<Kbd>5</Kbd> tabs</>}
+        tabs={TABS.map(({ id, label, icon }) => ({ id, label, icon }))} />
 
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />)}</div>
-      ) : error || !data || !t ? (
-        <Card><EmptyState title="Report nahi bani">{apiErrorMessage(error)}</EmptyState></Card>
-      ) : t.orders === 0 ? (
-        <Card><EmptyState title="Is waqt me koi online order nahi">Tareekh badal kar dekhein.</EmptyState></Card>
+        <div className="grid gap-4 lg:grid-cols-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}</div>
+      ) : isError || !data ? (
+        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
+          <p className="font-semibold text-slate-900">Report nahi bani</p>
+          <p className="mt-1 text-[0.8125rem] text-slate-500">{apiErrorMessage(error)}</p>
+          <Button className="mt-3" variant="secondary" onClick={() => refetch()}>Dobara koshish</Button>
+        </div>
+      ) : data.totals.orders === 0 && tab !== 'aging' ? (
+        <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><ShoppingBag className="h-6 w-6" /></span>
+          <h3 className="mt-4 text-lg font-semibold text-slate-900">Is muddat me koi online order nahi</h3>
+          <p className="mt-1 text-[0.875rem] text-slate-500">Tareekh ya channel badal kar dekhein.</p>
+        </div>
       ) : (
-        <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat label="Orders" value={t.orders} hint={`${rs(t.value)} · ausat ${rs(t.avgOrderValue)}`} />
-            <Stat label="Deliver" value={`${t.delivered}`} hint={`${rs(t.deliveredValue)} · ${t.deliveryRate}% bheje hue`} />
-            <Stat label="RTO (wapas)" value={`${t.rtoRate}%`} hint={`${t.returned} / ${t.dispatched} parcel`} tone={t.rtoRate >= 15 ? 'attention' : undefined} />
-            <Stat label="Cancel / reject" value={`${t.cancelRate}%`} hint={`${t.cancelled} order`} tone={t.cancelRate >= 20 ? 'attention' : undefined} />
-            <Stat label="Accept me waqt" value={t.avgAcceptMinutes === null ? '—' : t.avgAcceptMinutes < 60 ? `${t.avgAcceptMinutes} min` : `${Math.round(t.avgAcceptMinutes / 60)} ghante`} hint="order aane se bill tak" />
-            <Stat label="Delivery me waqt" value={t.avgDeliveryDays === null ? '—' : `${t.avgDeliveryDays} din`} hint="courier ko dene se deliver tak" />
-            <Stat label="Customers" value={t.customers} hint={`${t.repeatCustomers} ne dobara kharida`} />
-            <Stat label="Naye (accept baqi)" value={t.pending} hint="abhi faisla nahi hua" tone={t.pending > 0 ? 'attention' : undefined} />
-          </div>
-
-          {data.riskyCities.length > 0 && (
-            <Banner tone="warning" title="In shehron me RTO zyada hai" icon={<AlertTriangle className="h-4 w-4" />}>
-              {data.riskyCities.map((c) => `${c.city} ${c.rtoRate}%`).join(' · ')} — yahan ke COD order call karke confirm karein ya advance lein.
-            </Banner>
-          )}
-
-          <Card title="Roz ki sale" description={`${data.range.from} se ${data.range.to}`}>
-            <div className="flex h-40 items-end gap-[2px]">
-              {data.byDay.map((d) => (
-                <div key={d.day} className="group relative flex h-full flex-1 flex-col justify-end" title={`${d.day}: ${d.orders} order · ${rs(d.value)}`}>
-                  <div className="rounded-t bg-emerald-500/80 transition group-hover:bg-emerald-600" style={{ height: `${Math.max(d.value ? 3 : 0, (d.value / maxDay) * 100)}%` }} />
-                </div>
-              ))}
-            </div>
-            <div className="mt-1 flex justify-between text-[0.6875rem] text-slate-400"><span>{data.byDay[0]?.day}</span><span>{data.byDay[data.byDay.length - 1]?.day}</span></div>
-          </Card>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Card title="Channel-wise" flush>
-              <Table head={['Channel', 'Orders', 'Sale', 'Deliver %', 'RTO %']}
-                rows={data.byChannel.map((c) => [c.name, c.orders, rs(c.value), `${c.deliveryRate}%`, <Rto key="r" v={c.rtoRate} n={c.dispatched} />])} />
-            </Card>
-            <Card title="Courier-wise" flush>
-              {data.byCourier.length === 0
-                ? <EmptyState title="Abhi koi parcel nahi bheja" />
-                : <Table head={['Courier', 'Bheje', 'Deliver %', 'RTO %']}
-                    rows={data.byCourier.map((c) => [c.name, c.dispatched, `${c.deliveryRate}%`, <Rto key="r" v={c.rtoRate} n={c.dispatched} />])} />}
-            </Card>
-            <Card title={<span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-slate-400" /> Shehar-wise</span>} flush>
-              <Table head={['Shehar', 'Orders', 'Sale', 'RTO %']}
-                rows={data.byCity.map((c) => [c.city, c.orders, rs(c.value), <Rto key="r" v={c.rtoRate} n={c.dispatched} />])} />
-            </Card>
-            <Card title="Sab se zyada bikne wale" flush>
-              <Table head={['Product', 'Qty', 'Sale']}
-                rows={data.topProducts.map((p) => [<span key="n" className="line-clamp-1">{p.name}</span>, p.qty, rs(p.value)])} />
-            </Card>
-          </div>
-
-          <Card title="COD kitne din se courier ke paas" description="Deliver ho chuka, paisa abhi jama nahi hua (poore account ka)."
-            actions={<Link to="/online-orders/cod"><Btn size="sm">COD safha</Btn></Link>}>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {data.codAging.map((a, i) => (
-                <div key={a.label} className={cn('rounded-lg border p-3', i === 3 && a.count ? 'border-rose-200 bg-rose-50 dark:border-rose-500/30 dark:bg-rose-500/5' : 'border-slate-200 dark:border-ink-800')}>
-                  <div className="text-[0.75rem] text-slate-500">{a.label}</div>
-                  <div className="text-lg font-semibold tabular-nums text-slate-900 dark:text-ink-white">{rs(a.value)}</div>
-                  <div className="text-[0.75rem] text-slate-500">{a.count} parcel</div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </>
+        <OnlineAnalytics data={data} money={money} sections={TABS.find((x) => x.id === tab)!.sections} />
       )}
-    </Page>
-  );
-}
 
-function Rto({ v, n }: { v: number; n: number }) {
-  if (!n) return <span className="text-slate-400">—</span>;
-  return <Badge tone={v >= 25 ? 'critical' : v >= 12 ? 'warning' : 'success'}>{v}%</Badge>;
-}
-
-function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
-  if (!rows.length) return <EmptyState title="Kuch nahi" />;
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-[0.8125rem]">
-        <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40">
-          <tr>{head.map((h, i) => <th key={h} className={cn('px-4 py-2 sm:px-5', i > 0 && 'text-right')}>{h}</th>)}</tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
-          {rows.map((r, i) => (
-            <tr key={i}>{r.map((c, j) => <td key={j} className={cn('px-4 py-2 sm:px-5', j > 0 ? 'text-right tabular-nums' : 'max-w-[240px] font-medium text-slate-900 dark:text-ink-white')}>{c}</td>)}</tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+      {guide.isOpen && (
+        <PageGuide title="Online reports — aasaan tareeqa" onClose={guide.close}
+          steps={[
+            { icon: BarChart3, color: '#2563eb', title: 'Muddat chunein', text: 'Aaj, 7 din, 30 din, mahina ya apni tareekh. Upar ke number pichli itni hi muddat se milaye jate hain.' },
+            { icon: ShoppingBag, color: '#16a34a', title: 'Sale ka hisaab', text: 'Sale me sirf woh orders jo cancel ya wapas nahi hue. "Orders aaye" me har order ginta hai.' },
+            { icon: MapPin, color: '#7c3aed', title: 'Channel aur shehar', text: 'Kahan se zyada order aata hai, aur kis shehar me RTO zyada — wahan COD call karke confirm karein.' },
+            { icon: Truck, color: '#0284c7', title: 'Courier aur RTO', text: 'Kaun sa courier zyada deliver karta hai aur kis ke parcel wapas aate hain.' },
+            { icon: Package, color: '#d97706', title: 'Products aur customers', text: 'Sab se zyada bikne wali cheezein aur sab se qeemti customer.' },
+            { icon: Download, color: '#0891b2', title: 'CSV aur print', text: 'CSV me har order ki line (malik ya manager). Print me khulasa, channel, shehar, courier aur products.' },
+          ]}
+          tips={['Test order kisi report me nahi aata.', 'Din dukaan ke apne waqt par badalta hai (Settings → karobari din).', 'COD tab ka "kitne din se" poore account ka hai, tareekh ka nahi.']}
+          shortcuts={[['1', 'khulasa'], ['2', 'channel'], ['3', 'courier'], ['4', 'products'], ['5', 'COD'], ['G', 'guide']]}
+        />
+      )}
+    </PageShell>
   );
 }

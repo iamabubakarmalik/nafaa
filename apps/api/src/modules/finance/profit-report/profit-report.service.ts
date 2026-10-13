@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
+import { startOfBusinessDayTz } from '../../../common/helpers/business-time.helper';
+import {
+  KEPT_QTY, LINE_COST, LINE_COST_JOINS, LINE_REFUND, LINE_REVENUE, billMathCte, liveSaleSql,
+} from '../../../common/helpers/business-math.helper';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
 
@@ -52,50 +58,42 @@ export interface ProductProfitRow {
   }>;
 }
 
+/** Product and variant sums from the sale lines. */
+interface LineSums {
+  pid: string; vid: string | null; qty: number; rqty: number; revenue: number; cost: number; refund: number; bills: number;
+}
+
+/**
+ * Older per-product profit endpoints (mobile app). Revenue, cost and returns
+ * follow business-math.helper, the same rules as the Profit report page.
+ */
 @Injectable()
 export class ProfitReportService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tz: TenantTimezoneService,
+  ) {}
 
-  // ─── Helper: Date range from period ───────────────────────
-  private getDateRange(filters?: ProfitFilters): { gte?: Date; lte?: Date } {
+  /** Window from the filters; "today" is the shop's business day. */
+  private async getDateRange(tenantId: string, filters?: ProfitFilters): Promise<{ gte?: Date; lte?: Date }> {
     if (filters?.startDate || filters?.endDate) {
       return {
         gte: filters.startDate ? new Date(filters.startDate) : undefined,
         lte: filters.endDate ? new Date(filters.endDate) : undefined,
       };
     }
-
     const now = new Date();
-    const period = filters?.period || 'all';
-
-    switch (period) {
+    const back = (days: number) => new Date(now.getTime() - days * 86_400_000);
+    switch (filters?.period || 'all') {
       case 'today': {
-        const start = new Date(now);
-        start.setHours(0, 0, 0, 0);
-        return { gte: start };
+        const { tz, dayStartHour } = await this.tz.clock(tenantId);
+        return { gte: startOfBusinessDayTz(now, tz, dayStartHour) };
       }
-      case 'week': {
-        const start = new Date(now);
-        start.setDate(now.getDate() - 7);
-        return { gte: start };
-      }
-      case 'month': {
-        const start = new Date(now);
-        start.setDate(now.getDate() - 30);
-        return { gte: start };
-      }
-      case 'quarter': {
-        const start = new Date(now);
-        start.setMonth(now.getMonth() - 3);
-        return { gte: start };
-      }
-      case 'year': {
-        const start = new Date(now);
-        start.setFullYear(now.getFullYear() - 1);
-        return { gte: start };
-      }
-      default:
-        return {};
+      case 'week': return { gte: back(7) };
+      case 'month': return { gte: back(30) };
+      case 'quarter': return { gte: back(91) };
+      case 'year': return { gte: back(365) };
+      default: return {};
     }
   }
 
@@ -104,163 +102,87 @@ export class ProfitReportService {
     scope: ShopScope,
     filters?: ProfitFilters,
   ): Promise<ProductProfitRow[]> {
-    const dateRange = this.getDateRange(filters);
+    const range = await this.getDateRange(user.tenantId, filters);
+    const where = Prisma.sql`${liveSaleSql({ tenantId: user.tenantId, shopId: scope.shopId }, { gte: range.gte })}
+      ${range.lte ? Prisma.sql`AND s."soldAt" <= ${range.lte}` : Prisma.empty}`;
+    const productSql = Prisma.sql`si."productId" IS NOT NULL
+      ${filters?.categoryId ? Prisma.sql`AND bm_p."categoryId" = ${filters.categoryId}` : Prisma.empty}
+      ${filters?.brandId ? Prisma.sql`AND bm_p."brandId" = ${filters.brandId}` : Prisma.empty}`;
 
-    const items = await this.prisma.saleItem.findMany({
-      where: {
-        sale: {
-          tenantId: user.tenantId,
-          // Profit follows the sale, so narrowing the sale narrows the report.
-          ...scope.where,
-          status: { in: ['COMPLETED', 'PARTIALLY_RETURNED'] },
-          ...(dateRange.gte || dateRange.lte
-            ? {
-                soldAt: {
-                  ...(dateRange.gte && { gte: dateRange.gte }),
-                  ...(dateRange.lte && { lte: dateRange.lte }),
-                },
-              }
-            : {}),
+    const rows = await this.prisma.$queryRaw<Array<LineSums & { g: number }>>`
+      WITH ${billMathCte(where)}
+      SELECT GROUPING(bm_sv."variantId")::int AS g, si."productId" AS pid, bm_sv."variantId" AS vid,
+        COALESCE(SUM(${KEPT_QTY}), 0)::float8 AS qty,
+        COALESCE(SUM(LEAST(si."returnedQty", si.quantity)), 0)::float8 AS rqty,
+        COALESCE(SUM(${LINE_REVENUE}), 0)::float8 AS revenue,
+        COALESCE(SUM(${LINE_COST}), 0)::float8 AS cost,
+        COALESCE(SUM(${LINE_REFUND}), 0)::float8 AS refund,
+        COUNT(DISTINCT si."saleId")::int AS bills
+      FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" JOIN bm ON bm.id = s.id
+      ${LINE_COST_JOINS}
+      WHERE ${where} AND ${productSql}
+      GROUP BY GROUPING SETS ((si."productId"), (si."productId", bm_sv."variantId"))`;
+
+    const productRows = rows.filter((r) => r.g === 1);
+    const variantRows = rows.filter((r) => r.g === 0 && r.vid);
+    const ids = productRows.map((r) => r.pid);
+    const variantIds = variantRows.map((r) => r.vid!);
+    const [products, variants] = await Promise.all([
+      ids.length ? this.prisma.product.findMany({
+        where: { tenantId: user.tenantId, id: { in: ids } },
+        select: {
+          id: true, name: true, sku: true, barcode: true, unit: true,
+          category: { select: { name: true, color: true } },
+          brand: { select: { name: true } },
+          images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], take: 1, select: { url: true } },
+          _count: { select: { variants: true } },
         },
-        product: {
-          ...(filters?.categoryId && { categoryId: filters.categoryId }),
-          ...(filters?.brandId && { brandId: filters.brandId }),
-        },
-      },
-      include: {
-        sale: { select: { id: true } },
-        product: {
-          include: {
-            category: { select: { name: true, color: true } },
-            brand: { select: { name: true } },
-            images: {
-              orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }],
-              take: 1,
-            },
-            _count: { select: { variants: true } },
-          },
-        },
-        variantLink: {
-          include: { variant: { select: { id: true, name: true } } },
-        },
-      },
-    });
+      }) : [],
+      variantIds.length ? this.prisma.productVariant.findMany({ where: { id: { in: variantIds } }, select: { id: true, name: true } }) : [],
+    ]);
+    const productBy = new Map(products.map((p) => [p.id, p]));
+    const variantName = new Map(variants.map((v) => [v.id, v.name]));
+    const r2 = (v: number) => Number(v.toFixed(2));
 
-    interface Bucket {
-      productId: string;
-      name: string;
-      sku: string | null;
-      barcode: string | null;
-      primaryImage: string | null;
-      categoryName: string | null;
-      categoryColor: string | null;
-      brandName: string | null;
-      unit: string;
-      industryType: ProductProfitRow['industryType'];
-      quantitySold: number;
-      revenue: number;
-      cost: number;
-      returnedQty: number;
-      returnedAmount: number;
-      saleIds: Set<string>;
-      variantCount: number;
-      variantStats: Map<string, { name: string; qty: number; profit: number }>;
-    }
-
-    const buckets = new Map<string, Bucket>();
-
-    for (const item of items) {
-      if (!item.product || !item.productId) continue;
-      const id: string = item.productId;
-      const unit = (item.product.unit || 'pcs').toLowerCase();
-
+    const result: ProductProfitRow[] = productRows.flatMap((r) => {
+      const p = productBy.get(r.pid);
+      if (!p) return [];
+      const unit = (p.unit || 'pcs').toLowerCase();
       let industryType: ProductProfitRow['industryType'] = 'STANDARD';
       if (['sqft', 'sqm', 'sqyd'].includes(unit)) industryType = 'CARPET';
       else if (['kg', 'gram', 'liter', 'ml'].includes(unit)) industryType = 'WEIGHT_BASED';
-
-      if (!buckets.has(id)) {
-        buckets.set(id, {
-          productId: id,
-          name: item.product.name,
-          sku: item.product.sku,
-          barcode: item.product.barcode,
-          primaryImage: item.product.images[0]?.url || null,
-          categoryName: item.product.category?.name || null,
-          categoryColor: item.product.category?.color || null,
-          brandName: item.product.brand?.name || null,
-          unit: item.product.unit,
-          industryType,
-          quantitySold: 0,
-          revenue: 0,
-          cost: 0,
-          returnedQty: 0,
-          returnedAmount: 0,
-          saleIds: new Set(),
-          variantCount: item.product._count.variants,
-          variantStats: new Map(),
-        });
-      }
-
-      const bucket = buckets.get(id)!;
-      const netQty = Number(item.quantity) - Number(item.returnedQty);
-      const lineRevenue = Number(item.price) * netQty;
-      const lineCost = Number(item.costPrice) * netQty;
-
-      bucket.quantitySold += netQty;
-      bucket.revenue += lineRevenue;
-      bucket.cost += lineCost;
-      bucket.returnedQty += Number(item.returnedQty);
-      bucket.returnedAmount += Number(item.price) * Number(item.returnedQty);
-      bucket.saleIds.add(item.sale.id);
-
-      // Track variant stats
-      if (item.variantLink?.variant) {
-        const v = item.variantLink.variant;
-        const existing = bucket.variantStats.get(v.id) || { name: v.name, qty: 0, profit: 0 };
-        existing.qty += netQty;
-        existing.profit += lineRevenue - lineCost;
-        bucket.variantStats.set(v.id, existing);
-      }
-    }
-
-    const result: ProductProfitRow[] = Array.from(buckets.values()).map((b) => {
-      const profit = b.revenue - b.cost;
-      const margin = b.revenue > 0 ? (profit / b.revenue) * 100 : 0;
-      const avgSellPrice = b.quantitySold > 0 ? b.revenue / b.quantitySold : 0;
-      const avgCostPrice = b.quantitySold > 0 ? b.cost / b.quantitySold : 0;
-
-      const topVariants = Array.from(b.variantStats.values())
+      const profit = r.revenue - r.cost;
+      const topVariants = variantRows
+        .filter((v) => v.pid === r.pid)
+        .map((v) => ({ name: variantName.get(v.vid!) ?? 'Variant', quantity: v.qty, profit: v.revenue - v.cost }))
         .sort((a, b) => b.profit - a.profit)
-        .slice(0, 3)
-        .map((v) => ({ name: v.name, quantity: v.qty, profit: v.profit }));
-
-      return {
-        productId: b.productId,
-        name: b.name,
-        sku: b.sku,
-        barcode: b.barcode,
-        primaryImage: b.primaryImage,
-        categoryName: b.categoryName,
-        categoryColor: b.categoryColor,
-        brandName: b.brandName,
-        unit: b.unit,
-        industryType: b.industryType,
-        quantitySold: Number(b.quantitySold.toFixed(2)),
-        ordersCount: b.saleIds.size,
-        revenue: Number(b.revenue.toFixed(2)),
-        cost: Number(b.cost.toFixed(2)),
-        profit: Number(profit.toFixed(2)),
-        margin: Number(margin.toFixed(2)),
-        avgSellPrice: Number(avgSellPrice.toFixed(2)),
-        avgCostPrice: Number(avgCostPrice.toFixed(2)),
-        returnedQty: Number(b.returnedQty.toFixed(2)),
-        returnedAmount: Number(b.returnedAmount.toFixed(2)),
-        variantCount: b.variantCount,
+        .slice(0, 3);
+      return [{
+        productId: r.pid,
+        name: p.name,
+        sku: p.sku,
+        barcode: p.barcode,
+        primaryImage: p.images[0]?.url || null,
+        categoryName: p.category?.name || null,
+        categoryColor: p.category?.color || null,
+        brandName: p.brand?.name || null,
+        unit: p.unit,
+        industryType,
+        quantitySold: r2(r.qty),
+        ordersCount: r.bills,
+        revenue: r2(r.revenue),
+        cost: r2(r.cost),
+        profit: r2(profit),
+        margin: r.revenue > 0 ? r2((profit / r.revenue) * 100) : 0,
+        avgSellPrice: r.qty > 0 ? r2(r.revenue / r.qty) : 0,
+        avgCostPrice: r.qty > 0 ? r2(r.cost / r.qty) : 0,
+        returnedQty: r2(r.rqty),
+        returnedAmount: r2(r.refund),
+        variantCount: p._count.variants,
         topVariants: topVariants.length > 0 ? topVariants : undefined,
-      };
+      }];
     });
 
-    // Sorting
     const sortBy = filters?.sortBy || 'profit';
     result.sort((a, b) => {
       if (sortBy === 'margin') return b.margin - a.margin;
@@ -268,7 +190,6 @@ export class ProfitReportService {
       if (sortBy === 'quantity') return b.quantitySold - a.quantitySold;
       return b.profit - a.profit;
     });
-
     return result;
   }
 

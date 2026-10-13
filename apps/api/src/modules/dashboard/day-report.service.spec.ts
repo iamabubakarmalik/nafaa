@@ -6,7 +6,7 @@ function setup() {
   const prisma = {
     sale: {
       aggregate: jest.fn()
-        .mockResolvedValueOnce(agg({ total: 14460, paidAmount: 14460, creditAmount: 0, discount: 0, costOfGoods: 8000 }, 12))
+        .mockResolvedValueOnce(agg({ total: 14460, paidAmount: 14460, changeAmount: 0, creditAmount: 0, discount: 0 }, 12))
         .mockResolvedValueOnce(agg({ total: 12000 }, 10)),
       groupBy: jest.fn()
         .mockResolvedValueOnce([
@@ -37,6 +37,8 @@ function setup() {
     purchase: { aggregate: jest.fn().mockResolvedValue(agg({ paidAmount: 0 })) },
     supplierLedger: { aggregate: jest.fn().mockResolvedValue(agg({ amount: 0 })) },
     user: { findMany: jest.fn().mockResolvedValue([{ id: 'u1', fullName: 'Ali' }]) },
+    // Day-close cost: the day's bills, then goods returned in the day.
+    $queryRaw: jest.fn().mockResolvedValueOnce([{ cost: 8000 }]).mockResolvedValueOnce([{ cost: 0 }]),
   };
   const tz = { clock: jest.fn().mockResolvedValue({ tz: 'Asia/Karachi', dayStartHour: 0 }) };
   return new DayReportService(prisma as never, tz as never);
@@ -55,6 +57,7 @@ describe('DayReportService', () => {
     expect(r.cash.countedClosing).toBeNull();
     expect(r.categories.map((c) => [c.name, c.qty])).toEqual([['Cookies', 24], ['Tins', 4]]);
     expect(r.sales.itemsSold).toBe(28);
+    expect(r.sales.grossProfit).toBe(6460);
     expect(r.staff).toEqual([{ userId: 'u1', name: 'Ali', total: 14460, bills: 12 }]);
   });
 

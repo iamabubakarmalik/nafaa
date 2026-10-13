@@ -22,6 +22,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PaymentMethod, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { netProfit, paidExpenses, saleFigures, writeOffs } from '../../../common/helpers/business-math.helper';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
@@ -539,9 +540,9 @@ export class MoneyService {
     const monthStart = startOfBusinessMonthTz(y, m, tz, dayStartHour);
     const month: Range = { gte: monthStart, lt: new Date(now.getTime() + 60_000) };
     const today: Range = { gte: todayStart, lt: new Date(now.getTime() + 60_000) };
-    const live = { not: 'VOIDED' as const };
+    const math = { tenantId, shopId: shop.shopId };
 
-    const [drawers, stock, receivable, payable, todaySales, monthSales, monthPurchases, monthExpenses, monthOut, monthIn] = await Promise.all([
+    const [drawers, stock, receivable, payable, todaySales, monthSales, monthPurchases, monthExpenses, monthOut, monthIn, monthLost] = await Promise.all([
       this.drawers(tenantId, shop),
       this.prisma.shopStock.findMany({
         where: { tenantId, ...shop.where, stock: { gt: 0 }, product: { isActive: true } },
@@ -549,24 +550,16 @@ export class MoneyService {
       }),
       this.receivables(tenantId, shop),
       this.payables(tenantId, shop),
-      this.prisma.sale.aggregate({
-        where: { tenantId, ...shop.where, status: live, soldAt: today },
-        _sum: { total: true, paidAmount: true, changeAmount: true, creditAmount: true, costOfGoods: true }, _count: { _all: true },
-      }),
-      this.prisma.sale.aggregate({
-        where: { tenantId, ...shop.where, status: live, soldAt: month },
-        _sum: { total: true, paidAmount: true, changeAmount: true, creditAmount: true, costOfGoods: true }, _count: { _all: true },
-      }),
+      saleFigures(this.prisma, math, today),
+      saleFigures(this.prisma, math, month),
       this.prisma.purchase.aggregate({
         where: { tenantId, ...shop.where, status: { in: ['RECEIVED', 'PARTIAL'] }, purchasedAt: month },
         _sum: { receivedValue: true, paidAmount: true }, _count: { _all: true },
       }),
-      this.prisma.expense.aggregate({
-        where: { tenantId, ...shop.where, status: { not: 'CANCELLED' }, expenseDate: month },
-        _sum: { amount: true }, _count: { _all: true },
-      }),
+      paidExpenses(this.prisma, math, month),
       this.sourceTotals({ tenantId, shop, range: month }, 'SUPPLIER'),
       this.sourceTotals({ tenantId, shop, range: month }, 'KHATA'),
+      writeOffs(this.prisma, math, month),
     ]);
 
     let stockCost = 0; let stockRetail = 0; let stockUnits = 0;
@@ -581,11 +574,10 @@ export class MoneyService {
     const netWorth = cashInHand + stockCost + receivable.amount - payable.amount;
     const sum = (map: MethodTotals) => [...map.values()].reduce((s, t) => s + t.amount, 0);
 
-    const mRevenue = n(monthSales._sum.total);
-    const mCogs = n(monthSales._sum.costOfGoods);
-    const mExpenses = n(monthExpenses._sum.amount);
-    const tRevenue = n(todaySales._sum.total);
-    const tCogs = n(todaySales._sum.costOfGoods);
+    // Sales net of returns on the bill's own day; profit by business-math.helper.
+    const mRevenue = monthSales.net;
+    const mExpenses = monthExpenses.amount;
+    const mNet = netProfit(monthSales.grossProfit, mExpenses, monthLost.net);
 
     return {
       cashInHand: r2(cashInHand),
@@ -608,24 +600,24 @@ export class MoneyService {
         openedAt: d.openedAt,
       })),
       today: {
-        revenue: r2(tRevenue),
-        paid: r2(n(todaySales._sum.paidAmount) - n(todaySales._sum.changeAmount)),
-        credit: r2(n(todaySales._sum.creditAmount)),
-        cogs: r2(tCogs),
-        profit: r2(tRevenue - tCogs),
-        bills: todaySales._count._all,
+        revenue: todaySales.net,
+        paid: todaySales.cashIn,
+        credit: todaySales.credit,
+        cogs: todaySales.cost,
+        profit: todaySales.grossProfit,
+        bills: todaySales.bills,
       },
       month: {
-        revenue: r2(mRevenue),
-        paid: r2(n(monthSales._sum.paidAmount) - n(monthSales._sum.changeAmount)),
-        credit: r2(n(monthSales._sum.creditAmount)),
-        cogs: r2(mCogs),
-        grossProfit: r2(mRevenue - mCogs),
-        expenses: r2(mExpenses),
-        expenseCount: monthExpenses._count._all,
-        netProfit: r2(mRevenue - mCogs - mExpenses),
-        margin: mRevenue > 0 ? r2(((mRevenue - mCogs - mExpenses) / mRevenue) * 100) : 0,
-        bills: monthSales._count._all,
+        revenue: mRevenue,
+        paid: monthSales.cashIn,
+        credit: monthSales.credit,
+        cogs: monthSales.cost,
+        grossProfit: monthSales.grossProfit,
+        expenses: mExpenses,
+        expenseCount: monthExpenses.count,
+        netProfit: mNet,
+        margin: mRevenue > 0 ? r2((mNet / mRevenue) * 100) : 0,
+        bills: monthSales.bills,
         purchases: r2(n(monthPurchases._sum.receivedValue)),
         purchasesPaid: r2(n(monthPurchases._sum.paidAmount)),
         purchaseCount: monthPurchases._count._all,

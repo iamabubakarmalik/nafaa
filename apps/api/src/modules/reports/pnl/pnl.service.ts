@@ -1,18 +1,22 @@
 /**
  * Profit and loss statement.
  *
- *   Revenue        bills (not voided) less goods returned in the period
- *   Cost of goods  cost saved on each bill; lines sold with no cost fall back
- *                  to the product's current cost; returned goods give their
- *                  cost back
+ *   Revenue        bills (not voided) of the period less what was refunded on
+ *                  them, whenever the return was made
+ *   Cost of goods  cost saved on each line; lines sold with no cost fall back
+ *                  to today's variant or product cost; returned goods give
+ *                  their cost back
  *   Expenses       paid expenses by category, plus salaries and commission
  *                  paid (can be switched off when they are also booked as
  *                  expenses)
- *   Write-offs     damaged, lost and counted-short stock at cost, less stock
- *                  found in counts
+ *   Write-offs     stock adjustments: damaged, lost and counted-short stock at
+ *                  cost, less stock found in counts, plus returned goods not
+ *                  fit to sell
  *   Other income   booking advances kept on cancelled or expired bookings
  *
- * Every figure is tenant- and branch-scoped and cut on business days in the
+ * Sales, cost, expense and write-off rules come from business-math.helper,
+ * so these figures match the Reports centre and the Profit report. Every
+ * figure is tenant- and branch-scoped and cut on business days in the
  * shop's own timezone. One set of grouped queries serves the period, the
  * monthly columns and the branch columns.
  */
@@ -25,6 +29,10 @@ import { ShopScope } from '../../../common/shop-scope';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { businessDayKey, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
+import {
+  LINE_COST, LINE_COST_JOINS, LINE_NET, LINE_REFUND, billMathCte, emptyWriteOffs, foldWriteOffs, liveSaleSql, paidExpenseSql,
+  writeOffRows, type WriteOffRow, type WriteOffs,
+} from '../../../common/helpers/business-math.helper';
 import { MoneyService } from '../../finance/money/money.service';
 import { PnlDetailDto, PnlMonthlyDto, PnlQueryDto, PnlScopeDto } from './dto/pnl-query.dto';
 
@@ -33,7 +41,6 @@ const PAID_WITH_SALARY = 'Tankhwah PAY-';
 
 type Range = { gte: Date; lt: Date };
 type Bucket = 'all' | 'month' | 'shop' | 'channel';
-type WriteOffType = 'DAMAGE' | 'LOSS' | 'ADJUSTMENT_OUT' | 'ADJUSTMENT_IN';
 
 interface Ctx {
   tenantId: string;
@@ -48,7 +55,6 @@ interface Ctx {
 const DAY = 86_400_000;
 const MAX_DAYS = 5 * 366;
 const DETAIL_LIMIT = 300;
-const WRITE_OFFS: WriteOffType[] = ['DAMAGE', 'LOSS', 'ADJUSTMENT_OUT', 'ADJUSTMENT_IN'];
 const NONE = '-';
 
 const n = (v: unknown) => Number(v ?? 0) || 0;
@@ -63,7 +69,7 @@ interface Figures {
   returnCount: number; returns: number; returnCost: number;
   expenses: Map<string, { amount: number; count: number }>;
   salaries: number; salaryCount: number; commission: number; commissionCount: number;
-  writeOffs: Record<WriteOffType, { value: number; count: number }>;
+  writeOffs: WriteOffs;
   booking: number; bookingCount: number;
 }
 
@@ -73,7 +79,7 @@ const blank = (): Figures => ({
   returnCount: 0, returns: 0, returnCost: 0,
   expenses: new Map(),
   salaries: 0, salaryCount: 0, commission: 0, commissionCount: 0,
-  writeOffs: { DAMAGE: { value: 0, count: 0 }, LOSS: { value: 0, count: 0 }, ADJUSTMENT_OUT: { value: 0, count: 0 }, ADJUSTMENT_IN: { value: 0, count: 0 } },
+  writeOffs: emptyWriteOffs(),
   booking: 0, bookingCount: 0,
 });
 
@@ -197,19 +203,18 @@ export class PnlService {
   }
 
   private saleWhere(c: Ctx, r: Range) {
-    return Prisma.sql`s."tenantId" = ${c.tenantId} AND s.status::text <> 'VOIDED'
-      AND s."soldAt" >= ${r.gte} AND s."soldAt" < ${r.lt} ${this.shopSql(c, col('s."shopId"'))}`;
+    return liveSaleSql({ tenantId: c.tenantId, shopId: c.shopId }, r);
   }
 
   /**
-   * Bills and their cost. A line sold with no cost is estimated from the
-   * product's current cost, unless the bill's saved cost already covers more
-   * than its lines (older bills and service costs kept the cost on the bill).
+   * Bills of the period with what was refunded on them and their cost, by the
+   * shared rules (returns count against the bill's own period).
    */
   private salesRows(c: Ctx, r: Range, b: Bucket) {
     const k = this.key(c, b, col('s."soldAt"'), col('s."shopId"'), col('s.source::text'));
-    const open = Prisma.sql`s."costOfGoods" <= l.saved + 0.005`;
+    const where = this.saleWhere(c, r);
     return this.prisma.$queryRaw<Array<Record<string, unknown> & { k: string }>>(Prisma.sql`
+      WITH ${billMathCte(where)}
       SELECT ${k} AS k, COUNT(*)::int AS bills,
         COALESCE(SUM(s.subtotal), 0)::float8 AS gross,
         COALESCE(SUM(s.discount), 0)::float8 AS discount,
@@ -218,43 +223,16 @@ export class PnlService {
         COALESCE(SUM(s."serviceCharges"), 0)::float8 AS service,
         COALESCE(SUM(s.total), 0)::float8 AS sales,
         COALESCE(SUM(s."creditAmount"), 0)::float8 AS credit,
-        COALESCE(SUM(s."costOfGoods"), 0)::float8 AS cost,
-        COALESCE(SUM(CASE WHEN ${open} THEN l.est ELSE 0 END), 0)::float8 AS est,
-        COALESCE(SUM(CASE WHEN ${open} THEN l.est_lines ELSE 0 END), 0)::int AS est_lines,
-        COALESCE(SUM(CASE WHEN ${open} THEN l.unknown_lines ELSE 0 END), 0)::int AS unknown_lines,
-        COALESCE(SUM(CASE WHEN ${open} THEN l.unknown_rev ELSE 0 END), 0)::float8 AS unknown_rev
-      FROM "Sale" s
-      LEFT JOIN LATERAL (
-        SELECT COALESCE(SUM(si.quantity * si."costPrice"), 0) AS saved,
-          COALESCE(SUM(si.quantity * p."costPrice") FILTER (WHERE si."costPrice" <= 0 AND p."costPrice" > 0), 0) AS est,
-          COUNT(*) FILTER (WHERE si."costPrice" <= 0 AND p."costPrice" > 0) AS est_lines,
-          COUNT(*) FILTER (WHERE si."costPrice" <= 0 AND COALESCE(p."costPrice", 0) <= 0 AND si.total > 0) AS unknown_lines,
-          COALESCE(SUM(si.total) FILTER (WHERE si."costPrice" <= 0 AND COALESCE(p."costPrice", 0) <= 0 AND si.total > 0), 0) AS unknown_rev
-        FROM "SaleItem" si LEFT JOIN "Product" p ON p.id = si."productId"
-        WHERE si."saleId" = s.id
-      ) l ON true
-      WHERE ${this.saleWhere(c, r)}
-      GROUP BY 1`);
-  }
-
-  /** Goods returned in the period (on bills that still stand) and their cost. */
-  private returnRows(c: Ctx, r: Range, b: Bucket) {
-    const k = this.key(c, b, col('r."returnedAt"'), col('s."shopId"'), col('s.source::text'));
-    return this.prisma.$queryRaw<Array<{ k: string; n: number; amount: number; cost: number }>>(Prisma.sql`
-      SELECT ${k} AS k, COUNT(*)::int AS n,
-        COALESCE(SUM(r."refundAmount"), 0)::float8 AS amount,
-        COALESCE(SUM(rc.cost), 0)::float8 AS cost
-      FROM "SaleReturn" r
-      JOIN "Sale" s ON s.id = r."saleId"
-      LEFT JOIN LATERAL (
-        SELECT SUM(ri.quantity * CASE WHEN si."costPrice" > 0 THEN si."costPrice" ELSE COALESCE(p."costPrice", 0) END) AS cost
-        FROM "SaleReturnItem" ri
-        JOIN "SaleItem" si ON si.id = ri."saleItemId"
-        LEFT JOIN "Product" p ON p.id = si."productId"
-        WHERE ri."returnId" = r.id
-      ) rc ON true
-      WHERE r."tenantId" = ${c.tenantId} AND s.status::text <> 'VOIDED'
-        AND r."returnedAt" >= ${r.gte} AND r."returnedAt" < ${r.lt} ${this.shopSql(c, col('s."shopId"'))}
+        COALESCE(SUM(bm."soldCost" - bm."estCost"), 0)::float8 AS cost,
+        COALESCE(SUM(bm."estCost"), 0)::float8 AS est,
+        COALESCE(SUM(bm."fallbackLines"), 0)::int AS est_lines,
+        COALESCE(SUM(bm."noCostLines"), 0)::int AS unknown_lines,
+        COALESCE(SUM(bm."noCostRevenue"), 0)::float8 AS unknown_rev,
+        COALESCE(SUM(s."refundedAmount"), 0)::float8 AS returns,
+        COALESCE(SUM(CASE WHEN s."refundedAmount" > 0 THEN (SELECT COUNT(*) FROM "SaleReturn" x WHERE x."saleId" = s.id) ELSE 0 END), 0)::int AS return_count,
+        COALESCE(SUM(bm."soldCost" - bm.cost), 0)::float8 AS return_cost
+      FROM "Sale" s JOIN bm ON bm.id = s.id
+      WHERE ${where}
       GROUP BY 1`);
   }
 
@@ -263,8 +241,7 @@ export class PnlService {
     return this.prisma.$queryRaw<Array<{ k: string; cat: string; amount: number; n: number }>>(Prisma.sql`
       SELECT ${k} AS k, COALESCE(e."categoryId", ${NONE}) AS cat, COALESCE(SUM(e.amount), 0)::float8 AS amount, COUNT(*)::int AS n
       FROM "Expense" e
-      WHERE e."tenantId" = ${c.tenantId} AND e.status::text = 'PAID'
-        AND e."expenseDate" >= ${r.gte} AND e."expenseDate" < ${r.lt} ${this.shopSql(c, col('e."shopId"'))}
+      WHERE ${paidExpenseSql({ tenantId: c.tenantId, shopId: c.shopId }, r)}
       GROUP BY 1, 2`);
   }
 
@@ -297,18 +274,9 @@ export class PnlService {
       GROUP BY 1`);
   }
 
-  /** Stock written off or found, at the cost stored on the movement (product cost on old rows). */
-  private writeOffRows(c: Ctx, r: Range, b: Bucket) {
-    const k = this.key(c, b, col('m."createdAt"'), col('m."shopId"'));
-    return this.prisma.$queryRaw<Array<{ k: string; type: WriteOffType; value: number; n: number }>>(Prisma.sql`
-      SELECT ${k} AS k, m.type::text AS type,
-        COALESCE(SUM(ABS(m.quantity) * COALESCE(NULLIF(m."unitCost", 0), p."costPrice", 0)), 0)::float8 AS value,
-        COUNT(*)::int AS n
-      FROM "StockMovement" m
-      LEFT JOIN "Product" p ON p.id = m."productId"
-      WHERE m."tenantId" = ${c.tenantId} AND m.type::text IN (${Prisma.join(WRITE_OFFS)})
-        AND m."createdAt" >= ${r.gte} AND m."createdAt" < ${r.lt} ${this.shopSql(c, col('m."shopId"'))}
-      GROUP BY 1, 2`);
+  /** Stock written off or found, by the shared write-off rule. */
+  private writeOffRows(c: Ctx, r: Range, b: Bucket): Promise<WriteOffRow[]> {
+    return writeOffRows(this.prisma, { tenantId: c.tenantId, shopId: c.shopId }, r, { key: (at, shop) => this.key(c, b, at, shop) });
   }
 
   /** Advances kept on bookings that were cancelled or expired. */
@@ -327,13 +295,12 @@ export class PnlService {
   /** Every figure of the period, grouped by the bucket. */
   private async collect(c: Ctx, r: Range, b: Bucket): Promise<Map<string, Figures>> {
     const none = Promise.resolve([] as Array<{ k: string; amount: number; n: number }>);
-    const [sales, returns, expenses, salaries, commission, writeOffs, bookings] = await Promise.all([
+    const [sales, expenses, salaries, commission, writeOffs, bookings] = await Promise.all([
       this.salesRows(c, r, b),
-      this.returnRows(c, r, b),
       b === 'channel' ? Promise.resolve([]) : this.expenseRows(c, r, b),
       c.staff && b !== 'channel' ? this.salaryRows(c, r, b) : none,
       c.staff && b !== 'channel' ? this.commissionRows(c, r, b) : none,
-      b === 'channel' ? Promise.resolve([]) : this.writeOffRows(c, r, b),
+      b === 'channel' ? Promise.resolve([] as WriteOffRow[]) : this.writeOffRows(c, r, b),
       b === 'channel' ? none : this.bookingRows(c, r, b),
     ]);
     const out = new Map<string, Figures>();
@@ -347,12 +314,14 @@ export class PnlService {
       f.bills = n(x.bills); f.gross = n(x.gross); f.discount = n(x.discount); f.code = n(x.code); f.loyalty = n(x.loyalty);
       f.service = n(x.service); f.sales = n(x.sales); f.credit = n(x.credit); f.cost = n(x.cost); f.est = n(x.est);
       f.estLines = n(x.est_lines); f.unknownLines = n(x.unknown_lines); f.unknownRev = n(x.unknown_rev);
+      f.returnCount = n(x.return_count); f.returns = n(x.returns); f.returnCost = n(x.return_cost);
     }
-    for (const x of returns) { const f = get(x.k); f.returnCount = n(x.n); f.returns = n(x.amount); f.returnCost = n(x.cost); }
     for (const x of expenses) get(x.k).expenses.set(x.cat, { amount: n(x.amount), count: n(x.n) });
     for (const x of salaries) { const f = get(x.k); f.salaries = n(x.amount); f.salaryCount = n(x.n); }
     for (const x of commission) { const f = get(x.k); f.commission = n(x.amount); f.commissionCount = n(x.n); }
-    for (const x of writeOffs) { const f = get(x.k); if (f.writeOffs[x.type]) f.writeOffs[x.type] = { value: n(x.value), count: n(x.n) }; }
+    const lossBy = new Map<string, WriteOffRow[]>();
+    for (const x of writeOffs) lossBy.set(x.k, [...(lossBy.get(x.k) ?? []), x]);
+    for (const [k, rows] of lossBy) get(k).writeOffs = foldWriteOffs(rows);
     for (const x of bookings) { const f = get(x.k); f.booking = n(x.amount); f.bookingCount = n(x.n); }
     return out;
   }
@@ -378,7 +347,7 @@ export class PnlService {
     const count = [...f.expenses.values()].reduce((s, x) => s + x.count, 0);
     const opex = paid + f.salaries + f.commission;
     const w = f.writeOffs;
-    const writeOff = w.DAMAGE.value + w.LOSS.value + w.ADJUSTMENT_OUT.value - w.ADJUSTMENT_IN.value;
+    const writeOff = w.net;
     const other = f.booking;
     const netProfit = gross - opex - writeOff + other;
     const show = c.costVisible;
@@ -405,8 +374,7 @@ export class PnlService {
         total: r2(opex),
       },
       writeOffs: show ? {
-        damage: r2(w.DAMAGE.value), loss: r2(w.LOSS.value), countedShort: r2(w.ADJUSTMENT_OUT.value), found: r2(w.ADJUSTMENT_IN.value),
-        net: r2(writeOff), count: w.DAMAGE.count + w.LOSS.count + w.ADJUSTMENT_OUT.count + w.ADJUSTMENT_IN.count,
+        damage: w.damage, loss: w.loss, countedShort: w.countedShort, found: w.found, net: w.net, count: w.count,
       } : null,
       otherIncome: { bookingKept: r2(other), bookingCount: f.bookingCount, total: r2(other) },
       operatingProfit: show ? r2(gross - opex) : null,
@@ -429,47 +397,31 @@ export class PnlService {
     }).sort((a, b) => b.net - a.net);
   }
 
-  /** Line totals by product category (before bill-level discounts), less returns. */
+  /** Line totals by product category after the bill discount, less what was refunded on them. */
   private async categories(c: Ctx, r: Range) {
-    const effCost = Prisma.sql`si.quantity * CASE WHEN si."costPrice" > 0 THEN si."costPrice" ELSE COALESCE(p."costPrice", 0) END`;
-    const [sold, back] = await Promise.all([
-      this.prisma.$queryRaw<Array<{ k: string; bills: number; revenue: number; cost: number; qty: number }>>(Prisma.sql`
-        SELECT COALESCE(p."categoryId", ${NONE}) AS k, COUNT(DISTINCT s.id)::int AS bills,
-          COALESCE(SUM(si.total), 0)::float8 AS revenue, COALESCE(SUM(${effCost}), 0)::float8 AS cost,
-          COALESCE(SUM(si.quantity), 0)::float8 AS qty
-        FROM "SaleItem" si
-        JOIN "Sale" s ON s.id = si."saleId"
-        LEFT JOIN "Product" p ON p.id = si."productId"
-        WHERE ${this.saleWhere(c, r)}
-        GROUP BY 1`),
-      this.prisma.$queryRaw<Array<{ k: string; amount: number; cost: number }>>(Prisma.sql`
-        SELECT COALESCE(p."categoryId", ${NONE}) AS k,
-          COALESCE(SUM(ri.total), 0)::float8 AS amount,
-          COALESCE(SUM(ri.quantity * CASE WHEN si."costPrice" > 0 THEN si."costPrice" ELSE COALESCE(p."costPrice", 0) END), 0)::float8 AS cost
-        FROM "SaleReturnItem" ri
-        JOIN "SaleReturn" r ON r.id = ri."returnId"
-        JOIN "Sale" s ON s.id = r."saleId"
-        JOIN "SaleItem" si ON si.id = ri."saleItemId"
-        LEFT JOIN "Product" p ON p.id = si."productId"
-        WHERE r."tenantId" = ${c.tenantId} AND s.status::text <> 'VOIDED'
-          AND r."returnedAt" >= ${r.gte} AND r."returnedAt" < ${r.lt} ${this.shopSql(c, col('s."shopId"'))}
-        GROUP BY 1`),
-    ]);
-    const ids = [...new Set([...sold, ...back].map((x) => x.k).filter((k) => k !== NONE))];
+    const where = this.saleWhere(c, r);
+    const rows = await this.prisma.$queryRaw<Array<{ k: string; bills: number; revenue: number; returns: number; cost: number; qty: number }>>(Prisma.sql`
+      WITH ${billMathCte(where)}
+      SELECT COALESCE(bm_p."categoryId", ${NONE}) AS k, COUNT(DISTINCT s.id)::int AS bills,
+        COALESCE(SUM(${LINE_NET}), 0)::float8 AS revenue, COALESCE(SUM(${LINE_REFUND}), 0)::float8 AS returns,
+        COALESCE(SUM(${LINE_COST}), 0)::float8 AS cost, COALESCE(SUM(si.quantity), 0)::float8 AS qty
+      FROM "SaleItem" si
+      JOIN "Sale" s ON s.id = si."saleId"
+      JOIN bm ON bm.id = s.id
+      ${LINE_COST_JOINS}
+      WHERE ${where}
+      GROUP BY 1`);
+    const ids = rows.map((x) => x.k).filter((k) => k !== NONE);
     const names = ids.length
       ? await this.prisma.category.findMany({ where: { tenantId: c.tenantId, id: { in: ids } }, select: { id: true, name: true, color: true } })
       : [];
     const meta = new Map(names.map((x) => [x.id, x]));
-    const backBy = new Map(back.map((x) => [x.k, x]));
-    const keys = new Set([...sold.map((x) => x.k), ...back.map((x) => x.k)]);
-    return [...keys].map((k) => {
-      const s = sold.find((x) => x.k === k);
-      const b = backBy.get(k);
-      const net = n(s?.revenue) - n(b?.amount);
-      const cost = n(s?.cost) - n(b?.cost);
+    return rows.map((x) => {
+      const net = n(x.revenue) - n(x.returns);
+      const cost = n(x.cost);
       return {
-        id: k, name: k === NONE ? 'Bina category' : meta.get(k)?.name ?? 'Doosri', color: (k !== NONE && meta.get(k)?.color) || '#64748b',
-        bills: n(s?.bills), qty: r2(n(s?.qty)), revenue: r2(n(s?.revenue)), returns: r2(n(b?.amount)), net: r2(net),
+        id: x.k, name: x.k === NONE ? 'Bina category' : meta.get(x.k)?.name ?? 'Doosri', color: (x.k !== NONE && meta.get(x.k)?.color) || '#64748b',
+        bills: n(x.bills), qty: r2(n(x.qty)), revenue: r2(n(x.revenue)), returns: r2(n(x.returns)), net: r2(net),
         cost: c.costVisible ? r2(cost) : null, profit: c.costVisible ? r2(net - cost) : null, margin: c.costVisible ? pct(net - cost, net) : null,
       };
     }).sort((a, b) => b.net - a.net);
@@ -627,24 +579,42 @@ export class PnlService {
       }
       case 'writeoff': {
         if (!c.costVisible) throw new ForbiddenException('Lagat dekhne ki ijazat nahi');
-        const list = await this.prisma.stockMovement.findMany({
-          where: { tenantId: c.tenantId, type: { in: WRITE_OFFS }, createdAt: r, ...shop },
-          select: {
-            id: true, createdAt: true, type: true, quantity: true, unitCost: true, reference: true, note: true, productId: true,
-            product: { select: { name: true, unit: true, costPrice: true } }, shop: { select: { name: true } },
-          },
-          orderBy: { createdAt: 'desc' }, take: DETAIL_LIMIT + 1,
-        });
-        const label: Record<WriteOffType, string> = { DAMAGE: 'Kharab', LOSS: 'Gum / chori', ADJUSTMENT_OUT: 'Ginti me kam', ADJUSTMENT_IN: 'Ginti me zyada' };
-        rows = list.map((m) => {
-          const unit = Number(m.unitCost) || Number(m.product.costPrice) || 0;
-          const value = Math.abs(m.quantity) * unit;
-          return {
-            id: m.id, at: m.createdAt, title: `${m.product.name} × ${Math.abs(m.quantity)} ${m.product.unit}`, ref: m.reference, note: m.note,
-            kind: label[m.type as WriteOffType], branch: m.shop?.name ?? null, by: null,
-            amount: r2(m.type === 'ADJUSTMENT_IN' ? -value : value), link: `/products/${m.productId}`,
-          };
-        });
+        const [adjustments, returned] = await Promise.all([
+          this.prisma.stockAdjustment.findMany({
+            where: { tenantId: c.tenantId, type: { in: ['DAMAGE', 'LOSS', 'ADJUSTMENT_OUT', 'ADJUSTMENT_IN'] }, createdAt: r, ...shop },
+            select: {
+              id: true, createdAt: true, type: true, quantity: true, value: true, reason: true, note: true, groupRef: true, productId: true,
+              product: { select: { name: true, unit: true } }, shop: { select: { name: true } }, createdBy: { select: { fullName: true } },
+            },
+            orderBy: { createdAt: 'desc' }, take: DETAIL_LIMIT + 1,
+          }),
+          // Goods taken back on a return as not fit to sell.
+          this.prisma.$queryRaw<Array<{ id: string; at: Date; qty: number; value: number; ref: string; note: string | null; productId: string; product: string; unit: string; branch: string | null }>>(Prisma.sql`
+            SELECT m.id, m."createdAt" AS at, ABS(m.quantity)::float8 AS qty,
+              (ABS(m.quantity) * COALESCE(NULLIF(m."unitCost", 0), p."costPrice", 0))::float8 AS value,
+              m.reference AS ref, m.note, m."productId", p.name AS product, p.unit, sh.name AS branch
+            FROM "StockMovement" m
+            JOIN "SaleReturn" x ON x."tenantId" = m."tenantId" AND x."returnNumber" = m.reference
+            JOIN "Product" p ON p.id = m."productId"
+            LEFT JOIN "Shop" sh ON sh.id = m."shopId"
+            WHERE m."tenantId" = ${c.tenantId} AND m.type::text = 'DAMAGE'
+              AND m."createdAt" >= ${r.gte} AND m."createdAt" < ${r.lt} ${this.shopSql(c, col('m."shopId"'))}
+            ORDER BY m."createdAt" DESC
+            LIMIT ${DETAIL_LIMIT + 1}`),
+        ]);
+        const label: Record<string, string> = { DAMAGE: 'Kharab', LOSS: 'Gum / chori', ADJUSTMENT_OUT: 'Ginti me kam', ADJUSTMENT_IN: 'Ginti me zyada' };
+        rows = [
+          ...adjustments.map((m) => ({
+            id: m.id, at: m.createdAt, title: `${m.product.name} × ${Math.abs(m.quantity)} ${m.product.unit}`, ref: m.groupRef,
+            note: [m.reason, m.note].filter(Boolean).join(' — ') || null,
+            kind: label[m.type] ?? m.type, branch: m.shop?.name ?? null, by: m.createdBy?.fullName ?? null,
+            amount: r2(m.type === 'ADJUSTMENT_IN' ? -m.value : m.value), link: `/products/${m.productId}`,
+          })),
+          ...returned.map((m) => ({
+            id: m.id, at: m.at, title: `${m.product} × ${m.qty} ${m.unit}`, ref: m.ref, note: m.note,
+            kind: 'Wapsi par kharab', branch: m.branch, by: null, amount: r2(n(m.value)), link: `/products/${m.productId}`,
+          })),
+        ].sort((a, b) => b.at.getTime() - a.at.getTime());
         break;
       }
       case 'booking': {

@@ -4,7 +4,9 @@
  * closing cash. This is the sheet shop staff otherwise write by hand.
  *
  * Day boundaries follow the tenant's timezone and business-day start hour,
- * the same as every other dashboard number.
+ * the same as every other dashboard number. As a day-close sheet, the day's
+ * bills count at full value and returns count on the day they were made;
+ * cost and cash follow business-math.helper.
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common';
@@ -12,8 +14,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { businessDayKey, safeDayStart, zonedToUtc } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
-
-const SOLD = ['COMPLETED', 'PARTIALLY_RETURNED'] as const;
+import { LIVE_BILL, dayCloseCost } from '../../common/helpers/business-math.helper';
 const DAY_MS = 24 * 3600_000;
 const n = (v: unknown) => Number(v ?? 0);
 
@@ -40,15 +41,15 @@ export class DayReportService {
 
     const tenantId = user.tenantId;
     const shop = shopId ? { shopId } : {};
-    const saleWhere = { tenantId, status: { in: [...SOLD] }, soldAt: { gte: from, lt: to }, ...shop };
+    const saleWhere = { tenantId, status: LIVE_BILL, soldAt: { gte: from, lt: to }, ...shop };
 
     const [
       salesAgg, prevAgg, byMethod, itemGroups, expenses, refunds, registers,
-      cashPurchases, supplierCash, sellers,
+      cashPurchases, supplierCash, sellers, cost,
     ] = await Promise.all([
       this.prisma.sale.aggregate({
         where: saleWhere,
-        _sum: { total: true, paidAmount: true, creditAmount: true, discount: true, costOfGoods: true },
+        _sum: { total: true, paidAmount: true, changeAmount: true, creditAmount: true, discount: true },
         _count: { _all: true },
       }),
       this.prisma.sale.aggregate({
@@ -59,7 +60,7 @@ export class DayReportService {
       this.prisma.sale.groupBy({
         by: ['paymentMethod'],
         where: saleWhere,
-        _sum: { total: true, paidAmount: true },
+        _sum: { total: true, paidAmount: true, changeAmount: true },
         _count: { _all: true },
       }),
       this.prisma.saleItem.groupBy({
@@ -75,7 +76,11 @@ export class DayReportService {
       }),
       this.prisma.saleReturn.groupBy({
         by: ['refundMethod'],
-        where: { tenantId, returnedAt: { gte: from, lt: to }, ...(shopId && { sale: { shopId } }) },
+        where: {
+          tenantId, returnedAt: { gte: from, lt: to },
+          // A return belongs to the branch it was made at; older rows fall back to the bill's branch.
+          ...(shopId && { OR: [{ shopId }, { shopId: null, sale: { shopId } }] }),
+        },
         _sum: { refundAmount: true },
         _count: { _all: true },
       }),
@@ -104,6 +109,7 @@ export class DayReportService {
         _sum: { total: true },
         _count: { _all: true },
       }),
+      dayCloseCost(this.prisma, { tenantId, shopId }, { gte: from, lt: to }),
     ]);
 
     // ── Items and categories ──
@@ -148,9 +154,9 @@ export class DayReportService {
     const categories = [...catMap.values()].sort((a, b) => b.revenue - a.revenue);
 
     // ── Money in ──
-    // Collected = paid at the counter (credit is not collected yet).
+    // Collected = paid at the counter less change given (credit is not collected yet).
     const payments = byMethod
-      .map((r) => ({ method: r.paymentMethod, sales: n(r._sum.total), collected: n(r._sum.paidAmount), bills: r._count._all }))
+      .map((r) => ({ method: r.paymentMethod, sales: n(r._sum.total), collected: n(r._sum.paidAmount) - n(r._sum.changeAmount), bills: r._count._all }))
       .sort((a, b) => b.collected - a.collected);
     const cashCollected = payments.filter((p) => p.method === 'CASH').reduce((x, p) => x + p.collected, 0);
     const onlineCollected = payments.filter((p) => p.method !== 'CASH').reduce((x, p) => x + p.collected, 0);
@@ -194,7 +200,8 @@ export class DayReportService {
 
     const total = n(salesAgg._sum.total);
     const bills = salesAgg._count._all;
-    const cogs = n(salesAgg._sum.costOfGoods);
+    // The day's bills less the day's returns, and their cost on the same footing.
+    const cogs = cost.sold - cost.returned;
 
     return {
       date: key,
@@ -206,11 +213,11 @@ export class DayReportService {
         bills,
         average: bills > 0 ? total / bills : 0,
         discount: n(salesAgg._sum.discount),
-        collected: n(salesAgg._sum.paidAmount),
+        collected: n(salesAgg._sum.paidAmount) - n(salesAgg._sum.changeAmount),
         credit: n(salesAgg._sum.creditAmount),
         itemsSold: items.reduce((x, i) => x + i.qty, 0),
         cogs,
-        grossProfit: total - cogs,
+        grossProfit: total - refundTotal - cogs,
         refunds: refundTotal,
         refundCount,
         previousTotal: n(prevAgg._sum.total),

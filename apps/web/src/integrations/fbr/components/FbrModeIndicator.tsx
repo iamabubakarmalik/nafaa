@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Landmark } from 'lucide-react';
 import { taxAuthorityApi } from '@integrations/tax-authority/taxAuthority.api';
 import { cn } from '@core/lib/cn';
+import { useActiveShopId } from '@core/stores/auth.store';
 
 const NAME: Record<string, string> = { PRA: 'PRA', SRB: 'SRB', KPRA: 'KPRA', FBR: 'FBR' };
 
@@ -10,7 +11,8 @@ const NAME: Record<string, string> = { PRA: 'PRA', SRB: 'SRB', KPRA: 'KPRA', FBR
  * Band ho to kuch nahi. (Naam purana — 18 POS pages yahi lagate hain.)
  */
 export function FbrModeIndicator({ className }: { saleTotal?: number; className?: string }) {
-  const { data } = useQuery({ queryKey: ['tax-authority-pos'], queryFn: taxAuthorityApi.pos, staleTime: 10 * 60_000, retry: false });
+  const shopId = useActiveShopId();
+  const { data } = useQuery({ queryKey: ['tax-authority-pos', shopId], queryFn: taxAuthorityApi.pos, staleTime: 10 * 60_000, retry: false });
   if (!data?.enabled || !data.authority) return null;
   const test = data.env !== 'live';
   return (

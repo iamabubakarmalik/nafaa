@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  AlertTriangle, BarChart3, CalendarRange, Download, FileText, GitCompareArrows, GraduationCap, Landmark, MousePointerClick, Package, PiggyBank,
+  AlertTriangle, BarChart3, Calculator, CalendarRange, Download, FileText, GitCompareArrows, GraduationCap, Landmark, MousePointerClick, Package, PiggyBank,
   Receipt, RotateCcw, Scale, Store, Target, TrendingUp, Users, Wallet,
 } from 'lucide-react';
 import {
@@ -282,13 +282,14 @@ export default function ProfitLossPage() {
           steps={[
             { icon: CalendarRange, color: '#2563eb', title: 'Muddat chunein', text: 'Is mahine, pichhla mahina, saal ya apni tareekh. "Muqabla" se pichli itni hi muddat ya pichle saal ki yahi tareekhen saath dikhti hain.' },
             { icon: FileText, color: '#16a34a', title: 'Bayan parhein', text: 'Upar bikri, phir maal ki lagat, gross munafa, kharchay, stock ka nuqsan — aakhir me Net munafa. Har line ke neeche likha hai ke wo kya hai.' },
+            { icon: Calculator, color: '#0f766e', title: 'Hisaab kaise', text: 'Asal bikri = bill − wapsi (void bill nahi gine jate). Lagat = bill bante waqt ki cost; cost na likhi ho to aaj ki cost. Kharche sirf jo ada ho chuke (pending nahi). Net munafa = munafa − kharche − kharab, gum ya ginti me kam maal. Wapsi us bill ke din me ginti hai jis ka maal tha. Reports, Munafa report, Nafa nuqsan aur Dashboard sab yahi hisaab lagate hain. Yahan tankhwah aur commission bhi alag line me nikalte hain, aur cancel booking ka rakha hua advance aamdani me judta hai.' },
             { icon: MousePointerClick, color: '#d97706', title: 'Line par click', text: 'Kharche ki qism, tankhwah, stock nuqsan ya booking par click karein — us ke saare record khul jate hain.' },
             { icon: CalendarRange, color: '#7c3aed', title: 'Mahine war', text: 'Pichle 6, 12 ya 24 mahine ek saath. Kisi mahine par click karein to us ka poora bayan khulta hai.' },
             { icon: Landmark, color: '#0891b2', title: 'Munafa ya cash?', text: '"Paisa aaya/gaya" batata hai jeb me kitna aaya, aur munafe se farq kyun hai — udhaar, kharidari, khata.' },
             { icon: Target, color: '#db2777', title: 'Break-even', text: 'Analytics me dekhein ke har mahine kitni bikri par saare fixed kharche poore hote hain, aur is mahine kitna baqi hai.' },
           ]}
           tips={[
-            'Wapsi us din gini jati hai jis din hui, chahe bill pichle mahine ka ho.',
+            'Wapsi us bill ki muddat me gini jati hai jis ka maal tha, chahe wapsi baad me hui ho. Din ka hisaab me wapsi usi din dikhti hai jis din hui.',
             'Jis cheez ki cost nahi likhi, us ki lagat product ki aaj ki cost se andaza lagti hai. Note me batata hai kitni lines aisi hain.',
             'Agar tankhwah aap Kharchay me bhi likhte hain to "Tankhwah" filter band karein, warna do dafa gini jayegi.',
             ...(cfg.tips ?? []),

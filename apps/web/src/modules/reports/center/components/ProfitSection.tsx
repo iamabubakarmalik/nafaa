@@ -17,7 +17,7 @@ const LINES: Line[] = [
   { label: 'Maal ki lagat', key: 'cost', sign: '-', cost: true, up: 'bad' },
   { label: 'Kachcha munafa', key: 'grossProfit', sign: '=', cost: true },
   { label: 'Kharche', key: 'expenses', sign: '-', up: 'bad' },
-  { label: 'Kharab maal (damage)', key: 'damage', sign: '-', up: 'bad' },
+  { label: 'Kharab / gum maal', key: 'damage', sign: '-', up: 'bad' },
   { label: 'Asal munafa', key: 'netProfit', sign: '=', cost: true },
 ];
 
