@@ -1,6 +1,7 @@
 import { apiClient } from '@core/api/client';
 import { db, setMeta, getMeta, type PendingSale, type SyncQueueItem, isTempId } from './db';
 import { toast } from 'sonner';
+import { useAuthStore } from '@core/stores/auth.store';
 
 let isSyncing = false;
 let uploadInterval: ReturnType<typeof setInterval> | null = null;
@@ -202,8 +203,14 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
   let queueSynced = 0;
   let failed = 0;
 
-  const queueItems = await db.syncQueue.where('status').anyOf('pending', 'failed').sortBy('createdAt');
-  const pendingSalesList = await db.pendingSales.where('status').anyOf('pending', 'failed').sortBy('createdAt');
+  // Offline work kept after a logout belongs to the business that made it. If
+  // another business signs in on this device, those rows wait untouched.
+  const tenantId = useAuthStore.getState().tenant?.id;
+  const mine = (owner?: string) => !owner || !tenantId || owner === tenantId;
+  const queueItems = (await db.syncQueue.where('status').anyOf('pending', 'failed').sortBy('createdAt'))
+    .filter((q) => mine(q.tenantId));
+  const pendingSalesList = (await db.pendingSales.where('status').anyOf('pending', 'failed').sortBy('createdAt'))
+    .filter((s) => mine(s.tenantSnapshot?.id));
 
   const total = queueItems.length + pendingSalesList.length;
   let done = 0;
@@ -519,7 +526,8 @@ export async function queueGenericMutation(
   item: Omit<SyncQueueItem, 'id' | 'status' | 'retryCount' | 'createdAt'>,
 ): Promise<void> {
   const id = `q_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-  await db.syncQueue.add({ ...item, id, createdAt: Date.now(), status: 'pending', retryCount: 0 });
+  const tenantId = item.tenantId ?? useAuthStore.getState().tenant?.id;
+  await db.syncQueue.add({ ...item, id, tenantId, createdAt: Date.now(), status: 'pending', retryCount: 0 });
   await refreshStatus();
   void registerBackgroundSync();
   if (navigator.onLine) setTimeout(() => uploadPendingChanges().catch(() => {}), 500);

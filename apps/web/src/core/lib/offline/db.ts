@@ -265,6 +265,8 @@ export interface SyncQueueItem {
   status: 'pending' | 'syncing' | 'synced' | 'failed';
   syncError?: string;
   retryCount: number;
+  /** Business the change belongs to; it only syncs while that business is signed in. */
+  tenantId?: string;
 }
 
 export interface SyncMeta {
@@ -342,14 +344,20 @@ export async function setMeta(key: string, value: any): Promise<void> {
   await db.meta.put({ key, value, updatedAt: Date.now() });
 }
 
+/**
+ * Clears the offline mirror (products, customers, lookups and so on) for a
+ * logout or a cache reset. Bills and changes that have not reached the server
+ * yet are never removed here: losing them would lose real sales. Only rows
+ * already synced are dropped from those two tables.
+ */
 export async function clearAllOfflineData(): Promise<void> {
   await Promise.all([
     db.products.clear(),
     db.customers.clear(),
     db.expenses.clear(),
     db.lookups.clear(),
-    db.pendingSales.clear(),
-    db.syncQueue.clear(),
+    db.pendingSales.where('status').equals('synced').delete(),
+    db.syncQueue.where('status').equals('synced').delete(),
     db.meta.clear(),
     db.usedPhones.clear(),
     db.imeis.clear(),
