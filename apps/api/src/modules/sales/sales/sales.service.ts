@@ -10,6 +10,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { DiscountsService } from '../discounts/discounts.service';
+import { hasPermission, PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { FbrService } from '../../../integrations/fbr/fbr.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 
@@ -1011,10 +1012,12 @@ export class SalesService {
     }
     if (bill.manualDiscount > 0) {
       if (!s.allowDiscount) throw new BadRequestException('Is dukaan me haath se chhoot band hai (Settings)');
+      // Staff the owner trusted with "Had se zyada chhoot" skip the limit and its PIN.
+      const trusted = hasPermission(user.role, user.permissions, PERMISSIONS.POS_DISCOUNT_OVERRIDE);
       const percent = bill.subtotal > 0 ? (bill.manualDiscount / bill.subtotal) * 100 : 100;
-      if (percent > s.maxDiscountPercent + 0.01) {
+      if (!trusted && percent > s.maxDiscountPercent + 0.01) {
         await requireManagerPin(this.prisma, user, dto.managerPin, `${s.maxDiscountPercent}% se zyada chhoot`, true);
-      } else if (s.requirePinForDiscount) {
+      } else if (!trusted && s.requirePinForDiscount) {
         await requireManagerPin(this.prisma, user, dto.managerPin, 'Chhoot');
       }
     }

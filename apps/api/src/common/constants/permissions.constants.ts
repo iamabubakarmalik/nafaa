@@ -1,6 +1,8 @@
 export const PERMISSIONS = {
   // POS & Sales
   POS_USE: 'pos.use',
+  /** Hand discount above the shop's limit without the owner's PIN. Given per person. */
+  POS_DISCOUNT_OVERRIDE: 'pos.discount_override',
   SALES_VIEW: 'sales.view',
   SALES_VOID: 'sales.void',
   RETURNS_VIEW: 'returns.view',

@@ -48,6 +48,7 @@ export const salaryTypeOf = (id: string) => SALARY_TYPES.find((s) => s.id === id
  */
 const PERM_TEXT: Record<string, [string, string]> = {
   'pos.use': ['POS counter', 'Bikri ka counter khol sakta hai'],
+  'pos.discount_override': ['Had se zyada chhoot', 'Settings wali chhoot ki had aur PIN is par nahi lagte — sirf bharose wale banday ko dein'],
   'sales.view': ['Bikri dekhna', 'Purane bill aur bikri ki list'],
   'sales.void': ['Bill void karna', 'Bana hua bill radd kar sakta hai (PIN setting alag hai)'],
   'returns.view': ['Wapsi dekhna', 'Wapas aaye maal ki list'],

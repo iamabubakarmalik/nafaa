@@ -16,6 +16,7 @@ import { offlineSalesApi } from '@core/lib/offline/offlineSales';
 import { offlineProductsApi } from '@core/lib/offline/offlineProducts';
 import { useCustomerDisplayFeed } from '@core/hardware/customerDisplay';
 import { formatPKR } from '@core/lib/format';
+import { hasPermission, PERMISSIONS } from '@core/lib/permissions';
 import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.api';
 import { discountsApi } from '@modules/sales/discounts/api/discounts.api';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
@@ -204,8 +205,9 @@ export function usePosEngine(config: PosIndustryConfig) {
     pinForDiscount: !!ls?.requirePinForDiscount,
     allowCredit: ls?.allowCredit ?? true,
     hasPin: !!ls?.hasManagerPin,
+    discountTrusted: hasPermission(user?.role, (user as { permissions?: string[] } | null)?.permissions, PERMISSIONS.POS_DISCOUNT_OVERRIDE),
     defaultMethod: (ls?.defaultPaymentMethod as PaymentMethod | undefined) || 'CASH',
-  }), [ls]);
+  }), [ls, user]);
   const rulesRef = useRef(rules);
   rulesRef.current = rules;
 
@@ -604,8 +606,9 @@ export function usePosEngine(config: PosIndustryConfig) {
   const pinReason = (credit: number): string | null | false => {
     // Hand discount only; codes and points follow their own rules.
     const manual = discountAmount;
-    if (manual > 0) {
-      if (!rules.allowDiscount) { toast.error('Is dukaan me haath se chhoot band hai (Settings)'); return false; }
+    // Staff trusted with "Had se zyada chhoot" skip the limit and its PIN; credit rules below still apply.
+    if (manual > 0 && !rules.allowDiscount) { toast.error('Is dukaan me haath se chhoot band hai (Settings)'); return false; }
+    if (manual > 0 && !rules.discountTrusted) {
       const pct = subtotal > 0 ? (manual / subtotal) * 100 : 100;
       if (pct > rules.maxDiscountPercent + 0.01) {
         if (!rules.hasPin) { toast.error(`Chhoot ${rules.maxDiscountPercent}% se zyada nahi ho sakti (Settings)`); return false; }
