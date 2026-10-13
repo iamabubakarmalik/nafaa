@@ -12,14 +12,16 @@ import { useEffect, useRef, useState } from 'react';
 import { Delete, LockKeyhole, WifiOff } from 'lucide-react';
 import { Button, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
-import { securityApi } from './security.api';
+import { securityApi, type PinKind } from './security.api';
 
 const MAX = 8;
 
-export function ManagerPinModal({ open, reason, onDone }: {
+export function ManagerPinModal({ open, reason, kind, onDone }: {
   open: boolean;
   /** What needs the PIN, e.g. "Bill cancel". */
   reason: string;
+  /** Counter action: a staff approval PIN with that permission counts too. */
+  kind?: PinKind;
   onDone: (pin: string | null) => void;
 }) {
   const [pin, setPin] = useState('');
@@ -35,7 +37,7 @@ export function ManagerPinModal({ open, reason, onDone }: {
     setBusy(true);
     setError('');
     try {
-      const r = await securityApi.verifyPin(pin);
+      const r = await securityApi.verifyPin(pin, kind);
       if (r.valid) onDone(pin);
       else { setError(r.message || 'Ghalat PIN'); setPin(''); }
     } catch {
@@ -49,7 +51,7 @@ export function ManagerPinModal({ open, reason, onDone }: {
   const press = (d: string) => { setError(''); setPin((p) => (p.length < MAX ? p + d : p)); };
 
   return (
-    <Modal open={open} onClose={() => onDone(null)} size="sm" title="Malik ka PIN"
+    <Modal open={open} onClose={() => onDone(null)} size="sm" title={kind ? 'Malik ya manager ka PIN' : 'Malik ka PIN'}
       description={<>Is kaam ke liye PIN chahiye: <b className="text-slate-700">{reason}</b></>}
       footer={
         <div className="flex w-full gap-2">
@@ -94,26 +96,26 @@ export function ManagerPinModal({ open, reason, onDone }: {
   );
 }
 
-type Ask = { reason: string; resolve: (pin: string | null) => void };
+type Ask = { reason: string; kind?: PinKind; resolve: (pin: string | null) => void };
 let show: ((ask: Ask) => void) | null = null;
 
 /** Opens the PIN dialog from anywhere; resolves with the checked PIN, or null. */
-export function askManagerPin(reason: string): Promise<string | null> {
+export function askManagerPin(reason: string, kind?: PinKind): Promise<string | null> {
   if (!show) return Promise.resolve(null);
-  return new Promise((resolve) => show!({ reason, resolve }));
+  return new Promise((resolve) => show!({ reason, kind, resolve }));
 }
 
 /**
  * Runs a request; when the server answers that the owner's PIN is needed,
  * asks for it once and sends the request again with it.
  */
-export async function withManagerPin<T>(reason: string, run: (pin?: string) => Promise<T>): Promise<T> {
+export async function withManagerPin<T>(reason: string, run: (pin?: string) => Promise<T>, kind?: PinKind): Promise<T> {
   try {
     return await run();
   } catch (e) {
     const res = (e as { response?: { status?: number; data?: { message?: string } } })?.response;
     if (res?.status !== 403 || !/PIN chahiye/.test(res.data?.message ?? '')) throw e;
-    const pin = await askManagerPin(reason);
+    const pin = await askManagerPin(reason, kind);
     if (!pin) throw new Error('PIN ke bagair nahi hua');
     return run(pin);
   }
@@ -126,5 +128,5 @@ export function ManagerPinHost() {
     show = setAsk;
     return () => { show = null; };
   }, []);
-  return <ManagerPinModal open={!!ask} reason={ask?.reason ?? ''} onDone={(pin) => { ask?.resolve(pin); setAsk(null); }} />;
+  return <ManagerPinModal open={!!ask} reason={ask?.reason ?? ''} kind={ask?.kind} onDone={(pin) => { ask?.resolve(pin); setAsk(null); }} />;
 }

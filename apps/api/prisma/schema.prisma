@@ -681,6 +681,9 @@ model User {
   email                String               @unique
   phone                String?              @unique
   passwordHash         String?
+  /// Approval PIN the owner gave this person (bcrypt hash). Lets them approve
+  /// PIN-protected actions they also hold the permission for.
+  approvalPin          String?
   role                 UserRole             @default(OWNER)
   isActive             Boolean              @default(true)
   emailVerified        Boolean              @default(false)

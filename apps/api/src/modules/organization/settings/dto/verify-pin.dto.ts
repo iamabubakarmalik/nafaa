@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
-  ArrayMaxSize, IsArray, IsBoolean, IsInt, IsOptional, IsString,
+  ArrayMaxSize, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString,
   Matches, Max, Min, MinLength,
 } from 'class-validator';
 
@@ -16,6 +16,12 @@ export class VerifyPinDto {
   @IsString()
   @Matches(PIN, PIN_MSG)
   pin!: string;
+
+  /** The counter action being approved. Without it only the owner's PIN counts (app lock). */
+  @ApiPropertyOptional({ enum: ['discount', 'credit', 'void', 'refund'] })
+  @IsOptional()
+  @IsIn(['discount', 'credit', 'void', 'refund'])
+  for?: 'discount' | 'credit' | 'void' | 'refund';
 }
 
 export class SetPinDto {

@@ -150,5 +150,5 @@ export const returnsApi = {
   findBill: (q: string) =>
     apiClient.get<{ data: BillHit[] }>('/returns/find-bill', { params: { q } }).then(unwrap),
   create: (payload: CreateReturnPayload) => withManagerPin('Wapsi', (managerPin) =>
-    apiClient.post<{ data: CreatedReturn }>('/returns', { ...payload, managerPin }).then(unwrap)),
+    apiClient.post<{ data: CreatedReturn }>('/returns', { ...payload, managerPin }).then(unwrap), 'refund'),
 };

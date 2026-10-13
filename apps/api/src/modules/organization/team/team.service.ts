@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { hashPassword } from '../../../common/utils/password.util';
+import { comparePassword, hashPassword } from '../../../common/utils/password.util';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { EmailService } from '../../email/email.service';
 import { CreateTeamMemberDto } from './dto/create-team-member.dto';
@@ -302,6 +302,48 @@ export class TeamService {
     });
 
     return updated;
+  }
+
+  /**
+   * Gives a staff member their own approval PIN. It approves only the
+   * PIN-protected actions they also hold the permission for; the owner's PIN
+   * must exist first and the new PIN may not match it or anyone else's.
+   */
+  async setApprovalPin(user: AuthenticatedUser, id: string, pin: string) {
+    this.requireOwner(user);
+    const member = await this.prisma.user.findFirst({ where: { id, tenantId: user.tenantId }, select: { id: true, fullName: true, role: true } });
+    if (!member) throw new NotFoundException('Team member not found');
+    if (member.role === UserRole.OWNER) throw new BadRequestException('Malik apna PIN Settings → Security se lagata hai');
+    const settings = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { managerPin: true } });
+    if (!settings?.managerPin) throw new BadRequestException('Pehle apna (malik ka) PIN Settings → Security me lagayein');
+    if (await comparePassword(pin, settings.managerPin)) throw new BadRequestException('Yeh PIN malik ke PIN jaisa hai — koi aur chunein');
+    const others = await this.prisma.user.findMany({
+      where: { tenantId: user.tenantId, id: { not: id }, approvalPin: { not: null } },
+      select: { approvalPin: true },
+    });
+    for (const o of others) {
+      if (await comparePassword(pin, o.approvalPin!)) throw new BadRequestException('Yeh PIN kisi aur staff ka hai — koi aur chunein');
+    }
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id }, data: { approvalPin: await hashPassword(pin) } }),
+      this.prisma.activityLog.create({
+        data: { tenantId: user.tenantId, userId: user.id, action: 'STAFF_PIN_SET', entityType: 'User', entityId: id, description: `${member.fullName} ka manzoori PIN lagaya` },
+      }),
+    ]);
+    return { id, hasApprovalPin: true };
+  }
+
+  async clearApprovalPin(user: AuthenticatedUser, id: string) {
+    this.requireOwner(user);
+    const member = await this.prisma.user.findFirst({ where: { id, tenantId: user.tenantId }, select: { id: true, fullName: true } });
+    if (!member) throw new NotFoundException('Team member not found');
+    await this.prisma.$transaction([
+      this.prisma.user.update({ where: { id }, data: { approvalPin: null } }),
+      this.prisma.activityLog.create({
+        data: { tenantId: user.tenantId, userId: user.id, action: 'STAFF_PIN_REMOVED', entityType: 'User', entityId: id, description: `${member.fullName} ka manzoori PIN hataya` },
+      }),
+    ]);
+    return { id, hasApprovalPin: false };
   }
 
   async remove(user: AuthenticatedUser, id: string) {

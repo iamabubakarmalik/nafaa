@@ -2,6 +2,8 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException,
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { comparePassword, hashPassword } from '../../../../common/utils/password.util';
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
+import { matchStaffPin, PIN_NEEDS, type PinKind } from '../../../../common/helpers/manager-pin.helper';
+import { hasPermission } from '../../../../common/constants/permissions.constants';
 
 @Injectable()
 export class SettingsSecurityService {
@@ -181,7 +183,12 @@ export class SettingsSecurityService {
   }
 
   /** Verify manager PIN */
-  async verifyPin(user: AuthenticatedUser, pin: string) {
+  /**
+   * Checks a PIN. With `kind` (a counter action) a staff member's approval PIN
+   * also counts when they hold that action's permission; without it only the
+   * owner's PIN does, so staff PINs never open the app lock.
+   */
+  async verifyPin(user: AuthenticatedUser, pin: string, kind?: PinKind) {
     const settings = await this.prisma.tenantSettings.findUnique({
       where: { tenantId: user.tenantId },
       select: { managerPin: true },
@@ -189,7 +196,16 @@ export class SettingsSecurityService {
     if (!settings?.managerPin) {
       return { valid: false, message: 'PIN set nahi hai' };
     }
-    const ok = await comparePassword(pin, settings.managerPin);
+    let ok = await comparePassword(pin, settings.managerPin);
+    if (!ok && kind) {
+      const staff = await matchStaffPin(this.prisma, user.tenantId, pin);
+      if (staff) {
+        if (!hasPermission(staff.role, staff.permissions, PIN_NEEDS[kind] as never)) {
+          return { valid: false, message: `${staff.fullName} ke paas is kaam ki ijazat nahi` };
+        }
+        ok = true;
+      }
+    }
 
     if (!ok) {
       await this.prisma.activityLog.create({

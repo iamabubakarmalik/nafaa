@@ -17,6 +17,7 @@ import { SetActiveDto } from './dto/set-active.dto';
 import { UpdatePermissionsDto } from './dto/update-permissions.dto';
 import { UpdateTeamMemberDto } from './dto/update-team-member.dto';
 import { TeamService } from './team.service';
+import { SetApprovalPinDto } from './dto/approval-pin.dto';
 
 @ApiTags('Team')
 @ApiBearerAuth()
@@ -64,6 +65,17 @@ export class TeamController {
     @Body() dto: ResetMemberPasswordDto,
   ) {
     return this.teamService.resetPassword(user, id, dto.password);
+  }
+
+  /** Owner gives a staff member their own approval PIN (or removes it). */
+  @Post(':id/approval-pin')
+  setApprovalPin(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: SetApprovalPinDto) {
+    return this.teamService.setApprovalPin(user, id, dto.pin);
+  }
+
+  @Delete(':id/approval-pin')
+  clearApprovalPin(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.teamService.clearApprovalPin(user, id);
   }
 
   @Delete(':id/sessions')

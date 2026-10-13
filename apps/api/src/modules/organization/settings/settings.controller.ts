@@ -85,7 +85,7 @@ export class SettingsController {
 
   @Post('security/verify-pin') @HttpCode(HttpStatus.OK)
   verifyPin(@GetUser() u: AuthenticatedUser, @Body() dto: VerifyPinDto) {
-    return this.svc.security.verifyPin(u, dto.pin);
+    return this.svc.security.verifyPin(u, dto.pin, dto.for);
   }
 
   @Post('security/set-pin') @HttpCode(HttpStatus.OK)

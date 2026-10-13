@@ -27,12 +27,16 @@ export interface PinStatus {
 
 const unwrap = <T,>(res: any): T => res.data?.data ?? res.data;
 
+/** Counter actions a staff approval PIN can approve (with the matching permission). */
+export type PinKind = 'discount' | 'credit' | 'void' | 'refund';
+
 export const securityApi = {
   status: () =>
     apiClient.get('/settings/security/pin-status').then(unwrap<PinStatus>),
 
-  verifyPin: (pin: string) =>
-    apiClient.post('/settings/security/verify-pin', { pin })
+  /** `kind` names the counter action; then a staff approval PIN counts too. */
+  verifyPin: (pin: string, kind?: PinKind) =>
+    apiClient.post('/settings/security/verify-pin', { pin, ...(kind ? { for: kind } : {}) })
       .then(unwrap<{ valid: boolean; message: string }>),
 
   /** Pehli dafa set, ya tabdeel (tabdeel ke liye purana PIN lazmi) */

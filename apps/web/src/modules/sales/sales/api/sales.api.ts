@@ -375,6 +375,6 @@ export const salesApi = {
       return Promise.reject(new Error('Void karne ke liye internet chahiye'));
     }
     return withManagerPin('Bill cancel', (managerPin) =>
-      apiClient.post<{ data: any }>(`/sales/${id}/void`, { reason, managerPin }).then(unwrap));
+      apiClient.post<{ data: any }>(`/sales/${id}/void`, { reason, managerPin }).then(unwrap), 'void');
   },
 };

@@ -9,7 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
-  Activity, CalendarCheck, CheckCircle2, FileText, Laptop, Lock, LogOut, MonitorSmartphone, ShieldCheck, ShoppingBag, Store, Wallet, XCircle,
+  Activity, CalendarCheck, CheckCircle2, FileText, KeyRound, Laptop, Lock, LogOut, MonitorSmartphone, ShieldCheck, ShoppingBag, Store, Wallet, XCircle,
 } from 'lucide-react';
 import { Button, Card, Select } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
@@ -134,6 +134,7 @@ export function PermissionsTab({ p }: { p: Profile }) {
   const dirty = perms.length !== original.length || perms.some((x) => !original.includes(x));
   const role = (ASSIGNABLE.includes(login.role as AssignableRole) ? login.role : 'STAFF') as AssignableRole;
   return (
+    <div className="space-y-4">
     <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-brand-600" />Kya kya kar sakta hai</span>}
       description={editable ? `Role: ${ROLES[role].label}. Nishan lagayein ya hatayein, phir Save.` : 'Sirf malik ijazat badal sakta hai'}
       actions={editable && dirty ? <>
@@ -147,6 +148,56 @@ export function PermissionsTab({ p }: { p: Profile }) {
           <Button size="sm" variant="ghost" onClick={() => setPerms(original)}>Wapas</Button>
           <Button size="sm" onClick={() => save.mutate()} loading={save.isPending}>Save karein</Button>
         </div>
+      )}
+    </Card>
+    {editable && <ApprovalPinCard userId={login.id} name={p.person.fullName} has={!!login.hasApprovalPin} perms={original} />}
+    </div>
+  );
+}
+
+/** Owner sets or removes this person's own approval PIN. */
+function ApprovalPinCard({ userId, name, has, perms }: { userId: string; name: string; has: boolean; perms: string[] }) {
+  const qc = useQueryClient();
+  const [pin, setPin] = useState('');
+  const [open, setOpen] = useState(false);
+  const save = useMutation({
+    mutationFn: () => peopleApi.setApprovalPin(userId, pin),
+    onSuccess: () => { refresh(qc); setPin(''); setOpen(false); toast.success(`${name} ka PIN lag gaya`); },
+    onError: (e) => toast.error(apiError(e, 'PIN nahi laga')),
+  });
+  const clear = useMutation({
+    mutationFn: () => peopleApi.clearApprovalPin(userId),
+    onSuccess: () => { refresh(qc); toast.success('PIN hata diya'); },
+    onError: (e) => toast.error(apiError(e, 'PIN nahi hata')),
+  });
+  const can = [
+    perms.includes('pos.discount_override') && 'bari chhoot',
+    perms.includes('khata.manage') && 'had se zyada udhaar',
+    perms.includes('sales.void') && 'bill void',
+    perms.includes('returns.create') && 'wapsi / refund',
+  ].filter(Boolean) as string[];
+  return (
+    <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><KeyRound className="h-4 w-4 text-amber-600" />Manzoori PIN</span>}
+      description="Jahan malik ka PIN maanga jata hai, wahan is bande ka apna PIN bhi chal sakta hai — sirf un kaamon ke liye jin ki is ke paas ijazat hai."
+      actions={has ? <>
+        <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>Badlein</Button>
+        <Button size="sm" variant="ghost" onClick={() => clear.mutate()} loading={clear.isPending}>Hatayein</Button>
+      </> : <Button size="sm" onClick={() => setOpen((v) => !v)}>PIN lagayein</Button>}>
+      <p className="text-[0.8125rem] text-slate-600">
+        {has ? 'PIN laga hua hai.' : 'Abhi koi PIN nahi.'}{' '}
+        {can.length ? <>Yeh PIN manzoor kar sakta hai: <b className="text-slate-800">{can.join(', ')}</b>.</> : 'Is ke paas abhi aisi koi ijazat nahi jo PIN se manzoor ho — upar ijazat dein.'}
+      </p>
+      {open && (
+        <form className="mt-3 flex flex-wrap items-end gap-2" onSubmit={(e) => { e.preventDefault(); if (/^\d{4,8}$/.test(pin)) save.mutate(); }}>
+          <label className="text-[0.75rem] font-semibold text-slate-600">
+            Naya PIN (4 se 8 hindsay)
+            <input type="password" inputMode="numeric" autoComplete="new-password" value={pin} maxLength={8}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+              className="mt-1 block h-10 w-40 rounded-xl border border-slate-200 bg-white px-3 text-base tracking-[0.3em] text-slate-900" />
+          </label>
+          <Button type="submit" size="sm" disabled={!/^\d{4,8}$/.test(pin)} loading={save.isPending}>Save karein</Button>
+          <p className="w-full text-[0.6875rem] text-slate-500">Malik ke PIN ya kisi aur ke PIN jaisa nahi ho sakta. Har manzoori ka record banta hai ke kis ke PIN se hui.</p>
+        </form>
       )}
     </Card>
   );

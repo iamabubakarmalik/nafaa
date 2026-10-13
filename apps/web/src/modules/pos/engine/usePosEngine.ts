@@ -635,7 +635,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       if (why === false) throw new Error('Cancelled');
       let managerPin: string | undefined;
       if (why) {
-        const pin = await askManagerPin(why);
+        const pin = await askManagerPin(why, /udhaar/i.test(why) ? 'credit' : 'discount');
         if (!pin) throw new Error('Cancelled');
         managerPin = pin;
       }

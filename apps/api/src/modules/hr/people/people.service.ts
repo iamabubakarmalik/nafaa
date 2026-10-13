@@ -261,9 +261,11 @@ export class PeopleService {
     ]);
 
     const todayAtt = attendance.find((a) => a.date.getTime() === t.date.getTime());
+    // Only whether an approval PIN is set; the hash itself never leaves the server.
+    const hasApprovalPin = u && v.team ? (await this.prisma.user.count({ where: { id: u.id, approvalPin: { not: null } } })) > 0 : false;
     const login = u && v.team ? {
       id: u.id, email: u.email, phone: u.phone, role: u.role, isActive: u.isActive,
-      permissions: u.permissions, lastLoginAt: u.lastLoginAt, createdAt: u.createdAt, shop: u.assignedShop,
+      permissions: u.permissions, lastLoginAt: u.lastLoginAt, createdAt: u.createdAt, shop: u.assignedShop, hasApprovalPin,
     } : null;
 
     const att = s ? {

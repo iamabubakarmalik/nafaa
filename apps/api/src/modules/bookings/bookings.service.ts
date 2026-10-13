@@ -15,7 +15,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { businessDayKey, startOfBusinessDayTz } from '../../common/helpers/business-time.helper';
-import { requireManagerPin } from '../../common/helpers/manager-pin.helper';
+import { PIN_NEEDS, requireManagerPin } from '../../common/helpers/manager-pin.helper';
 import { hasPermission, PERMISSIONS } from '../../common/constants/permissions.constants';
 import { ShopScope, applyStockDelta, assertShopAccess } from '../../common/shop-scope';
 import { periodRange } from '../inventory/taxonomy/taxonomy.helper';
@@ -711,7 +711,7 @@ export class BookingsService {
         throw new ForbiddenException('Advance wapas karne ke liye "Returns banana" ki ijazat chahiye');
       }
       const rules = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { requirePinForRefund: true } });
-      if (rules?.requirePinForRefund) await requireManagerPin(this.prisma, user, dto.managerPin, 'Advance wapsi');
+      if (rules?.requirePinForRefund) await requireManagerPin(this.prisma, user, dto.managerPin, 'Advance wapsi', false, PIN_NEEDS.refund);
     }
 
     await this.prisma.$transaction(async (tx) => {

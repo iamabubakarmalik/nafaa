@@ -172,7 +172,7 @@ export function CancelModal({ booking, onClose }: { booking: Booking; onClose: (
 
   const run = useMutation({
     mutationFn: () => withManagerPin('Advance wapsi', (managerPin) =>
-      bookingsApi.cancel(booking.id, { reason: reason.trim() || undefined, refundAdvance: refund, refundMethod: method, managerPin })),
+      bookingsApi.cancel(booking.id, { reason: reason.trim() || undefined, refundAdvance: refund, refundMethod: method, managerPin }), 'refund'),
     onSuccess: () => { toast.success(refund && booking.totalPaid > 0 ? `Booking cancel, ${formatPKR(booking.totalPaid)} wapas` : 'Booking cancel ho gayi'); refresh(); onClose(); },
     onError: (e) => toast.error(apiError(e, 'Cancel nahi hui')),
   });

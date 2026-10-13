@@ -87,6 +87,8 @@ export interface Profile {
   login: {
     id: string; email: string; phone: string | null; role: UserRole; isActive: boolean; permissions: string[];
     lastLoginAt: string | null; createdAt: string; shop: { id: string; name: string } | null;
+    /** Owner gave this person an approval PIN. */
+    hasApprovalPin?: boolean;
   } | null;
   sessions: Array<{ id: string; deviceName: string | null; userAgent: string | null; ipAddress: string | null; location: string | null; lastUsedAt: string; createdAt: string }>;
   logins: Array<{ id: string; success: boolean; failureReason: string | null; deviceName: string | null; ipAddress: string | null; location: string | null; isNewDevice: boolean; createdAt: string }>;
@@ -185,6 +187,11 @@ export const peopleApi = {
     apiClient.patch<{ data: { id: string; isActive: boolean } }>(`/team/${userId}/toggle`, { isActive }).then(unwrap),
   resetPassword: (userId: string, password: string) =>
     apiClient.post<{ data: { ok: boolean; sessionsClosed: number } }>(`/team/${userId}/reset-password`, { password }).then(unwrap),
+  /** Owner only: the person's own PIN for approving counter actions they hold the permission for. */
+  setApprovalPin: (userId: string, pin: string) =>
+    apiClient.post<{ data: { id: string; hasApprovalPin: boolean } }>(`/team/${userId}/approval-pin`, { pin }).then(unwrap),
+  clearApprovalPin: (userId: string) =>
+    apiClient.delete<{ data: { id: string; hasApprovalPin: boolean } }>(`/team/${userId}/approval-pin`).then(unwrap),
   signOut: (userId: string, sessionId?: string) =>
     apiClient.delete<{ data: { ok: boolean; sessionsClosed: number } }>(sessionId ? `/team/${userId}/sessions/${sessionId}` : `/team/${userId}/sessions`).then(unwrap),
 };

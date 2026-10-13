@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import { startOfDay, startOfMonth } from 'date-fns';
 import { SaleSource, TenantSettings } from '@prisma/client';
-import { requireManagerPin } from '../../../common/helpers/manager-pin.helper';
+import { PIN_NEEDS, requireManagerPin } from '../../../common/helpers/manager-pin.helper';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
@@ -1016,9 +1016,9 @@ export class SalesService {
       const trusted = hasPermission(user.role, user.permissions, PERMISSIONS.POS_DISCOUNT_OVERRIDE);
       const percent = bill.subtotal > 0 ? (bill.manualDiscount / bill.subtotal) * 100 : 100;
       if (!trusted && percent > s.maxDiscountPercent + 0.01) {
-        await requireManagerPin(this.prisma, user, dto.managerPin, `${s.maxDiscountPercent}% se zyada chhoot`, true);
+        await requireManagerPin(this.prisma, user, dto.managerPin, `${s.maxDiscountPercent}% se zyada chhoot`, true, PIN_NEEDS.discount);
       } else if (!trusted && s.requirePinForDiscount) {
-        await requireManagerPin(this.prisma, user, dto.managerPin, 'Chhoot');
+        await requireManagerPin(this.prisma, user, dto.managerPin, 'Chhoot', false, PIN_NEEDS.discount);
       }
     }
     if (bill.creditAmount > 0) {
@@ -1028,7 +1028,7 @@ export class SalesService {
         select: { creditLimit: true, balance: true },
       });
       if (c && c.creditLimit > 0 && c.balance + bill.creditAmount > c.creditLimit + 0.01) {
-        await requireManagerPin(this.prisma, user, dto.managerPin, `Credit limit (Rs ${c.creditLimit}) se zyada udhaar`, true);
+        await requireManagerPin(this.prisma, user, dto.managerPin, `Credit limit (Rs ${c.creditLimit}) se zyada udhaar`, true, PIN_NEEDS.credit);
       }
     }
   }
@@ -1047,7 +1047,7 @@ export class SalesService {
     if (!sale) throw new NotFoundException('Sale not found');
     if (sale.status === 'VOIDED') throw new BadRequestException('Sale already voided');
     const rules = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { requirePinForVoid: true } });
-    if (rules?.requirePinForVoid) await requireManagerPin(this.prisma, user, managerPin, 'Bill cancel');
+    if (rules?.requirePinForVoid) await requireManagerPin(this.prisma, user, managerPin, 'Bill cancel', false, PIN_NEEDS.void);
     if (!sale.shopId) throw new BadRequestException('Sale has no shop linked — cannot void safely');
 
     return this.prisma.$transaction(async (tx) => {
