@@ -128,7 +128,7 @@ export function ItemDrawer({ productId, query, money, cost, deviceLink, onClose 
                   <ul className="divide-y divide-slate-100 rounded-xl ring-1 ring-slate-200">
                     {d.batches.map((b) => (
                       <li key={b.id} className="flex items-center justify-between gap-3 px-3 py-2 text-[0.8125rem]">
-                        <span className="min-w-0"><span className="block font-mono text-slate-800">{b.batchNumber}</span><span className="text-[0.6875rem] text-slate-500">{b.expiryDate ? dateText(b.expiryDate) : 'Expiry nahi'}</span></span>
+                        <span className="min-w-0"><span className="block font-mono text-slate-800">{b.batchNumber}</span><span className="text-[0.6875rem] text-slate-500">{b.expiryDate ? dateText(b.expiryDate) : 'Expiry nahi'}{b.shop ? ` · ${b.shop}` : ''}</span></span>
                         <span className="text-right tabular-nums">
                           <span className="block font-semibold">{qty(b.qty)} {l.unit}</span>
                           {b.days !== null && <span className={cn('text-[0.6875rem]', b.days < 0 ? 'text-rose-700' : b.days <= 30 ? 'text-amber-700' : 'text-slate-500')}>{b.days < 0 ? 'expire ho chuka' : `${b.days} din baqi`} · {cost(b.cost)}</span>}

@@ -12,7 +12,9 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { tzParts } from '../../../common/helpers/business-time.helper';
-import { ShopScope, applyStockDelta, assertShopAccess, recacheProductStock, resolveWriteShopId } from '../../../common/shop-scope';
+import {
+  ShopScope, addToBatch, applyStockDelta, assertShopAccess, putIntoBatches, recacheProductStock, resolveWriteShopId,
+} from '../../../common/shop-scope';
 import { periodRange } from '../taxonomy/taxonomy.helper';
 import {
   BatchAdjustmentDto, CreateAdjustmentDto, ListAdjustmentsDto, StockCountDto, type AdjustmentType,
@@ -24,6 +26,14 @@ const isIn = (t: string) => t === 'ADJUSTMENT_IN' || t === 'OPENING_BALANCE';
 /** Opening stock adds stock but is neither a gain nor a loss. */
 const isOpening = (t: string) => t === 'OPENING_BALANCE';
 const DAY = 86_400_000;
+
+/** Batch details a line may carry (expiry-tracked goods). */
+interface LineBatch {
+  batchId?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+  manufactureDate?: string;
+}
 
 @Injectable()
 export class StockAdjustmentsService {
@@ -59,13 +69,14 @@ export class StockAdjustmentsService {
     return this.prisma.$transaction((tx) => this.plainLine(tx, user, shopId, {
       productId: product.id, variantId: dto.variantId ?? null, type: dto.type, baseQty: dto.quantity,
       reason: dto.reason, note: dto.note, ref: this.ref(), allowNegative,
+      batch: { batchId: dto.batchId, batchNumber: dto.batchNumber, expiryDate: dto.expiryDate, manufactureDate: dto.manufactureDate },
     }));
   }
 
   /** One product or variant line, inside a transaction. */
   private async plainLine(tx: Prisma.TransactionClient, user: AuthenticatedUser, shopId: string, l: {
     productId: string; variantId: string | null; type: AdjustmentType; baseQty: number; reason: string; note?: string;
-    ref: string; allowNegative: boolean; groupRef?: string; systemQty?: number; countedQty?: number;
+    ref: string; allowNegative: boolean; groupRef?: string; systemQty?: number; countedQty?: number; batch?: LineBatch;
   }) {
     const product = await tx.product.findFirst({ where: { id: l.productId, tenantId: user.tenantId }, select: { id: true, name: true, costPrice: true, hasVariants: true } });
     if (!product) throw new NotFoundException('Product nahi mila');
@@ -78,11 +89,28 @@ export class StockAdjustmentsService {
       label = `${product.name} (${v.name})`;
     }
     const delta = isIn(l.type) ? l.baseQty : -l.baseQty;
+    const batch = l.batch?.batchId
+      ? await tx.productBatch.findFirst({ where: { id: l.batch.batchId, tenantId: user.tenantId, shopId, productId: product.id, variantId: l.variantId } })
+      : null;
+    if (l.batch?.batchId && !batch) throw new NotFoundException('Batch is item ka nahi ya is shop me nahi');
+    // Goods written off from a batch are valued at that batch's cost.
+    if (batch && delta < 0 && Number(batch.costPrice) > 0) cost = Number(batch.costPrice);
     await applyStockDelta({
       tx, tenantId: user.tenantId, shopId, productId: product.id, variantId: l.variantId, delta, movementType: l.type,
       reference: l.ref, note: `${l.reason}${l.note ? ` — ${l.note}` : ''}`, preventNegative: !l.allowNegative && delta < 0,
-      label, userId: user.id, unitCost: cost,
+      label, userId: user.id, unitCost: cost, batchId: batch?.id ?? null,
     });
+    // Stock in goes into the named batch, or a new/existing one by number and expiry.
+    if (delta > 0 && batch) {
+      await putIntoBatches(tx, [{ batchId: batch.id, quantity: delta }]);
+    } else if (delta > 0 && l.batch?.batchNumber?.trim()) {
+      await addToBatch(tx, {
+        tenantId: user.tenantId, shopId, productId: product.id, variantId: l.variantId, batchNumber: l.batch.batchNumber,
+        expiryDate: l.batch.expiryDate ? new Date(l.batch.expiryDate) : null,
+        manufactureDate: l.batch.manufactureDate ? new Date(l.batch.manufactureDate) : null,
+        costPrice: cost, quantity: delta, notes: l.reason,
+      });
+    }
     return tx.stockAdjustment.create({
       data: {
         tenantId: user.tenantId, shopId, productId: product.id, variantId: l.variantId, createdById: user.id, type: l.type,
@@ -113,6 +141,7 @@ export class StockAdjustmentsService {
           reason: it.reason?.trim() || dto.reason,
           note: [it.unitName && (it.conversionRate ?? 1) !== 1 ? `${it.quantity} ${it.unitName}` : '', dto.note].filter(Boolean).join(' · ') || undefined,
           ref: groupRef, groupRef, allowNegative,
+          batch: { batchId: it.batchId, batchNumber: it.batchNumber, expiryDate: it.expiryDate, manufactureDate: it.manufactureDate },
         }));
       }
       return { groupRef, count: rows.length, value: r2(rows.reduce((s, r) => s + r.value, 0)) };

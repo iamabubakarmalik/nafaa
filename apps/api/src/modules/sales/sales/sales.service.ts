@@ -13,7 +13,9 @@ import { PIN_NEEDS, requireManagerPin } from '../../../common/helpers/manager-pi
 import { PaymentPart, saveSalePayments, splitTender } from '../../../common/helpers/sale-payments.helper';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
-import { ShopScope, isServiceProduct, resolveWriteShopId } from '../../../common/shop-scope';
+import {
+  ShopScope, isServiceProduct, putIntoBatches, recordSaleBatches, resolveWriteShopId, takeFromBatches,
+} from '../../../common/shop-scope';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { DiscountsService } from '../discounts/discounts.service';
 import { hasPermission, PERMISSIONS } from '../../../common/constants/permissions.constants';
@@ -207,6 +209,23 @@ export class SalesService {
       usedPhoneDupCheck.add(id);
     }
 
+    // A batch named on a line must be this item's batch in the selling branch.
+    const batchIds = [...new Set(productItems.map((i) => i.batchId).filter(Boolean) as string[])];
+    if (batchIds.length) {
+      const found = await this.prisma.productBatch.findMany({
+        where: { id: { in: batchIds }, tenantId: user.tenantId, shopId: sellingShopId },
+        select: { id: true, productId: true, variantId: true },
+      });
+      const byId = new Map(found.map((b) => [b.id, b]));
+      for (const item of productItems) {
+        if (!item.batchId) continue;
+        const b = byId.get(item.batchId);
+        if (!b || b.productId !== item.productId || (b.variantId ?? null) !== (item.variantId ?? null)) {
+          throw new BadRequestException('Chuna hua Batch is item ka nahi ya is shop me nahi hai');
+        }
+      }
+    }
+
     const productMap = new Map(products.map((p) => [p.id, p]));
     const variantMap = new Map(variants.map((v) => [v.id, v]));
     const imeiMap = new Map(imeis.map((i) => [i.id, i]));
@@ -350,6 +369,7 @@ export class SalesService {
         imeiNumber: imei?.imei1,
         usedPhoneId: usedPhone?.id ?? null,
         serialId: item.serialId ?? null,
+        batchId: item.batchId ?? null,
         shopStockId: shopStock?.id ?? null,
         isCarpetItem,
         isServiceItem,
@@ -680,6 +700,11 @@ export class SalesService {
         // ─── Standard items: decrement ShopStock + global stock ──
         // Atomic: sirf tab ghatao jab abhi bhi kaafi ho (race / offline sync se minus nahi)
         const updatedShopStock = { stock: await claimShopStock(tx, item.shopStockId!, item.quantity, shop.name, allowNegativeStock) };
+        // The same quantity leaves the item's batches: the chosen one, else earliest expiry.
+        await recordSaleBatches(tx, saleItem.id, await takeFromBatches(tx, {
+          shopId: sellingShopId, productId: item.productId!, variantId: item.variantId ?? null,
+          quantity: item.quantity, batchId: item.batchId, sellable: true,
+        }));
 
         if (item.variantId) {
           await tx.productVariant.update({
@@ -1333,7 +1358,9 @@ export class SalesService {
           continue;
         }
 
-        // Standard items
+        // Standard items: stock and the batches it came from go back.
+        const takes = await tx.saleItemBatch.findMany({ where: { saleItemId: item.id }, select: { batchId: true, quantity: true, returnedQty: true } });
+        await putIntoBatches(tx, takes.map((t) => ({ batchId: t.batchId, quantity: t.quantity - t.returnedQty })));
         const shopStock = await tx.shopStock.findFirst({
           where: { shopId: sale.shopId!, productId: item.productId, variantId },
         });

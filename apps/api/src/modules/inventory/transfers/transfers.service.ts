@@ -16,7 +16,9 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { tzParts } from '../../../common/helpers/business-time.helper';
-import { ShopScope, applyStockDelta, assertShopAccess, recacheProductStock } from '../../../common/shop-scope';
+import {
+  BatchTake, ShopScope, addToBatch, applyStockDelta, assertShopAccess, putIntoBatches, recacheProductStock,
+} from '../../../common/shop-scope';
 import { periodRange } from '../taxonomy/taxonomy.helper';
 import { CancelTransferDto, CreateTransferDto, ListTransfersDto, ReceiveTransferDto } from './dto/create-transfer.dto';
 
@@ -70,6 +72,62 @@ export class TransfersService {
     const stem = `TR-${String(p.year).slice(2)}${String(p.month).padStart(2, '0')}${String(p.day).padStart(2, '0')}`;
     const today = await this.prisma.stockTransfer.count({ where: { tenantId, transferNumber: { startsWith: stem } } });
     return `${stem}-${String(today + 1).padStart(3, '0')}${Math.random().toString(36).slice(2, 4).toUpperCase()}`;
+  }
+
+  /** Remembers which batches a sent line came out of, with their details. */
+  private async keepSentBatches(tx: Tx, transferItemId: string, takes: BatchTake[]) {
+    if (!takes.length) return;
+    const batches = await tx.productBatch.findMany({
+      where: { id: { in: takes.map((t) => t.batchId) } },
+      select: { id: true, batchNumber: true, expiryDate: true, manufactureDate: true, costPrice: true },
+    });
+    const byId = new Map(batches.map((b) => [b.id, b]));
+    await tx.stockTransferItemBatch.createMany({
+      data: takes.map((t) => {
+        const b = byId.get(t.batchId);
+        return {
+          transferItemId, batchId: t.batchId, batchNumber: b?.batchNumber ?? '-', expiryDate: b?.expiryDate ?? null,
+          manufactureDate: b?.manufactureDate ?? null, costPrice: Number(b?.costPrice ?? 0), quantity: t.quantity,
+        };
+      }),
+    });
+  }
+
+  /**
+   * The batches of a received line arrive in the destination branch with the
+   * same number and expiry. When less arrived than was sent, the batched part
+   * is reduced only by what the unbatched part cannot cover, latest expiry
+   * first, so the branch never holds more batched stock than it received.
+   */
+  private async receiveBatches(tx: Tx, tenantId: string, toShopId: string, item: { id: string; productId: string; variantId: string | null; quantity: number }, receivedQty: number) {
+    const rows = await tx.stockTransferItemBatch.findMany({ where: { transferItemId: item.id } });
+    if (!rows.length) return;
+    const sent = rows.reduce((s, r) => s + r.quantity, 0);
+    let cut = r4(Math.max(0, sent - Math.max(0, receivedQty)));
+    const exp = (r: (typeof rows)[number]) => r.expiryDate?.getTime() ?? Number.POSITIVE_INFINITY;
+    for (const r of [...rows].sort((a, b) => exp(b) - exp(a))) {
+      const lost = Math.min(cut, r.quantity);
+      cut = r4(cut - lost);
+      await addToBatch(tx, {
+        tenantId, shopId: toShopId, productId: item.productId, variantId: item.variantId, batchNumber: r.batchNumber,
+        expiryDate: r.expiryDate, manufactureDate: r.manufactureDate, costPrice: r.costPrice, quantity: r.quantity - lost,
+      });
+    }
+  }
+
+  /** A cancelled line's batches go back where they came from. */
+  private async returnSentBatches(tx: Tx, tenantId: string, fromShopId: string, item: { id: string; productId: string; variantId: string | null }) {
+    const rows = await tx.stockTransferItemBatch.findMany({ where: { transferItemId: item.id } });
+    for (const r of rows) {
+      if (r.batchId) {
+        await putIntoBatches(tx, [{ batchId: r.batchId, quantity: r.quantity }]);
+      } else {
+        await addToBatch(tx, {
+          tenantId, shopId: fromShopId, productId: item.productId, variantId: item.variantId, batchNumber: r.batchNumber,
+          expiryDate: r.expiryDate, manufactureDate: r.manufactureDate, costPrice: r.costPrice, quantity: r.quantity,
+        });
+      }
+    }
   }
 
   /* ───────────────────────── send ───────────────────────── */
@@ -161,6 +219,12 @@ export class TransfersService {
         include: TRANSFER_INCLUDE,
       });
 
+      // Created lines, to find the row each sent line became.
+      const lineKey = (x: { productId?: string | null; variantId?: string | null; imeiId?: string | null; serialId?: string | null; quantity: number }) =>
+        `${x.productId ?? ''}|${x.variantId ?? ''}|${x.imeiId ?? ''}|${x.serialId ?? ''}|${x.quantity}`;
+      const rowsByKey = new Map<string, string[]>();
+      for (const it of created.items) rowsByKey.set(lineKey(it), [...(rowsByKey.get(lineKey(it)) ?? []), it.id]);
+
       for (const l of lines) {
         if (l.kind === 'used' && l.usedPhone) {
           const claimed = await tx.usedPhone.updateMany({ where: { id: l.usedPhone.id, status: 'IN_STOCK' }, data: { status: 'IN_TRANSIT' } });
@@ -196,13 +260,15 @@ export class TransfersService {
           const claimed = await tx.electronicsSerialTracking.updateMany({ where: { id: l.serial.id, status: 'IN_STOCK' }, data: { status: 'IN_TRANSIT' } });
           if (!claimed.count) throw new BadRequestException(`Serial ${l.serial.serialNumber} abhi bik gaya`);
         }
-        await applyStockDelta({
+        const moved = await applyStockDelta({
           tx, tenantId: user.tenantId, shopId: dto.fromShopId, productId: l.product.id, variantId: l.variantId ?? null, delta: -l.quantity,
           movementType: 'TRANSFER_OUT', reference: transferNumber,
           note: l.imei ? `IMEI ${l.imei.imei1} → ${toShop.name}` : l.serial ? `Serial ${l.serial.serialNumber} → ${toShop.name}` : `${toShop.name} ko bheja`,
           // Serialised units were already checked one by one above.
           preventNegative: !l.imei && !l.serial, label: l.label, userId: user.id, unitCost: l.cost,
         });
+        const rowId = rowsByKey.get(lineKey({ ...l, productId: l.product.id }))?.shift();
+        if (rowId) await this.keepSentBatches(tx, rowId, moved.batches);
       }
       return created;
     }, { timeout: 60_000 });
@@ -299,6 +365,7 @@ export class TransfersService {
             note: lost > 0 ? `${from} se — ${item.quantity} bheje, ${qty} aaye` : `${from} se aaya`,
             userId: user.id, unitCost: item.unitCost,
           });
+          await this.receiveBatches(tx, user.tenantId, transfer.toShopId, { id: item.id, productId: item.productId, variantId: item.variantId, quantity: item.quantity }, qty);
         }
         if (lost > 0) {
           const label = item.product?.name ?? 'Item';
@@ -307,6 +374,8 @@ export class TransfersService {
             movementType: 'LOSS', reference: transfer.transferNumber,
             note: `Transfer me kam aaya — ${from} se ${item.quantity} bheje, ${qty} aaye`,
             label, userId: user.id, unitCost: item.unitCost,
+            // The batches above already left out what did not arrive.
+            batchMode: 'none',
           });
           await this.bookTransitLoss(tx, user, transfer, { productId: item.productId, variantId: item.variantId, imeiId: item.imeiId, quantity: lost, unitCost: item.unitCost, label });
         }
@@ -390,6 +459,7 @@ export class TransfersService {
           movementType: 'TRANSFER_IN', reference: transfer.transferNumber,
           note: `Transfer cancel — wapas${dto.reason?.trim() ? ` (${dto.reason.trim()})` : ''}`, userId: user.id, unitCost: item.unitCost,
         });
+        await this.returnSentBatches(tx, user.tenantId, transfer.fromShopId, { id: item.id, productId: item.productId, variantId: item.variantId });
       }
     }, { timeout: 60_000 });
     return this.findOne(user, id);

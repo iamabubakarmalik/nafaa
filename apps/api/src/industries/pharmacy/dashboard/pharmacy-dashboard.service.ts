@@ -26,8 +26,8 @@ export class PharmacyDashboardService {
       this.prisma.prescription.count({ where: { tenantId: user.tenantId, status: 'PENDING' } }),
       this.prisma.prescription.count({ where: { tenantId: user.tenantId, status: 'VERIFIED' } }),
       this.prisma.prescription.count({ where: { tenantId: user.tenantId, status: 'DISPENSED', dispensedAt: { gte: todayStart } } }),
-      this.prisma.productBatch.count({ where: { product: { tenantId: user.tenantId }, expiryDate: { gte: new Date(), lte: soon }, quantity: { gt: 0 } } }),
-      this.prisma.productBatch.count({ where: { product: { tenantId: user.tenantId }, expiryDate: { lt: new Date() }, quantity: { gt: 0 } } }),
+      this.prisma.productBatch.count({ where: { tenantId: user.tenantId, ...scope.where, isActive: true, expiryDate: { gte: new Date(), lte: soon }, quantity: { gt: 0 } } }),
+      this.prisma.productBatch.count({ where: { tenantId: user.tenantId, ...scope.where, isActive: true, expiryDate: { lt: new Date() }, quantity: { gt: 0 } } }),
       this.prisma.refillReminder.count({ where: { tenantId: user.tenantId, status: 'PENDING', scheduledFor: { lte: addDays(new Date(), 1) } } }),
       this.prisma.temperatureLog.count({ where: { tenantId: user.tenantId, logDate: { gte: weekAgo }, isWithinRange: false } }),
     ]);
@@ -55,7 +55,9 @@ export class PharmacyDashboardService {
     // Expiring soon list
     const expiringList = await this.prisma.productBatch.findMany({
       where: {
-        product: { tenantId: user.tenantId },
+        tenantId: user.tenantId,
+        ...scope.where,
+        isActive: true,
         expiryDate: { gte: new Date(), lte: soon },
         quantity: { gt: 0 },
       },
@@ -86,10 +88,13 @@ export class PharmacyDashboardService {
     };
   }
 
-  async expiringMedicines(user: AuthenticatedUser, days: number = 90) {
+  async expiringMedicines(user: AuthenticatedUser, scope: ShopScope, days: number = 90) {
     const cutoff = addDays(new Date(), days);
     return this.prisma.productBatch.findMany({
       where: {
+        tenantId: user.tenantId,
+        ...scope.where,
+        isActive: true,
         product: { tenantId: user.tenantId, isActive: true },
         expiryDate: { lte: cutoff },
         quantity: { gt: 0 },
@@ -102,6 +107,7 @@ export class PharmacyDashboardService {
             pharmacyMedicine: true,
           },
         },
+        shop: { select: { id: true, name: true } },
       },
       orderBy: { expiryDate: 'asc' },
     });

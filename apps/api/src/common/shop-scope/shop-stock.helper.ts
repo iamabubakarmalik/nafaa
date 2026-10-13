@@ -1,6 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { Prisma, StockMovementType } from '@prisma/client';
 import { emitStockChanged } from './stock-events';
+import { BatchTake, capBatchesToStock, takeFromBatches } from './batch-stock.helper';
 
 /**
  * ════════════════════════════════════════════════════════════════
@@ -70,6 +71,14 @@ export interface StockDelta {
   /** Recorded on the movement: who did it, and the cost of one base unit (default: current cost). */
   userId?: string | null;
   unitCost?: number | null;
+  /**
+   * Stock taken out also comes out of the item's batches in this branch.
+   * 'fefo' (default): `batchId` first, then the earliest expiry. 'cap': only
+   * what the stock no longer covers. 'none': the caller moves batches itself.
+   * Stock added never changes batches here.
+   */
+  batchMode?: 'fefo' | 'cap' | 'none';
+  batchId?: string | null;
 }
 
 export interface StockDeltaResult {
@@ -78,6 +87,8 @@ export interface StockDeltaResult {
   shopStock: number;
   /** Tenant-wide stock after the move. */
   globalStock: number;
+  /** Batches the stock taken out came from. */
+  batches: BatchTake[];
 }
 
 /**
@@ -144,6 +155,16 @@ export async function applyStockDelta(
 
   const globalStock = await recacheProductStock(tx, productId, variantId);
 
+  let batches: BatchTake[] = [];
+  const batchMode = input.batchMode ?? 'fefo';
+  if (delta < 0 && batchMode === 'fefo') {
+    batches = await takeFromBatches(tx, {
+      shopId, productId, variantId, quantity: -delta, batchId: input.batchId, sellable: movementType === 'SALE_OUT',
+    });
+  } else if (delta < 0 && batchMode === 'cap') {
+    batches = await capBatchesToStock(tx, { shopId, productId, variantId }, after);
+  }
+
   if (movementType) {
     let unitCost = input.unitCost ?? null;
     if (unitCost == null) {
@@ -172,7 +193,7 @@ export async function applyStockDelta(
   // Online store ko batao — website ka stock foran (debounce ke baad) update
   emitStockChanged({ tenantId, productId, variantId });
 
-  return { shopStockId, shopStock: after, globalStock };
+  return { shopStockId, shopStock: after, globalStock, batches };
 }
 
 /**

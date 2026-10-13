@@ -92,7 +92,7 @@ export class ProductCatalogService {
         _max: { createdAt: true },
       }),
       this.prisma.productBatch.findMany({
-        where: { tenantId, isActive: true, quantity: { gt: 0 }, expiryDate: { not: null } },
+        where: { tenantId, isActive: true, quantity: { gt: 0 }, expiryDate: { not: null }, ...(shopId && { shopId }) },
         select: { productId: true, expiryDate: true, quantity: true },
       }),
       loadExtensions(this.prisma, tenantId, shopId),

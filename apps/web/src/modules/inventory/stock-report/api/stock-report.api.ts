@@ -354,7 +354,7 @@ export interface StockItem {
   line: (StockLine & { shops: ShopStockPart[] }) | null;
   product: { id: string; name: string; unit: string } | null;
   variants: Array<{ id: string; name: string; stock: number; cost: number; retail: number }>;
-  batches: Array<{ id: string; batchNumber: string; expiryDate: string | null; qty: number; cost: number; days: number | null }>;
+  batches: Array<{ id: string; batchNumber: string; expiryDate: string | null; qty: number; cost: number; days: number | null; shop: string }>;
   units: Array<{ id: string; label: 'IMEI' | 'Serial'; ref: string; note: string; cost: number; ageDays: number | null; warrantyEnd: string | null; shop: string }>;
   rolls: Array<{ id: string; kind: 'roll' | 'piece'; ref: string; sqft: number; cost: number; retail: number; ageDays: number | null; shop: string }>;
   moves: Array<{ id: string; type: string; quantity: number; balanceAfter: number; reference: string | null; note: string | null; createdAt: string; shop: string }>;

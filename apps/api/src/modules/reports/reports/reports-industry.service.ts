@@ -394,7 +394,7 @@ export class ReportsIndustryService {
     const in90 = new Date(now.getTime() + 90 * DAY);
     const [batches, schedule, rx, rxCount, controlled] = await Promise.all([
       this.prisma.productBatch.findMany({
-        where: { tenantId: c.tenantId, isActive: true, quantity: { gt: 0 }, expiryDate: { not: null, lt: in90 } },
+        where: { tenantId: c.tenantId, ...c.shop, isActive: true, quantity: { gt: 0 }, expiryDate: { not: null, lt: in90 } },
         select: { id: true, batchNumber: true, expiryDate: true, quantity: true, costPrice: true, product: { select: { name: true } } },
         orderBy: { expiryDate: 'asc' }, take: 500,
       }),

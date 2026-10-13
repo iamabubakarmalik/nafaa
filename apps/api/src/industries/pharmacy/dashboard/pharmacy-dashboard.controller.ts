@@ -17,7 +17,7 @@ export class PharmacyDashboardController {
   overview(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope) {
     return this.service.overview(user, shop);
   }
-  @Get('expiring') expiring(@GetUser() user: AuthenticatedUser, @Query('days') days?: string) {
-    return this.service.expiringMedicines(user, days ? parseInt(days) : 90);
+  @Get('expiring') expiring(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Query('days') days?: string) {
+    return this.service.expiringMedicines(user, shop, days ? parseInt(days) : 90);
   }
 }

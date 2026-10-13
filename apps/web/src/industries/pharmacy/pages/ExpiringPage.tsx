@@ -90,7 +90,7 @@ export default function ExpiringPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{b.product?.name}</div>
-                        <div className="text-xs text-slate-500 font-mono font-bold">Batch: {b.batchNumber}</div>
+                        <div className="text-xs text-slate-500 font-mono font-bold">Batch: {b.batchNumber}{b.shop?.name ? ` · ${b.shop.name}` : ''}</div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-xs font-bold text-slate-500">Qty: <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{b.quantity}</span></div>

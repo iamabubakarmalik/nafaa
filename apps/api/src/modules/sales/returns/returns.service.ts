@@ -15,7 +15,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { FbrService } from '../../../integrations/fbr/fbr.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
-import { ShopScope, applyStockDelta, assertShopAccess, isServiceProduct } from '../../../common/shop-scope';
+import { ShopScope, applyStockDelta, assertShopAccess, isServiceProduct, returnSaleBatches } from '../../../common/shop-scope';
 import { CreateReturnDto } from './dto/create-return.dto';
 import { PIN_NEEDS, requireManagerPin } from '../../../common/helpers/manager-pin.helper';
 import { NotificationsService } from '../../notifications/notifications.service';
@@ -460,6 +460,9 @@ export class ReturnsService {
           userId: user.id,
           unitCost: item.unitCost,
         });
+        // Back into the batches the sale took it from (latest expiry first);
+        // damaged goods are only marked returned.
+        await returnSaleBatches(tx, item.saleItemId, item.quantity, item.restock);
         // Not fit to sell: it came back in and goes straight out as damaged,
         // so the loss shows on the Adjustments page with its cost.
         if (!item.restock) {
@@ -475,6 +478,7 @@ export class ReturnsService {
             note: `Wapsi par kharab nikla — ${sale.saleNumber}`,
             userId: user.id,
             unitCost: item.unitCost,
+            batchMode: 'none',
           });
         }
         await this.releaseTrackedUnits(tx, tenantId, shopId, item.saleItemId, item.quantity, item.restock, returnNumber);

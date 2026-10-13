@@ -44,6 +44,13 @@ class CreateSaleItemDto {
   @IsString()
   serialId?: string;
 
+  @ApiPropertyOptional({
+    description: 'Batch to sell from first. Without it the earliest-expiry batch in the branch is used.',
+  })
+  @IsOptional()
+  @IsString()
+  batchId?: string;
+
   @ApiProperty({ example: 1.5, description: 'Decimal quantity (e.g. 12.5 sqft)' })
   @IsNumber()
   @Min(0.01)

@@ -17,7 +17,7 @@ import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.serv
 import { businessDayKey, startOfBusinessDayTz } from '../../common/helpers/business-time.helper';
 import { PIN_NEEDS, requireManagerPin } from '../../common/helpers/manager-pin.helper';
 import { hasPermission, PERMISSIONS } from '../../common/constants/permissions.constants';
-import { ShopScope, applyStockDelta, assertShopAccess } from '../../common/shop-scope';
+import { ShopScope, applyStockDelta, assertShopAccess, recordSaleBatches } from '../../common/shop-scope';
 import { periodRange } from '../inventory/taxonomy/taxonomy.helper';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { AddBookingPaymentDto } from './dto/add-payment.dto';
@@ -854,11 +854,12 @@ export class BookingsService {
             },
           });
         } else {
-          await applyStockDelta({
+          const moved = await applyStockDelta({
             tx, tenantId: user.tenantId, shopId, productId: it.productId, variantId: it.variantId, delta: -it.quantity,
             movementType: 'SALE_OUT', reference: saleNumber, note: `Booking ${booking.bookingNumber} ki bikri`,
             preventNegative: !settings?.allowNegativeStock, label, userId: user.id, unitCost: it.costPrice || null,
           });
+          await recordSaleBatches(tx, saleItem.id, moved.batches);
         }
       }
 

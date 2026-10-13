@@ -86,10 +86,10 @@ export class DamageService {
 
     if (dto.batchId) {
       const batch = await this.prisma.productBatch.findFirst({
-        where: { id: dto.batchId, tenantId: user.tenantId, productId: product.id },
+        where: { id: dto.batchId, tenantId: user.tenantId, productId: product.id, shopId, variantId: dto.variantId ?? null },
         select: { costPrice: true },
       });
-      if (!batch) throw new NotFoundException('Batch is product ka nahi');
+      if (!batch) throw new NotFoundException('Batch is item ka nahi ya is shop me nahi');
       cost = Number(batch.costPrice) || cost;
     }
 
@@ -178,14 +178,9 @@ export class DamageService {
         tx, tenantId: user.tenantId, shopId, productId: damage.productId, variantId: damage.variantId, delta: -damage.quantity,
         movementType: type, reference: damage.damageNumber, note: damage.reason, preventNegative: !allowNegative,
         label: product?.name, userId: user.id, unitCost: damage.unitCost,
+        // From the reported batch first, then the earliest expiry.
+        batchId: damage.batchId,
       });
-      if (damage.batchId) {
-        const took = await tx.productBatch.updateMany({
-          where: { id: damage.batchId, quantity: { gte: damage.quantity } },
-          data: { quantity: { decrement: damage.quantity } },
-        });
-        if (!took.count) await tx.productBatch.update({ where: { id: damage.batchId }, data: { quantity: 0 } });
-      }
       await tx.stockAdjustment.create({
         data: {
           tenantId: user.tenantId, shopId, productId: damage.productId, variantId: damage.variantId, createdById: user.id, type,
@@ -434,7 +429,7 @@ export class DamageService {
         orderBy: [{ conversionRate: 'asc' }, { sortOrder: 'asc' }],
       }),
       this.prisma.productBatch.findMany({
-        where: { productId, tenantId: user.tenantId, isActive: true, quantity: { gt: 0 } },
+        where: { productId, tenantId: user.tenantId, isActive: true, quantity: { gt: 0 }, ...scope.where },
         select: { id: true, batchNumber: true, expiryDate: true, quantity: true, costPrice: true, variantId: true },
         orderBy: [{ expiryDate: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }],
         take: 50,

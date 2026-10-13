@@ -232,7 +232,8 @@ export class PrescriptionsService {
       paidAmount: dto.paidAmount ?? lines.reduce((s, l) => s + l.unitPrice * l.qty, 0) - (dto.discount ?? 0),
       discount: dto.discount ?? 0,
       note: [`Nuskha ${rx.prescriptionNumber}`, rx.doctorName ? `Dr. ${rx.doctorName}` : '', dto.notes || ''].filter(Boolean).join(' · '),
-      items: lines.map((l) => ({ productId: l.productId, quantity: l.qty, priceOverride: l.unitPrice })),
+      // The sale takes the chosen batch first (or the earliest expiry) and records it.
+      items: lines.map((l) => ({ productId: l.productId, quantity: l.qty, priceOverride: l.unitPrice, batchId: l.batchId })),
     } as any);
 
     const updated = await this.prisma.$transaction(async (tx) => {
@@ -251,13 +252,6 @@ export class PrescriptionsService {
             substituteFor: l.substituteFor ?? l.rxItem.substituteFor,
           },
         });
-        if (l.batchId) {
-          const batch = await tx.productBatch.findUnique({ where: { id: l.batchId }, select: { quantity: true } });
-          const take = Math.min(Math.round(l.qty), batch?.quantity ?? 0);
-          if (take > 0) {
-            await tx.productBatch.update({ where: { id: l.batchId }, data: { quantity: { decrement: take } } });
-          }
-        }
       }
 
       const items = await tx.prescriptionItem.findMany({ where: { prescriptionId: id } });

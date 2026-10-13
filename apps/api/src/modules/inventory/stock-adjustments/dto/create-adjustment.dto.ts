@@ -4,6 +4,7 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsDateString,
   IsIn,
   IsInt,
   IsPositive,
@@ -109,6 +110,28 @@ export class CreateAdjustmentDto {
   @IsOptional()
   @IsString()
   rollAction?: 'ADJUST_LENGTH' | 'MARK_DAMAGED' | 'MARK_LOST' | 'RESTORE';
+
+  // ─── Batch (expiry-tracked goods) ───────────────────
+  @ApiPropertyOptional({ description: 'Stock out: taken from this batch first. Stock in: added to this batch.' })
+  @IsOptional()
+  @IsString()
+  batchId?: string;
+
+  @ApiPropertyOptional({ description: 'Stock in: new or existing batch number (with its expiry)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  batchNumber?: string;
+
+  @ApiPropertyOptional({ description: 'Stock in: expiry date of that batch' })
+  @IsOptional()
+  @IsDateString()
+  expiryDate?: string;
+
+  @ApiPropertyOptional({ description: 'Stock in: manufacture date of a new batch' })
+  @IsOptional()
+  @IsDateString()
+  manufactureDate?: string;
 }
 
 /** One line of a multi-line adjustment, in base units or a pack unit. */
@@ -121,6 +144,10 @@ export class AdjustmentLineDto {
   @IsOptional() @IsNumber() @IsPositive() conversionRate?: number;
   @IsOptional() @IsString() @MaxLength(30) unitName?: string;
   @IsOptional() @IsString() @MaxLength(120) reason?: string;
+  @IsOptional() @IsString() batchId?: string;
+  @IsOptional() @IsString() @MaxLength(80) batchNumber?: string;
+  @IsOptional() @IsDateString() expiryDate?: string;
+  @IsOptional() @IsDateString() manufactureDate?: string;
 }
 
 export class BatchAdjustmentDto {

@@ -265,7 +265,8 @@ function LineCard({ line: l, options: o, failed, money, allowNegative, onChange,
   onRemove: () => void;
 }) {
   const p = preview(l, o);
-  const batches = (o?.batches ?? []).filter((b) => !l.variantId || !b.variantId || b.variantId === l.variantId);
+  // A batch belongs to one variant (or to the plain item), the same as its stock.
+  const batches = (o?.batches ?? []).filter((b) => (b.variantId ?? '') === (l.variantId || ''));
   return (
     <li className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
       <div className="flex items-start gap-3">

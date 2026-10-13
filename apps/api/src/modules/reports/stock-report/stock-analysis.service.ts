@@ -94,7 +94,7 @@ interface Ctx {
   deadDays: number;
   shops: Array<{ id: string; name: string; isMain: boolean }>;
   mainId: string;
-  /** Branch that holds untagged rows (serials, batches) in this view. */
+  /** Branch that holds untagged rows (serials, old batches) in this view. */
   homeId: string;
   multi: boolean;
   batches: Batch[];
@@ -269,7 +269,7 @@ export class StockAnalysisService {
         ORDER BY pi."productId", COALESCE(p."receivedAt", p."purchasedAt") DESC
       `,
       this.prisma.productBatch.findMany({
-        where: { tenantId, isActive: true, quantity: { gt: 0 }, expiryDate: { not: null }, ...one },
+        where: { tenantId, isActive: true, quantity: { gt: 0 }, expiryDate: { not: null }, ...one, ...this.shopWhere(scope, ctx) },
         select: { productId: true, batchNumber: true, expiryDate: true, quantity: true, costPrice: true },
       }),
       this.prisma.productImei.groupBy({ by: ['productId'], where: { tenantId, ...one }, _count: { _all: true } }),
@@ -914,9 +914,9 @@ export class StockAnalysisService {
         select: { shopId: true, stock: true, variant: { select: { id: true, name: true, costPrice: true, price: true } } },
       }),
       this.prisma.productBatch.findMany({
-        where: { tenantId: user.tenantId, productId, isActive: true, quantity: { gt: 0 } },
+        where: { tenantId: user.tenantId, productId, isActive: true, quantity: { gt: 0 }, ...shopFilter },
         orderBy: [{ expiryDate: 'asc' }], take: 50,
-        select: { id: true, batchNumber: true, expiryDate: true, quantity: true, costPrice: true },
+        select: { id: true, shopId: true, batchNumber: true, expiryDate: true, quantity: true, costPrice: true },
       }),
       this.prisma.productImei.findMany({
         where: { tenantId: user.tenantId, productId, status: 'IN_STOCK', ...shopFilter },
@@ -980,6 +980,7 @@ export class StockAnalysisService {
         id: b.id, batchNumber: b.batchNumber, expiryDate: b.expiryDate, qty: n(b.quantity),
         cost: r2(n(b.quantity) * (n(b.costPrice) || (line?.cost ?? 0))),
         days: b.expiryDate ? Math.floor((b.expiryDate.getTime() - ctx.now.getTime()) / DAY) : null,
+        shop: shopName.get(b.shopId ?? ctx.mainId) ?? '',
       })),
       units: [
         ...imeis.map((u) => ({ id: u.id, label: 'IMEI', ref: u.imei1, note: [u.variant?.name, u.ptaStatus].filter(Boolean).join(' · '), cost: n(u.costPrice), ageDays: age(u.purchasedAt ?? u.createdAt), warrantyEnd: null as Date | null, shop: shopName.get(u.shopId ?? ctx.mainId) ?? '' })),

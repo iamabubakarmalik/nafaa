@@ -125,7 +125,7 @@ export class LowStockService {
     const shops = scope.shopId ? activeShops.filter((x) => x.id === scope.shopId) : activeShops;
     if (!shops.length) return [];
     const single = activeShops.length === 1;
-    // Untagged history (old sales, IMEIs, recipe use, tenant-wide batches) belongs to the main branch.
+    // Untagged history (old sales, IMEIs, recipe use) belongs to the main branch.
     const homeId = scope.shopId ?? (activeShops.find((x) => x.isMain) ?? activeShops[0]).id;
     const shopIds = shops.map((x) => x.id);
     const mainId = (activeShops.find((x) => x.isMain) ?? activeShops[0]).id;
@@ -166,7 +166,7 @@ export class LowStockService {
       }),
       this.prisma.productBatch.findMany({
         where: { tenantId, isActive: true, quantity: { gt: 0 }, expiryDate: { not: null, lte: expiryLimit } },
-        select: { productId: true, expiryDate: true, quantity: true },
+        select: { shopId: true, productId: true, expiryDate: true, quantity: true },
       }),
       this.prisma.reorderSuggestion.findMany({
         where: { tenantId, status: 'IGNORED', shopId: { in: shopIds } },
@@ -207,13 +207,15 @@ export class LowStockService {
     }
     const recipe = new Map(recipeUse.map((x) => [x.productId, Math.abs(n(x._sum.quantity))]));
     const expiry = new Map<string, { date: Date; qty: number; expiredQty: number; batches: number }>();
+    // Each branch flags only the batches on its own shelf.
     for (const b of batches) {
-      const cur = expiry.get(b.productId) ?? { date: b.expiryDate!, qty: 0, expiredQty: 0, batches: 0 };
+      const k = `${b.shopId ?? mainId}:${b.productId}`;
+      const cur = expiry.get(k) ?? { date: b.expiryDate!, qty: 0, expiredQty: 0, batches: 0 };
       if (b.expiryDate! < cur.date) cur.date = b.expiryDate!;
       cur.qty += n(b.quantity);
       if (b.expiryDate! < now) cur.expiredQty += n(b.quantity);
       cur.batches += 1;
-      expiry.set(b.productId, cur);
+      expiry.set(k, cur);
     }
     const ignored = new Set(ignores.map((x) => `${x.shopId}:${x.productId}`));
 
@@ -277,7 +279,7 @@ export class LowStockService {
         const used = (sale?.qty ?? 0) + (sh.id === homeId ? recipe.get(p.id) ?? 0 : 0);
         const perDay = Math.max(0, used) / days;
         const daysLeft = perDay > 0 ? Math.max(0, stock) / perDay : null;
-        const exp = sh.id === homeId ? expiry.get(p.id) ?? null : null;
+        const exp = expiry.get(`${sh.id}:${p.id}`) ?? null;
 
         let reg: { state: 'expired' | 'soon' | 'none'; days: number | null } | null = null;
         if (ag && REGULATED.has(ag.category)) {

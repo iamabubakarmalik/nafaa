@@ -17,7 +17,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
-import { ShopScope, applyStockDelta, resolveWriteShopId } from '../../../common/shop-scope';
+import { ShopScope, addToBatch, applyStockDelta, findBatch, resolveWriteShopId } from '../../../common/shop-scope';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { safeDayStart, startOfBusinessDayTz, tzParts, startOfBusinessMonthTz, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { SupplierLedgerService } from '../supplier-ledger/supplier-ledger.service';
@@ -49,10 +49,20 @@ interface Line {
 
 /** Base units and value of one line received now. */
 interface Receipt {
-  item: { id: string; productId: string | null; variantId: string | null; ingredientId: string | null; itemName: string };
+  item: {
+    id: string; productId: string | null; variantId: string | null; ingredientId: string | null; itemName: string;
+    batchNo?: string | null; expiryDate?: Date | null;
+  };
   baseQty: number;
   baseCost: number;
 }
+
+/**
+ * Batch a purchase line goes into: its batch number, or the bill number when
+ * only an expiry was given. Null when the line carries neither.
+ */
+const lineBatchNumber = (item: Receipt['item'], purchaseNumber: string) =>
+  item.batchNo?.trim() || (item.expiryDate ? purchaseNumber : null);
 
 @Injectable()
 export class PurchasesService {
@@ -177,11 +187,19 @@ export class PurchasesService {
         tx, tenantId: user.tenantId, shopId: ctx.shopId, productId: item.productId, variantId: item.variantId,
         delta: baseQty, movementType: 'PURCHASE_IN', reference: ctx.reference, note: `Purchase: ${ctx.supplierName}`,
       });
+      const batchNumber = lineBatchNumber(item, ctx.reference);
+      if (batchNumber) {
+        await addToBatch(tx, {
+          tenantId: user.tenantId, shopId: ctx.shopId, productId: item.productId, variantId: item.variantId,
+          batchNumber, expiryDate: item.expiryDate ?? null, costPrice: baseCost, quantity: baseQty,
+          notes: `${ctx.reference} · ${ctx.supplierName}`,
+        });
+      }
     }
   }
 
   /** Takes goods back out of stock (return or cancel). */
-  private async stockOut(tx: Tx, user: AuthenticatedUser, ctx: { shopId: string; reference: string; note: string; allowNegative: boolean }, rows: Array<{ item: Receipt['item']; baseQty: number }>) {
+  private async stockOut(tx: Tx, user: AuthenticatedUser, ctx: { shopId: string; reference: string; purchaseNumber: string; note: string; allowNegative: boolean }, rows: Array<{ item: Receipt['item']; baseQty: number }>) {
     for (const { item, baseQty } of rows) {
       if (baseQty <= 0) continue;
       if (item.ingredientId) {
@@ -196,10 +214,17 @@ export class PurchasesService {
         continue;
       }
       if (!item.productId) continue;
+      // A batched line leaves from its own batch; an unbatched one touches
+      // batches only if they would otherwise exceed the stock left.
+      const batchNumber = lineBatchNumber(item, ctx.purchaseNumber);
+      const batch = batchNumber
+        ? await findBatch(tx, { shopId: ctx.shopId, productId: item.productId, variantId: item.variantId, batchNumber, expiryDate: item.expiryDate ?? null })
+        : null;
       await applyStockDelta({
         tx, tenantId: user.tenantId, shopId: ctx.shopId, productId: item.productId, variantId: item.variantId,
         delta: -baseQty, movementType: 'PURCHASE_RETURN', reference: ctx.reference, note: ctx.note,
         preventNegative: !ctx.allowNegative, label: item.itemName,
+        batchMode: batchNumber ? 'fefo' : 'cap', batchId: batch?.id ?? null,
       });
     }
   }
@@ -381,7 +406,7 @@ export class PurchasesService {
       !!(await this.prisma.purchaseReturn.findFirst({ where: { tenantId: user.tenantId, returnNumber: n }, select: { id: true } })));
 
     return this.prisma.$transaction(async (tx) => {
-      await this.stockOut(tx, user, { shopId: p.shopId!, reference: returnNumber, note: `Wapas: ${p.supplier.name}`, allowNegative }, rows);
+      await this.stockOut(tx, user, { shopId: p.shopId!, reference: returnNumber, purchaseNumber: p.purchaseNumber, note: `Wapas: ${p.supplier.name}`, allowNegative }, rows);
       const ret = await tx.purchaseReturn.create({
         data: {
           tenantId: user.tenantId, purchaseId: p.id, supplierId: p.supplierId, shopId: p.shopId, createdById: user.id,
@@ -409,7 +434,7 @@ export class PurchasesService {
     const allowNegative = await this.allowNegative(user.tenantId);
     return this.prisma.$transaction(async (tx) => {
       const rows = p.items.map((item) => ({ item, baseQty: item.receivedQty }));
-      await this.stockOut(tx, user, { shopId: p.shopId!, reference: p.purchaseNumber, note: `Cancel: ${dto.reason}`, allowNegative }, rows);
+      await this.stockOut(tx, user, { shopId: p.shopId!, reference: p.purchaseNumber, purchaseNumber: p.purchaseNumber, note: `Cancel: ${dto.reason}`, allowNegative }, rows);
       await tx.purchaseItem.updateMany({ where: { purchaseId: p.id }, data: { receivedQty: 0 } });
       await tx.purchase.update({ where: { id: p.id }, data: { status: 'CANCELLED', cancelledAt: new Date(), cancelReason: dto.reason } });
       if (p.receivedValue > 0) {

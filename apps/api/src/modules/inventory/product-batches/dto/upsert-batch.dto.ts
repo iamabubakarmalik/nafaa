@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class UpsertBatchDto {
   @ApiProperty()
@@ -23,9 +23,14 @@ export class UpsertBatchDto {
   expiryDate?: string;
 
   @ApiProperty()
-  @IsInt()
+  @IsNumber()
   @Min(0)
   quantity!: number;
+
+  @ApiPropertyOptional({ description: 'Branch holding the batch (new batches only). Default: the branch being viewed, else the main shop.' })
+  @IsOptional()
+  @IsString()
+  shopId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
