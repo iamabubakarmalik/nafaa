@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Ip, Param, Patch, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../modules/auth/decorators/get-user.decorator';
@@ -16,6 +16,7 @@ import { ChannelCatalogService } from './channel-catalog.service';
 import { CourierAccountsService } from './courier-accounts.service';
 import { OrderToolsService } from './order-tools.service';
 import { CourierSettings } from './courier-api/types';
+import { PiiAccessLogService } from './pii-access-log.service';
 
 // ═══════════════════════════════════════════════════════════════
 // ONLINE ORDERS — dukandar ka order manage karne ka safha
@@ -29,6 +30,7 @@ export class OnlineOrdersController {
     private readonly svc: OnlineOrdersService,
     private readonly tools: OrderToolsService,
     private readonly setup: WebsiteSetupService,
+    private readonly piiLog: PiiAccessLogService,
   ) {}
 
   @Get('report')
@@ -52,7 +54,9 @@ export class OnlineOrdersController {
     @Query('search') search?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
+    @Ip() ip?: string,
   ) {
+    this.piiLog.record(user, { kind: 'CUSTOMER_LIST', filters: { segment, search } }, ip);
     return this.tools.customers(user, scope, { segment, search, limit: limit ? +limit : 50, offset: offset ? +offset : 0 });
   }
 
@@ -66,9 +70,11 @@ export class OnlineOrdersController {
     @Query('to') to?: string,
     @Query('status') status?: string,
     @Query('integrationId') integrationId?: string,
+    @Ip() ip?: string,
   ) {
     this.setup.assertCanManage(user);
     const csv = await this.tools.exportCsv(user, scope, { from, to, status, integrationId });
+    this.piiLog.record(user, { kind: 'ORDER_EXPORT', filters: { from, to, status, integrationId } }, ip);
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="online-orders-${from ?? 'last30'}-${to ?? 'today'}.csv"`);
     res.setHeader('Cache-Control', 'private, no-store');
@@ -88,7 +94,9 @@ export class OnlineOrdersController {
     @Query('from') from?: string,
     @Query('to') to?: string,
     @Query('pay') pay?: string,
+    @Ip() ip?: string,
   ) {
+    this.piiLog.record(user, { kind: 'ORDER_LIST', filters: { status, integrationId, search } }, ip);
     return this.svc.list(user, scope, {
       status, integrationId, search, payment, from, to,
       pay: pay === 'COD' || pay === 'PAID' ? pay : undefined,
@@ -128,8 +136,10 @@ export class OnlineOrdersController {
   }
 
   @Get(':id')
-  detail(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string) {
-    return this.svc.detail(user, scope, id);
+  async detail(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Ip() ip?: string) {
+    const order = await this.svc.detail(user, scope, id);
+    this.piiLog.record(user, { kind: 'ORDER_DETAIL', orderId: id }, ip);
+    return order;
   }
 
   @Post(':id/accept')
