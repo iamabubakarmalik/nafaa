@@ -7,6 +7,7 @@ import { ShopifyService } from './shopify.service';
 
 /**
  * Shopify ke public raaste:
+ *  - GET  /integrations/shopify/install   → App URL: Shopify se install / admin se app kholna
  *  - GET  /integrations/shopify/callback  → Install ke baad (popup me), web ke done-safhe par bhejta hai
  *  - POST /integrations/shopify/compliance/:topic → lazmi GDPR webhooks
  *      (customers-data-request, customers-redact, shop-redact)
@@ -17,6 +18,12 @@ import { ShopifyService } from './shopify.service';
 @Controller('integrations/shopify')
 export class ShopifyPublicController {
   constructor(private readonly shopify: ShopifyService) {}
+
+  @Get('install')
+  @ApiOperation({ summary: 'Shopify App URL (install from Shopify, open from admin)' })
+  async install(@Query() query: Record<string, string>, @Res() res: Response) {
+    return res.redirect(302, await this.shopify.install(query));
+  }
 
   @Get('callback')
   @ApiOperation({ summary: 'Shopify OAuth callback' })
