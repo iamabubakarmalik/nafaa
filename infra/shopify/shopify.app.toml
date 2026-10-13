@@ -1,0 +1,30 @@
+# Shopify app config (Dev Dashboard → Nafaa). Deploy from this folder:
+#   npx @shopify/cli@latest app deploy
+# Compliance webhooks can only be set here, not in the Dev Dashboard form.
+
+client_id = "f97ff9533d4d531681737744d07296f5"
+name = "Nafaa"
+application_url = "https://api.nafaa.pk/api/integrations/shopify/install"
+embedded = false
+
+[access_scopes]
+scopes = "read_orders,write_orders,read_products,write_products,read_inventory,write_inventory,read_locations,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders"
+use_legacy_install_flow = true
+
+[auth]
+redirect_urls = ["https://api.nafaa.pk/api/integrations/shopify/callback"]
+
+[webhooks]
+api_version = "2026-07"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = ["customers/data_request"]
+  uri = "https://api.nafaa.pk/api/integrations/shopify/compliance/customers-data-request"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = ["customers/redact"]
+  uri = "https://api.nafaa.pk/api/integrations/shopify/compliance/customers-redact"
+
+  [[webhooks.subscriptions]]
+  compliance_topics = ["shop/redact"]
+  uri = "https://api.nafaa.pk/api/integrations/shopify/compliance/shop-redact"
