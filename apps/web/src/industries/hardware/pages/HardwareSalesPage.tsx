@@ -186,7 +186,7 @@ export default function HardwareSalesPage() {
                 {privacy.isEnabled && (<><span className="text-white/40">•</span><Shield className="h-3 w-3 text-emerald-300" /><span className="text-emerald-300">Protected</span></>)}
               </div>
               <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">Contractor & Bulk Sales</h1>
-              <p className="mt-2 text-sm text-white/80">Cement, steel, tiles — sab ki tafseel + project tracking</p>
+              <p className="mt-2 text-sm text-white/80">Cement, steel, tiles — sab ki details + project tracking</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <button onClick={privacy.toggleHideStats} className={`inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold backdrop-blur border ${hideAmounts ? 'bg-amber-500/30 border-amber-300/40' : 'bg-white/10 border-white/20'}`}>

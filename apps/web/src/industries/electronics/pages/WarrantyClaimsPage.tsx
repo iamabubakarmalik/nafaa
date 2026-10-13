@@ -149,13 +149,13 @@ export default function WarrantyClaimsPage() {
       ['Hal ho gaye', String(summary?.resolved ?? 0)],
       ['Company ko bheje', String(summary?.sentToBrand ?? 0)],
       ['Is mahine', String(summary?.thisMonth ?? 0)],
-      ['Repair kharcha', String(Math.round(summary?.cost.repairCost ?? 0))],
+      ['Repair expense', String(Math.round(summary?.cost.repairCost ?? 0))],
       ['Paisa wapas kiya', String(Math.round(summary?.cost.refundAmount ?? 0))],
       ['Customer ne dala', String(Math.round(summary?.cost.paidByCustomer ?? 0))],
       ['Company ne dala', String(Math.round(summary?.cost.paidByBrand ?? 0))],
       ['Dukan ki jeb se', String(Math.round(summary?.cost.shopBore ?? 0))],
       [],
-      ['Claim #', 'Tareekh', 'Customer', 'Phone', 'Product', 'Serial', 'IMEI',
+      ['Claim #', 'Date', 'Customer', 'Phone', 'Product', 'Serial', 'IMEI',
         'Masla', 'Status', 'Company ko bheja', 'Repair cost', 'Refund', 'Hal hua'],
       ...list.map((c) => [
         c.claimNumber,
@@ -261,7 +261,7 @@ export default function WarrantyClaimsPage() {
           {summary && (summary.cost.repairCost > 0 || summary.cost.refundAmount > 0) && (
             <div className="mt-3 rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-3 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold">
               <Wallet className="h-3.5 w-3.5 text-amber-300" />
-              <span className="text-white/70">Repair kharcha</span>
+              <span className="text-white/70">Repair expense</span>
               <b>{formatPKR(summary.cost.repairCost)}</b>
               <span className="opacity-40">·</span>
               <span className="text-white/70">Customer ne dala</span>
@@ -423,7 +423,7 @@ function ClaimCard({ claim, onView, onDelete }: {
         <div className="text-right shrink-0">
           {cost > 0 && (
             <>
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Kharcha</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Expense</div>
               <div className="text-lg font-extrabold text-slate-900 tabular-nums leading-none">{formatPKR(cost)}</div>
               {shopBore > 0 && (
                 <div className="text-[0.6875rem] font-extrabold text-rose-600 mt-0.5">
@@ -704,12 +704,12 @@ function ClaimDetailModal({ claim, onClose, onUpdate }: {
                     ))}
                   </div>
                   <textarea rows={2} value={resolution} onChange={(e) => setResolution(e.target.value)}
-                    placeholder="Tafseel — customer ko yehi bataya jayega"
+                    placeholder="Details — customer ko yehi bataya jayega"
                     className="w-full rounded-xl border-2 border-emerald-200 bg-white px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 transition" />
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <Money label="Repair kharcha" value={repairCost} onChange={setRepairCost} />
+                  <Money label="Repair expense" value={repairCost} onChange={setRepairCost} />
                   <Money label="Paisa wapas" value={refundAmount} onChange={setRefundAmount} />
                   <Money label="Customer ne dala" value={paidByCustomer} onChange={setPaidByCustomer} tone="emerald" />
                   <Money label="Company ne dala" value={paidByBrand} onChange={setPaidByBrand} tone="emerald" />
@@ -751,7 +751,7 @@ function ClaimDetailModal({ claim, onClose, onUpdate }: {
                 </div>
               </div>
               {claim.resolutionType && <InfoRow label="Kya kiya" value={claim.resolutionType} />}
-              {claim.resolution && <InfoRow label="Tafseel" value={claim.resolution} />}
+              {claim.resolution && <InfoRow label="Details" value={claim.resolution} />}
               {claim.diagnosis && <InfoRow label="Diagnosis" value={claim.diagnosis} />}
               {claim.replacementSerialNumber && <InfoRow label="Naya serial" value={claim.replacementSerialNumber} mono />}
               {cost > 0 && (
@@ -865,7 +865,7 @@ function ClaimsTeacher({ onClose }: { onClose: () => void }) {
     },
     {
       icon: HandCoins, title: 'Paisa kis ne dala',
-      body: 'Repair kharcha aur refund alag likhein, phir ye ke customer ne kitna dala aur company ne kitna. Jo bacha wo "dukan ki jeb se" gaya — ye number mahine ke akhir me sab se ahem hota hai.',
+      body: 'Repair expense aur refund alag likhein, phir ye ke customer ne kitna dala aur company ne kitna. Jo bacha wo "dukan ki jeb se" gaya — ye number mahine ke akhir me sab se ahem hota hai.',
       tips: ['Upar hero me kul hisab nazar aata hai', 'CSV me poora record Excel ke liye'],
     },
     {
@@ -977,7 +977,7 @@ function NewClaimModal({ onClose, onSaved }: { onClose: () => void; onSaved: () 
     setLooking(true);
     try {
       const res = await serialTrackingApi.warrantyCheck(c);
-      if (!res?.found) { toast.error('Ye serial/IMEI register me nahi — tafseel haath se likhein'); setUnit(null); setWarranty(null); return; }
+      if (!res?.found) { toast.error('Ye serial/IMEI register me nahi — details haath se likhein'); setUnit(null); setWarranty(null); return; }
       setUnit(res.serial);
       setWarranty(res.warranty);
       setForm((f) => ({
@@ -1026,7 +1026,7 @@ function NewClaimModal({ onClose, onSaved }: { onClose: () => void; onSaved: () 
           <div className="flex gap-2">
             <input autoFocus value={code} onChange={(e) => setCode(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') void lookup(); }}
               placeholder="Serial ya IMEI scan karein" className={field} />
-            <Button onClick={() => void lookup()} loading={looking} className="shrink-0"><Search className="h-4 w-4" /> Dhoondein</Button>
+            <Button onClick={() => void lookup()} loading={looking} className="shrink-0"><Search className="h-4 w-4" /> Search</Button>
           </div>
           {warranty && (
             <div className={'rounded-xl p-3 text-xs font-bold ' + (warranty.isValid ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800')}>

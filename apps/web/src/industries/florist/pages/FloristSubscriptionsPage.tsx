@@ -73,7 +73,7 @@ export default function FloristSubscriptionsPage() {
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Delivery nahi likhi gayi'),
     onSuccess: (r: any) => {
       // Each delivery is billed to the customer's khata.
-      toast.success(r?.sale ? `Delivery likh di — ${r.sale.saleNumber} khate me` : 'Delivery likh di, agli tareekh set');
+      toast.success(r?.sale ? `Delivery likh di — ${r.sale.saleNumber} khate me` : 'Delivery likh di, agli date set');
       qc.invalidateQueries({ queryKey: ['florist-subs-list'] });
       qc.invalidateQueries({ queryKey: ['florist-subs-due-today'] });
     },

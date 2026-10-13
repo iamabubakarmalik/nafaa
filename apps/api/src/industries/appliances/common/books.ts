@@ -37,7 +37,7 @@ export function billOf(db: Db, tenantId: string, number: string) {
  */
 export async function receiveJobMoney(db: Db, user: AuthenticatedUser, job: JobParty, amount: number, note: string) {
   const value = r2(amount);
-  if (value <= 0) throw new BadRequestException('Raqam 0 se ziyada honi chahiye');
+  if (value <= 0) throw new BadRequestException('Amount 0 se ziyada honi chahiye');
   const shopId = await resolveIndustryShopId(db, user, null);
   const bill = await billOf(db, user.tenantId, job.number);
   const customerId = bill?.customerId
@@ -69,7 +69,7 @@ export async function billJob(
   let customerId = job.customerId ?? null;
   if (!customerId && (total - paidAtCounter > 0.005 || onKhata > 0)) {
     if (!job.customerName?.trim()) {
-      throw new BadRequestException(`Rs ${r2(total - paidAtCounter)} baqi hai — poori raqam lein ya customer ka naam likhein`);
+      throw new BadRequestException(`Rs ${r2(total - paidAtCounter)} baqi hai — poori amount lein ya customer ka naam likhein`);
     }
     customerId = await ensureCustomer(db, user, { name: job.customerName, phone: job.customerPhone, shopId });
   }

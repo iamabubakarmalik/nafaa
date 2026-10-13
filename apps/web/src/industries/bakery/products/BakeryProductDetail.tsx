@@ -86,7 +86,7 @@ const config: DetailConfig<Extra> = {
   tile: ({ extra }) => {
     const p = extra?.profile;
     const life = p?.shelfLifeDays ? `${p.shelfLifeDays} din` : p?.shelfLifeHours ? `${p.shelfLifeHours} ghante` : null;
-    return life ? { label: 'Taazgi', value: life, hint: p?.requiresRefrigeration ? 'fridge mein' : undefined } : null;
+    return life ? { label: 'Freshness', value: life, hint: p?.requiresRefrigeration ? 'fridge mein' : undefined } : null;
   },
   alerts: ({ extra, product, cost }) => {
     const p = extra?.profile;
@@ -95,7 +95,7 @@ const config: DetailConfig<Extra> = {
     const now = Date.now();
     const expired = (extra?.fresh ?? []).filter((f) => f.currentQty > 0 && new Date(f.expiryDate ?? f.bestBefore).getTime() < now);
     const notes: string[] = [];
-    if (!product.costPrice) notes.push('Cost nahi likhi — munafa ka hisaab ghalat hoga');
+    if (!product.costPrice) notes.push('Cost nahi likhi — profit ka hisaab ghalat hoga');
     if (kind === 'MADE' && !p?.shelfLifeDays && !p?.shelfLifeHours) notes.push('Kitne din chalti hai, yeh nahi likha');
     if (r.rows.length && product.costPrice && Math.abs(r.perUnit - product.costPrice) / product.costPrice > 0.05) {
       notes.push(`Aaj ke rate se recipe ki cost ${cost(r.perUnit)} hai, product par ${cost(product.costPrice)} likhi hai`);
@@ -126,7 +126,7 @@ const config: DetailConfig<Extra> = {
             <Card className="rounded-2xl lg:col-span-2" flush title="Kya lagta hai" description={`Ek dafa mein ${fmt(r.yieldQty)} ${ctx.product.unit} — aaj ke rate se`}>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[34rem] text-[0.8125rem]">
-                  <thead><tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><th className="px-5 py-2.5">Cheez</th><th className="px-3 py-2.5 text-right">Miqdar</th><th className="px-3 py-2.5 text-right">Rate</th><th className="px-3 py-2.5 text-right">Kharch</th><th className="px-5 py-2.5 text-right">Godown mein</th></tr></thead>
+                  <thead><tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><th className="px-5 py-2.5">Cheez</th><th className="px-3 py-2.5 text-right">Quantity</th><th className="px-3 py-2.5 text-right">Rate</th><th className="px-3 py-2.5 text-right">Kharch</th><th className="px-5 py-2.5 text-right">Godown mein</th></tr></thead>
                   <tbody className="divide-y divide-slate-100">
                     {r.rows.map((l) => (
                       <tr key={l.ingredientId} className={cn(r.limiting?.ingredientId === l.ingredientId && 'bg-amber-50/60')}>
@@ -154,7 +154,7 @@ const config: DetailConfig<Extra> = {
                   <>
                     <p className="text-[1.5rem] font-bold tabular-nums">{fmt(r.canMake)} <span className="text-[0.8125rem] font-medium text-slate-500">{ctx.product.unit}</span></p>
                     {r.limiting && <p className="text-[0.8125rem] text-amber-800">Sab se pehle <strong>{r.limiting.name}</strong> khatam hoga</p>}
-                    <Link to="/bakery/ingredients" className="mt-2 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Kachcha maal →</Link>
+                    <Link to="/bakery/ingredients" className="mt-2 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">Raw material →</Link>
                   </>
                 )}
               </Card>
@@ -164,7 +164,7 @@ const config: DetailConfig<Extra> = {
       },
     },
     {
-      id: 'fresh', label: 'Taazgi', icon: Clock, when: ({ extra }) => (extra?.fresh?.length ?? 0) > 0,
+      id: 'fresh', label: 'Freshness', icon: Clock, when: ({ extra }) => (extra?.fresh?.length ?? 0) > 0,
       render: ({ extra, product }) => {
         const logs = [...extra!.fresh].sort((a, b) => new Date(a.bestBefore).getTime() - new Date(b.bestBefore).getTime());
         const sum = (k: 'initialQty' | 'soldQty' | 'wastedQty' | 'discountedQty') => logs.reduce((s, l) => s + Number(l[k] ?? 0), 0);
@@ -172,11 +172,11 @@ const config: DetailConfig<Extra> = {
         return (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[['Bana', made], ['Bika', sum('soldQty')], ['Sasta becha', sum('discountedQty')], ['Zaya', sum('wastedQty')]].map(([l, v]) => (
+              {[['Bana', made], ['Bika', sum('soldQty')], ['Sasta becha', sum('discountedQty')], ['Waste', sum('wastedQty')]].map(([l, v]) => (
                 <div key={l as string} className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80"><p className="text-[0.75rem] text-slate-500">{l}</p><p className="text-[1.375rem] font-bold tabular-nums">{fmt(v as number)}</p></div>
               ))}
             </div>
-            {made > 0 && <p className="text-[0.8125rem] text-slate-600">Zaya hone ki sharah: <strong className={cn(sum('wastedQty') / made > 0.1 ? 'text-rose-600' : 'text-success-700')}>{((sum('wastedQty') / made) * 100).toFixed(1)}%</strong></p>}
+            {made > 0 && <p className="text-[0.8125rem] text-slate-600">Waste hone ki sharah: <strong className={cn(sum('wastedQty') / made > 0.1 ? 'text-rose-600' : 'text-success-700')}>{((sum('wastedQty') / made) * 100).toFixed(1)}%</strong></p>}
             <Card className="rounded-2xl" flush title="Batches" description="Jo pehle kharab hoga woh upar">
               <ul className="divide-y divide-slate-100">
                 {logs.map((l) => {
@@ -198,7 +198,7 @@ const config: DetailConfig<Extra> = {
       },
     },
     {
-      id: 'details', label: 'Tafseel', icon: Leaf, when: ({ extra }) => !!extra?.profile,
+      id: 'details', label: 'Details', icon: Leaf, when: ({ extra }) => !!extra?.profile,
       render: ({ extra }) => {
         const p = extra!.profile!;
         const yes = (v: boolean, t: string) => (v ? <span key={t} className="rounded-full bg-slate-100 px-2.5 py-1 text-[0.8125rem] text-slate-700">{t}</span> : null);

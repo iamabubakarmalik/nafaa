@@ -139,7 +139,7 @@ function DeliveryCard({ d }: any) {
   const act = useMutation({
     mutationFn: async (step: 'DISPATCHED' | 'DELIVERED' | 'CANCELLED') => {
       if (step === 'DELIVERED') {
-        const receivedByName = window.prompt('Maal kis ne wusool kiya? (naam)') ?? undefined;
+        const receivedByName = window.prompt('Maal kis ne receive kiya? (naam)') ?? undefined;
         return deliveriesApi.confirmDelivery(d.id, { receivedByName: receivedByName || undefined });
       }
       if (step === 'CANCELLED') {

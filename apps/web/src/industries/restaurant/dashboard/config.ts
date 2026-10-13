@@ -33,11 +33,11 @@ function useRestaurantActions(): QuickAction[] {
     { to: '/restaurant/modifiers', icon: Sparkles, label: 'Modifiers', hint: 'Extra cheese, size' },
     { to: '/restaurant/delivery', icon: MapPin, label: 'Delivery', hint: deliveries ? `${deliveries} raste me` : 'Tracking' },
     { to: '/restaurant/riders', icon: Bike, label: 'Riders', hint: 'Delivery staff' },
-    { to: '/restaurant/recipes', icon: BookOpen, label: 'Recipes', hint: 'Lagat aur saamaan' },
+    { to: '/restaurant/recipes', icon: BookOpen, label: 'Recipes', hint: 'Cost aur saamaan' },
     { to: '/restaurant/happy-hours', icon: Zap, label: 'Happy hours', hint: 'Waqt wali deals' },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }

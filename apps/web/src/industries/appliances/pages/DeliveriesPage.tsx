@@ -143,7 +143,7 @@ export default function DeliveriesPage() {
     const body = `<table>
       <thead><tr>
         <th>Delivery</th><th>Customer</th><th>Phone</th><th>Pata</th>
-        <th>Tareekh</th><th>Gaari</th><th>Driver</th><th>Halat</th><th class="r">Paisa</th>
+        <th>Date</th><th>Gaari</th><th>Driver</th><th>Halat</th><th class="r">Paisa</th>
       </tr></thead>
       <tbody>${filtered.map((d) => `<tr>
         <td><strong>${escapeHtml(d.deliveryNumber)}</strong></td>
@@ -165,7 +165,7 @@ export default function DeliveriesPage() {
       kpis: [
         { label: 'Aaj ki', value: String(summary?.todayScheduled ?? 0), tone: 'blue' },
         { label: 'Chal rahi', value: String(summary?.open ?? 0), tone: 'amber' },
-        { label: 'Tareekh guzri', value: String(summary?.overdue ?? 0), tone: 'rose' },
+        { label: 'Date guzri', value: String(summary?.overdue ?? 0), tone: 'rose' },
         { label: 'Mahine ki aamdan', value: formatPKR(summary?.month?.revenue ?? 0), tone: 'green' },
       ],
       body,
@@ -176,7 +176,7 @@ export default function DeliveriesPage() {
     if (!filtered.length) return toast.error('CSV ke liye kuch nahi');
     downloadCsv(`deliveries-${new Date().toISOString().slice(0, 10)}.csv`, [
       ['Delivery', 'Halat', 'Customer', 'Phone', 'Pata', 'Ilaqa', 'Sheher', 'Manzil', 'Lift',
-       'Tareekh', 'Waqt', 'Gaari', 'Driver', 'Driver phone', 'Helper',
+       'Date', 'Waqt', 'Gaari', 'Driver', 'Driver phone', 'Helper',
        'Delivery', 'Loading', 'Unloading', 'Floor', 'Kul', 'Installation chahiye', 'Installation book',
        'Nikla', 'Pohancha', 'Diya', 'Wasool karne wala'],
       ...filtered.map((d) => [
@@ -255,7 +255,7 @@ export default function DeliveriesPage() {
           <>
             Aaj {summary?.todayScheduled ?? 0} · {summary?.open ?? 0} chal rahi ·{' '}
             {money(summary?.month?.revenue ?? 0)} mahine ki aamdan
-            {(summary?.overdue ?? 0) > 0 && <span className="text-rose-200"> · ⚠️ {summary?.overdue} ki tareekh guzri</span>}
+            {(summary?.overdue ?? 0) > 0 && <span className="text-rose-200"> · ⚠️ {summary?.overdue} ki date guzri</span>}
           </>
         }
         actions={[
@@ -278,7 +278,7 @@ export default function DeliveriesPage() {
         <div className="grid sm:grid-cols-3 gap-2.5">
           {alerts.overdue.length > 0 && (
             <AlertBox tone="rose" icon={AlertTriangle} n={alerts.overdue.length}
-              title="Tareekh guzar gayi"
+              title="Date guzar gayi"
               desc="Maal abhi tak nahi pohancha — customer ka phone aane se pehle khud rabta karein." />
           )}
           {alerts.noVehicle.length > 0 && (
@@ -289,7 +289,7 @@ export default function DeliveriesPage() {
           {alerts.installPending.length > 0 && (
             <AlertBox tone="violet" icon={Wrench} n={alerts.installPending.length}
               title="Installation baqi"
-              desc="Maal pohanch gaya magar installation book nahi hui — ye paisa aksar zaya ho jata hai." />
+              desc="Maal pohanch gaya magar installation book nahi hui — ye paisa aksar waste ho jata hai." />
           )}
         </div>
       )}
@@ -298,8 +298,8 @@ export default function DeliveriesPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-2.5 sm:gap-3">
         <Kpi icon={CalendarClock} label="Aaj ki delivery" tone="blue" value={summary?.todayScheduled ?? 0}
           sub="Aaj gaari nikalni hai" />
-        <Kpi icon={Package} label="Tareekh baqi" tone="slate" value={summary?.pending ?? 0}
-          sub="Abhi tareekh nahi mili"
+        <Kpi icon={Package} label="Date baqi" tone="slate" value={summary?.pending ?? 0}
+          sub="Abhi date nahi mili"
           active={statusFilter === 'PENDING'}
           onClick={() => setStatusFilter(statusFilter === 'PENDING' ? 'all' : 'PENDING')} />
         <Kpi icon={Truck} label="Raste me" tone="cyan" value={summary?.dispatched ?? 0}
@@ -310,7 +310,7 @@ export default function DeliveriesPage() {
           sub="Mukammal"
           active={statusFilter === 'DELIVERED'}
           onClick={() => setStatusFilter(statusFilter === 'DELIVERED' ? 'all' : 'DELIVERED')} />
-        <Kpi icon={AlertTriangle} label="Tareekh guzri" tone="rose" value={summary?.overdue ?? 0}
+        <Kpi icon={AlertTriangle} label="Date guzri" tone="rose" value={summary?.overdue ?? 0}
           sub="Abhi tak nahi pohancha" alert={(summary?.overdue ?? 0) > 0} />
         <Kpi icon={Navigation} label="Gaari nahi lagi" tone="amber" value={summary?.noVehicle ?? 0}
           sub="Driver muqarrar karein" alert={(summary?.noVehicle ?? 0) > 0} />
@@ -499,7 +499,7 @@ export default function DeliveriesPage() {
             )}
           </Panel>
 
-          <Panel icon={Wrench} title="Installation Baqi" hint="Maal pohanch gaya magar kaam book nahi hua — yahi paisa zaya hota hai" tone="rose">
+          <Panel icon={Wrench} title="Installation Baqi" hint="Maal pohanch gaya magar kaam book nahi hua — yahi paisa waste hota hai" tone="rose">
             {alerts.installPending.length === 0 ? (
               <Empty icon={CheckCircle2} title="Sab installation book ho chuki hain" />
             ) : (
@@ -551,7 +551,7 @@ export default function DeliveriesPage() {
               title: 'Board — delivery ka safar',
               tone: 'cyan',
               tips: [
-                'Har column ek halat hai: tareekh baqi → gaari lag gayi → nikal gaya → pohanch gaya → de diya.',
+                'Har column ek halat hai: date baqi → gaari lag gayi → nikal gaya → pohanch gaya → de diya.',
                 'Card ke neeche wale button se agli halat par le jayein — waqt khud darj hota hai.',
                 'Board se turant nazar aa jata hai ke kitni gaari raste me hai aur kitni khari hai.',
               ],
@@ -560,9 +560,9 @@ export default function DeliveriesPage() {
               title: 'Teen khatray',
               tone: 'rose',
               tips: [
-                'Tareekh guzar gayi aur maal nahi pohancha — customer ka phone aane se pehle khud rabta karein.',
+                'Date guzar gayi aur maal nahi pohancha — customer ka phone aane se pehle khud rabta karein.',
                 'Gaari abhi tak lagi hi nahi — driver aur gaari muqarrar karein warna subah bhaag-daur hogi.',
-                'Maal pohanch gaya magar installation book nahi hui — yehi sab se zyada paisa zaya karti hai.',
+                'Maal pohanch gaya magar installation book nahi hui — yehi sab se zyada paisa waste karti hai.',
               ],
             },
             {
@@ -754,7 +754,7 @@ function VehicleSheet({ d, pending, onClose, onSubmit }: {
       <div className="space-y-3">
         {!d.hasLift && !!d.floorNumber && (
           <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
-            ⚠️ {d.floorNumber} manzil aur lift nahi — do banday kam par sakte hain. Helper ki tadaad barha dein.
+            ⚠️ {d.floorNumber} manzil aur lift nahi — do banday kam par sakte hain. Helper ki quantity barha dein.
           </div>
         )}
         <div className="grid sm:grid-cols-2 gap-3">
@@ -817,7 +817,7 @@ function ConfirmSheet({ d, pending, onClose, onSubmit }: {
         </Field>
         {d.requiresInstallation && !d.installationLinked && (
           <div className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3 text-[0.75rem] font-bold text-violet-900 dark:text-violet-200">
-            🔧 Is par installation bhi honi hai. Delivery ke foran baad installation book kar dein — warna ye paisa aksar zaya ho jata hai.
+            🔧 Is par installation bhi honi hai. Delivery ke foran baad installation book kar dein — warna ye paisa aksar waste ho jata hai.
           </div>
         )}
         <div className="flex gap-2 pt-1">

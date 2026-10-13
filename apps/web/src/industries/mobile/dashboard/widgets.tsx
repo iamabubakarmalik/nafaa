@@ -56,7 +56,7 @@ export function useMobileAttention(): AttentionItem[] {
   const { cost } = useMasked();
   const items: AttentionItem[] = [];
 
-  if (emi.overdueCount) items.push({ icon: CreditCard, level: 'danger', text: `${emi.overdueCount} kist late hain — ${cost(emi.overdueAmount)} wusool karna hai`, to: '/emi-plans', cta: 'Kist dekhein' });
+  if (emi.overdueCount) items.push({ icon: CreditCard, level: 'danger', text: `${emi.overdueCount} kist late hain — ${cost(emi.overdueAmount)} receive karna hai`, to: '/emi-plans', cta: 'Kist dekhein' });
   if (repairs.ready) items.push({ icon: PackageCheck, level: 'warning', text: `${repairs.ready} phone repair ho kar tayyar — customer ko call karein`, to: '/repair-tickets', cta: 'Pickup' });
   if (repairs.approval) items.push({ icon: Wrench, level: 'warning', text: `${repairs.approval} repair par customer ki haan baqi hai — kaam ruka hua hai`, to: '/repair-tickets', cta: 'Approval lein' });
   if (repairs.parts) items.push({ icon: Cable, level: 'info', text: `${repairs.parts} repair parts ke intezar me`, to: '/repair-tickets', cta: 'Parts mangwayein' });
@@ -114,7 +114,7 @@ export function MobileEmi() {
     <WidgetCard
       title="Kist (EMI)"
       icon={CreditCard}
-      description={costHidden ? `${emi.active} plan chal rahe` : `${formatPKR(emi.collected)} is mahine wusool · ${formatPKR(emi.remaining)} baqi`}
+      description={costHidden ? `${emi.active} plan chal rahe` : `${formatPKR(emi.collected)} is mahine receive · ${formatPKR(emi.remaining)} baqi`}
       to="/emi-plans"
       flush
     >
@@ -146,9 +146,9 @@ export function MobileStock() {
   return (
     <WidgetCard title="Phone stock" icon={Smartphone} description="IMEI wale naye phone aur used phone" to="/imei-inventory">
       <div className="grid grid-cols-2 gap-2">
-        <MetricTile icon={Smartphone} tone="brand" label="Stock me" value={stock.inStock} hint={`${cost(stock.value)} lagat`} to="/imei-inventory" />
+        <MetricTile icon={Smartphone} tone="brand" label="Stock me" value={stock.inStock} hint={`${cost(stock.value)} cost`} to="/imei-inventory" />
         <MetricTile icon={PackageCheck} tone="success" label="Aaj bike" value={stock.soldToday} hint={`${stock.sold} ab tak`} />
-        <MetricTile icon={RotateCcw} tone="info" label="Used phone" value={used.inStock} hint={used.inspection ? `${used.inspection} check baqi` : `${cost(used.cost)} lagat`} to="/used-phones" />
+        <MetricTile icon={RotateCcw} tone="info" label="Used phone" value={used.inStock} hint={used.inspection ? `${used.inspection} check baqi` : `${cost(used.cost)} cost`} to="/used-phones" />
         <MetricTile icon={AlertTriangle} tone="danger" label="Wapas / kharab" value={stock.unsellable} hint="bik nahi sakte" alert={stock.unsellable > 0} />
       </div>
       {stock.pta.length > 0 && (
@@ -179,7 +179,7 @@ export function MobileProfitSources() {
     <WidgetCard
       title="Kamai ka rasta"
       icon={PiggyBank}
-      description={sources ? `30 din · ${cost(sources.totals.profit)} munafa (${sources.totals.margin.toFixed(1)}%)` : '30 din'}
+      description={sources ? `30 din · ${cost(sources.totals.profit)} profit (${sources.totals.margin.toFixed(1)}%)` : '30 din'}
       to="/reports"
     >
       <ul className="space-y-3">
@@ -197,7 +197,7 @@ export function MobileProfitSources() {
                 <div className={`h-full rounded-full ${bar}`} style={{ width: `${pct}%` }} />
               </div>
               <p className="mt-1 text-[0.75rem] text-slate-500">
-                {row ? `${row.units} units · bikri ${cost(row.revenue)} · ${row.margin.toFixed(1)}% margin` : 'Abhi kuch nahi'}
+                {row ? `${row.units} units · sale ${cost(row.revenue)} · ${row.margin.toFixed(1)}% margin` : 'Abhi kuch nahi'}
               </p>
             </li>
           );

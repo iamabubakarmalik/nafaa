@@ -23,7 +23,7 @@ function useCarpetActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Sale karein' },
     { to: '/carpet-products/new', icon: Plus, label: 'Naya carpet', hint: 'Maal me daalein' },
     { to: '/carpet-rolls', icon: Layers, label: 'Rolls', hint: `${c.rolls} chaalu` },
     { to: '/carpet-cut-pieces', icon: Scissors, label: 'Cut pieces', hint: `${c.pieces} pieces` },
@@ -32,7 +32,7 @@ function useCarpetActions(): QuickAction[] {
     { to: '/products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
   ];
 }
 

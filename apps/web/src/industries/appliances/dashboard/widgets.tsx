@@ -65,7 +65,7 @@ export function useAppliancesAttention(): AttentionItem[] {
   if (work.installsLate) items.push({ icon: HardHat, level: 'danger', text: `${work.installsLate} installation late hain`, to: '/appliances/installations', cta: 'Installation dekhein' });
   if (claims?.missing?.count) items.push({ icon: ShieldCheck, level: 'danger', text: `${claims.missing.count} warranty repair ka brand se claim banaya hi nahi — ${cost(claims.missing.recoverable)} wapas mil sakta hai`, to: '/appliances/warranty-claims', cta: 'Claim banayein' });
   if (work.unassigned) items.push({ icon: Users, level: 'warning', text: `${work.unassigned} kaam par koi technician nahi laga — subah hi kisi ko dein`, to: '/appliances/service-requests', cta: 'Banda lagayein' });
-  if (work.outstanding > 0) items.push({ icon: Wallet, level: 'warning', text: `Service ka ${cost(work.outstanding)} baqi hai — kaam ho chuka, wusooli nahi hui`, to: '/appliances/service-requests', cta: 'Wusool karein' });
+  if (work.outstanding > 0) items.push({ icon: Wallet, level: 'warning', text: `Service ka ${cost(work.outstanding)} baqi hai — kaam ho chuka, receiving nahi hui`, to: '/appliances/service-requests', cta: 'Receive karein' });
   if (serial?.installation?.pending) items.push({ icon: HardHat, level: 'warning', text: `${serial.installation.pending} unit bik gaye lekin abhi lage nahi`, to: '/appliances/installations', cta: 'Book karein' });
   if (delivery?.noVehicle) items.push({ icon: Truck, level: 'warning', text: `${delivery.noVehicle} delivery par gaari nahi lagi`, to: '/appliances/deliveries', cta: 'Gaari lagayein' });
   if (tech?.overloaded) items.push({ icon: AlertTriangle, level: 'warning', text: `${tech.overloaded} technician par kaam zyada hai — kuch kaam doosron ko dein`, to: '/appliances/technicians', cta: 'Technicians' });
@@ -139,7 +139,7 @@ export function AppliancesStreams() {
       to="/appliances/profit-report"
     >
       {streams.list.length === 0 ? (
-        <p className="py-6 text-center text-[0.8125rem] text-slate-500">30 din me abhi koi bikri nahi</p>
+        <p className="py-6 text-center text-[0.8125rem] text-slate-500">30 din me abhi koi sale nahi</p>
       ) : (
         <ul className="space-y-3">
           {streams.list.map((s) => {

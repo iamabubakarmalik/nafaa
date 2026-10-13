@@ -212,7 +212,7 @@ export default function ElectronicsCustomersPage() {
         <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
         <input ref={searchRef}
           className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-10 pr-3 text-sm font-bold focus:outline-none focus:border-blue-500 transition"
-          placeholder="Naam, phone, CNIC se dhoondein... (/)"
+          placeholder="Naam, phone, CNIC se search... (/)"
           value={params.search ?? ''}
           onChange={(e) => setParams({ ...params, search: e.target.value, page: 1 })} />
       </div>

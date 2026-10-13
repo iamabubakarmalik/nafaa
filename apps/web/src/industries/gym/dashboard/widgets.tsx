@@ -62,7 +62,7 @@ export function useGymAttention(): AttentionItem[] {
   const { memberships: m, classes, equipment } = useGymOps();
   const items: AttentionItem[] = [];
 
-  if (m.lapsed.length) items.push({ icon: AlertTriangle, level: 'danger', text: `${m.lapsed.length} membership ki muddat guzar gayi magar abhi active hai — renew karein ya band`, to: '/gym/memberships', cta: 'Memberships' });
+  if (m.lapsed.length) items.push({ icon: AlertTriangle, level: 'danger', text: `${m.lapsed.length} membership ki period guzar gayi magar abhi active hai — renew karein ya band`, to: '/gym/memberships', cta: 'Memberships' });
   if (m.expiring.length) items.push({ icon: RefreshCw, level: 'warning', text: `${m.expiring.length} membership agle 7 din me khatam — abhi call karein, renewal asaan hai`, to: '/gym/memberships', cta: 'Renew karwayein' });
   if (m.dues.length) items.push({ icon: Wallet, level: 'warning', text: `${m.dues.length} members ki fees baqi hai`, to: '/gym/memberships', cta: 'Fees lein' });
   if (equipment.broken) items.push({ icon: Wrench, level: 'warning', text: `${equipment.broken} machine kharab ya marammat me — members ko pareshani hogi`, to: '/gym/equipment', cta: 'Equipment' });

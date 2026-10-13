@@ -195,7 +195,7 @@ export default function HardwarePosPage() {
         if (skipped.length) toast.warning(`Ye items bill me nahi aaye: ${skipped.join(', ')}`);
         else toast.success(`Quotation ${q.quotationNumber} cart me aa gayi`);
         if (q.discount > 0 || q.taxAmount > 0 || q.deliveryCharges > 0 || q.laborCharges > 0 || q.otherCharges > 0) {
-          toast.info('Quotation ki kul chhoot, tax aur charges bill me khud nahi aate — zaroorat ho to haath se dalein');
+          toast.info('Quotation ki kul discount, tax aur charges bill me khud nahi aate — zaroorat ho to haath se dalein');
         }
       } catch {
         toast.error('Quotation load nahi hui');
@@ -233,7 +233,7 @@ export default function HardwarePosPage() {
       const project = projects.find((p) => p.id === selectedProjectId);
       const projectTag = project ? `[Project: ${project.projectNumber}] ${project.name}` : undefined;
       // Counter rules (discount limit, credit limit) may ask for the owner's PIN.
-      const sale = await withManagerPin('Is bill ki manzoori', (managerPin) => offlineSalesApi.create({
+      const sale = await withManagerPin('Is bill ki approval', (managerPin) => offlineSalesApi.create({
         ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,
@@ -540,7 +540,7 @@ export default function HardwarePosPage() {
                           type="number" inputMode="decimal" min={0.01} step="any"
                           value={item.quantity}
                           onChange={(e) => { const v = Number(e.target.value); if (v > 0) setLineQty(item.cartLineId, () => v); }}
-                          aria-label="Miqdar"
+                          aria-label="Quantity"
                           className="h-7 w-16 bg-transparent text-center text-xs font-extrabold tabular-nums focus:outline-none [appearance:textfield]" />
                         <button onClick={() => changeQty(item.cartLineId, 1)}
                           className="h-7 w-7 bg-amber-600 text-white hover:bg-amber-700 font-extrabold">+</button>

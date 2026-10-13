@@ -78,7 +78,7 @@ function KindAndSize({ ctx }: { ctx: StepContext<BakeryExtra> }) {
       <div>
         <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Yeh cheez</span>
         <div className="grid gap-2 sm:grid-cols-3">
-          {([['MADE', ChefHat, 'Khud banate hain', 'Cake, bread, patties — recipe aur taazgi ke saath'], ['BOUGHT', ShoppingBag, 'Khareed kar bechte hain', 'Juice, chips, packet wala maal']] as const).map(([k, Icon, t, h]) => (
+          {([['MADE', ChefHat, 'Khud banate hain', 'Cake, bread, patties — recipe aur freshness ke saath'], ['BOUGHT', ShoppingBag, 'Khareed kar bechte hain', 'Juice, chips, packet wala maal']] as const).map(([k, Icon, t, h]) => (
             <button key={k} type="button" disabled={ctx.isEdit && kind !== k && !!ctx.draft.core.productType} onClick={() => ctx.setCore({ productType: k })}
               className={cn('flex items-start gap-3 rounded-xl border p-3 text-left transition disabled:opacity-50', kind === k ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500/20' : 'border-slate-200 hover:bg-slate-50')}>
               <Icon className={cn('mt-0.5 h-5 w-5 shrink-0', kind === k ? 'text-brand-700' : 'text-slate-500')} />
@@ -88,7 +88,7 @@ function KindAndSize({ ctx }: { ctx: StepContext<BakeryExtra> }) {
           {!ctx.isEdit && (
             <Link to="/bakery/ingredients?new=1" className="flex items-start gap-3 rounded-xl border border-dashed border-slate-300 p-3 text-left hover:bg-slate-50">
               <Wheat className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-              <span><span className="block text-[0.875rem] font-semibold text-slate-900">Kachcha maal</span><span className="block text-[0.75rem] text-slate-500">Atta, cheeni, makhan — yeh bikta nahi, Kachcha maal page par jata hai →</span></span>
+              <span><span className="block text-[0.875rem] font-semibold text-slate-900">Raw material</span><span className="block text-[0.75rem] text-slate-500">Atta, cheeni, makhan — yeh bikta nahi, Raw material page par jata hai →</span></span>
             </Link>
           )}
         </div>
@@ -162,7 +162,7 @@ function Recipe({ ctx }: { ctx: StepContext<BakeryExtra> }) {
   return (
     <Section icon={Wheat} title={`"${ctx.draft.core.name || 'Is cheez'}" mein kya lagta hai`} hint="Bharein to cost khud nikal aati hai — zaroori nahi">
       {ingredients.length === 0 ? (
-        <p className="text-[0.8125rem] text-slate-500">Pehle kachcha maal daalein — <Link to="/bakery/ingredients?new=1" className="font-semibold text-brand-700 hover:underline">yahan se</Link>.</p>
+        <p className="text-[0.8125rem] text-slate-500">Pehle raw material daalein — <Link to="/bakery/ingredients?new=1" className="font-semibold text-brand-700 hover:underline">yahan se</Link>.</p>
       ) : (
         <div className="space-y-3">
           <div className="relative">
@@ -211,7 +211,7 @@ function CakeOptions({ ctx }: { ctx: StepContext<BakeryExtra> }) {
   const x = ctx.draft.extra;
   const set = ctx.setExtra;
   return (
-    <Section icon={CakeSlice} title="Cake ki tafseel" hint="Order lete waqt yahi options milenge">
+    <Section icon={CakeSlice} title="Cake ki details" hint="Order lete waqt yahi options milenge">
       <div className="space-y-4">
         <div>
           <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Flavour</span>
@@ -417,8 +417,8 @@ const config: EditorConfig<BakeryExtra> = {
     basicWithChecks,
     priceStep<BakeryExtra>(core, { extra: (ctx) => <OtherRates ctx={ctx} /> }),
     { id: 'recipe', title: 'Recipe', hint: 'Kya lagta hai, cake options', icon: Wheat, when: (d) => kindOf(d) === 'MADE', render: (ctx) => <RecipeStep ctx={ctx} />,
-      validate: (d): Errors => (d.extra.recipe.some((r) => !(r.qty > 0)) ? { recipe: 'Har cheez ki miqdar likhein' } : {}) },
-    { id: 'fresh', title: 'Taazgi', hint: 'Kitne din, allergy', icon: Clock, render: (ctx) => <Freshness ctx={ctx} />,
+      validate: (d): Errors => (d.extra.recipe.some((r) => !(r.qty > 0)) ? { recipe: 'Har cheez ki quantity likhein' } : {}) },
+    { id: 'fresh', title: 'Freshness', hint: 'Kitne din, allergy', icon: Clock, render: (ctx) => <Freshness ctx={ctx} />,
       validate: (d) => {
         const e: Errors = {};
         const x = d.extra;

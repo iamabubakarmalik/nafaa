@@ -160,10 +160,10 @@ export default function ElectronicsBundlesPage() {
       ['Chalu', String(counts.active)],
       ['Khaas', String(counts.featured)],
       ['Kul bikay', String(stats.totalSold)],
-      ['Bundles se bikri', String(Math.round(stats.totalRevenue))],
+      ['Bundles se sale', String(Math.round(stats.totalRevenue))],
       ['Customers ki bachat', String(Math.round(stats.customerSaved))],
       [],
-      ['Bundle', 'Halat', 'Khaas', 'Items', 'Asal qeemat', 'Bundle qeemat', 'Bachat', 'Bachat %', 'Bikay', 'Bikri'],
+      ['Bundle', 'Halat', 'Khaas', 'Items', 'Asal qeemat', 'Bundle qeemat', 'Bachat', 'Bachat %', 'Bikay', 'Sale'],
       ...list.map((b) => [
         b.name,
         b.isActive ? 'Chalu' : 'Band',
@@ -204,7 +204,7 @@ export default function ElectronicsBundlesPage() {
               </div>
               <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold leading-tight">🎁 Combo Bana Kar Bechein</h1>
               <p className="mt-2 text-sm text-white/85 font-semibold">
-                "Headphone + Case + Charger" — sath bechne se ek hi customer se zyada bikri
+                "Headphone + Case + Charger" — sath bechne se ek hi customer se zyada sale
               </p>
             </div>
 
@@ -240,7 +240,7 @@ export default function ElectronicsBundlesPage() {
             <HeroStat label="Chalu Bundles" value={String(counts.active)} icon={Gift} highlight
               sub={`${counts.featured} khaas`} />
             <HeroStat label="Kul Bikay" value={String(stats.totalSold)} icon={TrendingUp} sub="bundles" />
-            <HeroStat label="Bundles Se Bikri" value={formatPKR(stats.totalRevenue)} icon={Wallet} />
+            <HeroStat label="Bundles Se Sale" value={formatPKR(stats.totalRevenue)} icon={Wallet} />
             <HeroStat label="Aam Bachat" value={`${stats.avgSavings.toFixed(1)}%`} icon={Percent}
               sub={stats.customerSaved > 0 ? `${formatPKR(stats.customerSaved)} customers ne bachaye` : 'customer ke liye'} />
           </div>
@@ -369,7 +369,7 @@ function BundleCard({ bundle: b, busy, onToggleActive, onToggleFeatured, onDupli
           <div className="rounded-lg bg-amber-50 border border-amber-200 px-2 py-1.5 flex items-start gap-1.5">
             <AlertTriangle className="h-3 w-3 text-amber-600 shrink-0 mt-0.5" />
             <span className="text-[0.6875rem] font-bold text-amber-800">
-              {expired ? 'Is deal ki tareekh guzar chuki hai' : 'Is bundle me koi bachat nahi — customer ko faida nahi'}
+              {expired ? 'Is deal ki date guzar chuki hai' : 'Is bundle me koi bachat nahi — customer ko faida nahi'}
             </span>
           </div>
         )}
@@ -492,7 +492,7 @@ function BundlesTeacher({ onClose }: { onClose: () => void }) {
     },
     {
       icon: TrendingUp, title: 'Kaunsa bundle chal raha hai',
-      body: 'Har card par likha hota hai kitne bikay aur kitni bikri hui. Jo bundle nahi chal raha uski qeemat badal kar dekhein, ya band kar dein.',
+      body: 'Har card par likha hota hai kitne bikay aur kitni sale hui. Jo bundle nahi chal raha uski qeemat badal kar dekhein, ya band kar dein.',
       tips: ['CSV me poora hisab Excel ke liye', 'P dabao to print'],
     },
   ];

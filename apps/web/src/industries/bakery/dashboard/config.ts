@@ -24,17 +24,17 @@ function useBakeryActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
     { to: '/bakery/cake-orders/new', icon: Cake, label: 'Cake order', hint: 'Naya order' },
     { to: '/bakery/production', icon: ChefHat, label: 'Baking', hint: production.total ? `${production.done}/${production.total} hua` : 'Plan banayein' },
-    { to: '/bakery/freshness', icon: Timer, label: 'Taazgi', hint: fresh.expired.length ? `${fresh.expired.length} guzar gaya` : 'Sab theek' },
+    { to: '/bakery/freshness', icon: Timer, label: 'Freshness', hint: fresh.expired.length ? `${fresh.expired.length} guzar gaya` : 'Sab theek' },
     { to: '/bakery/ingredients', icon: Wheat, label: 'Saamaan', hint: raw.low ? `${raw.low} kam` : `${raw.total} cheezein` },
     { to: '/bakery-products/new', icon: Plus, label: 'Nayi cheez', hint: 'Maal me daalein' },
     { to: '/bakery/products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
     { to: '/bakery/bulk-orders', icon: ShoppingBag, label: 'Bare order', hint: 'Shadi, daftar' },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }
@@ -53,12 +53,12 @@ export const bakeryDashboard = createDashboard({
     { id: 'bakery-freshness', title: 'Jald kharab hone wala', description: '24 ghante me expire hone wala maal', size: 'third', sizes: ANY_SIZE, Component: BakeryFreshness },
   ],
   lateWidgets: [
-    { id: 'bakery-ingredients', title: 'Saamaan kam ho gaya', description: 'Reorder level se neeche ka kachcha maal', size: 'third', sizes: ANY_SIZE, Component: BakeryIngredients },
+    { id: 'bakery-ingredients', title: 'Saamaan kam ho gaya', description: 'Reorder level se neeche ka raw material', size: 'third', sizes: ANY_SIZE, Component: BakeryIngredients },
   ],
   useQuickActions: useBakeryActions,
   moneyMap: { useExtraTiles: useBakeryMoneyTiles, useNotes: useBakeryMoneyNotes, productsPath: '/bakery/products' },
   guide: [
-    { icon: Timer, title: 'Taazgi', text: 'Jo maal aaj nahi nikla wo kal kachra hai. Is liye "jald kharab" ki qeemat bhi likhi hai — "3 batch" chhota lagta hai, "Rs 4,500" foran samajh aata hai.' },
+    { icon: Timer, title: 'Freshness', text: 'Jo maal aaj nahi nikla wo kal kachra hai. Is liye "jald kharab" ki qeemat bhi likhi hai — "3 batch" chhota lagta hai, "Rs 4,500" foran samajh aata hai.' },
     { icon: ChefHat, title: 'Baking aur orders', text: 'Aaj ki baking ka plan, oven me kya hai, kaunse cake order aaj dene hain aur kaunsa saamaan kam hai — sab upar.' },
   ],
 });

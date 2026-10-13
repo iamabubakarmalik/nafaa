@@ -34,7 +34,7 @@ function useSalonActions(): QuickAction[] {
     { to: '/salon/packages', icon: BookmarkPlus, label: 'Packages', hint: `${packages.active} chaalu` },
     { to: '/salon/customers', icon: Heart, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }

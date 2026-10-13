@@ -170,9 +170,9 @@ export function RepairTab({ search, onPaid }: { search: string; onPaid: () => vo
 
   const payMut = useMutation({
     mutationFn: ({ id, amount }: { id: string; amount: number }) =>
-      serviceRequestsApi.addPayment(id, { amount, note: 'Counter par wusool' }),
+      serviceRequestsApi.addPayment(id, { amount, note: 'Counter par receive' }),
     onSuccess: () => {
-      toast.success('Wusooli darj ho gayi ✓');
+      toast.success('Receiving darj ho gayi ✓');
       setCollecting(null);
       refetch();
       onPaid();
@@ -191,7 +191,7 @@ export function RepairTab({ search, onPaid }: { search: string; onPaid: () => vo
   if (rows.length === 0) {
     return (
       <TabEmpty icon={CheckCircle2} tone="emerald" title="Koi repair ka paisa baqi nahi 🎉"
-        hint="Jab koi repair mukammal ho aur paisa poora na mila ho, wo yahan aa jati hai — customer aate hi counter par wusool kar lein" />
+        hint="Jab koi repair mukammal ho aur paisa poora na mila ho, wo yahan aa jati hai — customer aate hi counter par receive kar lein" />
     );
   }
 
@@ -363,7 +363,7 @@ export function AmcTab({ customer, onSold }: {
             </Field>
           </div>
           <div className="grid sm:grid-cols-2 gap-2">
-            <Field label="Contract ki raqam">
+            <Field label="Contract ki amount">
               <input type="number" min={0} className={`${amcInput} tabular-nums font-extrabold`}
                 placeholder={String(plan.price)} value={price} onChange={(e) => setPrice(e.target.value)} />
             </Field>
@@ -437,7 +437,7 @@ function CollectModal({ title, subtitle, due, pending, onClose, onConfirm }: {
 
         <div className="p-5 space-y-3">
           <div className="text-center">
-            <div className="text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-ink-400">Baqi raqam</div>
+            <div className="text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-ink-400">Baqi amount</div>
             <div className="text-4xl font-extrabold tabular-nums text-rose-600 dark:text-rose-400">{formatPKR(due)}</div>
           </div>
 
@@ -466,7 +466,7 @@ function CollectModal({ title, subtitle, due, pending, onClose, onConfirm }: {
           <button onClick={() => onConfirm(n)} disabled={bad || pending}
             className="w-full h-14 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 disabled:opacity-50 text-white font-extrabold inline-flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 transition active:scale-[0.98]">
             {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-            Wusooli Darj Karein
+            Receiving Darj Karein
           </button>
         </div>
       </div>

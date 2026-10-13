@@ -26,7 +26,7 @@ export const AGRI_UNITS: AgriUnitDef[] = [
   { key: 'bag',    label: 'Bori',   emoji: '🎒', hint: 'Sab se aam — urea, DAP, beej ki bori' },
   { key: 'kg',     label: 'Kilo',   emoji: '⚖️', measured: true, hint: 'Khula maal — beej, feed' },
   { key: 'ton',    label: 'Ton',    emoji: '🚛', measured: true, hint: 'Bara sauda — 1000 kg' },
-  { key: 'gram',   label: 'Gram',   emoji: '⚖️', measured: true, hint: 'Chhoti miqdar — mehnga beej, hormone' },
+  { key: 'gram',   label: 'Gram',   emoji: '⚖️', measured: true, hint: 'Chhoti quantity — mehnga beej, hormone' },
   { key: 'litre',  label: 'Litre',  emoji: '🧴', measured: true, hint: 'Spray, liquid fertilizer' },
   { key: 'ml',     label: 'ML',     emoji: '💧', measured: true, hint: 'Chhoti bottle — pesticide' },
   { key: 'bottle', label: 'Bottle', emoji: '🍾', hint: 'Bandh bottle — spray, dawa' },
@@ -129,9 +129,9 @@ export function certStatus(expiry?: string | null): {
   days: number | null;
   text: string;
 } {
-  if (!expiry) return { state: 'none', days: null, text: 'Registration ki tareekh nahi bhari' };
+  if (!expiry) return { state: 'none', days: null, text: 'Registration ki date nahi bhari' };
   const t = new Date(expiry).getTime();
-  if (Number.isNaN(t)) return { state: 'none', days: null, text: 'Tareekh theek nahi' };
+  if (Number.isNaN(t)) return { state: 'none', days: null, text: 'Date theek nahi' };
   const days = Math.round((t - Date.now()) / 86_400_000);
   if (days < 0) return { state: 'expired', days, text: `Registration ${Math.abs(days)} din pehle khatam — bechna ghair-qanooni hai` };
   if (days <= 60) return { state: 'soon', days, text: `Registration ${days} din me khatam — renew karwa lein` };

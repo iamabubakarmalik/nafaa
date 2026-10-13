@@ -969,7 +969,7 @@ function JobDetailModal({ job, onClose }: { job: BulkImportJob; onClose: () => v
         <div className="px-5 py-4 border-b-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60 flex items-center justify-between">
           <div>
             <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{job.fileName}</h3>
-            <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Import job ki tafseel</p>
+            <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Import job ki details</p>
           </div>
           <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center transition">
             <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />

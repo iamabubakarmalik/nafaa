@@ -51,7 +51,7 @@ export function useSportsAttention(): AttentionItem[] {
   const items: AttentionItem[] = [];
   if (repairs.overdue) items.push({ icon: AlertTriangle, level: 'danger', text: `${repairs.overdue} repair late hai — customer ko batayein ya aaj mukammal karein`, to: '/sports/repair-services', cta: 'Repairs dekhein' });
   if (team.atRisk) items.push({ icon: Users, level: 'warning', text: `${team.atRisk} team order 3 din me dena hai aur abhi tayyar nahi`, to: '/sports/team-orders', cta: 'Orders dekhein' });
-  if (team.ready) items.push({ icon: PackageCheck, level: 'info', text: `${team.ready} team order tayyar hai — delivery aur baqi raqam ka intezam karein`, to: '/sports/team-orders?status=READY', cta: 'Deliver karein' });
+  if (team.ready) items.push({ icon: PackageCheck, level: 'info', text: `${team.ready} team order tayyar hai — delivery aur baqi amount ka intezam karein`, to: '/sports/team-orders?status=READY', cta: 'Deliver karein' });
   if (repairs.toCollect) items.push({ icon: CheckCircle2, level: 'info', text: `${repairs.toCollect} repair ho chuki — customer ko lene ke liye call karein`, to: '/sports/repair-services', cta: 'Dekhein' });
   if (team.quoted) items.push({ icon: Trophy, level: 'neutral', text: `${team.quoted} team order quote/draft me hai — follow up karein`, to: '/sports/team-orders', cta: 'Follow up' });
   return items;
@@ -122,7 +122,7 @@ export function SportsBrands() {
   const { brands, totalBrands } = useSportsOps();
   const { sales } = useMasked();
   return (
-    <WidgetCard title="Top brands" icon={Award} description={`${totalBrands} brands · bikri ke hisaab se`} to="/sports/brands" flush>
+    <WidgetCard title="Top brands" icon={Award} description={`${totalBrands} brands · sale ke hisaab se`} to="/sports/brands" flush>
       <RowList empty="Brands abhi nahi daale" emptyIcon={Award}>
         {brands.slice(0, 5).map((b, i) => (
           <ListRow

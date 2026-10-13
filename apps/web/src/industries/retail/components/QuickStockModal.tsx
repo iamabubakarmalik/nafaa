@@ -147,7 +147,7 @@ export function QuickStockModal({ product, onClose }: Props) {
           {mode !== 'remove' && (
             <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 p-2.5 flex items-start gap-2 text-xs font-bold text-amber-800 dark:text-amber-300">
               <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>Naya maal kharida hai? Use Kharidari (Purchase) me darj karein, taake supplier ka hisaab aur munafa sahi rahe. Yahan barhaya stock report me "zyada nikla maal" gina jata hai.</span>
+              <span>Naya maal kharida hai? Use Purchase (Purchase) me darj karein, taake supplier ka hisaab aur profit sahi rahe. Yahan barhaya stock report me "zyada nikla maal" gina jata hai.</span>
             </div>
           )}
 

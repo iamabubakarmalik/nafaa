@@ -260,7 +260,7 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
                   </div>
                   {linking === i && (
                     <div className="mt-2 space-y-2">
-                      <Input size="sm" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Apna maal dhoondein…" leftIcon={<Search className="h-4 w-4" />} />
+                      <Input size="sm" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Apna maal search…" leftIcon={<Search className="h-4 w-4" />} />
                       <div className="flex max-h-36 flex-wrap gap-1.5 overflow-y-auto">
                         {options.map((p) => (
                           <button key={p.id} type="button" onClick={() => { setLines((xs) => xs.map((x, k) => (k === i ? { ...x, productId: p.id, unit: x.unit ?? p.unit } : x))); setLinking(null); }}
@@ -315,7 +315,7 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
             </div>
           ) : (
             <>
-              <Input size="sm" value={custQ} onChange={(e) => setCustQ(e.target.value)} placeholder="Naam ya phone se dhoondein…" leftIcon={<Search className="h-4 w-4" />} />
+              <Input size="sm" value={custQ} onChange={(e) => setCustQ(e.target.value)} placeholder="Naam ya phone se search…" leftIcon={<Search className="h-4 w-4" />} />
               {custOptions.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {custOptions.map((c) => (
@@ -348,7 +348,7 @@ export function OrderDeliverModal({ order, shopName, onClose, onDone, recordPaym
           <input type="checkbox" checked={printBill} onChange={(e) => setPrintBill(e.target.checked)} className="h-4 w-4 rounded accent-brand-600" />
           <Printer className="h-4 w-4 text-slate-500" /> Bill bante hi print karein
         </label>
-        <p className="text-[0.75rem] text-slate-500">Pehle ka advance bhi is bill me "mila" gina jata hai, taake bikri ka poora hisaab ek jagah rahe.</p>
+        <p className="text-[0.75rem] text-slate-500">Pehle ka advance bhi is bill me "mila" gina jata hai, taake sale ka poora hisaab ek jagah rahe.</p>
       </div>
     </Modal>
   );

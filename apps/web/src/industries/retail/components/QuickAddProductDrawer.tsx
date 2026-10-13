@@ -214,7 +214,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
             </div>
             <div>
               <label className="block text-xs font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-1.5">
-                Bikri rate *
+                Sale rate *
               </label>
               <input
                 type="number" step="0.01" inputMode="decimal" value={sale}

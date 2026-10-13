@@ -363,7 +363,7 @@ export class EmiService {
     dto: RecordInstallmentPaymentDto,
     scope?: ShopScope,
   ) {
-    if (!(Number(dto.amount) > 0)) throw new BadRequestException('Raqam zero se zyada ho');
+    if (!(Number(dto.amount) > 0)) throw new BadRequestException('Amount zero se zyada ho');
     const plan = await this.prisma.emiPlan.findFirst({
       where: { id: planId, tenantId: user.tenantId },
       include: { installments: true },

@@ -84,7 +84,7 @@ export function PlanBuilder({ date, plan, initial, onClose, onDone }: {
         )}
 
         <div>
-          <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Kya banana hai — cheez dhoondein…" leftIcon={<Search className="h-4 w-4" />} data-autofocus />
+          <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Kya banana hai — cheez search…" leftIcon={<Search className="h-4 w-4" />} data-autofocus />
           <div className="mt-2 flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
             {options.map((p) => (
               <button key={p.id} type="button" onClick={() => { setLines((xs) => [...xs, { key: p.id, productId: p.id, productName: p.name, plannedQty: '' }]); setTerm(''); }}

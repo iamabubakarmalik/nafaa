@@ -53,7 +53,7 @@ const STATUS: Record<string, { label: string; hint: string; color: string; pill:
     pill: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
   },
   APPROVED: {
-    label: 'Manzoor', hint: 'Manzoor ho gaya, paisa aana baqi hai',
+    label: 'Approve', hint: 'Approve ho gaya, paisa aana baqi hai',
     color: 'bg-sky-500', icon: CheckCircle2,
     pill: 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300',
   },
@@ -63,7 +63,7 @@ const STATUS: Record<string, { label: string; hint: string; color: string; pill:
     pill: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
   },
   REJECTED: {
-    label: 'Rad ho gaya', hint: 'Sarkar ne manzoor nahi kiya',
+    label: 'Rad ho gaya', hint: 'Sarkar ne approve nahi kiya',
     color: 'bg-rose-500', icon: Ban,
     pill: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
   },
@@ -121,7 +121,7 @@ export default function SubsidyPage() {
 
   const approve = useMutation({
     mutationFn: (id: string) => subsidyApi.approve(id),
-    onSuccess: () => { toast.success('Claim manzoor kar diya'); invalidateAll(); },
+    onSuccess: () => { toast.success('Claim approve kar diya'); invalidateAll(); },
     onError: (e: any) => toast.error(e?.response?.data?.message || 'Nahi hua'),
   });
   const reject = useMutation({
@@ -211,7 +211,7 @@ export default function SubsidyPage() {
   /* ── Charts ── */
   const statusPie = useMemo(() => ([
     { name: 'Intezaar me', value: stats.pending, color: '#f59e0b' },
-    { name: 'Manzoor', value: stats.approved, color: '#3b82f6' },
+    { name: 'Approve', value: stats.approved, color: '#3b82f6' },
     { name: 'Paisa mil gaya', value: stats.disbursed, color: '#10b981' },
     { name: 'Rad ho gaya', value: stats.rejected, color: '#ef4444' },
   ].filter((x) => x.value > 0)), [stats]);
@@ -316,9 +316,9 @@ export default function SubsidyPage() {
       [`Mil chuka: ${formatPKR(stats.gotAmount)}`],
       [''],
     ];
-    const head = ['Claim #', 'Scheme', 'Govt scheme', 'CNIC', 'Cheez', 'Tadaad',
+    const head = ['Claim #', 'Scheme', 'Govt scheme', 'CNIC', 'Cheez', 'Quantity',
       'Asal rate', 'Subsidy', 'Farmer ne diya', 'Fasal', 'Raqba (acre)',
-      'Halat', 'Din guzre', 'Manzoori', 'Paisa mila', 'Rad ki wajah'];
+      'Halat', 'Din guzre', 'Approval', 'Paisa mila', 'Rad ki wajah'];
     const body = shown.map((r) => [
       r.claimNumber, r.schemeName, r.govtScheme || '', r.farmerCnic || '',
       r.productType, r.quantity,
@@ -444,7 +444,7 @@ export default function SubsidyPage() {
               ⏳ {stats.overdue} claims ek mahine se zyada atke hue — {formatPKR(stats.overdueAmount)}
             </h3>
             <p className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
-              Ye aap ka apna paisa hai jo aap ne farmer ko chhoot ke tor par diya tha. Sab se
+              Ye aap ka apna paisa hai jo aap ne farmer ko discount ke tor par diya tha. Sab se
               purana claim <strong>{stats.oldestDays} din</strong> ka hai. Daftar me peecha
               karein — list copy karke le jayein ya WhatsApp kar dein.
             </p>
@@ -474,7 +474,7 @@ export default function SubsidyPage() {
           onClick={() => { setTab('claims'); setStatusFilter('DISBURSED'); }}
           active={statusFilter === 'DISBURSED'} />
         <Kpi icon={FileText} label="Kul claims" value={stats.total}
-          sub={`${stats.pending} intezaar · ${stats.approved} manzoor`} tone="lime"
+          sub={`${stats.pending} intezaar · ${stats.approved} approve`} tone="lime"
           onClick={() => { setTab('claims'); setStatusFilter('all'); }} />
         <Kpi icon={Ban} label="Rad ho gaye" value={stats.rejected}
           sub={stats.lostAmount > 0 ? `${formatPKR(stats.lostAmount)} ka nuqsaan` : 'Koi rad nahi hua'}
@@ -541,7 +541,7 @@ export default function SubsidyPage() {
               {([
                 ['all', `Sab (${stats.total})`],
                 ['PENDING', `Intezaar me (${stats.pending})`],
-                ['APPROVED', `Manzoor (${stats.approved})`],
+                ['APPROVED', `Approve (${stats.approved})`],
                 ['DISBURSED', `Paisa mila (${stats.disbursed})`],
                 ['REJECTED', `Rad (${stats.rejected})`],
               ] as const).map(([v, label]) => (
@@ -691,7 +691,7 @@ function ClaimCard({ claim, onApprove, onReject, onDisburse, busy }: {
         <div className="flex items-center gap-1.5 text-[0.6875rem] font-black print:hidden">
           <Step on label="Claim daala" />
           <Line on={claim.status === 'APPROVED' || claim.status === 'DISBURSED'} />
-          <Step on={claim.status === 'APPROVED' || claim.status === 'DISBURSED'} label="Manzoor" />
+          <Step on={claim.status === 'APPROVED' || claim.status === 'DISBURSED'} label="Approve" />
           <Line on={claim.status === 'DISBURSED'} />
           <Step on={claim.status === 'DISBURSED'} label="Paisa mila" />
         </div>
@@ -701,7 +701,7 @@ function ClaimCard({ claim, onApprove, onReject, onDisburse, busy }: {
         <div className="flex gap-1.5 pt-2 border-t border-slate-100 dark:border-ink-800 print:hidden">
           <button onClick={onApprove} disabled={busy}
             className="flex-1 h-10 rounded-xl bg-sky-100 dark:bg-sky-500/20 hover:bg-sky-200 dark:hover:bg-sky-500/30 disabled:opacity-50 text-sky-700 dark:text-sky-300 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition">
-            <CheckCircle2 className="h-3.5 w-3.5" /> Manzoor ho gaya
+            <CheckCircle2 className="h-3.5 w-3.5" /> Approve ho gaya
           </button>
           <button onClick={onReject} disabled={busy}
             className="flex-1 h-10 rounded-xl bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 disabled:opacity-50 text-rose-600 dark:text-rose-400 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition">
@@ -728,7 +728,7 @@ function ClaimCard({ claim, onApprove, onReject, onDisburse, busy }: {
       {(claim.approvalDate || claim.disbursementDate) && (
         <div className="text-[0.6875rem] font-bold text-slate-400 flex gap-3 flex-wrap">
           {claim.approvalDate && (
-            <span>Manzoor: {new Date(claim.approvalDate).toLocaleDateString('en-PK', { dateStyle: 'medium' })}</span>
+            <span>Approve: {new Date(claim.approvalDate).toLocaleDateString('en-PK', { dateStyle: 'medium' })}</span>
           )}
           {claim.disbursementDate && (
             <span>Paisa mila: {new Date(claim.disbursementDate).toLocaleDateString('en-PK', { dateStyle: 'medium' })}</span>
@@ -769,7 +769,7 @@ function Tag({ icon: Icon, children }: any) {
 const COMMON_REASONS = [
   'CNIC ka record match nahi hua',
   'Kaghazat poore nahi thay',
-  'Scheme ki muddat khatam ho chuki',
+  'Scheme ki period khatam ho chuki',
   'Farmer pehle hi is scheme me hai',
   'Raqba (acre) sahi nahi',
 ];
@@ -826,7 +826,7 @@ function RejectModal({ claim, onClose, onConfirm, saving }: {
           </div>
 
           <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-2.5 text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
-            Ye chhoot aap pehle hi farmer ko de chuke hain — rad hone ka matlab hai ke
+            Ye discount aap pehle hi farmer ko de chuke hain — rad hone ka matlab hai ke
             {' '}<strong>{formatPKR(claim.subsidyAmount)}</strong> aap ki jeb se gaya.
           </div>
 
@@ -862,7 +862,7 @@ function Analytics({ stats, statusPie, schemeChart, monthChart, ageChart, rows }
         <MiniStat icon={CheckCircle2} label="Mil chuka" value={formatPKR(stats.gotAmount)} tone="emerald" />
         <MiniStat icon={Clock} label="Abhi atka hua" value={formatPKR(stats.stuckAmount)}
           sub={stats.oldestDays > 0 ? `Sab se purana ${stats.oldestDays} din` : undefined} tone="amber" />
-        <MiniStat icon={TrendingUp} label="Manzoori ki shrah" value={`${approvalRate.toFixed(0)}%`}
+        <MiniStat icon={TrendingUp} label="Approval ki shrah" value={`${approvalRate.toFixed(0)}%`}
           sub={`${stats.rejected} rad hue`} tone={approvalRate >= 80 ? 'emerald' : 'rose'} />
       </section>
 
@@ -1011,7 +1011,7 @@ function SubsidyForm({ onClose, onSaved }: any) {
   const errors: string[] = [];
   if (!form.farmerId) errors.push('Farmer chunein');
   if (!form.productType.trim()) errors.push('Kaunsi cheez par subsidy hai — likhein');
-  if (subsidy <= 0) errors.push('Subsidy ki raqam bharein');
+  if (subsidy <= 0) errors.push('Subsidy ki amount bharein');
   const valid = errors.length === 0;
 
   const save = useMutation({
@@ -1063,7 +1063,7 @@ function SubsidyForm({ onClose, onSaved }: any) {
             {showPicker && (
               <div className="rounded-xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-500/5 p-3 space-y-2">
                 <input autoFocus value={farmerSearch} onChange={(e) => setFarmerSearch(e.target.value)}
-                  placeholder="Naam ya CNIC se dhoondein…"
+                  placeholder="Naam ya CNIC se search…"
                   className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500" />
                 <div className="max-h-52 overflow-y-auto space-y-1">
                   {farmers.length === 0 ? (
@@ -1106,7 +1106,7 @@ function SubsidyForm({ onClose, onSaved }: any) {
             <input value={form.productType} onChange={(e) => setForm({ ...form, productType: e.target.value })}
               placeholder="Urea, DAP, gandum ka beej…" className={inp} />
           </Field>
-          <Field label="Kitni tadaad" opt>
+          <Field label="Kitni quantity" opt>
             <input type="number" min={0} value={form.quantity}
               onChange={(e) => setForm({ ...form, quantity: e.target.value })}
               placeholder="10 bori" className={`${inp} tabular-nums`} />
@@ -1321,7 +1321,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
           <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3">
             <p className="text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
               Kaam teen qadam ka hai: farmer <strong>sasta maal</strong> le jata hai → aap baqi
-              raqam <strong>sarkar se claim</strong> karte hain → sarkar manzoor karke{' '}
+              amount <strong>sarkar se claim</strong> karte hain → sarkar approve karke{' '}
               <strong>paisa deti hai</strong>. Ye safha teeno qadam ka hisab rakhta hai.
             </p>
           </div>
@@ -1335,14 +1335,14 @@ function Teacher({ onClose }: { onClose: () => void }) {
             sarkar se lena, farmer ne diya — aapas me jure hain: koi bhi do bharein, teesra
             khud ban jata hai.
           </Tip>
-          <Tip icon={CheckCircle2} title="Manzoor / rad">
-            Sarkar se jawab aaye to yahan likh dein. Manzoor hone ke baad "Paisa mil gaya" ka
+          <Tip icon={CheckCircle2} title="Approve / rad">
+            Sarkar se jawab aaye to yahan likh dein. Approve hone ke baad "Paisa mil gaya" ka
             button aata hai — jab paisa asal me haath me aa jaye tabhi dabayein, warna hisab
             ghalat ho jayega.
           </Tip>
           <Tip icon={Ban} title="Rad ho jaye to">
             Wajah zaroor likhein. Aglay claim me wohi ghalti dobara nahi hogi. Yaad rahe:
-            rad hone ka matlab hai ke wo chhoot aap ki jeb se gayi.
+            rad hone ka matlab hai ke wo discount aap ki jeb se gayi.
           </Tip>
           <Tip icon={BarChart3} title="Analytics">
             Kis scheme se paisa jaldi milta hai aur kis me atakta hai — chart se foran pata

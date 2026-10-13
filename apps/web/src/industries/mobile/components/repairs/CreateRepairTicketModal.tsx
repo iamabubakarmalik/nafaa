@@ -480,7 +480,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                     <div>
                       <div className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">Device Access</div>
                       <div className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-semibold">
-                        Customer ki ijazat ke sath — testing ke liye zaroori
+                        Customer ki permission ke sath — testing ke liye zaroori
                       </div>
                     </div>
                   </div>
@@ -801,7 +801,7 @@ function RepairFormTeacher({ step, onClose }: { step: 1 | 2 | 3; onClose: () => 
       tips: [
         { emoji: '📷', text: '**IMEI Scan**: Camera icon click karo → phone ka IMEI sticker ya box ka barcode scan karo' },
         { emoji: '📞', text: '**IMEI kaise nikaalein?** Phone dial pad me `*#06#` type karo — screen pe aa jayega' },
-        { emoji: '🔒', text: '**Passcode zaroor lo** — customer ki ijazat se. Testing ke liye zaroori. Delivery ke baad delete' },
+        { emoji: '🔒', text: '**Passcode zaroor lo** — customer ki permission se. Testing ke liye zaroori. Delivery ke baad delete' },
         { emoji: '💾', text: '**SIM/Memory check**: Andar SIM ya card hai? Note kar do — customer wapas maang sakta hai' },
         { emoji: '📝', text: '**Serial/Color**: Optional lekin helpful. Legal record ke liye achha' },
       ],

@@ -48,11 +48,11 @@ export const mobileDashboard = createDashboard({
   useAttention: useMobileAttention,
   widgets: [
     { id: 'mobile-repairs', title: 'Repair desk', description: 'Khule repair har marhale par, aur pickup ke liye tayyar phone', size: 'third', sizes: ANY_SIZE, Component: MobileRepairs },
-    { id: 'mobile-emi', title: 'Kist (EMI)', description: 'Late kiston wale customer aur is mahine ki wusooli', size: 'third', sizes: ANY_SIZE, Component: MobileEmi },
-    { id: 'mobile-stock', title: 'Phone stock', description: 'IMEI stock, aaj ki bikri, used phone aur PTA status', size: 'third', sizes: ['third', 'half'], Component: MobileStock },
+    { id: 'mobile-emi', title: 'Kist (EMI)', description: 'Late kiston wale customer aur is mahine ki receiving', size: 'third', sizes: ANY_SIZE, Component: MobileEmi },
+    { id: 'mobile-stock', title: 'Phone stock', description: 'IMEI stock, aaj ki sale, used phone aur PTA status', size: 'third', sizes: ['third', 'half'], Component: MobileStock },
   ],
   lateWidgets: [
-    { id: 'mobile-profit-sources', title: 'Kamai ka rasta', description: 'Naye phone, used phone, accessories aur repair ka 30 din ka munafa', size: 'third', sizes: ['third', 'half', 'wide'], sensitive: true, Component: MobileProfitSources },
+    { id: 'mobile-profit-sources', title: 'Kamai ka rasta', description: 'Naye phone, used phone, accessories aur repair ka 30 din ka profit', size: 'third', sizes: ['third', 'half', 'wide'], sensitive: true, Component: MobileProfitSources },
   ],
   useQuickActions: useMobileActions,
   moneyMap: { useExtraTiles: useMobileMoneyTiles, productsPath: '/products' },

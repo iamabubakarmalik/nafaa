@@ -820,7 +820,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
 
                 <div className="grid sm:grid-cols-3 gap-3">
                   <PricingInput label="Buyback Price *" hint="Customer ko diye" value={buybackPrice} onChange={setBuybackPrice} tone="emerald" required />
-                  <PricingInput label="Refurbish Cost" hint="Repair ka kharcha" value={refurbishCost} onChange={setRefurbishCost} tone="amber" />
+                  <PricingInput label="Refurbish Cost" hint="Repair ka expense" value={refurbishCost} onChange={setRefurbishCost} tone="amber" />
                   <PricingInput label="Expected Resale" hint="Naye customer ko" value={resalePrice} onChange={setResalePrice} tone="blue" />
                 </div>
 
@@ -1021,7 +1021,7 @@ function TradeInFormTeacher({ step, onClose }: { step: 1 | 2 | 3; onClose: () =>
       tips: [
         { emoji: '🧠', text: '**Auto-Valuation**: Naye phone ki market price daalo → AI condition ke hisab se suggest karega' },
         { emoji: '💵', text: '**Buyback Price**: Customer ko diye. Kam se kam market price ka 65% (Good condition)' },
-        { emoji: '🔧', text: '**Refurbish Cost**: Battery change, screen repair ka kharcha — realistic estimate lagao' },
+        { emoji: '🔧', text: '**Refurbish Cost**: Battery change, screen repair ka expense — realistic estimate lagao' },
         { emoji: '💰', text: '**Resale Price**: Naye customer ko becho ge. Cost + 15% margin minimum rakho' },
         { emoji: '🆔', text: '**Customer CNIC lazmi**: Chori ke phones se bachne ke liye — record rakho' },
         { emoji: '⚠️', text: '**Margin warnings**: <5% = kam profit, >15% = achha deal' },

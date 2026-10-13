@@ -152,7 +152,7 @@ export default function AmcContractsPage() {
     const body = `<table>
       <thead><tr>
         <th>Contract</th><th>Customer</th><th>Phone</th><th>Cheez</th>
-        <th>Qism</th><th>Khatam</th><th class="r">Qeemat</th><th class="r">Diya</th><th class="r">Baqi</th><th>Visits</th>
+        <th>Type</th><th>Khatam</th><th class="r">Qeemat</th><th class="r">Diya</th><th class="r">Baqi</th><th>Visits</th>
       </tr></thead>
       <tbody>${rows.map((c: any) => {
         const pending = Number(c.contractValue ?? 0) - Number(c.paidAmount ?? 0);
@@ -189,7 +189,7 @@ export default function AmcContractsPage() {
     const rows = tab === 'expiring' ? expiring : filtered;
     if (!rows.length) return toast.error('CSV ke liye kuch nahi');
     downloadCsv(`amc-contracts-${new Date().toISOString().slice(0, 10)}.csv`, [
-      ['Contract', 'Qism', 'Halat', 'Customer', 'Phone', 'Pata', 'Cheez', 'Serial',
+      ['Contract', 'Type', 'Halat', 'Customer', 'Phone', 'Pata', 'Cheez', 'Serial',
        'Shuru', 'Khatam', 'Mahine', 'Qeemat', 'Diya', 'Baqi',
        'Free visits', 'Use hue', 'Labor cover', 'Parts cover', 'Gas cover', 'Auto renew'],
       ...rows.map((c: any) => [
@@ -247,7 +247,7 @@ export default function AmcContractsPage() {
               {money(summary?.pendingAmount ?? 0)} baqi
             </span>
             {(summary?.staleActive ?? 0) > 0 && (
-              <span className="text-rose-200"> · ⚠️ {summary?.staleActive} ki tareekh guzar chuki</span>
+              <span className="text-rose-200"> · ⚠️ {summary?.staleActive} ki date guzar chuki</span>
             )}
           </>
         }
@@ -276,7 +276,7 @@ export default function AmcContractsPage() {
             </div>
             <div className="min-w-0 flex-1">
               <div className="font-extrabold text-rose-900 dark:text-rose-200">
-                {stale.length} contract ki tareekh guzar chuki hai magar abhi bhi "chal raha" likha hai
+                {stale.length} contract ki date guzar chuki hai magar abhi bhi "chal raha" likha hai
               </div>
               <p className="text-xs font-bold text-rose-800 dark:text-rose-300 mt-0.5">
                 In par muft visits hoti reh sakti hain jabke paisa khatam ho chuka. Ya renew karein ya khatam ka nishan laga dein.
@@ -308,7 +308,7 @@ export default function AmcContractsPage() {
         <Kpi icon={Clock} label="Khatam ho rahe" tone="amber" value={summary?.expiringSoon ?? 0}
           sub="Agle 30 din me" alert={(summary?.expiringSoon ?? 0) > 0}
           onClick={() => setTab('expiring')} />
-        <Kpi icon={AlertTriangle} label="Tareekh guzri" tone="rose" value={summary?.staleActive ?? 0}
+        <Kpi icon={AlertTriangle} label="Date guzri" tone="rose" value={summary?.staleActive ?? 0}
           sub="Magar abhi ACTIVE hai" alert={(summary?.staleActive ?? 0) > 0}
           onClick={() => setTab('expiring')} />
         <Kpi icon={Wallet} label="Baqi paisa" tone="rose" value={money(summary?.pendingAmount ?? 0)}
@@ -364,7 +364,7 @@ export default function AmcContractsPage() {
               <ChipRow value={statusFilter === 'all' ? null : statusFilter}
                 onChange={(v) => setStatusFilter((v ?? 'all') as StatusFilter)}
                 options={STATUS_CHIPS.map((c) => ({ value: c.v, label: c.label }))} />
-              <ChipRow allLabel="Har qism" value={typeFilter === 'all' ? null : typeFilter}
+              <ChipRow allLabel="Har type" value={typeFilter === 'all' ? null : typeFilter}
                 onChange={(v) => setTypeFilter(v ?? 'all')}
                 options={Object.entries(AMC_TYPE_META).map(([k, m]) => ({ value: k, label: `${m.emoji} ${m.label}` }))} />
             </div>
@@ -383,7 +383,7 @@ export default function AmcContractsPage() {
                 title={search || statusFilter !== 'all' || typeFilter !== 'all' ? 'Is chaant par koi contract nahi' : 'Abhi koi AMC nahi bana'}
                 hint={search || statusFilter !== 'all' || typeFilter !== 'all'
                   ? 'Chaant hata kar dobara dekhein'
-                  : 'AMC dukaan ka sab se khamosh munafa hai — paisa ek dafa, kaam saal bhar thoda thoda. Pehla contract banayein.'}
+                  : 'AMC dukaan ka sab se khamosh profit hai — paisa ek dafa, kaam saal bhar thoda thoda. Pehla contract banayein.'}
                 action={
                   search || statusFilter !== 'all' || typeFilter !== 'all' ? (
                     <Button variant="secondary" onClick={() => { setSearch(''); setStatusFilter('all'); setTypeFilter('all'); }}>
@@ -446,7 +446,7 @@ export default function AmcContractsPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-extrabold text-slate-900 dark:text-ink-white font-mono text-sm">{c.contractNumber}</span>
                           <StatusBadge meta={amcTypeMeta(c.amcType)} size="xs" />
-                          {over && <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-black">TAREEKH GUZRI</span>}
+                          {over && <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-black">DATE GUZRI</span>}
                         </div>
                         <div className="font-bold text-sm text-slate-800 dark:text-ink-100 mt-0.5 truncate">
                           {c.customerName} · {c.customerPhone}
@@ -488,7 +488,7 @@ export default function AmcContractsPage() {
       {tab === 'analytics' && (
         <div className="space-y-4">
           <div className="grid lg:grid-cols-2 gap-4">
-            <Panel icon={Layers} title="Kis Qism Ke Kitne" hint="Contract ki qeemat ke hisab se" tone="violet">
+            <Panel icon={Layers} title="Kis Type Ke Kitne" hint="Contract ki qeemat ke hisab se" tone="violet">
               {typeData.length === 0 ? (
                 <Empty icon={Layers} title="Abhi koi chalta hua contract nahi" />
               ) : (
@@ -508,7 +508,7 @@ export default function AmcContractsPage() {
               )}
             </Panel>
 
-            <Panel icon={HandCoins} title="Wasool vs Baqi" hint="Har qism ka paisa" tone="emerald">
+            <Panel icon={HandCoins} title="Wasool vs Baqi" hint="Har type ka paisa" tone="emerald">
               {typeData.length === 0 ? (
                 <Empty icon={HandCoins} title="Abhi koi hisab nahi" />
               ) : (
@@ -581,10 +581,10 @@ export default function AmcContractsPage() {
           intro="AMC yaani saalana maintenance ka muahida — customer ek dafa paisa deta hai aur saal bhar muqarrar visits, labor ya parts free milte hain. Dukaan ke liye ye pehle se aaya hua paisa hai; customer ke liye be-fikri."
           blocks={[
             {
-              title: 'Sab se ahem: tareekh guzri magar ACTIVE',
+              title: 'Sab se ahem: date guzri magar ACTIVE',
               tone: 'rose',
               tips: [
-                'Jab contract ki tareekh guzar jati hai magar halat abhi "chal raha" likhi hoti hai, to us par muft visits hoti reh sakti hain — jabke paisa khatam ho chuka.',
+                'Jab contract ki date guzar jati hai magar halat abhi "chal raha" likhi hoti hai, to us par muft visits hoti reh sakti hain — jabke paisa khatam ho chuka.',
                 'Upar laal patti isi ka nishan hai. Ya renew karein ya "Khatam" ka nishan laga dein.',
               ],
             },
@@ -593,7 +593,7 @@ export default function AmcContractsPage() {
               tone: 'amber',
               tips: [
                 '"Khatam Ho Rahe" tab me wo contract hain jo agle 60 din me khatam ho rahe hain — sab se qareeb sab se upar.',
-                'WhatsApp ka button customer ka naam aur tareekh khud likh deta hai — bas bhej dein.',
+                'WhatsApp ka button customer ka naam aur date khud likh deta hai — bas bhej dein.',
                 'Renew karte waqt nayi muddat aur nayi qeemat daalein; purana record waise ka waisa mehfooz rehta hai.',
               ],
             },
@@ -758,7 +758,7 @@ function RenewSheet({ c, pending, onClose, onSubmit }: {
     <Sheet title={`Renew — ${c.contractNumber}`} subtitle={`${c.customerName} · ab tak ${fmtDate(c.expiryDate)} tak tha`} onClose={onClose}>
       <div className="space-y-3">
         <div className="rounded-2xl bg-cyan-50 dark:bg-cyan-500/10 border-2 border-cyan-200 dark:border-cyan-500/30 p-3 text-[0.75rem] font-bold text-cyan-900 dark:text-cyan-200">
-          Nayi muddat aaj ke baad se shuru hogi. Purana record waise ka waisa mehfooz rahega — sirf nayi tareekh, nayi qeemat aur nayi free visits set hongi.
+          Nayi period aaj ke baad se shuru hogi. Purana record waise ka waisa mehfooz rahega — sirf nayi date, nayi qeemat aur nayi free visits set hongi.
         </div>
 
         <div className="grid grid-cols-2 gap-3">

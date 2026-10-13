@@ -157,7 +157,7 @@ export default function CustomOrderDetailPage() {
         )}
         {['READY_FOR_DELIVERY', 'OUT_FOR_DELIVERY'].includes(order.status) && (
           <ActionCard onClick={() => {
-            if (confirm('Furniture customer ko mil gaya? Bill ban jayega aur baqi raqam khate me udhaar hogi.')) updateStatus.mutate({ status: 'DELIVERED' });
+            if (confirm('Furniture customer ko mil gaya? Bill ban jayega aur baqi amount khate me udhaar hogi.')) updateStatus.mutate({ status: 'DELIVERED' });
           }} icon={CheckCircle2} label="Delivered" desc="Bill banao" tone="emerald" />
         )}
         {order.status === 'DELIVERED' && (

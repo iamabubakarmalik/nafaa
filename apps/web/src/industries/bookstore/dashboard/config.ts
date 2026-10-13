@@ -22,7 +22,7 @@ function useBookstoreActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
     { to: '/bookstore-products/new', icon: Plus, label: 'Nayi cheez', hint: 'Kitaab ya stationery' },
     { to: '/bookstore/books', icon: BookOpen, label: 'Kitaben', hint: `${totals.books} kitaben` },
     { to: '/bookstore/stationery', icon: PenTool, label: 'Stationery', hint: `${totals.stationery} cheezein` },
@@ -34,7 +34,7 @@ function useBookstoreActions(): QuickAction[] {
     { to: '/bookstore/publishers', icon: Building2, label: 'Publishers', hint: `${totals.publishers} publishers` },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }
@@ -49,7 +49,7 @@ export const bookstoreDashboard = createDashboard({
   widgets: [
     { id: 'bookstore-rentals', title: 'Late kitaben', description: 'Kiraye ki kitaben jo waqt par wapas nahi aayin', size: 'third', sizes: ANY_SIZE, Component: BookstoreRentals },
     { id: 'bookstore-school', title: 'School aur textbooks', description: 'Chaalu school lists aur class ke hisaab se textbooks', size: 'third', sizes: ['third', 'half', 'wide'], Component: BookstoreSchool },
-    { id: 'bookstore-catalog', title: 'Maal ki tafseel', description: 'Kitaben, stationery, art supplies aur top publishers', size: 'third', sizes: ['third', 'half', 'wide'], Component: BookstoreCatalog },
+    { id: 'bookstore-catalog', title: 'Maal ki details', description: 'Kitaben, stationery, art supplies aur top publishers', size: 'third', sizes: ['third', 'half', 'wide'], Component: BookstoreCatalog },
   ],
   useQuickActions: useBookstoreActions,
   moneyMap: { productsPath: '/products' },

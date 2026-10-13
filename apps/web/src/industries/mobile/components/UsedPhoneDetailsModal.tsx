@@ -324,8 +324,8 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
               ) : (
                 <div className="grid grid-cols-3 gap-2">
                   <PriceCell label="Buyback" value={formatPKR(phone.buybackPrice)} sub="customer ko diye" />
-                  <PriceCell label="Repair" value={formatPKR(phone.refurbishCost || 0)} sub="refurbish kharcha" />
-                  <PriceCell label={status === 'SOLD' ? 'Sold At' : 'Resale'} value={formatPKR(phone.finalSoldPrice || phone.resalePrice)} sub={status === 'SOLD' ? 'final bikri' : 'asking price'} highlight />
+                  <PriceCell label="Repair" value={formatPKR(phone.refurbishCost || 0)} sub="refurbish expense" />
+                  <PriceCell label={status === 'SOLD' ? 'Sold At' : 'Resale'} value={formatPKR(phone.finalSoldPrice || phone.resalePrice)} sub={status === 'SOLD' ? 'final sale' : 'asking price'} highlight />
                 </div>
               )}
 

@@ -308,7 +308,7 @@ export class ApplianceWarrantyClaimsService {
     if (!c) throw new NotFoundException('Claim nahi mila');
     if (c.status !== 'DRAFT') throw new BadRequestException('Ye claim pehle hi bheja ja chuka hai');
     if (Number(c.claimedAmount) <= 0) {
-      throw new BadRequestException('Pehle parts/labor ka kharcha bharein — warna claim khali jayega');
+      throw new BadRequestException('Pehle parts/labor ka expense bharein — warna claim khali jayega');
     }
 
     return this.prisma.applianceWarrantyClaim.update({
@@ -334,7 +334,7 @@ export class ApplianceWarrantyClaimsService {
 
     const approved = dto.approvedAmount ?? 0;
     if (approved > Number(c.claimedAmount)) {
-      throw new BadRequestException('Manzoor shuda raqam claim se ziyada nahi ho sakti');
+      throw new BadRequestException('Approve shuda amount claim se ziyada nahi ho sakti');
     }
 
     return this.prisma.applianceWarrantyClaim.update({
@@ -358,7 +358,7 @@ export class ApplianceWarrantyClaimsService {
 
     const received = Number(c.receivedAmount) + dto.receivedAmount;
     if (received > Number(c.claimedAmount)) {
-      throw new BadRequestException('Kul wusool claim ki raqam se ziyada nahi ho sakti');
+      throw new BadRequestException('Kul receive claim ki amount se ziyada nahi ho sakti');
     }
 
     return this.prisma.applianceWarrantyClaim.update({

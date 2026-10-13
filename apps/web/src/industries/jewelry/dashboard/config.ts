@@ -23,7 +23,7 @@ function useJewelryActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
     { to: '/jewelry/metal-rates', icon: Coins, label: 'Aaj ka rate', hint: rates.stale ? `${rates.ageDays} din purana` : rates.list.length ? 'Update hai' : 'Lagayein' },
     { to: '/jewelry-items/new', icon: Plus, label: 'Naya zewar', hint: 'Maal me daalein' },
     { to: '/jewelry/custom-orders', icon: Palette, label: 'Custom order', hint: orders.late.length ? `${orders.late.length} late` : `${orders.pending} chaalu` },
@@ -31,7 +31,7 @@ function useJewelryActions(): QuickAction[] {
     { to: '/jewelry/karigars', icon: Hammer, label: 'Karigar', hint: karigars.gramsOut > 0 ? `${fmtGrams(karigars.gramsOut)} baqi` : `${karigars.active} log` },
     { to: '/jewelry/metal-stock', icon: Scale, label: 'Metal stock', hint: `${fmtGrams(metal.gold)} sona` },
     { to: '/jewelry/products', icon: Gem, label: 'Zewar', hint: `${s?.totalProducts ?? 0} items` },
-    { to: '/jewelry/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/jewelry/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
@@ -48,7 +48,7 @@ export const jewelryDashboard = createDashboard({
   useAttention: useJewelryAttention,
   widgets: [
     { id: 'jewelry-rates', title: 'Aaj ke rate', description: 'Sona, chandi aur platinum ka fi gram rate', size: 'third', sizes: ['third', 'half'], Component: JewelryRates },
-    { id: 'jewelry-orders', title: 'Custom order', description: 'Banwaye ja rahe zewar, waade ki tareekh se', size: 'third', sizes: ANY_SIZE, Component: JewelryOrders },
+    { id: 'jewelry-orders', title: 'Custom order', description: 'Banwaye ja rahe zewar, waade ki date se', size: 'third', sizes: ANY_SIZE, Component: JewelryOrders },
     { id: 'jewelry-weight', title: 'Wazan ka hisaab', description: '30 din me kitna sona-chandi bika aur purana kitna aaya', size: 'third', sizes: ['third', 'half', 'wide'], Component: JewelryWeight },
   ],
   lateWidgets: [

@@ -21,7 +21,7 @@ function useShoeActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Sale karein' },
     { to: '/shoe-products/new', icon: Plus, label: 'Naya joota', hint: 'Maal me daalein' },
     { to: '/shoe-products', icon: Footprints, label: 'Maal', hint: `${sh.totals.totalProducts} design` },
     { to: '/shoe/try-on', icon: HandMetal, label: 'Try-on', hint: sh.tryOn.pending ? `${sh.tryOn.pending} baqi` : 'Size mangwayein' },
@@ -30,7 +30,7 @@ function useShoeActions(): QuickAction[] {
     { to: '/shoe/size-charts', icon: Ruler, label: 'Size charts', hint: 'UK / EU / US' },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }

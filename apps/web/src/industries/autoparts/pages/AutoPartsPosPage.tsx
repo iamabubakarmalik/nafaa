@@ -154,7 +154,7 @@ export default function AutoPartsPosPage() {
         ? `Vehicle: ${[vehicle.registrationNumber, vehicle.makeName, vehicle.modelName].filter(Boolean).join(' ')}`
         : undefined;
       // Counter rules (discount limit, credit limit) may ask for the owner's PIN.
-      return withManagerPin('Is bill ki manzoori', (managerPin) => offlineSalesApi.create({
+      return withManagerPin('Is bill ki approval', (managerPin) => offlineSalesApi.create({
         ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,

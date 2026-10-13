@@ -215,7 +215,7 @@ export default function JewelryPosPage() {
     mutationFn: () => {
       if (!currentShopId) throw new Error('Shop required');
       // Counter rules (big discount or old-gold value, credit limit) may ask for an owner or manager PIN.
-      return withManagerPin('Is bill ki manzoori', (managerPin) => jewelrySalesApi.create({
+      return withManagerPin('Is bill ki approval', (managerPin) => jewelrySalesApi.create({
         customerId: customerId || undefined,
         customerName: customerName || selectedCustomer?.name || 'Walk-in',
         customerPhone: customerPhone || selectedCustomer?.phone || undefined,
@@ -280,7 +280,7 @@ export default function JewelryPosPage() {
     if (cart.length === 0) return toast.error('Cart empty');
     if (!currentShopId) return toast.error('Select shop first');
     if (!customerName && !selectedCustomer && !customerId) return toast.error('Customer ka naam likhein');
-    if (balance > 0 && !customerId) return toast.error('Baqi raqam udhaar hai — customer list se chunein ya poori raqam likhein');
+    if (balance > 0 && !customerId) return toast.error('Baqi amount udhaar hai — customer list se chunein ya poori amount likhein');
     if (total > 50000 && !customerCnic && !selectedCustomer?.cnic) {
       if (!confirm('High-value sale (>Rs 50,000) — CNIC recommended. Proceed anyway?')) return;
     }

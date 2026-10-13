@@ -121,7 +121,7 @@ export class CreditAccountsService {
     const found = await this.prisma.hardwareCreditAccount.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!found) throw new NotFoundException('Account not found');
     const [a] = await this.live(user.tenantId, [found]);
-    if (a.currentBalance > 0.01) throw new BadRequestException('Udhaar baqi hai — pehle wusooli karein, phir khata band karein');
+    if (a.currentBalance > 0.01) throw new BadRequestException('Udhaar baqi hai — pehle receiving karein, phir khata band karein');
     return this.prisma.hardwareCreditAccount.update({
       where: { id },
       data: { status: 'CLOSED', closedAt: new Date(), notes: ((a.notes || '') + '\nClosed: ' + (reason || '')).trim() },

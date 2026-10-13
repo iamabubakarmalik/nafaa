@@ -316,7 +316,7 @@ export class AppliancesAnalyticsService {
 
       /** Kamai ke raste alag alag — har raasta bills se, is liye jor report ke barabar */
       streams: [
-        { key: 'GOODS', label: 'Maal ki bikri', revenue: goods.revenue, cost: goods.cost, profit: goods.profit, count: goodsBills },
+        { key: 'GOODS', label: 'Maal ki sale', revenue: goods.revenue, cost: goods.cost, profit: goods.profit, count: goodsBills },
         { key: 'INSTALLATION', label: 'Installation', ...st('INSTALLATION'), count: instJobs },
         { key: 'SERVICE', label: 'Repair / Service', ...st('SERVICE'), count: svcJobs },
         { key: 'AMC', label: 'AMC contracts', ...st('AMC'), count: amcs.length },

@@ -29,7 +29,7 @@ export class LayawayService {
     );
 
     const deposit = r2(Math.max(Number(dto.depositAmount) || 0, 0));
-    if (deposit > dto.totalAmount + 0.01) throw new BadRequestException('Deposit kul raqam se zyada nahi ho sakta');
+    if (deposit > dto.totalAmount + 0.01) throw new BadRequestException('Deposit kul amount se zyada nahi ho sakta');
     const remaining = r2(dto.totalAmount - deposit);
     const installmentAmount = Math.ceil((remaining / dto.installmentCount) * 100) / 100;
 
@@ -124,7 +124,7 @@ export class LayawayService {
 
     if (plan.status !== 'ACTIVE') throw new BadRequestException('Yeh plan band ho chuka hai');
     const amount = r2(dto.amount);
-    if (!(amount > 0)) throw new BadRequestException('Raqam sahi likhein');
+    if (!(amount > 0)) throw new BadRequestException('Amount sahi likhein');
     if (amount > r2(plan.remainingAmount) + 0.01) throw new BadRequestException(`Baqi sirf Rs ${r2(plan.remainingAmount)} hai`);
 
     return this.prisma.$transaction(async (tx) => {
@@ -196,7 +196,7 @@ export class LayawayService {
   async cancel(user: AuthenticatedUser, id: string, reason?: string) {
     const plan = await this.prisma.garmentLayawayPlan.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!plan) throw new NotFoundException('Plan not found');
-    if (plan.status === 'COMPLETED') throw new BadRequestException('Poora plan cancel nahi ho sakta — bill ki Wapsi karein');
+    if (plan.status === 'COMPLETED') throw new BadRequestException('Poora plan cancel nahi ho sakta — bill ki Return karein');
     // Money already taken stays on the customer's khata as their advance.
     return this.prisma.garmentLayawayPlan.update({
       where: { id },

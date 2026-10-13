@@ -23,7 +23,7 @@ function useAgriActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
     { to: '/agri/farmers', icon: Tractor, label: 'Farmer', hint: farmers.overdue ? `${farmers.overdue} late` : `${farmers.total} log` },
     { to: '/agri/bulk-orders/new', icon: Boxes, label: 'Bara order', hint: 'Naya order' },
     { to: '/agri/bulk-orders', icon: Boxes, label: 'Bare order', hint: 'Sab dekhein' },
@@ -34,8 +34,8 @@ function useAgriActions(): QuickAction[] {
     { to: '/agri/products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
-    { to: '/profit-report', icon: PiggyBank, label: 'Munafa', hint: 'Nafa-nuqsan' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
+    { to: '/profit-report', icon: PiggyBank, label: 'Profit', hint: 'Profit-loss' },
   ];
 }
 
@@ -49,7 +49,7 @@ export const agriDashboard = createDashboard({
   useAttention: useAgriAttention,
   widgets: [
     { id: 'agri-season', title: 'Bijai qareeb hai', description: 'Kis fasal ki bijai aa rahi hai aur maal tayyar hai ya nahi', size: 'third', sizes: ANY_SIZE, Component: AgriSeason },
-    { id: 'agri-recovery', title: 'Farmer wusooli', description: 'Jin farmers ke udhaar ka waqt guzar gaya', size: 'third', sizes: ANY_SIZE, sensitive: true, Component: AgriRecovery },
+    { id: 'agri-recovery', title: 'Farmer receiving', description: 'Jin farmers ke udhaar ka waqt guzar gaya', size: 'third', sizes: ANY_SIZE, sensitive: true, Component: AgriRecovery },
     { id: 'agri-registration', title: 'Registration', description: 'Beej, khaad aur dawa ki registration khatam ya qareeb', size: 'third', sizes: ANY_SIZE, Component: AgriRegistration },
   ],
   lateWidgets: [
@@ -59,6 +59,6 @@ export const agriDashboard = createDashboard({
   moneyMap: { useExtraTiles: useAgriMoneyTiles, useNotes: useAgriMoneyNotes, productsPath: '/agri/products' },
   guide: [
     { icon: Sprout, title: 'Bijai ka mausam', text: 'Bijai ka waqt hi wo waqt hai jab farmer sab se zyada kharch karta hai. Jis fasal ka maal kam ya khatam ho, wo laal me upar aati hai — pehle se mangwa lein.' },
-    { icon: Tractor, title: 'Wusooli aur registration', text: 'Har farmer ke udhaar ke din alag hain — jin ka waqt guzra wo upar. Registration khatam hone wala beej, khaad aur dawa bhi yahan nazar aata hai.' },
+    { icon: Tractor, title: 'Receiving aur registration', text: 'Har farmer ke udhaar ke din alag hain — jin ka waqt guzra wo upar. Registration khatam hone wala beej, khaad aur dawa bhi yahan nazar aata hai.' },
   ],
 });

@@ -17,7 +17,7 @@ export class CustomOrdersService {
 
   async create(user: AuthenticatedUser, dto: any) {
     if (!dto.customerName || !dto.customerPhone) throw new BadRequestException('Customer ka naam aur phone zaroori hai');
-    if (!dto.designDescription) throw new BadRequestException('Design ki tafseel likhein');
+    if (!dto.designDescription) throw new BadRequestException('Design ki details likhein');
     const advance = r2(Math.max(Number(dto.advancePayment) || 0, 0));
 
     const count = await this.prisma.jewelryCustomOrder.count({ where: { tenantId: user.tenantId } });
@@ -198,9 +198,9 @@ export class CustomOrdersService {
   async addPayment(user: AuthenticatedUser, id: string, amount: number) {
     const o = await this.getOne(user, id);
     const amt = r2(Number(amount) || 0);
-    if (amt <= 0) throw new BadRequestException('Raqam sahi likhein');
+    if (amt <= 0) throw new BadRequestException('Amount sahi likhein');
     if (o.status === 'DELIVERED' || o.status === 'CANCELLED') {
-      throw new BadRequestException('Order band hai — baqi raqam customer ke Khata se wasool karein');
+      throw new BadRequestException('Order band hai — baqi amount customer ke Khata se wasool karein');
     }
     return this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, null);

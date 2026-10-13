@@ -34,7 +34,7 @@ export const REPAIR_STATUS_LABELS: Record<RepairStatus, string> = {
 export const REPAIR_STATUS_URDU: Record<RepairStatus, string> = {
   RECEIVED: 'Mila',
   DIAGNOSED: 'Check ho gaya',
-  AWAITING_APPROVAL: 'Customer ki manzoori chahiye',
+  AWAITING_APPROVAL: 'Customer ki approval chahiye',
   AWAITING_PARTS: 'Parts ka intezaar',
   IN_PROGRESS: 'Kaam chal raha hai',
   READY: 'Tayyar (Pickup)',
@@ -125,7 +125,7 @@ export const VALID_STATUS_TRANSITIONS: Record<RepairStatus, RepairStatus[]> = {
 
 export const STATUS_NEXT_ACTIONS: Record<RepairStatus, string> = {
   RECEIVED:          'Ab device check kar ke Diagnose karein',
-  DIAGNOSED:         'Customer ko estimate batayein → Manzoori ya Parts order',
+  DIAGNOSED:         'Customer ko estimate batayein → Approval ya Parts order',
   AWAITING_APPROVAL: 'Customer se estimate approve karwayein',
   AWAITING_PARTS:    'Parts aa jayein to In Progress karein',
   IN_PROGRESS:       'Repair khatam ho to Ready mark karein',

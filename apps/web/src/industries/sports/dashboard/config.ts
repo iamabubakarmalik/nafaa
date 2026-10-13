@@ -21,7 +21,7 @@ function useSportsActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Sale karein' },
     { to: '/sports-products/new', icon: Plus, label: 'Naya product', hint: 'Maal me daalein' },
     { to: '/sports-products', icon: Package, label: 'Products', hint: `${totalProducts || s?.totalProducts || 0} items` },
     { to: '/sports/team-orders/new', icon: Users, label: 'Team order', hint: 'Naya order' },
@@ -30,7 +30,7 @@ function useSportsActions(): QuickAction[] {
     { to: '/sports/brands', icon: Award, label: 'Brands', hint: `${totalBrands} brands` },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }
@@ -42,7 +42,7 @@ export const sportsDashboard = createDashboard({
   defaultKpis: ['sports-team-orders', 'sports-repairs', 'profit', 'month', 'cash', 'low-stock'],
   useAttention: useSportsAttention,
   widgets: [
-    { id: 'sports-team-deliveries', title: 'Team order delivery', description: 'Agle 14 din me dene wale team orders aur baqi raqam', size: 'half', sizes: ANY_SIZE, Component: SportsTeamDeliveries },
+    { id: 'sports-team-deliveries', title: 'Team order delivery', description: 'Agle 14 din me dene wale team orders aur baqi amount', size: 'half', sizes: ANY_SIZE, Component: SportsTeamDeliveries },
     { id: 'sports-repairs', title: 'Repair me saamaan', description: 'Bat, racket aur doosra saamaan jo repair me hai', size: 'half', sizes: ANY_SIZE, Component: SportsRepairs },
   ],
   lateWidgets: [
@@ -51,7 +51,7 @@ export const sportsDashboard = createDashboard({
   useQuickActions: useSportsActions,
   moneyMap: { useExtraTiles: useSportsMoneyTiles, productsPath: '/sports-products' },
   guide: [
-    { icon: Users, title: 'Team orders', text: 'Jersey aur kit ke bare order delivery ki tareekh se lage hain. Jo 3 din me dena hai aur tayyar nahi, wo "Aaj ka kaam" me upar aata hai — baqi raqam bhi saath likhi hai.' },
+    { icon: Users, title: 'Team orders', text: 'Jersey aur kit ke bare order delivery ki date se lage hain. Jo 3 din me dena hai aur tayyar nahi, wo "Aaj ka kaam" me upar aata hai — baqi amount bhi saath likhi hai.' },
     { icon: Wrench, title: 'Repairs', text: 'Jo repair waada kiye waqt se late ho gayi wo laal dikhti hai. Jo mukammal ho chuki uske customer ko call karein taake saamaan le jaye.' },
   ],
 });

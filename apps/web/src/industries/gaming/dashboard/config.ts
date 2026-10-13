@@ -55,6 +55,6 @@ export const gamingDashboard = createDashboard({
   moneyMap: { productsPath: '/gaming-products' },
   guide: [
     { icon: Timer, title: 'Live sessions', text: 'Har chalta station, kitni der se khel raha hai aur ab tak ka bill. Ruka hua session peela dikhta hai — bhool kar chalta na rahe.' },
-    { icon: PackageOpen, title: 'Rentals aur top-ups', text: 'Late rental aur khatam hote top-up card "Aaj ka kaam" me upar aate hain — wapsi mangwayein, codes waqt par mangwayein.' },
+    { icon: PackageOpen, title: 'Rentals aur top-ups', text: 'Late rental aur khatam hote top-up card "Aaj ka kaam" me upar aate hain — return mangwayein, codes waqt par mangwayein.' },
   ],
 });

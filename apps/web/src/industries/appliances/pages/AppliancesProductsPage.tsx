@@ -193,7 +193,7 @@ export default function AppliancesProductsPage() {
       qc.invalidateQueries({ queryKey: ['appliance-products-list'] });
       qc.invalidateQueries({ queryKey: ['appliance-profiles'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete nahi hua — bikri ka record ho sakta hai'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Delete nahi hua — sale ka record ho sakta hai'),
   });
 
   const clearFilters = () => { setSearch(''); setGroup(null); setBrandId(''); setFlag(null); };
@@ -205,10 +205,10 @@ export default function AppliancesProductsPage() {
     downloadCsv(`appliance-products-${toDateInput(new Date())}.csv`, [
       [`Products — ${shopName}`],
       [`Nikala gaya: ${new Date().toLocaleString('en-PK')}`],
-      [`${stats.count} products • ${stats.units} units • lagat ${stats.value.toFixed(0)}`],
+      [`${stats.count} products • ${stats.units} units • cost ${stats.value.toFixed(0)}`],
       [],
-      ['Naam', 'Qism', 'Brand', 'Model', 'SKU', 'Barcode', 'Capacity', 'Energy',
-       'Stock', 'Alert', 'Lagat/unit', 'Bechne ka rate', 'Kul lagat', 'Bechne par',
+      ['Naam', 'Type', 'Brand', 'Model', 'SKU', 'Barcode', 'Capacity', 'Energy',
+       'Stock', 'Alert', 'Cost/unit', 'Bechne ka rate', 'Kul cost', 'Bechne par',
        'Serial chahiye', 'Lagana parta', 'Installation charge',
        'Warranty (mah)', 'Compressor (mah)', 'Motor (mah)', 'Bhari saman'],
       ...printRows.map((r) => [
@@ -233,7 +233,7 @@ export default function AppliancesProductsPage() {
       <table>
         <thead><tr>
           <th>#</th><th>Cheez</th><th>Brand / Model</th><th class="c">Stock</th>
-          <th class="c">Serial</th><th class="c">Install</th><th class="r">Lagat</th><th class="r">Bechna</th>
+          <th class="c">Serial</th><th class="c">Install</th><th class="r">Cost</th><th class="r">Bechna</th>
         </tr></thead>
         <tbody>
           ${printRows.map((r, i) => `
@@ -251,7 +251,7 @@ export default function AppliancesProductsPage() {
               <td class="r">${formatPKR(r.price)}</td>
             </tr>`).join('')}
           <tr class="grand">
-            <td colspan="6" style="text-align:right;padding-right:12px;">KUL LAGAT</td>
+            <td colspan="6" style="text-align:right;padding-right:12px;">KUL COST</td>
             <td class="r" style="color:#a5f3fc !important;">${formatPKR(printRows.reduce((s, r) => s + r.stockValue, 0))}</td>
             <td class="r" style="color:#86efac !important;">${formatPKR(printRows.reduce((s, r) => s + r.retailValue, 0))}</td>
           </tr>
@@ -264,7 +264,7 @@ export default function AppliancesProductsPage() {
       shopName, shopPhone, badge: 'Product Report',
       kpis: [
         { label: '📦 Products', value: String(stats.count), sub: `${stats.units} units`, tone: 'blue' },
-        { label: '💰 Stock Ki Lagat', value: formatPKR(stats.value), tone: 'green' },
+        { label: '💰 Stock Ki Cost', value: formatPKR(stats.value), tone: 'green' },
         { label: '🔖 Serial Wale', value: String(stats.serial), sub: `${stats.install} lagane wale`, tone: 'amber' },
         { label: '⚠️ Kam / Khatam', value: `${stats.low} / ${stats.out}`, tone: 'rose' },
       ],
@@ -322,7 +322,7 @@ export default function AppliancesProductsPage() {
       />
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-        <Kpi icon={Boxes} tone="cyan" label="Stock Ki Lagat" value={formatPKR(stats.value)}
+        <Kpi icon={Boxes} tone="cyan" label="Stock Ki Cost" value={formatPKR(stats.value)}
           sub={`${stats.units} units • bechne par ${formatPKR(stats.retail)}`} />
         <Kpi icon={Barcode} tone="violet" label="Serial Wale" value={stats.serial}
           sub="in ka serial register rakhna parta hai"
@@ -339,9 +339,9 @@ export default function AppliancesProductsPage() {
         <div className="rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex items-start gap-2.5">
           <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="text-xs font-bold text-amber-900 dark:text-amber-200">
-            <strong>{stats.noProfile} products</strong> ki appliance tafseel adhoori hai — warranty, installation
+            <strong>{stats.noProfile} products</strong> ki appliance details adhoori hai — warranty, installation
             charge aur serial ki setting nahi lagi. Aise product par POS installation book nahi kar sakta.
-            Card par <span className="px-1.5 py-0.5 rounded bg-amber-200 dark:bg-amber-500/30 text-[0.6875rem] font-black">TAFSEEL BAQI</span> likha hota hai.
+            Card par <span className="px-1.5 py-0.5 rounded bg-amber-200 dark:bg-amber-500/30 text-[0.6875rem] font-black">DETAILS BAQI</span> likha hota hai.
           </div>
         </div>
       )}
@@ -398,7 +398,7 @@ export default function AppliancesProductsPage() {
           {showFilters && (
             <Panel className="space-y-3">
               <div>
-                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Qism</div>
+                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Type</div>
                 <ChipRow
                   options={CATEGORY_GROUPS.filter((g) => groupCounts.get(g)).map((g) => ({ value: g, label: g, count: groupCounts.get(g) }))}
                   value={group} onChange={setGroup} allLabel={`Sab (${rows.length})`} />
@@ -438,7 +438,7 @@ export default function AppliancesProductsPage() {
                 <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center font-extrabold tabular-nums text-sm">{picked.size}</div>
                 <div className="text-xs font-extrabold leading-tight">
                   chune hue<br />
-                  <span className="text-white/60 font-bold">lagat {formatPKR(pickedRows.reduce((s, r) => s + r.stockValue, 0))}</span>
+                  <span className="text-white/60 font-bold">cost {formatPKR(pickedRows.reduce((s, r) => s + r.stockValue, 0))}</span>
                 </div>
               </div>
               <button onClick={() => setPicked(allPicked ? new Set() : new Set(filtered.map((r) => r.id)))}
@@ -552,7 +552,7 @@ function ProductCard({ r, checked, onToggle, onDelete }: any) {
         {/* Badges — appliance ki khaas baatein */}
         <div className="mt-2.5 flex gap-1 flex-wrap">
           {!r.hasProfile && (
-            <span className="px-1.5 py-0.5 rounded-md bg-amber-200 dark:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-[0.625rem] font-black">TAFSEEL BAQI</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-amber-200 dark:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-[0.625rem] font-black">DETAILS BAQI</span>
           )}
           {r.requiresSerial && (
             <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1">
@@ -609,7 +609,7 @@ function ProductCard({ r, checked, onToggle, onDelete }: any) {
         </div>
 
         <div className="mt-2 flex items-center justify-between text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
-          <span>Lagat {formatPKR(r.costPrice)}</span>
+          <span>Cost {formatPKR(r.costPrice)}</span>
           <span className={margin >= 15 ? 'text-emerald-600 dark:text-emerald-400' : margin > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'}>
             {margin.toFixed(0)}% margin
           </span>
@@ -661,7 +661,7 @@ function ProductTable({ rows, picked, allPicked, onToggle, onToggleAll, onDelete
               <Th className="text-center">Khaas</Th>
               <Th className="text-center">Warranty</Th>
               <Th className="text-center">Stock</Th>
-              <Th className="text-right">Lagat</Th>
+              <Th className="text-right">Cost</Th>
               <Th className="text-right">Rate</Th>
               <Th className="text-right pr-4">Actions</Th>
             </tr>
@@ -704,7 +704,7 @@ function ProductTable({ rows, picked, allPicked, onToggle, onToggleAll, onDelete
                       {r.requiresSerial && <span title="Serial rakhna parta hai">🔖</span>}
                       {r.requiresInstallation && <span title={`Lagani parti hai — ${formatPKR(r.installationCharge)}`}>🔧</span>}
                       {r.heavy && <span title="Bhari saman">🚚</span>}
-                      {!r.hasProfile && <span title="Appliance tafseel adhoori" className="text-amber-500">⚠️</span>}
+                      {!r.hasProfile && <span title="Appliance details adhoori" className="text-amber-500">⚠️</span>}
                     </div>
                   </td>
                   <td className="px-3 py-2.5 text-center text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 whitespace-nowrap">
@@ -806,7 +806,7 @@ function ProductAnalytics({ rows }: { rows: any[] }) {
   return (
     <div className="space-y-3 sm:space-y-4">
       <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
-        <Panel icon={Boxes} title="Qism Ke Hisab Se Paisa" hint="Kis cheez me sab se ziyada stock phansa hai" tone="cyan">
+        <Panel icon={Boxes} title="Type Ke Hisab Se Paisa" hint="Kis cheez me sab se ziyada stock phansa hai" tone="cyan">
           {a.byCat.length === 0 ? (
             <p className="text-xs font-bold text-slate-400 py-8 text-center">Abhi koi product nahi</p>
           ) : (
@@ -842,10 +842,10 @@ function ProductAnalytics({ rows }: { rows: any[] }) {
 
       {/* Jin par kaam chahiye */}
       <div className="grid lg:grid-cols-3 gap-3 sm:gap-4">
-        <Panel icon={AlertTriangle} title={`Tafseel Adhoori (${a.noProfile.length})`}
+        <Panel icon={AlertTriangle} title={`Details Adhoori (${a.noProfile.length})`}
           hint="In par POS installation book nahi kar sakta" tone="amber">
           {a.noProfile.length === 0 ? (
-            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 py-6 text-center">✅ Sab ki tafseel poori hai</p>
+            <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 py-6 text-center">✅ Sab ki details poori hai</p>
           ) : (
             <div className="space-y-1.5 max-h-64 overflow-y-auto">
               {a.noProfile.slice(0, 15).map((r: any) => (
@@ -861,7 +861,7 @@ function ProductAnalytics({ rows }: { rows: any[] }) {
         </Panel>
 
         <Panel icon={ShieldCheck} title={`Warranty Nahi Lagi (${a.noWarranty.length})`}
-          hint="Bikne par warranty ki tareekh nahi banegi" tone="violet">
+          hint="Bikne par warranty ki date nahi banegi" tone="violet">
           {a.noWarranty.length === 0 ? (
             <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 py-6 text-center">✅ Sab par warranty lagi hai</p>
           ) : (
@@ -911,7 +911,7 @@ function ProductAnalytics({ rows }: { rows: any[] }) {
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{r.name}</div>
                     <div className="text-[0.6875rem] font-bold text-slate-400">
-                      Lagat {formatPKR(r.costPrice)} → Bechna {formatPKR(r.price)}
+                      Cost {formatPKR(r.costPrice)} → Bechna {formatPKR(r.price)}
                     </div>
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold shrink-0 ${
@@ -970,16 +970,16 @@ function ProductsTeacher({ onClose }: { onClose: () => void }) {
             <><span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-black">🔖 Serial</span> — AC, fridge, washing machine ka <strong>serial register</strong> rakha jata hai. Is se warranty aur repair ka poora record milta hai</>,
             <><span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 text-[0.6875rem] font-black">🔧 Lagani</span> — POS par bechte waqt <strong>installation khud book ho jati hai</strong> aur charge bill me jurta hai</>,
             <><strong>🛡️ Warranty</strong> — main, compressor aur motor teenon ke mahine. Bikne par tareekhein khud lag jati hain</>,
-            <><span className="px-1.5 py-0.5 rounded bg-amber-200 dark:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-[0.625rem] font-black">TAFSEEL BAQI</span> ka matlab ye settings nahi lagin — edit kar ke bhar dein</>,
+            <><span className="px-1.5 py-0.5 rounded bg-amber-200 dark:bg-amber-500/30 text-amber-800 dark:text-amber-200 text-[0.625rem] font-black">DETAILS BAQI</span> ka matlab ye settings nahi lagin — edit kar ke bhar dein</>,
           ],
         },
         {
           title: '📊 Analytics tab',
           tone: 'violet',
           tips: [
-            <><Kbd dark>A</Kbd> — <strong>"Tafseel adhoori"</strong>, <strong>"Warranty nahi lagi"</strong> aur <strong>"Installation charge 0"</strong> ki teen lists. Har naam par click kar ke seedha edit kholta hai</>,
+            <><Kbd dark>A</Kbd> — <strong>"Details adhoori"</strong>, <strong>"Warranty nahi lagi"</strong> aur <strong>"Installation charge 0"</strong> ki teen lists. Har naam par click kar ke seedha edit kholta hai</>,
             <><strong>Sab se kam margin</strong> — jin ka margin 10% se neeche hai. Purchase rate ya bechne ka rate dobara dekhein</>,
-            <><strong>Qism aur brand ke chart</strong> — paisa kis cheez me phansa hai</>,
+            <><strong>Type aur brand ke chart</strong> — paisa kis cheez me phansa hai</>,
           ],
         },
         {
@@ -1005,7 +1005,7 @@ function ProductsTeacher({ onClose }: { onClose: () => void }) {
       golden={
         <>
           <strong>Sunahri usool:</strong> Naya product banate waqt <strong>warranty aur installation charge
-          usi waqt bhar dein</strong>. Baad me yaad nahi rehta, aur phir har bikri par kaam adhoora reh jata hai.
+          usi waqt bhar dein</strong>. Baad me yaad nahi rehta, aur phir har sale par kaam adhoora reh jata hai.
         </>
       }
       onClose={onClose}

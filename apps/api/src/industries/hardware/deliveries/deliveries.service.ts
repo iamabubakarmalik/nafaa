@@ -25,7 +25,7 @@ export class DeliveriesService {
     if (dto.saleId && !(await this.prisma.sale.findFirst({ where: { id: dto.saleId, tenantId: t }, select: { id: true } }))) throw new NotFoundException('Bill nahi mila');
     if (!dto.items?.length) throw new BadRequestException('At least one item required');
 
-    if (dto.items.some((it) => !(it.orderedQty > 0))) throw new BadRequestException('Har item ki miqdar 0 se zyada honi chahiye');
+    if (dto.items.some((it) => !(it.orderedQty > 0))) throw new BadRequestException('Har item ki quantity 0 se zyada honi chahiye');
     const prefix = `DEL-${new Date().getFullYear()}-`;
 
     const totalCharges = (dto.deliveryCharge ?? 0) + (dto.loadingCharge ?? 0) + (dto.unloadingCharge ?? 0) + (dto.laborCharge ?? 0) + (dto.tollCharge ?? 0);

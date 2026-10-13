@@ -532,7 +532,7 @@ function PaymentModal({ orderId, remaining, orderCustomerId, onClose, onDone }: 
           <div className="rounded-xl border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/30 p-3 space-y-2">
             <label className="flex items-center gap-2 text-xs font-extrabold text-amber-900">
               <input type="checkbox" checked={onKhata} onChange={(e) => setOnKhata(e.target.checked)} />
-              Baqi raqam udhaar (khate) me daalein
+              Baqi amount udhaar (khate) me daalein
             </label>
             {onKhata && !orderCustomerId && (
               <select value={customerId} onChange={(e) => setCustomerId(e.target.value)}

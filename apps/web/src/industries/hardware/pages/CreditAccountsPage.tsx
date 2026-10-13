@@ -282,7 +282,7 @@ function AccountForm({ editing, onClose, onSaved }: any) {
             ))}
           </select>
           <p className="text-[0.6875rem] font-semibold text-emerald-800 dark:text-emerald-300">
-            Jora hua account POS ke udhaar aur khate ki wusooli se khud chalta hai — wohi raqam har report me aati hai.
+            Jora hua account POS ke udhaar aur khate ki receiving se khud chalta hai — wohi amount har report me aati hai.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 gap-3">

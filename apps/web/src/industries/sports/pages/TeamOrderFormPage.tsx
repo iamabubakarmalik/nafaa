@@ -175,7 +175,7 @@ export default function TeamOrderFormPage() {
     const input = window.prompt(`Baqi Rs ${due}. Abhi kitne liye? (jo baqi rahe ga woh team ke khate me jayega)`, String(due));
     if (input === null) return;
     const paidNow = Number(input);
-    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Raqam sahi likhein'); return; }
+    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Amount sahi likhein'); return; }
     updateStatus.mutate({ status: s, paidNow });
   };
 
@@ -601,7 +601,7 @@ export default function TeamOrderFormPage() {
               <div>
                 <Lbl>Advance Paid</Lbl>
                 <input type="number" value={form.advancePaid} readOnly={isEdit}
-                  title={isEdit ? 'Nayi raqam neeche "Add Payment" se darj karein' : undefined}
+                  title={isEdit ? 'Nayi amount neeche "Add Payment" se darj karein' : undefined}
                   onChange={(e) => setForm({ ...form, advancePaid: Number(e.target.value) })}
                   className="h-11 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
               </div>

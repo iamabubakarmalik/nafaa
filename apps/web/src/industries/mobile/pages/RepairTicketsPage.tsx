@@ -703,7 +703,7 @@ function RepairTeacher({ hasTickets, onClose, onStart }: {
 
         <div className="p-5 space-y-4">
           <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
-            Customer ka <strong>kharab phone</strong> lo, <strong>issue</strong> check karo, <strong>parts + labor</strong> ka kharcha nikaalo,
+            Customer ka <strong>kharab phone</strong> lo, <strong>issue</strong> check karo, <strong>parts + labor</strong> ka expense nikaalo,
             repair karo — aur customer se paise le ke <strong>profit</strong> kamao! 🔧
           </p>
 
@@ -755,7 +755,7 @@ function RepairTeacher({ hasTickets, onClose, onStart }: {
           <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TeacherTip><strong>IMEI zaroor</strong> likho — chori ka phone aaye to record hoga</TeacherTip>
             <TeacherTip><strong>Advance lo</strong> — 20-30% ka advance minimum, customer serious hai</TeacherTip>
-            <TeacherTip><strong>Passcode</strong> le lo customer ki ijazat se — screen test karne ke liye</TeacherTip>
+            <TeacherTip><strong>Passcode</strong> le lo customer ki permission se — screen test karne ke liye</TeacherTip>
             <TeacherTip><strong>Estimated ready date</strong> set karo — customer ko realistic date do</TeacherTip>
             <TeacherTip><strong>Priority Urgent/Emergency</strong> ka extra charge lo</TeacherTip>
             <TeacherTip><strong>Warranty 7-15 din</strong> di jati hai repair pe — customer ka trust barhta hai</TeacherTip>

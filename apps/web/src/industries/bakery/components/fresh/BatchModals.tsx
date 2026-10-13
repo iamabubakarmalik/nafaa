@@ -28,9 +28,9 @@ export function BatchActionModal({ log, mode, onClose }: { log: FreshnessLog; mo
   const [damage, setDamage] = useState(() => { try { return localStorage.getItem(DAMAGE_PREF) !== '0'; } catch { return true; } });
   const n = Math.round(Number(qty) || 0);
   const meta = {
-    sale: { title: 'Kitne bik gaye?', btn: 'Bikri likhein', icon: CheckCircle2, variant: 'success' as const },
+    sale: { title: 'Kitne bik gaye?', btn: 'Sale likhein', icon: CheckCircle2, variant: 'success' as const },
     discount: { title: 'Kitne sasta becha?', btn: 'Likhein', icon: Tag, variant: 'primary' as const },
-    discard: { title: 'Kitne phenke?', btn: 'Zaya likhein', icon: Trash2, variant: 'danger' as const },
+    discard: { title: 'Kitne phenke?', btn: 'Waste likhein', icon: Trash2, variant: 'danger' as const },
   }[mode];
 
   const save = useMutation({
@@ -45,13 +45,13 @@ export function BatchActionModal({ log, mode, onClose }: { log: FreshnessLog; mo
           await damageApi.create({ productId: log.productId, quantity: n, reason: why, reasonCode: /guzar|expire/i.test(why) ? 'EXPIRY' : 'SPOILAGE', notes: `Bakery batch ${log.batchNumber ?? log.id}` });
           damaged = true;
         } catch (e) {
-          toast.warning(`Zaya likh diya, magar damage report nahi bani: ${apiError(e, 'masla')}`);
+          toast.warning(`Waste likh diya, magar damage report nahi bani: ${apiError(e, 'masla')}`);
         }
       }
       return { log: updated, damaged };
     },
     onSuccess: (r) => {
-      toast.success(mode === 'discard' ? `${n} zaya likh diye${'damaged' in r && r.damaged ? ' — damage report manzoori ke liye gayi' : ''}` : 'Darj ho gaya');
+      toast.success(mode === 'discard' ? `${n} waste likh diye${'damaged' in r && r.damaged ? ' — damage report approval ke liye gayi' : ''}` : 'Darj ho gaya');
       qc.invalidateQueries({ queryKey: [FRESH_KEY] });
       onClose();
     },
@@ -67,7 +67,7 @@ export function BatchActionModal({ log, mode, onClose }: { log: FreshnessLog; mo
         <div className="flex flex-wrap gap-1.5">{[max, Math.floor(max / 2), 1].filter((v, i, a) => v > 0 && a.indexOf(v) === i).map((v, i) => <Button key={v} size="sm" variant="secondary" onClick={() => setQty(String(v))}>{i === 0 ? 'Sab' : fmtQty(v)}</Button>)}</div>
         {mode === 'discard' && (
           <>
-            <Input label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Waqt guzar gaya, jal gaya…" hint="Zaya ke record me isi se pata chalta hai kyun phenkna para" />
+            <Input label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Waqt guzar gaya, jal gaya…" hint="Waste ke record me isi se pata chalta hai kyun phenkna para" />
             <div className="flex flex-wrap gap-1.5">{REASONS.map((r) => <Button key={r} size="xs" variant={reason === r ? 'primary' : 'secondary'} onClick={() => setReason(r)}>{r}</Button>)}</div>
             <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
               <Switch checked={damage} onChange={(e) => { setDamage(e.target.checked); try { localStorage.setItem(DAMAGE_PREF, e.target.checked ? '1' : '0'); } catch { /* storage blocked */ } }}
@@ -76,7 +76,7 @@ export function BatchActionModal({ log, mode, onClose }: { log: FreshnessLog; mo
           </>
         )}
         {mode === 'discount' && <p className="text-[0.75rem] text-slate-500">Sirf ginti hai — rate POS par khud kam karein. Sasta becha maal phenka nahi gaya, is liye yeh bacha hua paisa hai.</p>}
-        {mode === 'sale' && <p className="text-[0.75rem] text-slate-500">POS ki bikri batch se khud nahi ghatti — din ke aakhir me yahan ginti theek karein.</p>}
+        {mode === 'sale' && <p className="text-[0.75rem] text-slate-500">POS ki sale batch se khud nahi ghatti — din ke aakhir me yahan ginti theek karein.</p>}
       </div>
     </Modal>
   );

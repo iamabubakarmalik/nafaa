@@ -261,15 +261,15 @@ export default function NewBulkOrderPage() {
       n += 1;
       return { ...it, quantity: Number((perAcre * acres).toFixed(2)) };
     }));
-    if (n > 0) toast.success(`${n} cheezon ki tadaad ${acres} acre ke hisab se lag gayi`);
-    else toast.error('Kisi cheez par "kitni miqdar" likhi hi nahi');
+    if (n > 0) toast.success(`${n} cheezon ki quantity ${acres} acre ke hisab se lag gayi`);
+    else toast.error('Kisi cheez par "kitni quantity" likhi hi nahi');
   };
 
   const errors: string[] = [];
   if (items.length === 0) errors.push('Kam az kam ek cheez daalein');
   if (!form.customerName.trim() && !form.farmerId) errors.push('Farmer chunein ya naam likhein');
   if (items.some((it) => !it.productName.trim())) errors.push('Har cheez ka naam likhein');
-  if (items.some((it) => it.quantity <= 0)) errors.push('Tadaad 0 nahi ho sakti');
+  if (items.some((it) => it.quantity <= 0)) errors.push('Quantity 0 nahi ho sakti');
   if (items.some((it) => it.pricePerUnit <= 0)) errors.push('Har cheez ka rate likhein');
   if (form.isCredit && !form.farmerId) errors.push('Udhaar ke liye register shuda farmer chunna zaroori hai');
   const valid = errors.length === 0;
@@ -403,7 +403,7 @@ export default function NewBulkOrderPage() {
               <>
                 <button onClick={() => setShowFarmerPicker((v) => !v)}
                   className="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-700 bg-slate-50 dark:bg-ink-800 text-sm font-extrabold text-slate-600 dark:text-ink-300 hover:border-emerald-400 inline-flex items-center justify-center gap-2 transition">
-                  <Search className="h-4 w-4" /> Register shuda farmer dhoondein
+                  <Search className="h-4 w-4" /> Register shuda farmer search
                 </button>
                 {showFarmerPicker && (
                   <div className="rounded-xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-500/5 p-3 space-y-2">
@@ -492,12 +492,12 @@ export default function NewBulkOrderPage() {
               <div className="rounded-2xl bg-lime-50 dark:bg-lime-500/10 border-2 border-lime-200 dark:border-lime-500/30 p-3 flex items-center gap-3 flex-wrap">
                 <Calculator className="h-4 w-4 text-lime-600 shrink-0" />
                 <p className="flex-1 min-w-[200px] text-[0.75rem] font-bold text-lime-900 dark:text-lime-200">
-                  <strong>{acres} acre</strong> likha hua hai. Jin cheezon par "kitni miqdar per acre"
-                  bhari hai, un ki tadaad khud lag sakti hai.
+                  <strong>{acres} acre</strong> likha hua hai. Jin cheezon par "kitni quantity per acre"
+                  bhari hai, un ki quantity khud lag sakti hai.
                 </p>
                 <button type="button" onClick={recalcFromAcres}
                   className="h-9 px-3 rounded-xl bg-lime-600 hover:bg-lime-700 text-white text-xs font-black shrink-0 transition">
-                  Tadaad laga do
+                  Quantity laga do
                 </button>
               </div>
             )}
@@ -617,7 +617,7 @@ export default function NewBulkOrderPage() {
                     onChange={(e) => setForm({ ...form, creditDueDate: e.target.value })}
                     className="h-11 w-full rounded-xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition" />
                   <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-                    Katai ki tareekh rakhein — usi waqt farmer ke paas paisa aata hai
+                    Katai ki date rakhein — usi waqt farmer ke paas paisa aata hai
                   </p>
                 </Field>
 
@@ -648,7 +648,7 @@ export default function NewBulkOrderPage() {
             <Field label="Aap ki raay — farmer ko kya batana hai" opt>
               <textarea rows={2} value={form.advisorNotes}
                 onChange={(e) => setForm({ ...form, advisorNotes: e.target.value })}
-                placeholder="Kitni miqdar, kab daalna hai…" className={`${inp} h-auto py-2 resize-none`} />
+                placeholder="Kitni quantity, kab daalna hai…" className={`${inp} h-auto py-2 resize-none`} />
             </Field>
             <Field label="Farmer ne kya kaha" opt>
               <textarea rows={2} value={form.farmerNotes}
@@ -672,12 +672,12 @@ export default function NewBulkOrderPage() {
                 {Number(form.taxAmount) > 0 && <Line label="Tax" value={`+${formatPKR(Number(form.taxAmount))}`} />}
                 {Number(form.otherCharges) > 0 && <Line label="Doosra kharch" value={`+${formatPKR(Number(form.otherCharges))}`} />}
                 {Number(form.bulkDiscount) > 0 && (
-                  <Line label="Thok chhoot" value={`−${formatPKR(Number(form.bulkDiscount))}`} tone="amber" />
+                  <Line label="Thok discount" value={`−${formatPKR(Number(form.bulkDiscount))}`} tone="amber" />
                 )}
               </div>
 
               <div className="mt-3 space-y-2">
-                <MiniField label="Thok chhoot" value={form.bulkDiscount}
+                <MiniField label="Thok discount" value={form.bulkDiscount}
                   onChange={(v: string) => setForm({ ...form, bulkDiscount: v })} />
                 <MiniField label="Tax" value={form.taxAmount}
                   onChange={(v: string) => setForm({ ...form, taxAmount: v })} />
@@ -829,7 +829,7 @@ function ItemRow({ item, index, onChange, onRemove }: any) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div>
-          <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Tadaad</span>
+          <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Quantity</span>
           <div className="flex items-center rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden">
             <button onClick={() => onChange({ quantity: Math.max(0.5, item.quantity - 1) })}
               className="h-9 w-8 hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center shrink-0 transition">
@@ -863,7 +863,7 @@ function ItemRow({ item, index, onChange, onRemove }: any) {
             className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2.5 text-sm font-black text-slate-900 dark:text-ink-white tabular-nums focus:outline-none focus:border-emerald-500 transition" />
         </div>
         <div>
-          <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Chhoot</span>
+          <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Discount</span>
           <input type="number" min={0} value={item.discount}
             onChange={(e) => onChange({ discount: Number(e.target.value) })}
             className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2.5 text-sm font-black text-amber-600 tabular-nums focus:outline-none focus:border-amber-500 transition" />
@@ -916,13 +916,13 @@ function PickerModal({ list, search, setSearch, searchRef, acres, crop, onPick, 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/60" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Naam, category ya fasal se dhoondein…"
+              placeholder="Naam, category ya fasal se search…"
               className="h-11 w-full rounded-xl bg-white/15 border-2 border-white/25 pl-10 pr-3 text-sm font-bold text-white placeholder:text-white/50 focus:outline-none focus:border-white/60 transition" />
           </div>
           {(crop || acres > 0) && (
             <p className="mt-2 text-[0.6875rem] font-bold text-white/80">
               {crop && <>🌾 <strong>{crop}</strong> ka maal upar hai. </>}
-              {acres > 0 && <>📐 {acres} acre ke hisab se tadaad khud bharegi.</>}
+              {acres > 0 && <>📐 {acres} acre ke hisab se quantity khud bharegi.</>}
             </p>
           )}
         </header>
@@ -1047,13 +1047,13 @@ function Teacher({ onClose }: any) {
         <div className="flex-1 overflow-y-auto p-5 space-y-3">
           {[
             { i: User, t: 'Pehle farmer chunein', d: 'Register shuda farmer chunenge to uska purana udhaar, gaon aur raqba khud aa jayega. Udhaar par order sirf register shuda farmer ka ban sakta hai — warna baad me pata nahi chalega ke kis se lena hai.' },
-            { i: MapPin, t: 'Raqba likhein', d: 'Farmer ka raqba (acre) likh dein. Jin cheezon par "kitni miqdar per acre" bhari hai, un ki tadaad khud lag jayegi — "Tadaad laga do" dabane se.' },
+            { i: MapPin, t: 'Raqba likhein', d: 'Farmer ka raqba (acre) likh dein. Jin cheezon par "kitni quantity per acre" bhari hai, un ki quantity khud lag jayegi — "Quantity laga do" dabane se.' },
             { i: Package, t: 'Maal daalein', d: 'Apne stock se chunein — rate, stock aur bori ka hisab khud aa jayega. Jo cheez list me nahi, uske liye "Apni" dabayein.' },
             { i: Scale, t: 'Bori aur kilo', d: 'Har line ke neeche neela khana dekhein: 1 bori = 50 kg · kul 250 kg. Aap bori ginte hain, farmer kilo samajhta hai — dono saath dikhte hain.' },
             { i: ShieldAlert, t: 'Registration', d: 'Jis beej ya dawa ki registration khatam ho gayi, wo order me daali hi nahi ja sakti. Pehle renew karwayein. Jis par "License" likha hai, kharidne wale ka license dekh lein.' },
             { i: Layers, t: 'Stock kam ho to', d: 'Peela nishan lagta hai ke gudaam me itna maal nahi. Order phir bhi ban jayega — bas delivery se pehle mangwa lein.' },
             { i: Truck, t: 'Delivery', d: 'Bori bhari hoti hai, aksar dukaan hi khet tak pahunchati hai. Gaari aur kiraya likh dein taake baad me jhagra na ho.' },
-            { i: Calendar, t: 'Udhaar ki tareekh', d: 'Katai ki tareekh rakhein — usi waqt farmer ke paas paisa aata hai. Agar udhaar ki hadd tut rahi ho to laal nishan aa jayega.' },
+            { i: Calendar, t: 'Udhaar ki date', d: 'Katai ki date rakhein — usi waqt farmer ke paas paisa aata hai. Agar udhaar ki hadd tut rahi ho to laal nishan aa jayega.' },
           ].map((s, n) => (
             <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-600 to-lime-700 text-white flex items-center justify-center shrink-0">

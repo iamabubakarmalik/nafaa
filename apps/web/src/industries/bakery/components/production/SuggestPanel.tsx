@@ -45,7 +45,7 @@ export function SuggestPanel({ date, canManage, onPlan }: { date: string; canMan
         <p className="min-w-0 flex-1 text-[0.8125rem] text-slate-600">
           {d.basis === 'guess'
             ? <>Abhi kisi cheez par "khud banate hain" nahi laga, is liye pichle {d.days} din ki <b>sab se zyada biki</b> cheezein dikh rahi hain. Product me "Khud banate hain" chunein to sirf woh aayengi.</>
-            : <>{weekday} ke liye: us din ke orders + pichle 4 {weekday} ki ausat bikri, minus jo taaza maal pehle se para hai aur jo plan me hai.</>}
+            : <>{weekday} ke liye: us din ke orders + pichle 4 {weekday} ki ausat sale, minus jo taaza maal pehle se para hai aur jo plan me hai.</>}
         </p>
         {canManage && <Button onClick={make} disabled={!count} leftIcon={<ListPlus className="h-4 w-4" />}>{count ? `${count} cheezon ka plan banayein` : 'Cheezein chunein'}</Button>}
       </div>
@@ -74,7 +74,7 @@ export function SuggestPanel({ date, canManage, onPlan }: { date: string; canMan
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <ChefHat className="mx-auto h-10 w-10 text-slate-300" />
           <p className="mt-3 font-semibold text-slate-900">Andaza lagane ke liye abhi data nahi</p>
-          <p className="mt-1 text-sm text-slate-500">Kuch din counter par bikri hogi ya products par "Khud banate hain" lagega to yahan roz ka plan khud banne lagega.</p>
+          <p className="mt-1 text-sm text-slate-500">Kuch din counter par sale hogi ya products par "Khud banate hain" lagega to yahan roz ka plan khud banne lagega.</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -99,7 +99,7 @@ export function SuggestPanel({ date, canManage, onPlan }: { date: string; canMan
                       onChange={(e) => setPicked((s) => { const n = new Set(s); if (e.target.checked) n.add(r.productId); else n.delete(r.productId); return n; })} /></td>
                     <td className="px-2 py-2">
                       <p className="font-medium text-slate-900">{r.name}</p>
-                      {r.wasteRate > 15 && <p className="text-[0.6875rem] text-amber-700">{r.wasteRate}% zaya hota hai — andaza thora kam kiya</p>}
+                      {r.wasteRate > 15 && <p className="text-[0.6875rem] text-amber-700">{r.wasteRate}% waste hota hai — andaza thora kam kiya</p>}
                       {r.orderRefs.length > 0 && <p className="truncate text-[0.6875rem] text-pink-700">{r.orderRefs.join(', ')}</p>}
                     </td>
                     <td className="px-2 py-2 text-right tabular-nums">{r.orders ? fmtQty(r.orders) : '—'}</td>

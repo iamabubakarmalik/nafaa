@@ -39,7 +39,7 @@ export const shoeKpis: KpiDef[] = [
     id: 'shoe-exchanges', label: 'Exchange baqi', icon: RefreshCw, tone: 'warning',
     useValue: () => {
       const s = useShoeOps();
-      return { loading: s.loading, to: '/shoe/exchanges', value: s.exchanges.requested, alert: s.exchanges.requested > 0, hint: `${s.exchanges.approved} manzoor` };
+      return { loading: s.loading, to: '/shoe/exchanges', value: s.exchanges.requested, alert: s.exchanges.requested > 0, hint: `${s.exchanges.approved} approve` };
     },
   },
 ];
@@ -89,7 +89,7 @@ export function ShoeTopSizes() {
       {s.topSizes.length === 0 ? (
         <div className="flex items-center gap-3">
           <IconBubble icon={Ruler} />
-          <p className="text-[0.8125rem] text-slate-600">Bikri shuru hote hi yahan nazar aayega kaunsa size sab se zyada bikta hai.</p>
+          <p className="text-[0.8125rem] text-slate-600">Sale shuru hote hi yahan nazar aayega kaunsa size sab se zyada bikta hai.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -117,7 +117,7 @@ export function ShoeDesk() {
         <MetricTile icon={HandMetal} tone="info" label="Try-on baqi" value={s.tryOn.pending} hint={`${s.tryOn.scheduled} waqt tay`} to="/shoe/try-on" />
         <MetricTile icon={CheckCircle2} tone="success" label="Try-on se bika" value={s.tryOn.conversion} hint={`${s.tryOn.completed} mukammal`} to="/shoe/try-on" />
         <MetricTile icon={RefreshCw} tone="warning" label="Exchange darkhwast" value={s.exchanges.requested} alert={s.exchanges.requested > 0} to="/shoe/exchanges" />
-        <MetricTile icon={RefreshCw} tone="neutral" label="Exchange mukammal" value={s.exchanges.completed} hint={`${s.exchanges.approved} manzoor`} to="/shoe/exchanges" />
+        <MetricTile icon={RefreshCw} tone="neutral" label="Exchange mukammal" value={s.exchanges.completed} hint={`${s.exchanges.approved} approve`} to="/shoe/exchanges" />
       </div>
     </WidgetCard>
   );

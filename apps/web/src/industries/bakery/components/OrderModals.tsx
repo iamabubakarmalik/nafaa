@@ -80,7 +80,7 @@ export function CancelModal({ title, paid, askReason = true, onConfirm, onClose 
             Customer {formatPKR(paid)} de chuka hai. Wapas karna hai ya agle order me ginna hai — customer se tay kar lein. Cancel se paisa khud wapas nahi hota.
           </p>
         )}
-        {askReason && <Textarea data-autofocus label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={300} placeholder="Customer ne mana kar diya, tareekh badal gayi…" hint="Marzi hai — baad me yaad rehta hai" />}
+        {askReason && <Textarea data-autofocus label="Wajah" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={300} placeholder="Customer ne mana kar diya, date badal gayi…" hint="Marzi hai — baad me yaad rehta hai" />}
       </div>
     </Modal>
   );

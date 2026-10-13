@@ -320,7 +320,7 @@ export class BulkOrdersService {
       if (!name) throw new BadRequestException('Har line ka naam likhein');
       const qty = Number(l.qty ?? l.quantity);
       const rate = Number(l.rate ?? l.price);
-      if (!(qty > 0)) throw new BadRequestException(`"${name}" ki tadaad likhein`);
+      if (!(qty > 0)) throw new BadRequestException(`"${name}" ki quantity likhein`);
       if (!(rate >= 0)) throw new BadRequestException(`"${name}" ka rate likhein`);
       const productId = typeof l.productId === 'string' && known.has(l.productId) ? l.productId : null;
       return { productId, name, qty: r3(qty), rate: r2(rate), unit: str(l.unit), total: r2(qty * rate) };

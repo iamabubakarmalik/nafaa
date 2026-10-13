@@ -114,7 +114,7 @@ export default function BakeryBulkOrdersPage() {
       <PageHero
         title="Bare orders"
         chip={<><ShoppingBag /> Shadi, daftar, event</>}
-        meta="Ek shadi ka order poore hafte ki bikri jitna — advance, kitchen aur bill ek jagah"
+        meta="Ek shadi ka order poore hafte ki sale jitna — advance, kitchen aur bill ek jagah"
         busy={(listQ.isFetching && !listQ.isLoading) || sumQ.isFetching}
         loading={sumQ.isLoading}
         actions={<>
@@ -137,7 +137,7 @@ export default function BakeryBulkOrdersPage() {
       <KpiRow cols={5}>
         {!open ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
           <KpiCard icon={CalendarDays} color="#d97706" label="Is hafte" value={open.week} hint="Agle 7 din" onClick={() => pick('week')} active={tab === 'orders' && view === 'week'} />
-          <KpiCard icon={AlertTriangle} color={open.late ? '#e11d48' : '#64748b'} label="Late" value={open.late} hint={open.late ? 'Tareekh guzar gayi' : 'Koi late nahi'} onClick={() => pick('late')} active={tab === 'orders' && view === 'late'} />
+          <KpiCard icon={AlertTriangle} color={open.late ? '#e11d48' : '#64748b'} label="Late" value={open.late} hint={open.late ? 'Date guzar gayi' : 'Koi late nahi'} onClick={() => pick('late')} active={tab === 'orders' && view === 'late'} />
           <KpiCard icon={ListChecks} color="#7c3aed" label="Chal rahe" value={open.count} hint={sales(open.value)} onClick={() => pick('active')} active={tab === 'orders' && view === 'active'} />
           <KpiCard icon={Clock} color={open.noAdvance ? '#e11d48' : '#64748b'} label="Bina advance" value={open.noAdvance} hint="Pakke magar paisa nahi" onClick={() => pick('noAdvance')} active={tab === 'orders' && view === 'noAdvance'} />
           <KpiCard icon={Wallet} color="#0891b2" label="Lena baqi" value={sales(open.due)} hint="Chalte orders par" onClick={() => pick('unpaid')} active={tab === 'orders' && view === 'unpaid'} />
@@ -149,12 +149,12 @@ export default function BakeryBulkOrdersPage() {
           <div className="flex gap-1.5">{[1, 3, 7].map((d) => <button key={d} type="button" onClick={() => setDays(d)} className={cn('h-10 rounded-full px-3.5 text-[0.8125rem] font-semibold ring-1', days === d ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>{d === 1 ? 'Kal tak' : `${d} din`}</button>)}</div>
         </FilterBar>
       ) : tab === 'analytics' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Jin orders ka event is muddat me hai</p>}>
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Jin orders ka event is period me hai</p>}>
           <DateRangeMenu value={aRange} onChange={setARange} startHour={startHour} defaultPreset="year" allowAll={false} />
         </FilterBar>
       ) : (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Idara, rabta, phone, jagah, order #…" label="Dhoondein" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Idara, rabta, phone, jagah, order #…" label="Search" />}
           chips={filtered ? <>
             {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>Event: {rangeLabel(period.from, period.to)}</FilterChip>}
             {type && <FilterChip onRemove={() => setType('')}>{bulkTypeOf(type).label}</FilterChip>}
@@ -163,7 +163,7 @@ export default function BakeryBulkOrdersPage() {
           onClear={clear}>
           <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'active'} onChange={setView}
             options={VIEWS.map((v) => ({ value: v.id, label: v.label, hint: data?.counts ? `${data.counts[v.id]} orders` : undefined }))} />
-          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Event ki tareekh" />
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Event ki date" />
           <FilterMenu icon={Building2} label="Qisam" value={type} active={!!type} onChange={setType} options={[{ value: '', label: 'Sab qismein' }, ...BULK_TYPES.map((t) => ({ value: t.value, label: `${t.emoji} ${t.label}` }))]} />
           <FilterMenu icon={ArrowDownWideNarrow} label={sort === 'amount' ? 'Bari rakam pehle' : sort === 'recent' ? 'Naye pehle' : 'Jo pehle dena'} value={sort} onChange={setSort} align="right"
             options={[{ value: 'due', label: 'Jis ka event pehle' }, { value: 'recent', label: 'Naye pehle' }, { value: 'amount', label: 'Bari rakam pehle' }]} />
@@ -171,7 +171,7 @@ export default function BakeryBulkOrdersPage() {
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> dhoondein · <Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
+        hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
         tabs={[
           { id: 'orders', label: 'Orders', icon: ShoppingBag, count: data?.total ?? null },
           { id: 'kitchen', label: 'Kya banana hai', icon: ChefHat },
@@ -224,17 +224,17 @@ export default function BakeryBulkOrdersPage() {
       {guide.isOpen && (
         <PageGuide title="Bare orders — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#d97706', title: 'Order likhein', text: 'Idara, rabta, event ki tareekh aur waqt, cheezein aur rate. Advance mila to order khud "Pakka" ho jata hai.' },
+            { icon: Plus, color: '#d97706', title: 'Order likhein', text: 'Idara, rabta, event ki date aur waqt, cheezein aur rate. Advance mila to order khud "Pakka" ho jata hai.' },
             { icon: ChefHat, color: '#7c3aed', title: 'Kya banana hai', text: 'Agle 1, 3 ya 7 din ke pakke orders ki saari cheezein jama — stock minus kar ke kitna banana hai. Kitchen ke liye print karein.' },
             { icon: Wallet, color: '#0891b2', title: 'Advance', text: '"Paisa mila" se advance likhein. Pakke order bina advance ke laal dikhte hain.' },
-            { icon: Receipt, color: '#16a34a', title: 'De diya = bill', text: 'Dete hi asli bill banta hai: stock ghatta hai, Bikri me aata hai, baqi khate me. Ek order ka bill do dafa nahi banta.' },
+            { icon: Receipt, color: '#16a34a', title: 'De diya = bill', text: 'Dete hi asli bill banta hai: stock ghatta hai, Sale me aata hai, baqi khate me. Ek order ka bill do dafa nahi banta.' },
             { icon: Printer, color: '#ea580c', title: 'Parchi', text: 'Customer ki parchi me rate aur baqi; kitchen parchi me sirf cheezein aur ginti.' },
-            { icon: MessageCircle, color: '#22c55e', title: 'WhatsApp', text: 'Order ki tafseel, event aur baqi paisa khud likha hua jata hai.' },
+            { icon: MessageCircle, color: '#22c55e', title: 'WhatsApp', text: 'Order ki details, event aur baqi paisa khud likha hua jata hai.' },
           ]}
           tips={[
             'Har cheez apne maal se jorein — "Kya banana hai" me stock tabhi milta hai aur bill me stock ghatta hai.',
             'Shadi ke order ka 50% advance pehle lein.',
-            'Order likhne ke liye "Bakery orders sambhalna" ki ijazat chahiye.',
+            'Order likhne ke liye "Bakery orders sambhalna" ki permission chahiye.',
           ]}
           shortcuts={[['N', 'naya order'], ['/', 'dhoondein'], ['1', 'orders'], ['2', 'kya banana hai'], ['3', 'analytics'], ['G', 'guide']]}
         />

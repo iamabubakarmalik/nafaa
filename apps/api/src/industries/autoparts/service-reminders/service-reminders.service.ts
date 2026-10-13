@@ -17,7 +17,7 @@ export class ServiceRemindersService {
     const text = (x: unknown) => (typeof x === 'string' && x.trim() ? x.trim() : undefined);
     const km = Number(dto.dueOdometerKm);
     const due = dto.dueDate ? new Date(dto.dueDate) : null;
-    if (due && Number.isNaN(due.getTime())) throw new BadRequestException('Tareekh sahi likhein');
+    if (due && Number.isNaN(due.getTime())) throw new BadRequestException('Date sahi likhein');
     return this.prisma.vehicleServiceReminder.create({
       data: {
         tenantId: user.tenantId,

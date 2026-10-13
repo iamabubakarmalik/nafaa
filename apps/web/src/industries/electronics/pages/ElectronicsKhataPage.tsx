@@ -190,7 +190,7 @@ export default function ElectronicsKhataPage() {
     const msg = [
       `Assalam-o-Alaikum ${name}!`, '',
       `${tenantName ?? 'Hamari dukan'} par aap ka baqi: *${formatPKR(balance)}*`, '',
-      'Baraye meherbani jald adaigi kar dein. Shukriya 🙏',
+      'Baraye meherbani jald payment kar dein. Shukriya 🙏',
     ].join('\n');
     window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -772,7 +772,7 @@ function OpeningBalanceModal({ onClose, onDone }: { onClose: () => void; onDone:
                 <div className="relative mb-2">
                   <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input value={search} onChange={(e) => setSearch(e.target.value)} autoFocus
-                    placeholder="Naam ya phone se dhoondein..."
+                    placeholder="Naam ya phone se search..."
                     className="h-11 w-full rounded-xl border-2 border-slate-200 pl-9 pr-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition" />
                 </div>
                 <div className="rounded-xl border-2 border-slate-200 max-h-52 overflow-y-auto divide-y divide-slate-100">
@@ -889,7 +889,7 @@ function KhataTeacher({ onClose }: { onClose: () => void }) {
     },
     {
       icon: Plus, title: 'Bina sale ke udhaar',
-      body: 'Kisi ko cheez bina bill ke de di? Customer ke naam ke aage ➕ dabayein aur raqam likh dein. POS se sale kiye baghair bhi udhaar chadh jata hai.',
+      body: 'Kisi ko cheez bina bill ke de di? Customer ke naam ke aage ➕ dabayein aur amount likh dein. POS se sale kiye baghair bhi udhaar chadh jata hai.',
       tips: ['Parchi ka number bhi likh sakte hain', 'Limit se upar jaye to warning aata hai'],
     },
     {

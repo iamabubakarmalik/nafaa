@@ -435,7 +435,7 @@ export class BookingsService {
     if (!b) throw new NotFoundException('Booking not found');
     if (b.status === 'CANCELLED' || b.status === 'NO_SHOW') throw new BadRequestException('Cancel booking par payment nahi li ja sakti');
     const value = r2(Number(amount));
-    if (!(value > 0)) throw new BadRequestException('Raqam sahi likhein');
+    if (!(value > 0)) throw new BadRequestException('Amount sahi likhein');
     const due = r2(b.grandTotal - b.paidAmount);
     if (due <= 0) throw new BadRequestException('Is booking ka koi baqi nahi');
     if (value > due + 0.01) throw new BadRequestException(`Baqi sirf Rs ${due} hai`);

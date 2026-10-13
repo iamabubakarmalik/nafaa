@@ -28,7 +28,7 @@ function useHotelActions(): QuickAction[] {
     { to: '/hotel-room-types/new', icon: Plus, label: 'Naya room type', hint: 'Rate aur sahulat' },
     { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Extras aur F&B' },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }

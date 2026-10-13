@@ -24,7 +24,7 @@ function useOpticalActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
     { to: '/optical/eye-tests', icon: Eye, label: 'Eye tests', hint: testsLeft ? `${testsLeft} aaj baqi` : 'Appointment' },
     { to: '/optical/prescriptions/new', icon: FilePlus, label: 'Naya nuskha', hint: 'Number likhein' },
     { to: '/optical/lens-orders/new', icon: FlaskConical, label: 'Lens order', hint: 'Lab ko bhejein' },
@@ -33,10 +33,10 @@ function useOpticalActions(): QuickAction[] {
     { to: '/optical/optometrists', icon: UserCog, label: 'Doctors', hint: 'Optometrists' },
     { to: '/optical-products/new', icon: Plus, label: 'Naya product', hint: 'Frame / lens' },
     { to: '/optical-products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} items` },
-    { to: '/purchases', icon: ShoppingBag, label: 'Kharidari', hint: 'Maal mangwayein' },
+    { to: '/purchases', icon: ShoppingBag, label: 'Purchase', hint: 'Maal mangwayein' },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }
@@ -52,7 +52,7 @@ export const opticalDashboard = createDashboard({
   widgets: [
     { id: 'optical-schedule', title: 'Aaj ke eye test', description: 'Aaj ke appointment, waqt aur doctor ke saath', size: 'third', sizes: ANY_SIZE, Component: OpticalSchedule },
     { id: 'optical-pickup', title: 'Chashma tayyar', description: 'Tayyar chashme jin ke customer ko bulana hai', size: 'third', sizes: ANY_SIZE, Component: OpticalPickup },
-    { id: 'optical-lab-late', title: 'Lab se late', description: 'Waade ki tareekh guzar gayi, order abhi nahi aaya', size: 'third', sizes: ANY_SIZE, Component: OpticalLabLate },
+    { id: 'optical-lab-late', title: 'Lab se late', description: 'Waade ki date guzar gayi, order abhi nahi aaya', size: 'third', sizes: ANY_SIZE, Component: OpticalLabLate },
   ],
   lateWidgets: [
     { id: 'optical-rx-expiring', title: 'Nuskha purana ho raha', description: '60 din me khatam hone wale nuskhe — naye test ka mauqa', size: 'third', sizes: ANY_SIZE, Component: OpticalRxExpiring },

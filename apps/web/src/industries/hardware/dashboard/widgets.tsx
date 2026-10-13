@@ -60,7 +60,7 @@ export function useHardwareAttention(): AttentionItem[] {
   const { credit, delivery, quotations, reorder } = useHardwareOps();
   const { cost } = useMasked();
   const items: AttentionItem[] = [];
-  if (credit.overdueAccounts) items.push({ icon: CreditCard, level: 'danger', text: `${credit.overdueAccounts} contractor ka udhaar waqt se guzar gaya — wusooli karein`, to: '/hardware/credit-accounts', cta: 'Accounts' });
+  if (credit.overdueAccounts) items.push({ icon: CreditCard, level: 'danger', text: `${credit.overdueAccounts} contractor ka udhaar waqt se guzar gaya — receiving karein`, to: '/hardware/credit-accounts', cta: 'Accounts' });
   if (credit.over90 > 0) items.push({ icon: Clock, level: 'warning', text: `${cost(credit.over90)} udhaar 90 din se purana hai`, to: '/hardware/credit-accounts', cta: 'Dekhein' });
   if (delivery.today) items.push({ icon: Truck, level: 'info', text: `Aaj ${delivery.today} delivery bhejni hai — gaari aur maal tayyar rakhein`, to: '/hardware/deliveries', cta: 'Delivery' });
   if (reorder) items.push({ icon: RefreshCw, level: 'warning', text: `${reorder} cheezein reorder point se neeche — cement, sarya waqt par mangwayein`, to: '/hardware/reorder-rules', cta: 'Reorder' });

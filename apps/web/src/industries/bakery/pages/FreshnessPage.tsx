@@ -104,17 +104,17 @@ export default function FreshnessPage() {
     sections: [{ kind: 'table', columns: [{ label: 'Cheez' }, { label: 'Batch', wideOnly: true }, { label: 'Baqi', align: 'right' }, { label: 'Kab tak', align: 'right' }, { label: 'Kya kiya', align: 'right' }],
       rows: shown.map((f) => [f.productName, f.batchNumber ?? '', fmtQty(f.currentQty), dateTime(f.expiryDate || f.bestBefore), '______']) }],
   } : {
-    title: 'Zaya ka record',
+    title: 'Waste ka record',
     subtitle: period ? rangeLabel(period.from, period.to) : undefined,
-    meta: [['Dafa', String(w?.count ?? 0)], ...(costHidden ? [] : [['Lagat', cost(w?.cost ?? 0)] as [string, string]])],
-    sections: [{ kind: 'table', columns: [{ label: 'Kab' }, { label: 'Cheez' }, { label: 'Wajah', wideOnly: true }, { label: 'Miqdar', align: 'right' }, { label: 'Lagat', align: 'right' }],
+    meta: [['Dafa', String(w?.count ?? 0)], ...(costHidden ? [] : [['Cost', cost(w?.cost ?? 0)] as [string, string]])],
+    sections: [{ kind: 'table', columns: [{ label: 'Kab' }, { label: 'Cheez' }, { label: 'Wajah', wideOnly: true }, { label: 'Quantity', align: 'right' }, { label: 'Cost', align: 'right' }],
       rows: (wasteQ.data?.rows ?? []).filter((r) => !source || r.source === source).map((r) => [dateTime(r.at), r.name, r.reason, `${fmtQty(r.qty)} ${r.unit}`, r.cost != null ? cost(r.cost) : '']) }],
   };
 
   return (
     <PageShell>
       <PageHero
-        title="Taazgi aur zaya"
+        title="Freshness aur waste"
         chip={<><Timer /> Freshness</>}
         meta="Jo aaj nahi bika woh kal kachra — jaldi bechein, aur jo phenka us ka hisaab"
         busy={liveQ.isFetching && !liveQ.isLoading}
@@ -122,8 +122,8 @@ export default function FreshnessPage() {
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab === 'analytics'} /></span>
           <button type="button" title="CSV" className={heroIconButton} onClick={() => tab === 'live'
-            ? downloadCsv('taazgi', ['Cheez', 'Batch', 'Bana', 'Baqi', 'Bika', 'Zaya', 'Kab tak'], shown.map((f) => [f.productName, f.batchNumber, f.initialQty, f.currentQty, f.soldQty, f.wastedQty, dateTime(f.expiryDate || f.bestBefore)]))
-            : downloadCsv('zaya', ['Kab', 'Kahan se', 'Cheez', 'Wajah', 'Miqdar', 'Unit', 'Lagat'], (wasteQ.data?.rows ?? []).map((r) => [dateTime(r.at), SOURCE[r.source].label, r.name, r.reason, r.qty, r.unit, r.cost]))}>
+            ? downloadCsv('taazgi', ['Cheez', 'Batch', 'Bana', 'Baqi', 'Bika', 'Waste', 'Kab tak'], shown.map((f) => [f.productName, f.batchNumber, f.initialQty, f.currentQty, f.soldQty, f.wastedQty, dateTime(f.expiryDate || f.bestBefore)]))
+            : downloadCsv('zaya', ['Kab', 'Kahan se', 'Cheez', 'Wajah', 'Quantity', 'Unit', 'Cost'], (wasteQ.data?.rows ?? []).map((r) => [dateTime(r.at), SOURCE[r.source].label, r.name, r.reason, r.qty, r.unit, r.cost]))}>
             <FileSpreadsheet className="h-4 w-4" />
           </button>
           {canManage && <button type="button" onClick={() => check.mutate()} disabled={check.isPending} title="Sab batch ka waqt dobara dekhein" className={heroButton}><RefreshCw className={cn('h-4 w-4', check.isPending && 'animate-spin')} /><span className="hidden sm:inline">Dobara check</span></button>}
@@ -133,7 +133,7 @@ export default function FreshnessPage() {
         stats={[
           { label: '24 ghante me kharab', value: costHidden ? stats.day.length : cost(stats.atRisk), hint: `${stats.day.length} batch` },
           { label: 'Waqt guzar gaya', value: stats.expired.length, hint: stats.expired.length && !costHidden ? cost(stats.expiredValue) : undefined },
-          { label: period ? 'Zaya is muddat' : 'Zaya', value: w ? (costHidden ? fmtQty(w.pieces) : cost(w.cost ?? 0)) : '—', hint: w?.wastePct != null ? `${w.wastePct}%` : undefined },
+          { label: period ? 'Waste is period' : 'Waste', value: w ? (costHidden ? fmtQty(w.pieces) : cost(w.cost ?? 0)) : '—', hint: w?.wastePct != null ? `${w.wastePct}%` : undefined },
         ]}
       />
 
@@ -142,20 +142,20 @@ export default function FreshnessPage() {
           <KpiCard icon={Flame} color={stats.expired.length ? '#e11d48' : '#64748b'} label="Waqt guzar gaya" value={stats.expired.length} hint={stats.expired.length ? 'Aaj hi hatayein' : 'Koi nahi'} onClick={() => { setTab('live'); setView('expired'); }} active={tab === 'live' && view === 'expired'} />
           <KpiCard icon={Clock} color="#d97706" label="6 ghante me" value={stats.soon.length} hint="Discount laga dein" onClick={() => { setTab('live'); setView('urgent'); }} active={tab === 'live' && view === 'urgent'} />
           <KpiCard icon={Package} color="#0891b2" label="Shelf par" value={fmtQty(stats.pieces)} hint={`${live.length} batch`} onClick={() => { setTab('live'); setView('all'); }} active={tab === 'live' && view === 'all'} />
-          <KpiCard icon={Trash2} color="#e11d48" label="Zaya" value={w ? (costHidden ? fmtQty(w.pieces) : cost(w.cost ?? 0)) : '—'} hint={period ? rangeLabel(period.from, period.to) : ''} onClick={() => setTab('waste')} active={tab === 'waste'} />
-          <KpiCard icon={Percent} color={w?.wastePct != null && w.wastePct > 10 ? '#e11d48' : '#16a34a'} label="Zaya ki sharah" value={w?.wastePct != null ? `${w.wastePct}%` : '—'} hint="10% se kam achha" onClick={() => setTab('analytics')} active={tab === 'analytics'} />
+          <KpiCard icon={Trash2} color="#e11d48" label="Waste" value={w ? (costHidden ? fmtQty(w.pieces) : cost(w.cost ?? 0)) : '—'} hint={period ? rangeLabel(period.from, period.to) : ''} onClick={() => setTab('waste')} active={tab === 'waste'} />
+          <KpiCard icon={Percent} color={w?.wastePct != null && w.wastePct > 10 ? '#e11d48' : '#16a34a'} label="Waste ki sharah" value={w?.wastePct != null ? `${w.wastePct}%` : '—'} hint="10% se kam achha" onClick={() => setTab('analytics')} active={tab === 'analytics'} />
         </>}
       </KpiRow>
 
       {tab === 'live' ? (
-        <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Cheez ya batch…" label="Dhoondein" />}
+        <FilterBar search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Cheez ya batch…" label="Search" />}
           chips={view !== 'urgent' ? <FilterChip onRemove={() => setView('urgent')}>{VIEW_LABEL[view]}</FilterChip> : undefined} onClear={() => { setView('urgent'); setSearch(''); }}>
           <FilterMenu icon={Filter} label={VIEW_LABEL[view]} value={view} active={view !== 'urgent'} onChange={setView}
             options={[{ value: 'urgent', label: '24 ghante me kharab' }, { value: 'expired', label: 'Waqt guzar gaya' }, { value: 'all', label: 'Sab shelf par' }]} />
         </FilterBar>
       ) : (
         <FilterBar
-          search={tab === 'waste' ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Cheez ya wajah…" label="Dhoondein" /> : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Is muddat me kya, kyun aur kitne ka phenka</p>}
+          search={tab === 'waste' ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Cheez ya wajah…" label="Search" /> : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Is period me kya, kyun aur kitne ka phenka</p>}
           chips={tab === 'waste' && (source || search) ? <>
             {source && <FilterChip onRemove={() => setSource('')}>{SOURCE[source].label}</FilterChip>}
             {search && <FilterChip onRemove={() => setSearch('')}>"{search}"</FilterChip>}
@@ -168,17 +168,17 @@ export default function FreshnessPage() {
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canManage && <><Kbd>N</Kbd> naya batch · </>}<Kbd>/</Kbd> dhoondein · <Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
+        hint={<>{canManage && <><Kbd>N</Kbd> naya batch · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
         tabs={[
           { id: 'live', label: 'Shelf par', icon: Timer, count: stats.day.length || null },
-          { id: 'waste', label: 'Zaya ka record', icon: Trash2, count: w?.count ?? null },
+          { id: 'waste', label: 'Waste ka record', icon: Trash2, count: w?.count ?? null },
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
         ]} />
 
       {tab === 'analytics' ? <WasteAnalytics range={period} onReason={(r) => { setSearch(r); setTab('waste'); }} />
         : tab === 'waste' ? (<>
           <div className="flex flex-wrap gap-2 text-[0.8125rem]">
-            <Link to="/bakery/ingredients" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Wheat className="h-4 w-4" />Kachcha maal zaya likhein</Link>
+            <Link to="/bakery/ingredients" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Wheat className="h-4 w-4" />Raw material waste likhein</Link>
             <Link to="/damage" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Package className="h-4 w-4" />Khareeda hua maal kharab</Link>
           </div>
           <WasteRecord range={period} source={source} search={search} />
@@ -189,7 +189,7 @@ export default function FreshnessPage() {
                 <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
                   <CheckCircle2 className="mx-auto h-10 w-10 text-success-500" />
                   <p className="mt-3 font-semibold text-slate-900">{view === 'expired' ? 'Kisi batch ka waqt nahi guzra' : view === 'urgent' ? 'Agle 24 ghante me kuch kharab nahi ho raha' : 'Shelf par koi batch nahi'}</p>
-                  <p className="mt-1 text-sm text-slate-500">Baking me "Ban gaya" par taazgi ka batch khud banta hai — ya "Naya batch" se haath se jorein.</p>
+                  <p className="mt-1 text-sm text-slate-500">Baking me "Ban gaya" par freshness ka batch khud banta hai — ya "Naya batch" se haath se jorein.</p>
                   {view !== 'all' && live.length > 0 && <Button className="mt-4" variant="secondary" onClick={() => setView('all')}>Sab batch dekhein</Button>}
                 </div>
               ) : (
@@ -213,7 +213,7 @@ export default function FreshnessPage() {
                         </div>
                         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 sm:ml-[3.25rem]"><div className="h-full rounded-full bg-success-500" style={{ width: `${Math.min(sold, 100)}%` }} /></div>
                         <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:ml-[3.25rem]">
-                          <span className="mr-auto text-[0.6875rem] text-slate-500">{sold}% bik chuka{f.discountedQty ? ` · ${fmtQty(f.discountedQty)} sasta` : ''}{f.wastedQty ? ` · ${fmtQty(f.wastedQty)} zaya` : ''}</span>
+                          <span className="mr-auto text-[0.6875rem] text-slate-500">{sold}% bik chuka{f.discountedQty ? ` · ${fmtQty(f.discountedQty)} sasta` : ''}{f.wastedQty ? ` · ${fmtQty(f.wastedQty)} waste` : ''}</span>
                           {canManage && <>
                             <Button size="xs" variant="secondary" onClick={() => setAction({ log: f, mode: 'sale' })} leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />}>Bik gaya</Button>
                             <Button size="xs" variant="secondary" onClick={() => setAction({ log: f, mode: 'discount' })} leftIcon={<Tag className="h-3.5 w-3.5" />}>Sasta becha</Button>
@@ -230,19 +230,19 @@ export default function FreshnessPage() {
       {adding && <NewBatchModal onClose={() => setAdding(false)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Taazgi aur zaya — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title="Freshness aur waste — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: Timer, color: '#0891b2', title: 'Shelf par kya hai', text: 'Har batch kab tak theek hai — jo pehle kharab hoga woh sab se upar. Baking me "Ban gaya" par batch khud banta hai.' },
             { icon: Tag, color: '#d97706', title: 'Jaldi bechein', text: '6 ghante se kam bacha ho to discount laga kar bechein — "Sasta becha" likhein taake pata rahe kitna bacha liya.' },
             { icon: Trash2, color: '#e11d48', title: 'Phenk diya', text: 'Kitne phenke aur kyun. "Stock se bhi ghatayein" on ho to damage report banti hai; manager manzoor kare to stock kam hota hai.' },
-            { icon: Flame, color: '#ea580c', title: 'Zaya ka record', text: 'Shelf ka phenka, baking me kharab, kachcha maal zaya aur damage report — sab ek jagah, wajah aur lagat ke saath.' },
-            { icon: BarChart3, color: '#7c3aed', title: 'Analytics', text: 'Kis wajah aur kis cheez me sab se zyada nuqsaan. Zaya ki sharah 10% se upar ho to batch chhota karein.' },
+            { icon: Flame, color: '#ea580c', title: 'Waste ka record', text: 'Shelf ka phenka, baking me kharab, raw material waste aur damage report — sab ek jagah, wajah aur cost ke saath.' },
+            { icon: BarChart3, color: '#7c3aed', title: 'Analytics', text: 'Kis wajah aur kis cheez me sab se zyada nuqsaan. Waste ki sharah 10% se upar ho to batch chhota karein.' },
             { icon: AlertTriangle, color: '#64748b', title: 'Dobara check', text: 'Sab batch ka haal waqt ke hisaab se dobara lagta hai — taaza, kal ka, jaldi kharab, waqt guzar gaya.' },
           ]}
           tips={[
-            '"Kya banana hai" (Baking) zaya kam karne ka sab se achha tareeqa hai — bikri ke hisaab se banayein.',
-            'Lagat product ki cost price se aati hai — cost na likhi ho to recipe se.',
-            'Batch sambhalne ke liye "Bakery production sambhalna" ki ijazat chahiye.',
+            '"Kya banana hai" (Baking) waste kam karne ka sab se achha tareeqa hai — sale ke hisaab se banayein.',
+            'Cost product ki cost price se aati hai — cost na likhi ho to recipe se.',
+            'Batch sambhalne ke liye "Bakery production sambhalna" ki permission chahiye.',
           ]}
           shortcuts={[['N', 'naya batch'], ['/', 'dhoondein'], ['1', 'shelf'], ['2', 'zaya'], ['3', 'analytics'], ['G', 'guide']]}
         />

@@ -45,7 +45,7 @@ export const furnitureKpis: KpiDef[] = [
 export function useFurnitureAttention(): AttentionItem[] {
   const f = useFurnitureOps();
   const items: AttentionItem[] = [];
-  if (f.overdue.length) items.push({ icon: Clock, level: 'danger', text: `${f.overdue.length} custom order late hai — customer ko nayi tareekh batayein`, to: ORDERS, cta: 'Orders dekhein' });
+  if (f.overdue.length) items.push({ icon: Clock, level: 'danger', text: `${f.overdue.length} custom order late hai — customer ko nayi date batayein`, to: ORDERS, cta: 'Orders dekhein' });
   if (f.ready.length) items.push({ icon: PackageCheck, level: 'warning', text: `${f.ready.length} order tayyar para hai — delivery schedule karein aur baqi paisa lein`, to: DELIVERIES, cta: 'Delivery lagayein' });
   if (f.todayDeliveries) items.push({ icon: Truck, level: 'info', text: `${f.todayDeliveries} delivery aaj jani hai`, to: DELIVERIES, cta: 'Deliveries' });
   if (f.quotations) items.push({ icon: ClipboardList, level: 'info', text: `${f.quotations} quotation customer ki haan ka intezar kar rahi hai — follow up karein`, to: `${ORDERS}?status=QUOTATION`, cta: 'Quotations' });
@@ -100,7 +100,7 @@ export function FurnitureLateOrders() {
   const f = useFurnitureOps();
   const { cost } = useMasked();
   return (
-    <WidgetCard title="Late orders" icon={Clock} description="Delivery ki tareekh guzar gayi" to={ORDERS} flush>
+    <WidgetCard title="Late orders" icon={Clock} description="Delivery ki date guzar gayi" to={ORDERS} flush>
       <RowList empty="Sab orders waqt par hain" emptyIcon={CheckCircle2}>
         {f.overdue.slice(0, 6).map((o) => (
           <ListRow

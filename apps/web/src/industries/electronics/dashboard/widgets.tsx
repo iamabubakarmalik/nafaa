@@ -105,8 +105,8 @@ export function ElectronicsBrands() {
   const { brands } = useElectronicsOps();
   const { sales } = useMasked();
   return (
-    <WidgetCard title="Top brands" icon={Award} description="Bikri ke hisaab se" to="/brands" flush>
-      <RowList empty="Abhi kisi brand ki bikri nahi" emptyIcon={Award}>
+    <WidgetCard title="Top brands" icon={Award} description="Sale ke hisaab se" to="/brands" flush>
+      <RowList empty="Abhi kisi brand ki sale nahi" emptyIcon={Award}>
         {brands.map((b, i) => (
           <ListRow
             key={b.id}

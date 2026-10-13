@@ -173,17 +173,17 @@ function FinishModal({ item, onClose, onDone }: { item: ProductionItem; onClose:
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <Input label="Kitne bane (theek)" inputMode="numeric" value={made} onChange={(e) => setMade(e.target.value.replace(/\D/g, ''))} size="lg" className="text-center text-xl font-bold tabular-nums" data-autofocus />
-          <Input label="Kitne kharab" inputMode="numeric" value={failed} onChange={(e) => setFailed(e.target.value.replace(/\D/g, ''))} size="lg" className="text-center text-xl font-bold tabular-nums" hint="Zaya ke record me jata hai" />
+          <Input label="Kitne kharab" inputMode="numeric" value={failed} onChange={(e) => setFailed(e.target.value.replace(/\D/g, ''))} size="lg" className="text-center text-xl font-bold tabular-nums" hint="Waste ke record me jata hai" />
         </div>
         {short > 0 && <p className="text-[0.8125rem] text-amber-800">Socha {fmtQty(item.plannedQty)} tha — {fmtQty(short)} kam ban rahe hain.</p>}
-        <Input label="Koi baat" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Thora jal gaya, oven garam tha…" hint={failedQty > 0 ? 'Kharabi ki wajah likhein — zaya ke record me dikhti hai' : undefined} />
+        <Input label="Koi baat" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Thora jal gaya, oven garam tha…" hint={failedQty > 0 ? 'Kharabi ki wajah likhein — waste ke record me dikhti hai' : undefined} />
         {linked ? (
           <div className="space-y-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
             <Switch checked={prefs.addToStock} onChange={(e) => setPref({ addToStock: e.target.checked })} label="Bana hua maal stock me daalein"
               description="Counter par bechne se pehle stock barh jaye. Agar aap stock alag se daalte hain to band rakhein." />
             <Switch checked={prefs.useIngredients} onChange={(e) => setPref({ useIngredients: e.target.checked })} label="Recipe ka saamaan ghatayein"
               description="Maida, cheeni waghera recipe ke hisaab se kachche maal se kam honge. Recipe na bani ho to kuch nahi hota." />
-            <Switch checked={prefs.makeBatch} onChange={(e) => setPref({ makeBatch: e.target.checked })} label="Taazgi ka batch banayein"
+            <Switch checked={prefs.makeBatch} onChange={(e) => setPref({ makeBatch: e.target.checked })} label="Freshness ka batch banayein"
               description="Kab tak theek rahega — waqt guzarne par yaad dilaye ga" />
             {prefs.makeBatch && (
               <div className="flex flex-wrap items-center gap-1.5 pl-1">
@@ -193,7 +193,7 @@ function FinishModal({ item, onClose, onDone }: { item: ProductionItem; onClose:
             )}
           </div>
         ) : (
-          <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">Yeh cheez maal se juri nahi, is liye stock, saamaan aur taazgi ka hisaab nahi hoga.</p>
+          <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">Yeh cheez maal se juri nahi, is liye stock, saamaan aur freshness ka hisaab nahi hoga.</p>
         )}
       </div>
     </Modal>

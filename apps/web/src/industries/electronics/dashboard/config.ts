@@ -31,7 +31,7 @@ function useElectronicsActions(): QuickAction[] {
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
     { to: '/sales', icon: Receipt, label: 'Sales history', hint: 'Purani receipts' },
-    { to: '/profit-report', icon: PiggyBank, label: 'Profit report', hint: 'Nafa-nuqsan' },
+    { to: '/profit-report', icon: PiggyBank, label: 'Profit report', hint: 'Profit-loss' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }
@@ -46,7 +46,7 @@ export const electronicsDashboard = createDashboard({
   widgets: [
     { id: 'electronics-warranty', title: 'Warranty claims', description: 'Khule claim, sab se purane upar', size: 'third', sizes: ANY_SIZE, Component: ElectronicsWarranty },
     { id: 'electronics-serials', title: 'Serial stock', description: 'Stock, bike, kharab aur warranty khatam hone wale units', size: 'third', sizes: ANY_SIZE, Component: ElectronicsSerials },
-    { id: 'electronics-brands', title: 'Top brands', description: 'Kis brand ki bikri sab se zyada', size: 'third', sizes: ANY_SIZE, Component: ElectronicsBrands },
+    { id: 'electronics-brands', title: 'Top brands', description: 'Kis brand ki sale sab se zyada', size: 'third', sizes: ANY_SIZE, Component: ElectronicsBrands },
   ],
   useQuickActions: useElectronicsActions,
   moneyMap: { productsPath: '/electronics-products' },

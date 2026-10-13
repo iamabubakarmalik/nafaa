@@ -49,7 +49,7 @@ const COUNTED_CAKE = { notIn: [...CLOSED_ORDER, 'DRAFT', 'QUOTED'] as never[] };
 const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 const wholeQty = (v: unknown, label: string) => {
   const n = Math.round(Number(v));
-  if (!Number.isFinite(n) || n <= 0) throw new BadRequestException(`${label} — tadaad likhein`);
+  if (!Number.isFinite(n) || n <= 0) throw new BadRequestException(`${label} — quantity likhein`);
   return n;
 };
 
@@ -198,7 +198,7 @@ export class ProductionService {
     const item = await this.mustItem(user, itemId);
     const data: Prisma.BakeryProductionItemUpdateManyMutationInput = {};
     if (dto?.plannedQty !== undefined) {
-      if (item.status === 'COMPLETED') throw new BadRequestException('Ban chuki cheez ki tadaad nahi badalti');
+      if (item.status === 'COMPLETED') throw new BadRequestException('Ban chuki cheez ki quantity nahi badalti');
       data.plannedQty = wholeQty(dto.plannedQty, item.productName);
     }
     for (const k of ['bakerId', 'bakerName', 'batchNumber', 'ovenNumber', 'notes'] as const) {
@@ -240,7 +240,7 @@ export class ProductionService {
     if (item.status === 'COMPLETED') throw new ConflictException('Yeh cheez pehle hi "ban gayi" darj ho chuki');
     const produced = Math.round(Number(dto?.producedQty));
     const failed = Math.max(Math.round(Number(dto?.failedQty) || 0), 0);
-    if (!Number.isFinite(produced) || produced < 0) throw new BadRequestException('Kitne bane — tadaad likhein');
+    if (!Number.isFinite(produced) || produced < 0) throw new BadRequestException('Kitne bane — quantity likhein');
     if (produced + failed <= 0) throw new BadRequestException('Kitne bane ya kitne kharab hue — kuch to likhein');
 
     const plan = item.plan;

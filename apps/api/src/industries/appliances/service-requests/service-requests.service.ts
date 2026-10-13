@@ -313,7 +313,7 @@ export class ServiceRequestsService {
       : (dto.paidAmount ?? totalCharge);
 
     if (paidAmount > totalCharge) {
-      throw new BadRequestException('Wusool shuda raqam kul bill se ziyada nahi ho sakti');
+      throw new BadRequestException('Receive shuda amount kul bill se ziyada nahi ho sakti');
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -416,7 +416,7 @@ export class ServiceRequestsService {
     if (r.status === 'CANCELLED') throw new BadRequestException('Cancel hue kaam par paisa nahi liya ja sakta');
     const due = dueOf(r);
     if (due <= 0) throw new BadRequestException('Is kaam ka poora paisa mil chuka hai');
-    if (dto.amount <= 0) throw new BadRequestException('Raqam 0 se ziyada honi chahiye');
+    if (dto.amount <= 0) throw new BadRequestException('Amount 0 se ziyada honi chahiye');
     if (dto.amount > due) throw new BadRequestException(`Sirf ${due} baqi hai`);
 
     const note = `[${new Date().toLocaleString('en-PK')}] Wusooli: ${dto.amount}${dto.note ? ` — ${dto.note}` : ''}`;

@@ -47,7 +47,7 @@ export class FreshnessService {
     const qty = Math.round(positive(dto.initialQty, 'Kitne banaye — tadaad likhein'));
     const productionDate = dto.productionDate ? new Date(dto.productionDate) : new Date();
     const bestBefore = new Date(dto.bestBefore);
-    if (Number.isNaN(productionDate.getTime()) || Number.isNaN(bestBefore.getTime())) throw new BadRequestException('Tareekh theek nahi');
+    if (Number.isNaN(productionDate.getTime()) || Number.isNaN(bestBefore.getTime())) throw new BadRequestException('Date theek nahi');
     if (bestBefore <= productionDate) throw new BadRequestException('"Kab tak theek" banane ke waqt ke baad hona chahiye');
     const expiry = dto.expiryDate ? new Date(dto.expiryDate) : null;
     return this.prisma.bakeryFreshnessLog.create({

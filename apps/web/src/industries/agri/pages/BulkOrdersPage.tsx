@@ -350,9 +350,9 @@ export default function BulkOrdersPage() {
       [`Bahar para paisa: ${formatPKR(stats.moneyOut)} (${stats.moneyOutCount} orders)`],
       [''],
     ];
-    const head = ['Order #', 'Farmer', 'Phone', 'Tareekh', 'Delivery', 'Halat', 'Mausam',
-      'Fasal', 'Raqba', 'Cheezein', 'Tadaad', 'Kul', 'Mila', 'Baqi', 'Udhaar',
-      'Udhaar ki tareekh', 'Pata'];
+    const head = ['Order #', 'Farmer', 'Phone', 'Date', 'Delivery', 'Halat', 'Mausam',
+      'Fasal', 'Raqba', 'Cheezein', 'Quantity', 'Kul', 'Mila', 'Baqi', 'Udhaar',
+      'Udhaar ki date', 'Pata'];
     const body = shown.map((r) => [
       r.orderNumber, r.customerName || '', r.customerPhone || '',
       String(r.orderDate).slice(0, 10),
@@ -479,7 +479,7 @@ export default function BulkOrdersPage() {
             <h3 className="font-extrabold text-sky-900 dark:text-sky-200 text-sm">
               🚚 {stats.today > 0 && `${stats.today} delivery aaj honi hai`}
               {stats.today > 0 && stats.late > 0 && ' · '}
-              {stats.late > 0 && `${stats.late} ki tareekh guzar chuki`}
+              {stats.late > 0 && `${stats.late} ki date guzar chuki`}
             </h3>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {stats.todayList.map((r: any) => (
@@ -510,7 +510,7 @@ export default function BulkOrdersPage() {
           </div>
           <div className="flex-1 min-w-[200px]">
             <h3 className="font-extrabold text-amber-900 dark:text-amber-200 text-sm">
-              💰 {stats.overdueCredit} farmer ka udhaar ki tareekh guzar chuki — {formatPKR(stats.overdueAmount)}
+              💰 {stats.overdueCredit} farmer ka udhaar ki date guzar chuki — {formatPKR(stats.overdueAmount)}
             </h3>
             <p className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
               Katai ke baad farmer ke paas paisa aata hai — wohi waqt maangne ka sab se behtar hai.
@@ -534,7 +534,7 @@ export default function BulkOrdersPage() {
       {/* ═══ KPI ═══ */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 print:hidden">
         <Kpi icon={Wallet} label="Bahar para paisa" value={formatPKR(stats.moneyOut)}
-          sub={stats.moneyOutCount > 0 ? `${stats.moneyOutCount} orders ka baqi` : 'Sab wusool ho gaya'}
+          sub={stats.moneyOutCount > 0 ? `${stats.moneyOutCount} orders ka baqi` : 'Sab receive ho gaya'}
           tone="amber" onClick={() => { setTab('orders'); setStatusFilter('money'); }}
           active={statusFilter === 'money'} />
         <Kpi icon={Package} label="Chal rahe order" value={stats.active}
@@ -1177,7 +1177,7 @@ function Analytics({ stats, statusPie, monthChart, seasonChart, topProducts, row
         <MiniStat icon={Wallet} label="Bahar para paisa" value={formatPKR(stats.moneyOut)}
           sub={`${stats.moneyOutCount} orders ka baqi`} tone="amber" />
         <MiniStat icon={TrendingUp} label="Aam order" value={formatPKR(stats.avgOrder)} tone="lime" />
-        <MiniStat icon={AlertTriangle} label="Tareekh guzri" value={stats.overdueCredit}
+        <MiniStat icon={AlertTriangle} label="Date guzri" value={stats.overdueCredit}
           sub={stats.overdueAmount > 0 ? formatPKR(stats.overdueAmount) : 'Koi nahi'} tone="rose" />
       </section>
 
@@ -1185,7 +1185,7 @@ function Analytics({ stats, statusPie, monthChart, seasonChart, topProducts, row
         <section className="rounded-3xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-4">
           <div className="flex items-center gap-2 mb-1">
             <Scissors className="h-4 w-4 text-amber-600" />
-            <h3 className="font-black text-amber-900 dark:text-amber-200">Wusooli ka waqt</h3>
+            <h3 className="font-black text-amber-900 dark:text-amber-200">Receiving ka waqt</h3>
           </div>
           <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200 leading-relaxed">
             Abhi <strong>{formatPKR(stats.moneyOut)}</strong> farmer ke paas hai. Ye paisa katai ke
@@ -1373,7 +1373,7 @@ function Empty({ hasFilters, onClear, onGuide }: any) {
       <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto leading-relaxed">
         {hasFilters
           ? 'Chaant badal kar dekhein'
-          : 'Jab koi farmer 20-50 bori ka sauda kare, wo yahan banayein — delivery, udhaar aur wusooli sab ka hisab rahega.'}
+          : 'Jab koi farmer 20-50 bori ka sauda kare, wo yahan banayein — delivery, udhaar aur receiving sab ka hisab rahega.'}
       </p>
       <div className="mt-5 flex gap-2 justify-center flex-wrap">
         {hasFilters ? (
@@ -1411,7 +1411,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
         <div className="p-5 space-y-3 text-sm">
           <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3">
             <p className="text-[0.75rem] font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
-              Bara order chhoti bikri jaisa nahi hota. Maal bori me jata hai, aksar{' '}
+              Bara order chhoti sale jaisa nahi hota. Maal bori me jata hai, aksar{' '}
               <strong>udhaar par</strong>, aur paisa <strong>katai ke baad</strong> aata hai.
               Is liye do cheezon ka hisab rakhna parta hai: maal kahan tak pahuncha, aur paisa
               kitna bahar hai.
@@ -1419,7 +1419,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
           </div>
           <Tip icon={Wallet} title="Bahar para paisa — sab se ahem">
             Ooper ka pehla number wo paisa hai jo farmer ke paas hai. Aam dukaan ka aadha sarmaya
-            isi tarah bahar para hota hai. Jis ki tareekh guzar jaye us ki alag patti aati hai,
+            isi tarah bahar para hota hai. Jis ki date guzar jaye us ki alag patti aati hai,
             aur us ki list WhatsApp par bhej sakte hain.
           </Tip>
           <Tip icon={Layers} title="Board — gudaam wale ke liye">
@@ -1427,11 +1427,11 @@ function Teacher({ onClose }: { onClose: () => void }) {
             tayyar → raaste me. Har card par agla qadam ka button hai, ek click me aage barh
             jata hai.
           </Tip>
-          <Tip icon={Truck} title="Delivery ki tareekh">
-            Jo aaj jana hai ya jis ki tareekh guzar chuki, wo sab se ooper neeli patti me aata
+          <Tip icon={Truck} title="Delivery ki date">
+            Jo aaj jana hai ya jis ki date guzar chuki, wo sab se ooper neeli patti me aata
             hai. Us par click karke seedha order khul jata hai.
           </Tip>
-          <Tip icon={Scissors} title="Wusooli katai ke waqt">
+          <Tip icon={Scissors} title="Receiving katai ke waqt">
             Farmer ke paas paisa sirf katai ke baad aata hai. Us waqt "Fasal ka calendar" khol
             kar dekhein ke kis ki fasal kat chuki — unhi se pehle maangein. Baad me paisa kahin
             aur lag jata hai.

@@ -203,7 +203,7 @@ export interface StatusMeta {
 
 export const SERVICE_STATUS_META: Record<ApplianceServiceStatus, StatusMeta> = {
   REQUESTED:           { label: 'Nayi request',      emoji: '📥', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-ink-500/15 dark:text-ink-300 dark:border-ink-500/40' },
-  SCHEDULED:           { label: 'Tareekh lag gayi',  emoji: '📅', isOpen: true,  hex: '#6366f1', cls: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/40' },
+  SCHEDULED:           { label: 'Date lag gayi',  emoji: '📅', isOpen: true,  hex: '#6366f1', cls: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/40' },
   TECHNICIAN_ASSIGNED: { label: 'Banda lag gaya',    emoji: '👷', isOpen: true,  hex: '#3b82f6', cls: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/40' },
   EN_ROUTE:            { label: 'Raaste me',         emoji: '🛵', isOpen: true,  hex: '#06b6d4', cls: 'bg-cyan-100 text-cyan-700 border-cyan-300 dark:bg-cyan-500/15 dark:text-cyan-300 dark:border-cyan-500/40' },
   ON_SITE:             { label: 'Ghar pohanch gaya', emoji: '🏠', isOpen: true,  hex: '#14b8a6', cls: 'bg-teal-100 text-teal-700 border-teal-300 dark:bg-teal-500/15 dark:text-teal-300 dark:border-teal-500/40' },
@@ -237,8 +237,8 @@ export type ApplianceInstallationStatus =
   | 'COMPLETED' | 'RESCHEDULED' | 'CANCELLED' | 'FAILED';
 
 export const INSTALL_STATUS_META: Record<ApplianceInstallationStatus, StatusMeta> = {
-  PENDING:     { label: 'Tareekh baqi',     emoji: '📥', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-ink-500/15 dark:text-ink-300 dark:border-ink-500/40' },
-  SCHEDULED:   { label: 'Tareekh lag gayi', emoji: '📅', isOpen: true,  hex: '#6366f1', cls: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/40' },
+  PENDING:     { label: 'Date baqi',     emoji: '📥', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-ink-500/15 dark:text-ink-300 dark:border-ink-500/40' },
+  SCHEDULED:   { label: 'Date lag gayi', emoji: '📅', isOpen: true,  hex: '#6366f1', cls: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/40' },
   ASSIGNED:    { label: 'Banda lag gaya',   emoji: '👷', isOpen: true,  hex: '#3b82f6', cls: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/40' },
   IN_PROGRESS: { label: 'Kaam chal raha',   emoji: '🛠️', isOpen: true,  hex: '#f59e0b', cls: 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/40' },
   RESCHEDULED: { label: 'Aage barh gayi',   emoji: '🔄', isOpen: true,  hex: '#a855f7', cls: 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/40' },
@@ -263,7 +263,7 @@ export const INSTALL_NEXT: Partial<Record<ApplianceInstallationStatus, Appliance
    DELIVERY STATUS (String column hai, enum nahi)
    ═══════════════════════════════════════════════════════════ */
 export const DELIVERY_STATUS_META: Record<string, StatusMeta> = {
-  PENDING:    { label: 'Tareekh baqi',   emoji: '📦', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-ink-500/15 dark:text-ink-300 dark:border-ink-500/40' },
+  PENDING:    { label: 'Date baqi',   emoji: '📦', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-ink-500/15 dark:text-ink-300 dark:border-ink-500/40' },
   SCHEDULED:  { label: 'Gaari lag gayi', emoji: '📅', isOpen: true,  hex: '#6366f1', cls: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/40' },
   DISPATCHED: { label: 'Nikal gaya',     emoji: '🚚', isOpen: true,  hex: '#06b6d4', cls: 'bg-cyan-100 text-cyan-700 border-cyan-300 dark:bg-cyan-500/15 dark:text-cyan-300 dark:border-cyan-500/40' },
   ARRIVED:    { label: 'Pohanch gaya',   emoji: '📍', isOpen: true,  hex: '#14b8a6', cls: 'bg-teal-100 text-teal-700 border-teal-300 dark:bg-teal-500/15 dark:text-teal-300 dark:border-teal-500/40' },
@@ -401,8 +401,8 @@ export const CLAIM_STATUS_META: Record<ApplianceClaimStatus, StatusMeta> = {
   DRAFT:              { label: 'Bheja nahi',      emoji: '📝', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-ink-500/15 dark:text-ink-300 dark:border-ink-500/40' },
   SUBMITTED:          { label: 'Brand ko bheja',  emoji: '📤', isOpen: true,  hex: '#3b82f6', cls: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/40' },
   BRAND_REVIEWING:    { label: 'Brand dekh raha', emoji: '🔍', isOpen: true,  hex: '#06b6d4', cls: 'bg-cyan-100 text-cyan-700 border-cyan-300 dark:bg-cyan-500/15 dark:text-cyan-300 dark:border-cyan-500/40' },
-  APPROVED:           { label: 'Manzoor',         emoji: '✅', isOpen: true,  hex: '#10b981', cls: 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/40' },
-  PARTIALLY_APPROVED: { label: 'Thora manzoor',   emoji: '➗', isOpen: true,  hex: '#f59e0b', cls: 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/40' },
+  APPROVED:           { label: 'Approve',         emoji: '✅', isOpen: true,  hex: '#10b981', cls: 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/40' },
+  PARTIALLY_APPROVED: { label: 'Thora approve',   emoji: '➗', isOpen: true,  hex: '#f59e0b', cls: 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/40' },
   REJECTED:           { label: 'Mana kar diya',   emoji: '❌', isOpen: false, hex: '#ef4444', cls: 'bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/40' },
   SETTLED:            { label: 'Paisa mil gaya',  emoji: '💰', isOpen: false, hex: '#8b5cf6', cls: 'bg-violet-100 text-violet-700 border-violet-300 dark:bg-violet-500/15 dark:text-violet-300 dark:border-violet-500/40' },
 };

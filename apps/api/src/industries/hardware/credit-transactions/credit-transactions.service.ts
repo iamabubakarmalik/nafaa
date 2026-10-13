@@ -17,7 +17,7 @@ export class CreditTransactionsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(user: AuthenticatedUser, dto: CreateCreditTransactionDto, reverses?: { transactionType: string; amount: number }) {
-    if (!dto.amount) throw new BadRequestException('Raqam 0 nahi ho sakti');
+    if (!dto.amount) throw new BadRequestException('Amount 0 nahi ho sakti');
     const account = await this.prisma.hardwareCreditAccount.findFirst({
       where: { id: dto.accountId, tenantId: user.tenantId },
     });
@@ -25,7 +25,7 @@ export class CreditTransactionsService {
     if (account.status === 'CLOSED') throw new BadRequestException('Account is closed');
     // A linked account shows the customer khata, so an entry here would count the money twice.
     if (account.customerId && !reverses) {
-      throw new BadRequestException('Is contractor ka hisaab customer khate se chalta hai — udhaar POS se aur wusooli khate se darj karein');
+      throw new BadRequestException('Is contractor ka hisaab customer khate se chalta hai — udhaar POS se aur receiving khate se darj karein');
     }
 
     const prefix = `LDG-${new Date().getFullYear()}-`;
@@ -164,7 +164,7 @@ export class CreditTransactionsService {
     if (!tx) throw new NotFoundException('Transaction not found');
 
     const marker = `Reversal of ${tx.transactionNumber}:`;
-    if (tx.description.startsWith('Reversal of ')) throw new BadRequestException('Wapsi wali entry dobara wapas nahi hoti');
+    if (tx.description.startsWith('Reversal of ')) throw new BadRequestException('Return wali entry dobara wapas nahi hoti');
     const already = await this.prisma.hardwareCreditTransaction.findFirst({
       where: { accountId: tx.accountId, description: { startsWith: marker } },
       select: { id: true },

@@ -135,7 +135,7 @@ export async function ensureKhataCustomer(
     if (byPhone) return byPhone.id;
   }
   const name = input.name?.trim();
-  if (!name) throw new BadRequestException('Raqam khate me likhne ke liye farmer ya customer ka naam zaroori hai');
+  if (!name) throw new BadRequestException('Amount khate me likhne ke liye farmer ya customer ka naam zaroori hai');
   const created = await db.customer.create({
     data: { tenantId: user.tenantId, shopId: input.shopId ?? null, name, phone: phone || null },
     select: { id: true },
@@ -154,7 +154,7 @@ export async function khataPayment(
   input: { customerId: string; shopId: string; amount: number; reference: string; note: string },
 ) {
   const amount = r2(input.amount);
-  if (amount <= 0) throw new BadRequestException('Raqam sahi likhein');
+  if (amount <= 0) throw new BadRequestException('Amount sahi likhein');
   const { balance } = await db.customer.update({
     where: { id: input.customerId },
     data: { balance: { decrement: amount } },

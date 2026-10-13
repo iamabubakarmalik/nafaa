@@ -212,7 +212,7 @@ export default function BundleFormPage() {
                 🎁 {isEdit ? (form.name || 'Bundle') : 'Combo Deal Banayein'}
               </h1>
               <p className="mt-1 text-sm text-white/85 font-semibold">
-                2 ya zyada cheezein sath — customer ko bachat, aap ki bikri barhti hai
+                2 ya zyada cheezein sath — customer ko bachat, aap ki sale barhti hai
               </p>
             </div>
           </div>
@@ -240,7 +240,7 @@ export default function BundleFormPage() {
               className="h-14 w-full rounded-2xl border-2 border-slate-200 px-4 text-lg font-extrabold focus:outline-none focus:border-pink-500 focus:ring-4 focus:ring-pink-200 transition" />
             <div>
               <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-1.5">
-                Tafseel <span className="text-slate-400 normal-case font-bold">(optional)</span>
+                Details <span className="text-slate-400 normal-case font-bold">(optional)</span>
               </label>
               <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="Is combo me khaas kya hai..."
@@ -264,7 +264,7 @@ export default function BundleFormPage() {
                 <input value={productSearch}
                   onChange={(e) => { setProductSearch(e.target.value); setShowProductSearch(true); }}
                   onFocus={() => setShowProductSearch(true)}
-                  placeholder="Cheez dhoondein jo bundle me daalni hai..."
+                  placeholder="Cheez search jo bundle me daalni hai..."
                   className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
               </div>
               {showProductSearch && productSearch && (
@@ -417,7 +417,7 @@ export default function BundleFormPage() {
 
           {/* Extras */}
           <section className="rounded-3xl bg-white border-2 border-slate-200 shadow-sm p-5 space-y-4">
-            <SectionHead n="4" icon={Sparkles} title="Baqi Settings" desc="Tareekh, tasveer, khaas banana" tone="slate" />
+            <SectionHead n="4" icon={Sparkles} title="Baqi Settings" desc="Date, tasveer, khaas banana" tone="slate" />
 
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
@@ -610,7 +610,7 @@ function BundleFormTeacher({ onClose }: { onClose: () => void }) {
     {
       icon: Star, title: 'Khaas aur chalu',
       body: '"Khaas" wala bundle POS aur catalog dono par sab se upar aata hai. "Chalu/Band" se control hota hai ke bundle abhi bik raha hai ya nahi — deal khatam ho to band kar dein, delete karne ki zaroorat nahi.',
-      tips: ['Tareekh bhi laga sakte hain — kab se kab tak'],
+      tips: ['Date bhi laga sakte hain — kab se kab tak'],
     },
     {
       icon: Save, title: 'Save karna',

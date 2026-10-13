@@ -439,7 +439,7 @@ export default function MobilePosPage() {
     mutationFn: (data: { paymentMethod: PaymentMethod; paidAmount: number; depositExtra?: boolean }) => {
       if (!currentShopId) throw new Error('Shop select karein');
       // Counter rules (discount limit, credit limit) may ask for an owner or manager PIN.
-      return withManagerPin('Is bill ki manzoori', (managerPin) => offlineSalesApi.create({
+      return withManagerPin('Is bill ki approval', (managerPin) => offlineSalesApi.create({
         ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,

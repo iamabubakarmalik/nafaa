@@ -97,7 +97,7 @@ export default function TechnicianDetailPage() {
       [`${fmtDate(range.from)} se ${fmtDate(range.to)} tak`],
       [`Rating: ${t.avgRating?.toFixed(1) ?? '—'} • Commission: ${t.commissionPct}%`],
       [],
-      ['Qism', 'Number', 'Customer', 'Cheez', 'Halat', 'Tareekh', 'Kul bill', 'Wusool'],
+      ['Type', 'Number', 'Customer', 'Cheez', 'Halat', 'Date', 'Kul bill', 'Receive'],
       ...jobs.map((j) => [j.kind, j.num, j.customer, j.product, j.status, j.date ? fmtDate(j.date) : '', j.total, j.paid]),
       [],
       ['Kul kaam', jobs.length],
@@ -135,7 +135,7 @@ export default function TechnicianDetailPage() {
 
       <h2 class="sec">📋 Is Arse Ka Kaam (${fmtDate(range.from)} — ${fmtDate(range.to)})</h2>
       <table>
-        <thead><tr><th>#</th><th>Qism / Number</th><th>Customer</th><th>Cheez</th><th class="c">Halat</th><th>Tareekh</th><th class="r">Bill</th></tr></thead>
+        <thead><tr><th>#</th><th>Type / Number</th><th>Customer</th><th>Cheez</th><th class="c">Halat</th><th>Date</th><th class="r">Bill</th></tr></thead>
         <tbody>
           ${jobs.map((j, i) => `
             <tr>
@@ -479,17 +479,17 @@ function DetailTeacher({ onClose }: { onClose: () => void }) {
           tone: 'violet',
           tips: [
             <>Upar <strong>"Kaam ka arsa"</strong> chunein (7 din / 1 mahina / 3 mahine)</>,
-            <><Kbd dark>P</Kbd> dabayein — <strong>commission statement</strong> A4 par nikal aayega, har kaam ki tafseel aur dono dastakhaton ki jagah ke sath</>,
-            <>Commission <strong>kul bill ka %</strong> hoti hai — parts/material ka kharcha bhi shamil hota hai</>,
+            <><Kbd dark>P</Kbd> dabayein — <strong>commission statement</strong> A4 par nikal aayega, har kaam ki details aur dono dastakhaton ki jagah ke sath</>,
+            <>Commission <strong>kul bill ka %</strong> hoti hai — parts/material ka expense bhi shamil hota hai</>,
           ],
         },
         {
           title: '📊 Kaarkardagi parakhna',
           tone: 'cyan',
           tips: [
-            <><strong>Mukammal karne ki shirah</strong> 80% se upar honi chahiye. Kam ho to dekhein kaam ghalat qism ka to nahi mil raha</>,
+            <><strong>Mukammal karne ki shirah</strong> 80% se upar honi chahiye. Kam ho to dekhein kaam ghalat type ka to nahi mil raha</>,
             <><strong>Ausat waqt</strong> — ye banda request milne se mukammal karne tak kitna waqt leta hai</>,
-            <><strong>Din ke hisab se bojh</strong> — agar sirf 2 din par saara kaam hai to baqi din zaya ho rahe hain</>,
+            <><strong>Din ke hisab se bojh</strong> — agar sirf 2 din par saara kaam hai to baqi din waste ho rahe hain</>,
             <><strong>Rating</strong> khud banti hai jab kaam mukammal karte waqt customer ki rating daalte hain</>,
           ],
         },

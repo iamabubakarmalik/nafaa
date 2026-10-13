@@ -113,7 +113,7 @@ export class AlterationsService {
       let customerId = t.customerId;
       if (!customerId && stillOwed > 0) {
         if (!t.customerName?.trim()) {
-          throw new BadRequestException(`Rs ${stillOwed} baqi hai — poori raqam lein, ya udhaar ke liye customer ka naam likhein`);
+          throw new BadRequestException(`Rs ${stillOwed} baqi hai — poori amount lein, ya udhaar ke liye customer ka naam likhein`);
         }
         customerId = await ensureCustomer(tx, user, { name: t.customerName, phone: t.customerPhone, shopId });
       }
@@ -148,11 +148,11 @@ export class AlterationsService {
     if (!t) throw new NotFoundException('Ticket not found');
     if (t.status === 'DELIVERED' || t.status === 'CANCELLED') {
       throw new BadRequestException(t.status === 'DELIVERED'
-        ? 'Ticket deliver ho chuka — baqi raqam customer ke khate se wasool karein'
+        ? 'Ticket deliver ho chuka — baqi amount customer ke khate se wasool karein'
         : 'Cancel shuda ticket par payment nahi li ja sakti');
     }
     const due = r2(Number(t.charges) - Number(t.paidAmount));
-    if (amount > due + 0.01) throw new BadRequestException(due > 0 ? `Baqi sirf Rs ${due} hai` : 'Poori raqam mil chuki hai');
+    if (amount > due + 0.01) throw new BadRequestException(due > 0 ? `Baqi sirf Rs ${due} hai` : 'Poori amount mil chuki hai');
 
     return this.prisma.$transaction(async (tx) => {
       // Advance money is held on the customer's khata until delivery.

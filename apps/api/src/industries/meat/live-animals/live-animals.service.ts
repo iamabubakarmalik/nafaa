@@ -68,7 +68,7 @@ export class LiveAnimalsService {
     if (!a) throw new NotFoundException('Animal not found');
     days = Number(days);
     costPerDay = Number(costPerDay);
-    if (!Number.isInteger(days) || days <= 0 || !(costPerDay >= 0)) throw new BadRequestException('Din aur kharcha sahi likhein');
+    if (!Number.isInteger(days) || days <= 0 || !(costPerDay >= 0)) throw new BadRequestException('Din aur expense sahi likhein');
     return this.prisma.meatLiveAnimal.update({
       where: { id },
       data: {

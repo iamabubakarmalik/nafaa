@@ -448,7 +448,7 @@ function SlaughterForm({ onClose, onSaved }: any) {
           {form.stockProductId && (
             <p className="mt-1 text-[0.6875rem] font-semibold text-slate-500">
               {Number(form.dressedWeightKg) > 0
-                ? `${form.dressedWeightKg} kg is item ke stock me aa jayega, janwar ki qeemat + chara ke hisaab se lagat ke saath.`
+                ? `${form.dressedWeightKg} kg is item ke stock me aa jayega, janwar ki qeemat + chara ke hisaab se cost ke saath.`
                 : 'Stock me daalne ke liye gosht ka wazan (Dressed Weight) likhein.'}
             </p>
           )}

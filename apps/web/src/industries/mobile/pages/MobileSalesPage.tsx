@@ -407,14 +407,14 @@ export default function MobileSalesPage() {
             <Kpi label="Udhaar Sales" value={String(filteredList.length)} sub="Baqi wali sales" icon={CreditCard} tone="amber" />
             <Kpi label="Kul Baqi" value={showValue(formatPKR(stats.totalCredit))} sub="Lena hai" icon={Wallet} tone="violet" alert={stats.totalCredit > 0} />
             <Kpi label="Mil Chuka" value={showValue(formatPKR(stats.totalPaid))} sub="In sales par" icon={CheckCircle2} tone="emerald" />
-            <Kpi label="Kul Bikri" value={showValue(formatPKR(stats.totalAmount))} sub={`Avg ${showValue(formatPKR(stats.avgOrder))}`} icon={TrendingUp} tone="blue" />
+            <Kpi label="Total sale" value={showValue(formatPKR(stats.totalAmount))} sub={`Avg ${showValue(formatPKR(stats.avgOrder))}`} icon={TrendingUp} tone="blue" />
           </>
         ) : (
           <>
             <Kpi label="Naye Phone" value={String(kindStats.newDevices)} sub={`${kindStats.nonPta} non-PTA`} icon={Smartphone} tone="blue" alert={kindStats.nonPta > 0} />
             <Kpi label="Used Phone" value={String(kindStats.usedDevices)} sub="Trade-in beche" icon={RotateCcw} tone="violet" />
             <Kpi label="Repair Jobs" value={String(kindStats.repairJobs)} sub={showValue(formatPKR(kindStats.repairRevenue))} icon={Wrench} tone="amber" />
-            <Kpi label="Kul Bikri" value={showValue(formatPKR(stats.totalAmount))} sub={`${stats.count} sales`} icon={Wallet} tone="emerald" />
+            <Kpi label="Total sale" value={showValue(formatPKR(stats.totalAmount))} sub={`${stats.count} sales`} icon={Wallet} tone="emerald" />
           </>
         )}
       </section>

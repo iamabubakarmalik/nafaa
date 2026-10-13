@@ -363,9 +363,9 @@ export default function AgriProductDetailPage() {
     { id: 'overview', label: 'Hisab', icon: BarChart3 },
     { id: 'usage', label: 'Istemal', icon: Leaf, count: (crops.length + pests.length + animals.length) || undefined },
     { id: 'safety', label: 'Safety', icon: ShieldAlert, dot: cert.state === 'expired' || cert.state === 'soon' },
-    { id: 'sales', label: 'Bikri', icon: Receipt, count: salesForProduct.length || undefined },
+    { id: 'sales', label: 'Sale', icon: Receipt, count: salesForProduct.length || undefined },
     { id: 'log', label: 'Stock log', icon: History, count: movements.length || undefined },
-    { id: 'details', label: 'Tafseel', icon: Info },
+    { id: 'details', label: 'Details', icon: Info },
   ];
 
   const warnings: string[] = [];
@@ -440,7 +440,7 @@ export default function AgriProductDetailPage() {
             <h3 className="font-black text-rose-900 dark:text-rose-200">🚫 Ye cheez abhi bechna ghair-qanooni hai</h3>
             <p className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300 mt-0.5">
               {cert.text}. {isSeed ? 'Seed Act' : 'Agricultural Pesticides Ordinance'} ke tehat inspector
-              jurmana kar sakta hai. Renew karwa ke nayi tareekh daal dein.
+              jurmana kar sakta hai. Renew karwa ke nayi date daal dein.
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -450,7 +450,7 @@ export default function AgriProductDetailPage() {
             </button>
             <Link to={ROUTES.edit(product.id)}
               className="h-10 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black inline-flex items-center gap-1.5 transition">
-              <Edit3 className="h-3.5 w-3.5" /> Tareekh theek karein
+              <Edit3 className="h-3.5 w-3.5" /> Date theek karein
             </Link>
           </div>
         </section>
@@ -569,7 +569,7 @@ export default function AgriProductDetailPage() {
               )}
               {!hideCost && cost > 0 && (
                 <div className={`rounded-xl px-3 py-2 backdrop-blur border ${profit >= 0 ? 'bg-emerald-400/20 border-emerald-300/40' : 'bg-rose-400/20 border-rose-300/40'}`}>
-                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Munafa / {unitName}</div>
+                  <div className="text-[0.6875rem] uppercase font-extrabold text-white/80 tracking-wider">Profit / {unitName}</div>
                   <div className="text-lg font-extrabold tabular-nums leading-none mt-0.5">
                     {formatPKRFull(profit)} <span className="text-xs opacity-80">({margin.toFixed(0)}%)</span>
                   </div>
@@ -591,7 +591,7 @@ export default function AgriProductDetailPage() {
                 sub={isOut ? 'Khatam' : isLow ? 'Kam ho gaya' : hasPack ? `= ${fmtQty(stock * packSize)} ${packUnit}` : unitName}
                 tone={isOut ? 'rose' : isLow ? 'amber' : 'sky'} onClick={() => setShowStock(true)} />
               <HeroStat icon={DollarSign} label="Stock ki qeemat" value={formatPKR(stock * price)}
-                sub={hideCost ? '•••' : `lagat ${formatPKR(stock * cost)}`} tone="emerald" />
+                sub={hideCost ? '•••' : `cost ${formatPKR(stock * cost)}`} tone="emerald" />
               <HeroStat icon={TrendingUp} label="Bika (30 din)" value={fmtQty(sales$.sold30)}
                 sub={`roz ${sales$.perDay.toFixed(1)} ${unitName}`} tone="lime" />
               <HeroStat icon={ShieldCheck} label="Registration"
@@ -635,7 +635,7 @@ export default function AgriProductDetailPage() {
             <AlertCard tone="amber" icon={ShieldAlert}
               title={`Registration ${cert.days} din me khatam`}
               body="Renew karwa lein — meyaad khatam hone ke baad ye cheez bechna ghair-qanooni ho jayegi."
-              action={{ label: 'Tareekh theek karein', to: ROUTES.edit(product.id) }} />
+              action={{ label: 'Date theek karein', to: ROUTES.edit(product.id) }} />
           )}
         </section>
       )}
@@ -649,12 +649,12 @@ export default function AgriProductDetailPage() {
           </div>
           {warnings.includes('cost') && (
             <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
-              • <strong>Cost bhari hi nahi.</strong> Munafa poora rate dikh raha hai, jo sach nahi — har report ghalat jayegi.
+              • <strong>Cost bhari hi nahi.</strong> Profit poora rate dikh raha hai, jo sach nahi — har report ghalat jayegi.
             </p>
           )}
           {warnings.includes('nocert') && (
             <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
-              • <strong>Registration ki tareekh nahi bhari.</strong> Meyaad khatam hone par koi warning nahi aayegi.
+              • <strong>Registration ki date nahi bhari.</strong> Meyaad khatam hone par koi warning nahi aayegi.
             </p>
           )}
           {warnings.includes('nopack') && (
@@ -664,7 +664,7 @@ export default function AgriProductDetailPage() {
           )}
           {warnings.includes('noprofile') && (
             <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
-              • <strong>Agri tafseel bhari hi nahi.</strong> Fasal, mausam, safety — kuch bhi nahi.{' '}
+              • <strong>Agri details bhari hi nahi.</strong> Fasal, mausam, safety — kuch bhi nahi.{' '}
               <Link to={ROUTES.edit(product.id)} className="underline font-black">Abhi bharein</Link>
             </p>
           )}
@@ -699,11 +699,11 @@ export default function AgriProductDetailPage() {
       {tab === 'overview' && (
         <div className="space-y-4">
           <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <Stat icon={DollarSign} label={`Ek ${unitName} par munafa`} value={money(profit)}
+            <Stat icon={DollarSign} label={`Ek ${unitName} par profit`} value={money(profit)}
               sub={hideCost ? undefined : `${margin.toFixed(1)}%`} tone={profit > 0 ? 'emerald' : 'rose'} />
-            <Stat icon={Receipt} label="Kul bikri" value={formatPKR(sales$.revenue)}
+            <Stat icon={Receipt} label="Total sale" value={formatPKR(sales$.revenue)}
               sub={`${fmtQty(sales$.totalSold)} ${unitName} • ${sales$.orders} orders`} tone="lime" />
-            <Stat icon={TrendingUp} label="Kul munafa" value={money(sales$.profit)} sub="Bikri me se lagat nikal kar" tone="emerald" />
+            <Stat icon={TrendingUp} label="Kul profit" value={money(sales$.profit)} sub="Sale me se cost nikal kar" tone="emerald" />
             <Stat icon={Boxes} label="Gudaam me para hai" value={money(stock * cost)}
               sub={hasPack ? `${fmtQty(stock)} ${unitName} = ${fmtQty(stock * packSize)} ${packUnit}` : `${fmtQty(stock)} ${unitName}`}
               tone="amber" />
@@ -711,7 +711,7 @@ export default function AgriProductDetailPage() {
 
           {/* 30 din */}
           <section className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
-            <PanelHead icon={BarChart3} tone="emerald" title="Pichle 30 din ki bikri"
+            <PanelHead icon={BarChart3} tone="emerald" title="Pichle 30 din ki sale"
               desc={`${fmtQty(sales$.sold30)} ${unitName} bika • roz ka average ${sales$.perDay.toFixed(1)} ${unitName}`} />
             {chartData.some((d) => d.revenue > 0) ? (
               <div className="h-[240px] mt-4 print:hidden">
@@ -735,7 +735,7 @@ export default function AgriProductDetailPage() {
             ) : (
               <div className="h-[180px] flex flex-col items-center justify-center gap-2">
                 <Receipt className="h-10 w-10 text-slate-300 dark:text-ink-600" />
-                <p className="text-sm font-extrabold text-slate-600 dark:text-ink-300">Pichle 30 din me koi bikri nahi</p>
+                <p className="text-sm font-extrabold text-slate-600 dark:text-ink-300">Pichle 30 din me koi sale nahi</p>
               </div>
             )}
           </section>
@@ -819,7 +819,7 @@ export default function AgriProductDetailPage() {
               && Number(convQty || 0) >= Number(profile?.bulkDiscountThreshold) && (
               <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/15 border-2 border-emerald-200 dark:border-emerald-500/40 p-2.5 text-xs font-extrabold text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
                 <Tag className="h-4 w-4 shrink-0" />
-                Thok chhoot lagegi — {profile?.bulkDiscountPct}% kam, yani{' '}
+                Thok discount lagegi — {profile?.bulkDiscountPct}% kam, yani{' '}
                 {formatPKRFull(Number(convQty || 0) * (activeConv?.price || 0) * (1 - Number(profile?.bulkDiscountPct) / 100))}
               </div>
             )}
@@ -867,8 +867,8 @@ export default function AgriProductDetailPage() {
       {tab === 'usage' && (
         <div className="space-y-4">
           {!profile ? (
-            <EmptyState icon={Leaf} title="Agri tafseel bhari hi nahi"
-              sub="Kis fasal par chalti hai, kitni miqdar lagti hai, kis mausam ka maal hai — ye sab bhar dein to counter par farmer ke sawal ka jawab foran mil jayega."
+            <EmptyState icon={Leaf} title="Agri details bhari hi nahi"
+              sub="Kis fasal par chalti hai, kitni quantity lagti hai, kis mausam ka maal hai — ye sab bhar dein to counter par farmer ke sawal ka jawab foran mil jayega."
               action={{ to: ROUTES.edit(product.id), label: 'Abhi bharein' }} />
           ) : (
             <>
@@ -907,7 +907,7 @@ export default function AgriProductDetailPage() {
                 )}
 
                 <InfoCard icon={Droplets} title="Kaise aur kitni lagani hai">
-                  <Row label="Kitni miqdar" value={profile.applicationRate || 'Likha nahi'} warn={!profile.applicationRate && !isTool} />
+                  <Row label="Kitni quantity" value={profile.applicationRate || 'Likha nahi'} warn={!profile.applicationRate && !isTool} />
                   <Row label="Kaise lagani hai" value={profile.applicationMethod || '—'} />
                   <Row label="Kitne din baad dobara" value={profile.applicationInterval || '—'} />
                   <Row label="Fasal ke kis waqt" value={profile.cropStage || '—'} />
@@ -935,7 +935,7 @@ export default function AgriProductDetailPage() {
 
                 {isSeed && (
                   <InfoCard icon={Sprout} title="Beej ki baat">
-                    <Row label="Beej ki qism" value={profile.seedType ? String(profile.seedType) : '—'} />
+                    <Row label="Beej ki type" value={profile.seedType ? String(profile.seedType) : '—'} />
                     <Row label="Variety / sub-type" value={profile.subCategory || '—'} />
                     <Row label="Kitne din theek rehta" value={profile.shelfLifeMonths ? `${profile.shelfLifeMonths} mahine` : '—'} />
                   </InfoCard>
@@ -943,7 +943,7 @@ export default function AgriProductDetailPage() {
 
                 {isFeed && (
                   <InfoCard icon={Wheat} title="Feed ki baat">
-                    <Row label="Feed ki qism" value={profile.feedType ? String(profile.feedType) : '—'} />
+                    <Row label="Feed ki type" value={profile.feedType ? String(profile.feedType) : '—'} />
                     <Row label="Kis umar ke liye" value={profile.subCategory || '—'} />
                   </InfoCard>
                 )}
@@ -979,7 +979,7 @@ export default function AgriProductDetailPage() {
               : 'bg-slate-50 dark:bg-ink-800 border-slate-300 dark:border-ink-700'
           }`}>
             <PanelHead icon={ShieldCheck} tone="emerald" title="Sarkari registration"
-              desc={!wantsReg ? 'Is qism par sarkari registration lagu nahi hoti' : cert.text} />
+              desc={!wantsReg ? 'Is type par sarkari registration lagu nahi hoti' : cert.text} />
             {wantsReg && (
               <div className="grid sm:grid-cols-3 gap-3 mt-4">
                 <SpecBox label="Registration number" value={profile?.govtRegNumber || 'Nahi bhara'} tone={profile?.govtRegNumber ? 'slate' : 'amber'} />
@@ -994,7 +994,7 @@ export default function AgriProductDetailPage() {
             <div className="mt-4 flex gap-2 flex-wrap print:hidden">
               <Link to={ROUTES.edit(product.id)}
                 className="h-10 px-3 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-emerald-400 text-slate-700 dark:text-ink-200 text-xs font-black inline-flex items-center gap-1.5 transition">
-                <Edit3 className="h-3.5 w-3.5" /> Tareekh theek karein
+                <Edit3 className="h-3.5 w-3.5" /> Date theek karein
               </Link>
               {wantsReg && (cert.state === 'expired' || cert.state === 'soon') && (
                 <button onClick={() => renewReg.mutate()} disabled={renewReg.isPending}
@@ -1080,9 +1080,9 @@ export default function AgriProductDetailPage() {
 
       {/* ═══ 4. BIKRI ═══ */}
       {tab === 'sales' && (
-        <Panel icon={Receipt} tone="emerald" title="Bikri ki history"
+        <Panel icon={Receipt} tone="emerald" title="Sale ki history"
           desc={`${salesForProduct.length} haal ki receipts • kul ${fmtQty(sales$.totalSold)} ${unitName} bika`}
-          empty={salesForProduct.length === 0} emptyText="Abhi tak koi bikri nahi hui">
+          empty={salesForProduct.length === 0} emptyText="Abhi tak koi sale nahi hui">
           <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[600px] overflow-y-auto">
             {salesForProduct.map((s: any) => {
               const lines = (s.items ?? []).filter((it: any) => (it.product?.id ?? it.productId) === id);
@@ -1170,11 +1170,11 @@ export default function AgriProductDetailPage() {
           <InfoCard icon={DollarSign} title="Paisa">
             <Row label={`Bechne ka rate (per ${unitName})`} value={formatPKR(price)} />
             <Row label="Cost" value={hideCost ? '••••' : cost > 0 ? formatPKR(cost) : 'Bhari nahi'} warn={!hideCost && cost <= 0} />
-            <Row label="Ek par munafa" value={money(profit)} />
-            <Row label="Munafa %" value={hideCost ? '••••' : `${margin.toFixed(1)}%`} />
+            <Row label="Ek par profit" value={money(profit)} />
+            <Row label="Profit %" value={hideCost ? '••••' : `${margin.toFixed(1)}%`} />
             {wholesale > 0 && <Row label="Thok rate" value={formatPKR(wholesale)} />}
             {Number(profile?.bulkDiscountThreshold) > 0 && (
-              <Row label="Thok chhoot"
+              <Row label="Thok discount"
                 value={`${profile?.bulkDiscountThreshold}+ par ${profile?.bulkDiscountPct}% kam`} />
             )}
             <Row label="Tax" value={`${product.taxRate ?? 0}%`} />
@@ -1435,7 +1435,7 @@ function AgriQuickStock({ product, stock, kind, packSize, packUnit, cert, restri
               }`}>{diff > 0 ? '+' : ''}{fmtQty(diff)}</div>
             )}
             <div className="text-right">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Bikri qeemat</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Sale qeemat</div>
               <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                 {hideCost ? '••••' : formatPKRFull(Math.max(finalStock, 0) * Number(product.price || 0))}
               </div>
@@ -1773,20 +1773,20 @@ function Teacher({ onClose, kind, name }: { onClose: () => void; kind: AgriKind;
         </div>
         <div className="p-5 space-y-3 text-sm">
           <p className="font-bold text-slate-700 dark:text-ink-200">
-            <strong>{name}</strong> ki poori kahani — paisa, istemal, safety aur bikri.
+            <strong>{name}</strong> ki poori kahani — paisa, istemal, safety aur sale.
           </p>
           {(spray || seed) && (
             <Tip icon={ShieldAlert} title="Registration — sab se ahem">
               {seed ? 'Seed Act' : 'Pesticides Ordinance'} ke tehat meyaad khatam hone par ye cheez
-              bechna ghair-qanooni hai. Safety tab me tareekh dikhti hai aur wahin se renew bhi ho jati hai.
+              bechna ghair-qanooni hai. Safety tab me date dikhti hai aur wahin se renew bhi ho jati hai.
             </Tip>
           )}
           <Tip icon={Scale} title="Naap ka calculator">
             Farmer 5 kilo maange to yahan likh kar dekh lein ke kitne paise banenge aur stock se
-            kitni bori ghategi. Thok chhoot bhi khud lag jati hai.
+            kitni bori ghategi. Thok discount bhi khud lag jati hai.
           </Tip>
           <Tip icon={Leaf} title="Istemal wala tab">
-            Kis fasal par, kis keeray par, kitni miqdar, kis mausam me — farmer ke sab sawal ek jagah.
+            Kis fasal par, kis keeray par, kitni quantity, kis mausam me — farmer ke sab sawal ek jagah.
           </Tip>
           {spray && (
             <Tip icon={Clock} title="Safety wala tab">
@@ -1795,7 +1795,7 @@ function Teacher({ onClose, kind, name }: { onClose: () => void; kind: AgriKind;
             </Tip>
           )}
           <Tip icon={RotateCcw} title="Kitna mangwana hai">
-            Pichle 30 din ki bikri dekh kar system khud batata hai ke season ke liye kitna stock chahiye.
+            Pichle 30 din ki sale dekh kar system khud batata hai ke season ke liye kitna stock chahiye.
           </Tip>
           <Tip icon={Boxes} title="Quick stock">S dabayein ya "Stock add" — foran maal daalein.</Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">

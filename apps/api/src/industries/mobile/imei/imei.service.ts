@@ -476,7 +476,7 @@ export class ImeiService {
     if (data?.ptaTaxDueAt) updateData.ptaTaxDueAt = new Date(data.ptaTaxDueAt);
     if (data?.ptaVerifiedAt) updateData.ptaVerifiedAt = new Date(data.ptaVerifiedAt);
     if (updateData.status === 'SOLD' && current.status !== 'SOLD') {
-      throw new BadRequestException('Phone bikri sirf POS se hoti hai');
+      throw new BadRequestException('Phone sale sirf POS se hoti hai');
     }
     if (current.status === 'SOLD' && updateData.status && updateData.status !== 'SOLD') {
       throw new BadRequestException('Bika hua phone wapas lene ke liye Returns istemal karein');

@@ -101,7 +101,7 @@ export default function MobileKhataPage() {
       ['UDHAAR', 'Phone', 'Balance', 'Credit Limit'],
       ...debtors.map((d) => [d.name, d.phone ?? '', d.balance.toFixed(0), d.creditLimit.toFixed(0)]),
       [],
-      ['EMI PLAN', 'Customer', 'Phone', 'Kul', 'Ada', 'Baqi', 'Late Qisten', 'Late Amount', 'Agli Tareekh'],
+      ['EMI PLAN', 'Customer', 'Phone', 'Kul', 'Ada', 'Baqi', 'Late Qisten', 'Late Amount', 'Agli Date'],
       ...emiPlans.map((p) => [
         p.planNumber, p.customerName, p.customerPhone ?? '',
         p.totalAmount.toFixed(0), p.paidAmount.toFixed(0), p.remainingAmount.toFixed(0),
@@ -490,7 +490,7 @@ export default function MobileKhataPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
           <MiniStat label="Is Mahine Mila" value={formatPKR(emiStats.collectedThisMonth)} icon={CheckCircle2} tone="emerald" />
           <MiniStat label="Aane Wali Qisten" value={String(emiStats.upcomingCount)} icon={Clock} tone="blue" />
-          <MiniStat label="Aane Wali Raqam" value={formatPKR(emiStats.upcomingAmount)} icon={CalendarClock} tone="violet" />
+          <MiniStat label="Aane Wali Amount" value={formatPKR(emiStats.upcomingAmount)} icon={CalendarClock} tone="violet" />
           <MiniStat label="Kul Financed" value={formatPKR(emiStats.activeFinanced)} icon={CreditCard} tone="amber" />
         </div>
       )}
@@ -543,7 +543,7 @@ function ReceivePaymentModal({
                 <Banknote className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/80">Udhaar Wapsi</div>
+                <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-white/80">Udhaar Return</div>
                 <h3 className="font-extrabold text-lg truncate">{customer.name}</h3>
               </div>
             </div>

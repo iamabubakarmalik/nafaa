@@ -21,17 +21,17 @@ function useFloristActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
     { to: '/florist/orders', icon: Package, label: 'Orders', hint: `${activeOrders} chaalu` },
     { to: '/florist/deliveries', icon: Truck, label: 'Delivery', hint: deliveries.pending ? `${deliveries.pending} aaj` : 'Aaj ki list' },
     { to: '/florist/weddings', icon: Heart, label: 'Shadiyan', hint: `${weddings.count} aane wali` },
     { to: '/florist/subscriptions', icon: Repeat, label: 'Subscriptions', hint: `${subs.active} chaalu` },
-    { to: '/florist/freshness', icon: Leaf, label: 'Taazgi', hint: wilting.withered.length ? `${wilting.withered.length} murjha gaye` : 'Sab theek' },
+    { to: '/florist/freshness', icon: Leaf, label: 'Freshness', hint: wilting.withered.length ? `${wilting.withered.length} murjha gaye` : 'Sab theek' },
     { to: '/florist-products/new', icon: Plus, label: 'Nayi cheez', hint: 'Maal me daalein' },
     { to: '/florist-products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }

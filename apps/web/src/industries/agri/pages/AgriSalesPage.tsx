@@ -66,7 +66,7 @@ const PAY: Record<string, { label: string; icon: any; hex: string; chip: string 
 
 const DATE_OPTS: Array<[DateFilter, string]> = [
   ['today', 'Aaj'], ['yesterday', 'Kal'], ['week', '7 din'],
-  ['month', '30 din'], ['year', 'Is saal'], ['all', 'Sab'], ['custom', '📅 Apni tareekh'],
+  ['month', '30 din'], ['year', 'Is saal'], ['all', 'Sab'], ['custom', '📅 Apni date'],
 ];
 
 const KINDS: Array<{ v: string; l: string; e: string; hex: string; test: (k: AgriKind) => boolean }> = [
@@ -487,13 +487,13 @@ export default function AgriSalesPage() {
   const exportCsv = () => {
     if (filtered.length === 0) return toast.error('Koi bill nahi');
     const head = [
-      [`Agri bikri — ${tenant?.name || 'Nafaa'}`],
+      [`Agri sale — ${tenant?.name || 'Nafaa'}`],
       [`Dukaan: ${shopName || 'Sab'}  •  Nikala gaya: ${new Date().toLocaleString('en-PK')}`],
-      [`Muddat: ${rangeLabel}  •  Bill: ${stats.count}  •  Kul: ${stats.amount.toFixed(2)}`],
-      [`Wasool: ${stats.paid.toFixed(2)}  •  Udhaar: ${stats.credit.toFixed(2)} (${stats.creditPct.toFixed(1)}%)  •  Munafa: ${stats.profit.toFixed(2)}`],
+      [`Period: ${rangeLabel}  •  Bill: ${stats.count}  •  Kul: ${stats.amount.toFixed(2)}`],
+      [`Wasool: ${stats.paid.toFixed(2)}  •  Udhaar: ${stats.credit.toFixed(2)} (${stats.creditPct.toFixed(1)}%)  •  Profit: ${stats.profit.toFixed(2)}`],
       [''],
     ];
-    const cols = ['Bill', 'Tareekh', 'Waqt', 'Farmer', 'Phone', 'Cheezein', 'Tafseel', 'Qty',
+    const cols = ['Bill', 'Date', 'Waqt', 'Farmer', 'Phone', 'Cheezein', 'Details', 'Qty',
       'Tareeqa', 'Discount', 'Total', 'Mila', 'Udhaar', 'Halat', 'Note'];
     const body = filtered.map((s) => [
       s.saleNumber, new Date(s.soldAt).toLocaleDateString('en-PK'), fmtTime(s.soldAt),
@@ -511,7 +511,7 @@ export default function AgriSalesPage() {
     const csv = [...head, cols, ...body].map((r) => r.map(esc).join(',')).join('\n');
     const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' }));
     const a = document.createElement('a'); a.href = url;
-    a.download = `agri-bikri-${bd.dayKey(new Date())}.csv`;
+    a.download = `agri-sale-${bd.dayKey(new Date())}.csv`;
     a.click(); URL.revokeObjectURL(url);
     toast.success(`${filtered.length} bill CSV me`);
   };
@@ -565,7 +565,7 @@ export default function AgriSalesPage() {
 
       {/* ═══ PRINT HEADER ═══ */}
       <div className="hidden print:block mb-4">
-        <h1 className="text-xl font-extrabold">{tenant?.name || 'Agri'} — Bikri ka record</h1>
+        <h1 className="text-xl font-extrabold">{tenant?.name || 'Agri'} — Sale ka record</h1>
         <p className="text-xs text-slate-600">{shopName ? `${shopName} • ` : ''}{rangeLabel} • {new Date().toLocaleString('en-PK', { dateStyle: 'full', timeStyle: 'short' })}</p>
         <p className="text-xs text-slate-600 mt-1">
           {stats.count} bill • Kul {formatPKR(stats.amount)} • Wasool {formatPKR(stats.paid)} • Udhaar {formatPKR(stats.credit)}
@@ -581,10 +581,10 @@ export default function AgriSalesPage() {
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-[0.6875rem] font-black border border-white/25 uppercase tracking-widest">
-              <Receipt className="h-3.5 w-3.5 text-lime-300" /> Agri · Bikri
+              <Receipt className="h-3.5 w-3.5 text-lime-300" /> Agri · Sale
               {shopName && (<><span className="opacity-40">•</span><span className="text-emerald-200">🏪 {shopName}</span></>)}
             </div>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">🧾 Bikri ka Record</h1>
+            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-black leading-tight">🧾 Sale ka Record</h1>
             <p className="mt-1.5 text-xs sm:text-sm font-bold text-white/90">
               {rangeLabel} · <strong className="text-lime-200">{stats.count}</strong> bill ·{' '}
               <strong>{showValue(formatPKR(stats.amount))}</strong>
@@ -635,7 +635,7 @@ export default function AgriSalesPage() {
               💰 {showValue(formatPKR(stats.credit))} udhaar gaya — {stats.creditCount} bill par
             </h3>
             <p className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
-              Is muddat ki <strong>{stats.creditPct.toFixed(0)}%</strong> bikri udhaar par gayi.
+              Is period ki <strong>{stats.creditPct.toFixed(0)}%</strong> sale udhaar par gayi.
               Agri me ye aam hai — farmer katai ke baad deta hai — magar hisab rakhna zaroori hai,
               warna sarmaya bahar hi para reh jata hai.
             </p>
@@ -657,10 +657,10 @@ export default function AgriSalesPage() {
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 print:hidden">
         <Kpi icon={Receipt} label="Bill" value={stats.count}
           sub={stats.voided > 0 ? `${stats.voided} void hue` : `${fmtQty(stats.qty)} cheezein bikin`} tone="sky" />
-        <Kpi icon={TrendingUp} label="Kul bikri" value={showValue(formatPKR(stats.amount))} sub={rangeLabel} tone="emerald" highlight />
-        <Kpi icon={Award} label="Munafa" value={showValue(formatPKR(stats.profit))} sub={`${stats.margin.toFixed(1)}% margin`} tone="lime" />
+        <Kpi icon={TrendingUp} label="Total sale" value={showValue(formatPKR(stats.amount))} sub={rangeLabel} tone="emerald" highlight />
+        <Kpi icon={Award} label="Profit" value={showValue(formatPKR(stats.profit))} sub={`${stats.margin.toFixed(1)}% margin`} tone="lime" />
         <Kpi icon={Wallet} label="Udhaar gaya" value={showValue(formatPKR(stats.credit))}
-          sub={stats.creditCount > 0 ? `${stats.creditCount} bill · ${stats.creditPct.toFixed(0)}% bikri` : 'Sab cash'}
+          sub={stats.creditCount > 0 ? `${stats.creditCount} bill · ${stats.creditPct.toFixed(0)}% sale` : 'Sab cash'}
           tone="amber" onClick={() => { setCreditOnly(!creditOnly); setTab('list'); }} active={creditOnly} />
       </section>
 
@@ -927,7 +927,7 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
             )}
             {Number(s.discount) > 0 && (
               <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
-                chhoot {showValue(formatPKR(s.discount))}
+                discount {showValue(formatPKR(s.discount))}
               </div>
             )}
           </div>
@@ -948,7 +948,7 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
           )}
           <button onClick={onReturn}
             className="h-9 px-3 rounded-lg bg-sky-50 dark:bg-sky-500/15 hover:bg-sky-100 dark:hover:bg-sky-500/25 text-sky-700 dark:text-sky-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
-            <Undo2 className="h-3.5 w-3.5" /> Wapsi
+            <Undo2 className="h-3.5 w-3.5" /> Return
           </button>
           <button onClick={onVoid}
             className="ml-auto h-9 px-3 rounded-lg bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
@@ -983,19 +983,19 @@ function Analytics({
         <MiniStat icon={Wallet} label="Udhaar ki shrah" value={`${stats.creditPct.toFixed(0)}%`}
           sub={showValue(formatPKR(stats.credit))} tone={stats.creditPct > 50 ? 'rose' : 'amber'} />
         <MiniStat icon={topPart.icon} label="Sab se masroof waqt" value={topPart.label}
-          sub={`${topPart.range} · ${topPart.pct.toFixed(0)}% bikri`} tone="lime" />
+          sub={`${topPart.range} · ${topPart.pct.toFixed(0)}% sale`} tone="lime" />
         <MiniStat icon={Clock} label="Sab se masroof ghanta" value={peak?.bikri > 0 ? peak.label : '—'}
-          sub={peak?.bikri > 0 ? showValue(formatPKR(peak.bikri)) : 'Abhi koi bikri nahi'} tone="sky" />
+          sub={peak?.bikri > 0 ? showValue(formatPKR(peak.bikri)) : 'Abhi koi sale nahi'} tone="sky" />
       </section>
 
       {stats.creditPct > 50 && (
         <section className="rounded-3xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-4">
           <div className="flex items-center gap-2 mb-1">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <h3 className="font-black text-amber-900 dark:text-amber-200">Aadhi se zyada bikri udhaar par</h3>
+            <h3 className="font-black text-amber-900 dark:text-amber-200">Aadhi se zyada sale udhaar par</h3>
           </div>
           <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200 leading-relaxed">
-            Is muddat me <strong>{stats.creditPct.toFixed(0)}%</strong> maal udhaar par gaya. Agri me
+            Is period me <strong>{stats.creditPct.toFixed(0)}%</strong> maal udhaar par gaya. Agri me
             ye aam hai — farmer katai ke baad deta hai — magar itna paisa bahar hone par naya maal
             mangwane ke liye cash nahi bachta. "Fasal ka calendar" me dekhein ke kis ki katai qareeb
             hai, aur unhi farmer se pehle maangein.
@@ -1008,7 +1008,7 @@ function Analytics({
       )}
 
       <div className="grid lg:grid-cols-2 gap-4">
-        <ChartCard icon={BarChart3} title="Rozana — bikri, munafa aur udhaar" wide>
+        <ChartCard icon={BarChart3} title="Rozana — sale, profit aur udhaar" wide>
           {daily.some((d: any) => d.bikri > 0) ? (
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={daily}>
@@ -1022,10 +1022,10 @@ function Analytics({
                 <Line type="monotone" dataKey="munafa" name="Munafa" stroke={C.profit} strokeWidth={2.5} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
-          ) : <EmptyBox text="Is muddat me koi bikri nahi" />}
+          ) : <EmptyBox text="Is period me koi sale nahi" />}
         </ChartCard>
 
-        <ChartCard icon={Layers} title="Kis qism se kitna paisa">
+        <ChartCard icon={Layers} title="Kis type se kitna paisa">
           {agg.kinds.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -1036,7 +1036,7 @@ function Analytics({
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
-          ) : <EmptyBox text="Abhi koi bikri nahi" />}
+          ) : <EmptyBox text="Abhi koi sale nahi" />}
         </ChartCard>
 
         <ChartCard icon={Calendar} title="Kis mausam ka maal bika">
@@ -1046,7 +1046,7 @@ function Analytics({
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID} horizontal={false} />
                 <XAxis type="number" stroke={AXIS} fontSize={11} tickFormatter={(v) => Number(v).toLocaleString('en-PK')} />
                 <YAxis type="category" dataKey="name" stroke={AXIS} fontSize={10} fontWeight={700} width={100} />
-                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Bikri']} />
+                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Sale']} />
                 <Bar dataKey="value" fill={C.sale} radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -1060,7 +1060,7 @@ function Analytics({
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID} horizontal={false} />
                 <XAxis type="number" stroke={AXIS} fontSize={11} tickFormatter={(v) => Number(v).toLocaleString('en-PK')} />
                 <YAxis type="category" dataKey="name" stroke={AXIS} fontSize={10} fontWeight={700} width={95} />
-                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Bikri']} />
+                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Sale']} />
                 <Bar dataKey="value" fill={C.profit} radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -1074,7 +1074,7 @@ function Analytics({
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
                 <XAxis dataKey="label" stroke={AXIS} fontSize={9} fontWeight={700} interval={1} />
                 <YAxis stroke={AXIS} fontSize={11} width={60} tickFormatter={(v) => Number(v).toLocaleString('en-PK')} />
-                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Bikri']} />
+                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Sale']} />
                 <Bar dataKey="bikri" radius={[4, 4, 0, 0]}>
                   {hourlyShown.map((h: any, i: number) => (
                     <Cell key={i} fill={h.h === peak?.h ? '#f59e0b' : C.sale} />
@@ -1082,7 +1082,7 @@ function Analytics({
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          ) : <EmptyBox text="Is muddat me koi bikri nahi" />}
+          ) : <EmptyBox text="Is period me koi sale nahi" />}
         </ChartCard>
 
         <ChartCard icon={Banknote} title="Paisa kaise aaya">
@@ -1096,7 +1096,7 @@ function Analytics({
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
-          ) : <EmptyBox text="Abhi koi bikri nahi" />}
+          ) : <EmptyBox text="Abhi koi sale nahi" />}
         </ChartCard>
 
         <ChartCard icon={Calendar} title="Hafte ka kaunsa din bhara hota hai">
@@ -1106,11 +1106,11 @@ function Analytics({
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
                 <XAxis dataKey="label" stroke={AXIS} fontSize={10} fontWeight={700} />
                 <YAxis stroke={AXIS} fontSize={11} width={60} tickFormatter={(v) => Number(v).toLocaleString('en-PK')} />
-                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Bikri']} />
+                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Sale']} />
                 <Bar dataKey="bikri" fill={C.weekday} radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <EmptyBox text="Abhi koi bikri nahi" />}
+          ) : <EmptyBox text="Abhi koi sale nahi" />}
         </ChartCard>
       </div>
 
@@ -1140,7 +1140,7 @@ function Analytics({
           title: t.name,
           sub: `${fmtQty(t.qty)} ${t.unit}`,
           value: showValue(formatPKR(t.value)),
-        }))} emptyText="Abhi koi bikri nahi" />
+        }))} emptyText="Abhi koi sale nahi" />
 
         <ListCard icon={Tractor} title="Sab se bare farmer" rows={topFarmers.map((f: any) => ({
           key: f.id,
@@ -1315,7 +1315,7 @@ function ReceiptPrefsPopover({ anchorRef, prefs, onChange, onClose }: any) {
         </div>
 
         <div>
-          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1">Kitni tafseel</div>
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1">Kitni details</div>
           <div className="grid grid-cols-2 gap-1.5">
             {([['short', 'Chhota'], ['full', 'Poora']] as const).map(([m, l]) => (
               <button key={m} onClick={() => onChange({ mode: m })}
@@ -1454,10 +1454,10 @@ function Empty({ hasFilters, onClear, onGuide }: any) {
         <Receipt className="h-10 w-10 text-white" />
       </div>
       <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
-        {hasFilters ? 'Is chaant par koi bill nahi' : 'Is muddat me koi bikri nahi'}
+        {hasFilters ? 'Is chaant par koi bill nahi' : 'Is period me koi sale nahi'}
       </h3>
       <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">
-        {hasFilters ? 'Tareekh ya chaant badal kar dekhein' : 'POS se bikri karein, bill yahan aa jayega'}
+        {hasFilters ? 'Date ya chaant badal kar dekhein' : 'POS se sale karein, bill yahan aa jayega'}
       </p>
       <div className="mt-5 flex gap-2 justify-center flex-wrap">
         {hasFilters ? (
@@ -1494,26 +1494,26 @@ function Teacher({ onClose }: { onClose: () => void }) {
         </div>
         <div className="p-5 space-y-3 text-sm">
           <Tip icon={Wallet} title="Udhaar — sab se pehle dekhein">
-            Agri me aadhi se zyada bikri udhaar par jati hai. Ooper amber patti batati hai ke is
-            muddat me kitna paisa bahar gaya. "Sirf udhaar" dabayein to wohi bill dikhenge, aur
+            Agri me aadhi se zyada sale udhaar par jati hai. Ooper amber patti batati hai ke is
+            period me kitna paisa bahar gaya. "Sirf udhaar" dabayein to wohi bill dikhenge, aur
             Analytics me "jin se paisa lena hai" ki list purane pehle aati hai.
           </Tip>
-          <Tip icon={Layers} title="Qism ke hisab se">
+          <Tip icon={Layers} title="Type ke hisab se">
             Beej, khaad, dawa, feed, auzaar — har ek ka margin bohat alag hota hai. Ooper ke
-            paanch box par click karke sirf usi qism ke bill dekh sakte hain.
+            paanch box par click karke sirf usi type ke bill dekh sakte hain.
           </Tip>
           <Tip icon={Calendar} title="Mausam aur fasal">
             Analytics me "kis mausam ka maal bika" aur "kis fasal ka maal bika" — inhi se agle
-            season ki kharidari tay hoti hai. Ye tab bharta hai jab product ke andar mausam aur
+            season ki purchase tay hoti hai. Ye tab bharta hai jab product ke andar mausam aur
             fasal likhi ho.
           </Tip>
           <Tip icon={Printer} title="Bill print aur WhatsApp">
             Har bill par Print ka button. Ooper "Receipt" se kaghaz ka naap (58/80mm) aur kitni
-            tafseel chahiye wo tay karein — yaad reh jata hai. Phone laga ho to WhatsApp par
+            details chahiye wo tay karein — yaad reh jata hai. Phone laga ho to WhatsApp par
             seedha bhej sakte hain.
           </Tip>
-          <Tip icon={Undo2} title="Wapsi aur Void">
-            <strong>Wapsi</strong> — kuch cheezein wapas aayin. <strong>Void</strong> — poora bill
+          <Tip icon={Undo2} title="Return aur Void">
+            <strong>Return</strong> — kuch cheezein wapas aayin. <strong>Void</strong> — poora bill
             ghalat tha; maal stock me wapas, udhaar khatam. Void par wajah likhna zaroori hai.
           </Tip>
           <Tip icon={ScanLine} title="Bill dhoondna">

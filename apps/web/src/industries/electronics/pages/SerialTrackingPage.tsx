@@ -197,8 +197,8 @@ export default function SerialTrackingPage() {
       ['Stock me', String(counts.IN_STOCK)],
       ['Bik gaye', String(counts.SOLD)],
       ['Masla wale', String(counts.problem)],
-      ['Stock ki lagat', String(Math.round(stats.stockValue))],
-      ['Bikri', String(Math.round(stats.soldValue))],
+      ['Stock ki cost', String(Math.round(stats.stockValue))],
+      ['Sale', String(Math.round(stats.soldValue))],
       ['Warranty chal rahi', String(stats.warrantyActive)],
       ['30 din me khatam', String(stats.expiringSoon)],
       [],
@@ -437,7 +437,7 @@ export default function SerialTrackingPage() {
                       <div className="text-sm font-extrabold text-slate-900 tabular-nums">
                         {hideCost ? '•••' : formatPKR(s.purchasePrice!)}
                       </div>
-                      <div className="text-[0.6875rem] font-bold text-slate-400">lagat</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-400">cost</div>
                     </>
                   ) : null}
                 </div>
@@ -598,7 +598,7 @@ function LookupModal({ serial, onClose, hideCost }: {
               {serial.status === 'SOLD' && (
                 <>
                   <Box label="Bika" value={formatPKR(serial.soldPrice ?? 0)} icon={TrendingUp} tone="emerald" />
-                  <Box label="Munafa" value={hideCost ? '•••' : formatPKR(profit)}
+                  <Box label="Profit" value={hideCost ? '•••' : formatPKR(profit)}
                     icon={Sparkles} tone={profit >= 0 ? 'emerald' : 'rose'} />
                 </>
               )}
@@ -636,7 +636,7 @@ function LookupModal({ serial, onClose, hideCost }: {
                 Ye unit bik chuka hai
                 {serial.soldAt && ` — ${new Date(serial.soldAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })} ko`}.
                 Customer warranty claim le kar aaye to Warranty Claims page se claim bana dein,
-                serial se sari tafseel khud aa jayegi.
+                serial se sari details khud aa jayegi.
               </div>
             </div>
           )}
@@ -720,18 +720,18 @@ function SerialTeacher({ onClose }: { onClose: () => void }) {
     },
     {
       icon: ShieldCheck, title: 'Warranty ka jawab',
-      body: 'Talash ka nateeja sab se upar warranty dikhata hai: hara = chal rahi, peela = 30 din se kam baqi, grey = khatam. Sath me tareekh bhi likhi hoti hai.',
+      body: 'Talash ka nateeja sab se upar warranty dikhata hai: hara = chal rahi, peela = 30 din se kam baqi, grey = khatam. Sath me date bhi likhi hoti hai.',
       tips: ['Peele wale units pehle bech dein'],
     },
     {
       icon: Barcode, title: 'Har unit ka safar',
-      body: 'Unit kholne par uska poora safar nazar aata hai — dukan me kab aaya, warranty kab shuru hui, kis din bika, aur warranty kab khatam hogi. Khareed aur bikri ka farq (munafa) bhi.',
+      body: 'Unit kholne par uska poora safar nazar aata hai — dukan me kab aaya, warranty kab shuru hui, kis din bika, aur warranty kab khatam hogi. Khareed aur sale ka farq (profit) bhi.',
       tips: ['Serial ya IMEI par click karke copy kar sakte hain'],
     },
     {
       icon: AlertTriangle, title: 'Masla wale units',
       body: 'Kharab, gum shuda, repair me aur wapas aaye units "Masla Wale" tab me alag hote hain. Ye stock me nahi ginay jate — POS par bhi nazar nahi aate.',
-      tips: ['Status Stock Durusti page se badalta hai', 'CSV me poora record Excel ke liye'],
+      tips: ['Status Stock Correction page se badalta hai', 'CSV me poora record Excel ke liye'],
     },
   ];
 

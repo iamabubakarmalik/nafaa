@@ -24,7 +24,7 @@ export class RepairServicesService {
       `RS-${new Date().getFullYear()}-`,
     );
     if ((dto.advancePaid ?? 0) > (dto.estimatedCost ?? 0) + 0.01 && (dto.estimatedCost ?? 0) > 0) {
-      throw new BadRequestException('Advance andaze ki raqam se zyada nahi ho sakta');
+      throw new BadRequestException('Advance andaze ki amount se zyada nahi ho sakta');
     }
 
     const advance = r2(dto.advancePaid ?? 0);
@@ -116,7 +116,7 @@ export class RepairServicesService {
       throw new BadRequestException(`${r.serviceNumber} pehle hi ${r.status === 'DELIVERED' ? 'deliver' : 'cancel'} ho chuka hai`);
     }
     if (r.status === 'DELIVERED' && dto.finalCost !== undefined && Math.abs(dto.finalCost - Number(r.finalCost ?? 0)) > 0.009) {
-      throw new BadRequestException('Deliver ke baad bill ki raqam nahi badal sakti');
+      throw new BadRequestException('Deliver ke baad bill ki amount nahi badal sakti');
     }
 
     const patch: any = { status: dto.status };
@@ -179,13 +179,13 @@ export class RepairServicesService {
     if (amount <= 0) throw new BadRequestException('Amount must be positive');
     if (r.status === 'DELIVERED' || r.status === 'CANCELLED') {
       throw new BadRequestException(r.status === 'DELIVERED'
-        ? 'Repair deliver ho chuki — baqi raqam customer ke khate se wasool karein'
+        ? 'Repair deliver ho chuki — baqi amount customer ke khate se wasool karein'
         : 'Cancel shuda repair par payment nahi li ja sakti');
     }
     const bill = Number(r.finalCost ?? r.estimatedCost ?? 0);
     const due = r2(bill - Number(r.advancePaid || 0));
     if (bill > 0 && amount > due + 0.01) {
-      throw new BadRequestException(due > 0 ? `Baqi sirf Rs ${due} hai` : 'Poori raqam mil chuki hai');
+      throw new BadRequestException(due > 0 ? `Baqi sirf Rs ${due} hai` : 'Poori amount mil chuki hai');
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -206,7 +206,7 @@ export class RepairServicesService {
   async remove(user: AuthenticatedUser, id: string) {
     const r = await this.prisma.sportsRepairService.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!r) throw new NotFoundException('Repair service not found');
-    if (r.status === 'DELIVERED') throw new BadRequestException('Deliver shuda repair ki bikri ban chuki hai — ise mitaya nahi ja sakta');
+    if (r.status === 'DELIVERED') throw new BadRequestException('Deliver shuda repair ki sale ban chuki hai — ise mitaya nahi ja sakta');
     if (Number(r.advancePaid || 0) > 0) throw new BadRequestException('Is repair par paise liye ja chuke hain — mitane ke bajaye Cancel karein');
     return this.prisma.sportsRepairService.delete({ where: { id } });
   }

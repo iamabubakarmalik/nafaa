@@ -398,7 +398,7 @@ export class JobsService {
     if (!j) throw new NotFoundException('Job not found');
     if (j.status === 'CANCELLED') throw new BadRequestException('Cancel job par payment nahi li ja sakti');
     const value = r2(amount);
-    if (!(value > 0)) throw new BadRequestException('Raqam sahi likhein');
+    if (!(value > 0)) throw new BadRequestException('Amount sahi likhein');
     const remaining = r2(j.totalCharge - j.paidAmount);
     if (remaining <= 0) throw new BadRequestException('Is job ka koi baqi nahi');
     if (value > remaining + 0.01) throw new BadRequestException(`Baqi sirf Rs ${remaining} hai`);
@@ -455,7 +455,7 @@ export class JobsService {
       let customerId = j.customerId;
       if (!customerId && stillOwed > 0) {
         if (!j.customerName?.trim()) {
-          throw new BadRequestException(`Rs ${stillOwed} baqi hai — poori raqam lein, ya udhaar ke liye customer jorein`);
+          throw new BadRequestException(`Rs ${stillOwed} baqi hai — poori amount lein, ya udhaar ke liye customer jorein`);
         }
         customerId = await ensureCustomer(tx, user, { name: j.customerName, phone: j.customerPhone, shopId });
       }

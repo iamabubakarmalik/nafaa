@@ -21,7 +21,7 @@ function useDairyActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
     { to: '/dairy/deliveries', icon: Truck, label: 'Delivery', hint: today.scheduled ? `${today.delivered}/${today.scheduled} hui` : 'Aaj ki list' },
     { to: '/dairy/supplies', icon: Warehouse, label: 'Doodh aaya', hint: 'Kisan se entry' },
     { to: '/dairy/customers', icon: Users, label: 'Customers', hint: `${subscribers.active} pakke` },
@@ -32,7 +32,7 @@ function useDairyActions(): QuickAction[] {
     { to: '/dairy-products/new', icon: Plus, label: 'Nayi cheez', hint: 'Maal me daalein' },
     { to: '/dairy/products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }

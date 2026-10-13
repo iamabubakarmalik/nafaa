@@ -720,8 +720,8 @@ export default function AgriPosPage() {
       return;
     }
     if (cmd.kind === 'discount') {
-      if (cmd.pct) { setDiscountMode('pct'); setDiscountPct(Math.min(cmd.pct, 100)); setDiscountRs(0); toast.success(`🎤 ${cmd.pct}% chhoot`); }
-      else if (cmd.rs) { setDiscountMode('rs'); setDiscountRs(cmd.rs); setDiscountPct(0); toast.success(`🎤 Rs ${cmd.rs} chhoot`); }
+      if (cmd.pct) { setDiscountMode('pct'); setDiscountPct(Math.min(cmd.pct, 100)); setDiscountRs(0); toast.success(`🎤 ${cmd.pct}% discount`); }
+      else if (cmd.rs) { setDiscountMode('rs'); setDiscountRs(cmd.rs); setDiscountPct(0); toast.success(`🎤 Rs ${cmd.rs} discount`); }
       return;
     }
     if (cmd.kind === 'clear') {
@@ -980,7 +980,7 @@ export default function AgriPosPage() {
           onApply={(m, p, r) => {
             setDiscountMode(m); setDiscountPct(p); setDiscountRs(r);
             setShowDiscountModal(false);
-            if (m === 'pct' ? p > 0 : r > 0) toast.success(`Chhoot: ${m === 'pct' ? p + '%' : formatPKR(r)}`);
+            if (m === 'pct' ? p > 0 : r > 0) toast.success(`Discount: ${m === 'pct' ? p + '%' : formatPKR(r)}`);
           }}
           onClose={() => setShowDiscountModal(false)}
         />
@@ -1185,7 +1185,7 @@ export default function AgriPosPage() {
               filteredRows.length === 0 ? (
                 <PosEmptyState icon={Wheat} title="Kuch nahi mila"
                   hint={search ? `"${search}" ki koi cheez nahi — fasal ya keeray ka naam bhi likh sakte hain`
-                    : kind !== 'all' ? 'Is qism me abhi kuch nahi' : 'Pehle maal add karein'}
+                    : kind !== 'all' ? 'Is type me abhi kuch nahi' : 'Pehle maal add karein'}
                   onClear={search || kind !== 'all' || categoryId || seasonFilter
                     ? () => { setSearch(''); setKind('all'); setCategoryId(''); setSeasonFilter(''); } : undefined} />
               ) : (
@@ -1447,7 +1447,7 @@ function BlockedModal({ info, onClose }: {
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1">Kya karna hai</div>
             <ol className="space-y-1 text-[0.75rem] font-bold text-slate-700 dark:text-ink-200">
               <li>1. Registration renew karwayein</li>
-              <li>2. Nayi tareekh product me bhar dein</li>
+              <li>2. Nayi date product me bhar dein</li>
               <li>3. Phir ye POS par khud chalne lagegi</li>
             </ol>
           </div>
@@ -1459,7 +1459,7 @@ function BlockedModal({ info, onClose }: {
             </button>
             <Link to={`/agri-products/${product.id}/edit`}
               className="flex-1 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-extrabold inline-flex items-center justify-center gap-1.5 transition">
-              <Calendar className="h-4 w-4" /> Tareekh theek karein
+              <Calendar className="h-4 w-4" /> Date theek karein
             </Link>
           </div>
         </div>

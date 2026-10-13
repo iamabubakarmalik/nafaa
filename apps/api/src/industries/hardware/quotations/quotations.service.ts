@@ -30,7 +30,7 @@ function priceQuotation(dto: CreateQuotationDto) {
 function assertItems(dto: CreateQuotationDto) {
   if (!dto.items?.length) throw new BadRequestException('Kam se kam ek item dalein');
   for (const it of dto.items) {
-    if (!(it.quantity > 0)) throw new BadRequestException(`"${it.itemName}" ki miqdar 0 se zyada honi chahiye`);
+    if (!(it.quantity > 0)) throw new BadRequestException(`"${it.itemName}" ki quantity 0 se zyada honi chahiye`);
     if (it.unitPrice < 0) throw new BadRequestException(`"${it.itemName}" ka rate manfi nahi ho sakta`);
   }
 }

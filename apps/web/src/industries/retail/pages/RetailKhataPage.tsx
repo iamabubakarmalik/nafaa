@@ -738,7 +738,7 @@ function KhataTeacher({ onClose, onStartBulk, hasDues }: { onClose: () => void; 
             <TipRow><strong>💰 "Paisay Wasool"</strong> — customer aaya to foran payment record karo, khata khud update</TipRow>
             <TipRow><strong>📅 Aging colors</strong> — 🌱 naya, ⏰ 7+ din, 🔥 30+ din (red = jaldi wasool karo!)</TipRow>
             <TipRow><strong>💬 Green button</strong> — single customer ko reminder (puranay pe automatically sakht tone)</TipRow>
-            <TipRow><strong>Tafseel</strong> — customer ki saari sales + pending bills dekho</TipRow>
+            <TipRow><strong>Details</strong> — customer ki saari sales + pending bills dekho</TipRow>
             <TipRow><strong>⌨️ / dabao</strong> — search pe jump &nbsp;•&nbsp; <strong>Esc</strong> — sab band</TipRow>
           </div>
 
@@ -869,7 +869,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
           className="h-11 px-4 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-sm font-extrabold inline-flex items-center gap-1 transition"
         >
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          {expanded ? 'Chhupao' : 'Tafseel'}
+          {expanded ? 'Chhupao' : 'Details'}
         </button>
       </div>
 

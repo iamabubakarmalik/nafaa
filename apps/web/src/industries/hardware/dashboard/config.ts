@@ -23,7 +23,7 @@ function useHardwareActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
     { to: '/hardware/quotations/new', icon: FileText, label: 'Nayi quotation', hint: 'Bare order ka rate' },
     { to: '/hardware/quotations', icon: FileText, label: 'Quotations', hint: quotations.pending ? `${quotations.pending} jawab baqi` : 'Sab dekhein' },
     { to: '/hardware/deliveries', icon: Truck, label: 'Delivery', hint: delivery.today ? `${delivery.today} aaj` : `${delivery.open} baqi` },
@@ -35,7 +35,7 @@ function useHardwareActions(): QuickAction[] {
     { to: '/hardware/brands', icon: Award, label: 'Brands', hint: 'Company wise' },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }
@@ -48,8 +48,8 @@ export const hardwareDashboard = createDashboard({
   defaultKpis: ['hardware-deliveries', 'hardware-credit', 'hardware-quotes', 'profit', 'cash', 'month'],
   useAttention: useHardwareAttention,
   widgets: [
-    { id: 'hardware-credit', title: 'Contractor udhaar', description: 'Sab se zyada udhaar wale contractor aur purana baqaya', size: 'third', sizes: ANY_SIZE, sensitive: true, Component: HardwareCredit },
-    { id: 'hardware-deliveries', title: 'Aane wali delivery', description: 'Site par jane wala maal, tareekh se', size: 'third', sizes: ANY_SIZE, Component: HardwareDeliveries },
+    { id: 'hardware-credit', title: 'Contractor udhaar', description: 'Sab se zyada udhaar wale contractor aur purana balance', size: 'third', sizes: ANY_SIZE, sensitive: true, Component: HardwareCredit },
+    { id: 'hardware-deliveries', title: 'Aane wali delivery', description: 'Site par jane wala maal, date se', size: 'third', sizes: ANY_SIZE, Component: HardwareDeliveries },
     { id: 'hardware-projects', title: 'Chalte projects', description: 'Construction sites aur kitna maal pahuncha', size: 'third', sizes: ANY_SIZE, Component: HardwareProjects },
   ],
   lateWidgets: [

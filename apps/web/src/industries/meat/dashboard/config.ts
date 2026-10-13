@@ -23,7 +23,7 @@ function useMeatActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
     { to: '/meat/weight-orders/new', icon: Weight, label: 'Naya order', hint: 'Wazan se order' },
     { to: '/meat/weight-orders', icon: Package, label: 'Orders', hint: orders.late.length ? `${orders.late.length} late` : `${orders.open.length} chaalu` },
     { to: '/meat/live-animals', icon: Heart, label: 'Zinda janwar', hint: `${livestock.alive} janwar` },
@@ -35,7 +35,7 @@ function useMeatActions(): QuickAction[] {
     { to: '/meat-products/new', icon: Plus, label: 'Nayi cheez', hint: 'Maal me daalein' },
     { to: '/meat/products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }
@@ -50,7 +50,7 @@ export const meatDashboard = createDashboard({
   useAttention: useMeatAttention,
   widgets: [
     { id: 'meat-orders', title: 'Wazan wale order', description: 'Chaalu order, dene ke waqt ke hisaab se', size: 'half', sizes: ANY_SIZE, Component: MeatOrders },
-    { id: 'meat-livestock', title: 'Zinda janwar', description: 'Baara me janwar, qisam aur un par lagat', size: 'half', sizes: ANY_SIZE, sensitive: true, Component: MeatLivestock },
+    { id: 'meat-livestock', title: 'Zinda janwar', description: 'Baara me janwar, qisam aur un par cost', size: 'half', sizes: ANY_SIZE, sensitive: true, Component: MeatLivestock },
   ],
   lateWidgets: [
     { id: 'meat-halal', title: 'Halal record', description: '30 din me halal zabiha, certificate aur vet check', size: 'third', sizes: ['third', 'half'], Component: MeatHalal },
@@ -60,6 +60,6 @@ export const meatDashboard = createDashboard({
   moneyMap: { useExtraTiles: useMeatMoneyTiles, productsPath: '/meat/products' },
   guide: [
     { icon: Weight, title: 'Wazan wale order', text: 'Har order kab dena hai, kitne kilo hai aur kitna paisa baqi hai — late order laal me upar aata hai.' },
-    { icon: ShieldCheck, title: 'Janwar aur halal record', text: 'Baara me kitne janwar hain, un par kitna kharcha hua, aur har zabiha ka halal record — sab ek jagah.' },
+    { icon: ShieldCheck, title: 'Janwar aur halal record', text: 'Baara me kitne janwar hain, un par kitna expense hua, aur har zabiha ka halal record — sab ek jagah.' },
   ],
 });

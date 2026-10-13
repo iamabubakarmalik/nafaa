@@ -316,7 +316,7 @@ export function CarpetWizardStep1Basic({ basic, onChange, errors }: Props) {
 
       {/* ═══ SECTION 3 — PRICING ═══ */}
       <section className="rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-white p-5 space-y-4">
-        <SectionHeader n="3" icon={DollarSign} title={`Rate (per ${priceUnitLabel})`} desc="Kharid aur bikri rate" tone="emerald" />
+        <SectionHeader n="3" icon={DollarSign} title={`Rate (per ${priceUnitLabel})`} desc="Kharid aur sale rate" tone="emerald" />
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
@@ -333,7 +333,7 @@ export function CarpetWizardStep1Basic({ basic, onChange, errors }: Props) {
             <p className="text-[0.6875rem] text-slate-500 font-bold mt-1">Purchase price</p>
           </div>
           <div>
-            <label className="block text-xs font-extrabold uppercase text-emerald-700 mb-1.5">Bikri Rate (Sale) *</label>
+            <label className="block text-xs font-extrabold uppercase text-emerald-700 mb-1.5">Sale Rate (Sale) *</label>
             <input
               type="number"
               step="0.01"

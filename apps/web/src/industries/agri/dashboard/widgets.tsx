@@ -56,7 +56,7 @@ export function useAgriAttention(): AttentionItem[] {
   const { cost } = useMasked();
   const items: AttentionItem[] = [];
   if (registration.blocked) items.push({ icon: ShieldAlert, level: 'danger', text: `${registration.blocked} cheezon ki registration khatam — ${cost(registration.blockedValue)} ka maal qanoonan bech nahi sakte`, to: '/agri/products', cta: 'Maal dekhein' });
-  if (farmers.overdue) items.push({ icon: Clock, level: 'warning', text: `${farmers.overdue} farmer ka udhaar ka waqt guzar gaya — ${cost(farmers.overdueAmount)}`, to: '/agri/farmers', cta: 'Wusooli' });
+  if (farmers.overdue) items.push({ icon: Clock, level: 'warning', text: `${farmers.overdue} farmer ka udhaar ka waqt guzar gaya — ${cost(farmers.overdueAmount)}`, to: '/agri/farmers', cta: 'Receiving' });
   if (season.risky) items.push({ icon: Sprout, level: 'warning', text: `${season.risky} fasal ki bijai aa rahi hai magar maal poora nahi`, to: '/agri/seasonal-plans', cta: 'Calendar' });
   if (registration.soon) items.push({ icon: CalendarClock, level: 'info', text: `${registration.soon} cheezon ki registration 60 din me khatam — renew karwa lein`, to: '/agri/products', cta: 'Maal' });
   if (subsidy.count) items.push({ icon: Landmark, level: 'neutral', text: `${cost(subsidy.amount)} subsidy sarkar ke paas atki hai — ${subsidy.count} claim`, to: '/agri/subsidy', cta: 'Claims' });
@@ -95,7 +95,7 @@ export function AgriRecovery() {
   const { cost } = useMasked();
   return (
     <WidgetCard
-      title="Farmer wusooli"
+      title="Farmer receiving"
       icon={Tractor}
       description={farmers.overdue ? `${cost(farmers.overdueAmount)} ka waqt guzar chuka` : `${cost(farmers.owed)} kul udhaar`}
       to="/agri/farmers"
@@ -159,7 +159,7 @@ export function AgriSubsidy() {
             title={c.schemeName}
             meta={<span><span className="font-mono">{c.claimNumber}</span> · {c.productType}</span>}
             value={cost(c.subsidyAmount)}
-            valueHint={<Badge variant={c.status === 'APPROVED' ? 'info' : 'warning'} size="xs">{c.status === 'APPROVED' ? 'Manzoor' : 'Baqi'}</Badge>}
+            valueHint={<Badge variant={c.status === 'APPROVED' ? 'info' : 'warning'} size="xs">{c.status === 'APPROVED' ? 'Approve' : 'Baqi'}</Badge>}
           />
         ))}
       </RowList>

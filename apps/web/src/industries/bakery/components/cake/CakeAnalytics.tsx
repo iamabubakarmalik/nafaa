@@ -36,11 +36,11 @@ export function CakeAnalytics({ range, onOccasion }: { range: { from: string; to
         <StatTile icon={Wallet} label="Kul rakam" value={sales(t.value)} sub={`Advance / mila ${sales(t.collected)}`} tone="green" />
         <StatTile icon={Layers} label="Ausat order" value={sales(t.avgOrder)} sub="Ek order ki ausat rakam" tone="violet" />
         <StatTile icon={t.avgRating ? Star : Ban} label={t.avgRating ? 'Customer ki raye' : 'Cancel'} value={t.avgRating ? `${t.avgRating} / 5` : t.cancelled}
-          sub={t.avgRating ? `${t.rated} orders par · ${t.cancelled} cancel` : 'Is muddat me cancel hue'} tone={t.avgRating ? 'amber' : 'rose'} />
+          sub={t.avgRating ? `${t.rated} orders par · ${t.cancelled} cancel` : 'Is period me cancel hue'} tone={t.avgRating ? 'amber' : 'rose'} />
       </div>
 
       <Card className="rounded-2xl" title={<CardTitle icon={CalendarDays}>{d.period.grouping === 'month' ? 'Har mahine ke orders' : 'Har din ke orders'}</CardTitle>} description="Jis din cake dena tha, us din ke hisaab se">
-        {!days.length ? <p className="py-10 text-center text-sm text-slate-500">Is muddat me koi order nahi</p> : (
+        {!days.length ? <p className="py-10 text-center text-sm text-slate-500">Is period me koi order nahi</p> : (
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={days} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -71,8 +71,8 @@ export function CakeAnalytics({ range, onOccasion }: { range: { from: string; to
             </ResponsiveContainer>
           </div>
         </Card>
-        <Card className="rounded-2xl" title={<CardTitle icon={Layers}>Orders ki halat</CardTitle>} description="Is muddat ke har order ka haal">
-          {!states.length ? <p className="py-10 text-center text-sm text-slate-500">Is muddat me koi order nahi</p> : (
+        <Card className="rounded-2xl" title={<CardTitle icon={Layers}>Orders ki halat</CardTitle>} description="Is period ke har order ka haal">
+          {!states.length ? <p className="py-10 text-center text-sm text-slate-500">Is period me koi order nahi</p> : (
             <div className="grid items-center gap-3 sm:grid-cols-[10rem_minmax(0,1fr)]">
               <div className="mx-auto h-40 w-40">
                 <ResponsiveContainer width="100%" height="100%">

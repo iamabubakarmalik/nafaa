@@ -21,8 +21,8 @@ function orderTotals(items: TeamItem[], discountPct: number, taxAmount: number, 
     const unitPrice = r2(Math.max(Number(it.unitPrice) || 0, 0));
     return { ...it, quantity, unitPrice, total: r2(quantity * unitPrice) };
   });
-  if (clean.some((it) => it.quantity <= 0)) throw new BadRequestException('Har item ki tadaad 1 ya zyada honi chahiye');
-  if (discountPct < 0 || discountPct > 100) throw new BadRequestException('Chhoot 0 se 100% ke beech honi chahiye');
+  if (clean.some((it) => it.quantity <= 0)) throw new BadRequestException('Har item ki quantity 1 ya zyada honi chahiye');
+  if (discountPct < 0 || discountPct > 100) throw new BadRequestException('Discount 0 se 100% ke beech honi chahiye');
   const totalQuantity = clean.reduce((s, it) => s + it.quantity, 0);
   const subtotal = r2(clean.reduce((s, it) => s + it.total, 0));
   const discountAmount = r2((subtotal * discountPct) / 100);
@@ -61,7 +61,7 @@ export class TeamOrdersService {
     const shippingCharge = dto.shippingCharge ?? 0;
     const { items, totalQuantity, subtotal, discountAmount, totalAmount } = orderTotals(dto.items, discountPct, taxAmount, shippingCharge);
     const advancePaid = r2(dto.advancePaid ?? 0);
-    if (advancePaid > totalAmount + 0.01) throw new BadRequestException('Advance order ki kul raqam se zyada nahi ho sakta');
+    if (advancePaid > totalAmount + 0.01) throw new BadRequestException('Advance order ki kul amount se zyada nahi ho sakta');
     const balanceAmount = r2(totalAmount - advancePaid);
 
     return this.prisma.$transaction(async (tx) => {
@@ -261,7 +261,7 @@ export class TeamOrdersService {
       throw new BadRequestException('Deliver ya cancel shuda order badla nahi ja sakta');
     }
     if (dto.advancePaid !== undefined && Math.abs(r2(dto.advancePaid) - r2(o.advancePaid)) > 0.009) {
-      throw new BadRequestException('Advance yahan nahi badalta — "Payment" se raqam darj karein');
+      throw new BadRequestException('Advance yahan nahi badalta — "Payment" se amount darj karein');
     }
 
     // Money fields are kept out; totals are recomputed below.
@@ -295,11 +295,11 @@ export class TeamOrdersService {
     if (!o) throw new NotFoundException('Team order not found');
     if (o.status === 'DELIVERED' || o.status === 'CANCELLED') {
       throw new BadRequestException(o.status === 'DELIVERED'
-        ? 'Order deliver ho chuka — baqi raqam team ke khate se wasool karein'
+        ? 'Order deliver ho chuka — baqi amount team ke khate se wasool karein'
         : 'Cancel shuda order par payment nahi li ja sakti');
     }
     const due = r2(Number(o.totalAmount || 0) - Number(o.advancePaid || 0));
-    if (dto.amount > due + 0.01) throw new BadRequestException(due > 0 ? `Baqi sirf Rs ${due} hai` : 'Poori raqam mil chuki hai');
+    if (dto.amount > due + 0.01) throw new BadRequestException(due > 0 ? `Baqi sirf Rs ${due} hai` : 'Poori amount mil chuki hai');
 
     return this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, scope?.shopId);

@@ -72,7 +72,7 @@ export async function billServiceFee(
   input: { line: OpticalLine; amount: number; paymentMethod?: string | null; customerId?: string | null; lineNote: string; note?: string },
 ) {
   const amount = Math.round(Number(input.amount) * 100) / 100;
-  if (!(amount > 0)) throw new BadRequestException('Raqam 0 se zyada honi chahiye');
+  if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
   const shopId = await resolveWriteShopId(prisma, user.tenantId, scope);
   const productId = await prisma.$transaction((tx) => openServiceLine(tx, user, input.line, shopId, 1));
   try {

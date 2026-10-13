@@ -21,7 +21,7 @@ function usePetshopActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'Counter', hint: 'Sale karein' },
     { to: '/petshop/grooming/new', icon: Scissors, label: 'Grooming book', hint: 'Nayi appointment' },
     { to: '/petshop/grooming', icon: Scissors, label: 'Grooming', hint: `${grooming.today} aaj` },
     { to: '/petshop/live-animals/new', icon: Heart, label: 'Naya janwar', hint: 'Stock me daalein' },
@@ -31,7 +31,7 @@ function usePetshopActions(): QuickAction[] {
     { to: '/petshop-products', icon: Package, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }

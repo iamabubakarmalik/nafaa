@@ -198,7 +198,7 @@ export class BulkOrdersService {
       ...o.items.filter((it) => !it.productId && it.total > 0)
         .map((it) => ({ type: 'OTHER', label: `${it.productName} (${it.quantity} ${it.unit})`.slice(0, 120), amount: r2(it.total) })),
       { type: 'DELIVERY', label: 'Delivery / kiraya', amount: r2(o.deliveryCharges) },
-      { type: 'OTHER', label: 'Doosre kharche', amount: r2(o.otherCharges) },
+      { type: 'OTHER', label: 'Doosre expenses', amount: r2(o.otherCharges) },
       { type: 'OTHER', label: 'Tax', amount: r2(o.taxAmount) },
     ].filter((c) => c.amount > 0);
 
@@ -229,9 +229,9 @@ export class BulkOrdersService {
   async addPayment(user: AuthenticatedUser, id: string, amount: number, paymentMethod?: string) {
     const o = await this.prisma.agriBulkOrder.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!o) throw new NotFoundException('Order not found');
-    if (o.status === 'CANCELLED') throw new BadRequestException('Cancel order par raqam nahi li ja sakti');
+    if (o.status === 'CANCELLED') throw new BadRequestException('Cancel order par amount nahi li ja sakti');
     amount = r2(amount);
-    if (!(amount > 0)) throw new BadRequestException('Raqam sahi likhein');
+    if (!(amount > 0)) throw new BadRequestException('Amount sahi likhein');
     const remaining = r2(o.total - o.paidAmount);
     if (amount > remaining + 0.01) throw new BadRequestException(`Is order par sirf Rs ${remaining} baqi hain`);
 

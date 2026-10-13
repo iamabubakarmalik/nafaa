@@ -469,8 +469,8 @@ export default function AgriProductsListPage() {
       [`Shop: ${shopName || 'All'}  •  Generated: ${new Date().toLocaleString('en-PK')}`],
       [''],
     ];
-    const head = ['Naam', 'SKU', 'Barcode', 'Category', 'Qism', 'Brand', 'Stock', 'Naap',
-      '1 packet me', ...(hideCost ? [] : ['Cost', 'Stock ki lagat']), 'Rate',
+    const head = ['Naam', 'SKU', 'Barcode', 'Category', 'Type', 'Brand', 'Stock', 'Naap',
+      '1 packet me', ...(hideCost ? [] : ['Cost', 'Stock ki cost']), 'Rate',
       'Registration', 'Meyaad', 'Mausam', 'Fasal', 'Restricted', 'Active'];
     const body = list.map((r) => [
       r.product.name, r.product.sku ?? '', r.product.barcode ?? '',
@@ -658,7 +658,7 @@ export default function AgriProductsListPage() {
             <h1 className="text-2xl font-black text-slate-900">🌾 {tenant?.name || 'Agri'} — Saara maal</h1>
             <p className="text-xs text-slate-600 font-semibold mt-1">
               {shopName ? `${shopName} • ` : ''}{filtered.length} cheezein
-              {!hideCost && ` • Stock ki lagat ${formatPKR(stats.costValue)}`}
+              {!hideCost && ` • Stock ki cost ${formatPKR(stats.costValue)}`}
             </p>
           </div>
           <div className="text-right text-xs font-bold text-slate-900">{printDate}</div>
@@ -684,7 +684,7 @@ export default function AgriProductsListPage() {
               <Chip><strong className="text-emerald-200">{stats.fert}</strong> khaad</Chip>
               <Chip><strong className="text-amber-200">{stats.spray}</strong> dawa</Chip>
               <Chip><strong className="text-sky-200">{stats.feed}</strong> feed</Chip>
-              {!hideCost && <Chip>Lagat <strong className="text-emerald-300">{formatPKR(stats.costValue)}</strong></Chip>}
+              {!hideCost && <Chip>Cost <strong className="text-emerald-300">{formatPKR(stats.costValue)}</strong></Chip>}
               {stats.low > 0 && <Chip tone="amber"><strong className="text-amber-300">{stats.low}</strong> kam</Chip>}
               {stats.expired > 0 && <Chip tone="rose"><strong className="text-rose-300">{stats.expired}</strong> registration khatam</Chip>}
             </p>
@@ -740,7 +740,7 @@ export default function AgriProductsListPage() {
               </h3>
               <p className="text-[0.6875rem] font-bold text-rose-700 dark:text-rose-300 mt-0.5">
                 Beej (Seed Act) aur zehreeli dawa (Pesticides Ordinance) — meyaad khatam hone par
-                inspector jurmana kar sakta hai. Renew karwa kar tareekh update kar lein.
+                inspector jurmana kar sakta hai. Renew karwa kar date update kar lein.
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {stats.expiredList.map((r) => (
@@ -763,8 +763,8 @@ export default function AgriProductsListPage() {
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 print:hidden">
         <Kpi icon={Package} label="Kul cheezein" value={stats.total}
           sub={`${stats.inactive} band • ${stats.organic} organic`} tone="emerald" />
-        <Kpi icon={DollarSign} label="Stock ki lagat" value={money(stats.costValue)}
-          sub={hideCost ? '🔒 PIN se dekho' : `Bikri par ${formatPKR(stats.retailValue)}`} tone="lime" />
+        <Kpi icon={DollarSign} label="Stock ki cost" value={money(stats.costValue)}
+          sub={hideCost ? '🔒 PIN se dekho' : `Sale par ${formatPKR(stats.retailValue)}`} tone="lime" />
         <Kpi icon={AlertTriangle} label="Kam stock" value={stats.low} sub="Mangwane ka waqt" tone="amber"
           active={stockFilter === 'low'}
           onClick={() => { setTab('list'); setKind('all'); setStockFilter('low'); setStatusFilter('all'); }} />
@@ -968,7 +968,7 @@ export default function AgriProductsListPage() {
                 <option value="stock-high">Stock zyada pehle</option>
                 <option value="price-low">Sasta pehle</option>
                 <option value="price-high">Mehnga pehle</option>
-                {!hideCost && <option value="value-desc">Lagat zyada pehle</option>}
+                {!hideCost && <option value="value-desc">Cost zyada pehle</option>}
               </select>
 
               {hasFilters && (
@@ -1255,7 +1255,7 @@ function AgriQuickStock({ row, hideCost, onClose, onSaved }: {
               }`}>{diff > 0 ? '+' : ''}{fmtQty(diff)}</div>
             )}
             <div className="text-right">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Bikri qeemat</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Sale qeemat</div>
               <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                 {hideCost ? '••••' : formatPKRFull(Math.max(finalStock, 0) * Number(p.price || 0))}
               </div>
@@ -1443,12 +1443,12 @@ function AgriTable({ rows, hideCost, selected, onToggle, onToggleAll, onStock }:
                 <input type="checkbox" checked={allOn} onChange={onToggleAll} className="h-4 w-4 rounded accent-emerald-600" />
               </th>
               <Th>Cheez</Th>
-              <Th>Qism</Th>
+              <Th>Type</Th>
               <Th>Category</Th>
               {!hideCost && <Th className="text-right">Cost</Th>}
               <Th className="text-right">Rate</Th>
               <Th className="text-right">Stock</Th>
-              {!hideCost && <Th className="text-right">Lagat</Th>}
+              {!hideCost && <Th className="text-right">Cost</Th>}
               <Th className="text-center">Registration</Th>
               <Th className="text-center">Halat</Th>
               <Th className="text-right print:hidden">Actions</Th>
@@ -1549,7 +1549,7 @@ function Analytics({ stats, margin, potentialProfit, money, hideCost, categoryCh
       <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <MiniStat icon={Boxes} label="Gudaam ki qeemat" value={money(stats.costValue)} tone="lime" />
         <MiniStat icon={TrendingUp} label="Sab bik jaye to" value={money(stats.retailValue)} tone="emerald" />
-        <MiniStat icon={Award} label="Munafa" value={hideCost ? '••••' : `${margin.toFixed(1)}%`} sub={money(potentialProfit)} tone="amber" />
+        <MiniStat icon={Award} label="Profit" value={hideCost ? '••••' : `${margin.toFixed(1)}%`} sub={money(potentialProfit)} tone="amber" />
         <MiniStat icon={ShieldCheck} label="Registration wali" value={stats.regulated}
           sub={`${stats.expired} khatam • ${stats.missingCert} nahi likhi`} tone="rose" />
       </section>
@@ -1562,7 +1562,7 @@ function Analytics({ stats, margin, potentialProfit, money, hideCost, categoryCh
           </div>
           {stats.noCost > 0 && (
             <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
-              • <strong>{stats.noCost}</strong> cheezon ki cost 0 hai — in ka munafa poora dikhta hai, jo sach nahi.
+              • <strong>{stats.noCost}</strong> cheezon ki cost 0 hai — in ka profit poora dikhta hai, jo sach nahi.
             </p>
           )}
           {stats.noPack > 0 && (
@@ -1572,12 +1572,12 @@ function Analytics({ stats, margin, potentialProfit, money, hideCost, categoryCh
           )}
           {stats.missingCert > 0 && (
             <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
-              • <strong>{stats.missingCert}</strong> beej/dawa par registration ki tareekh nahi bhari — khatam hone par warning nahi aayegi.
+              • <strong>{stats.missingCert}</strong> beej/dawa par registration ki date nahi bhari — khatam hone par warning nahi aayegi.
             </p>
           )}
           {stats.noProfile > 0 && (
             <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
-              • <strong>{stats.noProfile}</strong> cheezein bina agri tafseel ke hain — fasal, mausam aur safety kuch nahi likha.
+              • <strong>{stats.noProfile}</strong> cheezein bina agri details ke hain — fasal, mausam aur safety kuch nahi likha.
             </p>
           )}
         </section>
@@ -1621,8 +1621,8 @@ function Analytics({ stats, margin, potentialProfit, money, hideCost, categoryCh
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
                 <XAxis dataKey="name" stroke={AXIS} fontSize={10} fontWeight={700} interval={0} angle={-20} textAnchor="end" height={60} />
                 <YAxis stroke={AXIS} fontSize={11} width={78} tickFormatter={(v) => Number(v).toLocaleString('en-PK')} />
-                <Tooltip contentStyle={TOOLTIP} formatter={(v: any, n: any) => [formatPKR(Number(v)), n === 'lagat' ? 'Lagat' : 'Bikri par']} />
-                <Legend formatter={(v) => (v === 'lagat' ? 'Lagat' : 'Bikri par')} />
+                <Tooltip contentStyle={TOOLTIP} formatter={(v: any, n: any) => [formatPKR(Number(v)), n === 'lagat' ? 'Cost' : 'Sale par']} />
+                <Legend formatter={(v) => (v === 'lagat' ? 'Cost' : 'Sale par')} />
                 <Bar dataKey="lagat" fill="#84cc16" radius={[6, 6, 0, 0]} />
                 <Bar dataKey="bikri" fill="#10b981" radius={[6, 6, 0, 0]} />
               </BarChart>
@@ -1930,13 +1930,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
           </p>
           <Tip icon={ShieldAlert} title="Sarkari registration — sab se ahem">
             Beej aur zehreeli dawa ki meyaad khatam ho jaye to bechna ghair-qanooni hai. Wo warning
-            sab se ooper aati hai, kisi filter ke peeche nahi. Renew karwa kar tareekh update karein.
+            sab se ooper aati hai, kisi filter ke peeche nahi. Renew karwa kar date update karein.
           </Tip>
           <Tip icon={Scale} title="Bori ka hisab">
             1 bori urea = 50 kg. Card aur table par dono dikhte hain, aur POS par bori bikne se
             stock me se poore 50 kg ghatte hain — 1 nahi.
           </Tip>
-          <Tip icon={Sprout} title="Fasal se dhoondein">
+          <Tip icon={Sprout} title="Fasal se search">
             Search me "gandum" ya "sundi" likh dein — jo cheezein us fasal ya us keeray ke liye
             hain, sab saamne aa jayengi. Farmer ke sawal ka jawab foran.
           </Tip>

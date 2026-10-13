@@ -31,7 +31,7 @@ export class FloristSubscriptionsService {
     const year = new Date().getFullYear();
     const subscriptionNumber = `FS-${year}-${String(count + 1).padStart(4, '0')}`;
     const start = parseDay(dto.startDate);
-    if (!start) throw new BadRequestException('Shuru ki tareekh likhein');
+    if (!start) throw new BadRequestException('Shuru ki date likhein');
     if (dto.customerId) {
       const c = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { id: true } });
       if (!c) throw new NotFoundException('Customer nahi mila');

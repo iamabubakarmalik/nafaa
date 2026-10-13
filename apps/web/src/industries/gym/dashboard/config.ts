@@ -32,7 +32,7 @@ function useGymActions(): QuickAction[] {
     { to: '/gym/equipment', icon: Wrench, label: 'Equipment', hint: equipment.service ? `${equipment.service} service` : `${equipment.total} machines` },
     { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Fees aur supplements' },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }

@@ -125,7 +125,7 @@ export default function ApplianceProductDetailPage() {
         ? '' : `<tr><td class="k">${escapeHtml(k)}</td><td class="v">${escapeHtml(String(v))}</td></tr>`;
 
     const general = [
-      row('Qism', catLabel(pf.categoryType)),
+      row('Type', catLabel(pf.categoryType)),
       row('Brand', brand?.name),
       row('Model', pf.modelNumber),
       row('Model year', pf.modelYear),
@@ -145,19 +145,19 @@ export default function ApplianceProductDetailPage() {
     ].join('');
 
     const ac = [
-      row('Tonnage', pf.acTonnage), row('AC ki qism', pf.acType),
+      row('Tonnage', pf.acTonnage), row('AC ki type', pf.acType),
       row('Cooling capacity', pf.coolingCapacity), row('Heating capacity', pf.heatingCapacity),
       row('Refrigerant', pf.refrigerantType), row('EER', pf.eer),
     ].join('');
 
     const fridge = [
       row('Capacity (litre)', pf.fridgeCapacityLiters),
-      row('Fridge ki qism', pf.refrigeratorType),
+      row('Fridge ki type', pf.refrigeratorType),
       row('Darwaze', pf.doorCount), row('Compressor', pf.compressorType),
     ].join('');
 
     const wash = [
-      row('Capacity (kg)', pf.washingCapacityKg), row('Washing ki qism', pf.washingType),
+      row('Capacity (kg)', pf.washingCapacityKg), row('Washing ki type', pf.washingType),
       row('RPM', pf.rpm), row('Programs', pf.numberOfPrograms),
     ].join('');
 
@@ -176,7 +176,7 @@ export default function ApplianceProductDetailPage() {
         : '';
 
     const body = `
-      ${sec('📋 Aam Tafseel', general)}
+      ${sec('📋 Aam Details', general)}
       ${sec('⚡ Bijli / Energy', energy)}
       ${sec('❄️ Air Conditioner', ac)}
       ${sec('🧊 Refrigerator', fridge)}
@@ -1213,7 +1213,7 @@ function QuickLink({ to, icon: Icon, title, desc, tone }: any) {
 function DetailTeacher({ onClose }: { onClose: () => void }) {
   return (
     <Teacher
-      title="Product Ki Poori Tafseel"
+      title="Product Ki Poori Details"
       intro={
         <>
           Ye safha ek product ka <strong>poora record</strong> hai — specs, warranty, har unit ka serial,
@@ -1225,7 +1225,7 @@ function DetailTeacher({ onClose }: { onClose: () => void }) {
           title: '📄 Spec Sheet — customer ko dikhane wala',
           tone: 'cyan',
           tips: [
-            <><Kbd dark>P</Kbd> — A4 par <strong>spec sheet</strong> nikalta hai: saari technical tafseel,
+            <><Kbd dark>P</Kbd> — A4 par <strong>spec sheet</strong> nikalta hai: saari technical details,
               warranty ke mahine, installation ki shartein aur khoobiyan</>,
             <>Customer ko dikhane ya showroom me rakhne ke liye — zubani batane se behtar hai</>,
             <>Jo khana khali ho wo <strong>chapta hi nahi</strong> — sheet saaf rehti hai</>,
@@ -1236,7 +1236,7 @@ function DetailTeacher({ onClose }: { onClose: () => void }) {
           tone: 'violet',
           tips: [
             <>Is product ke <strong>har unit</strong> ka apna record — kaun stock me hai, kaun bik chuka</>,
-            <>Bike hue unit par customer ka naam aur warranty ki tareekh nazar aati hai</>,
+            <>Bike hue unit par customer ka naam aur warranty ki date nazar aati hai</>,
             <>Warranty ka jhagra ho to yahin se serial dhoond kar tasdeeq karein</>,
           ],
         },
@@ -1254,8 +1254,8 @@ function DetailTeacher({ onClose }: { onClose: () => void }) {
           tone: 'rose',
           tips: [
             <><Kbd dark>E</Kbd> — edit. <strong>Warranty ke mahine aur installation charge</strong> zaroor bharein</>,
-            <>Warranty ke baghair: bikne par warranty ki tareekh nahi banegi aur card khali chapega</>,
-            <>Installation charge ke baghair: POS par charge 0 lagega aur kamai zaya ho jayegi</>,
+            <>Warranty ke baghair: bikne par warranty ki date nahi banegi aur card khali chapega</>,
+            <>Installation charge ke baghair: POS par charge 0 lagega aur kamai waste ho jayegi</>,
           ],
         },
       ]}
@@ -1268,7 +1268,7 @@ function DetailTeacher({ onClose }: { onClose: () => void }) {
       golden={
         <>
           <strong>Sunahri usool:</strong> Mehngi cheez bechte waqt customer ko <strong>spec sheet</strong>
-          dikhayein. Jo dukaan kaghaz par tafseel dikhati hai, us par customer ziyada bharosa karta hai.
+          dikhayein. Jo dukaan kaghaz par details dikhati hai, us par customer ziyada bharosa karta hai.
         </>
       }
       onClose={onClose}

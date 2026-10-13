@@ -49,7 +49,7 @@ export class WorkshopJobsService {
       if (found !== partIds.length) throw new NotFoundException('Koi part product nahi mila');
     }
     for (const p of dto.partsUsed || []) {
-      if (!((p.quantity ?? 1) > 0)) throw new BadRequestException(`"${p.partName}" ki miqdar 0 se zyada honi chahiye`);
+      if (!((p.quantity ?? 1) > 0)) throw new BadRequestException(`"${p.partName}" ki quantity 0 se zyada honi chahiye`);
     }
     const prefix = `JOB-${new Date().getFullYear()}-`;
 
@@ -233,7 +233,7 @@ export class WorkshopJobsService {
     const job = await this.prisma.workshopJob.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!job) throw new NotFoundException('Job not found');
     if (job.status === 'DELIVERED' && dto.status !== 'DELIVERED') {
-      throw new BadRequestException('Gaari de di gayi aur bill ban chuka — ab status nahi badalta. Wapsi ho to bill se return karein');
+      throw new BadRequestException('Gaari de di gayi aur bill ban chuka — ab status nahi badalta. Return ho to bill se return karein');
     }
     if (job.status === 'CANCELLED' && dto.status !== 'CANCELLED') {
       throw new BadRequestException('Cancel job dobara nahi khulti — naya job banayein');
@@ -333,7 +333,7 @@ export class WorkshopJobsService {
     let customerId: string | null = job.customerId || null;
     if (!customerId && owed > 0.009) {
       if (!job.customerName?.trim()) {
-        throw new BadRequestException(`Rs ${owed} baqi hai — poori raqam lein, ya udhaar ke liye customer ka naam/phone job me dalein`);
+        throw new BadRequestException(`Rs ${owed} baqi hai — poori amount lein, ya udhaar ke liye customer ka naam/phone job me dalein`);
       }
       customerId = await ensureCustomer(tx, user, { name: job.customerName, phone: job.customerPhone, shopId });
     }
@@ -400,7 +400,7 @@ export class WorkshopJobsService {
     if (!job) throw new NotFoundException('Job not found');
     if (job.status === 'CANCELLED') throw new BadRequestException('Cancel job par payment nahi li ja sakti');
     const amount = r2(dto.amount);
-    if (!(amount > 0)) throw new BadRequestException('Raqam 0 se zyada honi chahiye');
+    if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
     const remaining = r2(job.total - job.paidAmount);
     if (amount > remaining + 0.01) throw new BadRequestException(`Sirf Rs ${Math.max(remaining, 0)} baqi hai`);
 

@@ -252,7 +252,7 @@ export class OrdersService {
       throw new BadRequestException('Pehle bill ki payment lein — payment poori hote hi order khud complete ho jata hai');
     }
     if (dto.status === 'CANCELLED' && o.saleId) {
-      throw new BadRequestException('Is order ka bill ban chuka hai — wapsi Returns se karein');
+      throw new BadRequestException('Is order ka bill ban chuka hai — return Returns se karein');
     }
     if (o.status === 'CANCELLED') throw new BadRequestException('Cancel hua order dobara nahi khulta');
 
@@ -298,7 +298,7 @@ export class OrdersService {
     if (!o) throw new NotFoundException('Order nahi mila');
     if (o.status === 'CANCELLED') throw new BadRequestException('Cancel hue order par payment nahi hoti');
     if (o.saleId) throw new BadRequestException('Is order ka bill pehle hi ban chuka hai');
-    if (!(dto.amount > 0) && !dto.closeOnCredit) throw new BadRequestException('Raqam likhein');
+    if (!(dto.amount > 0) && !dto.closeOnCredit) throw new BadRequestException('Amount likhein');
 
     const payment: Payment = { amount: dto.amount, paymentMethod: dto.paymentMethod, paidBy: dto.paidBy, reference: dto.reference, notes: dto.notes };
     const newPaid = round2(o.paidAmount + dto.amount);
@@ -327,7 +327,7 @@ export class OrdersService {
     const sum = round2(splits.reduce((s, sp) => s + sp.amount, 0));
     const remaining = round2(o.total - o.paidAmount);
     if (Math.abs(sum - remaining) > 0.01) {
-      throw new BadRequestException(`Hisson ka jor (${sum}) baqi raqam (${remaining}) ke barabar nahi`);
+      throw new BadRequestException(`Hisson ka jor (${sum}) baqi amount (${remaining}) ke barabar nahi`);
     }
     await this.settle(user, scope, orderId, splits.map((s) => ({ amount: s.amount, paymentMethod: s.paymentMethod, paidBy: s.paidBy })), { managerPin: dto.managerPin });
     await this.prisma.restaurantOrder.update({ where: { id: orderId }, data: { isSplitBill: true } });

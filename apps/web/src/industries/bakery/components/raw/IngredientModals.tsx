@@ -128,7 +128,7 @@ export function StockModal({ item, mode, onClose }: { item: Ingredient; mode: St
   const owe = Math.max(total - paid, 0);
   const meta = {
     purchase: { title: 'Maal aaya', icon: ArrowDownToLine, btn: 'Darj karein' },
-    waste: { title: 'Zaya hua', icon: Trash2, btn: 'Zaya likhein' },
+    waste: { title: 'Waste hua', icon: Trash2, btn: 'Waste likhein' },
     adjust: { title: 'Gin kar theek karein', icon: Scale, btn: 'Theek karein' },
   }[mode];
 
@@ -166,7 +166,7 @@ export function StockModal({ item, mode, onClose }: { item: Ingredient; mode: St
             </div>
             {rateChanged && (
               <p className="flex gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Rate {formatPKR(item.costPerUnit)} se {formatPKR(Number(rate))} ho raha hai. Recipe wali cheezon ki lagat "Recipe aur lagat" tab me dobara dekh lein.
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />Rate {formatPKR(item.costPerUnit)} se {formatPKR(Number(rate))} ho raha hai. Recipe wali cheezon ki cost "Recipe aur cost" tab me dobara dekh lein.
               </p>
             )}
             <div className="space-y-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
@@ -212,7 +212,7 @@ export function StockModal({ item, mode, onClose }: { item: Ingredient; mode: St
 const KIND_LABEL: Record<string, { label: string; tone: string }> = {
   PURCHASE: { label: 'Aaya', tone: 'text-success-700' },
   CONSUMPTION: { label: 'Istemal', tone: 'text-slate-700' },
-  WASTE: { label: 'Zaya', tone: 'text-rose-700' },
+  WASTE: { label: 'Waste', tone: 'text-rose-700' },
   ADJUSTMENT: { label: 'Ginti', tone: 'text-violet-700' },
 };
 export const kindOf = (k: string) => KIND_LABEL[k] ?? { label: k, tone: 'text-slate-700' };

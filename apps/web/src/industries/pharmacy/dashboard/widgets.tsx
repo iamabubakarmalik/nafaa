@@ -24,7 +24,7 @@ export const pharmacyKpis: KpiDef[] = [
     useValue: () => {
       const { expiry, loading } = usePharmacyOps();
       const { cost } = useMasked();
-      return { loading, to: '/pharmacy/expiring', value: cost(expiry.atRiskValue), hint: 'lagat, 30 din me', alert: expiry.expiredValue > 0 };
+      return { loading, to: '/pharmacy/expiring', value: cost(expiry.atRiskValue), hint: 'cost, 30 din me', alert: expiry.expiredValue > 0 };
     },
   },
   {
@@ -134,7 +134,7 @@ export function usePharmacyMoneyNotes() {
       tone="danger"
       icon={CalendarX}
       title={`${formatPKR(expiry.atRiskValue)} ki dawai 30 din me expire ho jayegi`}
-      text={expiry.expiredValue > 0 ? `Is me ${formatPKR(expiry.expiredValue)} ki pehle hi expire ho chuki — supplier ko wapas karein ya likh dein` : 'Pehle ye bechein, ya supplier se wapsi ki baat karein'}
+      text={expiry.expiredValue > 0 ? `Is me ${formatPKR(expiry.expiredValue)} ki pehle hi expire ho chuki — supplier ko wapas karein ya likh dein` : 'Pehle ye bechein, ya supplier se return ki baat karein'}
       to="/pharmacy/expiring"
       cta="Expiry dekhein"
     />

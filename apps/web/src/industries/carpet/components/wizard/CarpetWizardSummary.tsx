@@ -122,7 +122,7 @@ export function CarpetWizardSummary({ draft, stats, allValid }: Props) {
           <Sparkles className="h-3 w-3" /> Checklist
         </div>
         <Chk done={hasName} label="Product ka naam" />
-        <Chk done={hasSale} label="Bikri rate" />
+        <Chk done={hasSale} label="Sale rate" />
         <Chk done={!!draft.basic.stockType} label="Stock type chuni" />
         <Chk done={hasStock} label="Stock added (optional)" />
       </div>

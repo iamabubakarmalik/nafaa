@@ -722,7 +722,7 @@ export default function AgriProductWizardPage() {
    ═════════════════════════════════════════════════════════════ */
 const A_STEPS = [
   { id: 1, label: 'Basic', desc: 'Naam, naap, rate', icon: Package },
-  { id: 2, label: 'Tafseel', desc: 'Kis fasal par, kab', icon: Leaf },
+  { id: 2, label: 'Details', desc: 'Kis fasal par, kab', icon: Leaf },
   { id: 3, label: 'Safety', desc: 'Zehreelapan, stock', icon: ShieldAlert },
 ];
 
@@ -819,7 +819,7 @@ function AStep1({ basic, onChange, onNext, validation, safety, onSafety, isEdit,
       )}
 
       <ACard>
-        <AHead icon={Package} title="Naam aur qism" desc="Jo naam dukaan par bolte hain" />
+        <AHead icon={Package} title="Naam aur type" desc="Jo naam dukaan par bolte hain" />
         <AField label="Naam" req>
           <input value={basic.name} onChange={(e) => onChange({ name: e.target.value })} autoFocus
             placeholder="Urea, Wheat Seed Galaxy-13, Confidor…" className={ainp} />
@@ -829,7 +829,7 @@ function AStep1({ basic, onChange, onNext, validation, safety, onSafety, isEdit,
           value={basic.categoryId} productName={basic.name}
           onChange={(cid: string, cname: string) => onChange({ categoryId: cid, categoryName: cname })} />
 
-        <AField label="Tafseel" opt>
+        <AField label="Details" opt>
           <textarea rows={2} value={basic.description}
             onChange={(e) => onChange({ description: e.target.value })}
             placeholder="Galaxy-13, certified beej, 90 din me tayyar…"
@@ -1049,7 +1049,7 @@ function AStep1({ basic, onChange, onNext, validation, safety, onSafety, isEdit,
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {([
             ['isFeatured', 'Featured', Star, 'basic'],
-            ['isActive', 'Active — bikri ke liye', Package, 'basic'],
+            ['isActive', 'Active — sale ke liye', Package, 'basic'],
             ['isPopular', 'Popular', TrendingUp, 'safety'],
             ['isBestSeller', 'Best Seller', Award, 'safety'],
             ['isSeasonal', 'Seasonal', Calendar, 'safety'],
@@ -1512,7 +1512,7 @@ function AStep3({ basic, safety, onChange, onBack, onSubmit, saving, validation,
       <ACard tone="green">
         <AHead icon={Layers} title="Bulk par Discount" desc="Farmer 10 bori le to rate kam" />
         <div className="grid sm:grid-cols-2 gap-3">
-          <AField label="Kitni tadaad par discount" opt>
+          <AField label="Kitni quantity par discount" opt>
             <input type="number" value={safety.bulkDiscountThreshold}
               onChange={(e) => onChange({ bulkDiscountThreshold: e.target.value === '' ? '' : Number(e.target.value) })}
               placeholder="10" className={ainp} />
@@ -1767,7 +1767,7 @@ function AGuide({ onClose }: { onClose: () => void }) {
             bikne par stock se <strong>50 kg</strong> ghatta hai, 1 nahi. Pehle ye hisab tha hi nahi.
           </AGTip>
           <AGTip icon={ShieldCheck} title="Sarkari registration">
-            Meyaad khatam ho jaye to cheez bechna <strong>ghair-qanooni</strong> hai. Tareekh bhar
+            Meyaad khatam ho jaye to cheez bechna <strong>ghair-qanooni</strong> hai. Date bhar
             dein — 60 din pehle se warning aani shuru ho jayegi, safhe par bhi aur low stock par bhi.
           </AGTip>
           <AGTip icon={Leaf} title="Kis fasal par chalega">
@@ -1782,7 +1782,7 @@ function AGuide({ onClose }: { onClose: () => void }) {
             Farmer 10 bori le to rate kam. Yahan bhar dein, POS khud laga dega.
           </AGTip>
           <AGTip icon={Sprout} title="Auzaar aur purze">
-            Belcha, pipe ya nozzle daal rahe hain? Qism me "Auzaar" chunein — fasal, mausam aur
+            Belcha, pipe ya nozzle daal rahe hain? Type me "Auzaar" chunein — fasal, mausam aur
             zehreelapan ke sawal khud chhup jayenge.
           </AGTip>
           <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
@@ -1899,7 +1899,7 @@ function ACategoryPicker({ value, onChange, productName }: {
         <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input value={q} onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && needle && !exact) { e.preventDefault(); create.mutate(q.trim()); } }}
-          placeholder="Category dhoondein ya naya naam likhein…" className={`${ainp} pl-9`} />
+          placeholder="Category search ya naya naam likhein…" className={`${ainp} pl-9`} />
       </div>
 
       {needle && !exact && (

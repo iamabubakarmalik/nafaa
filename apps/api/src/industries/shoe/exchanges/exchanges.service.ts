@@ -102,7 +102,7 @@ export class ShoeExchangesService {
     // on the shelf, the new pair leaves it. Extra money taken is a sale.
     const extra = r2(e.additionalCharged || Math.max(e.priceDifference, 0));
     if (e.refundIssued > 0 || e.priceDifference < -0.009) {
-      throw new BadRequestException('Paise wapas dene hon to purane bill ki Wapsi (Returns) karein aur naya bill banayein');
+      throw new BadRequestException('Paise wapas dene hon to purane bill ki Return (Returns) karein aur naya bill banayein');
     }
     return this.prisma.$transaction(async (tx) => {
       const shopId = await resolveIndustryShopId(tx, user, activeShopId);

@@ -117,7 +117,7 @@ export class PackagesService {
     if (!p) throw new NotFoundException('Purchase not found');
     if (p.status !== 'ACTIVE') throw new BadRequestException('Ye package active nahi hai');
     if (p.sessionsRemaining <= 0) throw new BadRequestException('Package ke sessions khatam ho gaye');
-    if (p.expiryDate && p.expiryDate < new Date()) throw new BadRequestException('Package ki muddat khatam ho chuki hai');
+    if (p.expiryDate && p.expiryDate < new Date()) throw new BadRequestException('Package ki period khatam ho chuki hai');
 
     const apt = await this.prisma.salonAppointment.findFirst({
       where: { id: appointmentId, tenantId: user.tenantId },

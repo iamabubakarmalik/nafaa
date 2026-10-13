@@ -293,7 +293,7 @@ export default function SeasonalPlansPage() {
     ];
     const head = ['Fasal', 'Mausam', 'Saal', 'Bijai shuru', 'Bijai khatam',
       'Katai shuru', 'Katai khatam', 'Abhi kya', 'Kitne din me bijai',
-      'Maal ki cheezein', 'Khatam', 'Kam', 'Stock ki lagat'];
+      'Maal ki cheezein', 'Khatam', 'Kam', 'Stock ki cost'];
     const body = shown.map((r) => [
       r.cropName,
       SEASONS.find((s) => s.value === r.season)?.label ?? r.season,
@@ -604,7 +604,7 @@ function NowTab({ sowingNow, sowingSoon, harvestNow, onRemove }: {
         <Group
           icon={Scissors} tone="lime"
           title="Katai chal rahi hai"
-          desc="Farmer ke paas paisa aa raha hai — purana udhaar wusool karne ka behtareen waqt"
+          desc="Farmer ke paas paisa aa raha hai — purana udhaar receive karne ka behtareen waqt"
           rows={harvestNow} onRemove={onRemove} />
       )}
     </div>
@@ -962,7 +962,7 @@ function Analytics({ stats, seasonPie, monthChart, cropStockChart, rows }: any) 
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID} horizontal={false} />
                 <XAxis type="number" stroke={AXIS} fontSize={11} tickFormatter={(v) => Number(v).toLocaleString('en-PK')} />
                 <YAxis type="category" dataKey="name" stroke={AXIS} fontSize={10} fontWeight={700} width={95} />
-                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Stock ki lagat']} />
+                <Tooltip contentStyle={TOOLTIP} formatter={(v: any) => [formatPKR(Number(v)), 'Stock ki cost']} />
                 <Bar dataKey="value" radius={[0, 6, 6, 0]}>
                   {cropStockChart.map((_: any, i: number) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                 </Bar>
@@ -975,7 +975,7 @@ function Analytics({ stats, seasonPie, monthChart, cropStockChart, rows }: any) 
       <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
           <Sprout className="h-4 w-4 text-emerald-600" />
-          <h3 className="font-black text-slate-900 dark:text-ink-white">Agli bijai — tarteeb se</h3>
+          <h3 className="font-black text-slate-900 dark:text-ink-white">Agli bijai — sort se</h3>
         </div>
         <div className="divide-y divide-slate-100 dark:divide-ink-800">
           {[...rows]
@@ -1026,7 +1026,7 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
   if (!form.sowingStart || !form.sowingEnd) errors.push('Bijai ki dono tareekhein bharein');
   if (!form.harvestStart || !form.harvestEnd) errors.push('Katai ki dono tareekhein bharein');
   if (form.sowingStart && form.sowingEnd && form.sowingEnd < form.sowingStart) {
-    errors.push('Bijai khatam hone ki tareekh shuru se pehle nahi ho sakti');
+    errors.push('Bijai khatam hone ki date shuru se pehle nahi ho sakti');
   }
   const valid = errors.length === 0;
 
@@ -1128,7 +1128,7 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
               </Field>
             </div>
             <p className="text-[0.6875rem] font-bold text-amber-700 dark:text-amber-400">
-              Isi waqt farmer ke paas paisa aata hai — udhaar wusool karein
+              Isi waqt farmer ke paas paisa aata hai — udhaar receive karein
             </p>
           </div>
         </div>
@@ -1335,7 +1335,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Doosre tab me saal bhar ki patti hai — hari lakeer bijai, peeli katai, aur laal
             lakeer aaj ka din. Ek nazar me pata chal jata hai ke agla rush kab hai.
           </Tip>
-          <Tip icon={Scissors} title="Katai ke din udhaar wusool karein">
+          <Tip icon={Scissors} title="Katai ke din udhaar receive karein">
             Katai ke waqt farmer ke paas paisa aata hai. Purana udhaar maangne ka yehi sab se
             behtar waqt hai — is ke baad paisa kahin aur lag jata hai.
           </Tip>

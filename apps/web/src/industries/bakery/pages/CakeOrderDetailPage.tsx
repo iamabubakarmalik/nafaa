@@ -154,7 +154,7 @@ export default function CakeOrderDetailPage() {
 
           <Card className="rounded-2xl" title={<T icon={ImageIcon}>Design</T>}>
             <div className="space-y-3 text-[0.8125rem]">
-              {o.designInstructions ? <p className="whitespace-pre-line rounded-xl bg-slate-50 px-3 py-2.5 text-slate-800">{o.designInstructions}</p> : <p className="text-slate-500">Design ki tafseel nahi likhi</p>}
+              {o.designInstructions ? <p className="whitespace-pre-line rounded-xl bg-slate-50 px-3 py-2.5 text-slate-800">{o.designInstructions}</p> : <p className="text-slate-500">Design ki details nahi likhi</p>}
               {(o.colorTheme || o.primaryColor) && <p className="text-slate-700">{[o.colorTheme && `Theme: ${o.colorTheme}`, o.primaryColor && `Rang: ${o.primaryColor}${o.secondaryColor ? ` + ${o.secondaryColor}` : ''}`].filter(Boolean).join(' · ')}</p>}
               {o.decorativeItems?.length > 0 && <div className="flex flex-wrap gap-1.5">{o.decorativeItems.map((d) => <Pill key={d}>{d}</Pill>)}</div>}
               {(o.candlesRequired || o.cakeStand || o.cakeKnife) && <p className="text-slate-700">{[o.candlesRequired ? `${o.candlesRequired} mombatti${o.candleType ? ` (${o.candleType})` : ''}` : '', o.cakeStand && 'Cake stand', o.cakeKnife && 'Chhuri'].filter(Boolean).join(' · ')}</p>}
@@ -205,7 +205,7 @@ export default function CakeOrderDetailPage() {
               {o.photoCakeCharges > 0 && <Row k="Photo cake" v={`+${formatPKR(o.photoCakeCharges)}`} />}
               {o.deliveryCharges > 0 && <Row k="Delivery" v={`+${formatPKR(o.deliveryCharges)}`} />}
               {o.taxAmount > 0 && <Row k="Tax" v={`+${formatPKR(o.taxAmount)}`} />}
-              {o.discount > 0 && <Row k="Chhoot" v={`−${formatPKR(o.discount)}`} />}
+              {o.discount > 0 && <Row k="Discount" v={`−${formatPKR(o.discount)}`} />}
               <Row k="Kul" v={formatPKR(o.total)} strong />
               <Row k="Advance chahiye tha" v={formatPKR(o.advanceRequired)} />
               <Row k="Mila" v={formatPKR(o.paidAmount)} />

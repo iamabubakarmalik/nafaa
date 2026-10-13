@@ -20,7 +20,7 @@ import { FRESH_KEY, dateTime, fmtQty, keyLabel } from '../meta';
 export const SOURCE: Record<WasteSource, { label: string; icon: typeof Flame; color: string }> = {
   BATCH: { label: 'Shelf se phenka', icon: Trash2, color: '#e11d48' },
   BAKING: { label: 'Banate waqt kharab', icon: ChefHat, color: '#ea580c' },
-  RAW: { label: 'Kachcha maal', icon: Wheat, color: '#a16207' },
+  RAW: { label: 'Raw material', icon: Wheat, color: '#a16207' },
   DAMAGE: { label: 'Damage report', icon: Package, color: '#7c3aed' },
 };
 
@@ -33,13 +33,13 @@ export function WasteRecord({ range, source, search }: { range: { from: string; 
   const q = useWastage(range);
   const t = search.trim().toLowerCase();
   const rows = (q.data?.rows ?? []).filter((r) => (!source || r.source === source) && (!t || r.name.toLowerCase().includes(t) || r.reason.toLowerCase().includes(t)));
-  if (q.isError && !q.data) return <LoadFailed what="Zaya ka record" retry={() => q.refetch()} />;
+  if (q.isError && !q.data) return <LoadFailed what="Waste ka record" retry={() => q.refetch()} />;
   if (!q.data) return <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-14 rounded-xl" />)}</div>;
   if (!rows.length) return (
     <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
       <Flame className="mx-auto h-10 w-10 text-slate-300" />
-      <p className="mt-3 font-semibold text-slate-900">Is muddat me koi zaya nahi likha</p>
-      <p className="mt-1 text-sm text-slate-500">Shelf ka maal "Phenk diya", baking me kharab "Ban gaya" ke waqt, aur kachcha maal "Zaya hua" se yahan aata hai.</p>
+      <p className="mt-3 font-semibold text-slate-900">Is period me koi waste nahi likha</p>
+      <p className="mt-1 text-sm text-slate-500">Shelf ka maal "Phenk diya", baking me kharab "Ban gaya" ke waqt, aur raw material "Waste hua" se yahan aata hai.</p>
     </div>
   );
   return (
@@ -82,21 +82,21 @@ export function WasteAnalytics({ range, onReason }: { range: { from: string; to:
         </p>
       )}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile icon={Flame} label="Zaya ki lagat" value={money(t.cost)} sub={`${t.count} dafa`} tone="rose" />
-        <StatTile icon={Trash2} label="Bane hue pieces zaya" value={fmtQty(t.pieces)} sub={t.made ? `${fmtQty(t.made)} bane the` : 'Is muddat me batch nahi bane'} tone="amber" />
-        <StatTile icon={Percent} label="Zaya ki sharah" value={t.wastePct == null ? '—' : `${t.wastePct}%`} sub="10% se kam rakhein" tone={t.wastePct != null && t.wastePct > 10 ? 'rose' : 'green'} />
+        <StatTile icon={Flame} label="Waste ki cost" value={money(t.cost)} sub={`${t.count} dafa`} tone="rose" />
+        <StatTile icon={Trash2} label="Bane hue pieces waste" value={fmtQty(t.pieces)} sub={t.made ? `${fmtQty(t.made)} bane the` : 'Is period me batch nahi bane'} tone="amber" />
+        <StatTile icon={Percent} label="Waste ki sharah" value={t.wastePct == null ? '—' : `${t.wastePct}%`} sub="10% se kam rakhein" tone={t.wastePct != null && t.wastePct > 10 ? 'rose' : 'green'} />
         <StatTile icon={Layers} label="Sab se bari wajah" value={d.byReason[0]?.key ?? '—'} sub={d.byReason[0] ? money(d.byReason[0].cost) : undefined} tone="violet" />
       </div>
       {!costHidden && (
-        <Card className="rounded-2xl" title={<CardTitle icon={CalendarDays}>Har din ka zaya</CardTitle>} description="Lagat ke hisaab se">
-          {!days.length ? <p className="py-10 text-center text-sm text-slate-500">Is muddat me kuch zaya nahi</p> : (
+        <Card className="rounded-2xl" title={<CardTitle icon={CalendarDays}>Har din ka waste</CardTitle>} description="Cost ke hisaab se">
+          {!days.length ? <p className="py-10 text-center text-sm text-slate-500">Is period me kuch waste nahi</p> : (
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={days} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} vertical={false} />
                   <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={12} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                  <Tooltip formatter={(v) => [cost(Number(v)), 'Zaya']} {...theme.tooltip} />
+                  <Tooltip formatter={(v) => [cost(Number(v)), 'Waste']} {...theme.tooltip} />
                   <Bar dataKey="cost" fill="#e11d48" radius={[4, 4, 0, 0]} maxBarSize={28} />
                 </BarChart>
               </ResponsiveContainer>
@@ -112,7 +112,7 @@ export function WasteAnalytics({ range, onReason }: { range: { from: string; to:
           <RankedBars rows={d.byItem.map((b) => ({ key: b.key, label: b.key, value: b.cost ?? b.qty, display: `${fmtQty(b.qty)} · ${money(b.cost)}`, color: '#ea580c' }))} />
         </Card>
       </div>
-      <Card className="rounded-2xl" title={<CardTitle icon={Layers}>Kahan se</CardTitle>} description="Shelf, baking, kachcha maal ya damage">
+      <Card className="rounded-2xl" title={<CardTitle icon={Layers}>Kahan se</CardTitle>} description="Shelf, baking, raw material ya damage">
         <div className="grid gap-3 sm:grid-cols-4">
           {(Object.keys(SOURCE) as WasteSource[]).map((k) => {
             const b = d.bySource.find((x) => x.key === k);

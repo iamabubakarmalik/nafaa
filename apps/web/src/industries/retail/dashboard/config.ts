@@ -27,9 +27,9 @@ function useRetailActions(): QuickAction[] {
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
     { to: '/sales', icon: Receipt, label: 'Sales history', hint: 'Purani receipts' },
-    { to: '/purchases', icon: ShoppingBag, label: 'Kharidari', hint: 'Maal mangwayein' },
+    { to: '/purchases', icon: ShoppingBag, label: 'Purchase', hint: 'Maal mangwayein' },
     { to: '/suppliers', icon: Building2, label: 'Suppliers', hint: `${s?.totalSuppliers ?? 0} parties` },
-    { to: '/expenses', icon: Wallet, label: 'Kharche', hint: 'Bijli, kiraya' },
+    { to: '/expenses', icon: Wallet, label: 'Expenses', hint: 'Bijli, kiraya' },
     { to: '/cash-register', icon: Banknote, label: 'Cash register', hint: 'Galle ka hisaab' },
     { to: '/low-stock', icon: RefreshCw, label: 'Smart reorder', hint: alerts.pendingReorders ? `${alerts.pendingReorders} tayyar` : 'Kya mangwana hai' },
     { to: '/damage', icon: AlertTriangle, label: 'Damage log', hint: `${alerts.damagesToday ?? 0} aaj` },
@@ -38,7 +38,7 @@ function useRetailActions(): QuickAction[] {
     { to: '/quick-keys', icon: Zap, label: 'Quick keys', hint: 'POS shortcuts' },
     { to: '/barcode-labels', icon: Tag, label: 'Barcode labels', hint: 'Print karein' },
     { to: '/retail/bulk-import', icon: Upload, label: 'Bulk import', hint: 'Excel / CSV' },
-    { to: '/profit-report', icon: PiggyBank, label: 'Profit report', hint: 'Nafa-nuqsan' },
+    { to: '/profit-report', icon: PiggyBank, label: 'Profit report', hint: 'Profit-loss' },
   ];
 }
 

@@ -120,8 +120,8 @@ export default function InstallationsPage() {
       [`Nikala gaya: ${new Date().toLocaleString('en-PK')}`],
       [],
       ['Installation #', 'Banaya', 'Customer', 'Phone', 'Pata', 'Sheher', 'Cheez', 'Serial',
-       'Qism', 'Halat', 'Tareekh', 'Waqt', 'Technician', 'Labor', 'Material', 'Visit',
-       'Kul', 'Wusool', 'Baqi', 'Warranty me', 'Demo diya', 'Mukammal', 'Rating', 'Certificate'],
+       'Type', 'Halat', 'Date', 'Waqt', 'Technician', 'Labor', 'Material', 'Visit',
+       'Kul', 'Receive', 'Baqi', 'Warranty me', 'Demo diya', 'Mukammal', 'Rating', 'Certificate'],
       ...rows.map((r) => [
         r.installationNumber, fmtDate(r.createdAt), r.customerName, r.customerPhone,
         r.customerAddress, [r.city, r.area].filter(Boolean).join(', '),
@@ -148,7 +148,7 @@ export default function InstallationsPage() {
       <h2 class="sec">${tab === 'today' ? '📅 Aaj Ka Schedule' : tab === 'queue' ? '🔧 Baqi Installations' : '📋 Installation Record'}</h2>
       <table>
         <thead><tr>
-          <th>#</th><th>Installation / Tareekh</th><th>Customer / Pata</th><th>Cheez</th>
+          <th>#</th><th>Installation / Date</th><th>Customer / Pata</th><th>Cheez</th>
           <th>Technician</th><th class="c">Halat</th><th class="r">Kul</th><th class="r">Baqi</th>
         </tr></thead>
         <tbody>
@@ -255,11 +255,11 @@ export default function InstallationsPage() {
         <Kpi icon={ListChecks} tone="cyan" label="Lagana Baqi" value={summary?.open ?? 0}
           sub={`${summary?.unassigned ?? 0} bina banday ke`} onClick={() => setTab('queue')} active={tab === 'queue'} />
         <Kpi icon={CalendarDays} tone="violet" label="Aaj Ka Kaam" value={summary?.todayJobs ?? 0}
-          sub="aaj ki tareekh par" onClick={() => setTab('today')} active={tab === 'today'} />
+          sub="aaj ki date par" onClick={() => setTab('today')} active={tab === 'today'} />
         <Kpi icon={AlertTriangle} tone="rose" label="Late" value={summary?.overdue ?? 0}
-          sub="tareekh guzar gayi" alert={(summary?.overdue ?? 0) > 0} />
+          sub="date guzar gayi" alert={(summary?.overdue ?? 0) > 0} />
         <Kpi icon={TrendingUp} tone="emerald" label="Is Mahine Kamai" value={formatPKR(m?.revenue ?? 0)}
-          sub={`${m?.jobs ?? 0} kaam • munafa ${formatPKR(m?.profit ?? 0)}`} />
+          sub={`${m?.jobs ?? 0} kaam • profit ${formatPKR(m?.profit ?? 0)}`} />
       </section>
 
       {m && (m.outstanding > 0 || m.demosGiven > 0 || m.avgRating) && (
@@ -267,7 +267,7 @@ export default function InstallationsPage() {
           <Kpi icon={Banknote} tone="amber" label="Baqi Paisa" value={formatPKR(m.outstanding)}
             sub="lag gaya, paisa nahi mila" alert={m.outstanding > 0}
             onClick={() => { setTab('all'); setUnpaidOnly(true); setPage(1); }} />
-          <Kpi icon={Package} tone="orange" label="Material ka Kharcha" value={formatPKR(m.materialCost)} sub="pipe, wire, bracket" />
+          <Kpi icon={Package} tone="orange" label="Material ka Expense" value={formatPKR(m.materialCost)} sub="pipe, wire, bracket" />
           <Kpi icon={PlayCircle} tone="blue" label="Demo Diye" value={m.demosGiven} sub="customer ko chalana sikhaya" />
           <Kpi icon={Star} tone="teal" label="Rating" value={m.avgRating ? m.avgRating.toFixed(1) : '—'} sub="customer ki raye" />
         </section>
@@ -325,7 +325,7 @@ export default function InstallationsPage() {
                   value={status} onChange={(v) => { setStatus(v); setPage(1); }} />
               </div>
               <div>
-                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Kaam ki qism</div>
+                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Kaam ki type</div>
                 <ChipRow
                   options={SERVICE_TYPE_ORDER.map((s) => ({ value: s, label: svcTypeMeta(s).label, emoji: svcTypeMeta(s).emoji }))}
                   value={serviceType as any} onChange={(v) => { setServiceType(v); setPage(1); }} />
@@ -367,7 +367,7 @@ export default function InstallationsPage() {
               : hasFilters ? 'Koi record nahi mila' : 'Abhi koi installation nahi'
           }
           hint={
-            tab === 'today' ? 'Aaj ki tareekh par koi kaam schedule nahi hai.'
+            tab === 'today' ? 'Aaj ki date par koi kaam schedule nahi hai.'
               : tab === 'queue' ? 'Koi installation baqi nahi. Naya maal bikte hi yahan aa jayega.'
               : hasFilters ? 'Filter badal kar dekhein ya clear karein'
               : 'AC, geyser ya washing machine bech kar "Nayi Installation" banayein — phir technician lagayein'
@@ -433,7 +433,7 @@ function InstallCard({ r, onOpen }: { r: Installation; onOpen: () => void }) {
     const digits = String(r.customerPhone).replace(/[^0-9]/g, '');
     const phone = digits.startsWith('92') ? digits : digits.startsWith('0') ? '92' + digits.slice(1) : '92' + digits;
     const msg = r.status === 'COMPLETED'
-      ? `Assalam-o-Alaikum ${r.customerName}! 🙏\n\nAap ka *${r.productName}* lag chuka hai (${r.installationNumber}).${r.installationCertificateNumber ? `\nCertificate: ${r.installationCertificateNumber}` : ''}${due > 0 ? `\n\nBaqi raqam: *Rs ${due.toLocaleString('en-PK')}*` : ''}\n\nShukriya!`
+      ? `Assalam-o-Alaikum ${r.customerName}! 🙏\n\nAap ka *${r.productName}* lag chuka hai (${r.installationNumber}).${r.installationCertificateNumber ? `\nCertificate: ${r.installationCertificateNumber}` : ''}${due > 0 ? `\n\nBaqi amount: *Rs ${due.toLocaleString('en-PK')}*` : ''}\n\nShukriya!`
       : `Assalam-o-Alaikum ${r.customerName}! 🙏\n\nAap ke *${r.productName}* ki installation${r.scheduledDate ? ` *${fmtDate(r.scheduledDate)}*${r.scheduledTimeSlot ? ` (${r.scheduledTimeSlot})` : ''} ko` : ''} hogi.${r.technicianName ? `\n\nTechnician: ${r.technicianName}${r.technicianPhone ? ` — ${r.technicianPhone}` : ''}` : ''}\n\nShukriya!`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -487,7 +487,7 @@ function InstallCard({ r, onOpen }: { r: Installation; onOpen: () => void }) {
               : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30'
           }`}>
             <div className={`text-[0.625rem] font-extrabold uppercase tracking-wider ${due > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
-              {r.status === 'COMPLETED' ? (due > 0 ? 'Baqi' : 'Wusool') : 'Bill'}
+              {r.status === 'COMPLETED' ? (due > 0 ? 'Baqi' : 'Receive') : 'Bill'}
             </div>
             <div className={`text-[0.6875rem] font-extrabold tabular-nums ${due > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
               {due > 0 ? formatPKR(due) : r.totalCharge > 0 ? formatPKR(r.totalCharge) : '—'}
@@ -547,7 +547,7 @@ function NewInstallModal({ technicians, onClose, onCreated }: any) {
     setLooking(true); setNote(null);
     try {
       const s = await applianceSerialApi.lookup(code);
-      if (!s) { setNote('❌ Serial register me nahi mila — tafseel haath se bharein'); return; }
+      if (!s) { setNote('❌ Serial register me nahi mila — details haath se bharein'); return; }
       setF((p) => ({
         ...p,
         serialTrackingId: s.id,
@@ -662,8 +662,8 @@ function NewInstallModal({ technicians, onClose, onCreated }: any) {
           </div>
         </Panel>
 
-        <Panel icon={CalendarDays} title="Kaam aur Tareekh" tone="violet">
-          <Field label="Kaam ki qism">
+        <Panel icon={CalendarDays} title="Kaam aur Date" tone="violet">
+          <Field label="Kaam ki type">
             <ChipRow
               options={(['INSTALLATION', 'DEMO', 'RELOCATION', 'UNINSTALLATION', 'INSPECTION'] as const).map((s) => ({
                 value: s, label: svcTypeMeta(s).label, emoji: svcTypeMeta(s).emoji,
@@ -671,7 +671,7 @@ function NewInstallModal({ technicians, onClose, onCreated }: any) {
               value={f.serviceType as any} onChange={(v) => set('serviceType', v ?? 'INSTALLATION')} allLabel="—" />
           </Field>
           <div className="mt-3 grid sm:grid-cols-2 gap-3">
-            <Field label="Tareekh">
+            <Field label="Date">
               <input type="date" className={inputCls('h-11 font-bold [color-scheme:light] dark:[color-scheme:dark]')}
                 value={f.scheduledDate} onChange={(e) => set('scheduledDate', e.target.value)} />
             </Field>
@@ -738,11 +738,11 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
   });
   const payMut = useMutation({
     mutationFn: (v: any) => installationsApi.addPayment(id, v),
-    onSuccess: () => after('Wusooli darj ✓'), onError: fail,
+    onSuccess: () => after('Receiving darj ✓'), onError: fail,
   });
   const reschedMut = useMutation({
     mutationFn: (v: any) => installationsApi.reschedule(id, v),
-    onSuccess: () => after('Nayi tareekh lag gayi ✓'), onError: fail,
+    onSuccess: () => after('Nayi date lag gayi ✓'), onError: fail,
   });
   const delMut = useMutation({
     mutationFn: () => installationsApi.remove(id),
@@ -825,8 +825,8 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
 
     <h2>Kaam</h2>
     <table class="kv">
-      <tr><td class="k">Qism</td><td class="v">${escapeHtml(ty.label)}</td></tr>
-      <tr><td class="k">Tareekh</td><td class="v">${fmtDateTime(r.completedAt || r.scheduledDate)}</td></tr>
+      <tr><td class="k">Type</td><td class="v">${escapeHtml(ty.label)}</td></tr>
+      <tr><td class="k">Date</td><td class="v">${fmtDateTime(r.completedAt || r.scheduledDate)}</td></tr>
       <tr><td class="k">Technician</td><td class="v">${escapeHtml(r.technicianName || '—')}${r.technicianPhone ? ` (${escapeHtml(r.technicianPhone)})` : ''}</td></tr>
       <tr><td class="k">Demo diya</td><td class="v">${r.demoGiven ? 'Haan ✓' : 'Nahi'}</td></tr>
     </table>
@@ -840,7 +840,7 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
       ${r.materialsCharge > 0 ? `<tr><td class="k">Material</td><td class="v">${formatPKR(r.materialsCharge)}</td></tr>` : ''}
       ${r.visitCharge > 0 ? `<tr><td class="k">Visit</td><td class="v">${formatPKR(r.visitCharge)}</td></tr>` : ''}
       <tr><td class="k">Kul</td><td class="v" style="font-size:14px;color:#0f766e;">${formatPKR(r.totalCharge)}</td></tr>
-      <tr><td class="k">Wusool</td><td class="v">${formatPKR(r.paidByCustomer)}</td></tr>
+      <tr><td class="k">Receive</td><td class="v">${formatPKR(r.paidByCustomer)}</td></tr>
       ${due > 0 ? `<tr><td class="k">Baqi</td><td class="v" style="color:#b91c1c;">${formatPKR(due)}</td></tr>` : ''}
     </table>` : ''}
 
@@ -867,7 +867,7 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
 
   const timeline = [
     { at: r.createdAt, label: 'Kaam darj hua', emoji: '📥' },
-    { at: r.scheduledDate, label: `Tareekh lagi${r.scheduledTimeSlot ? ` (${r.scheduledTimeSlot})` : ''}`, emoji: '📅' },
+    { at: r.scheduledDate, label: `Date lagi${r.scheduledTimeSlot ? ` (${r.scheduledTimeSlot})` : ''}`, emoji: '📅' },
     { at: r.arrivedAt, label: 'Technician pohancha', emoji: '🏠' },
     { at: r.startedAt, label: 'Kaam shuru', emoji: '🛠️' },
     { at: r.completedAt, label: 'Lag gaya', emoji: '✅' },
@@ -888,14 +888,14 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
           {due > 0 && (
             <button onClick={() => setMode('payment')}
               className="h-11 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs font-extrabold inline-flex items-center gap-1.5 transition">
-              <Banknote className="h-4 w-4" /> Wusool ({formatPKR(due)})
+              <Banknote className="h-4 w-4" /> Receive ({formatPKR(due)})
             </button>
           )}
           {isOpen && (
             <>
               <button onClick={() => setMode('reschedule')}
                 className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
-                <CalendarDays className="h-4 w-4" /> Tareekh Badlein
+                <CalendarDays className="h-4 w-4" /> Date Badlein
               </button>
               <button onClick={() => setMode('assign')}
                 className="h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold inline-flex items-center gap-1.5 transition">
@@ -976,7 +976,7 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
                 <MiniBox label="Kul" value={formatPKR(r.totalCharge)} tone="cyan" />
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2">
-                <MiniBox label="Wusool" value={formatPKR(r.paidByCustomer)} tone="emerald" />
+                <MiniBox label="Receive" value={formatPKR(r.paidByCustomer)} tone="emerald" />
                 <MiniBox label="Baqi" value={due > 0 ? formatPKR(due) : 'Clear ✓'} tone={due > 0 ? 'rose' : 'emerald'} />
               </div>
               {r.covered_underWarranty && (
@@ -1124,7 +1124,7 @@ function AssignPanel({ technicians, current, defaultDate, defaultSlot, pending, 
           )}
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Tareekh">
+          <Field label="Date">
             <input type="date" className={inputCls('h-11 font-bold [color-scheme:light] dark:[color-scheme:dark]')}
               value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} />
           </Field>
@@ -1210,7 +1210,7 @@ function CompletePanel({ install, pending, onCancel, onSubmit }: any) {
           icon={<span className="text-base leading-none">🛡️</span>}
           title="Warranty/free installation" sub="Customer se paisa nahi lena" />
 
-        <Field label="Abhi kitna wusool hua?" hint={f.covered_underWarranty ? 'free me 0 rehta hai' : `khali chhorein to poora ${formatPKR(total)}`}
+        <Field label="Abhi kitna receive hua?" hint={f.covered_underWarranty ? 'free me 0 rehta hai' : `khali chhorein to poora ${formatPKR(total)}`}
           error={tooMuch ? 'Bill se ziyada nahi ho sakta' : undefined}>
           <input type="number" min={0} className={inputCls('h-12 text-base font-extrabold tabular-nums', tooMuch)}
             placeholder={String(f.covered_underWarranty ? 0 : total)}
@@ -1309,7 +1309,7 @@ function PayPanel({ due, pending, onCancel, onSubmit }: any) {
   const n = Number(amount) || 0;
   const bad = n <= 0 || n > due;
   return (
-    <Panel icon={Banknote} title="Paisa Wusool" hint={`Baqi: ${formatPKR(due)}`} tone="amber">
+    <Panel icon={Banknote} title="Paisa Receive" hint={`Baqi: ${formatPKR(due)}`} tone="amber">
       <div className="space-y-3">
         <Field label="Kitna mila" required error={bad ? `1 se ${due} ke darmiyan` : undefined}>
           <input type="number" min={1} max={due} className={inputCls('h-12 text-base font-extrabold tabular-nums', bad)}
@@ -1335,9 +1335,9 @@ function ReschedPanel({ pending, onCancel, onSubmit }: any) {
   const [reason, setReason] = useState('');
   const presets = ['Customer ne kaha', 'Technician busy tha', 'Site tayyar nahi thi', 'Mausam kharab', 'Material nahi aaya'];
   return (
-    <Panel icon={CalendarDays} title="Nayi Tareekh" hint="Wajah bhi likhein — record me reh jati hai" tone="violet">
+    <Panel icon={CalendarDays} title="Nayi Date" hint="Wajah bhi likhein — record me reh jati hai" tone="violet">
       <div className="space-y-3">
-        <Field label="Nayi tareekh" required>
+        <Field label="Nayi date" required>
           <input type="date" className={inputCls('h-12 font-bold [color-scheme:light] dark:[color-scheme:dark]')}
             value={newDate} onChange={(e) => setNewDate(e.target.value)} autoFocus />
         </Field>
@@ -1356,7 +1356,7 @@ function ReschedPanel({ pending, onCancel, onSubmit }: any) {
           <Button variant="secondary" className="flex-1" onClick={onCancel}>Wapas</Button>
           <Button className="flex-[2] bg-gradient-to-r from-violet-600 to-purple-700 font-extrabold" loading={pending} disabled={!newDate}
             onClick={() => onSubmit({ newDate, ...(reason.trim() ? { reason: reason.trim() } : {}) })}>
-            <CalendarDays className="h-4 w-4" /> Tareekh Badlein
+            <CalendarDays className="h-4 w-4" /> Date Badlein
           </Button>
         </div>
       </div>
@@ -1413,7 +1413,7 @@ function InstallTeacher({ onClose }: { onClose: () => void }) {
           tips: [
             <><strong>Mukammal karte waqt</strong> site ki tayyari darj karein — bijli, plumbing, gas, deewar ki jagah, paani nikasi</>,
             <>Agar kisi cheez me <strong>"Masla"</strong> laga hai to wo certificate par bhi chapega — baad me ilzam nahi aata</>,
-            <><strong>Material alag likhein</strong> (pipe, wire, bracket) — ye aap ki lagat hai, munafa isi se nikalta hai</>,
+            <><strong>Material alag likhein</strong> (pipe, wire, bracket) — ye aap ki cost hai, profit isi se nikalta hai</>,
             <><strong>Demo zaroor dein</strong> aur toggle on karein — jin gharon me demo diya jata hai wahan se shikayat bohat kam aati hai</>,
           ],
         },
@@ -1422,9 +1422,9 @@ function InstallTeacher({ onClose }: { onClose: () => void }) {
           tone: 'emerald',
           tips: [
             <>Labor, material aur visit <strong>alag alag</strong> likhein — pata chalta hai kis cheez se kitna mil raha hai</>,
-            <>Customer aadha de to utna hi likhein — baqi <strong>udhaar</strong> me. Baad me <strong>"Wusool"</strong> se darj karein</>,
+            <>Customer aadha de to utna hi likhein — baqi <strong>udhaar</strong> me. Baad me <strong>"Receive"</strong> se darj karein</>,
             <><strong>"Certificate"</strong> — A4 par poora installation certificate, warranty ki tareekhon aur dono dastakhaton ke sath. Customer ko dein</>,
-            <>Free/warranty installation ka toggle on karein to bill 0 rahega lekin <strong>material ka kharcha</strong> phir bhi report me aayega</>,
+            <>Free/warranty installation ka toggle on karein to bill 0 rahega lekin <strong>material ka expense</strong> phir bhi report me aayega</>,
           ],
         },
       ]}
@@ -1440,7 +1440,7 @@ function InstallTeacher({ onClose }: { onClose: () => void }) {
       ]}
       golden={
         <>
-          <strong>Sunahri usool:</strong> Installation ka paisa <strong>mauqe par hi</strong> wusool karein. Technician
+          <strong>Sunahri usool:</strong> Installation ka paisa <strong>mauqe par hi</strong> receive karein. Technician
           wapas aa gaya to phir customer "baad me dekhte hain" kehta hai — aur wo paisa mahinon latak jata hai.
         </>
       }

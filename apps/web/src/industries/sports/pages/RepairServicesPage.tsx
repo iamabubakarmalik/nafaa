@@ -512,7 +512,7 @@ function RepairDetailModal({ repair, onClose, onUpdated }: any) {
     const input = window.prompt(`Baqi Rs ${due}. Abhi kitne liye? (jo baqi rahe ga woh customer ke khate me jayega)`, String(due));
     if (input === null) return;
     const paidNow = Number(input);
-    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Raqam sahi likhein'); return; }
+    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Amount sahi likhein'); return; }
     update.mutate(paidNow);
   };
 

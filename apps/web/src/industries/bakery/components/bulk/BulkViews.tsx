@@ -211,8 +211,8 @@ export function BulkAnalytics({ range, onType }: { range: { from: string; to: st
         <StatTile icon={Layers} label="Ausat order" value={sales(t.avgOrder)} sub="Poore hue orders ka" tone="violet" />
         <StatTile icon={Users} label="Mehmaan" value={t.guests.toLocaleString('en-PK')} sub="Sab orders me" tone="sky" />
       </div>
-      <Card className="rounded-2xl" title={<CardTitle icon={CalendarDays}>Har mahine</CardTitle>} description="Event ki tareekh se">
-        {!months.length ? <p className="py-10 text-center text-sm text-slate-500">Is muddat me koi order nahi</p> : (
+      <Card className="rounded-2xl" title={<CardTitle icon={CalendarDays}>Har mahine</CardTitle>} description="Event ki date se">
+        {!months.length ? <p className="py-10 text-center text-sm text-slate-500">Is period me koi order nahi</p> : (
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={months} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>

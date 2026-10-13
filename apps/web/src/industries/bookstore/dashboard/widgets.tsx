@@ -63,7 +63,7 @@ export function BookstoreRentals() {
             key={r.id}
             leading={<IconBubble icon={BookMarked} tone={r.daysLate >= 7 ? 'danger' : 'warning'} />}
             title={r.customerName || 'Customer'}
-            meta={<span><span className="font-mono">{r.rentalNumber}</span>{r.customerPhone ? ` · ${r.customerPhone}` : ''} · wapsi {fmtDay(r.dueDate)}</span>}
+            meta={<span><span className="font-mono">{r.rentalNumber}</span>{r.customerPhone ? ` · ${r.customerPhone}` : ''} · return {fmtDay(r.dueDate)}</span>}
             value={<Badge variant={r.daysLate >= 7 ? 'danger' : 'warning'} size="xs">{r.daysLate} din late</Badge>}
             valueHint={r.fine > 0 ? <span className="text-slate-500">{cost(r.fine)}</span> : undefined}
           />
@@ -101,7 +101,7 @@ export function BookstoreSchool() {
 export function BookstoreCatalog() {
   const { totals, catalog, publishers } = useBookstoreOps();
   return (
-    <WidgetCard title="Maal ki tafseel" icon={BookOpen} description="Kitaben, stationery, art aur publishers" to="/bookstore/books">
+    <WidgetCard title="Maal ki details" icon={BookOpen} description="Kitaben, stationery, art aur publishers" to="/bookstore/books">
       <div className="grid grid-cols-3 gap-2">
         <MetricTile icon={BookOpen} tone="brand" label="Kitaben" value={totals.books} to="/bookstore/books" />
         <MetricTile icon={PenTool} tone="info" label="Stationery" value={totals.stationery} to="/bookstore/stationery" />

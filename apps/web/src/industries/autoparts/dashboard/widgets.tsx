@@ -58,7 +58,7 @@ export function useAutoPartsAttention(): AttentionItem[] {
   const items: AttentionItem[] = [];
   if (jobs.overdue.length) items.push({ icon: AlertTriangle, level: 'danger', text: `${jobs.overdue.length} gaari ka waada guzar gaya — customer ko batayein`, to: '/autoparts/jobs', cta: 'Jobs dekhein' });
   if (board.waitingParts) items.push({ icon: Package, level: 'warning', text: `${board.waitingParts} job parts ke intezar me ruke hain — parts mangwayein`, to: '/autoparts/jobs', cta: 'Dekhein' });
-  if (reminders.overdue.length) items.push({ icon: Bell, level: 'warning', text: `${reminders.overdue.length} service reminder ki tareekh guzar gayi — customer ko call karein`, to: '/autoparts/reminders', cta: 'Reminders' });
+  if (reminders.overdue.length) items.push({ icon: Bell, level: 'warning', text: `${reminders.overdue.length} service reminder ki date guzar gayi — customer ko call karein`, to: '/autoparts/reminders', cta: 'Reminders' });
   if (board.readyDelivery) items.push({ icon: CheckCircle2, level: 'info', text: `${board.readyDelivery} gaari tayyar hai — customer ko bula lein`, to: '/autoparts/jobs', cta: 'Dekhein' });
   if (jobs.today.length) items.push({ icon: Wrench, level: 'info', text: `${jobs.today.length} gaari aaj deni hai`, to: '/autoparts/jobs', cta: 'Jobs' });
   if (reminders.papersTotal) items.push({ icon: FileWarning, level: 'neutral', text: `${reminders.papersTotal} gaariyon ki insurance, token ya fitness 30 din me khatam — customer ko bata kar kaam lein`, to: '/autoparts/vehicles', cta: 'Gaariyan' });

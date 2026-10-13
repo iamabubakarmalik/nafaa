@@ -441,7 +441,7 @@ export default function AppliancesPosPage() {
       }));
 
       // Counter rules (discount limit, credit limit) may ask for an owner or manager PIN.
-      const sale = await withManagerPin('Is bill ki manzoori', (managerPin) => offlineSalesApi.create({
+      const sale = await withManagerPin('Is bill ki approval', (managerPin) => offlineSalesApi.create({
         ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,

@@ -23,7 +23,7 @@ function useGarmentsActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Sale karein' },
     { to: '/garments/tailoring/new', icon: Scissors, label: 'Silai order', hint: 'Naya order' },
     { to: '/garments/tailoring', icon: Scissors, label: 'Silai', hint: `${g.pending.tailoring} chal rahi` },
     { to: '/garments/alterations', icon: Ruler, label: 'Alterations', hint: `${g.pending.alterations} baqi` },
@@ -36,7 +36,7 @@ function useGarmentsActions(): QuickAction[] {
     { to: '/garments/products', icon: Shirt, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
   ];
 }
 
@@ -58,7 +58,7 @@ export const garmentsDashboard = createDashboard({
   useQuickActions: useGarmentsActions,
   moneyMap: { productsPath: '/garments/products' },
   guide: [
-    { icon: Scissors, title: 'Silai aur alteration', text: 'Is hafte jo order dene hain wo tareekh ke saath upar hain. Aaj aur kal wale peele/laal me — taa ke koi customer khali haath na lautay.' },
+    { icon: Scissors, title: 'Silai aur alteration', text: 'Is hafte jo order dene hain wo date ke saath upar hain. Aaj aur kal wale peele/laal me — taa ke koi customer khali haath na lautay.' },
     { icon: BookmarkPlus, title: 'Hold aur qist', text: 'Jo kapra kisi ke liye rakha hai aur jin ki qist chal rahi hai — dono ki ginti yahan hai, yaad dilana na bhoolein.' },
   ],
 });

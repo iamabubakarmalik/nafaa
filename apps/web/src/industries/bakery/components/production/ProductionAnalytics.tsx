@@ -35,11 +35,11 @@ export function ProductionAnalytics({ range }: { range: { from: string; to: stri
         <StatTile icon={Layers} label="Socha tha" value={fmtQty(t.planned)} sub={`${t.plans} plan · ${t.items} cheezein`} />
         <StatTile icon={CheckCircle2} label="Ban gaya" value={fmtQty(t.produced)} sub={`${t.doneRate}% poora${t.pending ? ` · ${t.pending} abhi baqi` : ''}`} tone="green" />
         <StatTile icon={Flame} label="Kharab hua" value={fmtQty(t.failed)} sub={`${t.failRate}% nuqsaan`} tone={t.failRate > 5 ? 'rose' : 'amber'} />
-        <StatTile icon={Wheat} label="Saamaan ki lagat" value={costHidden ? '••••' : cost(t.cost ?? 0)} sub="Jin cheezon par recipe se saamaan ghata" tone="violet" />
+        <StatTile icon={Wheat} label="Saamaan ki cost" value={costHidden ? '••••' : cost(t.cost ?? 0)} sub="Jin cheezon par recipe se saamaan ghata" tone="violet" />
       </div>
 
       <Card className="rounded-2xl" title={<CardTitle icon={CalendarDays}>Har din</CardTitle>} description="Socha kitna, bana kitna, kharab kitna">
-        {!days.length ? <EmptyChart text="Is muddat me koi plan nahi" /> : (
+        {!days.length ? <EmptyChart text="Is period me koi plan nahi" /> : (
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={days} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>

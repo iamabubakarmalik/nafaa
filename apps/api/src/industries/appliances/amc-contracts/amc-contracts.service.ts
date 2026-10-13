@@ -28,7 +28,7 @@ export class AmcContractsService {
     const expiryDate = addMonths(startDate, dto.durationMonths);
 
     if ((Number(dto.paidAmount) || 0) > (Number(dto.contractValue) || 0) + 0.01) {
-      throw new BadRequestException('Wusool raqam contract ki qeemat se zyada nahi ho sakti');
+      throw new BadRequestException('Receive amount contract ki qeemat se zyada nahi ho sakti');
     }
     return this.prisma.$transaction(async (tx) => {
       const c = await tx.applianceAmcContract.create({
@@ -123,7 +123,7 @@ export class AmcContractsService {
     const moneyChanged = (dto.contractValue !== undefined && Number(dto.contractValue) !== Number(c.contractValue))
       || (dto.paidAmount !== undefined && Number(dto.paidAmount) !== Number(c.paidAmount));
     if (moneyChanged && await billOf(this.prisma, user.tenantId, c.contractNumber)) {
-      throw new BadRequestException('Is contract ka bill ban chuka hai — qeemat ya wusooli customer ke Khata se badlein');
+      throw new BadRequestException('Is contract ka bill ban chuka hai — qeemat ya receiving customer ke Khata se badlein');
     }
 
     return this.prisma.applianceAmcContract.update({
@@ -149,7 +149,7 @@ export class AmcContractsService {
     const c = await this.prisma.applianceAmcContract.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!c) throw new NotFoundException('AMC contract not found');
     if ((Number(dto.paidAmount) || 0) > (Number(dto.contractValue) || 0) + 0.01) {
-      throw new BadRequestException('Wusool raqam contract ki qeemat se zyada nahi ho sakti');
+      throw new BadRequestException('Receive amount contract ki qeemat se zyada nahi ho sakti');
     }
 
     const count = await this.prisma.applianceAmcContract.count({ where: { tenantId: user.tenantId } });

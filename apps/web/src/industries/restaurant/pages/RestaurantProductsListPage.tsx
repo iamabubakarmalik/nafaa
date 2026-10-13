@@ -210,7 +210,7 @@ export default function RestaurantProductsListPage() {
   const exportCsv = () => {
     if (filtered.length === 0) return toast.error('Koi dish nahi');
     const head = ['Dish', 'Category', 'Menu par', 'Ban sakti hai', 'Rok kaun raha',
-      'Rate', 'Lagat', 'Food cost %', 'Kitni dafa biki', 'Banane ka waqt'];
+      'Rate', 'Cost', 'Food cost %', 'Kitni dafa biki', 'Banane ka waqt'];
     const body = filtered.map((r) => [
       r.name, r.category?.name ?? '', r._onMenu ? 'Haan' : 'Nahi',
       r._canMake === null ? 'Recipe nahi' : r._canMake,
@@ -599,7 +599,7 @@ export default function RestaurantProductsListPage() {
         <section className="rounded-2xl bg-sky-50 dark:bg-sky-500/10 border-2 border-sky-200 dark:border-sky-500/30 p-3 flex items-center gap-2.5 flex-wrap print:hidden">
           <ChefHat className="h-4 w-4 text-sky-600 shrink-0" />
           <p className="flex-1 min-w-[220px] text-[0.75rem] font-bold text-sky-900 dark:text-sky-200">
-            <strong>{stats.noProfile} cheezon</strong> ki menu tafseel nahi bhari — na banane ka waqt,
+            <strong>{stats.noProfile} cheezon</strong> ki menu details nahi bhari — na banane ka waqt,
             na masale ka darja, na veg/non-veg. Grahak yehi poochta hai.
           </p>
         </section>
@@ -735,7 +735,7 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
                 {formatPKR(r.price || 0)}
               </div>
               <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400 truncate">
-                {hideCost || !r._cost ? `per ${r.unit}` : `lagat ${formatPKR(r._cost)}`}
+                {hideCost || !r._cost ? `per ${r.unit}` : `cost ${formatPKR(r._cost)}`}
               </div>
             </div>
             <div className="text-right shrink-0">
@@ -795,7 +795,7 @@ function Teacher({ onClose }: any) {
             { i: Flame, t: 'Laal patti = saamaan khatam', d: 'Recipe ka koi saamaan khatam ho to tasveer ke neeche laal patti aa jati hai, aur us ingredient ka naam bhi. Us dish ka order lena bekaar hai.' },
             { i: TrendingUp, t: 'Food cost 30–35% rakhein', d: 'Rate ka kitna hissa saamaan me gaya — upar daayen likha hota hai. 45% se upar jaye to laal ho jata hai: ya rate kam hai ya recipe mehngi.' },
             { i: Soup, t: 'Recipe ke baghair kuch pata nahi chalta', d: '"Recipe nahi" ka nishan matlab us dish ka food cost bhi pata nahi aur saamaan khatam hone ka pata bhi nahi chalega. Recipe bana dein.' },
-            { i: Timer, t: 'Banane ka waqt likh dein', d: 'Har dish par minute likhe hon to counter wala grahak ko sach bata sakta hai, aur KOT par kitchen ko tarteeb samajh aati hai.' },
+            { i: Timer, t: 'Banane ka waqt likh dein', d: 'Har dish par minute likhe hon to counter wala grahak ko sach bata sakta hai, aur KOT par kitchen ko sort samajh aati hai.' },
             { i: Barcode, t: 'Scan bhi chalta hai', d: 'Packed cheezein (bottle, chips) barcode se foran mil jati hain — B dabayein.' },
           ].map((x, n) => (
             <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
@@ -811,7 +811,7 @@ function Teacher({ onClose }: any) {
           <div className="rounded-2xl bg-slate-900 dark:bg-ink-800 p-3">
             <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
-              {[['/', 'Dhoondein'], ['B', 'Scan'], ['G', 'Ye safha'], ['R', 'Taaza'], ['Esc', 'Band']].map(([k, l]) => (
+              {[['/', 'Search'], ['B', 'Scan'], ['G', 'Ye safha'], ['R', 'Taaza'], ['Esc', 'Band']].map(([k, l]) => (
                 <span key={k} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold text-white/80">
                   <kbd className="px-1.5 py-0.5 rounded bg-white/15 font-black">{k}</kbd> {l}
                 </span>

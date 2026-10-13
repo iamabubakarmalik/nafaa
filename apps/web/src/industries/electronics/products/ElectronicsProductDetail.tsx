@@ -109,7 +109,7 @@ const config: DetailConfig<Extra> = {
           <div className="grid gap-4 lg:grid-cols-2">
             <Card className="rounded-2xl" title="Warranty">
               <dl className="space-y-2 text-[0.875rem]">
-                <div className="flex justify-between"><dt className="text-slate-500">Muddat</dt><dd className="font-semibold">{p.warrantyMonths ? `${p.warrantyMonths} mahine` : 'Koi nahi'}</dd></div>
+                <div className="flex justify-between"><dt className="text-slate-500">Period</dt><dd className="font-semibold">{p.warrantyMonths ? `${p.warrantyMonths} mahine` : 'Koi nahi'}</dd></div>
                 <div className="flex justify-between"><dt className="text-slate-500">Kis ki</dt><dd>{p.warrantyType ?? '—'}</dd></div>
                 <div className="flex justify-between"><dt className="text-slate-500">International</dt><dd>{p.hasInternationalWarranty ? 'Haan' : 'Nahi'}</dd></div>
               </dl>

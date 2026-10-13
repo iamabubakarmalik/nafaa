@@ -774,7 +774,7 @@ function TechForm({ tech, onClose, onSaved }: { tech: Technician | null; onClose
       }
     >
       <div className="space-y-4">
-        <Panel icon={Users} title="Bunyadi Tafseel" tone="cyan">
+        <Panel icon={Users} title="Bunyadi Details" tone="cyan">
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Employee Code" required error={errors.employeeCode} hint="dukaan ka apna code">
               <input className={inputCls('h-11 font-extrabold font-mono', !!errors.employeeCode)} placeholder="TECH-01"
@@ -974,7 +974,7 @@ function TechTeacher({ onClose }: { onClose: () => void }) {
             <><strong>Commission %</strong> set karein — phir har mukammal kaam par uska hissa <strong>khud jama hota rehta hai</strong></>,
             <><strong>"Performance" tab</strong> (<Kbd dark>A</Kbd>) — mahine ke aakhir me yahi table kholein aur commission de dein</>,
             <><strong>Rating</strong> khud banti hai — jab kaam mukammal karte waqt customer ki rating daalte hain</>,
-            <>Jis ka <strong>completion % kam</strong> ho uska kaam dekh lein — shayad usay ghalat qism ka kaam mil raha hai</>,
+            <>Jis ka <strong>completion % kam</strong> ho uska kaam dekh lein — shayad usay ghalat type ka kaam mil raha hai</>,
           ],
         },
         {

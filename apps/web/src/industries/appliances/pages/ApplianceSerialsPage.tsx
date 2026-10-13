@@ -76,8 +76,8 @@ export default function ApplianceSerialsPage() {
       [`Serial Register — ${shopName}`],
       [`Nikala gaya: ${new Date().toLocaleString('en-PK')}`],
       [],
-      ['Serial', 'Cheez', 'Qism', 'Brand', 'Model', 'Batch', 'Halat',
-       'Kharidne ka rate', 'Kharidne ki tareekh', 'Supplier',
+      ['Serial', 'Cheez', 'Type', 'Brand', 'Model', 'Batch', 'Halat',
+       'Kharidne ka rate', 'Kharidne ki date', 'Supplier',
        'Bechne ka rate', 'Bika', 'Customer', 'Phone', 'Invoice',
        'Installation', 'Laga', 'Warranty tak', 'Din baqi',
        'Compressor tak', 'Motor tak'],
@@ -103,7 +103,7 @@ export default function ApplianceSerialsPage() {
       <table>
         <thead><tr>
           <th>#</th><th>Serial / Cheez</th><th>Brand / Model</th><th class="c">Halat</th>
-          <th class="c">Installation</th><th class="c">Warranty</th><th class="r">Lagat</th><th class="r">Bika</th>
+          <th class="c">Installation</th><th class="c">Warranty</th><th class="r">Cost</th><th class="r">Bika</th>
         </tr></thead>
         <tbody>
           ${rows.map((r, i) => `
@@ -126,7 +126,7 @@ export default function ApplianceSerialsPage() {
       shopName, shopPhone, badge: 'Serial Report',
       kpis: [
         { label: '📦 Stock Me', value: String(summary?.inStock?.units ?? 0), sub: formatPKR(summary?.inStock?.value ?? 0), tone: 'blue' },
-        { label: '💰 Bik Chuke', value: String(summary?.sold?.units ?? 0), sub: `munafa ${formatPKR(summary?.sold?.profit ?? 0)}`, tone: 'green' },
+        { label: '💰 Bik Chuke', value: String(summary?.sold?.units ?? 0), sub: `profit ${formatPKR(summary?.sold?.profit ?? 0)}`, tone: 'green' },
         { label: '🔧 Lagana Baqi', value: String(summary?.installation?.pending ?? 0), tone: 'amber' },
         { label: '🛡️ Warranty Khatam', value: String(summary?.warrantyExpiringSoon ?? 0), sub: '30 din me', tone: 'rose' },
       ],
@@ -184,11 +184,11 @@ export default function ApplianceSerialsPage() {
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <Kpi icon={Boxes} tone="cyan" label="Stock Me" value={summary?.inStock?.units ?? 0}
-          sub={`lagat ${formatPKR(summary?.inStock?.value ?? 0)}`}
+          sub={`cost ${formatPKR(summary?.inStock?.value ?? 0)}`}
           onClick={() => { setStatus(status === 'IN_STOCK' ? null : 'IN_STOCK'); setPage(1); }}
           active={status === 'IN_STOCK'} />
         <Kpi icon={Wallet} tone="emerald" label="Bik Chuke" value={summary?.sold?.units ?? 0}
-          sub={`munafa ${formatPKR(summary?.sold?.profit ?? 0)}`}
+          sub={`profit ${formatPKR(summary?.sold?.profit ?? 0)}`}
           onClick={() => { setStatus(status === 'SOLD' ? null : 'SOLD'); setPage(1); }}
           active={status === 'SOLD'} />
         <Kpi icon={HardHat} tone="amber" label="Lagana Baqi" value={summary?.installation?.pending ?? 0}
@@ -411,7 +411,7 @@ function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () 
     >
       <div className="space-y-4">
         <Panel icon={Package} title="Kaunsa Product" tone="blue">
-          <Field label="Product dhoondein" required>
+          <Field label="Product search" required>
             <div className="relative">
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input className={inputCls('h-11 pl-10 font-semibold')} placeholder="Naam ya SKU likhein"
@@ -429,7 +429,7 @@ function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () 
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{p.name}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
-                    {p.sku ? `${p.sku} • ` : ''}Stock {p.stock} • Lagat {formatPKR(p.costPrice ?? 0)}
+                    {p.sku ? `${p.sku} • ` : ''}Stock {p.stock} • Cost {formatPKR(p.costPrice ?? 0)}
                   </div>
                 </div>
                 {productId === p.id && <CheckCircle2 className="h-4 w-4 text-cyan-600 shrink-0" />}
@@ -468,14 +468,14 @@ function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () 
           )}
         </Panel>
 
-        <Panel icon={Wallet} title="Shipment Ki Tafseel" hint="Sab serials par lag jayegi" tone="emerald">
+        <Panel icon={Wallet} title="Shipment Ki Details" hint="Sab serials par lag jayegi" tone="emerald">
           <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Kharidne ka rate (per unit)" hint={picked ? `product ki lagat ${formatPKR(picked.costPrice ?? 0)}` : 'khali chhorein to product ki lagat'}>
+            <Field label="Kharidne ka rate (per unit)" hint={picked ? `product ki cost ${formatPKR(picked.costPrice ?? 0)}` : 'khali chhorein to product ki cost'}>
               <input type="number" min={0} className={inputCls('h-11 font-extrabold tabular-nums')}
                 placeholder={String(picked?.costPrice ?? 0)}
                 value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} />
             </Field>
-            <Field label="Kharidne ki tareekh" hint="warranty isi se gini jayegi">
+            <Field label="Kharidne ki date" hint="warranty isi se gini jayegi">
               <input type="date" className={inputCls('h-11 font-bold [color-scheme:light] dark:[color-scheme:dark]')}
                 value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
             </Field>
@@ -493,7 +493,7 @@ function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () 
           {picked && serials.length > 0 && (
             <div className="mt-3 rounded-xl bg-slate-900 dark:bg-ink-950 text-white p-3">
               <div className="flex items-center justify-between text-sm font-extrabold">
-                <span>Shipment ki kul lagat</span>
+                <span>Shipment ki kul cost</span>
                 <span className="tabular-nums text-cyan-300">
                   {formatPKR(serials.length * (Number(purchasePrice) || picked.costPrice || 0))}
                 </span>
@@ -569,8 +569,8 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
       <tr><td class="k">Serial Number</td><td class="v" style="font-family:monospace;font-size:12px;">${escapeHtml(s.serialNumber)}</td></tr>
       ${s.modelNumber ? `<tr><td class="k">Model</td><td class="v">${escapeHtml(s.modelNumber)}</td></tr>` : ''}
       ${s.customerName ? `<tr><td class="k">Customer</td><td class="v">${escapeHtml(s.customerName)}${s.customerPhone ? ` — ${escapeHtml(s.customerPhone)}` : ''}</td></tr>` : ''}
-      ${s.soldAt ? `<tr><td class="k">Bikne ki tareekh</td><td class="v">${fmtDate(s.soldAt)}</td></tr>` : ''}
-      ${s.installedAt ? `<tr><td class="k">Lagne ki tareekh</td><td class="v">${fmtDate(s.installedAt)}</td></tr>` : ''}
+      ${s.soldAt ? `<tr><td class="k">Bikne ki date</td><td class="v">${fmtDate(s.soldAt)}</td></tr>` : ''}
+      ${s.installedAt ? `<tr><td class="k">Lagne ki date</td><td class="v">${fmtDate(s.installedAt)}</td></tr>` : ''}
     </table>
     <div class="warr">
       <div class="wbox"><div class="l">Main Warranty</div><div class="d">${s.warrantyEndDate ? fmtDate(s.warrantyEndDate) : '—'}</div></div>
@@ -593,7 +593,7 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
     { at: s.purchaseDate ?? s.createdAt, label: `Stock me aaya${s.supplierRef ? ` — ${s.supplierRef}` : ''}`, emoji: '📦' },
     { at: s.soldAt, label: `Bika${s.customerName ? ` — ${s.customerName}` : ''}${s.invoiceNumber ? ` (${s.invoiceNumber})` : ''}`, emoji: '💰' },
     { at: s.deliveredAt, label: `Ghar pohancha${s.deliveredBy ? ` — ${s.deliveredBy}` : ''}`, emoji: '🚚' },
-    { at: s.installationScheduledFor, label: 'Installation ki tareekh lagi', emoji: '📅' },
+    { at: s.installationScheduledFor, label: 'Installation ki date lagi', emoji: '📅' },
     { at: s.installedAt, label: 'Lag gaya', emoji: '🔧' },
   ].filter((t) => t.at);
 
@@ -656,23 +656,23 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Box label="Kharidne ka rate" value={s.purchasePrice ? formatPKR(s.purchasePrice) : '—'} />
             <Box label="Bechne ka rate" value={s.soldPrice ? formatPKR(s.soldPrice) : '—'} tone="emerald" />
-            <Box label="Munafa" value={s.soldPrice && s.purchasePrice ? formatPKR(s.soldPrice - s.purchasePrice) : '—'} tone="cyan" />
-            <Box label="Service ka kharcha" value={formatPKR(s.serviceCost)} tone={s.serviceCost > 0 ? 'rose' : 'slate'} />
+            <Box label="Profit" value={s.soldPrice && s.purchasePrice ? formatPKR(s.soldPrice - s.purchasePrice) : '—'} tone="cyan" />
+            <Box label="Service ka expense" value={formatPKR(s.serviceCost)} tone={s.serviceCost > 0 ? 'rose' : 'slate'} />
           </div>
           {s.serviceCost > 0 && s.soldPrice && s.purchasePrice && (
             <div className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
-              Asal munafa is unit par: <strong className={s.soldPrice - s.purchasePrice - s.serviceCost >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+              Net profit is unit par: <strong className={s.soldPrice - s.purchasePrice - s.serviceCost >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
                 {formatPKR(s.soldPrice - s.purchasePrice - s.serviceCost)}
-              </strong> (service ka kharcha nikal kar)
+              </strong> (service ka expense nikal kar)
             </div>
           )}
         </Panel>
 
         {/* Tafseel */}
-        <Panel icon={Package} title="Tafseel" tone="blue">
+        <Panel icon={Package} title="Details" tone="blue">
           <div className="grid sm:grid-cols-2 gap-3 text-xs">
             <Row label="Cheez" value={s.product?.name ?? '—'} />
-            <Row label="Qism" value={catLabel(s.product?.categoryType)} />
+            <Row label="Type" value={catLabel(s.product?.categoryType)} />
             <Row label="Brand" value={s.product?.brand ?? '—'} />
             <Row label="Model" value={s.modelNumber ?? s.product?.modelNumber ?? '—'} />
             {s.batchNumber && <Row label="Batch" value={s.batchNumber} />}
@@ -810,7 +810,7 @@ function SerialTeacher({ onClose }: { onClose: () => void }) {
       intro={
         <>
           Appliance me serial sirf ek number nahi. Usi se pata chalta hai ke <strong>ye unit kab aaya,
-          kis ko bika, kab laga, kitni warranty baqi hai</strong> aur is par ab tak kitna kharcha aaya.
+          kis ko bika, kab laga, kitni warranty baqi hai</strong> aur is par ab tak kitna expense aaya.
         </>
       }
       blocks={[
@@ -839,8 +839,8 @@ function SerialTeacher({ onClose }: { onClose: () => void }) {
           tone: 'violet',
           tips: [
             <>Kisi bhi serial par click karein — <strong>stock me aane se le kar aaj tak</strong> sab kuch nazar aata hai</>,
-            <><strong>"Service ka kharcha"</strong> — is unit par ab tak kitna kharch hua. Warranty wale repair dukaan ke kandhe par hote hain</>,
-            <>Neeche <strong>asal munafa</strong> likha hota hai — bechne ka rate minus lagat minus service ka kharcha</>,
+            <><strong>"Service ka expense"</strong> — is unit par ab tak kitna kharch hua. Warranty wale repair dukaan ke kandhe par hote hain</>,
+            <>Neeche <strong>net profit</strong> likha hota hai — bechne ka rate minus cost minus service ka expense</>,
             <>Agar ek unit par <strong>2 se ziyada repair</strong> ho chuke hain to system tanbeeh de deta hai</>,
           ],
         },

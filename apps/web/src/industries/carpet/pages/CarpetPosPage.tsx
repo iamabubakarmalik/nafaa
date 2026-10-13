@@ -382,7 +382,7 @@ export default function CarpetPosPage() {
       if (!currentShopId) throw new Error('Shop required');
       const lines = cart;
       // Counter rules (discount limit, credit limit) may ask for the owner's PIN.
-      const sale = await withManagerPin('Is bill ki manzoori', (managerPin) => offlineSalesApi.create({
+      const sale = await withManagerPin('Is bill ki approval', (managerPin) => offlineSalesApi.create({
         ...(managerPin && { managerPin }),
         shopId: currentShopId,
         customerId: customerId || undefined,

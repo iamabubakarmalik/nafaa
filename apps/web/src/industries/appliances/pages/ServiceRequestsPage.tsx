@@ -146,8 +146,8 @@ export default function ServiceRequestsPage() {
       [`Service Requests — ${shopName}`],
       [`Nikala gaya: ${new Date().toLocaleString('en-PK')}`],
       [],
-      ['Request #', 'Tareekh', 'Customer', 'Phone', 'Ilaqa', 'Product', 'Qism', 'Kharabi',
-       'Status', 'Priority', 'Technician', 'Visit', 'Labor', 'Parts', 'Kul', 'Wusool', 'Baqi',
+      ['Request #', 'Date', 'Customer', 'Phone', 'Ilaqa', 'Product', 'Type', 'Kharabi',
+       'Status', 'Priority', 'Technician', 'Visit', 'Labor', 'Parts', 'Kul', 'Receive', 'Baqi',
        'Warranty', 'AMC', 'Mukammal', 'Rating'],
       ...rows.map((r) => [
         r.requestNumber,
@@ -182,7 +182,7 @@ export default function ServiceRequestsPage() {
       <h2 class="sec">${tab === 'queue' ? '🔧 Khula Hua Kaam' : '📋 Service Record'}</h2>
       <table>
         <thead><tr>
-          <th>#</th><th>Request / Tareekh</th><th>Customer</th><th>Product / Kharabi</th>
+          <th>#</th><th>Request / Date</th><th>Customer</th><th>Product / Kharabi</th>
           <th>Technician</th><th class="c">Halat</th><th class="r">Kul</th><th class="r">Baqi</th>
         </tr></thead>
         <tbody>
@@ -291,7 +291,7 @@ export default function ServiceRequestsPage() {
         <Kpi
           icon={AlertTriangle} tone="rose" label="Late"
           value={summary?.overdue ?? 0}
-          sub={summary?.urgent ? `${summary.urgent} foran wale` : 'tareekh guzar gayi'}
+          sub={summary?.urgent ? `${summary.urgent} foran wale` : 'date guzar gayi'}
           alert={(summary?.overdue ?? 0) > 0}
           onClick={() => { setTab('all'); setShowFilters(true); }}
         />
@@ -305,7 +305,7 @@ export default function ServiceRequestsPage() {
         <Kpi
           icon={TrendingUp} tone="emerald" label="Is Mahine Kamai"
           value={formatPKR(m?.revenue ?? 0)}
-          sub={`${m?.jobs ?? 0} kaam • munafa ${formatPKR(m?.profit ?? 0)}`}
+          sub={`${m?.jobs ?? 0} kaam • profit ${formatPKR(m?.profit ?? 0)}`}
         />
       </section>
 
@@ -383,7 +383,7 @@ export default function ServiceRequestsPage() {
                     />
                   </div>
                   <div>
-                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Kaam ki qism</div>
+                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Kaam ki type</div>
                     <ChipRow
                       options={SERVICE_TYPE_ORDER.map((s) => ({
                         value: s, label: svcTypeMeta(s).label, emoji: svcTypeMeta(s).emoji,
@@ -498,7 +498,7 @@ function ServiceCard({ r, onOpen }: { r: ServiceRequest; onOpen: () => void }) {
     const digits = String(r.customerPhone).replace(/[^0-9]/g, '');
     const phone = digits.startsWith('92') ? digits : digits.startsWith('0') ? '92' + digits.slice(1) : '92' + digits;
     const msg = r.status === 'COMPLETED'
-      ? `Assalam-o-Alaikum ${r.customerName}! 🙏\n\nAap ka *${r.productName}* ka kaam mukammal ho gaya hai (${r.requestNumber}).${due > 0 ? `\n\nBaqi raqam: *Rs ${due.toLocaleString('en-PK')}*` : ''}\n\nShukriya!`
+      ? `Assalam-o-Alaikum ${r.customerName}! 🙏\n\nAap ka *${r.productName}* ka kaam mukammal ho gaya hai (${r.requestNumber}).${due > 0 ? `\n\nBaqi amount: *Rs ${due.toLocaleString('en-PK')}*` : ''}\n\nShukriya!`
       : `Assalam-o-Alaikum ${r.customerName}! 🙏\n\nAap ki service request *${r.requestNumber}* (${r.productName}) ki halat: *${st.label}*.${r.technicianName ? `\n\nTechnician: ${r.technicianName}` : ''}${r.scheduledDate ? `\nTareekh: ${fmtDate(r.scheduledDate)}` : ''}\n\nShukriya!`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
@@ -557,7 +557,7 @@ function ServiceCard({ r, onOpen }: { r: ServiceRequest; onOpen: () => void }) {
               : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30'
           }`}>
             <div className={`text-[0.625rem] font-extrabold uppercase tracking-wider ${due > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
-              {r.status === 'COMPLETED' ? (due > 0 ? 'Baqi' : 'Wusool') : 'Bill'}
+              {r.status === 'COMPLETED' ? (due > 0 ? 'Baqi' : 'Receive') : 'Bill'}
             </div>
             <div className={`text-[0.6875rem] font-extrabold tabular-nums ${due > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-emerald-700 dark:text-emerald-300'}`}>
               {due > 0 ? formatPKR(due) : r.totalCharge > 0 ? formatPKR(r.totalCharge) : '—'}
@@ -643,7 +643,7 @@ function NewServiceModal({ technicians, onClose, onCreated }: any) {
     try {
       const res = await applianceSerialApi.warrantyCheck(code);
       if (!res.found || !res.serial) {
-        setLookupNote('❌ Ye serial register me nahi mila — tafseel haath se bharein');
+        setLookupNote('❌ Ye serial register me nahi mila — details haath se bharein');
         return;
       }
       const s = res.serial;
@@ -804,7 +804,7 @@ function NewServiceModal({ technicians, onClose, onCreated }: any) {
 
         {/* Kaam */}
         <Panel icon={Wrench} title="Kaam" hint="Kya karna hai aur kitni jaldi" tone="amber">
-          <Field label="Kaam ki qism" required>
+          <Field label="Kaam ki type" required>
             <ChipRow
               options={SERVICE_TYPE_ORDER.map((s) => ({ value: s, label: svcTypeMeta(s).label, emoji: svcTypeMeta(s).emoji }))}
               value={form.serviceType as any}
@@ -846,9 +846,9 @@ function NewServiceModal({ technicians, onClose, onCreated }: any) {
         </Panel>
 
         {/* Schedule */}
-        <Panel icon={CalendarDays} title="Tareekh aur Banda" hint="Abhi na malum ho to khali chhor dein" tone="violet">
+        <Panel icon={CalendarDays} title="Date aur Banda" hint="Abhi na malum ho to khali chhor dein" tone="violet">
           <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Tareekh">
+            <Field label="Date">
               <input type="date" className={inputCls('h-11 font-bold [color-scheme:light] dark:[color-scheme:dark]')}
                 value={form.scheduledDate} onChange={(e) => set('scheduledDate', e.target.value)} />
             </Field>
@@ -959,7 +959,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
   });
   const payMut = useMutation({
     mutationFn: (v: any) => serviceRequestsApi.addPayment(id, v),
-    onSuccess: () => after('Wusooli darj ho gayi ✓'),
+    onSuccess: () => after('Receiving darj ho gayi ✓'),
     onError: fail,
   });
   /** Warranty wala kaam mukammal — ab brand se paisa claim karein */
@@ -1028,7 +1028,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
     <div class="amount-box">
       <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;">KUL BILL</div>
       <div class="huge">${formatPKR(r.totalCharge)}</div>
-      ${r.paidAmount > 0 ? `<div style="font-size:10px;">Wusool: ${formatPKR(r.paidAmount)}</div>` : ''}
+      ${r.paidAmount > 0 ? `<div style="font-size:10px;">Receive: ${formatPKR(r.paidAmount)}</div>` : ''}
       ${due > 0 ? `<div style="font-size:12px;font-weight:800;">BAQI: ${formatPKR(due)}</div>` : '<div style="font-size:10px;font-weight:800;">✓ POORA WUSOOL</div>'}
     </div>` : ''}
   ${(r.coveredUnderWarranty || r.coveredUnderAmc) ? `<div class="center" style="font-size:10px;font-weight:800;">${r.coveredUnderWarranty ? '🛡️ WARRANTY ME' : ''} ${r.coveredUnderAmc ? '📋 AMC ME' : ''}</div>` : ''}
@@ -1041,7 +1041,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
 
   const timeline = [
     { at: r.requestedAt, label: 'Request aayi', emoji: '📥' },
-    { at: r.scheduledDate, label: `Tareekh lagi${r.scheduledTimeSlot ? ` (${r.scheduledTimeSlot})` : ''}`, emoji: '📅' },
+    { at: r.scheduledDate, label: `Date lagi${r.scheduledTimeSlot ? ` (${r.scheduledTimeSlot})` : ''}`, emoji: '📅' },
     { at: r.enRouteAt, label: 'Technician nikla', emoji: '🛵' },
     { at: r.arrivedAt, label: 'Ghar pohancha', emoji: '🏠' },
     { at: r.workStartedAt, label: 'Kaam shuru', emoji: '🛠️' },
@@ -1079,7 +1079,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
           {due > 0 && (
             <button onClick={() => setMode('payment')}
               className="h-11 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs font-extrabold inline-flex items-center gap-1.5 transition">
-              <Banknote className="h-4 w-4" /> Paisa Wusool ({formatPKR(due)})
+              <Banknote className="h-4 w-4" /> Paisa Receive ({formatPKR(due)})
             </button>
           )}
           {isOpen && (
@@ -1173,7 +1173,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
                 <MiniBox label="Kul Bill" value={formatPKR(r.totalCharge)} tone="cyan" />
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2">
-                <MiniBox label="Wusool" value={formatPKR(r.paidAmount)} tone="emerald" />
+                <MiniBox label="Receive" value={formatPKR(r.paidAmount)} tone="emerald" />
                 <MiniBox label="Baqi" value={due > 0 ? formatPKR(due) : 'Clear ✓'} tone={due > 0 ? 'rose' : 'emerald'} />
               </div>
               {(r.coveredUnderWarranty || r.coveredUnderAmc) && (
@@ -1197,7 +1197,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
           {r.amc && (
             <Panel icon={ShieldCheck} title={`AMC — ${r.amc.contractNumber}`} hint="Is contract me kya free hai" tone="violet">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <MiniBox label="Qism" value={r.amc.amcType} />
+                <MiniBox label="Type" value={r.amc.amcType} />
                 <MiniBox label="Khatam" value={fmtDate(r.amc.expiryDate)} />
                 <MiniBox
                   label="Free Visits"
@@ -1213,7 +1213,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
           <Panel icon={Wrench} title="Kya hua tha, kya kiya" tone="amber">
             <div className="space-y-2 text-xs">
               <Row label="Customer ne bataya" value={r.reportedIssue} />
-              {r.issueCategory && <Row label="Kharabi ki qism" value={r.issueCategory} />}
+              {r.issueCategory && <Row label="Kharabi ki type" value={r.issueCategory} />}
               {r.diagnosedIssue && <Row label="Asal masla nikla" value={r.diagnosedIssue} />}
               {r.workDone && <Row label="Kaam kiya" value={r.workDone} />}
               {Array.isArray(r.partsReplaced) && r.partsReplaced.length > 0 && (
@@ -1375,7 +1375,7 @@ function AssignForm({ technicians, current, defaultDate, defaultSlot, pending, o
           </div>
         </Field>
         <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Tareekh">
+          <Field label="Date">
             <input type="date" className={inputCls('h-11 font-bold [color-scheme:light] dark:[color-scheme:dark]')}
               value={scheduledDate} onChange={(e) => setScheduledDate(e.target.value)} />
           </Field>
@@ -1430,7 +1430,7 @@ function CompleteForm({ request, pending, onCancel, onSubmit }: any) {
   const tooMuch = paid > total;
 
   return (
-    <Panel icon={CheckCircle2} title="Kaam Mukammal" hint="Bill, kaam ki tafseel aur rating" tone="emerald">
+    <Panel icon={CheckCircle2} title="Kaam Mukammal" hint="Bill, kaam ki details aur rating" tone="emerald">
       <div className="space-y-3">
         <Field label="Asal masla kya nikla?" hint="technician ki tashkhees">
           <textarea rows={2} className={inputCls('py-2 font-semibold resize-none')} placeholder="Compressor ki gas leak thi"
@@ -1463,13 +1463,13 @@ function CompleteForm({ request, pending, onCancel, onSubmit }: any) {
           )}
         </div>
 
-        <Field label="Abhi kitna wusool hua?" hint={covered ? 'warranty/AMC me 0 hi rehta hai' : `khali chhorein to poora ${formatPKR(total)}`} error={tooMuch ? 'Bill se ziyada nahi ho sakta' : undefined}>
+        <Field label="Abhi kitna receive hua?" hint={covered ? 'warranty/AMC me 0 hi rehta hai' : `khali chhorein to poora ${formatPKR(total)}`} error={tooMuch ? 'Bill se ziyada nahi ho sakta' : undefined}>
           <input type="number" min={0} className={inputCls('h-12 text-base font-extrabold tabular-nums', tooMuch)}
             placeholder={String(covered ? 0 : total)}
             value={f.paidAmount} onChange={(e) => set('paidAmount', e.target.value)} />
           {due > 0 && !tooMuch && (
             <div className="mt-1 text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400">
-              ⏳ {formatPKR(due)} udhaar reh jayega — baad me "Paisa Wusool" se darj kar sakte hain
+              ⏳ {formatPKR(due)} udhaar reh jayega — baad me "Paisa Receive" se darj kar sakte hain
             </div>
           )}
         </Field>
@@ -1557,7 +1557,7 @@ function PaymentForm({ due, pending, onCancel, onSubmit }: any) {
   const bad = n <= 0 || n > due;
 
   return (
-    <Panel icon={Banknote} title="Paisa Wusool" hint={`Baqi: ${formatPKR(due)}`} tone="amber">
+    <Panel icon={Banknote} title="Paisa Receive" hint={`Baqi: ${formatPKR(due)}`} tone="amber">
       <div className="space-y-3">
         <Field label="Kitna mila" required error={bad ? `1 se ${due} ke darmiyan honi chahiye` : undefined}>
           <input type="number" min={1} max={due} className={inputCls('h-12 text-base font-extrabold tabular-nums', bad)}
@@ -1589,7 +1589,7 @@ function PaymentForm({ due, pending, onCancel, onSubmit }: any) {
 
 function CancelForm({ pending, onCancel, onSubmit }: any) {
   const [reason, setReason] = useState('');
-  const presets = ['Customer ne mana kiya', 'Ghar par koi nahi mila', 'Kharcha ziyada tha', 'Kisi aur se karwa liya', 'Ghalat entry thi'];
+  const presets = ['Customer ne mana kiya', 'Ghar par koi nahi mila', 'Expense ziyada tha', 'Kisi aur se karwa liya', 'Ghalat entry thi'];
   return (
     <Panel icon={Ban} title="Request Cancel" hint="Record rahega — sirf halat badlegi" tone="rose">
       <div className="space-y-3">
@@ -1667,15 +1667,15 @@ function ServiceAnalytics() {
       {/* Paisa */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <Kpi icon={Wallet} tone="emerald" label="Kul Kamai" value={formatPKR(t.revenue)} sub={`${t.completed} kaam mukammal`} />
-        <Kpi icon={Banknote} tone="cyan" label="Wusool Hua" value={formatPKR(t.collected)} sub={`munafa ${formatPKR(t.profit)}`} />
+        <Kpi icon={Banknote} tone="cyan" label="Receive Hua" value={formatPKR(t.collected)} sub={`profit ${formatPKR(t.profit)}`} />
         <Kpi icon={AlertTriangle} tone="rose" label="Baqi Paisa" value={formatPKR(t.outstanding)} sub="kaam ho gaya, paisa nahi" alert={t.outstanding > 0} />
-        <Kpi icon={Package} tone="amber" label="Parts ka Kharcha" value={formatPKR(t.cost)} sub="ye dukaan ne diya" />
+        <Kpi icon={Package} tone="amber" label="Parts ka Expense" value={formatPKR(t.cost)} sub="ye dukaan ne diya" />
       </div>
 
       {/* Kaam ki halat */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <Kpi icon={ListChecks} tone="blue" label="Khula Kaam" value={t.open} sub={`${t.serviceJobs} repair • ${t.installJobs} installation`} />
-        <Kpi icon={Clock} tone="orange" label="Late" value={t.overdue} sub="tareekh guzar gayi" alert={t.overdue > 0} />
+        <Kpi icon={Clock} tone="orange" label="Late" value={t.overdue} sub="date guzar gayi" alert={t.overdue > 0} />
         <Kpi icon={Timer} tone="violet" label="Ausat Waqt" value={fmtDuration(q.avgResolutionHours)} sub="request se mukammal tak" />
         <Kpi icon={Star} tone="teal" label="Rating" value={q.avgRating ? q.avgRating.toFixed(1) : '—'} sub={`${q.ratingCount} logon ne di`} />
       </div>
@@ -1999,12 +1999,12 @@ function ServiceTeacher({ onClose }: { onClose: () => void }) {
           ],
         },
         {
-          title: '💰 Paisa poora wusool karein',
+          title: '💰 Paisa poora receive karein',
           tone: 'amber',
           tips: [
             <><strong>"Mukammal Karein"</strong> me visit + labor + parts alag alag likhein — report me pata chalta hai kamai kahan se aa rahi hai</>,
             <>Agar customer ne <strong>aadha paisa</strong> diya to utna hi likhein — baqi <strong>udhaar</strong> me chala jayega</>,
-            <><strong>"Baqi paisa"</strong> button dabayein — ek nazar me saare wo kaam jin ka paisa reh gaya. Baad me <strong>"Paisa Wusool"</strong> se darj karein</>,
+            <><strong>"Baqi paisa"</strong> button dabayein — ek nazar me saare wo kaam jin ka paisa reh gaya. Baad me <strong>"Paisa Receive"</strong> se darj karein</>,
             <>Warranty ya AMC ka kaam ho to <strong>toggle on karein</strong> — paisa 0 rahega aur AMC ki free visit khud ginn jayegi</>,
           ],
         },

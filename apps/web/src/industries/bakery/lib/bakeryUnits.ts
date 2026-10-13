@@ -35,7 +35,7 @@ export const UNITS: UnitDef[] = [
   { key: 'dozen',  label: 'Dozen',  emoji: '📦', piecesIn: 12, hint: 'Barah ke hisaab se — cookies, cupcake' },
   { key: 'kg',     label: 'Kilo',   emoji: '⚖️', weighed: true, hint: 'Wazan se — mithai, barfi, rusk' },
   { key: 'pound',  label: 'Pound',  emoji: '⚖️', weighed: true, hint: 'Pound se — cake ka aam tareeqa' },
-  { key: 'gram',   label: 'Gram',   emoji: '⚖️', weighed: true, hint: 'Chhoti miqdar — dry fruit, chocolate' },
+  { key: 'gram',   label: 'Gram',   emoji: '⚖️', weighed: true, hint: 'Chhoti quantity — dry fruit, chocolate' },
   { key: 'slice',  label: 'Slice',  emoji: '🍰', hint: 'Tukron me — cake slice, pizza slice' },
   { key: 'box',    label: 'Box',    emoji: '📦', hint: 'Dabbay me — gift pack, cookies box' },
   { key: 'tray',   label: 'Tray',   emoji: '🍱', hint: 'Thaal me — mithai, catering' },

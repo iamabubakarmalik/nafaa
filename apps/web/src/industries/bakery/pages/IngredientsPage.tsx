@@ -126,7 +126,7 @@ export default function IngredientsPage() {
   }, [canManage]);
 
   const printDoc = (): PrintDoc => (tab === 'stock' && state !== 'low' && state !== 'out' ? {
-    title: 'Kachcha maal — stock',
+    title: 'Raw material — stock',
     meta: [['Cheezein', String(shown.length)], ...(costHidden ? [] : [['Qeemat', formatPKR(stats.value)] as [string, string]])],
     sections: [{
       kind: 'table',
@@ -147,9 +147,9 @@ export default function IngredientsPage() {
   return (
     <PageShell>
       <PageHero
-        title="Kachcha maal"
+        title="Raw material"
         chip={<><Wheat /> Saamaan</>}
-        meta="Maida, cheeni, makhan — kya para hai, kya mangwana hai, recipe ki lagat"
+        meta="Maida, cheeni, makhan — kya para hai, kya mangwana hai, recipe ki cost"
         busy={listQ.isFetching && !listQ.isLoading}
         loading={listQ.isLoading}
         actions={<>
@@ -162,7 +162,7 @@ export default function IngredientsPage() {
         stats={[
           { label: 'Gudaam ki qeemat', value: cost(stats.value), hint: `${stats.total} cheezein` },
           { label: 'Mangwana hai', value: stats.low + stats.out, hint: costHidden ? undefined : `andazan ${formatPKR(stats.orderCost)}` },
-          { label: 'Recipes', value: recipes?.recipes ?? '—', hint: recipes?.lowMargin ? `${recipes.lowMargin} kam munafa` : undefined },
+          { label: 'Recipes', value: recipes?.recipes ?? '—', hint: recipes?.lowMargin ? `${recipes.lowMargin} kam profit` : undefined },
         ]}
       />
 
@@ -171,8 +171,8 @@ export default function IngredientsPage() {
           <KpiCard icon={Boxes} color="#a16207" label="Gudaam ki qeemat" value={cost(stats.value)} hint={`${stats.total} cheezein`} onClick={() => { setTab('stock'); setState('all'); }} active={tab === 'stock' && state === 'all'} />
           <KpiCard icon={AlertTriangle} color="#d97706" label="Kam ho gaya" value={stats.low} hint="Had se neeche" onClick={() => { setTab('stock'); setState('low'); }} active={tab === 'stock' && state === 'low'} />
           <KpiCard icon={Trash2} color={stats.out ? '#e11d48' : '#64748b'} label="Khatam" value={stats.out} hint={stats.critical ? `${stats.critical} zaroori` : 'Stock 0'} onClick={() => { setTab('stock'); setState('out'); }} active={tab === 'stock' && state === 'out'} />
-          <KpiCard icon={Tags} color="#7c3aed" label="Kam munafa" value={recipes?.lowMargin ?? '—'} hint="Recipe 20% se kam" onClick={() => { setTab('recipes'); setRecipeFilter('low'); }} active={tab === 'recipes' && recipeFilter === 'low'} />
-          <KpiCard icon={Scale} color="#0891b2" label="Lagat ka farq" value={recipes?.costOff ?? '—'} hint="Product par purani lagat" onClick={() => { setTab('recipes'); setRecipeFilter('off'); }} active={tab === 'recipes' && recipeFilter === 'off'} />
+          <KpiCard icon={Tags} color="#7c3aed" label="Kam profit" value={recipes?.lowMargin ?? '—'} hint="Recipe 20% se kam" onClick={() => { setTab('recipes'); setRecipeFilter('low'); }} active={tab === 'recipes' && recipeFilter === 'low'} />
+          <KpiCard icon={Scale} color="#0891b2" label="Cost ka farq" value={recipes?.costOff ?? '—'} hint="Product par purani cost" onClick={() => { setTab('recipes'); setRecipeFilter('off'); }} active={tab === 'recipes' && recipeFilter === 'off'} />
         </>}
       </KpiRow>
 
@@ -186,12 +186,12 @@ export default function IngredientsPage() {
       )}
 
       {tab === 'analytics' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Is muddat me kitne ka saamaan aaya, laga aur zaya hua</p>}>
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Is period me kitne ka saamaan aaya, laga aur waste hua</p>}>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
         </FilterBar>
       ) : (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tab === 'recipes' ? 'Product ya saamaan…' : 'Saamaan, brand, supplier…'} label="Dhoondein" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tab === 'recipes' ? 'Product ya saamaan…' : 'Saamaan, brand, supplier…'} label="Search" />}
           chips={tab === 'stock' && (state !== 'all' || category) ? <>
             {state !== 'all' && <FilterChip onRemove={() => setState('all')}>{STATES.find((s) => s.id === state)?.label}</FilterChip>}
             {category && <FilterChip onRemove={() => setCategory('')}>{rawCategoryOf(category).label}</FilterChip>}
@@ -202,22 +202,22 @@ export default function IngredientsPage() {
             <FilterMenu icon={Tags} label="Qisam" value={category} active={!!category} onChange={setCategory} options={[{ value: '', label: 'Sab qismein' }, ...RAW_CATEGORIES.map((c) => ({ value: c.value, label: `${c.emoji} ${c.label}` }))]} />
           </>}
           {tab === 'recipes' && (
-            <FilterMenu icon={Filter} label={recipeFilter === 'low' ? 'Kam munafa' : recipeFilter === 'off' ? 'Lagat ka farq' : recipeFilter === 'missing' ? 'Saamaan gum' : 'Sab recipes'} value={recipeFilter} active={recipeFilter !== 'all'} onChange={setRecipeFilter}
-              options={[{ value: 'all', label: 'Sab recipes' }, { value: 'low', label: 'Kam munafa (20% se kam)' }, { value: 'off', label: 'Product par purani lagat' }, { value: 'missing', label: 'Jin ka saamaan nahi mila' }]} />
+            <FilterMenu icon={Filter} label={recipeFilter === 'low' ? 'Kam profit' : recipeFilter === 'off' ? 'Cost ka farq' : recipeFilter === 'missing' ? 'Saamaan gum' : 'Sab recipes'} value={recipeFilter} active={recipeFilter !== 'all'} onChange={setRecipeFilter}
+              options={[{ value: 'all', label: 'Sab recipes' }, { value: 'low', label: 'Kam profit (20% se kam)' }, { value: 'off', label: 'Product par purani cost' }, { value: 'missing', label: 'Jin ka saamaan nahi mila' }]} />
           )}
           {tab === 'record' && <>
             <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
-            <FilterMenu icon={Filter} label={kind ? ({ PURCHASE: 'Aaya', CONSUMPTION: 'Istemal', WASTE: 'Zaya', ADJUSTMENT: 'Ginti' } as const)[kind] : 'Sab qism'} value={kind} active={!!kind} onChange={setKind} align="right"
-              options={[{ value: '', label: 'Sab' }, { value: 'PURCHASE', label: 'Maal aaya' }, { value: 'CONSUMPTION', label: 'Banane me laga' }, { value: 'WASTE', label: 'Zaya' }, { value: 'ADJUSTMENT', label: 'Ginti ka farq' }]} />
+            <FilterMenu icon={Filter} label={kind ? ({ PURCHASE: 'Aaya', CONSUMPTION: 'Istemal', WASTE: 'Waste', ADJUSTMENT: 'Ginti' } as const)[kind] : 'Sab type'} value={kind} active={!!kind} onChange={setKind} align="right"
+              options={[{ value: '', label: 'Sab' }, { value: 'PURCHASE', label: 'Maal aaya' }, { value: 'CONSUMPTION', label: 'Banane me laga' }, { value: 'WASTE', label: 'Waste' }, { value: 'ADJUSTMENT', label: 'Ginti ka farq' }]} />
           </>}
         </FilterBar>
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> dhoondein · <Kbd>1</Kbd>-<Kbd>4</Kbd> tabs</>}
+        hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>4</Kbd> tabs</>}
         tabs={[
           { id: 'stock', label: 'Stock', icon: Boxes, count: tab === 'stock' ? shown.length : null },
-          { id: 'recipes', label: 'Recipe aur lagat', icon: Wheat, count: recipes?.recipes ?? null },
+          { id: 'recipes', label: 'Recipe aur cost', icon: Wheat, count: recipes?.recipes ?? null },
           { id: 'record', label: 'Record', icon: ListChecks },
           { id: 'analytics', label: 'Analytics', icon: BarChart3 },
         ]} />
@@ -249,11 +249,11 @@ export default function IngredientsPage() {
       {history && <HistoryModal item={history} onClose={() => setHistory(null)} />}
 
       {guide.isOpen && (
-        <PageGuide title="Kachcha maal — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title="Raw material — aasaan tareeqa" onClose={guide.close}
           steps={[
             { icon: ArrowDownToLine, color: '#16a34a', title: 'Maal aaya', text: 'Supplier se saamaan aaye to "Maal aaya": kitna, kis rate par aur paisa kaise diya. Is ka supplier bill banta hai: diya hua paisa khareed me, udhaar supplier ke khate me jata hai.' },
-            { icon: Wheat, color: '#a16207', title: 'Recipe aur lagat', text: 'Har cheez ki recipe aaj ke rate se: ek piece ki lagat, bechne ki qeemat aur munafa. Rate badla to yahin pata chalta hai.' },
-            { icon: Trash2, color: '#e11d48', title: 'Zaya hua', text: 'Kharab ya gira hua saamaan wajah ke saath likhein — Taazgi aur zaya ke record me bhi aata hai.' },
+            { icon: Wheat, color: '#a16207', title: 'Recipe aur cost', text: 'Har cheez ki recipe aaj ke rate se: ek piece ki cost, bechne ki qeemat aur profit. Rate badla to yahin pata chalta hai.' },
+            { icon: Trash2, color: '#e11d48', title: 'Waste hua', text: 'Kharab ya gira hua saamaan wajah ke saath likhein — Freshness aur waste ke record me bhi aata hai.' },
             { icon: Scale, color: '#7c3aed', title: 'Gin kar theek', text: 'Mahine me ek baar gudaam gin kar yahan theek karein — farq wajah ke saath record me rehta hai.' },
             { icon: MessageCircle, color: '#22c55e', title: 'Mangwane ki list', text: 'Jo kam hai us ki list ek click me WhatsApp par. Har saamaan par supplier ka number ho to seedha us ko.' },
             { icon: Printer, color: '#0891b2', title: 'Print', text: '"Kam ho gaya" chun kar print karein to mangwane ki list, warna ginti ki sheet.' },
@@ -261,7 +261,7 @@ export default function IngredientsPage() {
           tips={[
             'Baking me "Recipe ka saamaan ghatayein" on karein to istemal khud likha jata hai.',
             'Kai cheezon ka ek bill ho to "Supplier ka bill" se purchase banayein.',
-            'Saamaan sambhalne ke liye "Bakery saamaan sambhalna" ki ijazat chahiye.',
+            'Saamaan sambhalne ke liye "Bakery saamaan sambhalna" ki permission chahiye.',
           ]}
           shortcuts={[['N', 'naya saamaan'], ['/', 'dhoondein'], ['1', 'stock'], ['2', 'recipe'], ['3', 'record'], ['4', 'analytics'], ['G', 'guide']]}
         />
@@ -306,7 +306,7 @@ function RawRow({ i, canManage, usedIn, onStock, onEdit, onHistory, onToggle }: 
         <div className="flex flex-wrap gap-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3 sm:pl-[4.25rem]">
           {canManage && !hidden && <>
             <Button size="sm" variant="secondary" className="sm:hidden" onClick={() => onStock('purchase')} leftIcon={<ArrowDownToLine className="h-4 w-4" />}>Maal aaya</Button>
-            <Button size="sm" variant="secondary" onClick={() => onStock('waste')} leftIcon={<Trash2 className="h-4 w-4" />}>Zaya hua</Button>
+            <Button size="sm" variant="secondary" onClick={() => onStock('waste')} leftIcon={<Trash2 className="h-4 w-4" />}>Waste hua</Button>
             <Button size="sm" variant="secondary" onClick={() => onStock('adjust')} leftIcon={<Scale className="h-4 w-4" />}>Gin kar theek</Button>
             <Button size="sm" variant="secondary" onClick={onEdit} leftIcon={<Pencil className="h-4 w-4" />}>Badlein</Button>
           </>}

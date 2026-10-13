@@ -214,7 +214,7 @@ export class EyeTestsService {
     }
 
     const amount = Math.round(Number(dto.amount) * 100) / 100;
-    if (!(amount > 0)) throw new BadRequestException('Raqam 0 se zyada honi chahiye');
+    if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
     const remaining = Math.round((t.testFee - t.paidAmount) * 100) / 100;
     if (t.isWaivedOff || amount > remaining + 0.009) {
       throw new BadRequestException(remaining > 0 && !t.isWaivedOff ? `Sirf Rs ${remaining} baqi hain` : 'Is test ki fees baqi nahi');

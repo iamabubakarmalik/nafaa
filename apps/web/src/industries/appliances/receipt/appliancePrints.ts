@@ -154,7 +154,7 @@ export function printInstallSlip(sale: any, setup: ReceiptSetup) {
   <div class="sub">☐ Deewar par jagah</div>
   <div class="sub">☐ Paani nikasi</div>
   <div class="sub">☐ Demo diya / chalana sikhaya</div>
-  ${due > 0 ? `<div class="box"><div class="sub b">CUSTOMER SE WUSOOL KARNA HAI</div><div class="huge">${formatPKR(due)}</div></div>` : ''}
+  ${due > 0 ? `<div class="box"><div class="sub b">CUSTOMER SE RECEIVE KARNA HAI</div><div class="huge">${formatPKR(due)}</div></div>` : ''}
   <div class="sign">Technician ke dastakhat</div>
   <div class="sign">Customer ke dastakhat</div>
 </body></html>`;

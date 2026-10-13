@@ -136,14 +136,14 @@ export default function AppliancesSalesPage() {
   }, [rows]);
 
   const exportCsv = () => {
-    if (!rows.length) return toast.error('Koi bikri nahi');
+    if (!rows.length) return toast.error('Koi sale nahi');
     downloadCsv(`appliance-sales-${range.from}-to-${range.to}.csv`, [
-      [`Bikri — ${shopName}`],
+      [`Sale — ${shopName}`],
       [`${fmtDate(range.from)} se ${fmtDate(range.to)} tak`],
       [`${stats.count} bill • Kamai ${stats.revenue.toFixed(0)} • Baqi ${stats.due.toFixed(0)}`],
       [],
-      ['Bill #', 'Tareekh', 'Customer', 'Cheezein', 'Maal ka total', 'Discount',
-       'Installation', 'Delivery', 'Kul bill', 'Wusool', 'Baqi', 'Payment', 'Halat'],
+      ['Bill #', 'Date', 'Customer', 'Cheezein', 'Maal ka total', 'Discount',
+       'Installation', 'Delivery', 'Kul bill', 'Receive', 'Baqi', 'Payment', 'Halat'],
       ...rows.map((s) => {
         const svc = (type: string) =>
           (Array.isArray(s.serviceChargesBreakdown) ? s.serviceChargesBreakdown : [])
@@ -162,12 +162,12 @@ export default function AppliancesSalesPage() {
   };
 
   const printA4 = () => {
-    if (!rows.length) return toast.error('Koi bikri nahi');
+    if (!rows.length) return toast.error('Koi sale nahi');
     const body = `
-      <h2 class="sec">🧾 Bikri Ka Register</h2>
+      <h2 class="sec">🧾 Sale Ka Register</h2>
       <table>
         <thead><tr>
-          <th>#</th><th>Bill / Tareekh</th><th>Customer</th><th>Cheezein</th>
+          <th>#</th><th>Bill / Date</th><th>Customer</th><th>Cheezein</th>
           <th class="r">Maal</th><th class="r">Services</th><th class="r">Kul</th><th class="r">Baqi</th>
         </tr></thead>
         <tbody>
@@ -196,8 +196,8 @@ export default function AppliancesSalesPage() {
       </table>`;
 
     const ok = printHtml(a4Shell({
-      title: `Bikri — ${shopName}`,
-      heading: '🧾 Bikri Ka Register',
+      title: `Sale — ${shopName}`,
+      heading: '🧾 Sale Ka Register',
       shopName, shopPhone,
       badge: `${fmtDate(range.from)} — ${fmtDate(range.to)}`,
       kpis: [
@@ -224,7 +224,7 @@ export default function AppliancesSalesPage() {
       {showTeacher && <SalesTeacher onClose={() => setShowTeacher(false)} />}
 
       <ApplianceHero
-        badge="Bikri"
+        badge="Sale"
         badgeIcon={<Receipt className="h-3.5 w-3.5 text-amber-300" />}
         title="🧾 Sales"
         subtitle={
@@ -257,7 +257,7 @@ export default function AppliancesSalesPage() {
           value={formatPKR(stats.install + stats.deliv)}
           sub={`installation ${formatPKR(stats.install)} • delivery ${formatPKR(stats.deliv)}`} />
         <Kpi icon={AlertTriangle} tone="rose" label="Udhaar Baqi" value={formatPKR(stats.due)}
-          sub={`wusool ${formatPKR(stats.paid)}`} alert={stats.due > 0}
+          sub={`receive ${formatPKR(stats.paid)}`} alert={stats.due > 0}
           onClick={() => setDueOnly(!dueOnly)} active={dueOnly} />
       </section>
 
@@ -274,7 +274,7 @@ export default function AppliancesSalesPage() {
       </div>
 
       {daily.length > 1 && (
-        <Panel icon={TrendingUp} title="Rozana Bikri" hint="Neela = kul bill, peela = services ki kamai" tone="cyan">
+        <Panel icon={TrendingUp} title="Rozana Sale" hint="Neela = kul bill, peela = services ki kamai" tone="cyan">
           <ResponsiveContainer width="100%" height={240}>
             <ComposedChart data={daily} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#94a3b833" />
@@ -328,8 +328,8 @@ export default function AppliancesSalesPage() {
       ) : rows.length === 0 ? (
         <Empty
           icon={Receipt}
-          title={dueOnly ? 'Koi udhaar baqi nahi 🎉' : 'Is arse me koi bikri nahi'}
-          hint={dueOnly ? 'Saare bill poore wusool ho chuke hain.' : 'Arsa badal kar dekhein ya POS se nayi bikri karein'}
+          title={dueOnly ? 'Koi udhaar baqi nahi 🎉' : 'Is arse me koi sale nahi'}
+          hint={dueOnly ? 'Saare bill poore receive ho chuke hain.' : 'Arsa badal kar dekhein ya POS se nayi sale karein'}
           action={
             dueOnly
               ? <Button variant="secondary" onClick={() => setDueOnly(false)}><X className="h-4 w-4" /> Sab bill dekhein</Button>
@@ -400,7 +400,7 @@ function SaleCard({ s }: { s: any }) {
           <div className="text-right shrink-0">
             <div className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-ink-white">{formatPKR(s.total)}</div>
             <div className={`text-[0.6875rem] font-extrabold tabular-nums ${due > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-              {due > 0 ? `${formatPKR(s.paidAmount)} wusool` : 'Poora wusool ✓'}
+              {due > 0 ? `${formatPKR(s.paidAmount)} receive` : 'Poora receive ✓'}
             </div>
           </div>
         </div>
@@ -477,7 +477,7 @@ function SalesTeacher({ onClose }: { onClose: () => void }) {
       title="Sales Page Kaise Parhein?"
       intro={
         <>
-          Appliance ki bikri aam dukaan se alag hai — ek hi bill par <strong>maal, installation
+          Appliance ki sale aam dukaan se alag hai — ek hi bill par <strong>maal, installation
           aur delivery</strong> teenon ka paisa hota hai. Yahan har bill par ye teenon alag nazar
           aate hain, aur sab se numaya cheez hai <strong>kitna udhaar reh gaya</strong>.
         </>
@@ -507,8 +507,8 @@ function SalesTeacher({ onClose }: { onClose: () => void }) {
           tone: 'amber',
           tips: [
             <><strong>Neela bar</strong> — us din ka kul bill</>,
-            <><strong>Peeli line</strong> — us din services se kitna aaya. Ye line jitni upar, munafa utna behtar</>,
-            <><Kbd dark>P</Kbd> — poore arse ka A4 register, har bill ki tafseel ke sath</>,
+            <><strong>Peeli line</strong> — us din services se kitna aaya. Ye line jitni upar, profit utna behtar</>,
+            <><Kbd dark>P</Kbd> — poore arse ka A4 register, har bill ki details ke sath</>,
           ],
         },
       ]}
@@ -521,7 +521,7 @@ function SalesTeacher({ onClose }: { onClose: () => void }) {
       golden={
         <>
           <strong>Sunahri usool:</strong> Hafte me ek bar <Kbd dark>D</Kbd> daba kar udhaar wale bill dekhein
-          aur un customers ko phone karein. Jitna purana udhaar, utna mushkil wusool.
+          aur un customers ko phone karein. Jitna purana udhaar, utna mushkil receive.
         </>
       }
       onClose={onClose}

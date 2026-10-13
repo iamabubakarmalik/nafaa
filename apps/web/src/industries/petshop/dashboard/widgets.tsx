@@ -65,7 +65,7 @@ export const petshopKpis: KpiDef[] = [
     },
   },
   {
-    id: 'petshop-animal-profit', label: 'Janwaron ka munafa', icon: TrendingUp, tone: 'success', sensitive: true,
+    id: 'petshop-animal-profit', label: 'Janwaron ka profit', icon: TrendingUp, tone: 'success', sensitive: true,
     useValue: () => {
       const { animals: a, loading } = usePetshopOps();
       const { cost } = useMasked();

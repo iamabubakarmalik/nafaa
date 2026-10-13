@@ -727,10 +727,10 @@ export class RepairsService {
 
   async addPayment(user: AuthenticatedUser, ticketId: string, dto: AddPaymentDto) {
     const ticket = await this.findOne(user, ticketId);
-    if (!(Number(dto.amount) > 0)) throw new BadRequestException('Raqam zero se zyada ho');
+    if (!(Number(dto.amount) > 0)) throw new BadRequestException('Amount zero se zyada ho');
     if (ticket.saleId) {
       // After delivery the balance sits in the customer's khata.
-      throw new BadRequestException(`${ticket.ticketNumber} deliver ho chuka — baqi raqam customer ke Khata se wasool karein`);
+      throw new BadRequestException(`${ticket.ticketNumber} deliver ho chuka — baqi amount customer ke Khata se wasool karein`);
     }
     if (['CANCELLED', 'UNREPAIRABLE'].includes(ticket.status)) {
       throw new BadRequestException(`${ticket.ticketNumber} band ho chuka hai`);

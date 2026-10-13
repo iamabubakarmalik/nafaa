@@ -162,7 +162,7 @@ export const hoursTo = (iso?: string | null) => {
 
 /** "3 ghante me", "2 din late". */
 export function leftText(h: number | null): string {
-  if (h === null) return 'Tareekh nahi';
+  if (h === null) return 'Date nahi';
   if (h < 0) {
     const p = Math.abs(h);
     return p < 1 ? `${Math.round(p * 60)} minute late` : p < 24 ? `${Math.round(p)} ghante late` : `${Math.round(p / 24)} din late`;

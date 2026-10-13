@@ -41,7 +41,7 @@ export class WeddingContractsService {
     if (advance > dto.quotedAmount + 0.01) throw new BadRequestException('Advance quote se zyada nahi ho sakta');
     const balance = r2(dto.quotedAmount - advance);
     const weddingDate = parseDay(dto.weddingDate);
-    if (!weddingDate) throw new BadRequestException('Shaadi ki tareekh likhein');
+    if (!weddingDate) throw new BadRequestException('Shaadi ki date likhein');
 
     return this.prisma.$transaction(async (tx) => {
       const created = await tx.floristWeddingContract.create({
@@ -169,7 +169,7 @@ export class WeddingContractsService {
   async recordPayment(user: AuthenticatedUser, scope: ShopScope, id: string, dto: RecordWeddingPaymentDto) {
     const c = await this.prisma.floristWeddingContract.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!c) throw new NotFoundException('Contract not found');
-    if (c.status === 'CANCELLED') throw new BadRequestException('Cancel contract par raqam nahi li ja sakti');
+    if (c.status === 'CANCELLED') throw new BadRequestException('Cancel contract par amount nahi li ja sakti');
     const amount = r2(dto.amount);
     if (amount <= 0) throw new BadRequestException('Amount must be positive');
     const owed = r2(Number(c.quotedAmount || 0) - Number(c.advanceAmount || 0));
@@ -201,7 +201,7 @@ export class WeddingContractsService {
     if (!c) throw new NotFoundException('Contract not found');
     // Money on the khata points at this contract; cancel it instead of deleting.
     if (c.status === 'COMPLETED' || Number(c.advanceAmount) > 0) {
-      throw new BadRequestException('Is contract par raqam li ja chuki hai — delete ki jagah Cancel karein');
+      throw new BadRequestException('Is contract par amount li ja chuki hai — delete ki jagah Cancel karein');
     }
     return this.prisma.floristWeddingContract.delete({ where: { id } });
   }

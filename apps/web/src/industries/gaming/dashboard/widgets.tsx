@@ -55,7 +55,7 @@ export function useGamingAttention(): AttentionItem[] {
   const { rentals, topups, ready, tournaments, live } = useGamingOps();
   const items: AttentionItem[] = [];
 
-  if (rentals.overdue) items.push({ icon: Clock, level: 'danger', text: `${rentals.overdue} rental late hain — wapsi mangwayein aur late fee lagayein`, to: '/gaming/rentals?status=OVERDUE', cta: 'Rentals dekhein' });
+  if (rentals.overdue) items.push({ icon: Clock, level: 'danger', text: `${rentals.overdue} rental late hain — return mangwayein aur late fee lagayein`, to: '/gaming/rentals?status=OVERDUE', cta: 'Rentals dekhein' });
   if (ready && topups < TOPUP_LOW) items.push({ icon: CreditCard, level: 'warning', text: topups ? `Sirf ${topups} top-up card baqi — PSN / UC / Robux codes mangwayein` : 'Top-up card khatam — PSN / UC / Robux codes mangwayein', to: '/gaming/topups', cta: 'Top-ups' });
   if (tournaments.today) items.push({ icon: Trophy, level: 'info', text: `${tournaments.today} tournament aaj hai — stations tayyar rakhein`, to: '/gaming/tournaments', cta: 'Tournament' });
   const paused = live.filter((s) => s.paused).length;
@@ -118,7 +118,7 @@ export function GamingStreams() {
       </ul>
       {!costHidden && streams.topupProfitMonth > 0 && (
         <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600">
-          Top-ups se is mahine {cost(streams.topupProfitMonth)} munafa
+          Top-ups se is mahine {cost(streams.topupProfitMonth)} profit
         </p>
       )}
     </WidgetCard>

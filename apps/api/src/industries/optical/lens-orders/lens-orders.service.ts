@@ -286,7 +286,7 @@ export class LensOrdersService {
     if (!o) throw new NotFoundException('Lens order not found');
     if (o.status === 'CANCELLED' || o.status === 'DELIVERED') throw new BadRequestException('Band order par payment nahi li ja sakti');
     const amount = Math.round(Number(dto.amount) * 100) / 100;
-    if (!(amount > 0)) throw new BadRequestException('Raqam 0 se zyada honi chahiye');
+    if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
 
     const newPaid = Math.round((o.paidAmount + amount) * 100) / 100;
     if (newPaid > o.totalPrice + 0.009) throw new BadRequestException(`Sirf Rs ${o.remainingAmount} baqi hain`);
@@ -354,7 +354,7 @@ export class LensOrdersService {
     const booking = await this.bookingFor(user.tenantId, o.orderNumber);
     if (booking && ['PENDING', 'ADVANCE_PAID', 'READY_FOR_PICKUP'].includes(booking.status)) {
       if (booking.totalPaid > 0) {
-        throw new BadRequestException('Is order par advance liya hua hai — pehle order cancel karein (advance wapsi ke sath)');
+        throw new BadRequestException('Is order par advance liya hua hai — pehle order cancel karein (advance return ke sath)');
       }
       await this.bookings.cancel(user, booking.id, { reason: `Lens order ${o.orderNumber} mitaya`, refundAdvance: false } as any);
     }

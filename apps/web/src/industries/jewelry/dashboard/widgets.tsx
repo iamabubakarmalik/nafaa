@@ -63,7 +63,7 @@ export function useJewelryAttention(): AttentionItem[] {
   else if (rates.stale) items.push({ icon: Coins, level: 'warning', text: `Rate ${rates.ageDays} din purana hai — aaj ka rate update karein`, to: '/jewelry/metal-rates', cta: 'Rate update' });
   if (orders.late.length) items.push({ icon: AlertTriangle, level: 'danger', text: `${orders.late.length} custom order ka waada guzar gaya — customer ko batayein`, to: '/jewelry/custom-orders', cta: 'Orders dekhein' });
   if (orders.soon.length) items.push({ icon: CalendarClock, level: 'info', text: `${orders.soon.length} custom order agle 2 din me dena hai`, to: '/jewelry/custom-orders', cta: 'Dekhein' });
-  if (karigars.gramsOut > 0) items.push({ icon: Hammer, level: 'neutral', text: `Karigaron ke paas ${fmtGrams(karigars.gramsOut)} metal hai — wapsi ka hisaab rakhein`, to: '/jewelry/karigars', cta: 'Karigar' });
+  if (karigars.gramsOut > 0) items.push({ icon: Hammer, level: 'neutral', text: `Karigaron ke paas ${fmtGrams(karigars.gramsOut)} metal hai — return ka hisaab rakhein`, to: '/jewelry/karigars', cta: 'Karigar' });
   return items;
 }
 

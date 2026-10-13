@@ -330,7 +330,7 @@ export function ApplianceWizardStep1Basic({ basic, onChange, errors }: Props) {
               className="h-14 w-full rounded-2xl border-2 border-slate-200 bg-white px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-slate-500" />
           </div>
           <div>
-            <Lbl tone="emerald">Retail Price (Bikri) *</Lbl>
+            <Lbl tone="emerald">Retail Price (Sale) *</Lbl>
             <input type="number" step="0.01" inputMode="decimal" value={basic.retailPrice}
               onChange={(e) => onChange({ retailPrice: e.target.value === '' ? '' : Number(e.target.value) })} placeholder="0"
               className="h-14 w-full rounded-2xl border-2 border-emerald-400 bg-emerald-50 px-4 text-2xl font-extrabold tabular-nums text-emerald-900 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200" />
@@ -394,7 +394,7 @@ export function ApplianceWizardStep1Basic({ basic, onChange, errors }: Props) {
                 onChange={(e) => onChange({ emiStartingFrom: e.target.value === '' ? '' : Number(e.target.value) })} placeholder="Per month"
                 leftIcon={<CreditCard className="h-4 w-4 text-slate-400" />} />
               <Input label="Cash Discount" type="number" step="0.01" value={basic.cashDiscount}
-                onChange={(e) => onChange({ cashDiscount: e.target.value === '' ? '' : Number(e.target.value) })} placeholder="Nakad par chhoot" />
+                onChange={(e) => onChange({ cashDiscount: e.target.value === '' ? '' : Number(e.target.value) })} placeholder="Nakad par discount" />
             </div>
           </div>
         )}

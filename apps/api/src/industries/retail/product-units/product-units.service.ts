@@ -56,7 +56,7 @@ export class ProductUnitsService {
     if (!product) throw new NotFoundException('Product nahi mila');
     if (!variantId) return { ...product, basePrice: Number(product.price) || 0, baseCost: Number(product.costPrice) || 0 };
     const variant = await this.prisma.productVariant.findFirst({ where: { id: variantId, productId }, select: { price: true, costPrice: true } });
-    if (!variant) throw new BadRequestException('Is product ki ye qism nahi mili');
+    if (!variant) throw new BadRequestException('Is product ki ye type nahi mili');
     return { ...product, basePrice: Number(variant.price) || 0, baseCost: Number(variant.costPrice || product.costPrice) || 0 };
   }
 
@@ -173,7 +173,7 @@ export class ProductUnitsService {
     const existing = await this.prisma.productUnit.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!existing) throw new NotFoundException('Unit nahi mila');
     if (dto.productId && dto.productId !== existing.productId) throw new BadRequestException('Unit doosre product par nahi ja sakta');
-    if (dto.variantId !== undefined && (dto.variantId || null) !== existing.variantId) throw new BadRequestException('Unit ki qism nahi badal sakti');
+    if (dto.variantId !== undefined && (dto.variantId || null) !== existing.variantId) throw new BadRequestException('Unit ki type nahi badal sakti');
 
     if (dto.unitName && dto.unitName.trim().toLowerCase() !== existing.unitName.trim().toLowerCase()) {
       await this.checkName(existing.productId, existing.variantId, dto.unitName, id);

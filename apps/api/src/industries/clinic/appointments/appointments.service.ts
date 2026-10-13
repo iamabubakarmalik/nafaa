@@ -184,7 +184,7 @@ export class AppointmentsService {
       throw new BadRequestException('Cancel / no-show appointment ki fees nahi li ja sakti');
     }
     const amount = Math.round(Number(body?.amount) * 100) / 100;
-    if (!(amount > 0)) throw new BadRequestException('Raqam 0 se zyada honi chahiye');
+    if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
     const remaining = Math.round((apt.total - apt.paidAmount) * 100) / 100;
     if (amount > remaining + 0.009) {
       throw new BadRequestException(remaining > 0 ? `Sirf Rs ${remaining} baqi hain` : 'Is appointment ki poori fees mil chuki hai');

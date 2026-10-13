@@ -118,7 +118,7 @@ export class SalesService {
 
     const paidAmount = Math.max(Number(dto.paidAmount) || 0, 0);
     if (paidAmount < total - 0.005 && !dto.customerId) {
-      throw new BadRequestException('Baqi raqam (udhaar) ke liye customer chunein');
+      throw new BadRequestException('Baqi amount (udhaar) ke liye customer chunein');
     }
     const paymentMethod = METHOD[(dto.paymentMethod || 'CASH').toUpperCase()];
     if (!paymentMethod) throw new BadRequestException('Payment ka tareeqa ghalat hai');
@@ -384,7 +384,7 @@ export class SalesService {
     if (core) {
       // The balance lives in the customer's khata; collecting it here would
       // leave the khata and the drawer out of step.
-      throw new BadRequestException('Baqi raqam customer ke Khata se wasool karein');
+      throw new BadRequestException('Baqi amount customer ke Khata se wasool karein');
     }
     const newPaid = s.paidAmount + Number(dto.amount);
     let paymentStatus = 'PARTIALLY_PAID';

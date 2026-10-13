@@ -41,7 +41,7 @@ export const meatKpis: KpiDef[] = [
     },
   },
   {
-    id: 'meat-invested', label: 'Janwaron par lagat', icon: Beef, tone: 'warning', sensitive: true,
+    id: 'meat-invested', label: 'Janwaron par cost', icon: Beef, tone: 'warning', sensitive: true,
     useValue: () => {
       const { livestock: l, loading } = useMeatOps();
       const { cost } = useMasked();

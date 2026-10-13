@@ -132,7 +132,7 @@ export default function CakeCustomizerPage() {
     if (!f.customerName.trim()) out.push('Customer ka naam likhein');
     if (f.customerPhone.replace(/\D/g, '').length < 10) out.push('Customer ka poora phone number likhein');
     if (f.size === 'CUSTOM' && !(num(f.customWeightKg) > 0)) out.push('Apne size ka wazan (kg) likhein');
-    if (!due) out.push('Cake kab chahiye — tareekh aur waqt chunein');
+    if (!due) out.push('Cake kab chahiye — date aur waqt chunein');
     else if (!editing && due.getTime() < Date.now() - 5 * 60_000) out.push('Yeh waqt guzar chuka — aage ka waqt chunein');
     if (!(num(f.basePrice) > 0)) out.push('Cake ki qeemat likhein');
     if (isDelivery(f.deliveryType) && !f.deliveryAddress.trim()) out.push('Pahunchane ka pata likhein');
@@ -302,7 +302,7 @@ export default function CakeCustomizerPage() {
                 <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Sajawat</span>
                 <div className="flex flex-wrap gap-1.5">{[...DECORATIONS, ...f.decorativeItems.filter((d) => !DECORATIONS.includes(d))].map((d) => <Chip key={d} on={f.decorativeItems.includes(d)} onClick={() => set('decorativeItems', toggle(f.decorativeItems, d))}>{d}</Chip>)}</div>
               </div>
-              <Textarea label="Design ki tafseel" value={f.designInstructions} onChange={(e) => set('designInstructions', e.target.value)} rows={3} maxLength={2000} placeholder="Upar 3 gulab, side par sunehri moti, neeche naam…" hint="Jitna saaf likhenge, utni kam ghalti" />
+              <Textarea label="Design ki details" value={f.designInstructions} onChange={(e) => set('designInstructions', e.target.value)} rows={3} maxLength={2000} placeholder="Upar 3 gulab, side par sunehri moti, neeche naam…" hint="Jitna saaf likhenge, utni kam ghalti" />
               <div className="grid gap-3 sm:grid-cols-4">
                 <Input label="Mombatti" inputMode="numeric" value={f.candlesRequired} onChange={(e) => set('candlesRequired', e.target.value.replace(/\D/g, ''))} placeholder="0" />
                 <Input label="Kaisi mombatti" value={f.candleType} onChange={(e) => set('candleType', e.target.value)} placeholder="Number, sparkler" wrapperClassName="sm:col-span-3" />
@@ -320,7 +320,7 @@ export default function CakeCustomizerPage() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <Input label="Kis ke liye" value={f.celebrantName} onChange={(e) => set('celebrantName', e.target.value)} placeholder="Ali" hint="Jis ki salgirah / shadi hai" />
                 <Input label="Umar" inputMode="numeric" value={f.celebrantAge} onChange={(e) => set('celebrantAge', e.target.value.replace(/\D/g, ''))} placeholder="5" hint="Birthday ho to" />
-                <Input label="Function ki tareekh" type="date" value={f.eventDate} onChange={(e) => set('eventDate', e.target.value)} hint="Marzi hai" />
+                <Input label="Function ki date" type="date" value={f.eventDate} onChange={(e) => set('eventDate', e.target.value)} hint="Marzi hai" />
                 <Input label="Function ka waqt" type="time" value={f.eventTime} onChange={(e) => set('eventTime', e.target.value)} hint="Marzi hai" />
                 <Input label="Jagah" value={f.eventVenue} onChange={(e) => set('eventVenue', e.target.value)} placeholder="Ghar, hall ka naam" wrapperClassName="sm:col-span-2" hint="Marzi hai" />
               </div>
@@ -341,7 +341,7 @@ export default function CakeCustomizerPage() {
                 ))}
               </div>
               <Input label={delivers ? 'Kab pahunchana hai' : 'Customer kab lega'} required type="datetime-local" value={f.neededBy} onChange={(e) => set('neededBy', e.target.value)}
-                hint={due ? dateTime(due.toISOString()) : 'Tareekh aur waqt dono'} />
+                hint={due ? dateTime(due.toISOString()) : 'Date aur waqt dono'} />
               <div className="flex flex-wrap gap-1.5">{quickTimes().map((t) => <Chip key={t.label} on={f.neededBy === toLocalInput(t.d.toISOString())} onClick={() => set('neededBy', toLocalInput(t.d.toISOString()))}><Clock className="h-3 w-3" />{t.label}</Chip>)}</div>
               {delivers && (
                 <>
@@ -362,7 +362,7 @@ export default function CakeCustomizerPage() {
                 <Input label="Design / sajawat" inputMode="decimal" value={f.customizationCharges} onChange={(e) => set('customizationCharges', digitsOnly(e.target.value))} placeholder="0" />
                 <Input label="Photo cake" inputMode="decimal" value={f.photoCakeCharges} onChange={(e) => set('photoCakeCharges', digitsOnly(e.target.value))} placeholder="0" />
                 <Input label="Tax" inputMode="decimal" value={f.taxAmount} onChange={(e) => set('taxAmount', digitsOnly(e.target.value))} placeholder="0" />
-                <Input label="Chhoot" inputMode="decimal" value={f.discount} onChange={(e) => set('discount', digitsOnly(e.target.value))} placeholder="0" />
+                <Input label="Discount" inputMode="decimal" value={f.discount} onChange={(e) => set('discount', digitsOnly(e.target.value))} placeholder="0" />
               </div>
               <dl className="space-y-1 rounded-xl bg-slate-50 p-3 text-[0.8125rem]">
                 <Row k="Cake" v={formatPKR(num(f.basePrice))} />
@@ -370,7 +370,7 @@ export default function CakeCustomizerPage() {
                 {num(f.photoCakeCharges) > 0 && <Row k="Photo cake" v={`+${formatPKR(num(f.photoCakeCharges))}`} />}
                 {delivers && num(f.deliveryCharges) > 0 && <Row k="Delivery" v={`+${formatPKR(num(f.deliveryCharges))}`} />}
                 {num(f.taxAmount) > 0 && <Row k="Tax" v={`+${formatPKR(num(f.taxAmount))}`} />}
-                {num(f.discount) > 0 && <Row k="Chhoot" v={`−${formatPKR(num(f.discount))}`} />}
+                {num(f.discount) > 0 && <Row k="Discount" v={`−${formatPKR(num(f.discount))}`} />}
                 <Row k="Kul" v={formatPKR(total)} strong />
               </dl>
               <div>

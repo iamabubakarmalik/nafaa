@@ -213,7 +213,7 @@ function BulkSerialModal({
             <input type="date" value={warrantyStart} onChange={(e) => setWarrantyStart(e.target.value)}
               className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition" />
             <p className="mt-1.5 text-[0.6875rem] font-semibold text-slate-500">
-              Product ki warranty ke mahine isi tareekh se ginay jayenge
+              Product ki warranty ke mahine isi date se ginay jayenge
             </p>
           </div>
 

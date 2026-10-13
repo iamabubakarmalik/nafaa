@@ -37,7 +37,7 @@ export function StatTile({ icon: I, label, value, sub, tone = 'brand' }: { icon:
 
 interface RankedRow { key: string; label: ReactNode; value: number; display: ReactNode; sub?: ReactNode; color?: string }
 
-export function RankedBars({ rows, empty = 'Is muddat me kuch nahi', limit = 8, onPick }: { rows: RankedRow[]; empty?: string; limit?: number; onPick?: (key: string) => void }) {
+export function RankedBars({ rows, empty = 'Is period me kuch nahi', limit = 8, onPick }: { rows: RankedRow[]; empty?: string; limit?: number; onPick?: (key: string) => void }) {
   if (!rows.length) return <EmptyChart text={empty} />;
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
@@ -65,7 +65,7 @@ export function RankedBars({ rows, empty = 'Is muddat me kuch nahi', limit = 8, 
   );
 }
 
-export function EmptyChart({ text = 'Is muddat me kuch nahi' }: { text?: string }) {
+export function EmptyChart({ text = 'Is period me kuch nahi' }: { text?: string }) {
   return <p className="py-10 text-center text-[0.875rem] text-slate-500">{text}</p>;
 }
 

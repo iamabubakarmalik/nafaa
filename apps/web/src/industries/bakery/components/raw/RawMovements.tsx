@@ -29,7 +29,7 @@ export function MovementRecord({ range, type, search }: { range: { from: string;
   const rows = (q.data?.rows ?? []).filter((r) => !t || r.ingredient.name.toLowerCase().includes(t) || (r.reason ?? '').toLowerCase().includes(t) || (r.notes ?? '').toLowerCase().includes(t));
   if (q.isError && !q.data) return <LoadFailed what="Record" retry={() => q.refetch()} />;
   if (!q.data) return <div className="space-y-2 rounded-3xl bg-white p-4 ring-1 ring-slate-200/80">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>;
-  if (!rows.length) return <div className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Is muddat me koi record nahi</div>;
+  if (!rows.length) return <div className="rounded-3xl bg-white px-6 py-14 text-center text-sm text-slate-500 ring-1 ring-slate-200/80">Is period me koi record nahi</div>;
   return (
     <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       <div className="overflow-x-auto">
@@ -37,7 +37,7 @@ export function MovementRecord({ range, type, search }: { range: { from: string;
           <thead>
             <tr className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
               <th className="px-4 py-2.5">Kab</th><th className="px-2 py-2.5">Kya</th><th className="px-2 py-2.5">Saamaan</th><th className="px-2 py-2.5">Wajah / note</th>
-              <th className="px-2 py-2.5 text-right">Miqdar</th><th className="px-4 py-2.5 text-right">Rakam</th>
+              <th className="px-2 py-2.5 text-right">Quantity</th><th className="px-4 py-2.5 text-right">Rakam</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -54,7 +54,7 @@ export function MovementRecord({ range, type, search }: { range: { from: string;
           </tbody>
         </table>
       </div>
-      {q.data.rows.length >= 300 && <p className="border-t border-slate-100 px-4 py-2 text-[0.75rem] text-slate-500">Aakhri 300 dikh rahe hain — chhoti muddat chunein</p>}
+      {q.data.rows.length >= 300 && <p className="border-t border-slate-100 px-4 py-2 text-[0.75rem] text-slate-500">Aakhri 300 dikh rahe hain — chhoti period chunein</p>}
     </div>
   );
 }
@@ -80,12 +80,12 @@ export function RawAnalytics({ range, items }: { range: { from: string; to: stri
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile icon={ArrowDownToLine} label="Khareeda" value={money(t.PURCHASE.cost)} sub={`${t.PURCHASE.count} dafa maal aaya`} tone="green" />
         <StatTile icon={Utensils} label="Banane me laga" value={money(t.CONSUMPTION.cost)} sub={`${t.CONSUMPTION.count} dafa istemal`} tone="brand" />
-        <StatTile icon={Flame} label="Zaya" value={money(t.WASTE.cost)} sub={`${t.WASTE.count} dafa`} tone="rose" />
+        <StatTile icon={Flame} label="Waste" value={money(t.WASTE.cost)} sub={`${t.WASTE.count} dafa`} tone="rose" />
         <StatTile icon={Scale} label="Ginti ka farq" value={money(t.ADJUSTMENT.cost)} sub={`${t.ADJUSTMENT.count} dafa theek kiya`} tone="violet" />
       </div>
       {!costHidden && (
-        <Card className="rounded-2xl" title={<CardTitle icon={CalendarDays}>Har din</CardTitle>} description="Kitne ka aaya, kitne ka laga, kitne ka zaya">
-          {!days.length ? <p className="py-10 text-center text-sm text-slate-500">Is muddat me kuch nahi</p> : (
+        <Card className="rounded-2xl" title={<CardTitle icon={CalendarDays}>Har din</CardTitle>} description="Kitne ka aaya, kitne ka laga, kitne ka waste">
+          {!days.length ? <p className="py-10 text-center text-sm text-slate-500">Is period me kuch nahi</p> : (
             <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={days} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
@@ -104,8 +104,8 @@ export function RawAnalytics({ range, items }: { range: { from: string; to: stri
         </Card>
       )}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-2xl" title={<CardTitle icon={Boxes}>Sab se zyada kya laga</CardTitle>} description="Banane me istemal ki lagat">
-          <RankedBars rows={d.byIngredient.filter((i) => i.used > 0).map((i) => ({ key: i.id, label: i.name, value: i.cost ?? i.used, display: costHidden ? `${fmtQty(i.used)} ${i.unit}` : `${fmtQty(i.used)} ${i.unit} · ${cost(i.cost ?? 0)}`, sub: i.wasted ? `${fmtQty(i.wasted)} ${i.unit} zaya` : undefined }))} empty="Is muddat me recipe se kuch istemal nahi hua" />
+        <Card className="rounded-2xl" title={<CardTitle icon={Boxes}>Sab se zyada kya laga</CardTitle>} description="Banane me istemal ki cost">
+          <RankedBars rows={d.byIngredient.filter((i) => i.used > 0).map((i) => ({ key: i.id, label: i.name, value: i.cost ?? i.used, display: costHidden ? `${fmtQty(i.used)} ${i.unit}` : `${fmtQty(i.used)} ${i.unit} · ${cost(i.cost ?? 0)}`, sub: i.wasted ? `${fmtQty(i.wasted)} ${i.unit} waste` : undefined }))} empty="Is period me recipe se kuch istemal nahi hua" />
         </Card>
         <Card className="rounded-2xl" title={<CardTitle icon={PieChart}>Gudaam me paisa</CardTitle>} description="Abhi ka stock, aaj ke rate se">
           <RankedBars rows={byCategory.map((c) => ({ key: c.key, label: `${rawCategoryOf(c.key).emoji} ${rawCategoryOf(c.key).label}`, value: c.value, display: money(c.value), color: '#a16207' }))} empty="Gudaam khali hai" />

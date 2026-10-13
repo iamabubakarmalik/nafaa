@@ -53,7 +53,7 @@ export default function CustomOrdersPage() {
       return customOrdersApi.updateStatus(id, status, reason);
     },
     onSuccess: (_d, v) => {
-      toast.success(v.status === 'DELIVERED' ? 'Deliver ho gaya — bill ban gaya, baqi raqam khata me' : 'Status badal gaya');
+      toast.success(v.status === 'DELIVERED' ? 'Deliver ho gaya — bill ban gaya, baqi amount khata me' : 'Status badal gaya');
       refresh();
     },
     onError: onFail,
@@ -61,12 +61,12 @@ export default function CustomOrdersPage() {
 
   const paymentMutation = useMutation({
     mutationFn: ({ id, amount }: { id: string; amount: number }) => customOrdersApi.addPayment(id, amount),
-    onSuccess: () => { toast.success('Raqam mil gayi — customer ke khata me jama'); refresh(); },
+    onSuccess: () => { toast.success('Amount mil gayi — customer ke khata me jama'); refresh(); },
     onError: onFail,
   });
 
   const advance = (order: any) => {
-    const v = Number(window.prompt(`${order.orderNumber}: kitni raqam mili?`, '') || 0);
+    const v = Number(window.prompt(`${order.orderNumber}: kitni amount mili?`, '') || 0);
     if (v > 0) paymentMutation.mutate({ id: order.id, amount: v });
   };
 
@@ -215,7 +215,7 @@ export default function CustomOrdersPage() {
                       </button>
                     )}
                     <div className="grid grid-cols-2 gap-2">
-                      <button disabled={paymentMutation.isPending} onClick={() => advance(order)} className="h-8 rounded-lg border-2 border-emerald-300 text-emerald-700 text-xs font-extrabold disabled:opacity-50">+ Raqam li</button>
+                      <button disabled={paymentMutation.isPending} onClick={() => advance(order)} className="h-8 rounded-lg border-2 border-emerald-300 text-emerald-700 text-xs font-extrabold disabled:opacity-50">+ Amount li</button>
                       <button disabled={statusMutation.isPending} onClick={() => cancelOrder(order)} className="h-8 rounded-lg border-2 border-rose-200 text-rose-600 text-xs font-extrabold disabled:opacity-50">Cancel</button>
                     </div>
                   </div>

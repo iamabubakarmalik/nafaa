@@ -247,7 +247,7 @@ function ExchangeFormModal({ onClose, onSaved }: any) {
             </div>
           ) : (
             <div>
-              <input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Joota dhoondein (naam / SKU) *"
+              <input value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Joota search (naam / SKU) *"
                 className="h-11 w-full rounded-xl border-2 border-slate-200 px-3 text-sm font-bold" />
               {((productHits as any)?.items ?? []).length > 0 && (
                 <div className="mt-1 rounded-xl border-2 border-slate-200 divide-y max-h-48 overflow-y-auto">

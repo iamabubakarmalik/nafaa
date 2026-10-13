@@ -94,9 +94,9 @@ export default function ApplianceWarrantyClaimsPage() {
       [`Nikala gaya: ${new Date().toLocaleString('en-PK')}`],
       m ? [`Claim kiya ${m.claimed.toFixed(0)} • Mila ${m.received.toFixed(0)} • Baqi ${m.pending.toFixed(0)} • Recovery ${m.recoveryRate.toFixed(1)}%`] : [],
       [],
-      ['Claim #', 'Tareekh', 'Halat', 'Brand', 'Cheez', 'Serial', 'Warranty ki qism',
-       'Customer', 'Phone', 'Repair #', 'Parts', 'Labor', 'Baqi kharcha',
-       'Claim ki raqam', 'Brand ne manzoor', 'Paisa mila', 'Baqi', 'Brand ref', 'Din'],
+      ['Claim #', 'Date', 'Halat', 'Brand', 'Cheez', 'Serial', 'Warranty ki type',
+       'Customer', 'Phone', 'Repair #', 'Parts', 'Labor', 'Baqi expense',
+       'Claim ki amount', 'Brand ne approve', 'Paisa mila', 'Baqi', 'Brand ref', 'Din'],
       ...rows.map((c) => [
         c.claimNumber, fmtDate(c.claimDate), claimStatusMeta(c.status).label,
         c.brandName ?? '', c.productName, c.serialNumber ?? '',
@@ -117,7 +117,7 @@ export default function ApplianceWarrantyClaimsPage() {
       <h2 class="sec">🛡️ Warranty Claims</h2>
       <table>
         <thead><tr>
-          <th>#</th><th>Claim / Tareekh</th><th>Brand</th><th>Cheez / Serial</th>
+          <th>#</th><th>Claim / Date</th><th>Brand</th><th>Cheez / Serial</th>
           <th class="c">Halat</th><th class="r">Claim</th><th class="r">Mila</th><th class="r">Baqi</th>
         </tr></thead>
         <tbody>
@@ -223,7 +223,7 @@ export default function ApplianceWarrantyClaimsPage() {
           sub={`${(m?.recoveryRate ?? 0).toFixed(0)}% recovery rate`} />
         <Kpi icon={AlertTriangle} tone="rose" label="Claim Banaya Hi Nahi"
           value={summary?.missing?.count ?? 0}
-          sub={`${formatPKR(summary?.missing?.recoverable ?? 0)} zaya ho raha hai`}
+          sub={`${formatPKR(summary?.missing?.recoverable ?? 0)} waste ho raha hai`}
           alert={(summary?.missing?.count ?? 0) > 0}
           onClick={() => setTab('missing')} active={tab === 'missing'} />
         <Kpi icon={Clock} tone="violet" label="30 Din Se Latke" value={summary?.stale ?? 0}
@@ -235,7 +235,7 @@ export default function ApplianceWarrantyClaimsPage() {
           <Percent className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="text-xs font-bold text-amber-900 dark:text-amber-200">
             Brand ne kul <strong>{formatPKR(m!.shortfall)}</strong> kaat diya — yani jitna claim kiya tha
-            us se itna kam manzoor hua. Jis brand ka ye number bara ho, uske sath rate dobara tay karein.
+            us se itna kam approve hua. Jis brand ka ye number bara ho, uske sath rate dobara tay karein.
           </div>
         </div>
       )}
@@ -328,7 +328,7 @@ export default function ApplianceWarrantyClaimsPage() {
           <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3 flex items-start gap-2.5">
             <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
             <div className="text-xs font-bold text-rose-900 dark:text-rose-200">
-              Ye wo <strong>warranty repairs</strong> hain jo aap ne free kiye — parts aur labor ka kharcha
+              Ye wo <strong>warranty repairs</strong> hain jo aap ne free kiye — parts aur labor ka expense
               aap ne bhara — lekin <strong>brand se claim banaya hi nahi</strong>.
               Kul <strong className="text-sm">{formatPKR(missing?.totalRecoverable ?? 0)}</strong> wapas mil sakta hai.
             </div>
@@ -336,7 +336,7 @@ export default function ApplianceWarrantyClaimsPage() {
 
           {(missing?.items ?? []).length === 0 ? (
             <Empty icon={CheckCircle2} title="Har warranty repair ka claim ban chuka hai 🎉"
-              hint="Koi paisa zaya nahi ho raha — behtareen." />
+              hint="Koi paisa waste nahi ho raha — behtareen." />
           ) : (
             <div className="space-y-2">
               {(missing?.items ?? []).map((r) => (
@@ -555,7 +555,7 @@ function MissingCard({ r, pending, onMake }: { r: MissingClaim; pending: boolean
       <button onClick={onMake} disabled={pending}
         className="mt-3 w-full h-11 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-700 hover:from-cyan-500 hover:to-teal-600 disabled:opacity-50 text-white text-xs font-extrabold inline-flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/30 transition active:scale-[0.98]">
         {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-        Claim Banayein — tafseel khud bhar jayegi
+        Claim Banayein — details khud bhar jayegi
       </button>
     </div>
   );
@@ -584,7 +584,7 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
   const submitMut = useMutation({ mutationFn: (v: any) => warrantyClaimsApi.submit(id, v), onSuccess: () => after('Brand ko bhej diya ✓'), onError: fail });
   const respMut = useMutation({ mutationFn: (v: any) => warrantyClaimsApi.brandResponse(id, v), onSuccess: () => after('Brand ka jawab darj ✓'), onError: fail });
   const settleMut = useMutation({ mutationFn: (v: any) => warrantyClaimsApi.settle(id, v), onSuccess: () => after('Paisa darj ho gaya ✓'), onError: fail });
-  const costMut = useMutation({ mutationFn: (v: any) => warrantyClaimsApi.update(id, v), onSuccess: () => after('Kharcha update ✓'), onError: fail });
+  const costMut = useMutation({ mutationFn: (v: any) => warrantyClaimsApi.update(id, v), onSuccess: () => after('Expense update ✓'), onError: fail });
   const delMut = useMutation({
     mutationFn: () => warrantyClaimsApi.remove(id),
     onSuccess: () => { toast.success('Claim delete ho gaya'); onChanged(); onClose(); }, onError: fail,
@@ -648,14 +648,14 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
 
   <h1>Warranty Claim — ${escapeHtml(c.brandName ?? 'Brand')}</h1>
 
-  <h2>Unit Ki Tafseel</h2>
+  <h2>Unit Ki Details</h2>
   <table>
     <tr><td class="k">Product</td><td class="v">${escapeHtml(c.productName)}</td></tr>
     ${c.modelNumber ? `<tr><td class="k">Model</td><td class="v">${escapeHtml(c.modelNumber)}</td></tr>` : ''}
     ${c.serialNumber ? `<tr><td class="k">Serial Number</td><td class="v" style="font-family:monospace;">${escapeHtml(c.serialNumber)}</td></tr>` : ''}
-    ${c.purchaseDate ? `<tr><td class="k">Bikne ki tareekh</td><td class="v">${fmtDate(c.purchaseDate)}</td></tr>` : ''}
+    ${c.purchaseDate ? `<tr><td class="k">Bikne ki date</td><td class="v">${fmtDate(c.purchaseDate)}</td></tr>` : ''}
     ${c.invoiceNumber ? `<tr><td class="k">Invoice</td><td class="v">${escapeHtml(c.invoiceNumber)}</td></tr>` : ''}
-    <tr><td class="k">Warranty ki qism</td><td class="v">${escapeHtml(wk.label)}</td></tr>
+    <tr><td class="k">Warranty ki type</td><td class="v">${escapeHtml(wk.label)}</td></tr>
   </table>
 
   <h2>Customer</h2>
@@ -667,30 +667,30 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
   <h2>Kya Kharabi Thi aur Kya Kiya</h2>
   <table>
     <tr><td class="k">Kharabi</td><td class="v">${escapeHtml(c.issue)}</td></tr>
-    ${c.issueCategory ? `<tr><td class="k">Qism</td><td class="v">${escapeHtml(c.issueCategory)}</td></tr>` : ''}
+    ${c.issueCategory ? `<tr><td class="k">Type</td><td class="v">${escapeHtml(c.issueCategory)}</td></tr>` : ''}
     ${c.service?.workDone ? `<tr><td class="k">Kaam kiya</td><td class="v">${escapeHtml(c.service.workDone)}</td></tr>` : ''}
     ${c.service?.technicianName ? `<tr><td class="k">Technician</td><td class="v">${escapeHtml(c.service.technicianName)}</td></tr>` : ''}
     ${c.service?.completedAt ? `<tr><td class="k">Mukammal hua</td><td class="v">${fmtDate(c.service.completedAt)}</td></tr>` : ''}
     ${c.serviceRequestNumber ? `<tr><td class="k">Service Request</td><td class="v">${escapeHtml(c.serviceRequestNumber)}</td></tr>` : ''}
   </table>
 
-  <h2>Kharcha</h2>
+  <h2>Expense</h2>
   <div class="money">
     <div class="row"><span>Parts</span><span>${formatPKR(c.partsCost)}</span></div>
     <div class="row"><span>Labor / visit</span><span>${formatPKR(c.laborCost)}</span></div>
-    ${c.otherCost > 0 ? `<div class="row"><span>Baqi kharcha</span><span>${formatPKR(c.otherCost)}</span></div>` : ''}
+    ${c.otherCost > 0 ? `<div class="row"><span>Baqi expense</span><span>${formatPKR(c.otherCost)}</span></div>` : ''}
     <div class="row g"><span>KUL CLAIM</span><span>${formatPKR(c.claimedAmount)}</span></div>
   </div>
 
   <div class="note">
     Mohtaram, ye unit warranty ke arse me kharab hua aur hamari dukaan ne customer se koi paisa liye
-    baghair theek kiya. Bara-e-meherbani upar likhi hui raqam ki adaigi ki jaye ya parts ka replacement
+    baghair theek kiya. Bara-e-meherbani upar likhi hui amount ki payment ki jaye ya parts ka replacement
     bheja jaye. Zaroori kaghazat (invoice, service report, tasaweer) sath mansooba hain.
   </div>
 
   <div class="signs">
     <div class="sg">${escapeHtml(shopName)} ki janib se</div>
-    <div class="sg">${escapeHtml(c.brandName ?? 'Brand')} ki janib se — wusooli</div>
+    <div class="sg">${escapeHtml(c.brandName ?? 'Brand')} ki janib se — receiving</div>
   </div>
   <div class="foot">Powered by <strong>Nafaa POS</strong> — ${new Date().getFullYear()}</div>
   <script>window.onload=function(){setTimeout(function(){window.print();},400);};</script>
@@ -701,7 +701,7 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
   const timeline = [
     { at: c.claimDate, label: 'Claim bana', emoji: '📝' },
     { at: c.submittedAt, label: `Brand ko bheja${c.brandRef ? ` — ref ${c.brandRef}` : ''}`, emoji: '📤' },
-    { at: c.brandRespondedAt, label: `Brand ka jawab${c.approvedAmount > 0 ? ` — ${formatPKR(c.approvedAmount)} manzoor` : ''}`, emoji: '💬' },
+    { at: c.brandRespondedAt, label: `Brand ka jawab${c.approvedAmount > 0 ? ` — ${formatPKR(c.approvedAmount)} approve` : ''}`, emoji: '💬' },
     { at: c.settledAt, label: `Paisa mila — ${formatPKR(c.receivedAmount)}`, emoji: '💰' },
   ].filter((t) => t.at);
 
@@ -723,7 +723,7 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
             <>
               <button onClick={() => setMode('costs')}
                 className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
-                <Pencil className="h-4 w-4" /> Kharcha
+                <Pencil className="h-4 w-4" /> Expense
               </button>
               <button onClick={() => { if (confirm('Ye claim delete karein?')) delMut.mutate(); }}
                 className="h-11 px-4 rounded-xl border-2 border-rose-200 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
@@ -775,11 +775,11 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <Box label="Parts" value={formatPKR(c.partsCost)} />
               <Box label="Labor / visit" value={formatPKR(c.laborCost)} />
-              <Box label="Baqi kharcha" value={formatPKR(c.otherCost)} />
+              <Box label="Baqi expense" value={formatPKR(c.otherCost)} />
             </div>
             <div className="mt-2 grid grid-cols-3 gap-2">
               <Box label="Claim kiya" value={formatPKR(c.claimedAmount)} tone="cyan" />
-              <Box label="Brand ne manzoor" value={c.approvedAmount > 0 ? formatPKR(c.approvedAmount) : '—'} tone="amber" />
+              <Box label="Brand ne approve" value={c.approvedAmount > 0 ? formatPKR(c.approvedAmount) : '—'} tone="amber" />
               <Box label="Paisa mila" value={formatPKR(c.receivedAmount)} tone="emerald" />
             </div>
             {pending > 0 && (
@@ -807,7 +807,7 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
               <Row label="Brand" value={c.brandName ?? '—'} />
               {c.modelNumber && <Row label="Model" value={c.modelNumber} />}
               {c.serialNumber && <Row label="Serial" value={c.serialNumber} />}
-              <Row label="Warranty ki qism" value={`${wk.emoji} ${wk.label}`} />
+              <Row label="Warranty ki type" value={`${wk.emoji} ${wk.label}`} />
               {c.purchaseDate && <Row label="Bika" value={fmtDate(c.purchaseDate)} />}
               {c.invoiceNumber && <Row label="Invoice" value={c.invoiceNumber} />}
               <Row label="Customer" value={`${c.customerName}${c.customerPhone ? ` — ${c.customerPhone}` : ''}`} />
@@ -914,7 +914,7 @@ function CostForm({ claim, pending, onCancel, onSubmit }: any) {
   const total = (Number(parts) || 0) + (Number(labor) || 0) + (Number(other) || 0);
 
   return (
-    <Panel icon={Wallet} title="Kharcha Theek Karein" hint="Jitna dukaan ne apni jeb se lagaya" tone="cyan">
+    <Panel icon={Wallet} title="Expense Theek Karein" hint="Jitna dukaan ne apni jeb se lagaya" tone="cyan">
       <div className="space-y-3">
         <div className="grid grid-cols-3 gap-2">
           <Field label="Parts">
@@ -952,9 +952,9 @@ function SubmitForm({ claim, pending, onCancel, onSubmit }: any) {
     <Panel icon={Send} title="Brand Ko Bhejein" hint="Jo reference brand ne diya wo likh lein — baad me dhoondna asaan" tone="blue">
       <div className="space-y-3">
         <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3 text-xs font-bold text-blue-900 dark:text-blue-200">
-          Claim ki raqam: <strong className="text-sm">{formatPKR(claim.claimedAmount)}</strong>
+          Claim ki amount: <strong className="text-sm">{formatPKR(claim.claimedAmount)}</strong>
           <div className="mt-1 font-semibold">
-            "Claim Letter" print kar ke brand ko bhejein — us par saari tafseel aur dono dastakhaton ki jagah hai.
+            "Claim Letter" print kar ke brand ko bhejein — us par saari details aur dono dastakhaton ki jagah hai.
           </div>
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
@@ -999,13 +999,13 @@ function ResponseForm({ claim, pending, onCancel, onSubmit }: any) {
   const isReject = status === 'REJECTED';
 
   return (
-    <Panel icon={CheckCircle2} title="Brand Ka Jawab" hint="Brand ne kya kaha aur kitna manzoor kiya" tone="cyan">
+    <Panel icon={CheckCircle2} title="Brand Ka Jawab" hint="Brand ne kya kaha aur kitna approve kiya" tone="cyan">
       <div className="space-y-3">
         <Field label="Brand ne kya kaha" required>
           <div className="grid grid-cols-2 gap-2">
             {([
-              ['APPROVED', '✅ Poora manzoor'],
-              ['PARTIALLY_APPROVED', '➗ Thora manzoor'],
+              ['APPROVED', '✅ Poora approve'],
+              ['PARTIALLY_APPROVED', '➗ Thora approve'],
               ['BRAND_REVIEWING', '🔍 Abhi dekh rahe hain'],
               ['REJECTED', '❌ Mana kar diya'],
             ] as const).map(([v, label]) => (
@@ -1020,7 +1020,7 @@ function ResponseForm({ claim, pending, onCancel, onSubmit }: any) {
         </Field>
 
         {!isReject && status !== 'BRAND_REVIEWING' && (
-          <Field label="Brand ne kitna manzoor kiya" required
+          <Field label="Brand ne kitna approve kiya" required
             error={tooMuch ? `Claim ${formatPKR(claim.claimedAmount)} se ziyada nahi ho sakta` : undefined}>
             <input type="number" min={0} max={claim.claimedAmount}
               className={inputCls('h-12 text-base font-extrabold tabular-nums', tooMuch)}
@@ -1091,7 +1091,7 @@ function SettleForm({ claim, pending, onCancel, onSubmit }: any) {
         </Field>
         {claim.approvedAmount > 0 && (
           <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-            Brand ne {formatPKR(claim.approvedAmount)} manzoor kiya tha
+            Brand ne {formatPKR(claim.approvedAmount)} approve kiya tha
           </div>
         )}
         <Field label="Note" hint="optional">
@@ -1118,7 +1118,7 @@ function ClaimTeacher({ onClose }: { onClose: () => void }) {
       intro={
         <>
           Jab koi cheez <strong>warranty ke arse me kharab</strong> hoti hai, dukaan customer se paisa nahi leti —
-          parts aur labor ka kharcha <strong>apni jeb se</strong> bhardti hai. Us ke baad company se wo paisa
+          parts aur labor ka expense <strong>apni jeb se</strong> bhardti hai. Us ke baad company se wo paisa
           wapas liya jata hai. Ye page usi ka hisab rakhta hai.
         </>
       }
@@ -1129,18 +1129,18 @@ function ClaimTeacher({ onClose }: { onClose: () => void }) {
           tips: [
             <>Ye wo <strong>warranty repairs</strong> hain jo aap free kar chuke hain lekin <strong>claim banaya hi nahi</strong></>,
             <>Upar bara likha hota hai ke <strong>kitna paisa wapas mil sakta hai</strong> — aksar ye hazaron me hota hai</>,
-            <>Ek button — <strong>"Claim Banayein"</strong> — repair ki saari tafseel khud bhar jati hai: parts, labor, serial, warranty ki qism, customer</>,
-            <>Ye paisa <strong>khamoshi se zaya</strong> hota rehta hai. Hafte me ek bar ye tab zaroor kholein</>,
+            <>Ek button — <strong>"Claim Banayein"</strong> — repair ki saari details khud bhar jati hai: parts, labor, serial, warranty ki type, customer</>,
+            <>Ye paisa <strong>khamoshi se waste</strong> hota rehta hai. Hafte me ek bar ye tab zaroor kholein</>,
           ],
         },
         {
           title: '📤 Claim ka safar',
           tone: 'blue',
           tips: [
-            <><strong>📝 Bheja nahi</strong> — claim ban gaya, kharcha theek kar lein</>,
-            <><strong>"Claim Letter"</strong> print karein — A4 par unit ki tafseel, kya kharabi thi, kya kaam kiya, aur kharche ka hisab. Brand ko yahi bhejein</>,
+            <><strong>📝 Bheja nahi</strong> — claim ban gaya, expense theek kar lein</>,
+            <><strong>"Claim Letter"</strong> print karein — A4 par unit ki details, kya kharabi thi, kya kaam kiya, aur expenses ka hisab. Brand ko yahi bhejein</>,
             <><strong>📤 Brand ko bheja</strong> — brand ka reference number zaroor likhein, baad me dhoondna asaan</>,
-            <><strong>💬 Brand ka jawab</strong> — poora manzoor, thora manzoor, ya mana. Jitna manzoor hua wo likhein</>,
+            <><strong>💬 Brand ka jawab</strong> — poora approve, thora approve, ya mana. Jitna approve hua wo likhein</>,
             <><strong>💰 Paisa mila</strong> — jab cheque/parts aa jayein</>,
           ],
         },
@@ -1150,7 +1150,7 @@ function ClaimTeacher({ onClose }: { onClose: () => void }) {
           tips: [
             <><strong>Recovery rate</strong> — kis brand ne kitna paisa diya. <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">80%+</span> acha, <span className="text-rose-600 dark:text-rose-400 font-extrabold">40% se kam</span> masla hai</>,
             <>Jis brand ka rate kam ho, uske sath <strong>rate dobara tay karein</strong> — ya us brand ka maal kam rakhein</>,
-            <><strong>"Brand ne kaat diya"</strong> — jitna claim kiya us se kam manzoor hua. Ye seedha nuqsan hai</>,
+            <><strong>"Brand ne kaat diya"</strong> — jitna claim kiya us se kam approve hua. Ye seedha nuqsan hai</>,
           ],
         },
         {

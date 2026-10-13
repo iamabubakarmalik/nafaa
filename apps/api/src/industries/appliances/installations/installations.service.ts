@@ -295,7 +295,7 @@ export class InstallationsService {
       : (dto.paidByCustomer ?? totalCharge);
 
     if (paidByCustomer > totalCharge) {
-      throw new BadRequestException('Wusool shuda raqam kul bill se ziyada nahi ho sakti');
+      throw new BadRequestException('Receive shuda amount kul bill se ziyada nahi ho sakti');
     }
 
     const now = new Date();
@@ -399,7 +399,7 @@ export class InstallationsService {
 
     const due = Number(i.totalCharge) - Number(i.paidByCustomer);
     if (due <= 0) throw new BadRequestException('Is kaam ka poora paisa mil chuka hai');
-    if (dto.amount <= 0) throw new BadRequestException('Raqam 0 se ziyada honi chahiye');
+    if (dto.amount <= 0) throw new BadRequestException('Amount 0 se ziyada honi chahiye');
     if (dto.amount > due) throw new BadRequestException(`Sirf ${due} baqi hai`);
 
     if (i.status === 'CANCELLED') throw new BadRequestException('Cancel hui installation par paisa nahi liya ja sakta');
@@ -427,7 +427,7 @@ export class InstallationsService {
     if (i.status === 'COMPLETED') throw new BadRequestException('Mukammal kaam reschedule nahi hota');
 
     const when = new Date(newDate);
-    if (isNaN(when.getTime())) throw new BadRequestException('Tareekh sahi nahi hai');
+    if (isNaN(when.getTime())) throw new BadRequestException('Date sahi nahi hai');
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.applianceInstallation.update({

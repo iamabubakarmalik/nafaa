@@ -57,7 +57,7 @@ export class MembershipsService {
     const totalPrice = dto.totalPrice != null && Number(dto.totalPrice) > 0 ? r2(Number(dto.totalPrice)) : listPrice;
     if (totalPrice > listPrice + 0.01) throw new BadRequestException(`Plan ki poori qeemat Rs ${listPrice} hai`);
     const paidAmount = r2(Math.max(Number(dto.paidAmount) || 0, 0));
-    if (paidAmount > totalPrice + 0.01) throw new BadRequestException(`Kul raqam sirf Rs ${totalPrice} hai`);
+    if (paidAmount > totalPrice + 0.01) throw new BadRequestException(`Kul amount sirf Rs ${totalPrice} hai`);
     const balanceDue = r2(Math.max(totalPrice - paidAmount, 0));
     let paymentStatus = 'UNPAID';
     if (paidAmount >= totalPrice - 0.01) paymentStatus = 'PAID';
@@ -155,7 +155,7 @@ export class MembershipsService {
     const m = await this.prisma.gymMemberMembership.findFirst({ where: { id, tenantId: user.tenantId }, include: { member: true } });
     if (!m) throw new NotFoundException('Membership not found');
     const value = r2(Number(amount));
-    if (!(value > 0)) throw new BadRequestException('Raqam sahi likhein');
+    if (!(value > 0)) throw new BadRequestException('Amount sahi likhein');
     const due = r2(m.totalPrice - m.paidAmount);
     if (due <= 0) throw new BadRequestException('Is membership ka koi baqi nahi');
     if (value > due + 0.01) throw new BadRequestException(`Baqi sirf Rs ${due} hai`);

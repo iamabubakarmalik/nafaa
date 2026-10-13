@@ -37,7 +37,7 @@ export class DairyDeliveriesService {
   async create(user: AuthenticatedUser, dto: CreateDeliveryDto) {
     const customer = await this.prisma.dairyCustomer.findFirst({ where: { id: dto.dairyCustomerId, tenantId: user.tenantId } });
     if (!customer) throw new NotFoundException('Customer not found');
-    if (!(dto.scheduledQty > 0)) throw new BadRequestException('Miqdar 0 se zyada honi chahiye');
+    if (!(dto.scheduledQty > 0)) throw new BadRequestException('Quantity 0 se zyada honi chahiye');
 
     const slot = dto.slot ?? 'MORNING';
     const rate = dto.ratePerLiter ?? customer.customRate ?? await this.defaultRate(user.tenantId, slot);
@@ -161,7 +161,7 @@ export class DairyDeliveriesService {
   async confirmDelivery(user: AuthenticatedUser, id: string, dto: ConfirmDeliveryDto) {
     const d = await this.prisma.dairyDelivery.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!d) throw new NotFoundException('Delivery not found');
-    if (!(dto.deliveredQty >= 0)) throw new BadRequestException('Miqdar sahi likhein');
+    if (!(dto.deliveredQty >= 0)) throw new BadRequestException('Quantity sahi likhein');
     if (d.status === 'CANCELLED') throw new BadRequestException('Ye delivery cancel ho chuki hai');
 
     const totalAmount = d.ratePerLiter * dto.deliveredQty;

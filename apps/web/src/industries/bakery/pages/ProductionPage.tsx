@@ -138,11 +138,11 @@ export default function ProductionPage() {
       </KpiRow>
 
       {tab === 'record' || tab === 'analytics' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tab === 'record' ? 'Is muddat ke saare plan' : 'Is muddat ka hisaab — plan ki tareekh se'}</p>}>
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">{tab === 'record' ? 'Is period ke saare plan' : 'Is period ka hisaab — plan ki date se'}</p>}>
           <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
         </FilterBar>
       ) : (
-        <FilterBar search={tab === 'plan' ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Cheez ya plan number…" label="Dhoondein" /> : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Kis din ke liye banana hai — kal ka plan aaj shaam bana lein</p>}>
+        <FilterBar search={tab === 'plan' ? <SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Cheez ya plan number…" label="Search" /> : <p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Kis din ke liye banana hai — kal ka plan aaj shaam bana lein</p>}>
           <div className="flex flex-wrap items-center gap-1.5">
             {[0, 1, 2].map((o) => {
               const k = dayKey(o);
@@ -178,7 +178,7 @@ export default function ProductionPage() {
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <ChefHat className="mx-auto h-10 w-10 text-slate-300" />
           <p className="mt-3 font-semibold text-slate-900">{t ? 'Kuch nahi mila' : `${dateTitle} ka koi plan nahi`}</p>
-          <p className="mt-1 text-sm text-slate-500">"Kya banana hai" se orders aur bikri ka andaza dekh kar ek click me plan banayein.</p>
+          <p className="mt-1 text-sm text-slate-500">"Kya banana hai" se orders aur sale ka andaza dekh kar ek click me plan banayein.</p>
           {canManage && !t && (
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <Button onClick={() => setTab('suggest')} leftIcon={<Sparkles className="h-4 w-4" />}>Kya banana hai</Button>
@@ -195,17 +195,17 @@ export default function ProductionPage() {
       {guide.isOpen && (
         <PageGuide title="Baking — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Sparkles, color: '#7c3aed', title: 'Kya banana hai', text: 'Us din ke cake aur bare order, aur pichle 4 hafton me usi din ki bikri dekh kar har cheez ki ginti khud aati hai. Ginti badlein aur plan banayein.' },
+            { icon: Sparkles, color: '#7c3aed', title: 'Kya banana hai', text: 'Us din ke cake aur bare order, aur pichle 4 hafton me usi din ki sale dekh kar har cheez ki ginti khud aati hai. Ginti badlein aur plan banayein.' },
             { icon: Plus, color: '#d97706', title: 'Plan', text: 'Subah (ya raat ko agle din ka) plan banayein: kya, kitna aur kaunsi shift. Kal ka plan "Kal" chun kar banayein.' },
             { icon: Flame, color: '#ea580c', title: 'Oven me daala', text: 'Temperature aur oven number likhein — baad me pata chalta hai kahan kharabi zyada hoti hai.' },
-            { icon: CheckCircle2, color: '#16a34a', title: 'Ban gaya', text: 'Kitne theek bane aur kitne kharab. Chahein to maal stock me, recipe ka saamaan kachche maal se, aur taazgi ka batch — sab ek saath.' },
-            { icon: Wheat, color: '#a16207', title: 'Recipe ka saamaan', text: 'Product me recipe bani ho to "Recipe ka saamaan ghatayein" se maida, cheeni waghera khud kam hote hain aur lagat likhi jati hai.' },
+            { icon: CheckCircle2, color: '#16a34a', title: 'Ban gaya', text: 'Kitne theek bane aur kitne kharab. Chahein to maal stock me, recipe ka saamaan kachche maal se, aur freshness ka batch — sab ek saath.' },
+            { icon: Wheat, color: '#a16207', title: 'Recipe ka saamaan', text: 'Product me recipe bani ho to "Recipe ka saamaan ghatayein" se maida, cheeni waghera khud kam hote hain aur cost likhi jati hai.' },
             { icon: Printer, color: '#0891b2', title: 'Kitchen sheet', text: 'Upar se din ka plan print karein — baker khaali jagah me oven, naam aur ginti likh sakta hai.' },
           ]}
           tips={[
-            'Kharab hone wali cheez ki wajah zaroor likhein — Taazgi aur zaya ke record me jati hai.',
+            'Kharab hone wali cheez ki wajah zaroor likhein — Freshness aur waste ke record me jati hai.',
             '"Stock me daalein" tabhi on karein agar aap bana hua maal kahin aur se stock me nahi daalte — warna do dafa ginega.',
-            'Plan likhne aur badalne ke liye "Bakery production sambhalna" ki ijazat chahiye.',
+            'Plan likhne aur badalne ke liye "Bakery production sambhalna" ki permission chahiye.',
           ]}
           shortcuts={[['N', 'naya plan'], ['1', 'aaj ka kaam'], ['2', 'kya banana hai'], ['3', 'record'], ['4', 'analytics'], ['G', 'guide']]}
         />

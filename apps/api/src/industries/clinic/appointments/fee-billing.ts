@@ -33,7 +33,7 @@ export async function billClinicFee(
   input: FeeBillInput,
 ) {
   const amount = Math.round(Number(input.amount) * 100) / 100;
-  if (!(amount > 0)) throw new BadRequestException('Raqam 0 se zyada honi chahiye');
+  if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
   const shopId = await resolveWriteShopId(prisma, user.tenantId, scope, input.shopId);
 
   const productId = await prisma.$transaction(async (tx) => {

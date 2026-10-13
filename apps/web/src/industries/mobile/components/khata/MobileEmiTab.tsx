@@ -60,7 +60,7 @@ export default function MobileEmiTab() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Kpi label="Chal Rahe Plans" value={String(stats?.byStatus?.find((s) => s.status === 'ACTIVE')?.count ?? 0)}
           icon={CreditCard} tone="violet" />
-        <Kpi label="Baqi Raqam" value={formatPKR(stats?.activeRemaining ?? 0)} icon={Wallet} tone="blue" />
+        <Kpi label="Baqi Amount" value={formatPKR(stats?.activeRemaining ?? 0)} icon={Wallet} tone="blue" />
         <Kpi label="Late Qisten" value={String(stats?.overdueCount ?? 0)}
           sub={stats?.overdueAmount ? formatPKR(stats.overdueAmount) : undefined}
           icon={AlertTriangle} tone="rose" alert={(stats?.overdueCount ?? 0) > 0} />

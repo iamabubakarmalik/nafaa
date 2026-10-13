@@ -524,7 +524,7 @@ export default function AdvisoryPage() {
               <><strong>{stats.noStock}</strong> fasalon ka koi maal hi juda hua nahi — product ke
               andar "kis fasal par chalta hai" bhar dein. </>
             )}
-            Mashwara de kar maal na dena mauqa zaya karna hai.
+            Mashwara de kar maal na dena mauqa waste karna hai.
           </p>
           <Link to="/low-stock"
             className="h-10 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black inline-flex items-center gap-1.5 shrink-0 transition">
@@ -908,7 +908,7 @@ function Analytics({ stats, cropChart, stageChart, issueChart, monthChart, rows 
       <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
           <Phone className="h-4 w-4 text-amber-600" />
-          <h3 className="font-black text-slate-900 dark:text-ink-white">Agla follow-up — tarteeb se</h3>
+          <h3 className="font-black text-slate-900 dark:text-ink-white">Agla follow-up — sort se</h3>
         </div>
         <div className="divide-y divide-slate-100 dark:divide-ink-800">
           {[...rows]
@@ -938,7 +938,7 @@ function Analytics({ stats, cropChart, stageChart, issueChart, monthChart, rows 
             ))}
           {rows.filter((r: any) => !r.completed && r.toFollow !== null).length === 0 && (
             <div className="p-8 text-center text-sm font-bold text-slate-400">
-              Kisi mashware par follow-up ki tareekh nahi bhari
+              Kisi mashware par follow-up ki date nahi bhari
             </div>
           )}
         </div>
@@ -1031,7 +1031,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
             {showPicker && (
               <div className="rounded-xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-500/5 p-3 space-y-2">
                 <input autoFocus value={farmerSearch} onChange={(e) => setFarmerSearch(e.target.value)}
-                  placeholder="Naam ya phone se dhoondein…"
+                  placeholder="Naam ya phone se search…"
                   className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500" />
                 <div className="max-h-52 overflow-y-auto space-y-1">
                   {farmers.length === 0 ? (
@@ -1112,7 +1112,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
         {/* Raay */}
         <Field label="Kya raay di" opt>
           <textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            placeholder="Kaunsi dawa, kitni miqdar, kab chhirakni hai…"
+            placeholder="Kaunsi dawa, kitni quantity, kab chhirakni hai…"
             className={`${inp} h-auto py-2 resize-none`} />
         </Field>
 
@@ -1140,7 +1140,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
           <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex items-center gap-3 flex-wrap">
             <Phone className="h-4 w-4 text-amber-600 shrink-0" />
             <p className="flex-1 min-w-[180px] text-[0.6875rem] font-bold text-amber-900 dark:text-amber-200">
-              Follow-up ki tareekh bhar dein — warna ye mashwara likh kar bhool jayega. Spray ya
+              Follow-up ki date bhar dein — warna ye mashwara likh kar bhool jayega. Spray ya
               khaad ka asar aam tor par 10 din me nazar aa jata hai.
             </p>
             <button type="button" onClick={suggestFollow}
@@ -1295,7 +1295,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" /> Raay se bikri kaise banti hai
+            <GraduationCap className="h-5 w-5" /> Raay se sale kaise banti hai
           </h3>
           <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
             <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
@@ -1310,7 +1310,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
           </div>
           <Tip icon={Phone} title="Follow-up — sab se ahem">
             Raay de kar bhool jana bekaar hai. 10 din baad poochein ke faida hua ya nahi. Jis
-            din follow-up ki tareekh aati hai, wo mashwara sab se ooper aa jata hai, aur us ki
+            din follow-up ki date aati hai, wo mashwara sab se ooper aa jata hai, aur us ki
             list WhatsApp par bhej sakte hain.
           </Tip>
           <Tip icon={Package} title="Mashwara aur maal ek sath">
@@ -1326,7 +1326,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Bijai, barhotri, phool, phal — har qadam par alag cheez chahiye hoti hai. Qadam likha
             ho to agli dafa foran yaad aa jata hai ke ab kya lagana hai.
           </Tip>
-          <Tip icon={Calendar} title="Katai ki tareekh">
+          <Tip icon={Calendar} title="Katai ki date">
             Katai kab hogi, ye likh lein. Usi ke baad farmer ke paas paisa aata hai — udhaar
             maangne ka sab se sahi waqt.
           </Tip>

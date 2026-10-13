@@ -140,7 +140,7 @@ export class MonthlyBillsService {
     const amount = Number(dto?.amount);
     if (!Number.isFinite(amount) || amount <= 0) throw new BadRequestException('Amount must be positive');
     if (amount > b.remainingAmount + 0.01) {
-      throw new BadRequestException(`Is bill par sirf Rs ${Math.round(b.remainingAmount)} baqi hain — zyada raqam customer ke khate me "payment" se lein`);
+      throw new BadRequestException(`Is bill par sirf Rs ${Math.round(b.remainingAmount)} baqi hain — zyada amount customer ke khate me "payment" se lein`);
     }
     dto = { ...dto, amount };
 

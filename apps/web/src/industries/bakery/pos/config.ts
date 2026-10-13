@@ -111,7 +111,7 @@ export const bakeryPos: PosIndustryConfig = {
     const left = item.meta?.hoursLeft as number | undefined;
     const confirmed = opts.confirmed ?? [];
     if (left !== undefined && left <= 0 && !confirmed.includes('expired')) {
-      toast.error(`${item.name} — taazgi ka waqt guzar chuka`, {
+      toast.error(`${item.name} — freshness ka waqt guzar chuka`, {
         description: 'Batch check kar lein, kharab maal na bike', duration: 8000,
         action: { label: 'Phir bhi bechein', onClick: () => api.addItem(item, { ...opts, confirmed: [...confirmed, 'expired'] }) },
       });

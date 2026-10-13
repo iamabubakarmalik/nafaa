@@ -90,11 +90,11 @@ export default function BakeryBulkOrderFormPage() {
     if (editing && orderQ.data && isClosed(orderQ.data.status)) out.push('Mukammal ya cancel order badla nahi ja sakta');
     if (!f.organizationName.trim()) out.push('Kis ka order hai — naam likhein');
     if (f.contactPhone.replace(/\D/g, '').length < 10) out.push('Poora phone number likhein');
-    if (!f.eventDate) out.push('Event ki tareekh chunein');
+    if (!f.eventDate) out.push('Event ki date chunein');
     if (!lines.length) out.push('Kam se kam ek cheez daalein');
     for (const l of lines) {
       if (!l.name.trim()) { out.push('Har line ka naam likhein'); break; }
-      if (!(Number(l.qty) > 0)) { out.push(`"${l.name}" ki tadaad likhein`); break; }
+      if (!(Number(l.qty) > 0)) { out.push(`"${l.name}" ki quantity likhein`); break; }
       if (!(Number(l.rate) > 0)) { out.push(`"${l.name}" ka rate likhein`); break; }
     }
     if (f.requiresDelivery && !f.deliveryAddress.trim() && !f.venue.trim()) out.push('Pahunchana hai to pata ya jagah likhein');
@@ -165,7 +165,7 @@ export default function BakeryBulkOrderFormPage() {
                 {BULK_TYPES.map((x) => <button key={x.value} type="button" onClick={() => set('orderType', x.value)} className={cn('inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-[0.8125rem] font-medium ring-1', f.orderType === x.value ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>{x.emoji} {x.label}</button>)}
               </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                <Input label="Tareekh" required type="date" value={f.eventDate} onChange={(e) => set('eventDate', e.target.value)} />
+                <Input label="Date" required type="date" value={f.eventDate} onChange={(e) => set('eventDate', e.target.value)} />
                 <Input label="Waqt" type="time" value={f.eventTime} onChange={(e) => set('eventTime', e.target.value)} hint="Na likhein to din ke aakhir tak" />
                 <Input label="Mehmaan" inputMode="numeric" value={f.totalGuests} onChange={(e) => set('totalGuests', e.target.value.replace(/\D/g, ''))} hint="Marzi hai" />
               </div>
@@ -188,7 +188,7 @@ export default function BakeryBulkOrderFormPage() {
                   ))}
                 </ul>
               )}
-              <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Cheez dhoondein — naam, SKU, barcode…" leftIcon={<Search className="h-4 w-4" />} />
+              <Input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Cheez search — naam, SKU, barcode…" leftIcon={<Search className="h-4 w-4" />} />
               <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
                 {options.map((p) => (
                   <button key={p.id} type="button" onClick={() => { setLines((xs) => [...xs, { key: p.id, productId: p.id, name: p.name, qty: '', rate: p.price ? String(p.price) : '', unit: p.unit }]); setTerm(''); }}
@@ -217,7 +217,7 @@ export default function BakeryBulkOrderFormPage() {
                 <div className="flex justify-between"><dt className="text-slate-500">Cheezon ka jor</dt><dd className="font-medium tabular-nums">{formatPKR(linesTotal)}</dd></div>
                 <div className="flex justify-between"><dt className="text-slate-500">Kul</dt><dd className="text-base font-bold tabular-nums text-slate-900">{formatPKR(price)}</dd></div>
               </dl>
-              <Input label="Pakki rakam" inputMode="decimal" value={f.finalPrice} onChange={(e) => set('finalPrice', digits(e.target.value))} placeholder={String(Math.round(linesTotal))} hint="Sirf tab likhein jab tay hui rakam jor se alag ho (chhoot ya extra)" />
+              <Input label="Pakki rakam" inputMode="decimal" value={f.finalPrice} onChange={(e) => set('finalPrice', digits(e.target.value))} placeholder={String(Math.round(linesTotal))} hint="Sirf tab likhein jab tay hui rakam jor se alag ho (discount ya extra)" />
               {editing ? (
                 <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">Ab tak mila: <b className="tabular-nums text-slate-900">{formatPKR(paid)}</b></p>
               ) : (

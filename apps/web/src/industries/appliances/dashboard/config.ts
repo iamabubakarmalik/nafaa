@@ -24,7 +24,7 @@ function useAppliancesActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'POS counter', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'POS counter', hint: 'Sale karein' },
     { to: '/appliances/service-requests', icon: Wrench, label: 'Repair', hint: work.repairsOpen ? `${work.repairsOpen} khule` : 'Kaam darj karein' },
     { to: '/appliances/installations', icon: HardHat, label: 'Installation', hint: `${work.installsToday} aaj` },
     { to: '/appliances/deliveries', icon: Truck, label: 'Delivery', hint: `${delivery?.open ?? 0} baqi` },

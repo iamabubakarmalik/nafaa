@@ -84,7 +84,7 @@ export function useFloristAttention(): AttentionItem[] {
   const items: AttentionItem[] = [];
   if (loading) return items;
 
-  if (wilting.withered.length) items.push({ icon: Leaf, level: 'danger', text: `${wilting.withered.length} phool murjha chuke — shelf se hatayein`, to: '/florist/freshness', cta: 'Taazgi dekhein' });
+  if (wilting.withered.length) items.push({ icon: Leaf, level: 'danger', text: `${wilting.withered.length} phool murjha chuke — shelf se hatayein`, to: '/florist/freshness', cta: 'Freshness dekhein' });
   if (deliveries.notReady) items.push({ icon: Truck, level: 'warning', text: `${deliveries.notReady} delivery aaj ki hai aur bouquet abhi tayyar nahi`, to: '/florist/deliveries', cta: 'Delivery dekhein' });
   if (weddings.soon.length) items.push({ icon: Heart, level: 'warning', text: `${weddings.soon.length} shadi 3 din ke andar — phool aur setup ka intezam karein`, to: '/florist/weddings', cta: 'Shadiyan dekhein' });
   if (wilting.soon > 0) items.push({ icon: Leaf, level: 'warning', text: `${wilting.soon} phool 3 din me murjha jayenge — discount laga dein`, to: '/florist/freshness', cta: 'Jaldi bechein' });

@@ -68,9 +68,9 @@ export default function JewelrySalesPage() {
     onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || 'Bill cancel nahi hua'),
   });
   const askCancel = (sale: any) => {
-    const reason = window.prompt(`Bill ${sale.invoiceNumber} cancel / wapsi — wajah likhein:`, 'Customer ne wapas kiya');
+    const reason = window.prompt(`Bill ${sale.invoiceNumber} cancel / return — wajah likhein:`, 'Customer ne wapas kiya');
     if (reason === null) return;
-    cancelBill.mutate({ id: sale.id, reason: reason.trim() || 'Wapsi' });
+    cancelBill.mutate({ id: sale.id, reason: reason.trim() || 'Return' });
   };
 
   const hideAmounts = privacy.hideStats;
@@ -367,7 +367,7 @@ export default function JewelrySalesPage() {
                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); askCancel(sale); }}
                             className="mt-1 ml-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-rose-600 hover:text-rose-700 disabled:opacity-50"
                           >
-                            <Ban className="h-3 w-3" /> Cancel / Wapsi
+                            <Ban className="h-3 w-3" /> Cancel / Return
                           </button>
                         )}
                       </div>

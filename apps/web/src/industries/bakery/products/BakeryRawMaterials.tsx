@@ -30,20 +30,20 @@ export default function BakeryRawMaterials() {
     <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 p-4">
         <div className="min-w-0 flex-1">
-          <p className="text-[0.9375rem] font-semibold text-slate-900">Kachcha maal</p>
+          <p className="text-[0.9375rem] font-semibold text-slate-900">Raw material</p>
           <p className="text-[0.75rem] text-slate-500">{data.length} cheezein · qeemat {cost(value)}{low ? ` · ${low} mangwani hain` : ''}</p>
         </div>
         <label className="relative w-full sm:w-64">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Atta, cheeni, makhan…" className="h-10 w-full rounded-xl bg-slate-100/80 pl-9 pr-3 text-[0.875rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
         </label>
-        <Link to="/bakery/ingredients" className="inline-flex h-10 items-center rounded-xl bg-slate-900 px-3.5 text-[0.8125rem] font-semibold text-white hover:bg-slate-800">Kachcha maal sambhalein</Link>
+        <Link to="/bakery/ingredients" className="inline-flex h-10 items-center rounded-xl bg-slate-900 px-3.5 text-[0.8125rem] font-semibold text-white hover:bg-slate-800">Raw material sambhalein</Link>
       </div>
       {rows.length === 0 ? (
         <div className="flex flex-col items-center px-6 py-14 text-center">
           <Wheat className="h-8 w-8 text-slate-300" />
-          <p className="mt-2 font-semibold text-slate-900">{q ? 'Kuch nahi mila' : 'Abhi kachcha maal nahi daala'}</p>
-          {!q && <Link to="/bakery/ingredients" className="mt-3 text-[0.8125rem] font-semibold text-brand-700 hover:underline">Kachcha maal daalein →</Link>}
+          <p className="mt-2 font-semibold text-slate-900">{q ? 'Kuch nahi mila' : 'Abhi raw material nahi daala'}</p>
+          {!q && <Link to="/bakery/ingredients" className="mt-3 text-[0.8125rem] font-semibold text-brand-700 hover:underline">Raw material daalein →</Link>}
         </div>
       ) : (
         <div className="overflow-x-auto">

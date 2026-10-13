@@ -100,35 +100,35 @@ export default function AppliancesProfitReportPage() {
   const exportCsv = () => {
     if (!a) return;
     downloadCsv(`profit-${range.from}-to-${range.to}.csv`, [
-      [`Munafa Report — ${shopName}`],
+      [`Profit Report — ${shopName}`],
       [`${fmtDate(range.from)} se ${fmtDate(range.to)} tak`],
       [],
       ['— KAMAI KE RASTE —'],
-      ['Raasta', 'Kamai', 'Lagat', 'Munafa', 'Ginti'],
+      ['Raasta', 'Kamai', 'Cost', 'Profit', 'Ginti'],
       ...streams.map((s) => [s.label, s.revenue, s.cost, s.profit, s.count]),
       ['KUL', t?.revenue ?? 0, t?.cost ?? 0, t?.profit ?? 0, ''],
       [],
-      ['— QISM KE HISAB SE (sirf maal) —'],
-      ['Qism', 'Units', 'Kamai', 'Lagat', 'Munafa', 'Margin %'],
+      ['— TYPE KE HISAB SE (sirf maal) —'],
+      ['Type', 'Units', 'Kamai', 'Cost', 'Profit', 'Margin %'],
       ...(a.byCategory ?? []).map((c) => [
         catLabel(c.categoryType), c.units, c.revenue, c.cost, c.profit, c.margin.toFixed(1),
       ]),
       [],
       ['— TOP PRODUCTS —'],
-      ['Cheez', 'Qism', 'Units', 'Kamai', 'Munafa', 'Margin %'],
+      ['Cheez', 'Type', 'Units', 'Kamai', 'Profit', 'Margin %'],
       ...(a.topProducts ?? []).map((p) => [
         p.name, p.category ? catLabel(p.category) : '', p.units, p.revenue, p.profit, p.margin.toFixed(1),
       ]),
       [],
-      ['— SERVICE KI QISM —'],
-      ['Qism', 'Kaam', 'Kamai', 'Lagat', 'Munafa'],
+      ['— SERVICE KI TYPE —'],
+      ['Type', 'Kaam', 'Kamai', 'Cost', 'Profit'],
       ...(a.byServiceType ?? []).map((s) => [svcTypeMeta(s.type).label, s.jobs, s.revenue, s.cost, s.profit]),
       [],
       ['— ROZANA —'],
-      ['Tareekh', 'Kamai', 'Munafa', 'Service ki kamai'],
+      ['Date', 'Kamai', 'Profit', 'Service ki kamai'],
       ...(a.daily ?? []).map((d) => [d.date, d.revenue, d.profit, d.services]),
     ]);
-    toast.success('Munafa report export ho gayi');
+    toast.success('Profit report export ho gayi');
   };
 
   const printA4 = () => {
@@ -136,7 +136,7 @@ export default function AppliancesProfitReportPage() {
     const body = `
       <h2 class="sec">💰 Kamai Ke Paanch Raste</h2>
       <table>
-        <thead><tr><th>Raasta</th><th class="c">Ginti</th><th class="r">Kamai</th><th class="r">Lagat</th><th class="r">Munafa</th><th class="r">Hissa</th></tr></thead>
+        <thead><tr><th>Raasta</th><th class="c">Ginti</th><th class="r">Kamai</th><th class="r">Cost</th><th class="r">Profit</th><th class="r">Hissa</th></tr></thead>
         <tbody>
           ${streams.map((s) => `
             <tr>
@@ -157,9 +157,9 @@ export default function AppliancesProfitReportPage() {
         </tbody>
       </table>
 
-      <h2 class="sec">📦 Qism Ke Hisab Se (sirf maal)</h2>
+      <h2 class="sec">📦 Type Ke Hisab Se (sirf maal)</h2>
       <table>
-        <thead><tr><th>#</th><th>Qism</th><th class="c">Units</th><th class="r">Kamai</th><th class="r">Munafa</th><th class="r">Margin</th></tr></thead>
+        <thead><tr><th>#</th><th>Type</th><th class="c">Units</th><th class="r">Kamai</th><th class="r">Profit</th><th class="r">Margin</th></tr></thead>
         <tbody>
           ${(a.byCategory ?? []).slice(0, 15).map((c, i) => `
             <tr>
@@ -175,7 +175,7 @@ export default function AppliancesProfitReportPage() {
 
       <h2 class="sec">🏆 Top 15 Products</h2>
       <table>
-        <thead><tr><th>#</th><th>Cheez</th><th class="c">Units</th><th class="r">Kamai</th><th class="r">Munafa</th><th class="r">Margin</th></tr></thead>
+        <thead><tr><th>#</th><th>Cheez</th><th class="c">Units</th><th class="r">Kamai</th><th class="r">Profit</th><th class="r">Margin</th></tr></thead>
         <tbody>
           ${(a.topProducts ?? []).slice(0, 15).map((p, i) => `
             <tr>
@@ -190,9 +190,9 @@ export default function AppliancesProfitReportPage() {
       </table>
 
       ${(a.byServiceType ?? []).length ? `
-      <h2 class="sec">🔧 Service Ki Qism</h2>
+      <h2 class="sec">🔧 Service Ki Type</h2>
       <table>
-        <thead><tr><th>Qism</th><th class="c">Kaam</th><th class="r">Kamai</th><th class="r">Lagat</th><th class="r">Munafa</th></tr></thead>
+        <thead><tr><th>Type</th><th class="c">Kaam</th><th class="r">Kamai</th><th class="r">Cost</th><th class="r">Profit</th></tr></thead>
         <tbody>
           ${a.byServiceType.map((s) => `
             <tr>
@@ -206,13 +206,13 @@ export default function AppliancesProfitReportPage() {
       </table>` : ''}`;
 
     const ok = printHtml(a4Shell({
-      title: `Munafa Report — ${shopName}`,
-      heading: '💰 Munafa Report',
+      title: `Profit Report — ${shopName}`,
+      heading: '💰 Profit Report',
       shopName, shopPhone,
       badge: `${fmtDate(range.from)} — ${fmtDate(range.to)}`,
       kpis: [
         { label: '💵 Kul Kamai', value: formatPKR(t?.revenue ?? 0), tone: 'blue' },
-        { label: '📈 Kul Munafa', value: formatPKR(t?.profit ?? 0), sub: `${(t?.margin ?? 0).toFixed(1)}% margin`, tone: 'green' },
+        { label: '📈 Kul Profit', value: formatPKR(t?.profit ?? 0), sub: `${(t?.margin ?? 0).toFixed(1)}% margin`, tone: 'green' },
         { label: '🔧 Services Se', value: formatPKR(streams.filter((s) => s.key !== 'GOODS').reduce((x, s) => x + s.revenue, 0)), sub: 'maal ke ilawa', tone: 'amber' },
         { label: '⏳ Baqi Paisa', value: formatPKR(a.services.unpaid), sub: 'repair ka udhaar', tone: 'rose' },
       ],
@@ -247,15 +247,15 @@ export default function AppliancesProfitReportPage() {
       {showTeacher && <ProfitTeacher onClose={() => setShowTeacher(false)} />}
 
       <ApplianceHero
-        badge="Munafa Report"
+        badge="Profit Report"
         badgeIcon={<TrendingUp className="h-3.5 w-3.5 text-amber-300" />}
-        title="💰 Kamai aur Munafa"
+        title="💰 Kamai aur Profit"
         subtitle={
           t ? (
             <>
               <strong className="text-cyan-200">{formatPKR(t.revenue)}</strong> kamai
               <span className="opacity-50 mx-1.5">•</span>
-              <strong className="text-emerald-300">{formatPKR(t.profit)}</strong> munafa
+              <strong className="text-emerald-300">{formatPKR(t.profit)}</strong> profit
               <span className="opacity-50 mx-1.5">•</span>
               <strong className="text-amber-300">{t.margin.toFixed(1)}%</strong> margin
             </>
@@ -291,15 +291,15 @@ export default function AppliancesProfitReportPage() {
 
       {/* KPIs */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-        <Kpi icon={Wallet} tone="cyan" label="Kul Kamai" value={formatPKR(t?.revenue ?? 0)} sub={`${t?.salesCount ?? 0} bikri`} />
-        <Kpi icon={TrendingUp} tone="emerald" label="Kul Munafa" value={formatPKR(t?.profit ?? 0)} sub={`lagat ${formatPKR(t?.cost ?? 0)}`} />
-        <Kpi icon={Percent} tone="amber" label="Margin" value={`${(t?.margin ?? 0).toFixed(1)}%`} sub="har 100 rupay me munafa" />
+        <Kpi icon={Wallet} tone="cyan" label="Kul Kamai" value={formatPKR(t?.revenue ?? 0)} sub={`${t?.salesCount ?? 0} sale`} />
+        <Kpi icon={TrendingUp} tone="emerald" label="Kul Profit" value={formatPKR(t?.profit ?? 0)} sub={`cost ${formatPKR(t?.cost ?? 0)}`} />
+        <Kpi icon={Percent} tone="amber" label="Margin" value={`${(t?.margin ?? 0).toFixed(1)}%`} sub="har 100 rupay me profit" />
         <Kpi icon={Wrench} tone="violet" label="Services Se" value={formatPKR(servicesRevenue)}
           sub={`kul kamai ka ${servicesShare.toFixed(0)}%`} />
       </section>
 
       {/* Streams */}
-      <Panel icon={Zap} title="Kamai Ke Paanch Raste" hint="Sirf maal bechna aadha karobaar hai — asal munafa yahan nazar aata hai" tone="cyan">
+      <Panel icon={Zap} title="Kamai Ke Paanch Raste" hint="Sirf maal bechna aadha karobaar hai — net profit yahan nazar aata hai" tone="cyan">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
           {streams.map((s) => {
             const share = t?.revenue ? (s.revenue / t.revenue) * 100 : 0;
@@ -315,7 +315,7 @@ export default function AppliancesProfitReportPage() {
                 </div>
                 <div className="mt-1.5 text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(s.revenue)}</div>
                 <div className="mt-0.5 flex items-center justify-between text-[0.6875rem] font-bold">
-                  <span className="text-emerald-600 dark:text-emerald-400">munafa {formatPKR(s.profit)}</span>
+                  <span className="text-emerald-600 dark:text-emerald-400">profit {formatPKR(s.profit)}</span>
                   {s.count > 0 && <span className="text-slate-400">{s.count} bar</span>}
                 </div>
                 <div className="mt-2 h-1.5 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
@@ -380,7 +380,7 @@ export default function AppliancesProfitReportPage() {
             <Box label="Kaam" value={String(a?.services?.jobs ?? 0)} />
             <Box label="Ausat Bill" value={formatPKR(a?.services?.avgTicket ?? 0)} />
             <Box label="Kamai" value={formatPKR(a?.services?.revenue ?? 0)} tone="emerald" />
-            <Box label="Parts Ka Kharcha" value={formatPKR(a?.services?.partsCost ?? 0)} tone="rose" />
+            <Box label="Parts Ka Expense" value={formatPKR(a?.services?.partsCost ?? 0)} tone="rose" />
             <Box label="Warranty Wale" value={String(a?.services?.warrantyJobs ?? 0)} />
             <Box label="AMC Wale" value={String(a?.services?.amcJobs ?? 0)} />
           </div>
@@ -389,7 +389,7 @@ export default function AppliancesProfitReportPage() {
               <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
               <div className="text-[0.6875rem] font-bold text-rose-800 dark:text-rose-200">
                 <strong className="text-sm">{formatPKR(a?.services?.unpaid ?? 0)}</strong> ka repair ka paisa abhi baqi hai —
-                <Link to="/appliances/service-requests" className="underline ml-1 font-extrabold">wusool karein</Link>
+                <Link to="/appliances/service-requests" className="underline ml-1 font-extrabold">receive karein</Link>
               </div>
             </div>
           )}
@@ -400,8 +400,8 @@ export default function AppliancesProfitReportPage() {
             <Box label="Kaam" value={String(a?.installations?.jobs ?? 0)} />
             <Box label="Ausat Bill" value={formatPKR(a?.installations?.avgTicket ?? 0)} />
             <Box label="Kamai" value={formatPKR(a?.installations?.revenue ?? 0)} tone="emerald" />
-            <Box label="Material Ka Kharcha" value={formatPKR(a?.installations?.materialCost ?? 0)} tone="rose" />
-            <Box label="Munafa" value={formatPKR(a?.installations?.profit ?? 0)} tone="cyan" />
+            <Box label="Material Ka Expense" value={formatPKR(a?.installations?.materialCost ?? 0)} tone="rose" />
+            <Box label="Profit" value={formatPKR(a?.installations?.profit ?? 0)} tone="cyan" />
             <Box label="Free Kiye" value={String(a?.installations?.freeJobs ?? 0)} />
           </div>
         </Panel>
@@ -413,7 +413,7 @@ export default function AppliancesProfitReportPage() {
           <div className="grid grid-cols-2 gap-2">
             <Box label="Naye Contracts" value={String(a?.amc?.contracts ?? 0)} />
             <Box label="Bill Kiya" value={formatPKR(a?.amc?.billed ?? 0)} />
-            <Box label="Wusool Hua" value={formatPKR(a?.amc?.collected ?? 0)} tone="emerald" />
+            <Box label="Receive Hua" value={formatPKR(a?.amc?.collected ?? 0)} tone="emerald" />
             <Box label="Baqi" value={formatPKR(a?.amc?.pending ?? 0)} tone={(a?.amc?.pending ?? 0) > 0 ? 'rose' : 'emerald'} />
           </div>
           {(a?.amc?.byType ?? []).length > 0 && (
@@ -441,9 +441,9 @@ export default function AppliancesProfitReportPage() {
 
       {/* Category + energy */}
       <div className="grid lg:grid-cols-2 gap-3 sm:gap-4">
-        <Panel icon={Package} title="Kis Qism Se Kitna Munafa" hint="Sirf maal ka munafa — services alag" tone="cyan">
+        <Panel icon={Package} title="Kis Type Se Kitna Profit" hint="Sirf maal ka profit — services alag" tone="cyan">
           {catChart.length === 0 ? (
-            <p className="text-xs font-bold text-slate-400 py-8 text-center">Is arse me koi bikri nahi</p>
+            <p className="text-xs font-bold text-slate-400 py-8 text-center">Is arse me koi sale nahi</p>
           ) : (
             <ResponsiveContainer width="100%" height={Math.max(240, catChart.length * 34)}>
               <BarChart data={catChart} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
@@ -460,9 +460,9 @@ export default function AppliancesProfitReportPage() {
           )}
         </Panel>
 
-        <Panel icon={Award} title="Top 10 Products" hint="Jo sab se ziyada munafa de rahe hain" tone="amber">
+        <Panel icon={Award} title="Top 10 Products" hint="Jo sab se ziyada profit de rahe hain" tone="amber">
           {(a?.topProducts ?? []).length === 0 ? (
-            <p className="text-xs font-bold text-slate-400 py-8 text-center">Is arse me koi bikri nahi</p>
+            <p className="text-xs font-bold text-slate-400 py-8 text-center">Is arse me koi sale nahi</p>
           ) : (
             <div className="space-y-1">
               {(a?.topProducts ?? []).slice(0, 10).map((p, i) => (
@@ -518,7 +518,7 @@ export default function AppliancesProfitReportPage() {
           )}
         </Panel>
 
-        <Panel icon={Award} title="Top Brands" hint="Kaunsa brand sab se ziyada munafa de raha hai" tone="violet">
+        <Panel icon={Award} title="Top Brands" hint="Kaunsa brand sab se ziyada profit de raha hai" tone="violet">
           {(a?.topBrands ?? []).length === 0 ? (
             <p className="text-xs font-bold text-slate-400 py-8 text-center">Abhi data nahi</p>
           ) : (
@@ -561,12 +561,12 @@ function Box({ label, value, tone = 'slate' }: { label: string; value: string; t
 function ProfitTeacher({ onClose }: { onClose: () => void }) {
   return (
     <Teacher
-      title="Munafa Report Kaise Parhein?"
+      title="Profit Report Kaise Parhein?"
       intro={
         <>
-          Aam POS sirf <strong>"maal ka munafa"</strong> dikhata hai. Lekin appliance wale ki
+          Aam POS sirf <strong>"maal ka profit"</strong> dikhata hai. Lekin appliance wale ki
           <strong> aadhi kamai</strong> installation, repair, AMC aur delivery se aati hai. Agar wo nazar na aaye
-          to lagta hai kaam ghata de raha hai — jabke munafa kahin aur chhupa hota hai.
+          to lagta hai kaam ghata de raha hai — jabke profit kahin aur chhupa hota hai.
         </>
       }
       blocks={[
@@ -574,9 +574,9 @@ function ProfitTeacher({ onClose }: { onClose: () => void }) {
           title: '💰 Paanch raste — sab se aham cheez',
           tone: 'cyan',
           tips: [
-            <><strong>📦 Maal ki bikri</strong> — fridge, AC, washing machine ka munafa</>,
-            <><strong>🔧 Installation</strong> — labor khaalis kamai hai, material lagat. Aksar 15–20% munafa yahin se aata hai</>,
-            <><strong>🛠️ Repair</strong> — visit aur labor khaalis kamai, parts lagat</>,
+            <><strong>📦 Maal ki sale</strong> — fridge, AC, washing machine ka profit</>,
+            <><strong>🔧 Installation</strong> — labor khaalis kamai hai, material cost. Aksar 15–20% profit yahin se aata hai</>,
+            <><strong>🛠️ Repair</strong> — visit aur labor khaalis kamai, parts cost</>,
             <><strong>📋 AMC</strong> — <strong>sab se pakka paisa</strong>. Ek bar bech dein, saal bhar kaam aata hai aur agle saal renew hota hai</>,
             <><strong>🚚 Delivery</strong> — bhari saman ka kiraya, loading/unloading aur floor charge</>,
             <>Agar <strong>"Services se"</strong> wala hissa 25% se kam hai to services par tawajjo dein — wahan margin sab se ziyada hai</>,
@@ -586,9 +586,9 @@ function ProfitTeacher({ onClose }: { onClose: () => void }) {
           title: '📊 Charts se kya samjhein',
           tone: 'blue',
           tips: [
-            <><strong>Donut</strong> — kul kamai me har raste ka hissa. Agar sirf maal ka hissa 90% hai to services zaya ho rahi hain</>,
+            <><strong>Donut</strong> — kul kamai me har raste ka hissa. Agar sirf maal ka hissa 90% hai to services waste ho rahi hain</>,
             <><strong>Rozana chart</strong> — hara area services ki kamai hai. Jin dinon wo upar jata hai, unhein dekh kar staff lagayein</>,
-            <><strong>Qism ke hisab se</strong> — kaunsi cheez ka margin acha hai. Kabhi sasti cheez ka margin mehngi se behtar hota hai</>,
+            <><strong>Type ke hisab se</strong> — kaunsi cheez ka margin acha hai. Kabhi sasti cheez ka margin mehngi se behtar hota hai</>,
             <><strong>Energy rating</strong> — inverter aur 5-star ka margin aam tor par behtar hota hai. Customer ko wohi dikhayein</>,
           ],
         },
@@ -596,9 +596,9 @@ function ProfitTeacher({ onClose }: { onClose: () => void }) {
           title: '⚠️ Jin numbers par foran kaam karein',
           tone: 'rose',
           tips: [
-            <><strong>"Repair ka baqi paisa"</strong> — ye aap ka paisa hai jo logon ke paas para hai. Service Requests page se wusool karein</>,
+            <><strong>"Repair ka baqi paisa"</strong> — ye aap ka paisa hai jo logon ke paas para hai. Service Requests page se receive karein</>,
             <><strong>"AMC baqi"</strong> — contract bik gaya lekin poora paisa nahi aaya</>,
-            <><strong>Free kiye installation</strong> — agar bohat ziyada hain to warranty policy dobara dekhein, material ka kharcha aap ka hai</>,
+            <><strong>Free kiye installation</strong> — agar bohat ziyada hain to warranty policy dobara dekhein, material ka expense aap ka hai</>,
             <><strong>Margin 15% se neeche</strong> jaye to purchase rate ya bechne ka rate dobara dekhein</>,
           ],
         },

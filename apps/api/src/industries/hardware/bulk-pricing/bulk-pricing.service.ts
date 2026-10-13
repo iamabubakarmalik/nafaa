@@ -17,9 +17,9 @@ export class BulkPricingService {
   private async assertTier(user: AuthenticatedUser, dto: UpsertBulkPricingDto) {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId }, select: { id: true } });
     if (!product) throw new NotFoundException('Product not found');
-    if (!(dto.minQuantity > 0)) throw new BadRequestException('Kam se kam miqdar 0 se zyada honi chahiye');
+    if (!(dto.minQuantity > 0)) throw new BadRequestException('Kam se kam quantity 0 se zyada honi chahiye');
     if (!(dto.price > 0)) throw new BadRequestException('Rate 0 se zyada hona chahiye');
-    if (dto.maxQuantity != null && dto.maxQuantity < dto.minQuantity) throw new BadRequestException('Zyada se zyada miqdar kam se kam se chhoti nahi ho sakti');
+    if (dto.maxQuantity != null && dto.maxQuantity < dto.minQuantity) throw new BadRequestException('Zyada se zyada quantity kam se kam se chhoti nahi ho sakti');
   }
 
   async listByProduct(user: AuthenticatedUser, productId: string) {

@@ -155,7 +155,7 @@ export class CustomOrdersService {
     if (!o) throw new NotFoundException('Order not found');
     if (['CANCELLED', 'REFUNDED'].includes(o.status)) throw new BadRequestException('Cancel order par payment nahi li ja sakti');
     const amount = r2(dto.amount);
-    if (!(amount > 0)) throw new BadRequestException('Raqam 0 se zyada honi chahiye');
+    if (!(amount > 0)) throw new BadRequestException('Amount 0 se zyada honi chahiye');
     const total = billTotal(o);
     const remaining = r2(total - o.totalPaid);
     if (amount > remaining + 0.01) throw new BadRequestException(`Sirf Rs ${Math.max(remaining, 0)} baqi hai`);
@@ -252,7 +252,7 @@ export class CustomOrdersService {
       throw new BadRequestException('Furniture de diya gaya aur bill ban chuka — ab ye status nahi lag sakta');
     }
     if (dto.status === 'REFUNDED') {
-      throw new BadRequestException('Wapsi ki raqam customer ke khate se dein — order ko Cancel karein');
+      throw new BadRequestException('Return ki amount customer ke khate se dein — order ko Cancel karein');
     }
 
     const patch: any = { status: dto.status };

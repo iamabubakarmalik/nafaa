@@ -103,7 +103,7 @@ export async function recordKhataPayment(
   input: { customerId: string; shopId: string; amount: number; reference: string; note: string },
 ) {
   const amount = r2(input.amount);
-  if (amount <= 0) throw new BadRequestException('Raqam sahi likhein');
+  if (amount <= 0) throw new BadRequestException('Amount sahi likhein');
   const { balance } = await db.customer.update({
     where: { id: input.customerId },
     data: { balance: { decrement: amount } },
@@ -130,7 +130,7 @@ export async function postIndustrySale(db: Db, user: AuthenticatedUser, input: I
   if (existing) return existing;
 
   const lines = input.lines.filter((l) => r2(l.amount) > 0 || r2(l.cost ?? 0) > 0);
-  if (lines.length === 0) throw new BadRequestException('Bill me koi raqam nahi hai');
+  if (lines.length === 0) throw new BadRequestException('Bill me koi amount nahi hai');
 
   const subtotal = r2(lines.reduce((s, l) => s + r2(l.amount), 0));
   const discount = Math.min(r2(input.discount ?? 0), subtotal);
@@ -141,7 +141,7 @@ export async function postIndustrySale(db: Db, user: AuthenticatedUser, input: I
   const costOfGoods = r2(lines.reduce((s, l) => s + r2(l.cost ?? 0), 0));
 
   if (creditAmount > 0 && !input.customerId) {
-    throw new BadRequestException(`Rs ${creditAmount} baqi hai — udhaar ke liye customer select karein ya poori raqam lein`);
+    throw new BadRequestException(`Rs ${creditAmount} baqi hai — udhaar ke liye customer select karein ya poori amount lein`);
   }
 
   const shopId = await resolveIndustryShopId(db, user, input.shopId);

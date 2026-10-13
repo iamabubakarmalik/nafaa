@@ -30,15 +30,15 @@ function usePharmacyActions(): QuickAction[] {
     { to: '/pharmacy/expiring', icon: CalendarX, label: 'Expiry', hint: expiry.expired.length ? `${expiry.expired.length} expired` : `${expiry.month.length} 30 din me` },
     { to: '/pharmacy/medicines', icon: Pill, label: 'Dawaiyan', hint: `${medicines} medicines` },
     { to: '/pharmacy-medicines/new', icon: Plus, label: 'Nayi dawai', hint: 'Maal me daalein' },
-    { to: '/pharmacy/salts', icon: Beaker, label: 'Salts', hint: 'Formula se dhoondein' },
+    { to: '/pharmacy/salts', icon: Beaker, label: 'Salts', hint: 'Formula se search' },
     { to: '/pharmacy/doctors', icon: Stethoscope, label: 'Doctors', hint: 'Directory' },
     { to: '/pharmacy/controlled-log', icon: ShieldAlert, label: 'Controlled register', hint: 'Narcotic log' },
     { to: '/pharmacy/temperature-log', icon: Thermometer, label: 'Temp log', hint: tempBreaches ? `${tempBreaches} masle` : 'Fridge theek' },
-    { to: '/purchases', icon: ShoppingBag, label: 'Kharidari', hint: 'Maal mangwayein' },
+    { to: '/purchases', icon: ShoppingBag, label: 'Purchase', hint: 'Maal mangwayein' },
     { to: '/suppliers', icon: Building2, label: 'Suppliers', hint: `${s?.totalSuppliers ?? 0} distributor` },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }
@@ -60,7 +60,7 @@ export const pharmacyDashboard = createDashboard({
   useQuickActions: usePharmacyActions,
   moneyMap: { useNotes: usePharmacyMoneyNotes, productsPath: '/pharmacy/medicines' },
   guide: [
-    { icon: CalendarX, title: 'Expiry', text: 'Expire dawai bechna jurm hai aur paisa bhi doobta hai. Is liye har batch ke din aur us ki lagat likhi hai — 7 din wale pehle bechein ya supplier ko wapas karein.' },
+    { icon: CalendarX, title: 'Expiry', text: 'Expire dawai bechna jurm hai aur paisa bhi doobta hai. Is liye har batch ke din aur us ki cost likhi hai — 7 din wale pehle bechein ya supplier ko wapas karein.' },
     { icon: FileText, title: 'Nuskhe aur register', text: 'Kitne nuskhe check ke intezar me hain, kitne dene ko tayyar, fridge ka temperature theek raha ya nahi, aur controlled dawai ka register — sab upar.' },
   ],
 });

@@ -19,7 +19,7 @@ function useCosmeticsActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Sale karein' },
     { to: '/cosmetics-products/new', icon: Plus, label: 'Naya product', hint: 'Maal me daalein' },
     { to: '/cosmetics-products', icon: Package, label: 'Products', hint: `${totals.products || s?.totalProducts || 0} items` },
     { to: '/cosmetics/batches', icon: CalendarClock, label: 'Batches', hint: expiry.soon ? `${expiry.soon} expiry qareeb` : 'Expiry dekhein' },
@@ -28,7 +28,7 @@ function useCosmeticsActions(): QuickAction[] {
     { to: '/cosmetics/loyalty', icon: Heart, label: 'Loyalty', hint: `${loyalty.members} members` },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }

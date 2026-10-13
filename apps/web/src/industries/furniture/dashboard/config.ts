@@ -24,7 +24,7 @@ function useFurnitureActions(): QuickAction[] {
   const { cost } = useMasked();
   const s = data?.stats;
   return [
-    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Bikri karein' },
+    { to: '/pos', icon: ShoppingCart, label: 'POS', hint: 'Sale karein' },
     { to: '/furniture/custom-orders/new', icon: ClipboardList, label: 'Custom order', hint: 'Naya order' },
     { to: '/furniture/custom-orders', icon: ClipboardList, label: 'Orders', hint: `${f.activeOrders} chaalu` },
     { to: '/furniture/deliveries', icon: Truck, label: 'Deliveries', hint: f.todayDeliveries ? `${f.todayDeliveries} aaj` : `${f.pendingDeliveries} baqi` },
@@ -33,7 +33,7 @@ function useFurnitureActions(): QuickAction[] {
     { to: '/furniture-products', icon: Sofa, label: 'Maal', hint: `${s?.totalProducts ?? 0} cheezein` },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }
@@ -46,8 +46,8 @@ export const furnitureDashboard = createDashboard({
   defaultKpis: ['furniture-orders', 'furniture-late', 'furniture-deliveries', 'profit', 'cash', 'month'],
   useAttention: useFurnitureAttention,
   widgets: [
-    { id: 'furniture-pipeline', title: 'Custom orders', description: 'Quotation se tayyar tak, aur baqi raqam', size: 'third', sizes: ['third', 'half', 'wide'], Component: FurniturePipeline },
-    { id: 'furniture-late', title: 'Late orders', description: 'Jin ki delivery ki tareekh guzar gayi', size: 'third', sizes: ANY_SIZE, Component: FurnitureLateOrders },
+    { id: 'furniture-pipeline', title: 'Custom orders', description: 'Quotation se tayyar tak, aur baqi amount', size: 'third', sizes: ['third', 'half', 'wide'], Component: FurniturePipeline },
+    { id: 'furniture-late', title: 'Late orders', description: 'Jin ki delivery ki date guzar gayi', size: 'third', sizes: ANY_SIZE, Component: FurnitureLateOrders },
     { id: 'furniture-deliveries', title: 'Aaj ki deliveries', description: 'Aaj kahan aur kis waqt maal jana hai', size: 'third', sizes: ANY_SIZE, Component: FurnitureDeliveries },
   ],
   lateWidgets: [

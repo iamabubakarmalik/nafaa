@@ -72,7 +72,7 @@ export default function AlterationsPage() {
     const input = window.prompt(`Baqi Rs ${due}. Abhi kitne liye? (jo baqi rahe ga woh customer ke khate me jayega)`, String(due));
     if (input === null) return;
     const paidNow = Number(input);
-    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Raqam sahi likhein'); return; }
+    if (!Number.isFinite(paidNow) || paidNow < 0) { toast.error('Amount sahi likhein'); return; }
     statusMutation.mutate({ id: t.id, status, paidNow });
   };
 
@@ -81,7 +81,7 @@ export default function AlterationsPage() {
     const input = window.prompt(`Advance kitna liya? (baqi Rs ${due})`, String(due));
     if (input === null) return;
     const amount = Number(input);
-    if (!Number.isFinite(amount) || amount <= 0) { toast.error('Raqam sahi likhein'); return; }
+    if (!Number.isFinite(amount) || amount <= 0) { toast.error('Amount sahi likhein'); return; }
     advanceMutation.mutate({ id: t.id, amount });
   };
 

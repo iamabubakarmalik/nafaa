@@ -331,8 +331,8 @@ export default function FarmersPage() {
       [''],
     ];
     const cols = ['Farmer #', 'Naam', 'Walid', 'Phone', 'CNIC', 'Gaon', 'Tehsil', 'Zila', 'Soobha',
-      'Raqba (acre)', 'Fasal', 'Udhaar', 'Hadd', 'Credit din', 'Aakhri kharidari',
-      'Din guzre', 'Late din', 'Kul kharidari', 'Halat', 'Khata jura'];
+      'Raqba (acre)', 'Fasal', 'Udhaar', 'Hadd', 'Credit din', 'Aakhri purchase',
+      'Din guzre', 'Late din', 'Kul purchase', 'Halat', 'Khata jura'];
     const body = filtered.map((r) => [
       r.farmerNumber, r.fullName, r.fatherName ?? '', r.phone ?? '', r.cnic ?? '',
       r.village ?? '', r.tehsil ?? '', r.district ?? '', r.province ?? '',
@@ -474,7 +474,7 @@ export default function FarmersPage() {
             </h3>
             <p className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 mt-0.5">
               Farmer aur us ka khata (Customer) do alag cheezein hain. Jab tak ye jure na hon, POS
-              par us farmer ki bikri aur <strong>udhaar kahin darj nahi hota</strong> — aur yahan
+              par us farmer ki sale aur <strong>udhaar kahin darj nahi hota</strong> — aur yahan
               udhaar hamesha 0 dikhta hai. Ek click me sab jur jayenge.
             </p>
           </div>
@@ -748,7 +748,7 @@ function FarmerCard({ f, money, onEdit, onSuspend, onReactivate, onRemove, onLin
           <div className="font-black text-slate-900 dark:text-ink-white tabular-nums text-sm">{f.totalOrders ?? 0}</div>
         </div>
         <div className="text-center">
-          <div className="text-[0.625rem] uppercase font-black tracking-widest text-emerald-700 dark:text-emerald-400">Kharidari</div>
+          <div className="text-[0.625rem] uppercase font-black tracking-widest text-emerald-700 dark:text-emerald-400">Purchase</div>
           <div className="font-black text-emerald-700 dark:text-emerald-400 tabular-nums text-[0.6875rem] truncate">
             {money(Number(f.totalPurchases || 0))}
           </div>
@@ -993,7 +993,7 @@ function Analytics({ stats, money, hideAmounts, districtChart, cropChart, credit
       <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <MiniStat icon={Wallet} label="Bahar para paisa" value={money(stats.owed)}
           sub={`${stats.owingCount} farmer ke paas`} tone="amber" />
-        <MiniStat icon={TrendingUp} label="Kul kharidari" value={money(stats.purchases)}
+        <MiniStat icon={TrendingUp} label="Kul purchase" value={money(stats.purchases)}
           sub={`${stats.total} farmer`} tone="emerald" />
         <MiniStat icon={Layers} label="Kul raqba" value={`${Math.round(stats.acres)} acre`}
           sub={stats.total > 0 ? `aam ${(stats.acres / stats.total).toFixed(1)} acre` : undefined} tone="lime" />
@@ -1009,7 +1009,7 @@ function Analytics({ stats, money, hideAmounts, districtChart, cropChart, credit
           </div>
           {stats.unlinked > 0 && (
             <p className="text-[0.75rem] font-bold text-amber-900 dark:text-amber-200">
-              • <strong>{stats.unlinked}</strong> farmer ka khata jura hua nahi — un ki bikri aur
+              • <strong>{stats.unlinked}</strong> farmer ka khata jura hua nahi — un ki sale aur
               udhaar POS par darj hi nahi ho raha.
             </p>
           )}
@@ -1028,7 +1028,7 @@ function Analytics({ stats, money, hideAmounts, districtChart, cropChart, credit
 
       <div className="grid lg:grid-cols-2 gap-4">
         <ChartCard icon={Wallet} title="Udhaar kitna purana hai" wide>
-          {hideAmounts ? <EmptyBox text="🔒 Raqam chhupi hai — PIN se kholein" />
+          {hideAmounts ? <EmptyBox text="🔒 Amount chhupi hai — PIN se kholein" />
             : ageChart.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={ageChart}>
@@ -1102,7 +1102,7 @@ function Analytics({ stats, money, hideAmounts, districtChart, cropChart, credit
           title: r.fullName,
           sub: `${r.totalOrders ?? 0} order${r.landAreaAcres ? ` · ${r.landAreaAcres} acre` : ''}`,
           value: money(Number(r.totalPurchases || 0)),
-        }))} emptyText="Abhi koi kharidari nahi" />
+        }))} emptyText="Abhi koi purchase nahi" />
       </div>
     </div>
   );
@@ -1209,7 +1209,7 @@ function RemoveModal({ farmer, onClose, onConfirm, saving }: any) {
             </div>
           )}
           <p className="text-sm font-bold text-slate-700 dark:text-ink-200 leading-relaxed">
-            Farmer ka profile hat jayega. Us ka Customer khata aur purani bikri waise ki waisi
+            Farmer ka profile hat jayega. Us ka Customer khata aur purani sale waise ki waisi
             rahegi — sirf ye agri profile (zameen, fasal, CNIC) hategi.
           </p>
           <div className="flex gap-2">
@@ -1292,7 +1292,7 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
     <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-lg overflow-hidden print:hidden">
       <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between sticky top-0 z-10">
         <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
-          <Tractor className="h-5 w-5" /> {editing ? 'Farmer ki tafseel' : 'Naya farmer'}
+          <Tractor className="h-5 w-5" /> {editing ? 'Farmer ki details' : 'Naya farmer'}
         </h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
           <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
@@ -1373,7 +1373,7 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
                 onChange={(e) => setForm({ ...form, landAreaKanals: e.target.value })}
                 placeholder="40" className={`${inp} tabular-nums`} />
             </Field>
-            <Field label="Zameen ki qism" opt>
+            <Field label="Zameen ki type" opt>
               <select value={form.soilType} onChange={(e) => setForm({ ...form, soilType: e.target.value })} className={inp}>
                 <option value="">— Chunein —</option>
                 {SOIL_TYPES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -1682,12 +1682,12 @@ function Teacher({ onClose }: { onClose: () => void }) {
           <Tip icon={LinkIcon} title="Khata jorna — sab se pehle">
             Farmer aur us ka khata (Customer) do alag cheezein hain. Naya farmer banate hi khata
             khud ban jata hai, magar purane farmers ka khali hai. Jab tak na jure, POS par un ki
-            bikri aur <strong>udhaar kahin darj nahi hota</strong>. Amber patti par "Sab jor dein".
+            sale aur <strong>udhaar kahin darj nahi hota</strong>. Amber patti par "Sab jor dein".
           </Tip>
           <Tip icon={Clock} title="Kitne din ka udhaar">
             Har farmer ka apna "kitne din ka" hota hai — 60 din aam hai, purane gahak ko 90 bhi
             milte hain. Us se ooper jaye to wo <strong>Udhaar</strong> tab me sab se ooper aa jata
-            hai. Ye ginti aakhri kharidari se hoti hai.
+            hai. Ye ginti aakhri purchase se hoti hai.
           </Tip>
           <Tip icon={Wallet} title="Udhaar tab — katai ke dinon ka safha">
             Yehi list dukaan-daar haath me le kar nikalta hai. Purana sab se ooper, har line par
@@ -1703,7 +1703,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
           </Tip>
           <Tip icon={Ban} title="Band karna vs hatana">
             <strong>Band</strong> — naya udhaar nahi milega, purana khata mehfooz. Ye behtar hai.{' '}
-            <strong>Hatana</strong> — sirf agri profile jati hai, Customer khata aur purani bikri
+            <strong>Hatana</strong> — sirf agri profile jati hai, Customer khata aur purani sale
             rehti hai. Jis par paisa baqi ho, us ko hatayein nahi.
           </Tip>
           <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">

@@ -82,10 +82,10 @@ export class CombosService {
       const p = product.get(it.productId)!;
       const v = it.variantId ? variant.get(it.variantId) : undefined;
       const u = it.unitId ? unit.get(it.unitId) : undefined;
-      if (it.variantId && (!v || v.productId !== p.id)) throw new BadRequestException(`"${p.name}" ki qism nahi mili`);
+      if (it.variantId && (!v || v.productId !== p.id)) throw new BadRequestException(`"${p.name}" ki type nahi mili`);
       if (it.unitId && (!u || u.productId !== p.id)) throw new BadRequestException(`"${p.name}" ka pack nahi mila`);
       const key = `${p.id}:${v?.id ?? ''}:${u?.id ?? ''}`;
-      if (seen.has(key)) throw new BadRequestException(`"${p.name}" do dafa hai — ek hi line me miqdar barhayein`);
+      if (seen.has(key)) throw new BadRequestException(`"${p.name}" do dafa hai — ek hi line me quantity barhayein`);
       seen.add(key);
       const rate = u ? Number(u.conversionRate) || 1 : 1;
       const base = v ? Number(v.price) : Number(p.price);
@@ -117,7 +117,7 @@ export class CombosService {
   }
 
   private static checkDates(from?: Date | null, to?: Date | null) {
-    if (from && to && to < from) throw new BadRequestException('Khatam hone ki tareekh shuru se pehle nahi ho sakti');
+    if (from && to && to < from) throw new BadRequestException('Khatam hone ki date shuru se pehle nahi ho sakti');
   }
 
   private static savings(parts: Array<{ quantity: number; originalPrice: number }>, comboPrice: number) {
@@ -129,7 +129,7 @@ export class CombosService {
 
   private static oneThing(parts: Array<{ quantity: number }>) {
     if (parts.length === 1 && parts[0].quantity <= 1) {
-      throw new BadRequestException('Combo me kam az kam do cheezein, ya ek cheez ki ek se zyada miqdar honi chahiye');
+      throw new BadRequestException('Combo me kam az kam do cheezein, ya ek cheez ki ek se zyada quantity honi chahiye');
     }
   }
 

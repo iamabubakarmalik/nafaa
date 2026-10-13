@@ -118,7 +118,7 @@ export class CafeSessionsService {
       let customerId = s.customerId;
       if (!customerId && kept < totalAmount - 0.01) {
         if (!s.customerName?.trim()) {
-          throw new BadRequestException(`Rs ${r2(totalAmount - kept)} baqi hai — poori raqam lein, ya udhaar ke liye player ka naam likhein`);
+          throw new BadRequestException(`Rs ${r2(totalAmount - kept)} baqi hai — poori amount lein, ya udhaar ke liye player ka naam likhein`);
         }
         customerId = await ensureCustomer(tx, user, { name: s.customerName, phone: s.customerPhone, shopId });
       }

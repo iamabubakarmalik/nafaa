@@ -96,7 +96,7 @@ export function CakeOrderRow({ o, a }: { o: CakeOrder; a: CakeRowActions }) {
             {wa && (closed || !a.canManage) && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white px-2.5 text-[0.8125rem] font-semibold text-success-700 ring-1 ring-slate-200"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
             {a.canManage && !closed && CAKE_PREV[o.status] && <Button size="sm" variant="ghost" onClick={() => a.back(o)} disabled={busy} leftIcon={<Undo2 className="h-4 w-4" />}>Ek qadam peeche</Button>}
             {a.canManage && !closed && <Button size="sm" variant="ghost" className="text-rose-700" onClick={() => a.cancel(o)} leftIcon={<Ban className="h-4 w-4" />}>Cancel</Button>}
-            <Link to={`/bakery/cake-orders/${o.id}`} className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">Poori tafseel <ExternalLink className="h-3.5 w-3.5" /></Link>
+            <Link to={`/bakery/cake-orders/${o.id}`} className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">Poori details <ExternalLink className="h-3.5 w-3.5" /></Link>
           </div>
         </div>
       )}

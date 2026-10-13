@@ -35,7 +35,7 @@ function useAutoPartsActions(): QuickAction[] {
     { to: '/autoparts/models', icon: Cog, label: 'Model', hint: 'Kis gaari ka part' },
     { to: '/customers', icon: Users, label: 'Customers', hint: `${s?.totalCustomers ?? 0} log` },
     { to: '/khata', icon: BookOpen, label: 'Khata', hint: cost(s?.totalUdhaar) },
-    { to: '/sales', icon: Receipt, label: 'Bikri record', hint: 'Purane bill' },
+    { to: '/sales', icon: Receipt, label: 'Sale record', hint: 'Purane bill' },
     { to: '/reports', icon: BarChart3, label: 'Reports', hint: 'Poora hisaab' },
   ];
 }
@@ -59,6 +59,6 @@ export const autoPartsDashboard = createDashboard({
   moneyMap: { productsPath: '/autoparts/parts' },
   guide: [
     { icon: Wrench, title: 'Workshop board', text: 'Kaunsi gaari par kaam chal raha hai, kaunsi parts ke intezar me ruki hai aur kaunsi tayyar hai. Waade se late gaari laal me sab se upar.' },
-    { icon: Bell, title: 'Reminder se dobara customer', text: 'Oil change aur service ki tareekh guzarne par customer ko call karein. Insurance, token aur fitness khatam hone wali gaariyan bhi yahan nazar aati hain.' },
+    { icon: Bell, title: 'Reminder se dobara customer', text: 'Oil change aur service ki date guzarne par customer ko call karein. Insurance, token aur fitness khatam hone wali gaariyan bhi yahan nazar aati hain.' },
   ],
 });

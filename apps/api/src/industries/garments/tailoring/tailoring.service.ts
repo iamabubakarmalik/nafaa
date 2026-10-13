@@ -216,7 +216,7 @@ export class TailoringService {
       let customerId = order.customerId;
       if (!customerId && stillOwed > 0) {
         if (!order.customerName?.trim()) {
-          throw new BadRequestException(`Rs ${stillOwed} baqi hai — poori raqam lein, ya udhaar ke liye customer ka naam likhein`);
+          throw new BadRequestException(`Rs ${stillOwed} baqi hai — poori amount lein, ya udhaar ke liye customer ka naam likhein`);
         }
         customerId = await ensureCustomer(tx, user, {
           name: order.customerName, phone: order.customerPhone, shopId,
@@ -271,11 +271,11 @@ export class TailoringService {
     if (!order) throw new NotFoundException('Order not found');
     if (order.orderStatus === 'CANCELLED') throw new BadRequestException('Cancel shuda order par payment nahi li ja sakti');
     if (order.orderStatus === 'DELIVERED') {
-      throw new BadRequestException('Order deliver ho chuka — baqi raqam customer ke khate se wasool karein');
+      throw new BadRequestException('Order deliver ho chuka — baqi amount customer ke khate se wasool karein');
     }
     const due = Math.round((Number(order.total) - Number(order.paidAmount)) * 100) / 100;
     if (dto.amount > due + 0.01) {
-      throw new BadRequestException(due > 0 ? `Baqi sirf Rs ${due} hai` : 'Is order ki poori raqam mil chuki hai');
+      throw new BadRequestException(due > 0 ? `Baqi sirf Rs ${due} hai` : 'Is order ki poori amount mil chuki hai');
     }
 
     return this.prisma.$transaction(async (tx) => {

@@ -12,7 +12,7 @@ export class FarmerSuppliesService {
     const farmer = await this.prisma.dairyFarmer.findFirst({ where: { id: dto.farmerId, tenantId: user.tenantId } });
     if (!farmer) throw new NotFoundException('Farmer not found');
     if (!farmer.isActive) throw new BadRequestException('Farmer is inactive');
-    if (!(dto.quantity > 0)) throw new BadRequestException('Doodh ki miqdar 0 se zyada likhein');
+    if (!(dto.quantity > 0)) throw new BadRequestException('Doodh ki quantity 0 se zyada likhein');
 
     const rate = dto.ratePerLiter ?? farmer.ratePerLiter;
     const fatBonus = dto.fatContent && dto.fatContent > 6 ? (dto.fatContent - 6) * farmer.fatBonusRate * dto.quantity : 0;

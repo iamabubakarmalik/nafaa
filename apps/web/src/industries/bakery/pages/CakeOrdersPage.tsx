@@ -166,12 +166,12 @@ export default function CakeOrdersPage() {
       {tab === 'week' ? (
         <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Agle 7 din — har din ke cake waqt ke hisaab se. Card par click karein to order khulega.</p>} />
       ) : tab === 'analytics' ? (
-        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Jin orders ki dene ki tareekh is muddat me hai</p>}>
+        <FilterBar search={<p className="flex min-w-0 flex-1 items-center text-[0.8125rem] text-slate-500">Jin orders ki dene ki date is period me hai</p>}>
           <DateRangeMenu value={aRange} onChange={setARange} startHour={startHour} defaultPreset="thisMonth" allowAll={false} />
         </FilterBar>
       ) : (
         <FilterBar
-          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer, phone, order #, cake par likha…" label="Dhoondein" />}
+          search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Customer, phone, order #, cake par likha…" label="Search" />}
           chips={filtered ? <>
             {range.preset !== 'all' && period && <FilterChip onRemove={() => setRange({ preset: 'all', custom: { from: '', to: '' } })}>Dena: {rangeLabel(period.from, period.to)}</FilterChip>}
             {delivery && <FilterChip onRemove={() => setDelivery('')}>{deliveryOf(delivery).label}</FilterChip>}
@@ -181,7 +181,7 @@ export default function CakeOrdersPage() {
           onClear={clear}>
           <FilterMenu icon={Filter} label={viewLabel(view)} value={view} active={view !== 'active'} onChange={setView} width="w-72"
             options={VIEWS.map((v) => ({ value: v.id, label: v.label, icon: v.icon, hint: counts ? `${counts[v.id]} orders` : undefined }))} />
-          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Dene ki tareekh" />
+          <DateRangeMenu value={range} onChange={setRange} startHour={startHour} label="Dene ki date" />
           <FilterMenu icon={Truck} label="Kaise dena" value={delivery} active={!!delivery} onChange={setDelivery}
             options={[{ value: '', label: 'Sab' }, ...DELIVERY.map((d) => ({ value: d.id as string, label: d.label, icon: d.icon }))]} />
           <FilterMenu icon={PartyPopper} label="Mauqa" value={occasion} active={!!occasion} onChange={setOccasion} align="right" width="w-64"
@@ -192,7 +192,7 @@ export default function CakeOrdersPage() {
       )}
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> dhoondein · <Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
+        hint={<>{canManage && <><Kbd>N</Kbd> naya · </>}<Kbd>/</Kbd> search · <Kbd>1</Kbd>-<Kbd>3</Kbd> tabs</>}
         tabs={[
           { id: 'orders', label: 'Orders', icon: ListChecks, count: data?.total ?? null },
           { id: 'week', label: 'Hafta', icon: CalendarDays },
@@ -250,18 +250,18 @@ export default function CakeOrdersPage() {
       {guide.isOpen && (
         <PageGuide title="Cake orders — aasaan tareeqa" onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#db2777', title: 'Order likhein', text: '"Naya order": customer, cake ki tafseel, design ki photo, kab chahiye aur advance. Save hote hi WhatsApp par tasdeeq bhej sakte hain.' },
+            { icon: Plus, color: '#db2777', title: 'Order likhein', text: '"Naya order": customer, cake ki details, design ki photo, kab chahiye aur advance. Save hote hi WhatsApp par tasdeeq bhej sakte hain.' },
             { icon: ChefHat, color: '#7c3aed', title: 'Agla qadam — ek button', text: 'Pakka → banana shuru → sajawat → tayyar → (pahunchana ho to "bhej diya") → de diya. Ghalti ho to "Ek qadam peeche".' },
-            { icon: Receipt, color: '#16a34a', title: '"De diya" = asli bill', text: 'Cake dete hi bill banta hai: jura hua maal stock se ghatta hai, rakam Bikri me aati hai aur baqi customer ke khate me. Ek order ka bill do dafa nahi banta.' },
+            { icon: Receipt, color: '#16a34a', title: '"De diya" = asli bill', text: 'Cake dete hi bill banta hai: jura hua maal stock se ghatta hai, rakam Sale me aati hai aur baqi customer ke khate me. Ek order ka bill do dafa nahi banta.' },
             { icon: Wallet, color: '#0891b2', title: 'Advance', text: '"Paisa mila" se advance likhein. Advance poora hote hi order khud "Advance mila" ho jata hai.' },
             { icon: Printer, color: '#ea580c', title: 'Parchi', text: 'Customer ki parchi me rakam aur baqi; kitchen parchi me sirf banane ki tafseel. Dukaan ke bill design me chhapti hai.' },
-            { icon: MessageCircle, color: '#22c55e', title: 'WhatsApp', text: 'Har order par WhatsApp button — order ki tafseel, waqt aur baqi paisa khud likha hua jata hai.' },
+            { icon: MessageCircle, color: '#22c55e', title: 'WhatsApp', text: 'Har order par WhatsApp button — order ki details, waqt aur baqi paisa khud likha hua jata hai.' },
           ]}
           tips={[
             'Aaj aur Late wale card roz subah dekhein — late cake ka customer wapas nahi aata.',
             'Bara cake bina advance ke na banayein; list me adhoora advance peela dikhta hai.',
             '"Hafta" tab se pata chalta hai kis din zyada kaam hai.',
-            'Order likhne aur badalne ke liye "Bakery orders sambhalna" ki ijazat chahiye.',
+            'Order likhne aur badalne ke liye "Bakery orders sambhalna" ki permission chahiye.',
           ]}
           shortcuts={[['N', 'naya order'], ['/', 'dhoondein'], ['1', 'orders'], ['2', 'hafta'], ['3', 'analytics'], ['G', 'guide']]}
         />

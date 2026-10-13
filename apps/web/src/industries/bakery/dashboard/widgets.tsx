@@ -57,7 +57,7 @@ export function useBakeryAttention(): AttentionItem[] {
   const { fresh, orders, raw, production } = useBakeryOps();
   const items: AttentionItem[] = [];
 
-  if (fresh.expired.length) items.push({ icon: Flame, level: 'danger', text: `${fresh.expired.length} batch ka waqt guzar chuka — aaj hi nikalna ya phenkna hai`, to: '/bakery/freshness', cta: 'Taazgi dekhein' });
+  if (fresh.expired.length) items.push({ icon: Flame, level: 'danger', text: `${fresh.expired.length} batch ka waqt guzar chuka — aaj hi nikalna ya phenkna hai`, to: '/bakery/freshness', cta: 'Freshness dekhein' });
   if (orders.late.length) items.push({ icon: AlertTriangle, level: 'danger', text: `${orders.late.length} order late hai — customer ko batana zaroori hai`, to: '/bakery/cake-orders', cta: 'Orders dekhein' });
   if (fresh.urgent.length) items.push({ icon: Timer, level: 'warning', text: `${fresh.urgent.length} batch agle 12 ghante me kharab ho jayega — discount laga dein`, to: '/bakery/freshness', cta: 'Jaldi bechein' });
   if (raw.critical) items.push({ icon: Wheat, level: 'warning', text: `${raw.critical} zaroori saamaan khatam — is ke bagair banana ruk jayega`, to: '/bakery/ingredients', cta: 'Saamaan mangwayein' });
@@ -254,7 +254,7 @@ export function useBakeryMoneyNotes() {
       title={`${formatPKR(fresh.value)} ka maal 24 ghante me kharab ho jayega`}
       text="Aaj nahi nikla to kal kachra hai — discount laga dein, ya staff ko de dein"
       to="/bakery/freshness"
-      cta="Taazgi dekhein"
+      cta="Freshness dekhein"
     />
   );
 }

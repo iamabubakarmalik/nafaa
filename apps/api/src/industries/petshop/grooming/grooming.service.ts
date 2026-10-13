@@ -45,7 +45,7 @@ export class GroomingService {
     }
 
     const scheduledDate = parseDay(dto.scheduledDate);
-    if (!scheduledDate) throw new BadRequestException('Tareekh sahi chunein');
+    if (!scheduledDate) throw new BadRequestException('Date sahi chunein');
 
     // Prevent double booking
     if (dto.groomerId && dto.scheduledSlot) {
@@ -193,7 +193,7 @@ export class GroomingService {
       groomerName = null;
     }
     const scheduledDate = dto.scheduledDate ? parseDay(dto.scheduledDate) : undefined;
-    if (dto.scheduledDate && !scheduledDate) throw new BadRequestException('Tareekh sahi chunein');
+    if (dto.scheduledDate && !scheduledDate) throw new BadRequestException('Date sahi chunein');
 
     const serviceFee = dto.serviceFee ?? a.serviceFee;
     const additionalCharges = dto.additionalCharges ?? a.additionalCharges;
@@ -312,9 +312,9 @@ export class GroomingService {
   async recordPayment(user: AuthenticatedUser, scope: ShopScope, id: string, dto: GroomingPaymentDto) {
     const a = await this.prisma.petGroomingAppointment.findFirst({ where: { id, tenantId: user.tenantId } });
     if (!a) throw new NotFoundException('Appointment not found');
-    if (a.status === 'COMPLETED' || a.status === 'CANCELLED') throw new BadRequestException('Is appointment par ab raqam nahi li ja sakti');
+    if (a.status === 'COMPLETED' || a.status === 'CANCELLED') throw new BadRequestException('Is appointment par ab amount nahi li ja sakti');
     const amount = r2(dto.amount);
-    if (!(amount > 0)) throw new BadRequestException('Raqam sahi likhein');
+    if (!(amount > 0)) throw new BadRequestException('Amount sahi likhein');
     if (a.paidAmount + amount > a.totalFee + 0.01) throw new BadRequestException('Payment exceeds total fee');
 
     return this.prisma.$transaction(async (tx) => {
@@ -381,7 +381,7 @@ export class GroomingService {
     if (!g) throw new NotFoundException('Groomer not found');
 
     const day = parseDay(date);
-    if (!day) throw new BadRequestException('Tareekh sahi chunein');
+    if (!day) throw new BadRequestException('Date sahi chunein');
     if (!g.workingDays.includes(weekdayInTz(day))) {
       return { available: [], booked: [], reason: 'Groomer not working on this day' };
     }

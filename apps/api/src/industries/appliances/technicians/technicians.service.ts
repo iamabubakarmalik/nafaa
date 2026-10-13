@@ -191,7 +191,7 @@ export class TechniciansService {
     const start = new Date(from);
     const end = new Date(to);
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      throw new BadRequestException('Tareekh sahi nahi hai');
+      throw new BadRequestException('Date sahi nahi hai');
     }
     end.setHours(23, 59, 59, 999);
 

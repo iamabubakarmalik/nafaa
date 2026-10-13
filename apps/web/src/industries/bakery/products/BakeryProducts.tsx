@@ -16,7 +16,7 @@ const shelfLife = (days: number | null, hours: number | null) =>
 function IngredientsLink() {
   return (
     <Link to="/bakery/ingredients" className={heroButton}>
-      <Wheat className="h-4 w-4" /><span className="hidden sm:inline">Kachcha maal</span>
+      <Wheat className="h-4 w-4" /><span className="hidden sm:inline">Raw material</span>
     </Link>
   );
 }
@@ -52,14 +52,14 @@ const base: ProductsPageConfig = {
   stockChips: (item) => (item.bakery?.kind === 'made' ? [1, 6, 12, 24, 50] : [1, 5, 10, 25]),
   guide: [
     { icon: Clock, color: '#ea580c', title: 'Shelf life', text: 'Jo cheez khud banti hai uske kitne din chalne ki had likhein — card par dikhti hai, purani cheez pehle bechein.' },
-    { icon: Wheat, color: '#a16207', title: 'Kachcha maal', text: '"Kachcha maal" tab mein atta, cheeni, makhan ka stock — jo had se kam ho woh peela.' },
+    { icon: Wheat, color: '#a16207', title: 'Raw material', text: '"Raw material" tab mein atta, cheeni, makhan ka stock — jo had se kam ho woh peela.' },
   ],
 };
 
 export default function BakeryProducts() {
   const seeRaw = usePermission(PERMISSIONS.BAKERY_INGREDIENTS_VIEW);
   const config = useMemo<ProductsPageConfig>(() => (seeRaw
-    ? { ...base, HeroExtra: IngredientsLink, extraTab: { id: 'raw', label: 'Kachcha maal', icon: Wheat, Component: BakeryRawMaterials } }
+    ? { ...base, HeroExtra: IngredientsLink, extraTab: { id: 'raw', label: 'Raw material', icon: Wheat, Component: BakeryRawMaterials } }
     : base), [seeRaw]);
   return <ProductsPage config={config} />;
 }

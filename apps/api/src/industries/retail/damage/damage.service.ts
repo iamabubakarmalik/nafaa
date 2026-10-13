@@ -71,7 +71,7 @@ export class DamageService {
       cost = Number(v.costPrice) || cost;
     } else if (product.hasVariants) {
       const count = await this.prisma.productVariant.count({ where: { productId: product.id, isActive: true } });
-      if (count) throw new BadRequestException('Is product ki qismein hain — qism (variant) chunein');
+      if (count) throw new BadRequestException('Is product ki qismein hain — type (variant) chunein');
     }
 
     let rate = 1;
@@ -203,7 +203,7 @@ export class DamageService {
     let approved = 0;
     for (const id of [...new Set(ids)]) {
       try { await this.approve(user, scope, id, notes); approved++; } catch (e) {
-        failed.push({ id, message: e instanceof Error ? e.message : 'Manzoor nahi hua' });
+        failed.push({ id, message: e instanceof Error ? e.message : 'Approve nahi hua' });
       }
     }
     return { approved, failed };
