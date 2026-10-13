@@ -260,7 +260,8 @@ export class ProfitAnalysisService {
     const ctx = await this.context(user, scope, q);
     const [cur, prev] = await Promise.all([
       this.grouped(ctx, ctx.cur.range, ['variant', 'product', 'category', 'brand', 'day', 'staff', 'total']),
-      this.grouped(ctx, ctx.prev.range, ['product', 'category', 'brand', 'staff', 'total']),
+      // GROUPING(...) needs every column in some set, so the previous period asks for all of them too.
+      this.grouped(ctx, ctx.prev.range, ['variant', 'product', 'category', 'brand', 'day', 'staff', 'total']),
     ]);
     const pick = (rows: RawGroup[], s: SetName) => rows.filter((r) => r.g === SET[s].g);
 
